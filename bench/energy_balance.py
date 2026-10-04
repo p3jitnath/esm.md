@@ -212,11 +212,12 @@ def cases():
         yield "relaxation", 7, round(1/dt), dt
     for dt in (1/256, 1/512, 1/1024):
         yield "mode", 16, round(0.5/dt), dt
-    for n in (1, 2, 7, 31, 128, 8193):
+    for n in (1, 2, 7, 8, 31, 128, 8193):
         yield "climate", n, 8, None
     yield "climate", 31, 1000, None
     for case in ("tie", "negative-zero"):
-        yield case, 7, 8, 0.1
+        for n in (7, 8):
+            yield case, n, 8, 0.1
 
 
 def verify(names, metadata):
@@ -305,8 +306,45 @@ def verify(names, metadata):
             worker.close()
 
 
-def native_batch(backend,seed,coeff,par,steps):
-    b=Buffers(seed,coeff,par)
+def native_batch(backend,seed,coeff,par,steps,buffers=None):
+    """Time complete updates using reset input and reusable native storage.
+
+    Parameters
+    ----------
+    backend : Backend
+        Verified implementation with a complete-update entry point.
+    seed : ndarray of float64, shape (n,)
+        Frozen temperature in degrees Celsius.
+    coeff : ndarray of float64, shape (3, n + 2)
+        Immutable K, W, and I planes in the formulation's units.
+    par : ndarray of float64, shape (6,)
+        Immutable C, dt, delta, A, B, and Tf values.
+    steps : int
+        Number of complete updates to time.
+    buffers : Buffers, optional
+        Disjoint matching storage, mutated during warm-up and execution.
+
+    Returns
+    -------
+    record : dict
+        Timing, occupancy, counters, and native buffer addresses.
+    stage, final : ndarray of float64
+        Complete padded states that alias the reusable buffers.
+
+    Raises
+    ------
+    AssertionError
+        An output, coefficient, parameter, halo, or guard violates the contract.
+    RuntimeError
+        The hardware counter group cannot be read.
+
+    Notes
+    -----
+    Restore the frozen input before and after four warm-up steps, keeping
+    initialisation and validation outside the complete-update timer.
+    """
+    b=Buffers(seed,coeff,par) if buffers is None else buffers
+    b.reset(seed)
     start=time.perf_counter_ns(); backend.bind(b,2)(); warmup=time.perf_counter_ns()-start
     backend.bind(b,2)(); b.reset(seed)
     call=backend.bind(b,steps)
@@ -327,6 +365,7 @@ def native_batch(backend,seed,coeff,par,steps):
         setup.update({"numba_cache_hits":sum(stats.cache_hits.values()),
                       "numba_cache_misses":sum(stats.cache_misses.values())})
     return {"elapsed_ns":elapsed,"setup":setup,"pmu":pmu,
+            "buffer_addresses":{name:int(getattr(b,name).ctypes.data) for name in ("q","stage","out","work","coeff","par")},
             "foreign_busy_cores_during_batch":protocol._foreign_load(before,after)},b.stage,final
 
 
@@ -341,6 +380,7 @@ def benchmark(names,metadata,sizes,repeats,target,fixed):
     try:
         for index,n in enumerate(sizes):
             seed,coeff,par,_=inputs(n)
+            native_buffers=Buffers(seed,coeff,par)
             path=RUNS/("timed-%d-input.bin"%n); write(path,Buffers(seed,coeff,par).q,coeff,par)
             def batch(name,steps,expected=None):
                 before=protocol._quiet(metadata)
@@ -348,7 +388,7 @@ def benchmark(names,metadata,sizes,repeats,target,fixed):
                 if name in julias:
                     record=julias[name].batch(path,prefix,steps)
                 else:
-                    record,stage,final=native_batch(backends[name],seed,coeff,par,steps)
+                    record,stage,final=native_batch(backends[name],seed,coeff,par,steps,native_buffers)
                     if expected is not None:
                         protocol._compare(expected[0],stage,name+" timed stage")
                         protocol._compare(expected[1],final,name+" timed final")
@@ -401,7 +441,9 @@ def benchmark(names,metadata,sizes,repeats,target,fixed):
                 "julia_startup_ns":{n:w.startup_ns for n,w in julias.items()},
                 "protocol":{"repeats":repeats,"target_seconds":target,"fixed_steps":fixed,"warmup_steps":4,
                             "quiet_attempt_limit":3,"quiet_limit_foreign_busy_cores":1.0,
-                            "cache_preparation":"fill reusable buffers, then restore the shared input",
+                            "cache_preparation":"reset shared native buffers before warm-up and after four warm-up steps",
+                            "native_buffer_placement":"identical arrays reused across native implementations; addresses recorded in each sample",
+                            "julia_buffer_placement":"separate workers allocate each batch; addresses and repeated variation are recorded",
                             "garbage_collection":"disabled inside timer","order":"rotating and reversed"},"results":results}
         (RUNS/"timing.json").write_text(json.dumps(report,indent=2)+"\n")
     finally:

@@ -1,8 +1,8 @@
-// Direct AArch64 SVE realisation of budyko_sellers.md revision 1.1.
+// Direct AArch64 NEON/SVE realisation of budyko_sellers.md revision 1.1.
 // Public ABI: w0=N; x1=q, x2=stage, x3=out, x4=work, x5=K/W/I, x6=par.
 // eb_run also takes w7=steps. Buffers are disjoint, contiguous, and 8-byte aligned.
 // Each state has N+2 doubles; coefficients contain three such planes.
-// The target has two FP64 SVE lanes; separate predicates protect all eight vector tails.
+// The target has two FP64 SVE lanes; complete sixteen-cell NEON groups use bounded SVE tails.
 // x19-x29 and the low 64 bits of v8-v15 are preserved; the stack stays 16-byte aligned.
 .text
 .p2align 4
@@ -21,9 +21,8 @@
 .p2align 4
 .type \name,%function
 \name:
-    // x0=q, x1=base, x2=out, x3=coeff, x4=N, x5=plane bytes.
-    // z24=beta, z25=delta or exact inverse, z26=A, z27=B, z28=Tf, z29=1/2.
-    // Independent vectors cover latency; exact east fluxes supply adjacent west fluxes.
+    // D02-D03 use complete NEON groups and bounded SVE remainders.
+    // Each rounded east face becomes the next cell’s west face.
     add x6,x3,x5
     add x9,x6,x5
     mov x7,x17
@@ -39,63 +38,41 @@
     fmul d2,d2,d1
     dup z31.d,z2.d[0]
 .Leb_seeded\@:
-.Leb_cells\@:
+    add x8,x7,#16
+    cmp x8,x4
+    b.hi .Leb_tail\@
+.Leb_bulk\@:
     add x8,x7,#1
-    add x17,x7,#0
-    whilelo p0.d,x17,x4
-    add x17,x17,#2
-    ld1d {z0.d},p0/z,[x0,x8,lsl #3]
-    ld1d {z2.d},p0/z,[x0,x17,lsl #3]
-    ld1d {z1.d},p0/z,[x3,x8,lsl #3]
-    add x10,x7,#3
-    add x17,x7,#2
-    whilelo p1.d,x17,x4
-    add x17,x17,#2
-    ld1d {z3.d},p1/z,[x0,x10,lsl #3]
-    ld1d {z5.d},p1/z,[x0,x17,lsl #3]
-    ld1d {z4.d},p1/z,[x3,x10,lsl #3]
-    add x11,x7,#5
-    add x17,x7,#4
-    whilelo p2.d,x17,x4
-    add x17,x17,#2
-    ld1d {z6.d},p2/z,[x0,x11,lsl #3]
-    ld1d {z8.d},p2/z,[x0,x17,lsl #3]
-    ld1d {z7.d},p2/z,[x3,x11,lsl #3]
-    add x12,x7,#7
-    add x17,x7,#6
-    whilelo p3.d,x17,x4
-    add x17,x17,#2
-    ld1d {z9.d},p3/z,[x0,x12,lsl #3]
-    ld1d {z11.d},p3/z,[x0,x17,lsl #3]
-    ld1d {z10.d},p3/z,[x3,x12,lsl #3]
-    add x13,x7,#9
-    add x17,x7,#8
-    whilelo p4.d,x17,x4
-    add x17,x17,#2
-    ld1d {z12.d},p4/z,[x0,x13,lsl #3]
-    ld1d {z14.d},p4/z,[x0,x17,lsl #3]
-    ld1d {z13.d},p4/z,[x3,x13,lsl #3]
-    add x14,x7,#11
-    add x17,x7,#10
-    whilelo p5.d,x17,x4
-    add x17,x17,#2
-    ld1d {z15.d},p5/z,[x0,x14,lsl #3]
-    ld1d {z17.d},p5/z,[x0,x17,lsl #3]
-    ld1d {z16.d},p5/z,[x3,x14,lsl #3]
-    add x15,x7,#13
-    add x17,x7,#12
-    whilelo p6.d,x17,x4
-    add x17,x17,#2
-    ld1d {z18.d},p6/z,[x0,x15,lsl #3]
-    ld1d {z20.d},p6/z,[x0,x17,lsl #3]
-    ld1d {z19.d},p6/z,[x3,x15,lsl #3]
-    add x16,x7,#15
-    add x17,x7,#14
-    whilelo p7.d,x17,x4
-    add x17,x17,#2
-    ld1d {z21.d},p7/z,[x0,x16,lsl #3]
-    ld1d {z23.d},p7/z,[x0,x17,lsl #3]
-    ld1d {z22.d},p7/z,[x3,x16,lsl #3]
+    add x10,x3,x8,lsl #3
+    add x11,x6,x8,lsl #3
+    add x12,x9,x8,lsl #3
+    add x13,x2,x8,lsl #3
+    add x14,x1,x8,lsl #3
+    add x8,x0,x8,lsl #3
+    ldr q0,[x8,#0]
+    ldr q1,[x10,#0]
+    ldr q3,[x8,#16]
+    ldr q4,[x10,#16]
+    ldr q6,[x8,#32]
+    ldr q7,[x10,#32]
+    ldr q9,[x8,#48]
+    ldr q10,[x10,#48]
+    ldr q12,[x8,#64]
+    ldr q13,[x10,#64]
+    ldr q15,[x8,#80]
+    ldr q16,[x10,#80]
+    ldr q18,[x8,#96]
+    ldr q19,[x10,#96]
+    ldr q21,[x8,#112]
+    ldr q22,[x10,#112]
+    ext v2.16b,v0.16b,v3.16b,#8
+    ext v5.16b,v3.16b,v6.16b,#8
+    ext v8.16b,v6.16b,v9.16b,#8
+    ext v11.16b,v9.16b,v12.16b,#8
+    ext v14.16b,v12.16b,v15.16b,#8
+    ext v17.16b,v15.16b,v18.16b,#8
+    ext v20.16b,v18.16b,v21.16b,#8
+    ldur q23,[x8,#120]
     fsub z2.d,z2.d,z0.d
     fsub z5.d,z5.d,z3.d
     fsub z8.d,z8.d,z6.d
@@ -112,88 +89,23 @@
     fmul z16.d,z16.d,z17.d
     fmul z19.d,z19.d,z20.d
     fmul z22.d,z22.d,z23.d
-    ld1d {z2.d},p0/z,[x6,x8,lsl #3]
-    ld1d {z30.d},p0/z,[x9,x8,lsl #3]
-    fcmle p8.d,p0/z,z0.d,z28.d
-    sel z2.d,p8,z30.d,z2.d
-    fmul z30.d,z27.d,z0.d
-    fadd z30.d,z26.d,z30.d
-    fsub z2.d,z2.d,z30.d
-    ld1d {z5.d},p1/z,[x6,x10,lsl #3]
-    ld1d {z30.d},p1/z,[x9,x10,lsl #3]
-    fcmle p8.d,p1/z,z3.d,z28.d
-    sel z5.d,p8,z30.d,z5.d
-    fmul z30.d,z27.d,z3.d
-    fadd z30.d,z26.d,z30.d
-    fsub z5.d,z5.d,z30.d
-    ld1d {z8.d},p2/z,[x6,x11,lsl #3]
-    ld1d {z30.d},p2/z,[x9,x11,lsl #3]
-    fcmle p8.d,p2/z,z6.d,z28.d
-    sel z8.d,p8,z30.d,z8.d
-    fmul z30.d,z27.d,z6.d
-    fadd z30.d,z26.d,z30.d
-    fsub z8.d,z8.d,z30.d
-    ld1d {z11.d},p3/z,[x6,x12,lsl #3]
-    ld1d {z30.d},p3/z,[x9,x12,lsl #3]
-    fcmle p8.d,p3/z,z9.d,z28.d
-    sel z11.d,p8,z30.d,z11.d
-    fmul z30.d,z27.d,z9.d
-    fadd z30.d,z26.d,z30.d
-    fsub z11.d,z11.d,z30.d
-    ld1d {z14.d},p4/z,[x6,x13,lsl #3]
-    ld1d {z30.d},p4/z,[x9,x13,lsl #3]
-    fcmle p8.d,p4/z,z12.d,z28.d
-    sel z14.d,p8,z30.d,z14.d
-    fmul z30.d,z27.d,z12.d
-    fadd z30.d,z26.d,z30.d
-    fsub z14.d,z14.d,z30.d
-    ld1d {z17.d},p5/z,[x6,x14,lsl #3]
-    ld1d {z30.d},p5/z,[x9,x14,lsl #3]
-    fcmle p8.d,p5/z,z15.d,z28.d
-    sel z17.d,p8,z30.d,z17.d
-    fmul z30.d,z27.d,z15.d
-    fadd z30.d,z26.d,z30.d
-    fsub z17.d,z17.d,z30.d
-    ld1d {z20.d},p6/z,[x6,x15,lsl #3]
-    ld1d {z30.d},p6/z,[x9,x15,lsl #3]
-    fcmle p8.d,p6/z,z18.d,z28.d
-    sel z20.d,p8,z30.d,z20.d
-    fmul z30.d,z27.d,z18.d
-    fadd z30.d,z26.d,z30.d
-    fsub z20.d,z20.d,z30.d
-    ld1d {z23.d},p7/z,[x6,x16,lsl #3]
-    ld1d {z30.d},p7/z,[x9,x16,lsl #3]
-    fcmle p8.d,p7/z,z21.d,z28.d
-    sel z23.d,p8,z30.d,z23.d
-    fmul z30.d,z27.d,z21.d
-    fadd z30.d,z26.d,z30.d
-    fsub z23.d,z23.d,z30.d
     umov x17,v22.d[1]
-    mov z30.d,z19.d
-    ext z30.b,z30.b,z22.b,#8
+    ext v30.16b,v19.16b,v22.16b,#8
     fsub z22.d,z22.d,z30.d
-    mov z30.d,z16.d
-    ext z30.b,z30.b,z19.b,#8
+    ext v30.16b,v16.16b,v19.16b,#8
     fsub z19.d,z19.d,z30.d
-    mov z30.d,z13.d
-    ext z30.b,z30.b,z16.b,#8
+    ext v30.16b,v13.16b,v16.16b,#8
     fsub z16.d,z16.d,z30.d
-    mov z30.d,z10.d
-    ext z30.b,z30.b,z13.b,#8
+    ext v30.16b,v10.16b,v13.16b,#8
     fsub z13.d,z13.d,z30.d
-    mov z30.d,z7.d
-    ext z30.b,z30.b,z10.b,#8
+    ext v30.16b,v7.16b,v10.16b,#8
     fsub z10.d,z10.d,z30.d
-    mov z30.d,z4.d
-    ext z30.b,z30.b,z7.b,#8
+    ext v30.16b,v4.16b,v7.16b,#8
     fsub z7.d,z7.d,z30.d
-    mov z30.d,z1.d
-    ext z30.b,z30.b,z4.b,#8
+    ext v30.16b,v1.16b,v4.16b,#8
     fsub z4.d,z4.d,z30.d
-    mov z30.d,z31.d
-    ext z30.b,z30.b,z1.b,#8
+    ext v30.16b,v31.16b,v1.16b,#8
     fsub z1.d,z1.d,z30.d
-    dup z31.d,x17
 .if \scaled
     fmul z1.d,z1.d,z25.d
     fmul z4.d,z4.d,z25.d
@@ -204,15 +116,71 @@
     fmul z19.d,z19.d,z25.d
     fmul z22.d,z22.d,z25.d
 .else
-    fdiv z1.d,p0/m,z1.d,z25.d
-    fdiv z4.d,p1/m,z4.d,z25.d
-    fdiv z7.d,p2/m,z7.d,z25.d
-    fdiv z10.d,p3/m,z10.d,z25.d
-    fdiv z13.d,p4/m,z13.d,z25.d
-    fdiv z16.d,p5/m,z16.d,z25.d
-    fdiv z19.d,p6/m,z19.d,z25.d
-    fdiv z22.d,p7/m,z22.d,z25.d
+    fdiv v1.2d,v1.2d,v25.2d
+    fdiv v4.2d,v4.2d,v25.2d
+    fdiv v7.2d,v7.2d,v25.2d
+    fdiv v10.2d,v10.2d,v25.2d
+    fdiv v13.2d,v13.2d,v25.2d
+    fdiv v16.2d,v16.2d,v25.2d
+    fdiv v19.2d,v19.2d,v25.2d
+    fdiv v22.2d,v22.2d,v25.2d
 .endif
+    ldr q30,[x11,#0]
+    ldr q31,[x12,#0]
+    fcmge v2.2d,v28.2d,v0.2d
+    bsl v2.16b,v31.16b,v30.16b
+    fmul z30.d,z27.d,z0.d
+    fadd z30.d,z26.d,z30.d
+    fsub z2.d,z2.d,z30.d
+    ldr q30,[x11,#16]
+    ldr q31,[x12,#16]
+    fcmge v5.2d,v28.2d,v3.2d
+    bsl v5.16b,v31.16b,v30.16b
+    fmul z30.d,z27.d,z3.d
+    fadd z30.d,z26.d,z30.d
+    fsub z5.d,z5.d,z30.d
+    ldr q30,[x11,#32]
+    ldr q31,[x12,#32]
+    fcmge v8.2d,v28.2d,v6.2d
+    bsl v8.16b,v31.16b,v30.16b
+    fmul z30.d,z27.d,z6.d
+    fadd z30.d,z26.d,z30.d
+    fsub z8.d,z8.d,z30.d
+    ldr q30,[x11,#48]
+    ldr q31,[x12,#48]
+    fcmge v11.2d,v28.2d,v9.2d
+    bsl v11.16b,v31.16b,v30.16b
+    fmul z30.d,z27.d,z9.d
+    fadd z30.d,z26.d,z30.d
+    fsub z11.d,z11.d,z30.d
+    ldr q30,[x11,#64]
+    ldr q31,[x12,#64]
+    fcmge v14.2d,v28.2d,v12.2d
+    bsl v14.16b,v31.16b,v30.16b
+    fmul z30.d,z27.d,z12.d
+    fadd z30.d,z26.d,z30.d
+    fsub z14.d,z14.d,z30.d
+    ldr q30,[x11,#80]
+    ldr q31,[x12,#80]
+    fcmge v17.2d,v28.2d,v15.2d
+    bsl v17.16b,v31.16b,v30.16b
+    fmul z30.d,z27.d,z15.d
+    fadd z30.d,z26.d,z30.d
+    fsub z17.d,z17.d,z30.d
+    ldr q30,[x11,#96]
+    ldr q31,[x12,#96]
+    fcmge v20.2d,v28.2d,v18.2d
+    bsl v20.16b,v31.16b,v30.16b
+    fmul z30.d,z27.d,z18.d
+    fadd z30.d,z26.d,z30.d
+    fsub z20.d,z20.d,z30.d
+    ldr q30,[x11,#112]
+    ldr q31,[x12,#112]
+    fcmge v23.2d,v28.2d,v21.2d
+    bsl v23.16b,v31.16b,v30.16b
+    fmul z30.d,z27.d,z21.d
+    fadd z30.d,z26.d,z30.d
+    fsub z23.d,z23.d,z30.d
     fadd z2.d,z2.d,z1.d
     fadd z5.d,z5.d,z4.d
     fadd z8.d,z8.d,z7.d
@@ -221,6 +189,24 @@
     fadd z17.d,z17.d,z16.d
     fadd z20.d,z20.d,z19.d
     fadd z23.d,z23.d,z22.d
+.if \final
+    ldr q1,[x14,#0]
+    fmul z1.d,z1.d,z29.d
+    ldr q4,[x14,#16]
+    fmul z4.d,z4.d,z29.d
+    ldr q7,[x14,#32]
+    fmul z7.d,z7.d,z29.d
+    ldr q10,[x14,#48]
+    fmul z10.d,z10.d,z29.d
+    ldr q13,[x14,#64]
+    fmul z13.d,z13.d,z29.d
+    ldr q16,[x14,#80]
+    fmul z16.d,z16.d,z29.d
+    ldr q19,[x14,#96]
+    fmul z19.d,z19.d,z29.d
+    ldr q22,[x14,#112]
+    fmul z22.d,z22.d,z29.d
+.endif
     fmul z2.d,z24.d,z2.d
     fmul z5.d,z24.d,z5.d
     fmul z8.d,z24.d,z8.d
@@ -238,50 +224,77 @@
     fadd z20.d,z18.d,z20.d
     fadd z23.d,z21.d,z23.d
 .if \final
+    fmul z2.d,z2.d,z29.d
+    fmul z5.d,z5.d,z29.d
+    fmul z8.d,z8.d,z29.d
+    fmul z11.d,z11.d,z29.d
+    fmul z14.d,z14.d,z29.d
+    fmul z17.d,z17.d,z29.d
+    fmul z20.d,z20.d,z29.d
+    fmul z23.d,z23.d,z29.d
+    fadd z2.d,z1.d,z2.d
+    fadd z5.d,z4.d,z5.d
+    fadd z8.d,z7.d,z8.d
+    fadd z11.d,z10.d,z11.d
+    fadd z14.d,z13.d,z14.d
+    fadd z17.d,z16.d,z17.d
+    fadd z20.d,z19.d,z20.d
+    fadd z23.d,z22.d,z23.d
+.endif
+    str q2,[x13,#0]
+    str q5,[x13,#16]
+    str q8,[x13,#32]
+    str q11,[x13,#48]
+    str q14,[x13,#64]
+    str q17,[x13,#80]
+    str q20,[x13,#96]
+    str q23,[x13,#112]
+    dup z31.d,x17
+    add x7,x7,#16
+    add x8,x7,#16
+    cmp x8,x4
+    b.ls .Leb_bulk\@
+    cmp x7,x4
+    b.hs .Leb_return\@
+.Leb_tail\@:
+    whilelo p0.d,x7,x4
+    add x8,x7,#1
+    add x10,x7,#2
+    ld1d {z0.d},p0/z,[x0,x8,lsl #3]
+    ld1d {z2.d},p0/z,[x0,x10,lsl #3]
+    ld1d {z1.d},p0/z,[x3,x8,lsl #3]
+    fsub z2.d,z2.d,z0.d
+    fmul z1.d,z1.d,z2.d
+    umov x11,v1.d[1]
+    mov z30.d,z31.d
+    ext z30.b,z30.b,z1.b,#8
+    fsub z1.d,z1.d,z30.d
+.if \scaled
+    fmul z1.d,z1.d,z25.d
+.else
+    fdiv z1.d,p0/m,z1.d,z25.d
+.endif
+    ld1d {z2.d},p0/z,[x6,x8,lsl #3]
+    ld1d {z30.d},p0/z,[x9,x8,lsl #3]
+    fcmle p1.d,p0/z,z0.d,z28.d
+    sel z2.d,p1,z30.d,z2.d
+    fmul z30.d,z27.d,z0.d
+    fadd z30.d,z26.d,z30.d
+    fsub z2.d,z2.d,z30.d
+    fadd z2.d,z2.d,z1.d
+    fmul z2.d,z24.d,z2.d
+    fadd z2.d,z0.d,z2.d
+.if \final
     ld1d {z0.d},p0/z,[x1,x8,lsl #3]
-    ld1d {z3.d},p1/z,[x1,x10,lsl #3]
-    ld1d {z6.d},p2/z,[x1,x11,lsl #3]
-    ld1d {z9.d},p3/z,[x1,x12,lsl #3]
-    ld1d {z12.d},p4/z,[x1,x13,lsl #3]
-    ld1d {z15.d},p5/z,[x1,x14,lsl #3]
-    ld1d {z18.d},p6/z,[x1,x15,lsl #3]
-    ld1d {z21.d},p7/z,[x1,x16,lsl #3]
     fmul z0.d,z0.d,z29.d
     fmul z2.d,z2.d,z29.d
-    fmul z3.d,z3.d,z29.d
-    fmul z5.d,z5.d,z29.d
-    fmul z6.d,z6.d,z29.d
-    fmul z8.d,z8.d,z29.d
-    fmul z9.d,z9.d,z29.d
-    fmul z11.d,z11.d,z29.d
-    fmul z12.d,z12.d,z29.d
-    fmul z14.d,z14.d,z29.d
-    fmul z15.d,z15.d,z29.d
-    fmul z17.d,z17.d,z29.d
-    fmul z18.d,z18.d,z29.d
-    fmul z20.d,z20.d,z29.d
-    fmul z21.d,z21.d,z29.d
-    fmul z23.d,z23.d,z29.d
     fadd z2.d,z0.d,z2.d
-    fadd z5.d,z3.d,z5.d
-    fadd z8.d,z6.d,z8.d
-    fadd z11.d,z9.d,z11.d
-    fadd z14.d,z12.d,z14.d
-    fadd z17.d,z15.d,z17.d
-    fadd z20.d,z18.d,z20.d
-    fadd z23.d,z21.d,z23.d
 .endif
     st1d {z2.d},p0,[x2,x8,lsl #3]
-    st1d {z5.d},p1,[x2,x10,lsl #3]
-    st1d {z8.d},p2,[x2,x11,lsl #3]
-    st1d {z11.d},p3,[x2,x12,lsl #3]
-    st1d {z14.d},p4,[x2,x13,lsl #3]
-    st1d {z17.d},p5,[x2,x14,lsl #3]
-    st1d {z20.d},p6,[x2,x15,lsl #3]
-    st1d {z23.d},p7,[x2,x16,lsl #3]
-    add x7,x7,#16
+    dup z31.d,x11
+    add x7,x7,#2
     cmp x7,x4
-    b.lo .Leb_cells\@
+    b.lo .Leb_tail\@
 .Leb_return\@:
     ret
 .size \name,.-\name
@@ -290,7 +303,6 @@ UPDATE .Leb_first,0,0
 UPDATE .Leb_final,1,0
 UPDATE .Leb_first_scaled,0,1
 UPDATE .Leb_final_scaled,1,1
-
 .macro SAVE
     stp x29,x30,[sp,#-160]!
     mov x29,sp

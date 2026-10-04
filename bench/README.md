@@ -2,6 +2,8 @@
 
 The target is Linux on little-endian AArch64 Neoverse V2, with one pinned core, binary64 NEON, and a verified 128-bit SVE vector length. The [shallow-water](../formulations/shallow_water.md) and [energy-balance](../formulations/budyko_sellers.md) formulations define the numerical operations and output encoding, while [results.md](results.md) records the accepted comparisons.
 
+The current assembly sources are tuning candidates that have passed the independent physics and exact-output verifier; their final performance comparison remains open. The accepted results retain their earlier source fingerprints and do not establish the performance of these candidates.
+
 ## Solver interfaces
 
 Assembly and both Fortran libraries expose the following C ABI entry points, with signed 32-bit dimensions and step counts passed by value and 64-bit buffer pointers.
@@ -17,7 +19,7 @@ Assembly and both Fortran libraries expose the following C ABI entry points, wit
 | eb_step, eb_run | x4, x5, x6 | Work storage, coefficients, parameters |
 | eb_run | w7 | Complete-step count M |
 
-For shallow water, P=nx+2 and S=P(ny+2), with q, stage, and output each storing three consecutive S-element fields in h,mx,my order, x contiguous; work has five S-element fields, and parameters contain g,dt,dx,dy. For energy balance, P=N+2, with q, stage, output, and work each storing P temperatures, coefficients storing three P-element fields in K,W,I order, and parameters containing C,dt,delta,A,B,Tf. All arrays are disjoint, contiguous, and at least eight-byte aligned, with sizes and units fixed in Section 10 of each formulation.
+For shallow water, P=nx+2 and S=P(ny+2), with q, stage, and output each storing three consecutive S-element fields in h,mx,my order, x contiguous; work has five S-element fields, and parameters contain g,dx,dy,dt. For energy balance, P=N+2, with q, stage, output, and work each storing P temperatures, coefficients storing three P-element fields in K,W,I order, and parameters containing C,dt,delta,A,B,Tf. All arrays are disjoint, contiguous, and at least eight-byte aligned, with sizes and units fixed in Section 10 of each formulation.
 
 A step preserves the input interior while copying its required ghosts, then returns both complete stages and their ghosts. A run alternates q and output, returning the final state in output after an odd count and q after an even count, with stage containing the last first-stage state; a zero count leaves every buffer unchanged. Work contents have no scientific output contract, and coefficients and parameters remain immutable.
 
@@ -52,6 +54,8 @@ Before and after timing, the driver requires two consecutive 0.2-second windows 
 A disturbed batch is discarded with its reason, then the same input and warm-up are restored before another attempt under the unchanged limits. Three consecutive failures stop the comparison and require another quiet exclusive node; accepted records retain the rejection history, observed clocks, PMU counters, toolchain versions, and artifact hashes.
 
 Cold Julia process startup, first numerical invocation, Numba cache hits and misses, and Julia request compilation are recorded separately from steady-state time. Julia's request compilation covers the numerical invocation and driver code, while native-process peak memory covers the shared Python harness and its loaded implementations; numerical buffer storage is reported separately and these aggregate process values are not per-kernel memory costs.
+
+Native timing reuses identical physical arrays across implementations and restores each frozen input before warm-up and again before the timer, while Julia's separate workers allocate their own arrays for each batch. Every sample records buffer addresses, and repeated variation must therefore accompany comparisons where those runtimes cannot share placement.
 
 ## Exact transformations and measured bounds
 

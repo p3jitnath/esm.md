@@ -125,7 +125,7 @@ function batch(input,prefix,nsteps)
         check_buffers(holders,q,stage,out,coeff,par,savedcoeff,savedpar)
         write_output(prefix*"-p1.bin",stage,par,nsteps,1)
         write_output(prefix*"-p2.bin",isodd(nsteps) ? out : q,par,nsteps,2)
-        elapsed,allocated,foreign,counters
+        elapsed,allocated,foreign,counters,join((string(UInt(pointer(array))) for array in (q,stage,out,work,coeff,par)),",")
     end
 end
 fpcr()=ccall((:sw_fpcr,FP_LIBRARY),UInt64,())
@@ -140,8 +140,8 @@ for line in eachline(stdin)
             println("OK")
         elseif fields[1]=="BENCH"
             stats=@timed @eval batch($(fields[2]),$(fields[3]),$(parse(Int,fields[4])))
-            elapsed,allocated,foreign,counters=stats.value
-            println("BENCH\t",elapsed,"\t",allocated,"\t",foreign,"\t",join(counters,","),"\t",stats.time,"\t",stats.compile_time,"\t",Sys.maxrss())
+            elapsed,allocated,foreign,counters,addresses=stats.value
+            println("BENCH\t",elapsed,"\t",allocated,"\t",foreign,"\t",join(counters,","),"\t",stats.time,"\t",stats.compile_time,"\t",Sys.maxrss(),"\t",addresses)
         elseif fields[1]=="QUIT"
             break
         else

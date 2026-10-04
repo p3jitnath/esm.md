@@ -145,7 +145,7 @@ function batch(input,prefix,nsteps)
         check_halos(stage); check_halos(final)
         write_output(prefix*"-p1.bin",stage,parameters,nsteps,1)
         write_output(prefix*"-p2.bin",final,parameters,nsteps,2)
-        elapsed,allocated,foreign,counters
+        elapsed,allocated,foreign,counters,join((string(UInt(pointer(array))) for array in (q,stage,out,work,parameters)),",")
     end
 end
 
@@ -184,9 +184,9 @@ for line in eachline(stdin)
             trace(fields[2],fields[3],fields[4],parse(Int,fields[5]))
         elseif fields[1] == "BENCH"
             stats = @timed @eval batch($(fields[2]),$(fields[3]),$(parse(Int,fields[4])))
-            elapsed,allocated,foreign,counters = stats.value
+            elapsed,allocated,foreign,counters,addresses = stats.value
             fpcr() == 0 || error("Julia changed FPCR")
-            println("BENCH\t",elapsed,"\t",allocated,"\t",foreign,"\t",join(counters,","),"\t",stats.time,"\t",stats.compile_time,"\t",Sys.maxrss())
+            println("BENCH\t",elapsed,"\t",allocated,"\t",foreign,"\t",join(counters,","),"\t",stats.time,"\t",stats.compile_time,"\t",Sys.maxrss(),"\t",addresses)
             flush(stdout)
             continue
         elseif fields[1] == "QUIT"

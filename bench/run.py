@@ -262,9 +262,14 @@ class _Julia:
         self.process.stdin.write("BENCH\t%s\t%s\t%d\n" % (input_path, prefix, steps))
         self.process.stdin.flush()
         reply = self.process.stdout.readline().strip().split("\t")
-        if len(reply) != 8 or reply[0] != "BENCH":
+        if len(reply) != 9 or reply[0] != "BENCH":
             raise RuntimeError("Julia timing failed: " + str(reply) + "; see " + self.log.name)
-        return {"elapsed_ns": int(reply[1]), "allocated_bytes": int(reply[2]),
+        addresses = [int(value) for value in reply[8].split(",")]
+        keys = ("q", "stage", "out", "work", "parameters") if len(addresses) == 5 else ("q", "stage", "out", "work", "coeff", "par")
+        if len(addresses) != len(keys):
+            raise RuntimeError("Julia returned an invalid buffer address record.")
+        return {"buffer_addresses": dict(zip(keys, addresses)),
+                "elapsed_ns": int(reply[1]), "allocated_bytes": int(reply[2]),
                 "foreign_busy_cores_during_batch": float(reply[3]),
                 "pmu": _counter_record(reply[4].split(",")),
                 "request_seconds": float(reply[5]), "request_compile_seconds": float(reply[6]),
@@ -403,7 +408,7 @@ def _cases():
         for n in (32, 64, 128):
             yield "shear-" + direction, n, n, None, 1 / 32
         yield "dam-" + direction, 256 if direction == "x" else 8, 8 if direction == "x" else 256, None, 1 / 32
-    for nx, ny in ((1, 1), (2, 3), (7, 5), (31, 23)):
+    for nx, ny in ((1, 1), (2, 3), (7, 5), (31, 23), (128, 2), (129, 3), (130, 3)):
         yield "mixed", nx, ny, 8, None
     yield "mixed", 31, 23, 1000, None
 
@@ -538,8 +543,43 @@ def _verify(names, metadata):
     print(json.dumps({"passed": True, "implementations": names, "shear_orders": orders}), flush=True)
 
 
-def _native_batch(backend, seed, parameters, steps):
-    b = _Buffers(seed, parameters)
+def _native_batch(backend, seed, parameters, steps, buffers=None):
+    """Time complete updates using reset input and reusable native storage.
+
+    Parameters
+    ----------
+    backend : _Backend
+        Verified implementation with a complete-update entry point.
+    seed : ndarray of float64, shape (3, ny, nx)
+        Frozen depth in metres and momenta in square metres per second.
+    parameters : ndarray of float64, shape (4,)
+        Immutable g, dx, dy, and dt values in the formulation's units.
+    steps : int
+        Number of complete updates to time.
+    buffers : _Buffers, optional
+        Disjoint matching storage, mutated during warm-up and execution.
+
+    Returns
+    -------
+    record : dict
+        Timing, occupancy, counters, and native buffer addresses.
+    stage, final : ndarray of float64
+        Complete padded states that alias the reusable buffers.
+
+    Raises
+    ------
+    AssertionError
+        An output, parameter, halo, or buffer guard violates the contract.
+    RuntimeError
+        The hardware counter group cannot be read.
+
+    Notes
+    -----
+    Restore the frozen input before and after four warm-up steps, keeping
+    initialisation and validation outside the complete-update timer.
+    """
+    b = _Buffers(seed, parameters) if buffers is None else buffers
+    b.reset(seed)
     warmup_start = time.perf_counter_ns()
     backend.run(b, 2)
     first_warmup_ns = time.perf_counter_ns() - warmup_start
@@ -572,17 +612,18 @@ def _native_batch(backend, seed, parameters, steps):
         setup.update({"numba_cache_hits": sum(stats.cache_hits.values()),
                       "numba_cache_misses": sum(stats.cache_misses.values())})
     return {"elapsed_ns": elapsed, "setup": setup,
+            "buffer_addresses": {name: int(getattr(b, name).ctypes.data) for name in ("q", "stage", "out", "work", "parameters")},
             "foreign_busy_cores_during_batch": _foreign_load(ticks_before, ticks_after),
             "pmu": pmu}, b.stage, final
 
 
-def _batch(name, backends, julias, seed, parameters, steps, input_path, metadata, expected=None):
+def _batch(name, backends, julias, seed, parameters, steps, input_path, metadata, expected=None, buffers=None):
     before = _quiet(metadata)
     if name in julias:
         prefix = RUNS / ("timed-%d-" % seed.shape[1] + name)
         record = julias[name].batch(input_path, prefix, steps)
     else:
-        record, stage, final = _native_batch(backends[name], seed, parameters, steps)
+        record, stage, final = _native_batch(backends[name], seed, parameters, steps, buffers)
         prefix = RUNS / ("timed-%d-" % seed.shape[1] + name)
         if expected:
             _compare(expected[0], stage, name + " timed first stage")
@@ -621,9 +662,10 @@ def _benchmark(names, metadata, sizes, repeats, target, fixed_steps=None):
         for index, n in enumerate(sizes):
             _allocation()
             seed, parameters = _initial("mixed", n, n), _parameters(n, n, "mixed")[0]
+            native_buffers = _Buffers(seed, parameters)
             input_path = RUNS / ("timed-%d-input.bin" % n)
             _write(input_path, _Buffers(seed, parameters).q, parameters)
-            pilot = [_retry_quiet(lambda: _batch(name, backends, julias, seed, parameters, 2, input_path, metadata))
+            pilot = [_retry_quiet(lambda: _batch(name, backends, julias, seed, parameters, 2, input_path, metadata, buffers=native_buffers))
                      for name in names]
             fastest = min(p["elapsed_ns"] for p in pilot) / 2e9
             steps = fixed_steps[index] if fixed_steps else 2 * math.ceil(target * 1.25 / fastest / 2)
@@ -649,7 +691,7 @@ def _benchmark(names, metadata, sizes, repeats, target, fixed_steps=None):
                 order = order[shift:] + order[:shift]
                 for name in order:
                     record = _retry_quiet(lambda: _batch(name, backends, julias, seed, parameters, steps,
-                                                        input_path, metadata, expected))
+                                                        input_path, metadata, expected, native_buffers))
                     if record["elapsed_ns"] < 0.1e9:
                         raise RuntimeError("A batch is too short; increase --target-seconds.")
                     record["repeat"] = repeat
@@ -681,7 +723,9 @@ def _benchmark(names, metadata, sizes, repeats, target, fixed_steps=None):
                                "fixed_steps": fixed_steps,
                                "quiet_attempt_limit": 3, "quiet_limit_foreign_busy_cores": 1.0,
                                "warmup_steps": 4, "garbage_collection": "disabled inside timer",
-                               "cache_preparation": "fill reusable buffers, then restore the shared input",
+                               "cache_preparation": "reset shared native buffers before warm-up and after four warm-up steps",
+                               "native_buffer_placement": "identical arrays reused across native implementations; addresses recorded in each sample",
+                               "julia_buffer_placement": "separate workers allocate each batch; addresses and repeated variation are recorded",
                                "order": "rotating positions, reversed after each full rotation"},
                   "results": results}
         (RUNS / "timing.json").write_text(json.dumps(report, indent=2) + "\n")

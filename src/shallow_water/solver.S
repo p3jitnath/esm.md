@@ -1,4 +1,4 @@
-// Direct AArch64 SVE realisation of shallow_water.md revision 1.0.
+// Direct AArch64 NEON/SVE realisation of shallow_water.md revision 1.0.
 // The public ABI is in bench/README.md; helpers follow explicit internal register contracts.
 // Public entries preserve x19-x29, the required d8-d15 halves, and stack alignment.
 // Arithmetic follows D03 and D04 without contraction or approximations.
@@ -117,19 +117,41 @@
 .endm
 
 // D03 uses the north state row and writes its five values into the next point slot.
-.macro NORTH_POINT
+.macro NORTH_POINT delayed=0, pointers=0, cached=0
+.if \cached
+    mov z16.d,z0.d
+    mov z6.d,z15.d
+    mov z3.d,z7.d
+    mov z5.d,z12.d
+    ld1d {z22.d},p7/z,[x17,x14,lsl #3]
+    ld1d {z14.d},p7/z,[x18,x14,lsl #3]
+.else
+.if \pointers
+    ld1d {z2.d},p7/z,[x16,x14,lsl #3]
+    ld1d {z22.d},p7/z,[x17,x14,lsl #3]
+    ld1d {z14.d},p7/z,[x18,x14,lsl #3]
+.else
     FIELD_POINTER x0, 0
     ld1d {z2.d}, p7/z, [x11, x16, lsl #3]
     FIELD_POINTER x0, 1
     ld1d {z22.d}, p7/z, [x11, x16, lsl #3]
     FIELD_POINTER x0, 2
     ld1d {z14.d}, p7/z, [x11, x16, lsl #3]
+.endif
     fmul z16.d, z21.d, z2.d
-    // For finite positive h, h*1 preserves its bits and delays the u division.
-    fmul z3.d, z2.d, z10.d
-    fdiv v5.2d, v14.2d, v2.2d
-    fsqrt v6.2d, v16.2d
-    fdiv v3.2d, v22.2d, v3.2d
+.if \delayed == 1
+    fmul z3.d,z2.d,z10.d
+.elseif \delayed == 2
+    fmul z3.d,z2.d,z15.d
+.endif
+    fdiv v5.2d,v14.2d,v2.2d
+    fsqrt v6.2d,v16.2d
+.if \delayed
+    fdiv v3.2d,v22.2d,v3.2d
+.else
+    fdiv v3.2d,v22.2d,v2.2d
+.endif
+.endif
     fmul z17.d, z16.d, z2.d
     fmul z17.d, z17.d, z31.d
     fmul z18.d, z22.d, z3.d
@@ -137,8 +159,8 @@
     fmul z8.d, z22.d, z5.d
     fmul z9.d, z14.d, z5.d
     fadd z9.d, z9.d, z17.d
-    fabs z19.d, p7/m, z3.d
-    fabs z27.d, p7/m, z5.d
+    fabs v19.2d, v3.2d
+    fabs v27.2d, v5.2d
     fadd z19.d, z19.d, z6.d
     fadd z27.d, z27.d, z6.d
     FIELD_POINTER x7, 0
@@ -213,18 +235,18 @@
     add x15, x14, #1
     add x16, x14, x10
     sub x17, x14, x10
-    NORTH_POINT
+    NORTH_POINT 1
     ld1d {z24.d}, p7/z, [x5, x14, lsl #3]
     ld1d {z25.d}, p7/z, [x5, x15, lsl #3]
     ld1d {z23.d}, p7/z, [x6, x14, lsl #3]
-    fmax z24.d, p7/m, z24.d, z25.d
-    fmax z27.d, p7/m, z27.d, z23.d
+    fmax v24.2d, v24.2d, v25.2d
+    fmax v27.2d, v27.2d, v23.2d
     fmul z24.d, z24.d, z31.d
     fmul z27.d, z27.d, z31.d
 .if \first
     add x11, x24, x4, lsl #2
     ld1d {z26.d}, p7/z, [x11, x14, lsl #3]
-    fmax z26.d, p7/m, z26.d, z23.d
+    fmax v26.2d, v26.2d, v23.2d
     fmul z26.d, z26.d, z31.d
 .endif
     FIELD_POINTER x0, 1
@@ -243,6 +265,201 @@
     incd x13
 .endm
 
+.macro FUSED_COMPONENT component, first, qc, qe, qn, fxc, fxe, fyc, fyn, qs, fys, final, scaled, single=0
+.if \component == 0
+    FIELD_POINTER x0, 0
+    ld1d {z0.d}, p7/z, [x11, x14, lsl #3]
+    ld1d {z1.d}, p7/z, [x11, x15, lsl #3]
+.elseif \component == 1
+    FIELD_POINTER x3, 0
+    ld1d {z3.d}, p7/z, [x11, x14, lsl #3]
+    ld1d {z4.d}, p7/z, [x11, x15, lsl #3]
+.else
+    FIELD_POINTER x0, 2
+    ld1d {z1.d}, p7/z, [x11, x15, lsl #3]
+    FIELD_POINTER x3, 1
+    ld1d {z4.d}, p7/z, [x11, x15, lsl #3]
+    FIELD_POINTER x3, 2
+    ld1d {z5.d}, p7/z, [x11, x14, lsl #3]
+.endif
+    fadd z4.d, z\fxc\().d, z\fxe\().d
+    fmul z4.d, z4.d, z31.d
+    fsub z16.d, z\qe\().d, z\qc\().d
+    fmul z16.d, z24.d, z16.d
+    fsub z4.d, z4.d, z16.d
+    fadd z6.d, z\fyc\().d, z\fyn\().d
+    fmul z6.d, z6.d, z31.d
+    fsub z17.d, z\qn\().d, z\qc\().d
+    fmul z17.d, z27.d, z17.d
+    fsub z6.d, z6.d, z17.d
+    FIELD_POINTER x9, \component
+    st1d {z6.d}, p0, [x11, x14, lsl #3]
+.if \component == 0
+    ext v16.16b, v20.16b, v4.16b, #8
+.if \single
+    dup v20.2d,v4.d[0]
+.else
+    dup v20.2d, v4.d[1]
+.endif
+.elseif \component == 1
+    ext v16.16b, v26.16b, v4.16b, #8
+.if \single
+    dup v26.2d,v4.d[0]
+.else
+    dup v26.2d, v4.d[1]
+.endif
+.else
+    ext v16.16b, v10.16b, v4.16b, #8
+.if \single
+    dup v10.2d,v4.d[0]
+.else
+    dup v10.2d, v4.d[1]
+.endif
+.endif
+    fsub z4.d, z4.d, z16.d
+    FIELD_POINTER x2, \component
+    ld1d {z16.d}, p0/z, [x11, x14, lsl #3]
+    fsub z6.d, z6.d, z16.d
+.if \scaled
+    fmul z4.d, z4.d, z28.d
+    fmul z6.d, z6.d, z29.d
+.else
+    fdiv z4.d, p0/m, z4.d, z28.d
+    fdiv z6.d, p0/m, z6.d, z29.d
+.endif
+    fadd z4.d, z4.d, z6.d
+    fneg z4.d, p0/m, z4.d
+    fmul z4.d, z30.d, z4.d
+    fadd z4.d, z\qc\().d, z4.d
+.if \final
+    FIELD_POINTER x12, \component
+    ld1d {z16.d}, p0/z, [x11, x14, lsl #3]
+    fmul z16.d, z16.d, z31.d
+    fmul z4.d, z4.d, z31.d
+    fadd z4.d, z16.d, z4.d
+.endif
+    FIELD_POINTER x1, \component
+    st1d {z4.d}, p0, [x11, x14, lsl #3]
+.endm
+
+.macro FUSED_VECTOR final, scaled, single=0, cached=0, prepare=0
+    add x14, x13, #1
+    add x15, x14, #1
+    NORTH_POINT 0,1,\cached
+    ld1d {z24.d}, p7/z, [x5, x14, lsl #3]
+    ld1d {z25.d}, p7/z, [x5, x15, lsl #3]
+    ld1d {z23.d}, p7/z, [x6, x14, lsl #3]
+    fmax v24.2d, v24.2d, v25.2d
+    fmax v27.2d, v27.2d, v23.2d
+    fmul z24.d, z24.d, z31.d
+    fmul z27.d, z27.d, z31.d
+    FIELD_POINTER x0, 1
+    ld1d {z11.d}, p7/z, [x11, x14, lsl #3]
+    ld1d {z12.d}, p7/z, [x11, x15, lsl #3]
+    FIELD_POINTER x0, 2
+    ld1d {z13.d}, p7/z, [x11, x14, lsl #3]
+    FIELD_POINTER x3, 1
+    ld1d {z25.d}, p7/z, [x11, x14, lsl #3]
+    FUSED_COMPONENT 0, 0, 0, 1, 2, 11, 12, 13, 14, 7, 15, \final, \scaled, \single
+.if \prepare
+    // The current depth update is complete, so z0 and z2 now hold the next point's rounded gh and depth.
+    add x11,x14,#2
+    ld1d {z2.d},p7/z,[x16,x11,lsl #3]
+    ld1d {z7.d},p7/z,[x17,x11,lsl #3]
+    fmul z0.d,z21.d,z2.d
+    fdiv v7.2d,v7.2d,v2.2d
+    fsqrt v15.2d,v0.2d
+.endif
+    FUSED_COMPONENT 1, 0, 11, 12, 22, 3, 4, 25, 8, 7, 19, \final, \scaled, \single
+.if \prepare
+    // The momentum update has consumed z12, which can now hold the next point's rounded transverse velocity.
+    add x11,x14,#2
+    ld1d {z12.d},p7/z,[x18,x11,lsl #3]
+    fdiv v12.2d,v12.2d,v2.2d
+.endif
+    FUSED_COMPONENT 2, 0, 13, 1, 14, 25, 4, 5, 9, 15, 19, \final, \scaled, \single
+    incd x13
+.endm
+
+
+.macro DEFINE_FUSED entry, final, scaled
+.p2align 4
+.type \entry,%function
+\entry:
+    // x0=state row, x1=output row, x2=previous north faces, x12=base row.
+    // Rounded east faces remain in v20, v26, and v10 across cell groups.
+    ldp d24,d25,[x5]
+    fmax d24,d24,d25
+    fmul d24,d24,d31
+    SEED_WEST 0,x0,1
+    dup v20.2d,v4.d[0]
+    SEED_WEST 1,x3,0
+    dup v26.2d,v4.d[0]
+    SEED_WEST 2,x3,1
+    dup v10.2d,v4.d[0]
+    add x16,x0,x26
+    add x17,x16,x4
+    add x18,x17,x4
+    mov x13,#0
+    tst x8,#1
+    b.ne .Lfused_unpeeled\@
+    mov x11,#1
+    whilelo p0.d,x13,x11
+    FUSED_VECTOR \final,\scaled,1
+    mov x13,#1
+.Lfused_unpeeled\@:
+    add x11,x13,#2
+    cmp x11,x8
+    b.hi .Lfused_tail\@
+    mov p0.b,p7.b
+    FUSED_VECTOR \final,\scaled,0,0,1
+    add x11,x13,#4
+    cmp x11,x8
+    b.hi .Lfused_last_pair\@
+.Lfused_bulk\@:
+    FUSED_VECTOR \final,\scaled,0,1,1
+    FUSED_VECTOR \final,\scaled,0,1,1
+    add x11,x13,#4
+    cmp x11,x8
+    b.ls .Lfused_bulk\@
+.Lfused_last_pair\@:
+    add x11,x13,#2
+    cmp x11,x8
+    b.hi .Lfused_cached_tail\@
+    FUSED_VECTOR \final,\scaled,0,1,1
+.Lfused_cached_tail\@:
+    cmp x13,x8
+    b.hs .Lfused_finish\@
+    whilelo p0.d,x13,x8
+    FUSED_VECTOR \final,\scaled,0,1,0
+    b .Lfused_finish\@
+.Lfused_tail\@:
+    cmp x13,x8
+    b.hs .Lfused_finish\@
+.Lfused_remainder\@:
+    whilelo p0.d,x13,x8
+    FUSED_VECTOR \final,\scaled
+    cmp x13,x8
+    b.lo .Lfused_remainder\@
+.Lfused_finish\@:
+    mov x13,x7
+    mov x14,#5
+.Lfused_halo\@:
+    ldr x16,[x13,x8,lsl #3]
+    str x16,[x13]
+    ldr x16,[x13,#8]
+    sub x15,x10,#1
+    str x16,[x13,x15,lsl #3]
+    add x13,x13,x4
+    subs x14,x14,#1
+    b.ne .Lfused_halo\@
+    ret
+.size \entry,.-\entry
+.endm
+DEFINE_FUSED .Lfused_first,0,0
+DEFINE_FUSED .Lfused_final,1,0
+DEFINE_FUSED .Lfused_first_scaled,0,1
+DEFINE_FUSED .Lfused_final_scaled,1,1
 .macro PROCESS_FACES first
     ldp d24, d25, [x5]
     fmax d24, d24, d25
@@ -250,11 +467,27 @@
     SEED_WEST 0, x0, 1
     SEED_WEST 1, x3, 0
     SEED_WEST 2, x3, 1
-    fmov z10.d, #1.0
-    mov x13, #0
-    and x18, x8, #0xfffffffffffffffc
-    cbz x18, .Lfaces_tail\@
-    mov p0.b, p7.b
+    fmov z10.d,#1.0
+    mov x13,#0
+    cmp x8,#128
+    b.lo .Lfaces_unpeeled\@
+    tst x8,#1
+    b.ne .Lfaces_unpeeled\@
+    mov x11,#1
+    whilelo p0.d,x13,x11
+    FACE_VECTOR \first
+    mov x13,#1
+    sub x18,x8,#1
+    and x18,x18,#0xfffffffffffffffc
+    add x18,x18,#1
+    cmp x13,x18
+    b.hs .Lfaces_tail\@
+    b .Lfaces_aligned\@
+.Lfaces_unpeeled\@:
+    and x18,x8,#0xfffffffffffffffc
+    cbz x18,.Lfaces_tail\@
+.Lfaces_aligned\@:
+    mov p0.b,p7.b
 .Lfaces_unrolled\@:
     FACE_VECTOR \first
     FACE_VECTOR \first
@@ -356,7 +589,7 @@ DEFINE_UPDATE .Lcomponent_final, 1, 0
 DEFINE_UPDATE .Lcomponent_first_scaled, 0, 1
 DEFINE_UPDATE .Lcomponent_final_scaled, 1, 1
 
-.macro CALL_STAGE entry, current, base, output
+.macro CALL_STAGE entry, fused, current, base, output
     mov x0, \current
     mov x1, x24
     mov x2, x27
@@ -398,6 +631,28 @@ DEFINE_UPDATE .Lcomponent_final_scaled, 1, 1
     add x5, x3, x27, lsl #1
     add x5, x5, x27
     add x6, x5, x27
+    cmp w17,#1
+    b.eq .Lfirst_row\@
+    cmp x19,#128
+    b.lo .Lfirst_row\@
+    madd x1,x17,x26,\output
+    madd x12,x17,x26,\base
+    cmp x19,#128
+    b.lo .Lfull_previous\@
+    cmp x20,#3
+    b.lo .Lfull_previous\@
+    sub x11,x17,#1
+    and x11,x11,#1
+    add x11,x11,#3
+    madd x2,x11,x26,x24
+    b .Lprevious_ready\@
+.Lfull_previous\@:
+    sub x11,x17,#2
+    madd x2,x11,x26,x24
+.Lprevious_ready\@:
+    bl \fused
+    b .Lrow_done\@
+.Lfirst_row\@:
     bl .Lfaces
     ldr x11, [sp, #160]
     madd x0, x11, x26, \current
@@ -428,6 +683,7 @@ DEFINE_UPDATE .Lcomponent_final_scaled, 1, 1
     cmp x11, #1
     csel x6, \output, x6, eq
     bl \entry
+.Lrow_done\@:
     ldr x17, [sp, #160]
     add x17, x17, #1
     str x17, [sp, #160]
@@ -514,10 +770,10 @@ sw_step:
     fdivr z29.d, p7/m, z29.d, z27.d
 .Lparameters_ready:
     cbz x28, .Lfirst_general
-    CALL_STAGE .Lcomponent_first_scaled, x21, x21, x22
+    CALL_STAGE .Lcomponent_first_scaled, .Lfused_first_scaled, x21, x21, x22
     b .Lfirst_done
 .Lfirst_general:
-    CALL_STAGE .Lcomponent_first, x21, x21, x22
+    CALL_STAGE .Lcomponent_first, .Lfused_first, x21, x21, x22
 .Lfirst_done:
     mov x0, x22
     mov x1, x19
@@ -526,10 +782,10 @@ sw_step:
     mov x4, x27
     bl .Lhalo
     cbz x28, .Lfinal_general
-    CALL_STAGE .Lcomponent_final_scaled, x22, x21, x23
+    CALL_STAGE .Lcomponent_final_scaled, .Lfused_final_scaled, x22, x21, x23
     b .Lfinal_done
 .Lfinal_general:
-    CALL_STAGE .Lcomponent_final, x22, x21, x23
+    CALL_STAGE .Lcomponent_final, .Lfused_final, x22, x21, x23
 .Lfinal_done:
     mov x0, x23
     mov x1, x19
