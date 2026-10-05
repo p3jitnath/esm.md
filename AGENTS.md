@@ -4,12 +4,14 @@
 
 This project studies direct assembly generation from physics and mathematics in Markdown, beginning with shallow-water equations on an Arm CPU. Before starting work, read the local `.agents/HANDOVER.md` if it exists so that current decisions and unfinished work remain clear.
 
-- Keep the authoritative scientific source in `formulations/`, using [TEMPLATE.md](formulations/TEMPLATE.md) with exactly 12 sections.
+- Keep the basic physical model in `formulations/`, using the concise [TEMPLATE.md](formulations/TEMPLATE.md). Store the derived numerical and implementation contracts under `skills/md2asm/references/`.
 - Group generated assembly and language comparison code by model under `src/`, using model folders such as `src/shallow_water/` and `src/budyko_sellers/`, with `solver.S`, `solver.f90`, `solver.jl`, and `solver.py` for optimised implementations and `vanilla.f90`, `vanilla.jl`, and `vanilla.py` for the unchanged language controls, with verification, timing tools, and compact benchmark records in `bench/`.
 - Keep writing conventions in `standards/`, with AGENTS.md and README.md at the repository root so that instructions and the entry point are easy to find.
-- Exclude `.agents/research.md` and `.agents/HANDOVER.md` through the `.agents/` rule in `.gitignore`, and keep venue names and submission details outside the repository.
+- Exclude `.agents/research.md` and `.agents/HANDOVER.md` through the `.agents/` rule in `.gitignore`, and keep venue names and submission details outside tracked files. Store local poster drafts under Git-ignored `poster/` and exclude them from every commit.
 
 ## Documentation
+
+Write all documentation for a first-year undergraduate, including README files, formulations, skills, solver contracts, comments, docstrings, reports, and conversation. Use short connected explanations, define unfamiliar terms and symbols before using them, state units, and explain what each equation does. Keep the formulation files very simple: the physical idea, basic mathematics, parameter values, initial state, and boundaries. The LLM takes care of numerical methods and implementation through md2asm; keep those details in the skill and its supporting references.
 
 Use [ASD-STE100-CONV](standards/ASD-STE100-CONV.md) for all project prose, including physics and mathematics formulations, comments, docstrings, skills, work reports, and conversation. This overrides earlier strict ASD-STE100 prose requirements for formulations. The writing should read as fluent technical writing, with connected clauses and useful transitions that make the explanation easy to follow.
 
@@ -25,7 +27,7 @@ Preserve mathematical meaning, units, identifiers, and reference titles when rev
 
 ## Formulations and generation
 
-Keep each model's physics and numerical definitions in one Markdown file, including every symbol, assumption, unit, initial state, and boundary condition. Specify the spatial operators, complete time update, storage, arithmetic rules, and acceptance limits before generation so that the model has no missing scientific choices to invent.
+Use the short formulation as the physics input. The LLM must choose and explain a suitable numerical method, then record its grid, complete time update, storage, ordered arithmetic, output bytes, and acceptance limits in the model's md2asm solver contract before generation. Preserve the verified contract for existing models; changing the physical model or numerical method requires independent scientific verification and new comparison records.
 
 Use [md2asm](skills/md2asm/SKILL.md) for direct assembly development and optimisation, applying its measured workflow to the current formulation.
 

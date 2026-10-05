@@ -1,12 +1,10 @@
 # Arm interfaces and evaluation
 
-The target is Linux on little-endian AArch64 Neoverse V2, with one pinned core, binary64 NEON, and a verified 128-bit SVE vector length. The [shallow-water](../formulations/shallow_water.md) and [energy-balance](../formulations/budyko_sellers.md) formulations define the numerical operations and output encoding, while [results.md](results.md) records the accepted comparisons.
-
-The current assembly sources are tuning candidates that have passed the independent physics and exact-output verifier; their final performance comparison remains open. The accepted results retain their earlier source fingerprints and do not establish the performance of these candidates.
+The target is Linux on little-endian AArch64 Neoverse V2, with one pinned core, binary64 NEON, and a verified 128-bit SVE vector length. The short formulations explain [shallow water](../formulations/shallow_water.md) and [energy balance](../formulations/budyko_sellers.md). The md2asm [shallow-water contract](../skills/md2asm/references/shallow_water.md) and [energy-balance contract](../skills/md2asm/references/budyko_sellers.md) define the numerical operations and output encoding, while [results.md](results.md) records the accepted comparisons.
 
 ## Solver interfaces
 
-Assembly and both Fortran libraries expose the following C ABI entry points, with signed 32-bit dimensions and step counts passed by value and 64-bit buffer pointers.
+The application binary interface (ABI) specifies how a function receives arguments and preserves the caller’s data. Assembly and both Fortran libraries expose the following C ABI entry points, with signed 32-bit dimensions and step counts passed by value and 64-bit buffer pointers.
 
 | Entry points | Registers | Arguments |
 | --- | --- | --- |
@@ -19,7 +17,7 @@ Assembly and both Fortran libraries expose the following C ABI entry points, wit
 | eb_step, eb_run | x4, x5, x6 | Work storage, coefficients, parameters |
 | eb_run | w7 | Complete-step count M |
 
-For shallow water, P=nx+2 and S=P(ny+2), with q, stage, and output each storing three consecutive S-element fields in h,mx,my order, x contiguous; work has five S-element fields, and parameters contain g,dx,dy,dt. For energy balance, P=N+2, with q, stage, output, and work each storing P temperatures, coefficients storing three P-element fields in K,W,I order, and parameters containing C,dt,delta,A,B,Tf. All arrays are disjoint, contiguous, and at least eight-byte aligned, with sizes and units fixed in Section 10 of each formulation.
+For shallow water, P=nx+2 and S=P(ny+2), with q, stage, and output each storing three consecutive S-element fields in h,mx,my order, x contiguous; work has five S-element fields, and parameters contain g,dx,dy,dt. For energy balance, P=N+2, with q, stage, output, and work each storing P temperatures, coefficients storing three P-element fields in K,W,I order, and parameters containing C,dt,delta,A,B,Tf. All arrays are disjoint, contiguous, and at least eight-byte aligned, with sizes and units fixed in Section 10 of each solver contract.
 
 A step preserves the input interior while copying its required ghosts, then returns both complete stages and their ghosts. A run alternates q and output, returning the final state in output after an odd count and q after an even count, with stage containing the last first-stage state; a zero count leaves every buffer unchanged. Work contents have no scientific output contract, and coefficients and parameters remain immutable.
 
@@ -36,12 +34,14 @@ Load `gcc-native/14.2` and `cray-python/3.11.7` on this system, then build with 
 Obtain an exclusive single-node Slurm allocation, confirm that no other job occupies its node, and use the following launch inside that allocation after setting OMP_NUM_THREADS, OPENBLAS_NUM_THREADS, and NUMBA_NUM_THREADS to 1.
 
 ```bash
-srun --jobid="$SLURM_JOB_ID" --overlap --exact --ntasks=1   --cpus-per-task=2 --cpu-bind=map_cpu:1 --mem-bind=local   .runtime/python/bin/python bench/run.py verify
+srun --jobid="$SLURM_JOB_ID" --overlap --exact \
+  --ntasks=1 --cpus-per-task=2 --cpu-bind=map_cpu:1 \
+  --mem-bind=local .runtime/python/bin/python bench/run.py verify
 ```
 
 The Slurm step reserves two CPUs so that CPU 1 can be selected explicitly, while the process itself uses that single core with local NUMA placement. Replace the command arguments with `--model budyko_sellers verify` for energy balance, keeping the same launch and environment; all development commands and benchmarks use the allocated compute node.
 
-After both verifiers pass for the current source and binary hashes, use `bench --sizes 64,256,1024 --steps-per-size 4096,256,16 --target-seconds 0.2` for shallow water and `--model budyko_sellers bench --sizes 128,4096,65536 --steps-per-size 1000000,40000,2048 --target-seconds 0.2` for energy balance. Verification and raw timing records stay in `bench/.runs/`, with energy-balance records under its model subfolder and all binaries under `bench/.build/`; these folders are ignored by Git.
+After both verifiers pass for the current source and binary hashes, use `bench --sizes 64,256,1024 --steps-per-size 8192,512,32 --target-seconds 0.4` for shallow water and `--model budyko_sellers bench --sizes 128,4096,65536 --steps-per-size 1000000,40000,2048 --target-seconds 0.2` for energy balance. Verification and raw timing records stay in `bench/.runs/`, with energy-balance records under its model subfolder and all binaries under `bench/.build/`; these folders are ignored by Git.
 
 The compact verifier covers analytic states, convergence, budgets, admissibility, complete trajectories, boundary copies, input preservation, parameter immutability, and guarded buffers. It compares every verification stage and step bit for bit and then compares canonical files directly, rejecting a mismatch with its first stage, step, field, cell, and bit patterns; hashes identify artifacts without replacing byte comparisons.
 

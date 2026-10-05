@@ -408,7 +408,7 @@ def _cases():
         for n in (32, 64, 128):
             yield "shear-" + direction, n, n, None, 1 / 32
         yield "dam-" + direction, 256 if direction == "x" else 8, 8 if direction == "x" else 256, None, 1 / 32
-    for nx, ny in ((1, 1), (2, 3), (7, 5), (31, 23), (128, 2), (129, 3), (130, 3)):
+    for nx, ny in ((1, 1), (2, 3), (7, 5), (31, 23), (63, 3), (64, 2), (64, 3), (65, 3), (128, 2), (129, 3), (130, 3)):
         yield "mixed", nx, ny, 8, None
     yield "mixed", 31, 23, 1000, None
 
@@ -420,7 +420,7 @@ def _fingerprint():
               ("sw_fortran_vanilla","sw_fortran","sw_assembly","fp_env","roofline","counters")]
     paths += [ROOT / "bench/julia_driver.jl"]
     paths += [ROOT / "bench/fp_env.S", ROOT / "bench/requirements.txt",
-              ROOT / "bench/roofline.S", ROOT / "bench/counters.c", ROOT / "skills/md2asm/SKILL.md"]
+              ROOT / "bench/roofline.S", ROOT / "bench/counters.c", ROOT / "skills/md2asm/SKILL.md", ROOT / "skills/md2asm/references/shallow_water.md"]
     return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in sorted(paths)}
 

@@ -57,7 +57,7 @@ def _cell(east, west, north, south, qc, base, xscale, yscale, dt, final, scaled)
 
 @njit(inline="always", fastmath=False, error_model="numpy")
 def _row(q, base, out, work, par, final, first, scaled, xscale, yscale, j, nx, ny, P, S, ring):
-    r, rn, rf, rs = (j % 3, (j + 1) % 3, 3 + j % 2, 3 + (j - 1) % 2) if ring else (j, j + 1, j - 1, j - 2)
+    r, rn, rf, rs = (1 + (j - 1) % 2, 1 + j % 2, 3 * (j % 2), 3 * ((j - 1) % 2)) if ring else (j, j + 1, j - 1, j - 2)
     aw = max(work[uint64((3) * S + (r) * P + (0))], work[uint64((3) * S + (r) * P + (1))]) * 0.5
     out[uint64((0) * S + (ny + 1) * P + (0))] = _face(q[uint64((0) * S + (j) * P + (0))], q[uint64((0) * S + (j) * P + (1))], q[uint64((1) * S + (j) * P + (0))], q[uint64((1) * S + (j) * P + (1))], aw)
     out[uint64((1) * S + (ny + 1) * P + (0))] = _face(q[uint64((1) * S + (j) * P + (0))], q[uint64((1) * S + (j) * P + (1))], work[uint64((0) * S + (r) * P + (0))], work[uint64((0) * S + (r) * P + (1))], aw)

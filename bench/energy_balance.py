@@ -199,7 +199,7 @@ def heat_budget(q, stage, out, coeff, par):
 def fingerprint():
     paths = [ROOT / "formulations/budyko_sellers.md", ROOT / "Makefile", Path(__file__),
              ROOT / "bench/run.py", ROOT / "bench/ebm_driver.jl", ROOT / "bench/requirements.txt",
-             ROOT / "bench/fp_env.S", ROOT / "bench/counters.c", ROOT / "skills/md2asm/SKILL.md"]
+             ROOT / "bench/fp_env.S", ROOT / "bench/counters.c", ROOT / "skills/md2asm/SKILL.md", ROOT / "skills/md2asm/references/budyko_sellers.md"]
     paths += [p for p in (ROOT / "src/budyko_sellers").iterdir() if p.suffix in (".S", ".f90", ".py", ".jl")]
     paths += [BUILD / ("lib%s.so" % name) for name in
               ("eb_fortran_vanilla", "eb_fortran", "eb_assembly", "fp_env", "counters")]

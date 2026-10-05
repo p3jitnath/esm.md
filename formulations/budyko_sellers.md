@@ -1,249 +1,74 @@
-# Diffusive Budyko–Sellers energy balance model
+# Budyko–Sellers energy balance
 
-This formulation defines a complete annual-mean, zonally averaged energy balance operation, using the continuous model class described by climlab with an independently specified equal-area grid and explicit time method.
+## The idea
 
-## 01. Document control
+This model describes how the Earth's average surface temperature changes with latitude. Sunlight adds heat, radiation removes heat, and heat transport smooths temperature differences between neighbouring latitude bands. Conditions are averaged over longitude and the year. Each latitude band has one temperature, so the model describes broad climate patterns and the balance between incoming and outgoing energy.
 
-| Field | Value |
+## Symbols
+
+| Symbol | Meaning and unit |
 | --- | --- |
-| Template revision | 1.2 |
-| Formulation ID | esm.budyko-sellers.diffusive |
-| Formulation revision | 1.1 |
-| Status | Frozen after independent physical verification of the Fortran reference |
-| Date | 2026-10-04 |
-| Model name | Diffusive Budyko–Sellers energy balance model |
+| $`T`$ | Surface temperature, °C |
+| $`t`$ | Time, s |
+| $`\mu=\sin\varphi`$ | Latitude coordinate; −1 at the South Pole and 1 at the North Pole |
+| $`C`$ | Heat capacity per area, J/(m² K) |
+| $`Q`$ | Mean incoming sunlight, W/m² |
+| $`\alpha`$ | Fraction of sunlight reflected, between 0 and 1 |
+| $`A,B`$ | Radiation constants, W/m² and W/(m² K) |
+| $`D`$ | Heat transport strength, W/(m² K) |
 
-## 02. Physical scope and assumptions
+Latitude $`\varphi`$ is measured in radians. A temperature change of 1 °C equals a change of 1 K. A partial derivative measures change with one variable while the other variables stay fixed.
 
-The state is surface temperature averaged around each latitude band, with constant heat capacity, linear outgoing longwave radiation (OLR), idealised annual insolation, diffusive meridional heat transport, and a temperature threshold for ice albedo. Seasonal forcing, moisture, explicit ice dynamics, and longitude dependence are absent because this operation isolates the annual-mean energy balance.
+## Equations
 
-| ID | Assumption | Mathematical consequence | Validity limit |
-| --- | --- | --- | --- |
-| S01 | Zonal symmetry on a sphere | The area coordinate is µ=sin(φ) | Latitude φ lies between the poles |
-| S02 | Constant heat capacity and diffusion | C and D are spatially constant | Positive C; nonnegative D |
-| S03 | Linear outgoing radiation | OLR=A+BT | Temperature is in degrees Celsius |
-| S04 | Prescribed annual insolation | Forcing is independent of time | No seasonal cycle |
+**P01. Heat balance**
 
-| Term | Definition | Permitted technical use |
-| --- | --- | --- |
-| Cell average | Mean temperature over one equal-area latitude band | Noun for T_i |
-| Face flux | The signed diffusive quantity J at a band interface | Noun for D02 |
-| Stage | The intermediate SSPRK2 temperature | Noun for T¹ |
-| Ice branch | The albedo choice when T is at or below T_f | Noun for P02 |
+```math
+\begin{aligned}
+C\frac{\partial T}{\partial t}
+&=(1-\alpha)Q[1+s_2P_2(\mu)]-(A+BT)\\
+&\quad+D\frac{\partial}{\partial\mu}
+\left[(1-\mu^2)\frac{\partial T}{\partial\mu}\right].
+\end{aligned}
+```
 
-## 03. Symbols and units
+The left side is stored heat changing with time. The three terms on the right are absorbed sunlight, heat lost through radiation, and heat received from neighbouring latitude bands. Each term is a power per area, measured in W/m². When their sum is positive, the surface warms; when it is negative, the surface cools. The heat capacity sets how quickly the temperature responds.
 
-| Symbol | Meaning | SI unit or dimension | Kind | Valid range |
-| --- | --- | --- | --- | --- |
-| φ,µ,t | Latitude, sin(latitude), and time | rad, 1, s | Scalars | µ∈[−1,1], t≥0 |
-| T,T_i | Surface temperature and cell average | °C relative to 273.15 K | Scalar and indexed state | −100≤T≤100 at every stage |
-| C,A,B,D | Heat capacity, OLR intercept, OLR slope, and diffusion parameter | J m⁻² K⁻¹, W m⁻², W m⁻² K⁻¹, W m⁻² K⁻¹ | Scalars | C>0, 0≤A≤1000, 0≤B≤100, 0≤D≤100 |
-| S_0,Q,s_2 | Solar constant, S_0/4, and insolation coefficient | W m⁻², W m⁻², 1 | Scalars | S_0>0, −1≤s_2≤1 |
-| α,a_0,a_2,a_i,T_f | Albedo, warm coefficients, ice value, and threshold | 1, 1, 1, 1, °C | Scalars | 0≤α≤1, −100≤T_f≤100 |
-| P_2,µ_i,µ_f,δ | Legendre polynomial, cell centre, face coordinate, and spacing | 1 | Scalars | P_2(µ)=(3µ²−1)/2, δ=2/N |
-| N,i,f,n,M,P | Cell count, cell/face indices, step, run count, and storage length | 1 | Integers | 1≤N≤65536, 1≤i≤N, 0≤f≤N, 0≤n≤M≤10⁶, P=N+2 |
-| K_f,W_i,I_i,J_f,r_i,ℓ_i,β,e_i | Face coefficient, warm/ice absorbed shortwave radiation (ASR), flux, net radiation, tendency, time coefficient, and Euler state | Defined by D01–D03 | Indexed scalars | Finite; W_i,I_i∈[0,1000], K_f≥0 |
-| p_i,P̄₂,i | Centre value and cell average of P₂ | 1 | Indexed scalars | D01 and IC01 |
-| S_i,a_w,i,F_i | Local insolation, warm albedo, and selected ASR | W m⁻², 1, W m⁻² | Indexed scalars | S_i≥0; 0≤a_w,i≤1; F_i∈[0,1000] |
-| L | Largest linear radiation and diffusion decay coefficient | W m⁻² K⁻¹ | Scalar | L≥0 |
-| R,Δt,H,E_∞,E_H,p_obs | One-operation rounding, time step, mean heat, error metrics, and observed order | Argument units, s, J m⁻², K, 1, 1 | Operators and scalars | Sections 08–11 |
+The function $`P_2`$ gives a simple variation with latitude, and $`s_2`$ sets its strength:
 
-## 04. Domain, geometry, state, and parameters
+```math
+P_2(\mu)=\frac{3\mu^2-1}{2},\qquad Q=\frac{S_0}{4}.
+```
 
-| Item | Definition |
+Here $`S_0`$ is the incoming solar flux. The factor 1/4 converts sunlight intercepted by a disc to an average over a sphere. The latitude function makes the average sunlight stronger near the Equator and weaker near the poles.
+
+**P02. Reflected sunlight**
+
+```math
+\alpha(T,\mu)=
+\begin{cases}
+a_i,&T\leq T_f,\\
+a_0+a_2P_2(\mu),&T>T_f.
+\end{cases}
+```
+
+Cold cells use the ice value $`a_i`$. Warmer cells use the latitude-dependent value. This reflected fraction is called albedo: a value of 0.62 means that 62% of the incoming sunlight is reflected. The threshold $`T_f`$ is the temperature at which the ice rule applies.
+
+## Parameters, initial state, and boundaries
+
+| Parameter | Study value |
 | --- | --- |
-| Spatial domain | −1≤µ≤1, south to north |
-| Time interval | 0≤t≤MΔt |
-| Coordinate system | Equal-area coordinate µ=sin(φ) |
-| Geometry | Spherical, zonally symmetric bands; the µ metric removes the latitude-coordinate singularity |
+| $`C`$ | 41,813,000 J/(m² K) |
+| $`A,B,D`$ | 210 W/m²; 2 W/(m² K); 0.555 W/(m² K) |
+| $`S_0,s_2`$ | 1365.2 W/m²; −0.48 |
+| $`a_0,a_2,a_i`$ | 0.3; 0.078; 0.62 |
+| $`T_f`$ | −10 °C |
 
-The prognostic state is T_i, while albedo, radiation, and face fluxes are diagnostic quantities evaluated from the current stage.
-
-| Quantity | Value or input rule | Unit | Dependence | Constraint |
-| --- | --- | --- | --- | --- |
-| Standard climate parameters | C=41813000, A=210, B=2, D=0.555, S_0=1365.2, s_2=−0.48, a_0=0.3, a_2=0.078, a_i=0.62, T_f=−10 | Symbol units | Constant | Shared binary64 values |
-| Evaluation parameters | C,Δt,δ,A,B,T_f | Symbol units | Constant per run | Stability rule below |
-| Static coefficients | K,W,I from D01, or the explicitly defined analytic verification inputs | D01 units | Face or cell | Identical bytes across implementations |
-
-The standard C represents a 10 m water layer with density 1000 kg m⁻³ and specific heat 4181.3 J kg⁻¹ K⁻¹. This is a physical parameter choice, while δ and Δt belong to the numerical method.
-
-## 05. Governing equations
-
-**P01. Annual-mean energy balance**
+Start with $`T(\mu,0)=12-40P_2(\mu)`$ °C. This starts at 32 °C at the Equator and −28 °C at the poles. No heat crosses either pole:
 
 ```math
-C\,\partial_tT=(1-\alpha)Q[1+s_2P_2(\mu)]-(A+BT)+D\,\partial_\mu[(1-\mu^2)\partial_\mu T],\qquad Q=S_0/4.
+D(1-\mu^2)\frac{\partial T}{\partial\mu}=0
+\qquad\text{at }\mu=-1,\ 1.
 ```
 
-**P02. Ice-albedo closure**
-
-```math
-\alpha(T,\mu)=\begin{cases}a_i,&T\leq T_f,\\a_0+a_2P_2(\mu),&T>T_f.\end{cases}
-```
-
-Every term in P01 has units W m⁻²; its diffusion term redistributes heat without supplying a global source.
-
-## 06. Initial and boundary conditions
-
-| ID | State component | Region | Mathematical condition | Unit |
-| --- | --- | --- | --- | --- |
-| IC01 | T | All cells | Standard climate T_i=12−40 P̄₂,i, where P̄₂,i=P₂(µ_i)+δ²/8 | °C |
-| IC02 | T | Analytic cases | Uniform temperature or the cell-averaged mode defined in Section 11 | °C |
-| BC01 | T | Poles | J_0=J_N=+0, with copied ghosts T_0=T_1 and T_{N+1}=T_N | W m⁻² for J |
-
-The ghost copies include their exact sign bits, and a one-cell grid copies its sole interior value to both ghosts.
-
-## 07. Spatial discretisation
-
-| Item | Definition |
-| --- | --- |
-| Mesh and variable location | Equal-area finite volumes with cell-average T_i |
-| Cell dimensions and measures | δ=2/N; each band has global area fraction 1/N |
-| Index ranges | Interior i=1…N; ghosts 0,N+1; faces f=0…N |
-| Reconstruction | Centred differences; no separate reconstruction |
-| Numerical flux | J_i=K_i(T_{i+1}−T_i) for 1≤i<N; pole flux is +0 |
-| Limiter or filter | None, because the declared method uses centred diffusion |
-| Boundary operator | BC01 before each stage and on both returned states |
-| Spatial order | Second order for smooth forcing and temperature away from an ice-threshold crossing |
-
-**D01. Ordered static coefficients**
-
-Generate the inputs once, with every R indicating one binary64 operation; for cell i and interior face f, evaluate the following expressions in their stated order.
-
-```math
-\delta=R(2/N),\quad \mu_i=R(-1+R(R(i-1/2)\delta)),\quad \mu_f=R(-1+R(f\delta)),\quad p_i=R(R(R(3R(\mu_i\mu_i))-1)/2),
-```
-```math
-S_i=R(R(S_0/4)R(1+R(s_2p_i))),\quad a_{w,i}=R(a_0+R(a_2p_i)),\quad W_i=R(R(1-a_{w,i})S_i),\quad I_i=R(R(1-a_i)S_i),
-```
-```math
-K_f=R(R(DR(1-R(\mu_f\mu_f)))/\delta),\quad K_0=K_N=+0.
-```
-
-W and I use centre sampling, whose smooth spatial error is second order; they are immutable static forcing rather than a numerical time stage. Analytic cases can supply their stated W=I directly, so their exact references isolate the diffusion and time operators.
-
-**D02. Ordered face flux**
-
-```math
-J_i=R(K_iR(T_{i+1}-T_i)),\quad 1\leq i<N;\qquad J_0=J_N=+0.
-```
-
-Face i is between cells i and i+1, so T_i denotes a cell value and T_f remains the ice threshold.
-
-**D03. Ordered cell tendency and Euler update**
-
-```math
-F_i=\begin{cases}I_i,&T_i\leq T_f,\\W_i,&T_i>T_f,\end{cases}\quad r_i=R(F_i-R(A+R(BT_i))),\quad \ell_i=R(r_i+R(R(J_i-J_{i-1})/\delta)),\quad \beta=R(\Delta t/C),\quad e_i=R(T_i+R(\beta\ell_i)).
-```
-
-## 08. Time discretisation
-
-**T01. Complete SSPRK2 update**
-
-```math
-T_i^1=e_i(T^n),\qquad T_i^{n+1}=R(R(T_i^n/2)+R(e_i(T^1)/2)).
-```
-
-| Item | Definition |
-| --- | --- |
-| Time method and order | Two-stage SSPRK2; second order for smooth trajectories |
-| Stage dependencies | First stage reads Tⁿ; final stage reads T¹ and averages with Tⁿ |
-| Source evaluation | Radiation and the ice branch are evaluated from the current stage temperature |
-| Time-step rule | Fixed positive Δt; default Δt=R(R(0.2 C)/L), with L=max_i[B+(K_i+K_{i−1})/δ] |
-| Stability condition | (Δt/C) max_i[B+(K_i+K_{i−1})/δ]≤0.4; every stage also satisfies the admissible range |
-| Final step and stop rule | Exactly M complete steps, without an implicit partial step |
-
-BC01 belongs to the solver and is applied to the input, first stage, and final state. The stability condition controls the linear diffusion and radiation terms; it does not establish smoothness across the discontinuous ice threshold.
-
-## 09. Invariants and admissible states
-
-**I01. Global heat budget**
-
-```math
-H=\frac C N\sum_iT_i,\qquad H^{n+1}-H^n=\frac{\Delta t}{2N}\sum_i[r_i(T^n)+r_i(T^1)]
-```
-
-The identity holds in real arithmetic because the shared face fluxes telescope, while acceptance allows the floating-point error specified in A02.
-
-| Quantity | Continuous property | Discrete property | Required condition |
-| --- | --- | --- | --- |
-| Global heat | Changes through net radiation | I01, with rounding drift | A02 |
-| Pole transport | Zero | Exact +0 pole flux | BC01 |
-| Temperature | Finite within the model's validity range | Finite at every stage | −100≤T≤100 °C |
-| State and coefficients | Reflection symmetry for symmetric inputs | Symmetry up to rounding | A03 |
-
-## 10. Numerical representation and operation contract
-
-All arrays use contiguous binary64 storage, with P=N+2 and zero-based byte offset 8i for a state or work value; coefficient field a∈{0,1,2} uses offset 8(aP+i), in K,W,I order.
-
-| Quantity | Shape and index map | Storage type | Unit | Input or output | Mutation and alias rule |
-| --- | --- | --- | --- | --- | --- |
-| q | P values | Binary64 | °C | Current state | Interior unchanged by one step; ghosts may change |
-| stage,out | P values each | Binary64 | °C | First stage and complete step | Fully written; disjoint from other buffers |
-| work | P values | Binary64 | W m⁻² | Scratch face fluxes | Contents unspecified on return; disjoint |
-| coefficients | Three fields of P values | Binary64 | W m⁻² K⁻¹ for K; W m⁻² for W,I | Input | Unchanged; K_N and both pole coefficients are +0; unused padding is +0 |
-| parameters | C,Δt,δ,A,B,T_f at offsets 0,8,16,24,32,40 | Binary64 | Symbol units | Input | Unchanged; disjoint |
-
-| Property | Required rule |
-| --- | --- |
-| Precision and rounding | Binary64, nearest with ties to even |
-| Floating-point environment | Arm FPCR=0; gradual underflow and preserved signed zeros |
-| Input and constant bytes | One shared input file; +0, 1/2, and 1 are exact |
-| Operation order | D01–D03 and T01; independent cells may be scheduled freely |
-| Intermediate rounding | Each R is a separate binary64 rounding point |
-| Fused multiply-add | Forbidden, including contraction and reassociation |
-| Division and square root | Correctly rounded division; no square root in the operation |
-| Reductions | Outside the solver, with deterministic accurate summation |
-| Non-finite values and underflow | Non-finite inputs are excluded; outputs must remain finite |
-| Signed zero and ties | Preserve computed bits; T=T_f takes the ice branch |
-| Memory bounds and alignment | Every buffer covers its declared length, is at least 8-byte aligned, and has disjoint storage |
-| Inputs and outputs | Complete T01 plus BC01; stage and out returned |
-| Output byte encoding | Header below, followed by N interior temperatures south to north |
-| Output checkpoints | Every verification stage and step; last stage and final state of each timed batch |
-| Scratch storage | Exactly P binary64 values, with no extra numerical buffer |
-| Invalid input | Excluded from the solver domain and rejected by the evaluator |
-
-The canonical little-endian 88-byte header contains `ESMEB001`, then unsigned 64-bit N,n,phase, then binary64 C,Δt,δ,A,B,T_f,t with t=R(nΔt). Input phase 0 has the same header followed by N temperature values and all 3P coefficient values; output phases 1 and 2 contain only the N temperatures, with timing metadata stored separately.
-
-Independent work across cells and stages may be interleaved once each cell's stated dependencies and required pole values are available, while both complete returned states remain observable.
-
-The repeated-step entry alternates q and out, placing the final state in out for an odd count and q for an even count, with zero steps leaving all buffers unchanged. A positive normal power-of-two δ permits multiplication by its exact reciprocal in place of division because both instructions round the same real value once; all other δ retain division.
-
-## 11. Numerical acceptance criteria
-
-**A01. Temperature error and observed order**
-
-```math
-E_\infty=\max_i|T_i-T_i^{\rm exact}|,\qquad p_{\rm obs}=\log_2(E_\infty(\Delta t)/E_\infty(\Delta t/2)).
-```
-
-**A02. Normalised heat-budget residual**
-
-```math
-E_H=\frac{|(C/N)\sum_i(T_i^{n+1}-T_i^n)-(\Delta t/2N)\sum_i[r_i(T_i^n)+r_i(T_i^1)]|}{C(1+N^{-1}\sum_i|T_i^n|)}\leq10^{-10}.
-```
-
-**A03. Symmetry error**
-
-For symmetric inputs, the maximum absolute temperature difference between mirrored cells must be at most 10⁻¹⁰ K after every complete verification step.
-
-| ID | Physical case and inputs | Independent reference | Metric | Numerical limit | Evaluation time |
-| --- | --- | --- | --- | --- | --- |
-| V01 | N=7, C=1, A=200, B=2, D=0, W=I=224, T=12, T_f=−10, Δt=0.1 | Exact uniform equilibrium T=12 | State bytes and A02 | Exact state and E_H≤10⁻¹⁰ | 16 steps and both stages |
-| V02 | N=7, C=1, A=0, B=1, D=0, W=I=0, T=1, T_f=−10; Δt=1/8,1/16,1/32 | T(t)=exp(−t) | A01 | 1.8≤p_obs≤2.2; E_∞(1/32)≤10⁻⁴ K | t=1 |
-| V03 | N=16, C=1, A=0, B=1, D=1/16, W=I=0, T_i=1+(1/4)P̄₂,i; Δt=1/256,1/512,1/1024 | T_i(t)=exp(−t)+(1/4)P̄₂,i exp[−(1+6D)t]; D02 has exact eigenvalue −6D for P̄₂ | A01 | 1.8≤p_obs≤2.2; E_∞(1/1024)≤10⁻⁶ K | t=1/2 |
-| V04 | Standard climate IC01 on N=1,2,7,31,128,8193 with default Δt | I01, A03, and admissibility | A02, A03, buffer bits | Stated limits; zero guard or input changes | 8 steps; N=31 also 1000 steps |
-| V05 | N=7, C=1, A=B=D=0, W=1, I=0, T=T_f=−10, Δt=0.1; and a negative-zero case T=T_f=−0 | Exact threshold branch; D03 signed-zero arithmetic | State bytes | Tie remains −10; negative-zero outputs follow ordered arithmetic | 8 steps |
-| V06 | Every case, stage, complete state, and canonical file | Physically verified unchanged vanilla Fortran | Byte differences | Zero differing bytes | Each verification step and timed final outputs |
-
-The thermal mode in V03 follows from taking the centred differences of P̄₂,i=P₂(µ_i)+δ²/8: D02 gives −6D P̄₂,i even at the poles, providing an independent physical identity rather than another implementation of the solver.
-
-## 12. References and limitations
-
-| ID | Source | Definition used | Location in this document |
-| --- | --- | --- | --- |
-| R01 | [climlab EBM documentation](https://climlab.readthedocs.io/en/stable/api/climlab.model.ebm.html) | Continuous diffusive EBM and standard parameter choices | P01–P02 and Section 04 |
-| R02 | [Brian Rose: one-dimensional EBM](https://brian-rose.github.io/ClimateLaboratoryBook/courseware/one-dim-ebm/) | Meridional energy transport and linear radiation | P01 and I01 |
-| R03 | [climlab heat-capacity source](https://climlab.readthedocs.io/en/stable/_modules/climlab/utils/heat_capacity.html) | Water-layer heat capacity | Section 04 |
-
-The equal-area mesh and explicit SSPRK2 scheme are choices of this experiment, so byte agreement concerns this formulation's implementations and does not assert identical outputs or time integration to climlab. The standard climate workload checks nonlinear albedo and heat budgets, while the smooth analytic cases establish time convergence; the ice discontinuity does not have a claimed smooth temporal order.
+Physics revision: 1.1. [md2asm](../skills/md2asm/SKILL.md) derives the numerical method and implementation; its [solver contract](../skills/md2asm/references/budyko_sellers.md) preserves the verified choices and equation IDs.

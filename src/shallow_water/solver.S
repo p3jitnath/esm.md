@@ -90,7 +90,7 @@
     ret
 .size .Lprepare, .-.Lprepare
 
-// Rounded faces use output halos until BC01; live scratch rows retain pitch P.
+// Live scratch keeps two point rows and one in-place north-face row at pitch P.
 // Rows use the same field stride S in both the full and live-window paths.
 .macro FIELD_POINTER base, field
 .if \field == 0
@@ -117,12 +117,21 @@
 .endm
 
 // D03 uses the north state row and writes its five values into the next point slot.
+.macro POINT_FLUX velocity_x, velocity_y, wave_speed
+    fmul z18.d, z22.d, z\velocity_x\().d
+    fadd z18.d, z18.d, z17.d
+    fmul z8.d, z22.d, z\velocity_y\().d
+    fmul z9.d, z14.d, z\velocity_y\().d
+    fadd z9.d, z9.d, z17.d
+    // Read velocity_y before its register can become the x speed.
+    fabs v27.2d, v\velocity_y\().2d
+    fabs v19.2d, v\velocity_x\().2d
+    fadd z19.d, z19.d, z\wave_speed\().d
+    fadd z27.d, z27.d, z\wave_speed\().d
+.endm
+
 .macro NORTH_POINT delayed=0, pointers=0, cached=0
 .if \cached
-    mov z16.d,z0.d
-    mov z6.d,z15.d
-    mov z3.d,z7.d
-    mov z5.d,z12.d
     ld1d {z22.d},p7/z,[x17,x14,lsl #3]
     ld1d {z14.d},p7/z,[x18,x14,lsl #3]
 .else
@@ -131,19 +140,18 @@
     ld1d {z22.d},p7/z,[x17,x14,lsl #3]
     ld1d {z14.d},p7/z,[x18,x14,lsl #3]
 .else
-    FIELD_POINTER x0, 0
-    ld1d {z2.d}, p7/z, [x11, x16, lsl #3]
+    ld1d {z2.d}, p7/z, [x0, x16, lsl #3]
     FIELD_POINTER x0, 1
     ld1d {z22.d}, p7/z, [x11, x16, lsl #3]
     FIELD_POINTER x0, 2
     ld1d {z14.d}, p7/z, [x11, x16, lsl #3]
 .endif
-    fmul z16.d, z21.d, z2.d
+    fmul z16.d,z21.d,z2.d
 .if \delayed == 1
     fmul z3.d,z2.d,z10.d
-.elseif \delayed == 2
-    fmul z3.d,z2.d,z15.d
 .endif
+    fmul z17.d,z16.d,z2.d
+    fmul z17.d,z17.d,z31.d
     fdiv v5.2d,v14.2d,v2.2d
     fsqrt v6.2d,v16.2d
 .if \delayed
@@ -152,19 +160,14 @@
     fdiv v3.2d,v22.2d,v2.2d
 .endif
 .endif
-    fmul z17.d, z16.d, z2.d
-    fmul z17.d, z17.d, z31.d
-    fmul z18.d, z22.d, z3.d
-    fadd z18.d, z18.d, z17.d
-    fmul z8.d, z22.d, z5.d
-    fmul z9.d, z14.d, z5.d
-    fadd z9.d, z9.d, z17.d
-    fabs v19.2d, v3.2d
-    fabs v27.2d, v5.2d
-    fadd z19.d, z19.d, z6.d
-    fadd z27.d, z27.d, z6.d
-    FIELD_POINTER x7, 0
-    st1d {z18.d}, p0, [x11, x14, lsl #3]
+.if \cached
+    fmul z17.d,z23.d,z2.d
+    fmul z17.d,z17.d,z31.d
+    POINT_FLUX 7,19,15
+.else
+    POINT_FLUX 3,5,6
+.endif
+    st1d {z18.d}, p0, [x7, x14, lsl #3]
     FIELD_POINTER x7, 1
     st1d {z8.d}, p0, [x11, x14, lsl #3]
     FIELD_POINTER x7, 2
@@ -178,13 +181,11 @@
 
 .macro FACE_COMPONENT component, first, qc, qe, qn, fxc, fxe, fyc, fyn, qs, fys
 .if \component == 0
-    FIELD_POINTER x0, 0
-    ld1d {z0.d}, p7/z, [x11, x14, lsl #3]
-    ld1d {z1.d}, p7/z, [x11, x15, lsl #3]
+    ld1d {z0.d}, p7/z, [x0, x14, lsl #3]
+    ld1d {z1.d}, p7/z, [x0, x15, lsl #3]
 .elseif \component == 1
-    FIELD_POINTER x3, 0
-    ld1d {z3.d}, p7/z, [x11, x14, lsl #3]
-    ld1d {z4.d}, p7/z, [x11, x15, lsl #3]
+    ld1d {z3.d}, p7/z, [x3, x14, lsl #3]
+    ld1d {z4.d}, p7/z, [x3, x15, lsl #3]
 .else
     FIELD_POINTER x0, 2
     ld1d {z1.d}, p7/z, [x11, x15, lsl #3]
@@ -265,15 +266,13 @@
     incd x13
 .endm
 
-.macro FUSED_COMPONENT component, first, qc, qe, qn, fxc, fxe, fyc, fyn, qs, fys, final, scaled, single=0
+.macro FUSED_COMPONENT component, qc, qe, qn, fxc, fxe, fyc, fyn, final, scaled, single=0, prepare=0
 .if \component == 0
-    FIELD_POINTER x0, 0
-    ld1d {z0.d}, p7/z, [x11, x14, lsl #3]
-    ld1d {z1.d}, p7/z, [x11, x15, lsl #3]
+    ld1d {z0.d}, p7/z, [x0, x14, lsl #3]
+    ld1d {z1.d}, p7/z, [x0, x15, lsl #3]
 .elseif \component == 1
-    FIELD_POINTER x3, 0
-    ld1d {z3.d}, p7/z, [x11, x14, lsl #3]
-    ld1d {z4.d}, p7/z, [x11, x15, lsl #3]
+    ld1d {z3.d}, p7/z, [x3, x14, lsl #3]
+    ld1d {z4.d}, p7/z, [x3, x15, lsl #3]
 .else
     FIELD_POINTER x0, 2
     ld1d {z1.d}, p7/z, [x11, x15, lsl #3]
@@ -292,8 +291,17 @@
     fsub z17.d, z\qn\().d, z\qc\().d
     fmul z17.d, z27.d, z17.d
     fsub z6.d, z6.d, z17.d
-    FIELD_POINTER x9, \component
-    st1d {z6.d}, p0, [x11, x14, lsl #3]
+.if \prepare
+    // The face has consumed north depth; independent D03 work overlaps the current D04 update.
+    add x11,x14,#2
+    ld1d {z2.d},p7/z,[x16,x11,lsl #3]
+    ld1d {z7.d},p7/z,[x17,x11,lsl #3]
+    ld1d {z19.d},p7/z,[x18,x11,lsl #3]
+    fmul z23.d,z21.d,z2.d
+    fdiv v7.2d,v7.2d,v2.2d
+    fsqrt v15.2d,v23.2d
+    fdiv v19.2d,v19.2d,v2.2d
+.endif
 .if \component == 0
     ext v16.16b, v20.16b, v4.16b, #8
 .if \single
@@ -317,8 +325,11 @@
 .endif
 .endif
     fsub z4.d, z4.d, z16.d
+    // Consume the previous face before replacing its scratch slot.
     FIELD_POINTER x2, \component
     ld1d {z16.d}, p0/z, [x11, x14, lsl #3]
+    FIELD_POINTER x9, \component
+    st1d {z6.d}, p0, [x11, x14, lsl #3]
     fsub z6.d, z6.d, z16.d
 .if \scaled
     fmul z4.d, z4.d, z28.d
@@ -360,24 +371,9 @@
     ld1d {z13.d}, p7/z, [x11, x14, lsl #3]
     FIELD_POINTER x3, 1
     ld1d {z25.d}, p7/z, [x11, x14, lsl #3]
-    FUSED_COMPONENT 0, 0, 0, 1, 2, 11, 12, 13, 14, 7, 15, \final, \scaled, \single
-.if \prepare
-    // The current depth update is complete, so z0 and z2 now hold the next point's rounded gh and depth.
-    add x11,x14,#2
-    ld1d {z2.d},p7/z,[x16,x11,lsl #3]
-    ld1d {z7.d},p7/z,[x17,x11,lsl #3]
-    fmul z0.d,z21.d,z2.d
-    fdiv v7.2d,v7.2d,v2.2d
-    fsqrt v15.2d,v0.2d
-.endif
-    FUSED_COMPONENT 1, 0, 11, 12, 22, 3, 4, 25, 8, 7, 19, \final, \scaled, \single
-.if \prepare
-    // The momentum update has consumed z12, which can now hold the next point's rounded transverse velocity.
-    add x11,x14,#2
-    ld1d {z12.d},p7/z,[x18,x11,lsl #3]
-    fdiv v12.2d,v12.2d,v2.2d
-.endif
-    FUSED_COMPONENT 2, 0, 13, 1, 14, 25, 4, 5, 9, 15, 19, \final, \scaled, \single
+    FUSED_COMPONENT 0, 0, 1, 2, 11, 12, 13, 14, \final, \scaled, \single, \prepare
+    FUSED_COMPONENT 1, 11, 12, 22, 3, 4, 25, 8, \final, \scaled, \single
+    FUSED_COMPONENT 2, 13, 1, 14, 25, 4, 5, 9, \final, \scaled, \single
     incd x13
 .endm
 
@@ -611,17 +607,14 @@ DEFINE_UPDATE .Lcomponent_final_scaled, 1, 1
     b.lo .Lfull_faces\@
     cmp x20, #3
     b.lo .Lfull_faces\@
-    mov x11, #3
-    udiv x12, x17, x11
-    msub x12, x12, x11, x17
+    sub x12, x17, #1
+    and x12, x12, #1
+    add x12, x12, #1
     madd x3, x12, x26, x24
-    add x12, x17, #1
-    udiv x13, x12, x11
-    msub x12, x13, x11, x12
-    madd x7, x12, x26, x24
     and x12, x17, #1
-    add x12, x12, #3
-    madd x9, x12, x26, x24
+    add x12, x12, #1
+    madd x7, x12, x26, x24
+    mov x9, x24
     b .Lface_pointers\@
 .Lfull_faces\@:
     madd x3, x17, x26, x24
@@ -633,7 +626,7 @@ DEFINE_UPDATE .Lcomponent_final_scaled, 1, 1
     add x6, x5, x27
     cmp w17,#1
     b.eq .Lfirst_row\@
-    cmp x19,#128
+    cmp x19,#64
     b.lo .Lfirst_row\@
     madd x1,x17,x26,\output
     madd x12,x17,x26,\base
@@ -641,10 +634,7 @@ DEFINE_UPDATE .Lcomponent_final_scaled, 1, 1
     b.lo .Lfull_previous\@
     cmp x20,#3
     b.lo .Lfull_previous\@
-    sub x11,x17,#1
-    and x11,x11,#1
-    add x11,x11,#3
-    madd x2,x11,x26,x24
+    mov x2,x24
     b .Lprevious_ready\@
 .Lfull_previous\@:
     sub x11,x17,#2
@@ -666,13 +656,8 @@ DEFINE_UPDATE .Lcomponent_final_scaled, 1, 1
     b.lo .Lfull_update\@
     cmp x20, #3
     b.lo .Lfull_update\@
-    and x12, x11, #1
-    add x12, x12, #3
-    madd x3, x12, x26, x24
-    sub x12, x11, #1
-    and x12, x12, #1
-    add x12, x12, #3
-    madd x6, x12, x26, x24
+    mov x3,x24
+    mov x6,x24
     b .Lupdate_pointers\@
 .Lfull_update\@:
     sub x12, x11, #1

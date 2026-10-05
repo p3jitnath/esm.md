@@ -1,129 +1,86 @@
 # Implementation comparison
 
-The accepted comparisons were collected on 2026-10-04 on one Neoverse V2 core in exclusive Slurm job 7060642, node nid010550, with CPU 1, NUMA node 0, SVE length 16 bytes, and FPCR=0. Both models use ordered FP64 arithmetic with contraction and fast-math disabled, and all seven implementations pass independent physical checks and zero differing bytes at every verification stage and step and in canonical output files.
+These measurements ran overnight on 4–5 October 2026 on one Arm Neoverse V2 core in quiet exclusive Slurm job 7072889, node nid011277. Every implementation uses the same inputs, numerical method, and ordered 64-bit floating-point calculations. Assembly is faster than optimised Fortran in all twelve matched runs at each of the six workloads.
 
-The [compact evidence](results.json) retains twelve accepted durations, variation, paired speedups, counters, physical cases, input and canonical-output hashes, source and binary fingerprints, placement, clocks, startup, and toolchain versions. Full raw records and generated binaries remain local in Git-ignored folders; the [evaluation instructions](README.md) give the build and launch commands. The later GitHub rendering update preserves every scientific equation and output bit; its before-and-after document hashes appear in the evidence, while the benchmark fingerprints retain the document bytes used for those measurements.
+Speed is measured in million complete cell updates per second; each update advances one cell through one full time step. The median is the middle timing of twelve runs. MAD is the median absolute distance from that middle value, while the range gives the shortest and longest observed times. These ranges describe the runs and are not confidence intervals. Vanilla means the unchanged language control, compiled for the same processor; optimised means its loops were tuned using measured performance.
+
+The [compact evidence](results.json) records all accepted timings, physical checks, input and output hashes, implementation fingerprints, hardware counters, and software versions. See the [evaluation instructions](README.md) to reproduce the comparison.
 
 ## Shallow water
 
-| Grid | Implementation | Mcell steps/s | Median ms | MAD ms | Range ms |
+| Grid | Implementation | Million updates/s | Median ms | MAD ms | Range ms |
 | --- | --- | ---: | ---: | ---: | --- |
-| 64² | Fortran vanilla | 40.18 | 417.535 | 0.178 | 417.142–418.309 |
-| 64² | Fortran specialised | 83.29 | 201.434 | 0.040 | 201.336–201.577 |
-| 64² | Direct assembly | 81.78 | 205.159 | 0.026 | 205.030–205.504 |
-| 64² | Python vanilla | 29.58 | 567.164 | 0.050 | 566.999–567.441 |
-| 64² | Python specialised | 55.24 | 303.730 | 0.028 | 303.584–303.881 |
-| 64² | Julia vanilla | 30.18 | 555.920 | 0.376 | 554.744–557.848 |
-| 64² | Julia specialised | 77.20 | 217.311 | 0.261 | 216.651–220.749 |
-| 256² | Fortran vanilla | 40.58 | 413.458 | 1.055 | 411.581–416.555 |
-| 256² | Fortran specialised | 80.22 | 209.139 | 0.208 | 208.906–209.874 |
-| 256² | Direct assembly | 79.55 | 210.888 | 0.321 | 210.329–211.430 |
-| 256² | Python vanilla | 29.93 | 560.492 | 0.276 | 559.757–562.831 |
-| 256² | Python specialised | 54.84 | 305.926 | 0.120 | 305.640–306.527 |
-| 256² | Julia vanilla | 30.51 | 549.896 | 1.890 | 547.429–554.647 |
-| 256² | Julia specialised | 75.97 | 220.846 | 0.487 | 219.314–221.952 |
-| 1024² | Fortran vanilla | 39.64 | 423.197 | 0.521 | 421.883–424.909 |
-| 1024² | Fortran specialised | 71.86 | 233.486 | 0.310 | 232.896–235.886 |
-| 1024² | Direct assembly | 72.11 | 232.666 | 0.206 | 232.120–233.567 |
-| 1024² | Python vanilla | 29.82 | 562.655 | 0.204 | 562.318–563.234 |
-| 1024² | Python specialised | 52.09 | 322.075 | 0.432 | 321.616–324.015 |
-| 1024² | Julia vanilla | 30.02 | 558.829 | 0.142 | 558.269–569.496 |
-| 1024² | Julia specialised | 69.44 | 241.612 | 0.327 | 240.885–243.745 |
-
-| Grid | Fortran / vanilla | Julia / vanilla | Python / vanilla | Assembly / fastest language |
-| --- | ---: | ---: | ---: | ---: |
-| 64² | 2.073× | 2.558× | 1.867× | 0.982× |
-| 256² | 1.977× | 2.490× | 1.832× | 0.992× |
-| 1024² | 1.813× | 2.313× | 1.747× | 1.004× |
-
-Every specialised language is faster than its matched vanilla implementation in all twelve paired batches on every reported grid; paired ranges in the evidence describe observations rather than confidence intervals. The controls retain their reviewed sources and use strong CPU-aware compilation, with Numba in both Python variants and IEEE Julia execution.
-
-The sixteen physical cases include exact rest and uniform states, transported shear, independent dam-break profiles, small and irregular grids, and a 1000-step trajectory. Shear convergence orders are 0.975 and 0.988 in both directions, the largest dam-break relative error is 0.028651 against the 0.04 limit, maximum normalised budget drift is 7.4e-17, and maximum stage CFL is 0.188 against the 0.4 limit.
+| 64² | Assembly | 89.80 | 373.639 | 0.027 | 373.581–373.868 |
+| 64² | Fortran, optimised | 84.94 | 395.044 | 0.049 | 394.967–395.468 |
+| 64² | Fortran, vanilla | 40.95 | 819.440 | 0.230 | 818.766–820.191 |
+| 64² | Julia, optimised | 78.39 | 428.064 | 0.412 | 427.221–428.798 |
+| 64² | Julia, vanilla | 30.62 | 1095.675 | 0.475 | 1093.279–1097.710 |
+| 64² | Python, optimised | 56.40 | 594.926 | 0.080 | 594.630–595.202 |
+| 64² | Python, vanilla | 30.05 | 1116.662 | 0.147 | 1116.496–1117.100 |
+| 256² | Assembly | 95.31 | 352.057 | 0.160 | 351.856–352.462 |
+| 256² | Fortran, optimised | 81.51 | 411.667 | 0.511 | 411.128–413.605 |
+| 256² | Fortran, vanilla | 41.26 | 813.332 | 0.679 | 810.982–819.639 |
+| 256² | Julia, optimised | 77.00 | 435.799 | 1.161 | 431.761–439.737 |
+| 256² | Julia, vanilla | 30.92 | 1085.279 | 1.751 | 1078.352–1091.987 |
+| 256² | Python, optimised | 56.42 | 594.700 | 0.479 | 594.193–595.582 |
+| 256² | Python, vanilla | 30.40 | 1103.920 | 0.372 | 1103.082–1105.487 |
+| 1024² | Assembly | 82.66 | 405.914 | 0.068 | 405.725–405.985 |
+| 1024² | Fortran, optimised | 72.23 | 464.554 | 0.371 | 463.721–471.251 |
+| 1024² | Fortran, vanilla | 37.38 | 897.712 | 0.642 | 896.296–898.743 |
+| 1024² | Julia, optimised | 70.77 | 474.141 | 1.182 | 470.926–477.081 |
+| 1024² | Julia, vanilla | 30.65 | 1094.749 | 0.833 | 1093.437–1100.664 |
+| 1024² | Python, optimised | 52.61 | 637.740 | 0.530 | 636.569–639.309 |
+| 1024² | Python, vanilla | 29.32 | 1144.531 | 0.126 | 1144.379–1145.493 |
 
 ## Budyko–Sellers energy balance
 
-| Grid | Implementation | Mcell steps/s | Median ms | MAD ms | Range ms |
+| Grid | Implementation | Million updates/s | Median ms | MAD ms | Range ms |
 | --- | --- | ---: | ---: | ---: | --- |
-| 128 | Fortran vanilla | 499.92 | 256.043 | 0.134 | 254.483–257.547 |
-| 128 | Fortran specialised | 504.74 | 253.593 | 0.360 | 252.423–254.507 |
-| 128 | Direct assembly | 625.92 | 204.498 | 0.048 | 204.300–204.604 |
-| 128 | Python vanilla | 318.16 | 402.312 | 0.145 | 402.138–402.976 |
-| 128 | Python specialised | 550.14 | 232.668 | 0.125 | 232.540–233.660 |
-| 128 | Julia vanilla | 280.01 | 457.126 | 0.323 | 456.228–458.625 |
-| 128 | Julia specialised | 524.73 | 243.937 | 0.448 | 243.350–245.503 |
-| 4096 | Fortran vanilla | 475.67 | 344.443 | 0.063 | 344.356–344.612 |
-| 4096 | Fortran specialised | 508.83 | 321.994 | 0.088 | 321.787–322.275 |
-| 4096 | Direct assembly | 601.06 | 272.586 | 0.043 | 272.493–272.775 |
-| 4096 | Python vanilla | 399.18 | 410.438 | 0.061 | 410.322–410.817 |
-| 4096 | Python specialised | 517.91 | 316.348 | 0.070 | 316.245–316.664 |
-| 4096 | Julia vanilla | 280.45 | 584.213 | 3.591 | 578.525–601.577 |
-| 4096 | Julia specialised | 501.67 | 326.589 | 1.629 | 324.729–330.622 |
-| 65536 | Fortran vanilla | 382.32 | 351.065 | 1.508 | 343.842–352.703 |
-| 65536 | Fortran specialised | 450.51 | 297.923 | 1.469 | 294.909–301.905 |
-| 65536 | Direct assembly | 565.35 | 237.405 | 0.689 | 236.551–240.106 |
-| 65536 | Python vanilla | 355.55 | 377.491 | 0.568 | 376.319–381.684 |
-| 65536 | Python specialised | 505.17 | 265.689 | 0.300 | 264.856–266.441 |
-| 65536 | Julia vanilla | 263.32 | 509.720 | 1.979 | 501.924–531.969 |
-| 65536 | Julia specialised | 486.70 | 275.772 | 4.442 | 266.477–290.001 |
+| 128 | Assembly | 650.56 | 196.753 | 0.183 | 196.338–197.517 |
+| 128 | Fortran, optimised | 510.74 | 250.617 | 0.399 | 249.298–251.096 |
+| 128 | Fortran, vanilla | 504.79 | 253.571 | 0.468 | 252.558–254.662 |
+| 128 | Julia, optimised | 531.46 | 240.848 | 0.336 | 239.953–241.781 |
+| 128 | Julia, vanilla | 283.75 | 451.102 | 0.709 | 450.330–452.448 |
+| 128 | Python, optimised | 548.93 | 233.180 | 0.176 | 232.998–234.219 |
+| 128 | Python, vanilla | 324.64 | 394.288 | 0.112 | 393.808–394.717 |
+| 4096 | Assembly | 599.68 | 273.211 | 0.086 | 272.923–273.684 |
+| 4096 | Fortran, optimised | 498.27 | 328.818 | 0.560 | 328.151–335.277 |
+| 4096 | Fortran, vanilla | 457.34 | 358.247 | 0.073 | 358.095–358.364 |
+| 4096 | Julia, optimised | 509.81 | 321.374 | 2.068 | 315.267–327.355 |
+| 4096 | Julia, vanilla | 283.04 | 578.865 | 3.858 | 569.363–592.181 |
+| 4096 | Python, optimised | 493.75 | 331.831 | 0.302 | 331.292–333.013 |
+| 4096 | Python, vanilla | 383.12 | 427.646 | 0.096 | 427.356–428.587 |
+| 65536 | Assembly | 590.51 | 227.290 | 1.286 | 225.643–230.778 |
+| 65536 | Fortran, optimised | 488.69 | 274.648 | 0.814 | 272.457–276.935 |
+| 65536 | Fortran, vanilla | 385.84 | 347.859 | 0.702 | 345.759–350.015 |
+| 65536 | Julia, optimised | 489.47 | 274.210 | 4.313 | 266.081–290.392 |
+| 65536 | Julia, vanilla | 266.40 | 503.820 | 7.473 | 492.677–530.003 |
+| 65536 | Python, optimised | 514.88 | 260.680 | 0.809 | 258.923–261.910 |
+| 65536 | Python, vanilla | 347.03 | 386.766 | 0.563 | 385.629–388.128 |
 
-| Grid | Fortran / vanilla | Julia / vanilla | Python / vanilla | Assembly / fastest language |
-| --- | ---: | ---: | ---: | ---: |
-| 128 | 1.010× | 1.874× | 1.729× | 1.138× |
-| 4096 | 1.070× | 1.789× | 1.297× | 1.161× |
-| 65536 | 1.178× | 1.848× | 1.421× | 1.119× |
+## Checks and scope
 
-Every specialised language is faster than its matched vanilla implementation in all twelve paired batches on every reported grid; paired ranges in the evidence describe observations rather than confidence intervals. The controls retain their reviewed sources and use strong CPU-aware compilation, with Numba in both Python variants and IEEE Julia execution.
+All seven implementations pass 23 shallow-water and 19 energy-balance cases, including independent physical solutions, conservation, long trajectories, boundaries, and storage limits. Every checked stage, step, and saved output has zero differing bytes against the reviewed vanilla Fortran reference. Every optimised language also beats its own vanilla control in all twelve matched runs at every workload.
 
-The sixteen physical cases include exact equilibrium, radiative relaxation, the cell-averaged Legendre mode, threshold ties, signed zeros, 8193 cells across the tiling boundary, and 1000 climate steps. Relaxation orders are 2.069 and 2.034, mode orders are 2.002 and 2.001, maximum normalised heat-balance residual is 1.1e-16 against the 1e-10 limit, and maximum symmetry error is 3.55e-14 K; this independently specified discretisation is not a byte reference for climlab.
+The generated machine instructions were checked in six native libraries, nineteen compiled Python functions, and twenty-seven Julia methods. The audit found no fused arithmetic or approximate division or square root. Both Julia variants allocate no new numerical storage during warmed execution; compilation and start-up remain outside the timer.
 
-## Compatible roofline bounds
+## Measured hardware limits
 
-A roofline bound combines compatible arithmetic throughput with memory bandwidth at the level that supplies a kernel’s traffic. These probes use strict FP64 instructions on the same node and core as the solvers, so fused-multiply-add peaks and unmeasured DRAM traffic do not enter the comparison.
+A roofline estimate combines measured arithmetic speed and memory transfer speed to give an upper bound under stated assumptions. The table compares assembly speed with that estimate; a larger fraction means the solver is closer to the measured bound. These broad bounds leave additional loop, boundary, and processor costs, so they do not prove global optimality.
 
-| Arithmetic probe | Median rate | MAD / median |
-| --- | ---: | ---: |
-| add | 25.927 Goperations/s | 0.006% |
-| multiply | 25.927 Goperations/s | 0.007% |
-| divide | 1.296 Goperations/s | 0.005% |
-| sqrt | 0.926 Goperations/s | 0.005% |
-| sqrt_neon | 0.926 Goperations/s | 0.005% |
-| mixed | 190.642 Mcell-step equivalents/s | 0.004% |
-| mixed_neon | 190.646 Mcell-step equivalents/s | 0.003% |
+| Model | Grid | Estimated limit, million updates/s | Assembly / limit |
+| --- | --- | ---: | ---: |
+| Shallow water | 64² | 186.12 | 48.2% |
+| Shallow water | 256² | 186.12 | 51.2% |
+| Shallow water | 1024² | 186.12 | 44.4% |
+| Energy balance | 128 | 1141.02 | 57.0% |
+| Energy balance | 4096 | 1141.02 | 52.6% |
+| Energy balance | 65536 | 1141.02 | 51.8% |
 
-| Working level | Copy, GB/s | 7 reads / 1 write, GB/s | 5 reads / 2 writes, GB/s | 11 reads / 2 writes, GB/s |
-| --- | ---: | ---: | ---: | ---: |
-| L1 | 80.65 | 134.82 | 142.14 | 137.03 |
-| L2 | 81.26 | 57.14 | 129.20 | 76.31 |
-| L3 | 37.97 | 51.15 | 64.33 | 48.66 |
-| DRAM | 32.84 | 28.41 | 29.04 | 26.49 |
+The estimate uses 141 arithmetic operations and 552 logical load/store bytes per bulk shallow-water update, including the measured four-division/two-square-root instruction mix. Energy balance uses 23 operations and 104 bytes, with no per-cell division at these grid spacings. Both estimates use matched measurements from the nearest, fastest cache; boundary and partial-vector work is additional. The evidence retains all probe variation, cache measurements, and lower-level memory counters.
 
-The assembly counts below describe executed arithmetic and logical load/store bytes, including boundary and inactive-lane work where applicable; complete physical updates per second remain the comparison metric because reuse changes operation counts. Logical traffic is paired with the closest L1 read/write probe, while lower-level refill counters remain separate and do not establish total DRAM traffic.
+The core is pinned to CPU 1 with nearby memory on NUMA node 0, which keeps processor and memory placement fixed. Arm SVE vector instructions process two 64-bit values at a time here. The floating-point control register is zero, which selects the required rounding and underflow rules. Toolchains, build flags, clock policy, observed load, and placement are recorded in the evidence.
 
-| Model and grid | FP operations / cell step | Logical bytes / cell step | Empirical ceiling, Mcell steps/s | Assembly / ceiling |
-| --- | ---: | ---: | ---: | ---: |
-| shallow_water, 64² | 144.838 | 785.863 | 179.00 | 45.7% |
-| shallow_water, 256² | 143.455 | 766.398 | 180.73 | 44.0% |
-| shallow_water, 1024² | 143.113 | 761.595 | 181.16 | 39.8% |
-| budyko_sellers, 128 | 23.000 | 104.750 | 1127.24 | 55.5% |
-| budyko_sellers, 4096 | 23.000 | 104.023 | 1127.24 | 53.3% |
-| budyko_sellers, 65536 | 23.010 | 104.094 | 1126.74 | 50.2% |
+The retained assembly methods and their conditions are in [md2asm](../skills/md2asm/SKILL.md). Conclusions apply to these two models, this processor, and the measured workloads.
 
-Shallow-water counts are F=143C+84nx+32ny+106 and T=760C+688nx+944ny+1488 bytes per complete step, with C=nx·ny and a small amortised public-frame cost outside the cell counts. Its compatible ceiling also includes the measured four-division/two-square-root mixture for representative seed values; the read/write ratio is approximately 67:28 rather than an exact match to the 5:2 probe.
-
-Energy-balance bulk work is 23 FP operations and 104 logical bytes per cell step, with three ghost-copy pairs, exact scalar face prefixes between temporal blocks, and inactive first-stage lanes at block boundaries. The power-of-two benchmark spacings remove per-cell division exactly and require no square root, so the shallow-water mixed-instruction ceiling does not apply; the 11:2 stream matches its bulk read/write ratio.
-
-These are broad empirical ceilings, with dependency chains, address generation, predicate work, instruction issue, and cache interactions still able to limit the solver. Refill counters and the complete accepted PMU summaries in the evidence support further analysis, but the results do not prove global optimality or assembly superiority for other models or targets.
-
-## Retained implementation strategies
-
-| Model | Retained choices |
-| --- | --- |
-| Shallow water | Shared rounded speeds and face values, fused north-point preparation, short live-row windows on larger grids, exact scaling, constant stage paths, and measured vector scheduling |
-| Energy balance | Hoisted immutable coefficients, exact scaling, unique assembly faces with a vector carry, eight independent vector groups, and 512-cell temporal blocks for assembly, Julia, and Python on larger grids |
-| Language controls | Julia literal Val dispatch and safe eager selection, Python strategy selection outside repeated steps, and measured Fortran face caching or fused loops according to working size |
-
-The reusable conditions and proofs are maintained in [md2asm](../skills/md2asm/SKILL.md), while local archives retain failed candidates and accepted predecessor records. Compilers, strategy thresholds, and unrolling were selected from complete-step measurements, and the final evidence records source hashes rather than treating a technique’s name as evidence of its benefit.
-
-The toolchains are GNU Fortran and GCC 14.3.0, GNU Binutils 2.43.1, Julia 1.12.7, CPython 3.11.7, NumPy 2.4.6, Numba 0.68.0, and llvmlite 0.50.0. Both Julia variants allocate zero warmed numerical bytes; cold startup, request compilation, cache activity, numerical storage, and aggregate process memory are retained with their scopes in the evidence.
-
-Instruction inspection covers all six native solver libraries, nineteen fresh Numba compilations, and twenty-seven Julia method instantiations under the declared target and IEEE settings, with no fused or approximate arithmetic instructions; the inspected Numba IR also contains no detected unsafe floating-point flags. These checks complement the exact trajectories, with local disassembly and compact audit provenance retained separately.
+The formulation explanations were expanded after measurement without changing the mathematics or numerical contracts. The JSON record preserves the measured source hashes and records the revised documentation hashes separately.

@@ -2,7 +2,7 @@
 // Public ABI: w0=N; x1=q, x2=stage, x3=out, x4=work, x5=K/W/I, x6=par.
 // eb_run also takes w7=steps. Buffers are disjoint, contiguous, and 8-byte aligned.
 // Each state has N+2 doubles; coefficients contain three such planes.
-// The target has two FP64 SVE lanes; complete sixteen-cell NEON groups use bounded SVE tails.
+// Two FP64 SVE lanes use sixteen-cell groups with paired NEON memory operations and bounded SVE tails.
 // x19-x29 and the low 64 bits of v8-v15 are preserved; the stack stays 16-byte aligned.
 .text
 .p2align 4
@@ -49,22 +49,15 @@
     add x13,x2,x8,lsl #3
     add x14,x1,x8,lsl #3
     add x8,x0,x8,lsl #3
-    ldr q0,[x8,#0]
-    ldr q1,[x10,#0]
-    ldr q3,[x8,#16]
-    ldr q4,[x10,#16]
-    ldr q6,[x8,#32]
-    ldr q7,[x10,#32]
-    ldr q9,[x8,#48]
-    ldr q10,[x10,#48]
-    ldr q12,[x8,#64]
-    ldr q13,[x10,#64]
-    ldr q15,[x8,#80]
-    ldr q16,[x10,#80]
-    ldr q18,[x8,#96]
-    ldr q19,[x10,#96]
-    ldr q21,[x8,#112]
-    ldr q22,[x10,#112]
+    // Paired accesses combine existing adjacent values within the complete sixteen-cell group.
+    ldp q0,q3,[x8,#0]
+    ldp q1,q4,[x10,#0]
+    ldp q6,q9,[x8,#32]
+    ldp q7,q10,[x10,#32]
+    ldp q12,q15,[x8,#64]
+    ldp q13,q16,[x10,#64]
+    ldp q18,q21,[x8,#96]
+    ldp q19,q22,[x10,#96]
     ext v2.16b,v0.16b,v3.16b,#8
     ext v5.16b,v3.16b,v6.16b,#8
     ext v8.16b,v6.16b,v9.16b,#8
@@ -190,21 +183,17 @@
     fadd z20.d,z20.d,z19.d
     fadd z23.d,z23.d,z22.d
 .if \final
-    ldr q1,[x14,#0]
+    ldp q1,q4,[x14,#0]
     fmul z1.d,z1.d,z29.d
-    ldr q4,[x14,#16]
     fmul z4.d,z4.d,z29.d
-    ldr q7,[x14,#32]
+    ldp q7,q10,[x14,#32]
     fmul z7.d,z7.d,z29.d
-    ldr q10,[x14,#48]
     fmul z10.d,z10.d,z29.d
-    ldr q13,[x14,#64]
+    ldp q13,q16,[x14,#64]
     fmul z13.d,z13.d,z29.d
-    ldr q16,[x14,#80]
     fmul z16.d,z16.d,z29.d
-    ldr q19,[x14,#96]
+    ldp q19,q22,[x14,#96]
     fmul z19.d,z19.d,z29.d
-    ldr q22,[x14,#112]
     fmul z22.d,z22.d,z29.d
 .endif
     fmul z2.d,z24.d,z2.d
@@ -241,14 +230,10 @@
     fadd z20.d,z19.d,z20.d
     fadd z23.d,z22.d,z23.d
 .endif
-    str q2,[x13,#0]
-    str q5,[x13,#16]
-    str q8,[x13,#32]
-    str q11,[x13,#48]
-    str q14,[x13,#64]
-    str q17,[x13,#80]
-    str q20,[x13,#96]
-    str q23,[x13,#112]
+    stp q2,q5,[x13,#0]
+    stp q8,q11,[x13,#32]
+    stp q14,q17,[x13,#64]
+    stp q20,q23,[x13,#96]
     dup z31.d,x17
     add x7,x7,#16
     add x8,x7,#16
