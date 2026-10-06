@@ -1,17 +1,37 @@
-# OpenIFS routine work list
+# OpenIFS routine audit
 
-Count the exact routines before reporting how much work remains. A routine is a subroutine or function with an implemented body. Exclude interface declarations, duplicate declarations and compiler-generated helpers. Record the source version, build configuration and counting rules.
+The audit counts Fortran functions and subroutines defined in the source files of the completed OpenIFS 48.1.1 forecast build. A routine body contains the statements that do its work. The count includes internal routines, which are written inside another routine or program.
 
-Keep separate counts for the source inventory, routines in the configured forecast build and routines observed during the T21 forecast. The earlier scan found 5,090 subroutine declarations, which includes interfaces and is not an exact implementation count. A forecast profile also omits functions without profiling markers.
+| Item | Count |
+| --- | ---: |
+| Routine bodies | 5,238 |
+| Subroutines | 4,690 |
+| Functions | 548 |
+| Internal routines, included above | 341 |
+| Disabled-feature stubs, included above | 413 |
+| Bodies after excluding stubs | 4,825 |
+| Built Fortran input files | 3,287 |
 
-| Work item | State |
+A stub is a placeholder for an unavailable feature. The 4,825 other bodies also include setup, input/output, support code and physics that this forecast does not use. This is an exact build inventory, so it must not be reported as 4,825 numerical routines that all need assembly.
+
+The tool checks each built input with GNU Fortran 12.3 and the original build settings. It excludes interface declarations, modules, program entry blocks and compiler-added helpers. Empty bodies count, and alternate ENTRY names share one body. The compilation database lists 3,675 Fortran inputs, but 388 belong to targets that were not built and are excluded.
+
+Two count passes produced identical inventory bytes. All built inputs passed, and the 4,071 recorded source files, forecast executable and seven scientific libraries retain their earlier hashes. The [compact record](routines.json) also identifies seven generated Fortran inputs and their source templates. Full names, source paths, reports and the profile mapping remain in ignored .runtime/openifs/routine-audit/.
+
+The T21 forecast profile contains 1,171 labelled regions. Of these labels, 1,002 uniquely match routine names in the inventory. The remaining 169 need source mapping or refer to external calls and code regions. This profile does not record every function call, so the exact number of required numerical routines remains unestablished. A complete call trace and a review of which routines perform numerical stages are needed before using that count to estimate the remaining assembly work.
+
+| Routine | Verified assembly work |
 | --- | --- |
-| Exact routine inventory and forecast dependencies | In progress |
-| CPSPE surface-state update | Assembly and critical and forecast checks pass |
-| GPRCP moist-air properties | Assembly and critical and forecast checks pass |
-| GPPWC pressure-weighted column integral | Assembly and critical and forecast checks pass |
-| Next complete routine | Select after the inventory review |
+| CPSPE | Complete surface-state update |
+| GPRCP | Complete moist-air properties, including its internal accumulation |
+| GPPWC | Complete pressure-weighted column integral |
 
-Work through the remaining required routines one at a time. For each routine, record its physics note and frozen md2asm contract, emit the complete assembly body, pass independent physical and exact-byte checks, then verify captured forecast calls before moving to the next routine. Update this table after completed checks and keep detailed inventories in ignored .runtime/openifs/.
+All three routines pass their critical checks and captured forecast calls. The [verification notes](README.md) state the evidence and its limits. Complete assembly coverage, raw whole-forecast states, independent whole-forecast physical checks and the external numerical-library arithmetic audit remain unfinished.
 
-The complete assembly forecast remains unfinished. Whole-forecast physical checks and the external numerical-library arithmetic audit also remain open.
+Implementation work is stopped at the user's request after this audit. The saved plan is to work through the required routines one at a time when work resumes. For each routine, freeze its physics and md2asm contract, emit the complete assembly body, pass physical and exact-byte checks, then verify its forecast calls before proceeding.
+
+To reproduce the build inventory, load GNU 12.3 and run the following command through srun in your own quiet exclusive allocation. The [counter](count_routines.py) uses Python's standard library and the existing compiler.
+
+```bash
+.runtime/python/bin/python bench/openifs/count_routines.py --workers 16
+```

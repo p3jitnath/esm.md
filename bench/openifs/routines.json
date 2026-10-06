@@ -1,0 +1,103 @@
+{
+  "date_utc": "2026-10-06T16:32:11.612925+00:00",
+  "scope": "Unique Fortran routine bodies in completed compilation units of the frozen forecast build",
+  "configured_fortran_compilations": 3675,
+  "configured_unbuilt_compilations": 388,
+  "fortran_compilations": 3287,
+  "unique_sources": 3287,
+  "routines": 5238,
+  "kinds": {
+    "subroutine": 4690,
+    "function": 548
+  },
+  "internal_routines": 341,
+  "routine_counts_by_target": {
+    "algor.DP": 86,
+    "arpifs.DP": 3268,
+    "fiat": 326,
+    "ifsaux.DP": 380,
+    "ifsdummy": 413,
+    "surf.DP": 137,
+    "trans_dp": 194,
+    "wam.DP": 434
+  },
+  "inventory_sha256": "5f70a9e3c67c452d8fec36859af9b079448e2f83b1ccc344a9192a96234b3711",
+  "failed_compilations": 0,
+  "compiler_commands_sha256": "fee4c428d91653b614ceacc9793b61bcec4a557f3ea298d923cbcdea14999e97",
+  "openifs_version": "48.1.1",
+  "job_id": 7128059,
+  "node": "nid010706",
+  "compiler": "GNU Fortran 12.3.0 through Cray wrappers",
+  "workers": 16,
+  "compiler_reports": "-fsyntax-only -fdump-fortran-original, with separate module output",
+  "source_manifest_sha256": "bb3f7faa9c5da617b28d2f6608e1ebeb805388f03413c57ec7dd827adbc8ecfd",
+  "source_manifest_files_verified": 4071,
+  "generated_fortran_inputs": [
+    {
+      "input": ".runtime/openifs/strict-build/ifs_dp/arpifs/module/ecphys_surface_type_mod.F90",
+      "input_sha256": "fc26800e1b5344c2179764e0a0445cb330b3b05da7810d7065a65f8f3ca79b8f",
+      "template": "arpifs/module/ecphys_surface_type_mod.fypp",
+      "template_sha256": "b8952898756c9da420efcedf6a36a1cb64e316bfda0d3845d314aff739cb9040"
+    },
+    {
+      "input": ".runtime/openifs/strict-build/ifs_dp/arpifs/module/field_module.F90",
+      "input_sha256": "8f8c76d16a9f9941e1a86a7b33116db071e914627a3c797c8a33a641a73e8727",
+      "template": "arpifs/module/field_module.fypp",
+      "template_sha256": "4746fa665d543fcbdd60973ae21355be94df842ad608f6ccf1886f50e7348c62"
+    },
+    {
+      "input": ".runtime/openifs/strict-build/ifs_dp/arpifs/module/field_registry_mod.F90",
+      "input_sha256": "285effd925cbb4fa35c90d0f082aa5fbeebeaca15148d763b80e008c8955accf",
+      "template": "arpifs/module/field_registry_mod.fypp",
+      "template_sha256": "c4eaeae1cb3f1a1ab7f50ba884d0a7bfff83a3b978c2e3e54ed2d4aeeddd51ad"
+    },
+    {
+      "input": ".runtime/openifs/strict-build/ifs_dp/arpifs/module/field_variables_mod.F90",
+      "input_sha256": "65e5a27cc770e64364af2af2abc0ce1967a3599253340b5542280fa7b3ae0290",
+      "template": "arpifs/module/field_variables_mod.fypp",
+      "template_sha256": "637992d224d3839abc20df734286d349ad1cf04fdf6778e19aa45da155f7accc"
+    },
+    {
+      "input": ".runtime/openifs/strict-build/ifs_dp/arpifs/module/surface_variables_mod.F90",
+      "input_sha256": "738bb391c853b1ffc78f1ea225a78be6c615aebe36e07238f9f6335fcc0fb7a8",
+      "template": "arpifs/module/surface_variables_mod.fypp",
+      "template_sha256": "c4f9719281deb96daf24183f6c3312b1c708a02c27a7eaf790a58f32f8dd8154"
+    },
+    {
+      "input": ".runtime/openifs/strict-build/ifs_dp/arpifs/module/surface_views_module.F90",
+      "input_sha256": "2a5b1873bf087ef4274d511a97173c1b8464cd2e0cd6ff5b292614a1007c5fc2",
+      "template": "arpifs/module/surface_views_module.fypp",
+      "template_sha256": "6cc0c566aaa29bea29c984df37bf08cd57002ce885c11b5cce8b044038a855e9"
+    },
+    {
+      "input": ".runtime/openifs/strict-build/ifs_dp/arpifs/module/variable_module.F90",
+      "input_sha256": "1e2357471a23acd55af144a79bd7794324c4c6a5f73277f5c366085c4e353aca",
+      "template": "arpifs/module/variable_module.fypp",
+      "template_sha256": "274470e215df4709bb04cbc4c77f4390100db9ff324c8d9b0a8ab260c2d94970"
+    }
+  ],
+  "frozen_executable_and_seven_libraries_unchanged": true,
+  "disabled_feature_stub_bodies": 413,
+  "non_stub_routine_bodies": 4825,
+  "profile_regions": 1171,
+  "profile_labels_matching_unique_body_names": 1002,
+  "profile_labels_requiring_source_mapping": 169,
+  "profile_is_complete_call_graph": false,
+  "exact_required_numerical_routine_count_established": false,
+  "count_checks": [
+    "empty bodies",
+    "internal routines",
+    "same names in separate modules",
+    "interface declarations excluded",
+    "compiler helpers excluded",
+    "programs and modules excluded",
+    "alternate ENTRY names share one body"
+  ],
+  "counter_sha256": "e52f434974adba5412de7c160232f56b62255c187eb7b50d6edd9223fcfe2371",
+  "full_inventory_local": ".runtime/openifs/routine-audit/inventory.json",
+  "frontend_reports_sha256": "8fef54abc602a8d931e31b832940f830d26fed255a448e3a05af3a0dc9c0a501",
+  "implementation_work": "Stopped after the audit at the user request",
+  "inventory_reproduced_byte_for_byte": true,
+  "accepted_reports_local": ".runtime/openifs/routine-audit/recheck/frontend-reports.zip",
+  "accepted_reports_sha256": "ee9bed8264793334bf5c75be8ca4d8b5c37a19db7fcef9738d3f27f43e3aca85"
+}
