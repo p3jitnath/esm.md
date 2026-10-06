@@ -10,6 +10,7 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 | Vertical pressure | [Hybrid pressure](hybrid_pressure.md) | Pending |
 | Vertical force balance | [Hydrostatic balance](hydrostatic_balance.md) | Pending |
 | Moist-air properties | [Mixture properties](thermodynamics.md) | Complete GPRCP routine |
+| Column water | [Water mass](column_water.md) | Complete GPPWC routine |
 | Surface-state change | [Surface change](surface_state.md) | Complete CPSPE routine |
 | Clouds, convection and turbulent mixing | Further notes needed | Pending |
 | Radiation | Further notes needed | Pending |
@@ -17,4 +18,4 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 | Atmospheric composition | Further notes needed | Pending |
 | Ocean waves and coupling | Further notes needed | Pending |
 
-The two assembly routines pass critical checks and captured calls within the coarse upstream forecast. The [verification record](../../bench/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
+The three assembly routines pass critical checks and captured calls within the coarse upstream forecast. The [verification record](../../bench/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
