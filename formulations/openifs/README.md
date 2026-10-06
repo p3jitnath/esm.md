@@ -12,6 +12,7 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 | Moist-air properties | [Mixture properties](dynamics/thermodynamics.md) | Complete GPRCP routine |
 | Thermal pressure | [Temperature and gradients](dynamics/thermal_pressure.md) | Complete GPRT routine |
 | Horizontal pressure force | [Pressure gradients](dynamics/pressure_force.md) | Complete GPGRP routine |
+| State-change rates | [Changes per second](dynamics/state_rates.md) | Complete GPMKTEND routine |
 | Column water | [Water mass](dynamics/column_water.md) | Complete GPPWC routine |
 | Surface-state change | [Surface change](surface/surface_state.md) | Complete CPSPE routine |
 | Clouds and precipitation | [Water and phase changes](physics/clouds.md) | Pending |
@@ -24,4 +25,4 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 
 These basic balances do not yet cover every configured physical process. Source-derived closure relations, which specify rates and coefficients, and complete numerical contracts are still needed before assembly generation.
 
-The five assembly routines pass critical checks and captured calls within the coarse upstream forecast. The [verification record](../../bench/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
+The six assembly routines pass critical checks and captured calls within the coarse upstream forecast. The [verification record](../../bench/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
