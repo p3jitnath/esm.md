@@ -1,0 +1,98 @@
+{
+  "scope": "Complete GPGRP pressure-force body and its paired T21 forecast calls",
+  "date_utc": "2026-10-06T22:22:48.015280+00:00",
+  "openifs_version": "48.1.1",
+  "contract_revision": "1.0",
+  "job_id": 7129092,
+  "node": "nid010329",
+  "ranks": 1,
+  "threads": 1,
+  "cpu_affinity": [
+    0
+  ],
+  "memory_binding": "local",
+  "compiler": "GNU Fortran and GCC 12.3.0",
+  "flags": [
+    "-O2",
+    "-mcpu=neoverse-v2",
+    "-ffp-contract=off",
+    "-fno-fast-math"
+  ],
+  "fpcr": "0000000000000000",
+  "critical_cases": 46,
+  "critical_calls": 46,
+  "trajectory_bytes_per_implementation": 36480,
+  "differing_bytes": 0,
+  "forecast_calls_verified": 2150,
+  "forecast_trajectory_bytes_per_implementation": 15910000,
+  "forecast_modes": {
+    "conventional_layers": 0,
+    "finite_elements": 2150
+  },
+  "checks": [
+    "Independent pressure-force and product-rule balances",
+    "Zero gradients",
+    "Both vertical schemes",
+    "Alternate valid field order",
+    "Absent unused inputs",
+    "Partial and empty intervals",
+    "Zero levels",
+    "Odd widths and final columns",
+    "Signed zeros and subnormals",
+    "Separate-rounding witnesses",
+    "Read-only input and object pages",
+    "Inactive outputs and guards",
+    "Protected-page vector tails",
+    "FPCR preservation"
+  ],
+  "instruction_audit": {
+    "instructions.txt": {
+      "decoded_instructions": 147,
+      "forbidden_instructions": 0
+    },
+    "reference-instructions.txt": {
+      "decoded_instructions": 246,
+      "forbidden_instructions": 0
+    }
+  },
+  "layout": {
+    "geometry_bytes": 17096,
+    "nproma_offset": 5144,
+    "nflevg_offset": 5224,
+    "cver_pointer_offset": 3264,
+    "cver_bytes": 216,
+    "lvertfe_offset": 52,
+    "xyb_bytes": 32,
+    "xyb_alph_offset": 12,
+    "xyb_rtgr_offset": 16,
+    "xyb_ndim_offset": 28,
+    "xybder_bytes": 40,
+    "xybder_alphpll_offset": 16,
+    "xybder_alphplm_offset": 20,
+    "xybder_ndim_offset": 36
+  },
+  "sha256": {
+    "physics": "01892e562986efe1a9c41247c7c1791426fba651ef16b532606ab95b4b2c2663",
+    "contract": "ce309b0cd33189d219a436043e8cfb369db922a229b0a0d8a0fd247b6c20b791",
+    "assembly": "f24bf8363f3b8a68fe65bdfe39b98ed95c7826f0dbb6517cacfeade46c84c4f5",
+    "verifier": "c2f3f64f7529329a31186a5a6c68d2697666c5e969a40e275e23eeeb73a5a978",
+    "forecast_driver": "793798ff807e337c8ec207b2f4dd31bcec80bc49299276fb7aac77c7c3294eb4",
+    "upstream_source": "78a964c321b088af8c5d1f3c28bb308529d1907f88dbc18e68d2fb86e84214ca",
+    "assembly_object": "2a4d9db05b2b67cf18a03098bad98189c8c5dac49b74e85484a576818b7de47a",
+    "layout_probe": "726338925baa2b8c6b8691a4eebe13a2a41ea89b6eac19e586deee29e4f0447e",
+    "layout_record": "159568376eb67d0eb05583506e4660c95eac7f8b9013dc40f06d52c15fd71fb3",
+    "layout_stdout": "030dbe98bab69a030b4f3e5ddf94ad2ef0ea847e20faa4bf1dfa4cc0a25efa00",
+    "strict_library": "8e4966877c735976f1e9356bc551294bbfc15c565ecdf1dc7db4cf814012b07b",
+    "critical_assembly_trajectory": "c8954fb0ba88b9fd71f078900865de33f25e2247bb04906ced17f6b3c8640590",
+    "critical_fortran_trajectory": "c8954fb0ba88b9fd71f078900865de33f25e2247bb04906ced17f6b3c8640590",
+    "forecast_assembly_trajectory": "dfcf235e12a051a2ffd594c5b9d682aa687334c04bdd4ba1841439bd36171c57",
+    "forecast_fortran_trajectory": "dfcf235e12a051a2ffd594c5b9d682aa687334c04bdd4ba1841439bd36171c57",
+    "forecast_inputs": "1bde3ee2cebf1dd3461b9da0a091d473755c67a7145a93048f60f0223ea9367e",
+    "verification_library": "4cc5af92c02f9b736fa8593ab46874cbdbdc8aeb4a983c5fe117eb4c9ca4bb2a"
+  },
+  "raw_archive": ".runtime/openifs/runs/strict-dynamics-asm-3/t21/test_fc",
+  "all_ten_saved_forecast_files_identical": true,
+  "complete_assembly_forecast_implemented": false,
+  "whole_forecast_independent_physics_verified": false,
+  "comparative_timing_performed": false
+}
