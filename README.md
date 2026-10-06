@@ -30,12 +30,13 @@ Build with `make all ebm` on the target processor, then follow the [evaluation i
 
 ## OpenIFS development
 
-The openifs-md branch extends the workflow to OpenIFS 48.1.1. Direct assembly implements the complete surface-state update, moist-air property calculation and pressure-weighted column integral. All three pass independent small checks and byte comparisons inside the upstream coarse forecast.
+The openifs-md branch extends the workflow to OpenIFS 48.1.1. Direct assembly implements the complete surface-state update, moist-air properties, column integral and thermal pressure terms. All four pass independent small checks and byte comparisons inside the upstream coarse forecast. Files are grouped by dynamics, physics, surface and waves, with forecast dynamics taking priority.
 
 | Verified routine | Critical calls | Calls in the forecast | Differing bytes |
 | --- | ---: | ---: | ---: |
 | CPSPE surface update | 449 | 2,150 | 0 |
 | GPRCP moist-air properties | 3,976 | 13,846 | 0 |
 | GPPWC column integral | 13 | 36,120 | 0 |
+| GPRT thermal pressure | 73 | 2,150 | 0 |
 
 All ten saved forecast output files match the strict-source Fortran run. Other stages remain in Fortran, and whole-forecast independent physics and external-library arithmetic checks remain unfinished. [Basic formulations](formulations/openifs/README.md) and [verification](bench/openifs/README.md) describe the coverage and commands. OpenIFS performance has not been measured.

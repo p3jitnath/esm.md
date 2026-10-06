@@ -1,6 +1,6 @@
 # OpenIFS CPSPE contract
 
-Contract revision 1.0 freezes the numeric body of local OpenIFS 48.1.1 CPSPE. The physical input is [surface-state change](../../../../formulations/openifs/surface_state.md), revision 1.0. This is one surface update, not a complete weather forecast.
+Contract revision 1.0 freezes the numeric body of local OpenIFS 48.1.1 CPSPE. The physical input is [surface-state change](../../../../../formulations/openifs/surface/surface_state.md), revision 1.0. This is one surface update, not a complete weather forecast.
 
 ## Method and arithmetic
 

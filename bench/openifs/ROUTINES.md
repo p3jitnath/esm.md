@@ -25,10 +25,11 @@ The T21 forecast profile contains 1,171 labelled regions. Of these labels, 1,002
 | CPSPE | Complete surface-state update |
 | GPRCP | Complete moist-air properties, including its internal accumulation |
 | GPPWC | Complete pressure-weighted column integral |
+| GPRT | Complete thermal pressure and horizontal derivatives |
 
-All three routines pass their critical checks and captured forecast calls. The [verification notes](README.md) state the evidence and its limits. Complete assembly coverage, raw whole-forecast states, independent whole-forecast physical checks and the external numerical-library arithmetic audit remain unfinished.
+All four routines pass their critical checks and captured forecast calls. The [verification notes](README.md) state the evidence and its limits. Complete assembly coverage, raw whole-forecast states, independent whole-forecast physical checks and the external numerical-library arithmetic audit remain unfinished.
 
-Implementation work is stopped at the user's request after this audit. The saved plan is to work through the required routines one at a time when work resumes. For each routine, freeze its physics and md2asm contract, emit the complete assembly body, pass physical and exact-byte checks, then verify its forecast calls before proceeding.
+The user resumed work until 00:00 UTC on 2026-10-07, prioritising the coarse forecast. Work proceeds through its active numerical routines one at a time, with dynamics first and the remaining physical schemes later. For each routine, freeze its physics and md2asm contract, emit the complete assembly body, pass physical and exact-byte checks, then verify its forecast calls before proceeding.
 
 To reproduce the build inventory, load GNU 12.3 and run the following command through srun in your own quiet exclusive allocation. The [counter](count_routines.py) uses Python's standard library and the existing compiler.
 

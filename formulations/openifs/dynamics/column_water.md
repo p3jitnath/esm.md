@@ -29,4 +29,4 @@ The pressure difference divided by gravity gives air mass per unit area. Multipl
 
 The normal Earth configuration uses $`g=9.80665\ \mathrm{m\,s^{-2}}`$. Water fractions and layer pressures come from the forecast state. At the top, $`W(p_t)=0`$. At the ground, the result is the whole column's water mass.
 
-The local GPPWC and YOMCST sources define this calculation, identified by the [source record](../../bench/openifs/source.json). The layer approximation, ordered arithmetic and interface belong in the [md2asm contract](../../skills/md2asm/references/openifs/gppwc.md).
+The local GPPWC and YOMCST sources define this calculation, identified by the [source record](../../../bench/openifs/source.json). The layer approximation, ordered arithmetic and interface belong in the [md2asm contract](../../../skills/md2asm/references/openifs/dynamics/gppwc.md).

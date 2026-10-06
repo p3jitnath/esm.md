@@ -40,4 +40,4 @@ Pressure increases downwards. A difference in net flux between a layer's boundar
 
 Normal Earth gravity is 9.80665 metres per second squared. The heat capacities are approximately 1004.71 and 1846.10 joules per kilogram per kelvin. Preserve their exact upstream values. Temperature, pressure, humidity, clouds, surface properties and absorption data come from the forecast inputs. The Sun supplies incoming radiation at the top, and the surface emits and reflects radiation at the bottom.
 
-The local RADHEATN source defines the flux-to-temperature conversion. The radiation_flux module stores the upward and downward fluxes. Absorption, scattering, spectral intervals and configured updates require separate md2asm contracts, grounded in the [source record](../../bench/openifs/source.json).
+The local RADHEATN source defines the flux-to-temperature conversion. The radiation_flux module stores the upward and downward fluxes. Absorption, scattering, spectral intervals and configured updates require separate md2asm contracts, grounded in the [source record](../../../bench/openifs/source.json).

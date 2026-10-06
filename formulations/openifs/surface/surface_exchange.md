@@ -49,4 +49,4 @@ Each tile contributes according to its area, so the average retains the flux uni
 
 Tile fractions, vegetation, surface conductance, emissivity and starting temperatures come from the upstream state and configuration. Preserve their values. Soil, snow, lakes and sea ice store the energy and water received beneath the skin. Their separate balances require the corresponding model contracts.
 
-The local SURFSEB and surfseb_ctl_mod sources define the skin balance and tile coupling, identified by the [source record](../../bench/openifs/source.json). Aerodynamic exchange, evaporation limits and coupling details belong in md2asm contracts.
+The local SURFSEB and surfseb_ctl_mod sources define the skin balance and tile coupling, identified by the [source record](../../../bench/openifs/source.json). Aerodynamic exchange, evaporation limits and coupling details belong in md2asm contracts.

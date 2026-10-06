@@ -6,20 +6,21 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 
 | Forecast part | Basic formulation | Assembly coverage |
 | --- | --- | --- |
-| Atmospheric motion | [Motion and heat](atmospheric_motion.md) | Pending |
-| Vertical pressure | [Hybrid pressure](hybrid_pressure.md) | Pending |
-| Vertical force balance | [Hydrostatic balance](hydrostatic_balance.md) | Pending |
-| Moist-air properties | [Mixture properties](thermodynamics.md) | Complete GPRCP routine |
-| Column water | [Water mass](column_water.md) | Complete GPPWC routine |
-| Surface-state change | [Surface change](surface_state.md) | Complete CPSPE routine |
-| Clouds and precipitation | [Water and phase changes](clouds.md) | Pending |
-| Convection | [Plume transport](convection.md) | Pending |
-| Turbulent mixing | [Vertical transport](vertical_mixing.md) | Pending |
-| Radiation | [Radiation balance](radiation.md) | Pending |
-| Soil, snow, lakes and surface exchange | [Skin balance and tiles](surface_exchange.md) | CPSPE update only, storage balances pending |
-| Atmospheric composition | [Tracer balance](atmospheric_composition.md) | Pending |
-| Ocean waves and coupling | [Wave action](ocean_waves.md) | Pending |
+| Atmospheric motion | [Motion and heat](dynamics/atmospheric_motion.md) | Pending |
+| Vertical pressure | [Hybrid pressure](dynamics/hybrid_pressure.md) | Pending |
+| Vertical force balance | [Hydrostatic balance](dynamics/hydrostatic_balance.md) | Pending |
+| Moist-air properties | [Mixture properties](dynamics/thermodynamics.md) | Complete GPRCP routine |
+| Thermal pressure | [Temperature and gradients](dynamics/thermal_pressure.md) | Complete GPRT routine |
+| Column water | [Water mass](dynamics/column_water.md) | Complete GPPWC routine |
+| Surface-state change | [Surface change](surface/surface_state.md) | Complete CPSPE routine |
+| Clouds and precipitation | [Water and phase changes](physics/clouds.md) | Pending |
+| Convection | [Plume transport](physics/convection.md) | Pending |
+| Turbulent mixing | [Vertical transport](physics/vertical_mixing.md) | Pending |
+| Radiation | [Radiation balance](physics/radiation.md) | Pending |
+| Soil, snow, lakes and surface exchange | [Skin balance and tiles](surface/surface_exchange.md) | CPSPE update only, storage balances pending |
+| Atmospheric composition | [Tracer balance](physics/atmospheric_composition.md) | Pending |
+| Ocean waves and coupling | [Wave action](waves/ocean_waves.md) | Pending |
 
 These basic balances do not yet cover every configured physical process. Source-derived closure relations, which specify rates and coefficients, and complete numerical contracts are still needed before assembly generation.
 
-The three assembly routines pass critical checks and captured calls within the coarse upstream forecast. The [verification record](../../bench/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
+The four assembly routines pass critical checks and captured calls within the coarse upstream forecast. The [verification record](../../bench/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.

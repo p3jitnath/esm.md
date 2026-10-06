@@ -1,6 +1,6 @@
 # OpenIFS GPPWC contract
 
-Contract revision 1.1 freezes the complete GPPWC numerical body in local OpenIFS 48.1.1. Its physical input is [column water](../../../../formulations/openifs/column_water.md), revision 1.0.
+Contract revision 1.1 freezes the complete GPPWC numerical body in local OpenIFS 48.1.1. Its physical input is [column water](../../../../../formulations/openifs/dynamics/column_water.md), revision 1.0.
 
 ## Method and arithmetic
 

@@ -30,4 +30,4 @@ The divergence measures net outflow from a small region. Chemical reactions tran
 
 Species, reaction coefficients, emissions and deposition choices come from the upstream configuration and input data. Starting concentrations come from the forecast state. Surface emission and deposition provide lower-boundary fluxes. The current T21 evidence case has chemistry disabled and does not verify these processes.
 
-The local CHEM_MAIN and chem_scav sources define chemistry and removal interfaces, identified by the [source record](../../bench/openifs/source.json). Reaction networks, units conversions and their complete ordered updates require md2asm contracts.
+The local CHEM_MAIN and chem_scav sources define chemistry and removal interfaces, identified by the [source record](../../../bench/openifs/source.json). Reaction networks, units conversions and their complete ordered updates require md2asm contracts.

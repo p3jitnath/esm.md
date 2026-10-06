@@ -1,0 +1,80 @@
+{
+  "scope": "Complete GPRT numerical body and its paired calls in the coarse T21 forecast",
+  "date_utc": "2026-10-06T21:57:17.465942+00:00",
+  "openifs_version": "48.1.1",
+  "contract_revision": "1.1",
+  "job_id": 7129092,
+  "node": "nid010329",
+  "ranks": 1,
+  "threads": 1,
+  "cpu_affinity": [
+    0
+  ],
+  "memory_binding": "local",
+  "compiler": "GNU Fortran and GCC 12.3.0",
+  "flags": [
+    "-O2",
+    "-mcpu=neoverse-v2",
+    "-ffp-contract=off",
+    "-fno-fast-math"
+  ],
+  "fpcr": "0000000000000000",
+  "critical_cases": 73,
+  "critical_calls": 73,
+  "trajectory_bytes_per_implementation": 82848,
+  "differing_bytes": 0,
+  "forecast_calls_verified": 2150,
+  "forecast_trajectory_bytes_per_implementation": 23598400,
+  "forecast_modes": {
+    "virtual_temperature": 2150,
+    "explicit_gas_gradients": 0,
+    "moisture_gradients": 0
+  },
+  "checks": [
+    "Independent product-rule balances",
+    "Uniform state",
+    "Three complete gradient modes",
+    "Optional-input priority",
+    "Absent unused moisture-gradient inputs",
+    "Partial and empty intervals",
+    "Zero levels",
+    "Odd widths",
+    "Signed zero and subnormal arithmetic",
+    "Separate-rounding witness",
+    "Read-only input pages",
+    "Inactive outputs and guards",
+    "Protected-page final vector tail",
+    "FPCR preservation"
+  ],
+  "instruction_audit": {
+    "assembly_instructions": 159,
+    "strict_fortran_instructions": 149,
+    "forbidden_instructions": 0
+  },
+  "sha256": {
+    "physics": "51b311a232877f34e57c4c6bc6c5054156797d93747e9f44f240afe46d998ce4",
+    "contract": "80613cddec4331e82b9c2814ca2c36fef9dc55cb2242c736f78b35798074d58f",
+    "assembly": "4252ee291c417124eeba96e20b56fb3fb45c1bf9c5d1f107ecaf36006b02688d",
+    "verifier": "2ea3ffcd13f6a64b56159a0ba8fe49bc48daa93b9546122f519779a9a7d23c37",
+    "forecast_driver": "bbfd080542a88fa56668cb2d7403272417c4800508237fb547c060024ccd8453",
+    "upstream_source": "9dc8ba01fa9b6a35104a0a55789db2b112d7bd8a023db33d89192157a9bbe3b0",
+    "assembly_object": "ac5e5a9643242f1e311df7d7cc8b5f17f6486382a255b420dea2933d8077ad6c",
+    "strict_library": "8e4966877c735976f1e9356bc551294bbfc15c565ecdf1dc7db4cf814012b07b",
+    "critical_assembly_trajectory": "fc6f76374031eb32896cc87468a58e690ef59c2a6dce25c3f435a08791669d9e",
+    "critical_fortran_trajectory": "fc6f76374031eb32896cc87468a58e690ef59c2a6dce25c3f435a08791669d9e",
+    "forecast_assembly_trajectory": "bf2e5557b26909df3f6f0f4b4eadbaa913e8d4d08e1467115ac3780fcb66dfa5",
+    "forecast_fortran_trajectory": "bf2e5557b26909df3f6f0f4b4eadbaa913e8d4d08e1467115ac3780fcb66dfa5",
+    "forecast_inputs": "a309b7390b3fcfa8ee915901fdc2c848c2f2b6b12d172e9912aa47794da075b6",
+    "verification_library": "7d496f741d00354dc5f308f3ed5ec7504bc81f9f638b1ed3dfdecd018c0da200"
+  },
+  "first_forecast_rejection": {
+    "reason": "The comparison driver required unused moisture-gradient inputs that may be absent",
+    "archive": ".runtime/openifs/runs/strict-dynamics-asm-1/t21/test_fc/launch.log",
+    "sha256": "ad64cfb2479f9a1b4deba3a38987590bf2f34232a7a622191aca6ddbf6c29762"
+  },
+  "raw_archive": ".runtime/openifs/runs/strict-dynamics-asm-2/t21/test_fc",
+  "all_ten_saved_forecast_files_identical": true,
+  "complete_assembly_forecast_implemented": false,
+  "whole_forecast_independent_physics_verified": false,
+  "comparative_timing_performed": false
+}

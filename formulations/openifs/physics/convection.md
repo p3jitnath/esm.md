@@ -40,4 +40,4 @@ Entrainment increases plume mass, while detrainment reduces it.
 
 The configured scheme distinguishes deep, shallow and mid-level convection. Cloud-base mass flux and exchange rates depend on the forecast state and configured parameters. Preserve those choices rather than substituting fixed rates. Starting temperature, moisture and wind come from the surrounding air. Plumes exchange heat and water with the atmospheric layers and produce precipitation.
 
-The local CUBASEN, CUASCN and CUMASTR sources define plume initiation and ascent, identified by the [source record](../../bench/openifs/source.json). Their trigger rules, closure relations and ordered updates belong in md2asm contracts.
+The local CUBASEN, CUASCN and CUMASTR sources define plume initiation and ascent, identified by the [source record](../../../bench/openifs/source.json). Their trigger rules, closure relations and ordered updates belong in md2asm contracts.

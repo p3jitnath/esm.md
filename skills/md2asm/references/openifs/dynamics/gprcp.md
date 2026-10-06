@@ -1,6 +1,6 @@
 # OpenIFS GPRCP contract
 
-Contract revision 1.0 freezes the complete numerical body of GPRCP in local OpenIFS 48.1.1. The physical input is [moist-air properties](../../../../formulations/openifs/thermodynamics.md), revision 1.0. This routine calculates mixture properties and does not advance a forecast.
+Contract revision 1.0 freezes the complete numerical body of GPRCP in local OpenIFS 48.1.1. The physical input is [moist-air properties](../../../../../formulations/openifs/dynamics/thermodynamics.md), revision 1.0. This routine calculates mixture properties and does not advance a forecast.
 
 ## Method and arithmetic
 

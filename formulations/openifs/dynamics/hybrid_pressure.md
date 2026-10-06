@@ -30,4 +30,4 @@ The first term fixes part of the pressure independently of the surface. The seco
 
 The initial-condition file supplies the coordinate coefficients and the starting surface pressure. Preserve these values for the upstream forecast rather than choosing a new grid. At the surface, the coefficients give its pressure. Above the surface, the supplied profiles define the top and the pressure of each layer.
 
-The local GPHPRE and YOMVERT sources define the pressure calculation and coefficient meanings. Numerical details, including the pressure used within each layer, belong in the [md2asm skill](../../skills/md2asm/SKILL.md). The [source record](../../bench/openifs/source.json) identifies the local implementation.
+The local GPHPRE and YOMVERT sources define the pressure calculation and coefficient meanings. Numerical details, including the pressure used within each layer, belong in the [md2asm skill](../../../skills/md2asm/SKILL.md). The [source record](../../../bench/openifs/source.json) identifies the local implementation.
