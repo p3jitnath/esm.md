@@ -23,9 +23,10 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 | Turbulent mixing | [Vertical transport](physics/vertical_mixing.md) | Pending |
 | Radiation | [Radiation balance](physics/radiation.md) | Pending |
 | Soil, snow, lakes and surface exchange | [Skin balance and tiles](surface/surface_exchange.md) | CPSPE update only, storage balances pending |
-| Atmospheric composition | [Tracer balance](physics/atmospheric_composition.md) | Pending |
+| Column ozone | [Ozone mass](physics/column_ozone.md) | Complete GPTCO3 integral, also used for signed moisture rates |
+| Atmospheric composition | [Tracer balance](physics/atmospheric_composition.md) | Transport and chemical rates pending |
 | Ocean waves and coupling | [Wave action](waves/ocean_waves.md) | Pending |
 
 These basic balances do not yet cover every configured physical process. Source-derived closure relations, which specify rates and coefficients, and complete numerical contracts are still needed before assembly generation.
 
-The nine assembly routines pass critical checks and captured calls within the coarse upstream forecast. The [verification record](../../bench/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
+The ten assembly routines pass critical checks and captured calls within the coarse upstream forecast. The [verification record](../../bench/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.

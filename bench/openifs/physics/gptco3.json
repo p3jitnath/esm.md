@@ -1,0 +1,105 @@
+{
+  "scope": "Complete GPTCO3 pressure-weighted integral, physical ozone and water-budget checks, and paired T21 moisture-rate calls",
+  "date_utc": "2026-10-06T23:47:28.724797+00:00",
+  "openifs_version": "48.1.1",
+  "contract_revision": "1.1",
+  "generation_route": "Direct AArch64 instructions from the frozen ordered column integral",
+  "job_id": 7129092,
+  "node": "nid010329",
+  "ranks": 1,
+  "threads": 1,
+  "cpu_affinity": [
+    0
+  ],
+  "memory_binding": "local",
+  "compiler": "GNU Fortran and GCC 12.3.0",
+  "flags": [
+    "-O2",
+    "-mcpu=neoverse-v2",
+    "-ffp-contract=off",
+    "-fno-fast-math"
+  ],
+  "fpcr": "0000000000000000",
+  "critical_cases": 66,
+  "critical_calls": 66,
+  "trajectory_bytes_per_implementation": 3384,
+  "differing_bytes": 0,
+  "forecast_calls_verified": 2150,
+  "forecast_trajectory_bytes_per_implementation": 490200,
+  "forecast_signed_input_calls": 2150,
+  "forecast_quantities": {
+    "moisture_rate": 2150,
+    "ozone_mass": 0
+  },
+  "forecast_input_units": "1/s",
+  "forecast_output_units": "kg/m2/s",
+  "forecast_gravity_m_per_s2": 9.80665,
+  "forecast_input_statistics": {
+    "calls": 2150,
+    "active_layer_observations": 972800,
+    "negative_layer_observations": 510176,
+    "pressure_depth_min_pa": 455.0263637138392,
+    "negative_column_observations": 25618,
+    "quantity": "CPEDIA moisture-change rate",
+    "input_units": "1/s",
+    "output_units": "kg/m2/s",
+    "input_scalar_min": -2.2098627295995911e-07,
+    "input_scalar_max": 2.152395409417139e-07,
+    "column_rate_min": -0.0005986225800081582,
+    "column_rate_max": 0.0007603591678795946
+  },
+  "checks": [
+    "Independent uniform ozone-column mass",
+    "Ozone-free columns",
+    "Nonnegative physical column mass",
+    "Nonuniform higher-precision pressure integral",
+    "Positive gravity scaling",
+    "Signed moisture-rate balance from separate water inventories",
+    "Ordered ascending-level sum",
+    "Zero levels initialise positive zero",
+    "Partial and empty intervals",
+    "One level",
+    "Odd widths and final columns",
+    "Signed zeros and subnormals",
+    "Signed cancellation",
+    "Separate-rounding witness",
+    "Read-only pressure and scalar pages",
+    "Inactive columns and guards",
+    "Protected-page final tails",
+    "Unchanged gravity and FPCR"
+  ],
+  "instruction_audit": {
+    "instructions.txt": {
+      "decoded_instructions": 57,
+      "forbidden_instructions": 0
+    },
+    "reference-instructions.txt": {
+      "decoded_instructions": 105,
+      "forbidden_instructions": 0
+    }
+  },
+  "sha256": {
+    "physics": "49914e798f71c1716125b4b41a56e0c801003f6384633109d01f3f664d90548a",
+    "contract": "2060d0bfb291fc534bb176421138c8b7df0d5197cd39eb83883887d2c658eb69",
+    "assembly": "7deb692cc574682a2c81c22e29905302fcc885dba6eeed4e5102aa17171a5b39",
+    "verifier": "3b0efdc7228638c8f7e19fe9b90a595a6ca4449db8810894a9b54df57051be24",
+    "forecast_driver": "eb24e7385e3b22cd901acd1b9390243153e40e12da910078d549cc4cf05c1b3c",
+    "upstream_source": "bd10e934e69ee517974ff0c57d89ac4f2b40d20f97015cdf46c2389154c24f42",
+    "upstream_caller": "e6d178c5973a3182f553a240c93cedb5b52272b1d17c9f4fe2015c5eba867a89",
+    "assembly_object": "1f30949b6e46199361bcd69f386b2cdb6851c5833c6ae20dda2ef70bd1561c4b",
+    "strict_library": "8e4966877c735976f1e9356bc551294bbfc15c565ecdf1dc7db4cf814012b07b",
+    "critical_assembly_trajectory": "d6b028cb35f2c14795725086eee6d2004a6fa46f3697378f12d4abefc6880f68",
+    "critical_fortran_trajectory": "d6b028cb35f2c14795725086eee6d2004a6fa46f3697378f12d4abefc6880f68",
+    "forecast_assembly_trajectory": "11899ab39a1f2950eed9b1a7cf6f81426e13e7063b1f3b30c11e0aa1d04d7ef8",
+    "forecast_fortran_trajectory": "11899ab39a1f2950eed9b1a7cf6f81426e13e7063b1f3b30c11e0aa1d04d7ef8",
+    "forecast_inputs": "f6637925c0797fcd040a94074cbbe9b7e2d77f416ec32198c599e0c71b187425",
+    "verification_library": "90b0b418d3be7b2d4f283ed02ebc853e3bdcf868db80c5fa215d8e431626dce6",
+    "forecast_input_statistics": "a480a3ee30c4f86328e41a34c217f71b656003fae4e85cf34c0340b505c4135d"
+  },
+  "raw_archive": ".runtime/openifs/runs/strict-ozone-asm-7129092/t21/test_fc",
+  "reviewed_driver_prose_has_identical_binary": true,
+  "all_ten_saved_forecast_files_identical": true,
+  "complete_assembly_forecast_implemented": false,
+  "whole_forecast_independent_physics_verified": false,
+  "comparative_timing_performed": false
+}
