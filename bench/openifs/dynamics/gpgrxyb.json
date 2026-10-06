@@ -2,7 +2,7 @@
   "scope": "Complete GPGRXYB pressure-gradient body and paired T21 forecast calls",
   "date_utc": "2026-10-06T23:33:55.778775+00:00",
   "openifs_version": "48.1.1",
-  "contract_revision": "1.1",
+  "contract_revision": "1.2",
   "generation_route": "Direct AArch64 instructions from the frozen arithmetic and measured storage layout",
   "job_id": 7129092,
   "node": "nid010329",
@@ -42,6 +42,8 @@
     "Independent logarithmic-pressure derivative",
     "Hydrostatic alpha and combined pressure derivatives",
     "Independent approximate-mode derivative errors and thin-layer limits",
+    "Approximate-depth derivative by independent surface-pressure perturbations",
+    "Prescribed approximate-depth derivative error and its thin-layer limit",
     "All four pressure modes",
     "Optional coefficient outputs",
     "Absent unused allocations and invalid unused indices",
@@ -86,9 +88,9 @@
   },
   "sha256": {
     "physics": "6b715315615669884df0924b18c661b46124a43b3ae5c2ed9b06d21846aa8547",
-    "contract": "d80ff4e17284fa31b8ce8725ca961303e535440658e33245005831ba5a862eba",
+    "contract": "8a73ba6c3b9ecaf14163ab6f67e86cc967f6e2a37654da7a9fa237a1baa9f42d",
     "assembly": "e768ecef8f447470f5dda36f0fad526e56e08e8c316f3b2dd9965e598e9af527",
-    "verifier": "bf0031ee45d085fa0afa6361939163f52dec073d6df7781ee8015d3821b54fc9",
+    "verifier": "3695b284467c28245b93714ccc73d8298415a230c386639090c7dfe358b6a3a6",
     "forecast_driver": "61d97fec09c5d9dcb879a87e816d23c7687c07cde0bd5cf22e1d842df0e78bc2",
     "upstream_source": "ef6b23fb259da2be53d3ad2ed33abe05181762f4ba3ad6803799e56a133d327a",
     "upstream_caller": "4b614594410a8a19830f4494dc1890b40065bce8ac350a2d05595e7654a0458e",
@@ -110,5 +112,8 @@
   "all_ten_saved_forecast_files_identical": true,
   "complete_assembly_forecast_implemented": false,
   "whole_forecast_independent_physics_verified": false,
-  "comparative_timing_performed": false
+  "comparative_timing_performed": false,
+  "critical_check_date_utc": "2026-10-06T23:51:41.242498+00:00",
+  "pressure_perturbation_pa": 0.03125,
+  "all_prior_critical_output_bytes_preserved": true
 }

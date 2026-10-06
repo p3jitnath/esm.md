@@ -154,6 +154,16 @@ static void check_case(int number,int mode,int save,int alternate,int32_t np,int
             if(mode==1) {P=bl/lp;A=(al*bu-au*bl)/(dp*dp)*(dp/lp-logl(lp/pu));}
             else {
                 long double z=sqrtl(pu/lp),E=(1.0L-z)/(1.0L+z);
+                long double derivative=0.5L*(z+1.0L/z)*ds;
+                long double depth_error=-0.5L*(1.0L-z)*(1.0L-z)/z*ds;
+                long double delta=1.0L/32.0L,pu_hi=pu+bu*delta,pl_hi=lp+bl*delta;
+                long double pu_lo=pu-bu*delta,pl_lo=lp-bl*delta;
+                long double high=(pl_hi-pu_hi)/sqrtl(pl_hi*pu_hi);
+                long double low=(pl_lo-pu_lo)/sqrtl(pl_lo*pu_lo);
+                long double measured=(high-low)/(2.0L*delta);
+                if(fabsl(measured-derivative)>1.0e-18L+1.0e-10L*fabsl(derivative)) fail("independent approximate-depth derivative");
+                D=derivative+depth_error;
+                if(pattern==5 && fabsl(depth_error)>1.0e-6L*fabsl(ds)) fail("thin-layer depth derivative limit");
                 A=0.5L*z*ds+0.5L*z*E*ds;
                 P=0.5L*z*ds+0.5L*(bl/lp+bu/pu)+0.5L*(1.0L-z)*ds;
                 if(pattern==5 && (fabsl(0.5L*z*E*ds)>fabsl(ds)*0.001L ||
