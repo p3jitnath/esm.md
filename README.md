@@ -27,3 +27,7 @@ This model gives one average temperature for each latitude band. Sunlight warms 
 Start with the [short template](formulations/TEMPLATE.md), [shallow-water maths](formulations/shallow_water.md), or [energy-balance maths](formulations/budyko_sellers.md). The [md2asm skill](skills/md2asm/SKILL.md) supplies the numerical and implementation details and retains the measured assembly optimisations.
 
 Build with `make all ebm` on the target processor, then follow the [evaluation instructions](bench/README.md). [AGENTS.md](AGENTS.md) defines the first-year-undergraduate writing convention. Runtimes, binaries, and local research records stay outside Git.
+
+## OpenIFS development
+
+The openifs-md branch is extending the workflow to OpenIFS 48.1.1. The complete CPSPE surface update is emitted directly as assembly and passes 14 critical cases against the unchanged upstream Fortran source compiled with contraction disabled. [OpenIFS formulations](formulations/openifs/README.md) and [verification](bench/openifs/README.md) describe the current coverage. The full assembly forecast and whole-forecast byte comparison remain unfinished.

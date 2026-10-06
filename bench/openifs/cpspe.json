@@ -1,0 +1,62 @@
+{
+  "scope": "Complete CPSPE numerical kernel only",
+  "date_utc": "2026-10-06T06:37:22.534232+00:00",
+  "openifs_version": "48.1.1",
+  "reference": "Unchanged upstream source compiled with separate multiplication and addition",
+  "compiler": "GNU GCC and Fortran 12.3.0",
+  "reference_flags": [
+    "-cpp",
+    "-DCPSPE=CPSPE_REFERENCE",
+    "-O2",
+    "-mcpu=neoverse-v2",
+    "-ffp-contract=off",
+    "-fno-fast-math",
+    "-fPIC"
+  ],
+  "target": "AArch64 Neoverse V2",
+  "job_id": 7114025,
+  "node": "nid011260",
+  "allocation": "Exclusive, all 288 CPUs allocated to this own job",
+  "step_binding": "One task, one CPU, core binding, local memory binding",
+  "observed_load": "0.03 0.04 2.46 at the post-verification node check",
+  "fpcr": "0x0000000000000000",
+  "critical_cases": 14,
+  "calls": 448,
+  "steps_per_case": 32,
+  "trajectory_bytes_per_implementation": 1934848,
+  "differing_bytes": 0,
+  "instruction_audit": {
+    "assembly": {
+      "fmadd": 0,
+      "fmsub": 0,
+      "fmla": 0,
+      "fmls": 0
+    },
+    "strict_reference": {
+      "fmadd": 0,
+      "fmsub": 0,
+      "fmla": 0,
+      "fmls": 0
+    },
+    "installed_reference": {
+      "fmadd": 23,
+      "fmsub": 0,
+      "fmla": 0,
+      "fmls": 0
+    }
+  },
+  "sha256": {
+    "physics": "857ac2f2e8b1fc0c57a5276a7a7379e1353819b6e9d86596b9bef2f467992a71",
+    "contract": "90ec7991888b9323c5644ef47fc10417673acb8feb44b3e2af1b77f8b5d01aef",
+    "assembly": "ee604225325344ee5f994985bbd3bcf660093f49e8901c3f000877b1f1fc350e",
+    "verifier": "f26f6a97268d482c79cadf360743a30241149cf06e059a2e29031793c258a51a",
+    "upstream_source": "7a826984c03084d108fc13eeca961a793b4aea25cd22a7fde6fe91e99401025b",
+    "upstream_installed_object": "a1c5deb461c529bacc6391a153a1b41b7f87f6704b77e2caf16c0a9d7395a4f4",
+    "strict_reference_object": "33f260e3049f21b0aeba9840506603bfb605473231d6b594a85a0b2500b55c45",
+    "assembly_object": "cf4ee4da9ddc23c4c80e1edfa51c3385e2b1e002488b100c533c0e05ff773e02",
+    "assembly_trajectory": "e1af0e849e84c9ff0e1ed2030a8502f7ac57f65aa831dd0d5d22caed2c099047",
+    "fortran_trajectory": "e1af0e849e84c9ff0e1ed2030a8502f7ac57f65aa831dd0d5d22caed2c099047"
+  },
+  "whole_forecast_verified": false,
+  "comparative_timing_performed": false
+}
