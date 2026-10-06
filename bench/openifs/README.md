@@ -18,6 +18,8 @@ GPPWC integrates both physical water fractions and signed diagnostic quantities.
 
 The compact records preserve [source identity](source.json), [CPSPE checks](cpspe.json), [GPRCP checks](gprcp.json), [GPPWC checks](gppwc.json), [the reference build](build.json) and [the mixed forecast](forecast.json). Large inputs, logs and raw captures remain in ignored .runtime/openifs/.
 
+The [routine work list](ROUTINES.md) records the exact-count task and the one-at-a-time implementation sequence.
+
 ## Run the critical checks
 
 Run these commands through srun in your own quiet exclusive allocation. Set openifs_root to the existing OpenIFS directory and strict_build to the separately rebuilt strict-source directory. Preserve the original installation. The build record contains the actual configuration command, custom flags and library hashes.
