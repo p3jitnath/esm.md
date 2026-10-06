@@ -10,6 +10,8 @@
 #include <string.h>
 #include <inttypes.h>
 #include <float.h>
+#include <sys/mman.h>
+#include <unistd.h>
 typedef void (*kernel)(const int32_t *, const int32_t *, const int32_t *, const int32_t *, const int32_t *, const int32_t *, const int32_t *, const int32_t *, const int32_t *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *);
 extern void cpspe_(const int32_t *, const int32_t *, const int32_t *, const int32_t *, const int32_t *, const int32_t *, const int32_t *, const int32_t *, const int32_t *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *);
 extern void cpspe_reference_(const int32_t *, const int32_t *, const int32_t *, const int32_t *, const int32_t *, const int32_t *, const int32_t *, const int32_t *, const int32_t *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, const double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *);
@@ -37,6 +39,50 @@ static int check(int case_id, int step, int field, const char *stage,
         }
     return 1;
 }
+
+/* A protected page catches a tail read or write even when its value would
+ * remain unchanged. Zero-sized fields use no storage in this fixture. */
+static int protected_tail(kernel solver, FILE *out) {
+    const int32_t dims[9]={1,1,1,1,0,0,0,0,0};
+    long page_size=sysconf(_SC_PAGESIZE);
+    if(page_size<=0) return 2;
+    size_t page=(size_t)page_size;
+    double *t[23]={0},*s[23]={0};
+    void *tm[23]={0},*sm[23]={0};
+    for(int f=0;f<23;++f) {
+        if(!(f<=4 || (f>=10 && f<=16))) continue;
+        tm[f]=mmap(NULL,2*page,PROT_READ|PROT_WRITE,
+                   MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+        sm[f]=mmap(NULL,2*page,PROT_READ|PROT_WRITE,
+                   MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+        if(tm[f]==MAP_FAILED || sm[f]==MAP_FAILED) {
+            perror("mmap"); return 2;
+        }
+        if(mprotect((char *)tm[f]+page,page,PROT_NONE) ||
+           mprotect((char *)sm[f]+page,page,PROT_NONE)) {
+            perror("mprotect"); return 2;
+        }
+        t[f]=(double *)((char *)tm[f]+page)-1;
+        s[f]=(double *)((char *)sm[f]+page)-1;
+        t[f][-1]=s[f][-1]=1.0;
+        t[f][0]=0.0625;
+        s[f][0]=64.0+f;
+    }
+    call(solver,dims,2.0,t,s);
+    for(int f=0;f<23;++f) {
+        if(!tm[f]) continue;
+        double expected=64.125+f,rate=0.0625,guard=1.0;
+        if(check(14,1,f,"protected-tail",s[f],&expected,1) ||
+           check(14,1,f,"protected-read-only",t[f],&rate,1) ||
+           check(14,1,f,"protected-left-guard",s[f]-1,&guard,1) ||
+           check(14,1,f,"protected-input-guard",t[f]-1,&guard,1)) return 1;
+        if(fwrite(s[f],8,1,out)!=1) return 2;
+        if(munmap(tm[f],2*page) || munmap(sm[f],2*page)) return 2;
+    }
+    return 0;
+}
+
+
 int main(int argc, char **argv) {
     if (argc != 3) return 2;
     uint64_t fpcr;
@@ -135,8 +181,12 @@ int main(int argc, char **argv) {
             free(snap[f]-1);free(initial[f]-1);
         }
     }
+    if(protected_tail(cpspe_reference_,out_r) ||
+       protected_tail(cpspe_,out_a)) return 1;
+    ++calls;
+    bytes_written+=12*8;
     if(fclose(out_a)||fclose(out_r)) return 2;
-    printf("CPSPE PASS cases=14 calls=%zu bytes=%zu FPCR=%016" PRIx64 "\n",
+    printf("CPSPE PASS cases=15 calls=%zu bytes=%zu FPCR=%016" PRIx64 "\n",
            calls,bytes_written,fpcr);
     return 0;
 }

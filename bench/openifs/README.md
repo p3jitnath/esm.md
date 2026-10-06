@@ -1,6 +1,6 @@
 # OpenIFS verification
 
-The first verified assembly routine is CPSPE, which advances 23 surface fields from supplied tendencies. It passes 14 critical cases and 448 calls, including constant-rate trajectories, partial columns, empty intervals, zero-sized fields, signed zeros, subnormal values and separate-rounding checks. State files contain 1,934,848 bytes and differ in zero bytes. Both instruction audits find no fused arithmetic. [The compact record](cpspe.json) preserves the source hashes and execution conditions.
+The first verified assembly routine is CPSPE, which advances 23 surface fields from supplied tendencies. It passes 15 critical cases and 449 calls, including constant-rate trajectories, partial columns, empty intervals, zero-sized fields, signed zeros, subnormal values and separate-rounding checks. A protected memory page also checks that the final vector tail reads and writes only its own buffer. State files contain 1,934,944 bytes and differ in zero bytes. Both instruction audits find no fused arithmetic. [The compact record](cpspe.json) preserves the source hashes and execution conditions.
 
 | Component | Result |
 | --- | --- |
@@ -27,4 +27,4 @@ gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math bench/openifs/cpspe.c
 cmp .runtime/openifs/cpspe/assembly.bin .runtime/openifs/cpspe/fortran.bin
 ```
 
-The [contract](../../skills/md2asm/references/openifs/cpspe.md) defines supported shapes, exact arithmetic, units and the assembly interface. The verifier disables profiling hooks, checks FPCR and protects every state and tendency buffer with guard values. Compiler output is inspected for forbidden instructions and is never used to construct direct assembly.
+The [contract](../../skills/md2asm/references/openifs/cpspe.md) defines supported shapes, exact arithmetic, units and the assembly interface. The verifier disables profiling hooks, checks FPCR and protects every state and tendency buffer with guard values, with a protected page after single-entry arrays to detect any extra-lane access. Compiler output is inspected for forbidden instructions and is never used to construct direct assembly.

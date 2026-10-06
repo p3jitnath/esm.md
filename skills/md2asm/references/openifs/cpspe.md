@@ -62,7 +62,7 @@ Profiling hooks are excluded from numerical state and are not supplied by the so
 
 ## Verification and output
 
-Use the unchanged upstream Fortran numeric source as the strict reference. Compare all state and tendency bytes after every tested call, including inactive columns, zero-sized fields and buffer guards. Include single columns, odd widths, partial active intervals, empty intervals, zero layer counts, realistic soil and snow counts, signed zeros, subnormal values and a case that distinguishes fused from separate arithmetic.
+Use the unchanged upstream Fortran numeric source as the strict reference. Compare all state and tendency bytes after every tested call, including inactive columns, zero-sized fields and buffer guards. Include single columns, odd widths, partial active intervals, empty intervals, zero layer counts, realistic soil and snow counts, signed zeros, subnormal values and a case that distinguishes fused from separate arithmetic. Place single-entry states and tendencies at the end of a readable memory page, with access to the next page disabled, so that a vector tail cannot touch an extra entry.
 
 Check constant-tendency trajectories against the stated balance and use exact powers of two for independently calculable physical examples. Do not require positivity when a prescribed tendency legitimately removes a quantity. The acceptance limit is zero differing bytes. Report the first stage, step, field, cell and both 64-bit patterns on failure.
 
