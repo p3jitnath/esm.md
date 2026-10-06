@@ -28,8 +28,9 @@ The T21 forecast profile contains 1,171 labelled regions. Of these labels, 1,002
 | GPRT | Complete thermal pressure and horizontal derivatives |
 | GPGRP | Complete pressure-gradient force in both vertical schemes |
 | GPMKTEND | Complete wind, temperature and tracer state-change rates |
+| GPADDSLPHY | Complete physical increments with vertical boundary storage |
 
-All six routines pass their critical checks and captured forecast calls. The [verification notes](README.md) state the evidence and its limits. Complete assembly coverage, raw whole-forecast states, independent whole-forecast physical checks and the external numerical-library arithmetic audit remain unfinished.
+All seven routines pass their critical checks and captured forecast calls. The [verification notes](README.md) state the evidence and its limits. Complete assembly coverage, raw whole-forecast states, independent whole-forecast physical checks and the external numerical-library arithmetic audit remain unfinished.
 
 The user resumed work until 00:00 UTC on 2026-10-07, prioritising the coarse forecast. Work proceeds through its active numerical routines one at a time, with dynamics first and the remaining physical schemes later. For each routine, freeze its physics and md2asm contract, emit the complete assembly body, pass physical and exact-byte checks, then verify its forecast calls before proceeding.
 
