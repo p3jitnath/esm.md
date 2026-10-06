@@ -104,7 +104,18 @@ Build the comparison library, then use a fresh copy of the upstream T21 test dir
 
 ```bash
 gcc -fPIC -Dcpspe_=cpspe_assembly_ -c src/openifs/surface/cpspe.S -o .runtime/openifs/cpspe/forecast.o
-gcc -shared -fPIC -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math bench/openifs/surface/forecast.c bench/openifs/dynamics/gprcp_forecast.c bench/openifs/dynamics/gppwc_forecast.c bench/openifs/dynamics/gprt_forecast.c bench/openifs/dynamics/gpgrp_forecast.c bench/openifs/dynamics/gpmktend_forecast.c bench/openifs/physics/gpaddslphy_forecast.c bench/openifs/dynamics/wind_tendency_forecast.c bench/openifs/dynamics/gpgrxyb_forecast.c bench/openifs/physics/gptco3_forecast.c .runtime/openifs/cpspe/forecast.o .runtime/openifs/gprcp/assembly.o .runtime/openifs/gppwc/assembly.o .runtime/openifs/gprt/assembly.o .runtime/openifs/gpgrp/assembly.o .runtime/openifs/gpmktend/assembly.o .runtime/openifs/gpaddslphy/assembly.o .runtime/openifs/wind_tendency/assembly.o .runtime/openifs/gpgrxyb/assembly.o .runtime/openifs/gptco3/assembly.o -ldl -lm -o .runtime/openifs/gprcp/libverify-ozone.so
+gcc -shared -fPIC -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math \
+  bench/openifs/surface/forecast.c bench/openifs/dynamics/gprcp_forecast.c \
+  bench/openifs/dynamics/gppwc_forecast.c bench/openifs/dynamics/gprt_forecast.c \
+  bench/openifs/dynamics/gpgrp_forecast.c bench/openifs/dynamics/gpmktend_forecast.c \
+  bench/openifs/physics/gpaddslphy_forecast.c bench/openifs/dynamics/wind_tendency_forecast.c \
+  bench/openifs/dynamics/gpgrxyb_forecast.c bench/openifs/physics/gptco3_forecast.c \
+  .runtime/openifs/cpspe/forecast.o .runtime/openifs/gprcp/assembly.o \
+  .runtime/openifs/gppwc/assembly.o .runtime/openifs/gprt/assembly.o \
+  .runtime/openifs/gpgrp/assembly.o .runtime/openifs/gpmktend/assembly.o \
+  .runtime/openifs/gpaddslphy/assembly.o .runtime/openifs/wind_tendency/assembly.o \
+  .runtime/openifs/gpgrxyb/assembly.o .runtime/openifs/gptco3/assembly.o -ldl -lm -o \
+  .runtime/openifs/gprcp/libverify-ozone.so
 verification_library="$PWD/.runtime/openifs/gprcp/libverify-ozone.so"
 cd /path/to/fresh/t21/test_fc
 srun --jobid="$SLURM_JOB_ID" --overlap --exact --nodes=1 --ntasks=1 --cpus-per-task=1 --mpi=cray_shasta --cpu-bind=cores --mem-bind=local ./ifs-run --nproc=1 --nthread=1 --launch="env LD_PRELOAD=$verification_library"

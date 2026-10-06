@@ -74,4 +74,6 @@ Keep Julia and any dependencies installed for this project in the Git-ignored `.
 
 Add files and dependencies only when the current research phase needs them, preferring small functions and direct build commands over general frameworks, orchestration layers, containers, or large CI configurations. Keep binaries, model weights, caches, and large logs outside Git, and preserve unrelated work without using destructive Git operations.
 
+Commit each completed and verified research milestone during longer work, and record its actual checks in the local handover.
+
 After meaningful work, update the local `.agents/HANDOVER.md`, creating it if necessary and keeping the current state, decisions, and next steps concise. Append a dated entry that records completed work and actual checks, rather than every tool call, so that the handover remains useful without presenting plans as results.

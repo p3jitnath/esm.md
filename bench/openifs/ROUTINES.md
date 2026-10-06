@@ -37,6 +37,25 @@ All ten routines pass their critical checks and captured forecast calls. The [ve
 
 The user resumed work until 00:00 UTC on 2026-10-07, prioritising the coarse forecast. Work proceeds through its active numerical routines one at a time, with dynamics first and the remaining physical schemes later. For each routine, freeze its physics and md2asm contract, emit the complete assembly body, pass physical and exact-byte checks, then verify its forecast calls before proceeding.
 
+## Next coarse-forecast stages
+
+The next review order follows the pressure and flow calculations needed by the coarse forecast. The call counts come from the existing T21 profile. A call count says how often a routine ran, not how much assembly work it needs.
+
+| Order | Routine | Recorded calls | Required work |
+| --- | --- | ---: | --- |
+| 1 | GP_SPV | 2,150 | Surface pressure from its logarithm and horizontal derivatives |
+| 2 | GPHPRE | 14,649 | Pressure at layer boundaries, interior pressure and pressure weights |
+| 3 | VERDISINT | 21,559 | Ordered vertical integration for the finite-element scheme |
+| 4 | GPGEO | 4,300 | Height-related gravitational energy from pressure and temperature |
+| 5 | GPGRGEO | 2,150 | Horizontal derivatives of that gravitational energy |
+| 6 | GPCTY | 2,150 | Air-mass continuity and vertical pressure motion |
+| 7 | GPTF1 | 2,150 | First part of the time filter |
+| 8 | GPTF2 | 2,150 | Second part of the time filter |
+
+A time filter removes unwanted oscillation between successive time levels. Before accepting the pressure routines, resolve the arithmetic of the exp and log functions that they use. GPHPRE also needs explicit checks for its upper pressure boundary, optional outputs and the shared choice of first interior layer. Its approximate mode 2 uses the next layer at the upper boundary, so the supported level count must follow the source's actual access.
+
+These eight entries are review priorities, not a complete count of remaining numerical routines. They still require individual contracts, complete assembly and the same physical and byte checks as the ten accepted routines. Keep the original sources and measured inventory unchanged, then review the remaining physical schemes.
+
 To reproduce the build inventory, load GNU 12.3 and run the following command through srun in your own quiet exclusive allocation. The [counter](count_routines.py) uses Python's standard library and the existing compiler.
 
 ```bash
