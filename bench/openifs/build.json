@@ -1,0 +1,139 @@
+{
+  "date_utc": "2026-10-06T12:55:21.219117+00:00",
+  "openifs_version": "48.1.1",
+  "scope": "Forecast executable and locally rebuilt scientific libraries",
+  "job_id": 7122219,
+  "node": "nid010373",
+  "build_exit_code": 0,
+  "compiler": "GNU 12.3.0 through Cray wrappers",
+  "target_cpu": "Neoverse V2",
+  "flags": [
+    "-O2",
+    "-mcpu=neoverse-v2",
+    "-ffp-contract=off",
+    "-fno-fast-math"
+  ],
+  "fortran_commands_checked": 3675,
+  "configuration_sha256": "dfce70f1a69f974299a0f04825fec94f16cf6c543973e780bc24581385942fe9",
+  "executable_sha256": "ab1c8a3b0e7e00ab28c1cae005613e4b7d2e5eba0c9af50aa658c7c574adf91e",
+  "scientific_libraries": {
+    "libarpifs.DP.so": {
+      "sha256": "8e4966877c735976f1e9356bc551294bbfc15c565ecdf1dc7db4cf814012b07b",
+      "forbidden_instructions": 0
+    },
+    "libsurf.DP.so": {
+      "sha256": "64ca400710af685a009a4806b259ff9df6b59ba9444dbc63359785588b2d12e1",
+      "forbidden_instructions": 0
+    },
+    "libwam.DP.so": {
+      "sha256": "1d2055058ccbd807db8b1b367d4a41677e02c9e23aeae50101071ffdf2ffbfe7",
+      "forbidden_instructions": 0
+    },
+    "libtrans_dp.so": {
+      "sha256": "f56e9886a2f6116c4b6d4fdd75bd2b262f8a744fe20dda89af328b4fb3f8f0ef",
+      "forbidden_instructions": 0
+    },
+    "libalgor.DP.so": {
+      "sha256": "0f75c1b2343da37ce8da1ada06124a340b603344706a9b54c5f93e7ae9b2c7ed",
+      "forbidden_instructions": 0
+    },
+    "libifsaux.DP.so": {
+      "sha256": "e6263081b9fd130fe450848e7f35b138a7793a7a4631038f325d15a4ce614f05",
+      "forbidden_instructions": 0
+    },
+    "libfiat.so": {
+      "sha256": "0290e259b31395dd1429a348044d21be9580a14e327785aec6d623a7a226b57b",
+      "forbidden_instructions": 0
+    }
+  },
+  "external_numeric_libraries_audited": false,
+  "full_reference_accepted": false,
+  "complete_assembly_forecast_implemented": false,
+  "audit_date_utc": "2026-10-06T13:54:39.486240+00:00",
+  "audited_mnemonics": [
+    "fmadd",
+    "fmsub",
+    "fnmadd",
+    "fnmsub",
+    "fmla",
+    "fmls",
+    "fmad",
+    "fmsb",
+    "fnmad",
+    "fnmsb",
+    "fcmla",
+    "fmlal",
+    "fmlal2",
+    "fmlsl",
+    "fmlsl2",
+    "frecpe",
+    "frecps",
+    "frsqrte",
+    "frsqrts"
+  ],
+  "configure_command": [
+    "cmake",
+    "-S",
+    "/lus/lfs1aip2/projects/u6yq/users/p3jitnath/ecmwf-openifs/source",
+    "-B",
+    "/lus/lfs1aip2/projects/u6yq/users/p3jitnath/esm.md/.runtime/openifs/strict-build",
+    "-DCMAKE_BUILD_TYPE=Bit",
+    "-DCMAKE_C_COMPILER=/opt/cray/pe/craype/2.7.34/bin/cc",
+    "-DCMAKE_CXX_COMPILER=/opt/cray/pe/craype/2.7.34/bin/CC",
+    "-DCMAKE_Fortran_COMPILER=/opt/cray/pe/craype/2.7.34/bin/ftn",
+    "-DCMAKE_C_FLAGS=-ffp-contract=off -fno-fast-math -mcpu=neoverse-v2",
+    "-DCMAKE_CXX_FLAGS=-ffp-contract=off -fno-fast-math -mcpu=neoverse-v2",
+    "-DCMAKE_Fortran_FLAGS=-ffp-contract=off -fno-fast-math -mcpu=neoverse-v2",
+    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+    "-DCMAKE_INSTALL_PREFIX=/lus/lfs1aip2/projects/u6yq/users/p3jitnath/esm.md/.runtime/openifs/strict-install",
+    "-DIFS_DP_ECBUILD_COMPILE_FLAGS=/lus/lfs1aip2/projects/u6yq/users/p3jitnath/esm.md/.runtime/openifs/strict-flags.cmake",
+    "-DBUILD_ifs_dp=ON",
+    "-DBUILD_ifs_sp=OFF",
+    "-DBUILD_ifs-test=OFF",
+    "-DENABLE_FORECAST_ONLY=ON",
+    "-DENABLE_OPENIFS_ONLY=ON",
+    "-DENABLE_SINGLE_PRECISION=OFF",
+    "-DIFS_DP_ENABLE_SINGLE_PRECISION=OFF",
+    "-DBUILD_TESTING=OFF",
+    "-DENABLE_TESTS=OFF",
+    "-DIFS_TEST_FORCE_FETCH=OFF",
+    "-DENABLE_MGRIDS=OFF",
+    "-DFCM_PARALLEL=48",
+    "-DBUILD_eccodes=OFF",
+    "-DBUILD_eckit=OFF",
+    "-DBUILD_fckit=OFF",
+    "-DBUILD_metkit=OFF",
+    "-DBUILD_fdb5=OFF",
+    "-DBUILD_atlas=OFF",
+    "-DBUILD_multio=OFF",
+    "-Deccodes_DIR=/lus/lfs1aip2/projects/u6yq/users/p3jitnath/ecmwf-openifs/build/eccodes",
+    "-Deckit_DIR=/lus/lfs1aip2/projects/u6yq/users/p3jitnath/ecmwf-openifs/build/eckit",
+    "-Dfckit_DIR=/lus/lfs1aip2/projects/u6yq/users/p3jitnath/ecmwf-openifs/build/fckit",
+    "-Dmetkit_DIR=/lus/lfs1aip2/projects/u6yq/users/p3jitnath/ecmwf-openifs/build/metkit",
+    "-Dfdb5_DIR=/lus/lfs1aip2/projects/u6yq/users/p3jitnath/ecmwf-openifs/build/fdb5",
+    "-Datlas_DIR=/lus/lfs1aip2/projects/u6yq/users/p3jitnath/ecmwf-openifs/build/atlas",
+    "-Dmultio_DIR=/lus/lfs1aip2/projects/u6yq/users/p3jitnath/ecmwf-openifs/build/multio",
+    "-DAEC_DIR=/lus/lfs1aip2/projects/u6yq/users/p3jitnath/ecmwf-openifs/.local/libaec",
+    "-DNETCDF_PATH=/opt/cray/pe/netcdf/4.9.0.17/gnu/12.3",
+    "-DHDF5_PATH=/opt/cray/pe/hdf5/1.14.3.5/gnu/12.3",
+    "-DENABLE_NEMO=OFF",
+    "-DENABLE_AEOLUS=OFF",
+    "-DENABLE_OBSTAT=OFF"
+  ],
+  "custom_flags": "set(IFS_Fortran_FLAGS \"-ffp-contract=off -fno-fast-math -mcpu=neoverse-v2\")\ninclude(\"/lus/lfs1aip2/projects/u6yq/users/p3jitnath/ecmwf-openifs/ifs-source/cmake/compile_flags.cmake\")\n",
+  "build_command": [
+    "cmake",
+    "--build",
+    ".runtime/openifs/strict-build",
+    "--target",
+    "ifsMASTER.DP",
+    "--parallel",
+    "48"
+  ],
+  "external_math_observation": {
+    "library": "/lib64/libm.so.6",
+    "sha256": "fe5272ec7363fec4a547c8acaf272a4a2fe1c6d9be924e8f91a290330b79c19f",
+    "function": "exp@@GLIBC_2.29",
+    "fused_instructions_present": true
+  }
+}

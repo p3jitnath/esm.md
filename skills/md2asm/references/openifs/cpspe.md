@@ -68,6 +68,12 @@ Check constant-tendency trajectories against the stated balance and use exact po
 
 Canonical state output is the concatenation of the 23 state arrays in table order, each in Fortran cell order as little-endian FP64, including inactive entries. No metadata or timing bytes enter this stream. A kernel verification record cannot establish whole-forecast agreement. The forecast also needs captured stage states, checkpoint files, final files and independent physical checks.
 
+## Forecast capture
+
+The forecast verifier calls the strict-source Fortran routine on copies of the 23 incoming states, then calls the complete assembly routine on the forecast states. It compares every resulting state byte and checks unchanged tendencies, active finite inputs and outputs, alignment, sizes and non-overlapping buffers. It adds no surface update.
+
+Each call in the forecast output stream starts with an 8-byte call number, 4-byte forecast step, nine 4-byte dimensions in interface order and the FP64 PDT. This 56-byte little-endian header is followed by the 23 complete state arrays in table order, including inactive entries. The separate input stream uses the same header, then appends the incoming state and tendency for each field in table order. Pointer addresses, timing and profiling data are excluded.
+
 ## Provenance and measurement
 
 Emit assembly directly from this contract and build it with an assembler and linker. Compiler output may be inspected for instruction verification but must not be used to construct the solver. Archive hashes of the local upstream source, contract, generated assembly, strict reference object, input records and verifier reports. Keep builds and checks on the own quiet exclusive Slurm node. No performance result or reusable optimisation lesson is accepted until repeated complete-update measurements pass the quietness and exact-output checks.

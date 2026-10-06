@@ -1,0 +1,104 @@
+{
+  "date_utc": "2026-10-06T14:08:25.642831+00:00",
+  "scope": "Upstream T21 forecast with CPSPE and GPRCP assembly and all other stages in Fortran",
+  "job_id": 7122219,
+  "node": "nid010373",
+  "ranks": 1,
+  "threads": 1,
+  "affinity_cpu": 0,
+  "memory_binding": "local",
+  "model_grid_points": 2048,
+  "atmospheric_levels": 19,
+  "soil_levels": 4,
+  "snow_levels": 5,
+  "forecast_steps": 25,
+  "nominal_step_seconds": 3600,
+  "cpspe_calls_verified": 2150,
+  "cpspe_canonical_bytes": 19109200,
+  "fpcr": "0000000000000000",
+  "cpspe_differing_bytes": 0,
+  "cpspe_state_hash": "5f9beaf8fac180f2ba957b77317a65b8b3b47c8af457bbfe11e2a35a72e73672",
+  "cpspe_input_hash": "b74d0ab8b240e0734a4199ac19431405bc46de519bde275f85a5933cc21e729b",
+  "input_capture_bytes": 38098000,
+  "driver_hash": "8675a29cf9ca13d7deb4efb97e8b9322fa058f20087fce95d76d8ed3722978d5",
+  "interface_hash": "96b5c3c6d76ee7d41dddb3f919ef335ac8e5c77b6f02f5c7668a3f6b0e5d9cbe",
+  "outputs": [
+    {
+      "file": "ICMSHepc8+000000",
+      "bytes": 39040,
+      "sha256": "738cad2b219446b25351b4e8729c02d64292421e4ec22ebd4483946081230b67",
+      "differing_bytes": 0
+    },
+    {
+      "file": "ICMSHepc8+000006",
+      "bytes": 39040,
+      "sha256": "35a30935df8bbc68a569bde6676fe536b12de2e698cfc1f0b79a3cec527e8e18",
+      "differing_bytes": 0
+    },
+    {
+      "file": "ICMSHepc8+000012",
+      "bytes": 39040,
+      "sha256": "378ef454e18511f3e790c4905d975349da7e73124b6be17ecb59a90a665de01f",
+      "differing_bytes": 0
+    },
+    {
+      "file": "ICMSHepc8+000018",
+      "bytes": 39040,
+      "sha256": "69bd8f351c225738bd4585a9abed1813e0f469eb250ee9e2730cd58d7dc77dec",
+      "differing_bytes": 0
+    },
+    {
+      "file": "ICMSHepc8+000024",
+      "bytes": 39040,
+      "sha256": "c956a4ba1ca2fde8b8e298d38ddfc450c374dcb38a81955567c905b5fb92028b",
+      "differing_bytes": 0
+    },
+    {
+      "file": "ICMUAepc8+000000",
+      "bytes": 84588,
+      "sha256": "7521976080d1c0aa1607b86637063a63fcae4850c23188e49624f86c55e80dd3",
+      "differing_bytes": 0
+    },
+    {
+      "file": "ICMUAepc8+000006",
+      "bytes": 84588,
+      "sha256": "283c62831f0c359b148643cc54cae45437378f4244eeb7e13c961b19661b1600",
+      "differing_bytes": 0
+    },
+    {
+      "file": "ICMUAepc8+000012",
+      "bytes": 84588,
+      "sha256": "75abe2ddee3438417998913d111917213cf1fc0f1b042ba8eae4e9227b8b2c78",
+      "differing_bytes": 0
+    },
+    {
+      "file": "ICMUAepc8+000018",
+      "bytes": 84588,
+      "sha256": "6c3d9ef516bff3b95b7b2e534354e126a44c3ae049a9a8c06e590b1e13a90825",
+      "differing_bytes": 0
+    },
+    {
+      "file": "ICMUAepc8+000024",
+      "bytes": 84588,
+      "sha256": "23960bedf67f742df3471b7981da4dace28545d44fa8deb36de72e5fd2d9bbef",
+      "differing_bytes": 0
+    }
+  ],
+  "all_upstream_output_files_identical": true,
+  "complete_assembly_forecast_implemented": false,
+  "all_forecast_raw_stages_captured": false,
+  "whole_forecast_independent_physics_verified": false,
+  "comparative_timing_performed": false,
+  "gprcp_driver_hash": "0f4f103e9051bfb41f662e6a3ad3ebf8b3347f4b4cc0c721535c31b854065689",
+  "gprcp_calls_verified": 13846,
+  "gprcp_canonical_bytes": 81643584,
+  "gprcp_differing_bytes": 0,
+  "gprcp_state_hash": "80129bcce86b59dbeed2bf443773c020be8941b08cb86c60242432741c45feed",
+  "gprcp_input_hash": "a7a69100dd1b70bc50a71676c2a1c15de3b67b7bd858cc6b41f6f462bd4bde1a",
+  "gprcp_input_capture_bytes": 481964640,
+  "verification_library_hash": "11b66baa158fec6664d25d5ac8ca570c9e2c92341af5ea24e39bb652a4fda252",
+  "independent_repeat_gprcp_active_cell_differences": 0,
+  "independent_repeat_gprcp_untouched_cell_differences": 176,
+  "gprcp_initial_output_bytes_captured": true,
+  "launch_command": "srun --jobid=7122219 --overlap --exact --nodes=1 --ntasks=1 --cpus-per-task=1 --mpi=cray_shasta --cpu-bind=cores --mem-bind=local bash -c ./ifs-run with --nproc=1 --nthread=1 and the local verification library"
+}

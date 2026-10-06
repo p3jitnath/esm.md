@@ -30,4 +30,11 @@ Build with `make all ebm` on the target processor, then follow the [evaluation i
 
 ## OpenIFS development
 
-The openifs-md branch is extending the workflow to OpenIFS 48.1.1. The complete CPSPE surface update is emitted directly as assembly and passes 14 critical cases against the unchanged upstream Fortran source compiled with contraction disabled. [OpenIFS formulations](formulations/openifs/README.md) and [verification](bench/openifs/README.md) describe the current coverage. The full assembly forecast and whole-forecast byte comparison remain unfinished.
+The openifs-md branch extends the workflow to OpenIFS 48.1.1. Direct assembly implements the complete surface-state update and moist-air property calculation. Both pass independent small checks and byte comparisons inside the upstream coarse forecast.
+
+| Verified routine | Critical calls | Calls in the forecast | Differing bytes |
+| --- | ---: | ---: | ---: |
+| CPSPE surface update | 449 | 2,150 | 0 |
+| GPRCP moist-air properties | 3,976 | 13,846 | 0 |
+
+All ten saved forecast output files match the strict-source Fortran run. Other stages remain in Fortran, and whole-forecast independent physics and external-library arithmetic checks remain unfinished. [Basic formulations](formulations/openifs/README.md) and [verification](bench/openifs/README.md) describe the coverage and commands. OpenIFS performance has not been measured.
