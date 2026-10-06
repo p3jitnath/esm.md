@@ -30,7 +30,7 @@ Build with `make all ebm` on the target processor, then follow the [evaluation i
 
 ## OpenIFS development
 
-The openifs-md branch extends the workflow to OpenIFS 48.1.1. Direct assembly implements seven complete routines for surface changes, moist-air properties, pressure terms and physics updates. All seven pass independent small checks and byte comparisons inside the upstream coarse forecast. Files are grouped by dynamics, physics, surface and waves, with forecast dynamics taking priority.
+The openifs-md branch extends the workflow to OpenIFS 48.1.1. Direct assembly implements eight complete routines for surface changes, moist-air properties, pressure terms, wind accelerations and physics updates. All eight pass independent small checks and byte comparisons inside the upstream coarse forecast. Files are grouped by dynamics, physics, surface and waves, with forecast dynamics taking priority.
 
 | Verified routine | Critical calls | Calls in the forecast | Differing bytes |
 | --- | ---: | ---: | ---: |
@@ -41,5 +41,6 @@ The openifs-md branch extends the workflow to OpenIFS 48.1.1. Direct assembly im
 | GPGRP pressure force | 46 | 2,150 | 0 |
 | GPMKTEND state-change rates | 69 | 2,150 | 0 |
 | GPADDSLPHY physics increments | 117 | 2,150 | 0 |
+| GP_TNDLAGADIAB_UV wind | 137 | 2,150 | 0 |
 
 All ten saved forecast output files match the strict-source Fortran run. Other stages remain in Fortran, and whole-forecast independent physics and external-library arithmetic checks remain unfinished. [Basic formulations](formulations/openifs/README.md) and [verification](bench/openifs/README.md) describe the coverage and commands. OpenIFS performance has not been measured.
