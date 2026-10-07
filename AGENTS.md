@@ -27,6 +27,14 @@ Preserve mathematical meaning, units, identifiers, and reference titles when rev
 
 ## Formulations and generation
 
+### GPU extension
+
+The `gpu` branch carries the two frozen models from GitHub main `6536b88` to NVIDIA GPUs. Keep the original CPU sources and contracts as the numerical reference. Group GPU sources under each model's `gpu/` directory, with direct `solver.ptx` assembly and separate CUDA Fortran `.cuf`, CUDA.jl `.jl`, and Numba CUDA `.py` controls. Use [md2asm-gpu](skills/md2asm-gpu/SKILL.md) and its [GPU contract](skills/md2asm-gpu/references/gpu-contract.md) for this extension; their GPU target and execution rules replace the CPU-specific target rules below for GPU work. Preserve all scientific equations, arithmetic dependencies, required stages, and canonical output bytes.
+
+Emit the GPU solver directly as PTX assembly and assemble it with `ptxas` into an `sm_90` cubin, which contains NVIDIA machine instructions. PTX is NVIDIA's virtual instruction set; report this assembly route accurately. Do not generate the direct solver from CUDA C, Fortran, Julia, Python, compiler intermediate representations, or compiler output. The host launcher may allocate, transfer, launch, synchronise, and time kernels, but every numerical stage and boundary operation belongs to the GPU implementation.
+
+Use quiet compute nodes for all work. GPU timing additionally requires a verified exclusive Slurm node allocation, idle allocated GPUs before warm-up, one fixed GPU, fixed host affinity, and recorded clocks, temperature, power, utilisation, memory, and other processes. Stop disturbed measurements. Retain both unchanged vanilla GPU language controls and separately measured optimised versions; compilation, transfers, graph construction, and validation stay outside the primary GPU timer, with their costs reported separately.
+
 Use the short formulation as the physics input. The LLM must choose and explain a suitable numerical method, then record its grid, complete time update, storage, ordered arithmetic, output bytes, and acceptance limits in the model's md2asm solver contract before generation. Preserve the verified contract for existing models; changing the physical model or numerical method requires independent scientific verification and new comparison records.
 
 Use [md2asm](skills/md2asm/SKILL.md) for direct assembly development and optimisation, applying its measured workflow to the current formulation.

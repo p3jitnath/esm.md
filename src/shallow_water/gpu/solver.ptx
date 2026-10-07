@@ -1,0 +1,373 @@
+// Direct assembly from D03, D04, T01 and BC01; no compiler source was used.
+// ABI: nx,ny:u32; q,base,out,work,par:disjoint aligned device addresses:u64.
+// q,base,out each hold 3*S FP64 values; work holds 5*S; par holds 4.
+// P=nx+2, S=P*(ny+2). Halo and preparation cover S cells; update covers nx*ny.
+// Launch all stages on one ordered stream; no block barrier is a grid barrier.
+.version 8.5
+.target sm_90
+.address_size 64
+
+.visible .entry sw_halo(.param .u32 nx, .param .u32 ny, .param .u64 q)
+{
+    .reg .pred %p<5>;
+    .reg .u32 %r<20>;
+    .reg .u64 %a<6>;
+    .reg .b64 %bits;
+    ld.param.u32 %r0, [nx];
+    ld.param.u32 %r1, [ny];
+    ld.param.u64 %a0, [q];
+    add.u32 %r2, %r0, 2;
+    add.u32 %r3, %r1, 2;
+    mul.lo.u32 %r4, %r2, %r3;
+    mul.lo.u32 %r5, %r4, 3;
+    mov.u32 %r6, %ctaid.x;
+    mov.u32 %r7, %ntid.x;
+    mov.u32 %r8, %tid.x;
+    mad.lo.u32 %r6, %r6, %r7, %r8;
+    setp.ge.u32 %p0, %r6, %r5;
+    @%p0 ret;
+    div.u32 %r7, %r6, %r4;
+    rem.u32 %r8, %r6, %r4;
+    div.u32 %r9, %r8, %r2;
+    rem.u32 %r10, %r8, %r2;
+    add.u32 %r11, %r0, 1;
+    add.u32 %r12, %r1, 1;
+    setp.eq.u32 %p0, %r10, 0;
+    setp.eq.u32 %p1, %r10, %r11;
+    setp.eq.u32 %p2, %r9, 0;
+    setp.eq.u32 %p3, %r9, %r12;
+    or.pred %p4, %p0, %p1;
+    or.pred %p4, %p4, %p2;
+    or.pred %p4, %p4, %p3;
+    @!%p4 ret;
+    selp.u32 %r10, %r0, %r10, %p0;
+    selp.u32 %r10, 1, %r10, %p1;
+    selp.u32 %r9, %r1, %r9, %p2;
+    selp.u32 %r9, 1, %r9, %p3;
+    mad.lo.u32 %r13, %r9, %r2, %r10;
+    mad.lo.u32 %r13, %r7, %r4, %r13;
+    mul.wide.u32 %a1, %r13, 8;
+    mul.wide.u32 %a2, %r6, 8;
+    add.u64 %a1, %a0, %a1;
+    add.u64 %a2, %a0, %a2;
+    ld.global.b64 %bits, [%a1];
+    st.global.b64 [%a2], %bits;
+    ret;
+}
+
+.visible .entry sw_prepare(
+    .param .u32 nx, .param .u32 ny, .param .u64 q,
+    .param .u64 work, .param .u64 par)
+{
+    .reg .pred %p<6>;
+    .reg .u32 %r<16>;
+    .reg .u64 %a<16>;
+    .reg .f64 %d<16>;
+    ld.param.u32 %r0, [nx];
+    ld.param.u32 %r1, [ny];
+    ld.param.u64 %a0, [q];
+    ld.param.u64 %a1, [work];
+    ld.param.u64 %a2, [par];
+    add.u32 %r0, %r0, 2;
+    add.u32 %r1, %r1, 2;
+    mul.lo.u32 %r2, %r0, %r1;
+    mov.u32 %r3, %ctaid.x;
+    mov.u32 %r4, %ntid.x;
+    mov.u32 %r5, %tid.x;
+    mad.lo.u32 %r3, %r3, %r4, %r5;
+    setp.ge.u32 %p0, %r3, %r2;
+    @%p0 ret;
+    mul.wide.u32 %a3, %r2, 8;
+    mul.wide.u32 %a4, %r3, 8;
+    // Read each periodic ghost directly from its sole interior source.
+    div.u32 %r6, %r3, %r0;
+    rem.u32 %r7, %r3, %r0;
+    sub.u32 %r8, %r0, 2;
+    sub.u32 %r9, %r1, 2;
+    sub.u32 %r10, %r0, 1;
+    sub.u32 %r11, %r1, 1;
+    setp.eq.u32 %p1, %r7, 0;
+    setp.eq.u32 %p2, %r7, %r10;
+    setp.eq.u32 %p3, %r6, 0;
+    setp.eq.u32 %p4, %r6, %r11;
+    selp.u32 %r7, %r8, %r7, %p1;
+    selp.u32 %r7, 1, %r7, %p2;
+    selp.u32 %r6, %r9, %r6, %p3;
+    selp.u32 %r6, 1, %r6, %p4;
+    mad.lo.u32 %r12, %r6, %r0, %r7;
+    mul.wide.u32 %a12, %r12, 8;
+    add.u64 %a5, %a0, %a12;
+    add.u64 %a6, %a5, %a3;
+    add.u64 %a7, %a6, %a3;
+    ld.global.f64 %d0, [%a5];
+    ld.global.f64 %d1, [%a6];
+    ld.global.f64 %d2, [%a7];
+    // Store the same loaded bits in the public input halo before returning.
+    or.pred %p5, %p1, %p2;
+    or.pred %p5, %p5, %p3;
+    or.pred %p5, %p5, %p4;
+    add.u64 %a13, %a0, %a4;
+    @%p5 st.global.f64 [%a13], %d0;
+    add.u64 %a13, %a13, %a3;
+    @%p5 st.global.f64 [%a13], %d1;
+    add.u64 %a13, %a13, %a3;
+    @%p5 st.global.f64 [%a13], %d2;
+    ld.global.f64 %d3, [%a2];
+    div.rn.f64 %d4, %d1, %d0;
+    div.rn.f64 %d5, %d2, %d0;
+    mul.rn.f64 %d6, %d3, %d0;
+    sqrt.rn.f64 %d7, %d6;
+    mul.rn.f64 %d8, %d6, %d0;
+    mul.rn.f64 %d8, %d8, 0d3FE0000000000000;
+    mul.rn.f64 %d9, %d1, %d4;
+    add.rn.f64 %d9, %d9, %d8;
+    mul.rn.f64 %d10, %d1, %d5;
+    mul.rn.f64 %d11, %d2, %d5;
+    add.rn.f64 %d11, %d11, %d8;
+    abs.f64 %d4, %d4;
+    abs.f64 %d5, %d5;
+    add.rn.f64 %d12, %d4, %d7;
+    add.rn.f64 %d13, %d5, %d7;
+    add.u64 %a8, %a1, %a4;
+    st.global.f64 [%a8], %d9;
+    add.u64 %a8, %a8, %a3;
+    st.global.f64 [%a8], %d10;
+    add.u64 %a8, %a8, %a3;
+    st.global.f64 [%a8], %d11;
+    add.u64 %a8, %a8, %a3;
+    st.global.f64 [%a8], %d12;
+    add.u64 %a8, %a8, %a3;
+    st.global.f64 [%a8], %d13;
+    ret;
+}
+
+// D04's rounded face. Explicit left-speed ties and arithmetic rounding survive
+// assembler scheduling. ptxas may inline this handwritten assembly function.
+.func (.param .f64 result) sw_face(
+    .param .f64 ql, .param .f64 qr, .param .f64 fl, .param .f64 fr,
+    .param .f64 sl, .param .f64 sr)
+{
+    .reg .pred %p;
+    .reg .f64 %f<10>;
+    ld.param.f64 %f0, [ql];
+    ld.param.f64 %f1, [qr];
+    ld.param.f64 %f2, [fl];
+    ld.param.f64 %f3, [fr];
+    ld.param.f64 %f4, [sl];
+    ld.param.f64 %f5, [sr];
+    setp.ge.f64 %p, %f4, %f5;
+    selp.f64 %f4, %f4, %f5, %p;
+    add.rn.f64 %f6, %f2, %f3;
+    mul.rn.f64 %f6, %f6, 0d3FE0000000000000;
+    sub.rn.f64 %f7, %f1, %f0;
+    mul.rn.f64 %f4, %f4, 0d3FE0000000000000;
+    mul.rn.f64 %f7, %f4, %f7;
+    sub.rn.f64 %f8, %f6, %f7;
+    st.param.f64 [result], %f8;
+    ret;
+}
+
+.visible .entry sw_update(
+    .param .u32 nx, .param .u32 ny, .param .u64 q, .param .u64 base,
+    .param .u64 out, .param .u64 work, .param .u64 par, .param .u32 final)
+{
+    .reg .pred %p<8>;
+    .reg .u32 %r<24>;
+    .reg .u64 %a<40>;
+    .reg .f64 %d<48>;
+    .param .f64 arg0,arg1,arg2,arg3,arg4,arg5,answer;
+    ld.param.u32 %r0, [nx];
+    ld.param.u32 %r1, [ny];
+    ld.param.u64 %a0, [q];
+    ld.param.u64 %a1, [base];
+    ld.param.u64 %a2, [out];
+    ld.param.u64 %a3, [work];
+    ld.param.u64 %a4, [par];
+    ld.param.u32 %r12, [final];
+    add.u32 %r2, %r0, 2;
+    add.u32 %r3, %r1, 2;
+    mul.lo.u32 %r4, %r2, %r3;
+    mul.lo.u32 %r5, %r0, %r1;
+    mov.u32 %r6, %ctaid.x;
+    mov.u32 %r7, %ntid.x;
+    mov.u32 %r8, %tid.x;
+    mad.lo.u32 %r6, %r6, %r7, %r8;
+    setp.ge.u32 %p0, %r6, %r5;
+    @%p0 ret;
+    div.u32 %r7, %r6, %r0;
+    rem.u32 %r8, %r6, %r0;
+    add.u32 %r7, %r7, 1;
+    add.u32 %r8, %r8, 1;
+    mad.lo.u32 %r9, %r7, %r2, %r8;
+    // Boundary predicates identify the unique ghost replicas for this cell.
+    setp.eq.u32 %p4, %r8, 1;
+    setp.eq.u32 %p5, %r8, %r0;
+    setp.eq.u32 %p6, %r7, 1;
+    setp.eq.u32 %p7, %r7, %r1;
+    mul.wide.u32 %a5, %r4, 8;
+    mul.wide.u32 %a6, %r2, 8;
+    mul.wide.u32 %a7, %r9, 8;
+    add.u64 %a8, %a3, %a7;
+    mul.lo.u64 %a9, %a5, 3;
+    add.u64 %a10, %a8, %a9;
+    add.u64 %a11, %a10, %a5;
+    add.u64 %a12, %a10, %a6;
+    sub.u64 %a13, %a10, %a6;
+    add.u64 %a14, %a11, %a6;
+    sub.u64 %a15, %a11, %a6;
+    ld.global.f64 %d0, [%a10];
+    ld.global.f64 %d1, [%a10+8];
+    sub.u64 %a27, %a10, 8;
+    ld.global.f64 %d2, [%a27];
+    ld.global.f64 %d3, [%a11];
+    ld.global.f64 %d4, [%a14];
+    ld.global.f64 %d5, [%a15];
+    ld.global.f64 %d6, [%a4+8];
+    ld.global.f64 %d7, [%a4+16];
+    ld.global.f64 %d8, [%a4+24];
+    mov.u32 %r10, 0;
+SW_COMPONENT:
+    cvt.u64.u32 %a16, %r10;
+    mul.lo.u64 %a16, %a16, %a5;
+    add.u64 %a17, %a0, %a7;
+    add.u64 %a17, %a17, %a16;
+    add.u64 %a18, %a17, %a6;
+    sub.u64 %a19, %a17, %a6;
+    ld.global.f64 %d10, [%a17];
+    ld.global.f64 %d11, [%a17+8];
+    sub.u64 %a28, %a17, 8;
+    ld.global.f64 %d12, [%a28];
+    ld.global.f64 %d13, [%a18];
+    ld.global.f64 %d14, [%a19];
+    setp.eq.u32 %p1, %r10, 0;
+    @!%p1 bra SW_MOMENTUM;
+    add.u64 %a20, %a0, %a7;
+    add.u64 %a20, %a20, %a5;
+    add.u64 %a21, %a20, %a5;
+    bra SW_FLUXES;
+SW_MOMENTUM:
+    sub.u32 %r11, %r10, 1;
+    cvt.u64.u32 %a22, %r11;
+    mul.lo.u64 %a22, %a22, %a5;
+    add.u64 %a20, %a8, %a22;
+    add.u64 %a21, %a20, %a5;
+SW_FLUXES:
+    add.u64 %a23, %a21, %a6;
+    sub.u64 %a24, %a21, %a6;
+    ld.global.f64 %d15, [%a20];
+    ld.global.f64 %d16, [%a20+8];
+    sub.u64 %a29, %a20, 8;
+    ld.global.f64 %d17, [%a29];
+    ld.global.f64 %d18, [%a21];
+    ld.global.f64 %d19, [%a23];
+    ld.global.f64 %d20, [%a24];
+    st.param.f64 [arg0], %d10;
+    st.param.f64 [arg1], %d11;
+    st.param.f64 [arg2], %d15;
+    st.param.f64 [arg3], %d16;
+    st.param.f64 [arg4], %d0;
+    st.param.f64 [arg5], %d1;
+    call.uni (answer), sw_face, (arg0,arg1,arg2,arg3,arg4,arg5);
+    ld.param.f64 %d21, [answer];
+    st.param.f64 [arg0], %d12;
+    st.param.f64 [arg1], %d10;
+    st.param.f64 [arg2], %d17;
+    st.param.f64 [arg3], %d15;
+    st.param.f64 [arg4], %d2;
+    st.param.f64 [arg5], %d0;
+    call.uni (answer), sw_face, (arg0,arg1,arg2,arg3,arg4,arg5);
+    ld.param.f64 %d22, [answer];
+    st.param.f64 [arg0], %d10;
+    st.param.f64 [arg1], %d13;
+    st.param.f64 [arg2], %d18;
+    st.param.f64 [arg3], %d19;
+    st.param.f64 [arg4], %d3;
+    st.param.f64 [arg5], %d4;
+    call.uni (answer), sw_face, (arg0,arg1,arg2,arg3,arg4,arg5);
+    ld.param.f64 %d23, [answer];
+    st.param.f64 [arg0], %d14;
+    st.param.f64 [arg1], %d10;
+    st.param.f64 [arg2], %d20;
+    st.param.f64 [arg3], %d18;
+    st.param.f64 [arg4], %d5;
+    st.param.f64 [arg5], %d3;
+    call.uni (answer), sw_face, (arg0,arg1,arg2,arg3,arg4,arg5);
+    ld.param.f64 %d24, [answer];
+    sub.rn.f64 %d25, %d21, %d22;
+    sub.rn.f64 %d26, %d23, %d24;
+    div.rn.f64 %d25, %d25, %d6;
+    div.rn.f64 %d26, %d26, %d7;
+    add.rn.f64 %d27, %d25, %d26;
+    neg.f64 %d27, %d27;
+    mul.rn.f64 %d27, %d8, %d27;
+    add.rn.f64 %d28, %d10, %d27;
+    setp.eq.u32 %p2, %r12, 0;
+    @%p2 bra SW_STORE;
+    add.u64 %a25, %a1, %a7;
+    add.u64 %a25, %a25, %a16;
+    ld.global.f64 %d29, [%a25];
+    mul.rn.f64 %d29, %d29, 0d3FE0000000000000;
+    mul.rn.f64 %d28, %d28, 0d3FE0000000000000;
+    add.rn.f64 %d28, %d29, %d28;
+SW_STORE:
+    add.u64 %a26, %a2, %a7;
+    add.u64 %a26, %a26, %a16;
+    st.global.f64 [%a26], %d28;
+    // Edge copies use the already rounded result and also cover all corners.
+    add.u64 %a30, %a2, %a16;
+    add.u32 %r13, %r0, 1;
+    mad.lo.u32 %r14, %r7, %r2, %r13;
+    mul.wide.u32 %a31, %r14, 8;
+    add.u64 %a31, %a30, %a31;
+    @%p4 st.global.f64 [%a31], %d28;
+    mul.lo.u32 %r14, %r7, %r2;
+    mul.wide.u32 %a31, %r14, 8;
+    add.u64 %a31, %a30, %a31;
+    @%p5 st.global.f64 [%a31], %d28;
+    add.u32 %r15, %r1, 1;
+    mad.lo.u32 %r14, %r15, %r2, %r8;
+    mul.wide.u32 %a31, %r14, 8;
+    add.u64 %a31, %a30, %a31;
+    @%p6 st.global.f64 [%a31], %d28;
+    mul.wide.u32 %a31, %r8, 8;
+    add.u64 %a31, %a30, %a31;
+    @%p7 st.global.f64 [%a31], %d28;
+    selp.u32 %r16, %r13, 0, %p4;
+    selp.u32 %r17, %r15, 0, %p6;
+    or.pred %p0, %p4, %p5;
+    or.pred %p1, %p6, %p7;
+    and.pred %p0, %p0, %p1;
+    @!%p0 bra SW_NEXT;
+    // A one-cell dimension has both boundary predicates and four corners.
+    mad.lo.u32 %r14, %r17, %r2, %r16;
+    mul.wide.u32 %a31, %r14, 8;
+    add.u64 %a31, %a30, %a31;
+    st.global.f64 [%a31], %d28;
+    setp.eq.u32 %p0, %r0, 1;
+    @!%p0 bra SW_CORNER_Y;
+    sub.u32 %r16, %r13, %r16;
+    mad.lo.u32 %r14, %r17, %r2, %r16;
+    mul.wide.u32 %a31, %r14, 8;
+    add.u64 %a31, %a30, %a31;
+    st.global.f64 [%a31], %d28;
+SW_CORNER_Y:
+    setp.eq.u32 %p0, %r1, 1;
+    @!%p0 bra SW_NEXT;
+    sub.u32 %r17, %r15, %r17;
+    mad.lo.u32 %r14, %r17, %r2, %r16;
+    mul.wide.u32 %a31, %r14, 8;
+    add.u64 %a31, %a30, %a31;
+    st.global.f64 [%a31], %d28;
+    setp.eq.u32 %p0, %r0, 1;
+    @!%p0 bra SW_NEXT;
+    sub.u32 %r16, %r13, %r16;
+    mad.lo.u32 %r14, %r17, %r2, %r16;
+    mul.wide.u32 %a31, %r14, 8;
+    add.u64 %a31, %a30, %a31;
+    st.global.f64 [%a31], %d28;
+SW_NEXT:
+    add.u32 %r10, %r10, 1;
+    setp.lt.u32 %p3, %r10, 3;
+    @%p3 bra SW_COMPONENT;
+    ret;
+}

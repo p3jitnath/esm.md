@@ -1,0 +1,124 @@
+// Direct assembly from D02, D03, T01 and BC01; no compiler source was used.
+// ABI: n:u32, disjoint aligned device pointers:u64, final:u32 (0 or 1).
+// State and scratch lengths are n+2; coeff has 3*(n+2); par has 6 FP64 values.
+// Launch halo with >=2 threads, update with ceil(n/block) blocks; one stream.
+.version 8.5
+.target sm_90
+.address_size 64
+
+.visible .entry eb_halo(.param .u32 n, .param .u64 q)
+{
+    .reg .pred %p;
+    .reg .u32 %r<8>;
+    .reg .u64 %a<6>;
+    .reg .b64 %bits;
+    ld.param.u32 %r0, [n];
+    ld.param.u64 %a0, [q];
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mov.u32 %r3, %tid.x;
+    mad.lo.u32 %r1, %r1, %r2, %r3;
+    setp.ge.u32 %p, %r1, 2;
+    @%p ret;
+    setp.eq.u32 %p, %r1, 0;
+    selp.u32 %r4, 1, %r0, %p;
+    add.u32 %r5, %r0, 1;
+    selp.u32 %r5, 0, %r5, %p;
+    mul.wide.u32 %a1, %r4, 8;
+    mul.wide.u32 %a2, %r5, 8;
+    add.u64 %a1, %a0, %a1;
+    add.u64 %a2, %a0, %a2;
+    ld.global.b64 %bits, [%a1];
+    st.global.b64 [%a2], %bits;
+    ret;
+}
+
+// One thread computes one complete cell update, reusing rounded faces locally.
+.visible .entry eb_update(
+    .param .u32 n, .param .u64 q, .param .u64 base,
+    .param .u64 out, .param .u64 work, .param .u64 coeff,
+    .param .u64 par, .param .u32 final)
+{
+    .reg .pred %p<4>;
+    .reg .u32 %r<8>;
+    .reg .u64 %a<16>;
+    .reg .f64 %d<24>;
+    ld.param.u32 %r0, [n];
+    ld.param.u64 %a0, [q];
+    ld.param.u64 %a1, [base];
+    ld.param.u64 %a2, [out];
+    ld.param.u64 %a3, [coeff];
+    ld.param.u64 %a4, [par];
+    ld.param.u32 %r5, [final];
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mov.u32 %r3, %tid.x;
+    mad.lo.u32 %r1, %r1, %r2, %r3;
+    add.u32 %r1, %r1, 1;
+    setp.gt.u32 %p0, %r1, %r0;
+    @%p0 ret;
+    add.u32 %r4, %r0, 2;
+    mul.wide.u32 %a5, %r4, 8;
+    mul.wide.u32 %a6, %r1, 8;
+    add.u64 %a7, %a0, %a6;
+    add.u64 %a8, %a3, %a6;
+    ld.global.f64 %d0, [%a7];
+    // Input pole copies read only this thread's unchanged interior value.
+    setp.eq.u32 %p1, %r1, 1;
+    @%p1 st.global.f64 [%a0], %d0;
+    setp.eq.u32 %p1, %r1, %r0;
+    @%p1 st.global.f64 [%a7+8], %d0;
+    mov.f64 %d1, 0d0000000000000000;
+    mov.f64 %d2, 0d0000000000000000;
+    setp.lt.u32 %p1, %r1, %r0;
+    @!%p1 bra EB_LEFT;
+    ld.global.f64 %d3, [%a7+8];
+    ld.global.f64 %d4, [%a8];
+    sub.rn.f64 %d3, %d3, %d0;
+    mul.rn.f64 %d1, %d4, %d3;
+EB_LEFT:
+    setp.gt.u32 %p1, %r1, 1;
+    @!%p1 bra EB_FORCE;
+    sub.u64 %a13, %a7, 8;
+    sub.u64 %a14, %a8, 8;
+    ld.global.f64 %d3, [%a13];
+    ld.global.f64 %d4, [%a14];
+    sub.rn.f64 %d3, %d0, %d3;
+    mul.rn.f64 %d2, %d4, %d3;
+EB_FORCE:
+    ld.global.f64 %d5, [%a4];
+    ld.global.f64 %d6, [%a4+8];
+    ld.global.f64 %d7, [%a4+16];
+    ld.global.f64 %d8, [%a4+24];
+    ld.global.f64 %d9, [%a4+32];
+    ld.global.f64 %d10, [%a4+40];
+    setp.le.f64 %p1, %d0, %d10;
+    add.u64 %a9, %a8, %a5;
+    add.u64 %a10, %a9, %a5;
+    selp.u64 %a9, %a10, %a9, %p1;
+    ld.global.f64 %d11, [%a9];
+    div.rn.f64 %d12, %d6, %d5;
+    mul.rn.f64 %d13, %d9, %d0;
+    add.rn.f64 %d13, %d8, %d13;
+    sub.rn.f64 %d13, %d11, %d13;
+    sub.rn.f64 %d14, %d1, %d2;
+    div.rn.f64 %d14, %d14, %d7;
+    add.rn.f64 %d14, %d13, %d14;
+    mul.rn.f64 %d14, %d12, %d14;
+    add.rn.f64 %d15, %d0, %d14;
+    setp.eq.u32 %p2, %r5, 0;
+    @%p2 bra EB_STORE;
+    add.u64 %a11, %a1, %a6;
+    ld.global.f64 %d16, [%a11];
+    mul.rn.f64 %d16, %d16, 0d3FE0000000000000;
+    mul.rn.f64 %d15, %d15, 0d3FE0000000000000;
+    add.rn.f64 %d15, %d16, %d15;
+EB_STORE:
+    add.u64 %a12, %a2, %a6;
+    st.global.f64 [%a12], %d15;
+    setp.eq.u32 %p1, %r1, 1;
+    @%p1 st.global.f64 [%a2], %d15;
+    setp.eq.u32 %p1, %r1, %r0;
+    @%p1 st.global.f64 [%a12+8], %d15;
+    ret;
+}

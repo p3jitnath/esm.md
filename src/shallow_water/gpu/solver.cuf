@@ -1,0 +1,114 @@
+!> Fused GPU control for the ordered shallow-water stages and boundaries.
+!! Flat FP64 arrays retain x-contiguous CPU field storage and SI parameter units.
+module sw_gpu_optimised
+  use cudafor
+  implicit none
+contains
+  !> Copy every periodic face and corner directly from an interior cell.
+  attributes(global) subroutine sw_halo(nx,ny,q) bind(C,name='sw_halo')
+    integer, value :: nx,ny
+    real(8), device :: q(0:*)
+    integer :: t,p,s,a,j,i,jj,ii
+    t=(blockidx%x-1)*blockdim%x+threadidx%x-1
+    p=nx+2; s=p*(ny+2)
+    if(t>=3*s) return
+    a=t/s; j=mod(t,s)/p; i=mod(t,p)
+    if(i>0.and.i<=nx.and.j>0.and.j<=ny) return
+    ii=i; jj=j
+    if(i==0) ii=nx
+    if(i==nx+1) ii=1
+    if(j==0) jj=ny
+    if(j==ny+1) jj=1
+    q(t)=q(a*s+jj*p+ii)
+  end subroutine
+
+  !> Evaluate D03 into five scratch fields after the input halo launch.
+  attributes(global) subroutine sw_prepare(nx,ny,q,work,par) bind(C,name='sw_prepare')
+    integer, value :: nx,ny
+    real(8), device :: q(0:*),work(0:*),par(0:*)
+    real(8) :: h,mx,my,u,v,z,c,pressure
+    integer :: t,s,p,i,j,ii,jj,k
+    t=(blockidx%x-1)*blockdim%x+threadidx%x-1
+    s=(nx+2)*(ny+2)
+    if(t>=s) return
+    p=nx+2; i=mod(t,p); j=t/p; ii=i; jj=j
+    if(i==0) ii=nx
+    if(i==nx+1) ii=1
+    if(j==0) jj=ny
+    if(j==ny+1) jj=1
+    k=jj*p+ii
+    h=q(k); mx=q(s+k); my=q(2*s+k)
+    if(k/=t) then
+      q(t)=h; q(s+t)=mx; q(2*s+t)=my
+    end if
+    u=mx/h; v=my/h; z=par(0)*h; c=sqrt(z); pressure=(z*h)*0.5_8
+    work(t)=mx*u+pressure
+    work(s+t)=mx*v
+    work(2*s+t)=my*v+pressure
+    work(3*s+t)=abs(u)+c
+    work(4*s+t)=abs(v)+c
+  end subroutine
+
+  !> Return the exactly rounded D04 face with the left speed selected at a tie.
+  attributes(device) real(8) function face(ql,qr,fl,fr,sl,sr)
+    real(8), value :: ql,qr,fl,fr,sl,sr
+    real(8) :: alpha,central,jump,dissipative
+    alpha=sr
+    if(sl>=sr) alpha=sl
+    central=(fl+fr)*0.5_8; jump=qr-ql; dissipative=(alpha*0.5_8)*jump
+    face=central-dissipative
+  end function
+
+  !> Update all three fields of one cell; final=1 averages with the old state.
+  attributes(global) subroutine sw_update(nx,ny,q,base,out,work,par,final) bind(C,name='sw_update')
+    integer, value :: nx,ny,final
+    real(8), device :: q(0:*),base(0:*),out(0:*),work(0:*),par(0:*)
+    real(8) :: east,west,north,south,dx,dy,ell,e,fx0,fxe,fxw,fy0,fyn,fys
+    integer :: t,p,s,i,j,k,a,b,sx,sy,ii,jj,xrep(3),yrep(3),xc,yc,xi,yj
+    t=(blockidx%x-1)*blockdim%x+threadidx%x-1
+    if(t>=nx*ny) return
+    p=nx+2; s=p*(ny+2); i=mod(t,nx)+1; j=t/nx+1; k=j*p+i
+    sx=3*s; sy=4*s
+    xc=1; yc=1; xrep(1)=i; yrep(1)=j
+    if(i==1) then
+      xc=xc+1; xrep(xc)=nx+1
+    end if
+    if(i==nx) then
+      xc=xc+1; xrep(xc)=0
+    end if
+    if(j==1) then
+      yc=yc+1; yrep(yc)=ny+1
+    end if
+    if(j==ny) then
+      yc=yc+1; yrep(yc)=0
+    end if
+    do a=0,2
+      b=a*s+k
+      if(a==0) then
+        fx0=q(s+k); fxe=q(s+k+1); fxw=q(s+k-1)
+        fy0=q(2*s+k); fyn=q(2*s+k+p); fys=q(2*s+k-p)
+      else
+        fx0=work((a-1)*s+k); fxe=work((a-1)*s+k+1); fxw=work((a-1)*s+k-1)
+        fy0=work(a*s+k); fyn=work(a*s+k+p); fys=work(a*s+k-p)
+      end if
+      east=face(q(b),q(b+1),fx0,fxe,work(sx+k),work(sx+k+1))
+      west=face(q(b-1),q(b),fxw,fx0,work(sx+k-1),work(sx+k))
+      north=face(q(b),q(b+p),fy0,fyn,work(sy+k),work(sy+k+p))
+      south=face(q(b-p),q(b),fys,fy0,work(sy+k-p),work(sy+k))
+      dx=(east-west)/par(1); dy=(north-south)/par(2)
+      ell=-(dx+dy); e=q(b)+par(3)*ell
+      if(final==0) then
+        out(b)=e
+      else
+        out(b)=base(b)*0.5_8+e*0.5_8
+      end if
+      e=out(b)
+      do yj=1,yc
+        do xi=1,xc
+          if(xi==1.and.yj==1) cycle
+          out(a*s+yrep(yj)*p+xrep(xi))=e
+        end do
+      end do
+    end do
+  end subroutine
+end module
