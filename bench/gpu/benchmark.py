@@ -279,60 +279,62 @@ def graphs(protocol, eb, model, names, metadata, block, cpu_sw, cpu_eb, output, 
     backends = {name: runtime.Backend(name, model, block) for name in selected if name not in workers}
     records = []
     try:
-        for size in ((1, 128, 129) if model == "eb" else (1, 129, 257)):
-            for steps in (0, 3, 4):
-                folder = output.parent / ("graph-%d-%d" % (size, steps))
-                folder.mkdir(parents=True, exist_ok=True)
-                host = inputs(protocol, eb, model, size)
-                expected = None if steps == 0 else reference(protocol, eb, model, inputs(protocol, eb, model, size),
-                                                            steps, folder, cpu_sw, cpu_eb)
-                input_path = folder / "input.bin"
-                if model == "eb":
-                    eb.write(input_path, host.q, host.coeff, host.par)
-                else:
-                    protocol._write(input_path, host.q, host.parameters)
-                state = None if workers else runtime.State(host, model)
-                try:
-                    for name in selected:
-                        if name in workers:
-                            prefix = folder / name
-                            fields = workers[name].command("GRAPH", input_path, prefix, steps)
-                            results = [worker_arrays(str(prefix) + suffix, host, model) for suffix in ("-ordinary", "-replay")]
-                            nodes = int(fields[1])
-                        else:
-                            backend = backends[name]
-                            backend.enqueue(state, 1)
-                            runtime.driver().gpu_sync()
+        cases = [(size, steps) for size in ((1, 128, 129) if model == "eb" else (1, 129, 257)) for steps in (0, 3, 4)]
+        if model == "eb":
+            cases += [(129, 7), (129, 9), (224, 9), (225, 8)]
+        for size, steps in cases:
+            folder = output.parent / ("graph-%d-%d" % (size, steps))
+            folder.mkdir(parents=True, exist_ok=True)
+            host = inputs(protocol, eb, model, size)
+            expected = None if steps == 0 else reference(protocol, eb, model, inputs(protocol, eb, model, size),
+                                                        steps, folder, cpu_sw, cpu_eb)
+            input_path = folder / "input.bin"
+            if model == "eb":
+                eb.write(input_path, host.q, host.coeff, host.par)
+            else:
+                protocol._write(input_path, host.q, host.parameters)
+            state = None if workers else runtime.State(host, model)
+            try:
+                for name in selected:
+                    if name in workers:
+                        prefix = folder / name
+                        fields = workers[name].command("GRAPH", input_path, prefix, steps)
+                        results = [worker_arrays(str(prefix) + suffix, host, model) for suffix in ("-ordinary", "-replay")]
+                        nodes = int(fields[1])
+                    else:
+                        backend = backends[name]
+                        backend.enqueue(state, 1)
+                        runtime.driver().gpu_sync()
+                        state.upload(host)
+                        graph = backend.capture(state, steps)
+                        count = ct.c_uint64()
+                        try:
+                            runtime.driver().gpu_graph_nodes(graph, ct.byref(count))
+                            nodes = count.value
+                            backend.enqueue(state, steps)
+                            results = [{key: array.get() for key, array in state.arrays.items()}]
                             state.upload(host)
-                            graph = backend.capture(state, steps)
-                            count = ct.c_uint64()
-                            try:
-                                runtime.driver().gpu_graph_nodes(graph, ct.byref(count))
-                                nodes = count.value
-                                backend.enqueue(state, steps)
-                                results = [{key: array.get() for key, array in state.arrays.items()}]
-                                state.upload(host)
-                                runtime.driver().gpu_graph_launch(graph)
-                                results.append({key: array.get() for key, array in state.arrays.items()})
-                            finally:
-                                runtime.driver().gpu_graph_close(graph)
-                                state.upload(host)
-                        for phase, arrays in enumerate(results):
-                            if steps == 0:
-                                for key, values in arrays.items():
-                                    protocol._compare(getattr(host, key), values, name + " empty graph " + key)
-                            else:
-                                validate_arrays(protocol, eb, model, arrays, expected, host, steps, folder,
-                                                name + ("-ordinary" if phase == 0 else "-replay"))
-                        effective = workers[name].block if name in workers else backends[name].block
-                        layout = runtime.launch_layout(name, model, size, 1 if model == "eb" else size, effective) if name in workers else backends[name].layout(size, 1 if model == "eb" else size)
-                        records.append({"name": name, "size": size, "steps": steps, "graph_nodes": nodes,
-                                        "differing_bytes": 0, "block": effective, "launch_layout": layout})
-                        print(json.dumps(records[-1]), flush=True)
-                finally:
-                    if state:
-                        for array in state.arrays.values():
-                            array.close()
+                            runtime.driver().gpu_graph_launch(graph)
+                            results.append({key: array.get() for key, array in state.arrays.items()})
+                        finally:
+                            runtime.driver().gpu_graph_close(graph)
+                            state.upload(host)
+                    for phase, arrays in enumerate(results):
+                        if steps == 0:
+                            for key, values in arrays.items():
+                                protocol._compare(getattr(host, key), values, name + " empty graph " + key)
+                        else:
+                            validate_arrays(protocol, eb, model, arrays, expected, host, steps, folder,
+                                            name + ("-ordinary" if phase == 0 else "-replay"))
+                    effective = workers[name].block if name in workers else backends[name].block
+                    layout = runtime.launch_layout(name, model, size, 1 if model == "eb" else size, effective) if name in workers else backends[name].layout(size, 1 if model == "eb" else size)
+                    records.append({"name": name, "size": size, "steps": steps, "graph_nodes": nodes,
+                                    "differing_bytes": 0, "block": effective, "launch_layout": layout})
+                    print(json.dumps(records[-1]), flush=True)
+            finally:
+                if state:
+                    for array in state.arrays.values():
+                        array.close()
         report = {"passed": True, "model": model, "metadata": metadata, "records": records,
                   "fingerprint": runtime.fingerprint()}
         output.write_text(json.dumps(report, indent=2) + "\n")

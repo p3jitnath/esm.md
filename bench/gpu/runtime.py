@@ -213,7 +213,11 @@ class Backend:
         if self.handle:
             block, grid_y, grid_z = ct.c_int(), ct.c_int(), ct.c_int()
             driver().gpu_model_layout(self.handle, nx, ny, ct.byref(block), ct.byref(grid_y), ct.byref(grid_z))
-            return {"threads": block.value, "grid_y": grid_y.value, "grid_z": grid_z.value}
+            result = {"threads": block.value, "grid_y": grid_y.value, "grid_z": grid_z.value}
+            if self.name == "assembly" and self.model == "eb" and nx > 128:
+                result.update({"owned_bands_per_block": 112, "maximum_steps_per_tile": 4,
+                               "publication_kernel": True})
+            return result
         return launch_layout(self.name, self.model, nx, ny, self.block)
 
     def step(self, host):
@@ -293,7 +297,7 @@ def fingerprint():
               and p.suffix in (".py", ".cpp", ".jl", ".txt", ".ptx", ".sh")
               and p.name not in ("report.py", "plot.py")]
     paths += [BUILD / (model + "_" + name + ".cubin") for model in ("sw", "eb")
-              for name in ("assembly", "fortran", "fortran_vanilla", "pass1")]
+              for name in ("assembly", "fortran", "fortran_vanilla", "pass1", "before")]
     paths += [BUILD / "probes.cubin", BUILD / "libdriver.so", ROOT / "bench/.build/libfp_env.so"]
     paths += list((ROOT / "bench/.build").glob("*fortran_vanilla.so"))
     return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)}

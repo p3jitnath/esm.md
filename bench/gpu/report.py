@@ -38,6 +38,8 @@ def telemetry(rows):
         gpu[field] = {"minimum": min(values), "maximum": max(values)}
     gpu["throttle_reasons"] = sorted({o["gpu"]["throttle_reasons"] for o in observations})
     return {"gpu": gpu, "max_one_minute_cpu_load": max(o["load"][0] for o in observations),
+            "window_utc_ns": {"first": min(o["utc_ns"] for o in observations),
+                              "last": max(o["utc_ns"] for o in observations)},
             "max_foreign_busy_cores_before_warmup": max(r["before"]["foreign_busy_cores"] for r in rows),
             "max_idle_gpu_utilisation_before_warmup": max(int(r["before"]["gpu"]["utilization.gpu"]) for r in rows),
             "observations": len(observations)}
@@ -53,16 +55,38 @@ def roofline(rows, calibration, model):
         cells = size**2 if model == "sw" else size
         achieved = cells * steps / statistics.median(r["milliseconds"] / 1000 for r in selected)
         if model == "sw":
-            ordinary, divisions, roots = (203, 16, 2) if cells <= 4096 else (187, 16, 2)
+            ordinary, divisions, roots = (203, 16, 2) if cells <= 4096 else (199, 4, 2)
             traffic = 328
             launches = (4 + 1 / steps) / cells
             working = 14 * (size + 2)**2 * 8 + 32 + 5 * 256
             ordinary_rate = rates["ordinary"]["median_rate_per_second"]
             division_rate = rates["divide"]["median_rate_per_second"]
         else:
-            ordinary, divisions, roots = (25 - 8 / size, 2 + 1 / steps, 0) if size <= 128 else (47, 5, 0)
-            traffic = 0 if size <= 128 else 48
-            launches = (1 / steps if size <= 128 else 1) / cells
+            roots = 0
+            if size <= 128:
+                ordinary, divisions, traffic = 27 - 8 / size, 1 / steps, 0
+                launches = 1 / (steps * cells)
+            else:
+                if steps % 4:
+                    raise AssertionError("The declared primary temporal guide needs full four-step batches.")
+                blocks = (size + 111) // 112
+                ordinary_total, loaded = 0, 0
+                for block in range(blocks):
+                    for thread in range(128):
+                        band = 112 * block + thread - 7
+                        if not 1 <= band <= size:
+                            continue
+                        loaded += 1
+                        pole_work = 2 * (band == 1) + 2 * (band == size)
+                        for step in range(4):
+                            if 2 * step + 1 <= thread <= 126 - 2 * step:
+                                ordinary_total += 12 - pole_work
+                            if 2 * step + 2 <= thread <= 125 - 2 * step:
+                                ordinary_total += 15 - pole_work
+                ordinary = ordinary_total / (size * 4)
+                divisions = blocks * 128 / (size * 4)
+                traffic = 32 * loaded / (size * 4) + 14
+                launches = 0.5 / cells
             working = 7 * (size + 2) * 8 + 48 + 6 * 256
             ordinary_rate = rates["ordinary-one-sm" if size <= 128 else "ordinary"]["median_rate_per_second"]
             division_rate = rates["divide-one-sm" if size <= 128 else "divide"]["median_rate_per_second"]
@@ -137,24 +161,49 @@ def main():
             verification[group] = {"passed": True, "cases": evidence["cases"], "graph_cases": graphs["records"],
                                    "instruction_audit": audit["records"]}
         paired = json.loads((args.runs / "aggressive" / (model + "-paired.json")).read_text())
+        if not paired["passed"] or paired["fingerprint"] != frozen:
+            raise AssertionError("The paired first-pass comparison must use the current frozen binaries.")
         tuning = []
         for size in sorted({r["size"] for r in paired["records"]}):
             current = sorted((r for r in paired["records"] if r["size"] == size and r["name"] == "assembly"), key=lambda r:r["repeat"])
             baseline = sorted((r for r in paired["records"] if r["size"] == size and r["name"] == "gpu_pass1"), key=lambda r:r["repeat"])
-            if len(current) != 12 or len(baseline) != 12:
+            if any([r["repeat"] for r in selected] != list(range(12)) or any(r["differing_bytes"] for r in selected) for selected in (current,baseline)):
                 raise AssertionError("Assembly tuning requires twelve paired samples.")
             ratios = [a["milliseconds"] / b["milliseconds"] for a,b in zip(baseline,current)]
             tuning.append({"size": size, "median_paired_gain": statistics.median(ratios),
                            "minimum_paired_gain": min(ratios), "maximum_paired_gain": max(ratios),
-                           "pass1_million_cell_steps_per_second": statistics.median(r["million_cell_steps_per_second"] for r in baseline),
-                           "aggressive_million_cell_steps_per_second": statistics.median(r["million_cell_steps_per_second"] for r in current),
+                           "pass1_million_cell_steps_per_second": (size**2 if model == "sw" else size) * baseline[0]["steps"] / (statistics.median(r["milliseconds"] for r in baseline) * 1000),
+                           "aggressive_million_cell_steps_per_second": (size**2 if model == "sw" else size) * current[0]["steps"] / (statistics.median(r["milliseconds"] for r in current) * 1000),
                            "samples": [{"repeat": a["repeat"], "pass1_milliseconds": a["milliseconds"],
                                         "aggressive_milliseconds": b["milliseconds"]} for a,b in zip(baseline,current)]})
+        lead_path = args.runs / "lead" / (model + "-paired.json")
+        lead = json.loads(lead_path.read_text())
+        if not lead["passed"] or lead["fingerprint"] != frozen:
+            raise AssertionError("The further paired comparison needs the current frozen source and binary set.")
+        lead_tuning = []
+        before_name = "gpu_before_b64" if model == "sw" else "gpu_before"
+        for size in sorted({r["size"] for r in lead["records"]}):
+            current = sorted((r for r in lead["records"] if r["size"] == size and r["name"] == "assembly"), key=lambda r:r["repeat"])
+            before = sorted((r for r in lead["records"] if r["size"] == size and r["name"] == before_name), key=lambda r:r["repeat"])
+            if any([r["repeat"] for r in selected] != list(range(12)) or any(r["differing_bytes"] for r in selected) for selected in (current,before)):
+                raise AssertionError("The further pass requires twelve exact paired samples.")
+            ratios = [a["milliseconds"] / b["milliseconds"] for a,b in zip(before,current)]
+            lead_tuning.append({"size": size, "baseline_commit": "8c302c8", "median_paired_gain": statistics.median(ratios),
+                                "minimum_paired_gain": min(ratios), "maximum_paired_gain": max(ratios),
+                                "samples": [{"repeat": a["repeat"], "before_milliseconds": a["milliseconds"],
+                                             "final_milliseconds": b["milliseconds"]} for a,b in zip(before,current)]})
         models[model] = {"results": workloads, "verification": verification, "assembly_optimisation": tuning,
+                         "further_assembly_optimisation": lead_tuning,
                          "roofline_guides": roofline(rows, calibration, model), "metadata": report["metadata"],
-                         "process_groups": report["chunks"], "raw_evidence": str(path.relative_to(runtime.ROOT))}
+                         "process_groups": report["chunks"], "raw_evidence": str(path.relative_to(runtime.ROOT)),
+                         "raw_evidence_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                         "paired_evidence_sha256": hashlib.sha256((args.runs / "aggressive" / (model + "-paired.json")).read_bytes()).hexdigest(),
+                         "further_paired_evidence_sha256": hashlib.sha256(lead_path.read_bytes()).hexdigest()}
     if not calibration["passed"] or calibration["fingerprint"] != frozen:
         raise AssertionError("Calibration must use the same frozen source and binary set.")
+    division = json.loads((args.runs / "division-check.json").read_text())
+    if not division["passed"] or division["fingerprint"] != frozen or len(division["records"]) != 3:
+        raise AssertionError("All three current cubins need the independent exact-division edge check.")
     software = {}
     for name, command in (("ptxas", ["ptxas", "--version"]), ("nvfortran", ["nvfortran", "--version"]),
                           ("gpu_host_compiler", ["g++", "--version"]), ("cpu_reference_compiler", ["gfortran", "--version"]),
@@ -165,11 +214,15 @@ def main():
             "upstream": "6536b88572b8c3970361849342d7355a3440900f", "first_pass_commit": "2ef5dc5",
             "models": models, "fingerprint": frozen, "software": software,
             "requirements": (runtime.ROOT / "bench/gpu/requirements.txt").read_text(),
-            "calibration": calibration, "timer": "CUDA events around one graph replay of complete steps",
+            "calibration": calibration, "exact_division_check": division,
+            "timer": "CUDA events around one graph replay of complete steps",
             "excluded_costs": "Startup, compilation, allocation, transfers, graph construction and validation are recorded separately"}
     data["python_packages"] = subprocess.check_output([str(runtime.ROOT / ".runtime/python/bin/python"), "-m", "pip", "freeze"], text=True).splitlines()
     data["analysis_source_sha256"] = {str(p.relative_to(runtime.ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
                                      for p in (runtime.ROOT / "bench/gpu/report.py", runtime.ROOT / "bench/gpu/plot.py")}
+    data["generation_route"] = "Direct PTX authored from the frozen model contracts and assembled with ptxas, with numerical stages executed on the GPU"
+    data["generation_model"] = "Codex interactive session, exact model variant not recorded"
+    data["implementation_source_commit"] = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=runtime.ROOT, text=True).strip()
     args.output.write_text(json.dumps(data, indent=2) + "\n")
     for model, values in models.items():
         for r in values["results"]:

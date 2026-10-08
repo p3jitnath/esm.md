@@ -1,6 +1,7 @@
 // Host-only CUDA driver glue: allocation, copies, ordered launches and events.
 // This file contains no model arithmetic or boundary calculation.
 #include <cuda.h>
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <stdexcept>
@@ -25,7 +26,7 @@ static void check(CUresult result) {
 
 struct Model {
     CUmodule module;
-    CUfunction halo, prepare, faces, update, persistent, complete, components, small, medium;
+    CUfunction halo, prepare, faces, update, persistent, complete, temporal, publish, components, small, medium;
     int model, fused, block;
     bool xy, clean;
 };
@@ -107,6 +108,9 @@ extern "C" int gpu_model_open(const char *path, int model, int fused, int block,
     if (model && fused) {
         if (cuModuleGetFunction(&m->persistent,m->module,"eb_persistent") != CUDA_SUCCESS) m->persistent=nullptr;
         if (cuModuleGetFunction(&m->complete,m->module,"eb_complete") != CUDA_SUCCESS) m->complete=nullptr;
+        if (cuModuleGetFunction(&m->temporal,m->module,"eb_temporal") != CUDA_SUCCESS) m->temporal=nullptr;
+        if (cuModuleGetFunction(&m->publish,m->module,"eb_publish") != CUDA_SUCCESS) m->publish=nullptr;
+        if (m->temporal && !m->publish) throw std::runtime_error("Temporal integration requires its publication kernel");
     }
     if (model && !fused) check(cuModuleGetFunction(&m->faces, m->module, "eb_faces"));
     *result=m;
@@ -183,6 +187,18 @@ extern "C" int gpu_enqueue(void *model, unsigned nx, unsigned ny, std::uint64_t 
     if (steps && m->persistent && nx <= 128) {
         void *args[]={&nx,&q,&stage,&out,&work,&coeff,&par,&steps};
         launch(m->persistent,128,128,args);
+        return 0;
+    }
+    if (steps && m->temporal) {
+        // Four-step tiles keep q immutable until every block has finished.
+        // Publication restores the required physical q/out parity on the GPU.
+        for (unsigned first=0; first<steps; first+=4) {
+            unsigned count=std::min(4u,steps-first);
+            void *args[]={&nx,&q,&stage,&out,&work,&coeff,&par,&count};
+            check(cuLaunchKernel(m->temporal,(nx+111)/112,1,1,128,1,1,0,stream,args,nullptr));
+            void *publish[]={&nx,&q,&out,&work,&count};
+            launch(m->publish,nx,128,publish);
+        }
         return 0;
     }
     for (unsigned k=0; k<steps; ++k) {

@@ -46,11 +46,20 @@ CXX ?= g++
 GPU_BUILD := $(BUILD)/gpu
 GPU_FFLAGS := -O3 -cuda -gpu=cc90,nofma,noflushz,nordc,keep,cuda12.6 -Kieee
 
-.PHONY: gpu gpu-reference gpu-calibration gpu-pass1
+.PHONY: gpu gpu-reference gpu-calibration gpu-pass1 gpu-prelead
 gpu: $(GPU_BUILD)/libdriver.so $(GPU_BUILD)/sw_assembly.cubin $(GPU_BUILD)/eb_assembly.cubin $(GPU_BUILD)/sw_fortran_vanilla.cubin $(GPU_BUILD)/eb_fortran_vanilla.cubin $(GPU_BUILD)/sw_fortran.cubin $(GPU_BUILD)/eb_fortran.cubin
 gpu-reference: $(BUILD)/libsw_fortran_vanilla.so $(BUILD)/libeb_fortran_vanilla.so $(BUILD)/libfp_env.so
 gpu-calibration: $(GPU_BUILD)/probes.cubin
 gpu-pass1: $(GPU_BUILD)/sw_pass1.cubin $(GPU_BUILD)/eb_pass1.cubin
+gpu-prelead: $(GPU_BUILD)/sw_before.cubin $(GPU_BUILD)/eb_before.cubin
+
+$(GPU_BUILD)/sw_before.cubin: Makefile | $(GPU_BUILD)
+	git show 8c302c8:src/shallow_water/gpu/solver.ptx >$(GPU_BUILD)/sw_before.ptx
+	$(PTXAS) -arch=sm_90 --fmad=false -v $(GPU_BUILD)/sw_before.ptx -o $@ 2>$(GPU_BUILD)/sw_before-build.txt
+
+$(GPU_BUILD)/eb_before.cubin: Makefile | $(GPU_BUILD)
+	git show 8c302c8:src/budyko_sellers/gpu/solver.ptx >$(GPU_BUILD)/eb_before.ptx
+	$(PTXAS) -arch=sm_90 --fmad=false -v $(GPU_BUILD)/eb_before.ptx -o $@ 2>$(GPU_BUILD)/eb_before-build.txt
 
 $(GPU_BUILD)/sw_pass1.cubin: Makefile | $(GPU_BUILD)
 	git show 2ef5dc5:src/shallow_water/gpu/solver.ptx >$(GPU_BUILD)/sw_pass1.ptx

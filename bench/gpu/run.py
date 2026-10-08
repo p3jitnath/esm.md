@@ -137,6 +137,8 @@ def verify(model, names, metadata, block):
             yield "climate", n, 3, None
         for n in (1, 128, 129):
             yield "subnormal", n, 3, 0.1
+        for n, steps in ((129, 7), (224, 9), (225, 8)):
+            yield "climate", n, steps, None
     protocol._cases, eb.cases = sw_cases, eb_cases
     protocol._initial, eb.inputs = sw_initial, eb_inputs
     if model == "sw":

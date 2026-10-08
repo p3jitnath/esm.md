@@ -26,15 +26,17 @@ On the recorded system, load `gcc-native/14.2` after sourcing env.sh. That modul
 srun --jobid="$GPU_JOB_ID" --overlap --gres=none -N1 -n1 -c1 --cpu-bind=cores bash -lc '
   source bench/gpu/env.sh
   module load gcc-native/14.2
-  make gpu gpu-reference gpu-calibration gpu-pass1
+  make gpu gpu-reference gpu-calibration gpu-pass1 gpu-prelead
 '
 ```
 
-The `gpu-pass1` target assembles the frozen first-pass PTX from local commit `2ef5dc5`. That baseline supports a matched measurement of the additional aggressive assembly pass. Source and generated binary hashes identify both routes. Every numerical source is under `src/<model>/gpu/`, while the original CPU sources and formulations remain unchanged.
+The `gpu-pass1` target assembles the frozen first-pass PTX from local commit `2ef5dc5`. The `gpu-prelead` target assembles the previous aggressive pass from `8c302c8`. These baselines support matched measurements of the complete tuning workflow and the further assembly pass. Source and generated binary hashes identify both routes. Every numerical source is under `src/<model>/gpu/`, while the original CPU sources and formulations remain unchanged.
 
 ## Scientific, graph and instruction checks
 
-Complete every check before comparative timing. The scientific verifier checks all inherited physical cases, complete trajectories, each stage and step, conservation, convergence, boundary copies, threshold ties, immutable inputs, buffer guards and canonical file bytes. Additional cases exercise one-cell dimensions, partial blocks, dispatch thresholds and gradual underflow. There are 34 shallow-water cases and 25 energy-balance cases for each implementation. Native checks include the first-pass assembly baseline.
+Complete every check before comparative timing. The scientific verifier checks all inherited physical cases, complete trajectories, each stage and step, conservation, convergence, boundary copies, threshold ties, immutable inputs, buffer guards and canonical file bytes. Additional cases exercise one-cell dimensions, partial blocks, dispatch thresholds and gradual underflow. There are 34 shallow-water cases and 28 energy-balance cases for each implementation. Native checks include both saved assembly baselines.
+
+Energy-balance cases also check exact 112-band ownership boundaries, partial final tiles and multiple four-step batches with odd and even remainders. Each variant has thirteen graph cases for energy balance and nine for shallow water.
 
 Graph checks cover zero, odd and even step counts at grids that use each selected dispatch route. Ordinary launches and captured graph replay must preserve all required outputs, including the last first stage and physical q/out parity. Zero steps must leave every buffer unchanged.
 
@@ -43,7 +45,8 @@ srun --jobid="$GPU_JOB_ID" --overlap --gres=gpu:1 -N1 -n1 -c1 --cpu-bind=cores b
   source bench/gpu/env.sh
   module load gcc-native/14.2
   for model in sw eb; do
-    names=fortran_vanilla,assembly,gpu_fortran_vanilla,gpu_fortran,gpu_python_vanilla,gpu_python,gpu_pass1
+    if [ "$model" = sw ]; then before=gpu_before_b64; else before=gpu_before; fi
+    names="fortran_vanilla,assembly,gpu_fortran_vanilla,gpu_fortran,gpu_python_vanilla,gpu_python,gpu_pass1,$before"
     .runtime/python/bin/python bench/gpu/run.py --model "$model" --mode verify --names "$names" || exit
     .runtime/python/bin/python bench/gpu/run.py --model "$model" --mode graphs --names "$names" || exit
     .runtime/python/bin/python bench/gpu/audit.py --model "$model" || exit
@@ -53,14 +56,14 @@ srun --jobid="$GPU_JOB_ID" --overlap --gres=gpu:1 -N1 -n1 -c1 --cpu-bind=cores b
       .runtime/python/bin/python bench/gpu/audit.py --model "$model" --group "$variant" || exit
     done
   done
-  .runtime/python/bin/python bench/gpu/division_check.py || exit
+  .runtime/python/bin/python bench/gpu/division_check.py --cubins bench/.build/gpu/probes.cubin,bench/.build/gpu/sw_assembly.cubin,bench/.build/gpu/eb_assembly.cubin || exit
   .runtime/python/bin/python bench/gpu/calibrate.py
 '
 ```
 
 Instruction inspection archives real PTX and NVIDIA machine instructions. Julia's read-only audit uses CUPTI to obtain the actual loaded cubin and cuobjdump to disassemble it, avoiding a CUDA 12.6 nvdisasm failure while expanding inline source-line information. An internal DFMA instruction can belong to a correctly rounded divide or square-root refinement. It does not by itself show a fused model operation. Explicit rounded assembly and Julia/Python intrinsics, the Fortran flags, inspected code and complete bit checks provide the combined arithmetic evidence.
 
-The division check records a numerically exact power-of-two shortcut that was screened and rejected for performance. It spans signed zero, gradual underflow, overflow, rounding ties and fallback divisors. It lives only in the calibration probe cubin, and the selected solvers retain correctly rounded ordinary division.
+The division check spans 96,969 signed-zero, underflow, overflow, rounding-tie and fallback inputs in the probes and both selected solver cubins. A positive power-of-two spacing with a finite normal inverse permits one multiplication by that exact inverse, producing the same rounded result as division. The selected assembly checks this condition once before a whole component calculation or repeated loop. All other spacings retain correctly rounded ordinary division. The earlier repeated per-operation fallback was slower and was rejected.
 
 ## Timing and plots
 
@@ -75,6 +78,8 @@ srun --jobid="$GPU_JOB_ID" --overlap --gres=gpu:1 -N1 -n1 -c1 --cpu-bind=cores b
   source bench/gpu/env.sh
   module load gcc-native/14.2
   for model in sw eb; do
+    if [ "$model" = sw ]; then before=gpu_before_b64; else before=gpu_before; fi
+    .runtime/python/bin/python bench/gpu/run.py --model "$model" --mode benchmark --names "$before,assembly" --repeats 12 --output "bench/.runs/gpu/lead/$model-paired.json" || exit
     .runtime/python/bin/python bench/gpu/run.py --model "$model" --mode benchmark --names gpu_pass1,assembly --repeats 12 --output "bench/.runs/gpu/aggressive/$model-paired.json" || exit
     .runtime/python/bin/python bench/gpu/compare.py --model "$model" --repeats 12 || exit
   done
