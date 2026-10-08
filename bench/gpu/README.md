@@ -66,6 +66,8 @@ The division check records a numerically exact power-of-two shortcut that was sc
 
 Do not change sources or binaries between final verification and timing. Comparative timing requires scientific and graph reports with exactly the current source and binary fingerprints. The final driver rotates native and sequential Julia process groups across twelve repetitions, reverses their order on alternating cycles, and rotates the five native implementations within their group. Julia uses the same GPU UUID in a separate worker because the GPU permits one process at a time. Allocation and startup differ between these processes and are recorded separately.
 
+The numerical fingerprint covers models, contracts, build inputs, evaluation drivers and actual binaries. The report and plotting scripts process saved measurements and have separate source hashes in results.json. Their presentation edits do not change accepted solver evidence. A launch handles a complete grid, so the launch-cost guide divides launches per complete time step by the number of cells before comparing cell updates per second.
+
 The native group shares the same guarded device buffers. All variants receive the same binary inputs, parameter values and complete step counts. Warm-up lasts at least 30 ms outside the timer. CUDA events on the solver stream time one replay of the complete graph. Compilation, runtime startup, allocation, transfers, graph construction, file output and validation are outside this interval. Their costs appear separately in results.json. Every timed last stage and final state must still match the canonical files with zero differing bytes.
 
 ```bash

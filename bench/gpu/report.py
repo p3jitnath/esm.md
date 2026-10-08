@@ -55,14 +55,14 @@ def roofline(rows, calibration, model):
         if model == "sw":
             ordinary, divisions, roots = (203, 16, 2) if cells <= 4096 else (187, 16, 2)
             traffic = 328
-            launches = 4 + 1 / steps
+            launches = (4 + 1 / steps) / cells
             working = 14 * (size + 2)**2 * 8 + 32 + 5 * 256
             ordinary_rate = rates["ordinary"]["median_rate_per_second"]
             division_rate = rates["divide"]["median_rate_per_second"]
         else:
             ordinary, divisions, roots = (25 - 8 / size, 2 + 1 / steps, 0) if size <= 128 else (47, 5, 0)
             traffic = 0 if size <= 128 else 48
-            launches = 1 / steps if size <= 128 else 1
+            launches = (1 / steps if size <= 128 else 1) / cells
             working = 7 * (size + 2) * 8 + 48 + 6 * 256
             ordinary_rate = rates["ordinary-one-sm" if size <= 128 else "ordinary"]["median_rate_per_second"]
             division_rate = rates["divide-one-sm" if size <= 128 else "divide"]["median_rate_per_second"]
@@ -168,6 +168,8 @@ def main():
             "calibration": calibration, "timer": "CUDA events around one graph replay of complete steps",
             "excluded_costs": "Startup, compilation, allocation, transfers, graph construction and validation are recorded separately"}
     data["python_packages"] = subprocess.check_output([str(runtime.ROOT / ".runtime/python/bin/python"), "-m", "pip", "freeze"], text=True).splitlines()
+    data["analysis_source_sha256"] = {str(p.relative_to(runtime.ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
+                                     for p in (runtime.ROOT / "bench/gpu/report.py", runtime.ROOT / "bench/gpu/plot.py")}
     args.output.write_text(json.dumps(data, indent=2) + "\n")
     for model, values in models.items():
         for r in values["results"]:

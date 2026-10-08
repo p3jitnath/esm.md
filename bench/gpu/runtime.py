@@ -289,7 +289,9 @@ def fingerprint():
     paths += list((ROOT / "skills/md2asm-gpu").rglob("*.md"))
     paths += [p for p in (ROOT / "src").glob("*/gpu/*") if p.suffix in (".ptx", ".cuf", ".py", ".jl")]
     paths += list((ROOT / "src").glob("*/vanilla.f90"))
-    paths += [p for p in (ROOT / "bench/gpu").glob("*") if p.is_file() and p.suffix in (".py", ".cpp", ".jl", ".txt", ".ptx", ".sh")]
+    paths += [p for p in (ROOT / "bench/gpu").glob("*") if p.is_file()
+              and p.suffix in (".py", ".cpp", ".jl", ".txt", ".ptx", ".sh")
+              and p.name not in ("report.py", "plot.py")]
     paths += [BUILD / (model + "_" + name + ".cubin") for model in ("sw", "eb")
               for name in ("assembly", "fortran", "fortran_vanilla", "pass1")]
     paths += [BUILD / "probes.cubin", BUILD / "libdriver.so", ROOT / "bench/.build/libfp_env.so"]
