@@ -2,6 +2,7 @@
 
 import argparse
 import importlib.util
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -86,6 +87,10 @@ def main():
             audits[model] = {"findings": findings, "font": "Nimbus Sans", "inches": list(fig.get_size_inches()),
                              "exports": [str(path.relative_to(ROOT)) for path in paths],
                              "unit": "Million complete cell updates per second", "zero_baseline": True,
+                             "source_data_sha256": hashlib.sha256(args.data.read_bytes()).hexdigest(),
+                             "plot_source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                             "style_helper_sha256": hashlib.sha256((args.style_bundle / "scripts/mpl_style.py").read_bytes()).hexdigest(),
+                             "matplotlib_version": matplotlib.__version__,
                              "uncertainty": "Observed minimum and maximum across twelve repetitions"}
             plt.close(fig)
     (args.output / "audit.json").write_text(json.dumps(audits, indent=2) + "\n")
