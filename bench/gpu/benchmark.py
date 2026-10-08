@@ -11,6 +11,22 @@ import numpy as np
 import runtime
 
 
+def require_verified(model, names):
+    """Reject comparative timing without current scientific and graph evidence."""
+    frozen = runtime.fingerprint()
+    for name in names:
+        suffix = name if name.startswith("julia") else "native"
+        folder = runtime.ROOT / "bench/.runs/gpu" / model
+        scientific = json.loads((folder / ("verification-" + suffix + ".json")).read_text())
+        graph = json.loads((folder / ("graphs-" + suffix + ".json")).read_text())
+        if not scientific["passed"] or not graph["passed"]:
+            raise RuntimeError("Scientific and graph verification must pass before timing.")
+        if name not in scientific["implementations"] or name not in {row["name"] for row in graph["records"]}:
+            raise RuntimeError("The requested implementation has no current verification evidence.")
+        if scientific["fingerprint"] != frozen or graph["fingerprint"] != frozen:
+            raise RuntimeError("Sources or binaries changed after verification. Verify again before timing.")
+
+
 def inputs(protocol, eb, model, size):
     if model == "eb":
         seed, coeff, par, _ = eb.inputs(size)
@@ -163,11 +179,11 @@ def native(protocol, eb, model, names, sizes, counts, repeats, metadata, block, 
                                   "microseconds_per_step": float(elapsed.value) * 1000 / steps,
                                   "million_cell_steps_per_second": cells * steps / (elapsed.value * 1000),
                                   "host_wait_ns": host_wait_ns, "upload_ns": upload_ns, "download_ns": download_ns,
-                                  "block": backends[name].block, "differing_bytes": 0,
+                                  "block": backends[name].block, "launch_layout": backends[name].layout(size, 1 if model == "eb" else size), "differing_bytes": 0,
                                   "before": before, "after": after, **preparations[name],
                                   "device_addresses": state.pointers()}
                         records.append(record)
-                        print(json.dumps({key: record[key] for key in ("model", "size", "name", "repeat", "microseconds_per_step")}), flush=True)
+                        print(json.dumps({key: record[key] for key in ("model", "size", "name", "repeat", "million_cell_steps_per_second")}), flush=True)
             finally:
                 for graph in graphs.values():
                     runtime.driver().gpu_graph_close(graph)
@@ -241,9 +257,10 @@ def julia(protocol, eb, model, name, sizes, counts, repeats, metadata, block, cp
                           "allocation_ns": int(fields[4]), "upload_ns": int(fields[5]),
                           "download_ns": int(fields[6]), "host_wait_ns": int(fields[7]),
                           "graph_nodes": int(fields[8]), "device_addresses": [int(value) for value in fields[9].split(",")],
-                          "block": block, "differing_bytes": 0, "before": before, "after": after}
+                          "block": worker.block, "launch_layout": runtime.launch_layout(name, model, size, 1 if model == "eb" else size, worker.block),
+                          "differing_bytes": 0, "before": before, "after": after}
                 records.append(record)
-                print(json.dumps({key: record[key] for key in ("model", "size", "name", "repeat", "microseconds_per_step")}), flush=True)
+                print(json.dumps({key: record[key] for key in ("model", "size", "name", "repeat", "million_cell_steps_per_second")}), flush=True)
         report = {"passed": True, "model": model, "implementations": [name], "metadata": metadata,
                   "records": records, "fingerprint": runtime.fingerprint(), "julia": worker.metadata,
                   "timer": "CUDA events around one replay of all complete steps",
@@ -262,7 +279,7 @@ def graphs(protocol, eb, model, names, metadata, block, cpu_sw, cpu_eb, output, 
     backends = {name: runtime.Backend(name, model, block) for name in selected if name not in workers}
     records = []
     try:
-        for size in (1, 129):
+        for size in ((1, 128, 129) if model == "eb" else (1, 129, 257)):
             for steps in (0, 3, 4):
                 folder = output.parent / ("graph-%d-%d" % (size, steps))
                 folder.mkdir(parents=True, exist_ok=True)
@@ -307,8 +324,10 @@ def graphs(protocol, eb, model, names, metadata, block, cpu_sw, cpu_eb, output, 
                             else:
                                 validate_arrays(protocol, eb, model, arrays, expected, host, steps, folder,
                                                 name + ("-ordinary" if phase == 0 else "-replay"))
+                        effective = workers[name].block if name in workers else backends[name].block
+                        layout = runtime.launch_layout(name, model, size, 1 if model == "eb" else size, effective) if name in workers else backends[name].layout(size, 1 if model == "eb" else size)
                         records.append({"name": name, "size": size, "steps": steps, "graph_nodes": nodes,
-                                        "differing_bytes": 0, "block": block})
+                                        "differing_bytes": 0, "block": effective, "launch_layout": layout})
                         print(json.dumps(records[-1]), flush=True)
                 finally:
                     if state:

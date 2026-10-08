@@ -1,0 +1,278 @@
+// Calibration uses nearest-even FP64 operations without model FMA.
+// All entries have n,iterations:u32 and a,b,out:u64 with n disjoint doubles.
+.version 8.5
+.target sm_90
+.address_size 64
+
+.visible .entry probe_copy(.param .u32 n, .param .u32 iterations,
+    .param .u64 a, .param .u64 b, .param .u64 out)
+{
+    .reg .pred %p<3>;
+    .reg .u32 %r<8>;
+    .reg .u64 %a<8>;
+    .reg .f64 %d<16>;
+    ld.param.u32 %r0, [n];
+    ld.param.u32 %r1, [iterations];
+    ld.param.u64 %a0, [a];
+    ld.param.u64 %a1, [b];
+    ld.param.u64 %a2, [out];
+    mov.u32 %r2, %ctaid.x;
+    mov.u32 %r3, %ntid.x;
+    mov.u32 %r4, %tid.x;
+    mad.lo.u32 %r2, %r2, %r3, %r4;
+    setp.ge.u32 %p0, %r2, %r0;
+    @%p0 ret;
+    mul.wide.u32 %a3, %r2, 8;
+    add.u64 %a4, %a0, %a3;
+    add.u64 %a5, %a1, %a3;
+    add.u64 %a6, %a2, %a3;
+    mov.u32 %r5, 0;
+COPY_LOOP:
+    ld.global.cg.f64 %d0, [%a4];
+    st.global.wb.f64 [%a6], %d0;
+    add.u32 %r5, %r5, 1;
+    setp.lt.u32 %p1, %r5, %r1;
+    @%p1 bra COPY_LOOP;
+    ret;
+}
+
+.visible .entry probe_ordinary(.param .u32 n, .param .u32 iterations,
+    .param .u64 a, .param .u64 b, .param .u64 out)
+{
+    .reg .pred %p<3>;
+    .reg .u32 %r<8>;
+    .reg .u64 %a<8>;
+    .reg .f64 %d<16>;
+    ld.param.u32 %r0, [n];
+    ld.param.u32 %r1, [iterations];
+    ld.param.u64 %a0, [a];
+    ld.param.u64 %a1, [b];
+    ld.param.u64 %a2, [out];
+    mov.u32 %r2, %ctaid.x;
+    mov.u32 %r3, %ntid.x;
+    mov.u32 %r4, %tid.x;
+    mad.lo.u32 %r2, %r2, %r3, %r4;
+    setp.ge.u32 %p0, %r2, %r0;
+    @%p0 ret;
+    mul.wide.u32 %a3, %r2, 8;
+    add.u64 %a4, %a0, %a3;
+    add.u64 %a5, %a1, %a3;
+    add.u64 %a6, %a2, %a3;
+    ld.global.f64 %d0, [%a4];
+    ld.global.f64 %d8, [%a5];
+    add.rn.f64 %d1, %d0, 0d3FF0000000000000;
+    add.rn.f64 %d2, %d0, 0d4000000000000000;
+    add.rn.f64 %d3, %d0, 0d4010000000000000;
+    add.rn.f64 %d4, %d0, 0d4020000000000000;
+    add.rn.f64 %d5, %d0, 0d4030000000000000;
+    add.rn.f64 %d6, %d0, 0d4040000000000000;
+    add.rn.f64 %d7, %d0, 0d4050000000000000;
+    mov.u32 %r5, 0;
+ORDINARY_LOOP:
+    add.rn.f64 %d0, %d0, %d8;
+    mul.rn.f64 %d0, %d0, 0d3FE0000000000000;
+    add.rn.f64 %d1, %d1, %d8;
+    mul.rn.f64 %d1, %d1, 0d3FE0000000000000;
+    add.rn.f64 %d2, %d2, %d8;
+    mul.rn.f64 %d2, %d2, 0d3FE0000000000000;
+    add.rn.f64 %d3, %d3, %d8;
+    mul.rn.f64 %d3, %d3, 0d3FE0000000000000;
+    add.rn.f64 %d4, %d4, %d8;
+    mul.rn.f64 %d4, %d4, 0d3FE0000000000000;
+    add.rn.f64 %d5, %d5, %d8;
+    mul.rn.f64 %d5, %d5, 0d3FE0000000000000;
+    add.rn.f64 %d6, %d6, %d8;
+    mul.rn.f64 %d6, %d6, 0d3FE0000000000000;
+    add.rn.f64 %d7, %d7, %d8;
+    mul.rn.f64 %d7, %d7, 0d3FE0000000000000;
+    add.u32 %r5, %r5, 1;
+    setp.lt.u32 %p1, %r5, %r1;
+    @%p1 bra ORDINARY_LOOP;
+    add.rn.f64 %d0, %d0, %d1;
+    add.rn.f64 %d0, %d0, %d2;
+    add.rn.f64 %d0, %d0, %d3;
+    add.rn.f64 %d0, %d0, %d4;
+    add.rn.f64 %d0, %d0, %d5;
+    add.rn.f64 %d0, %d0, %d6;
+    add.rn.f64 %d0, %d0, %d7;
+    st.global.f64 [%a6], %d0;
+    ret;
+}
+
+.visible .entry probe_divide(.param .u32 n, .param .u32 iterations,
+    .param .u64 a, .param .u64 b, .param .u64 out)
+{
+    .reg .pred %p<3>;
+    .reg .u32 %r<8>;
+    .reg .u64 %a<8>;
+    .reg .f64 %d<16>;
+    ld.param.u32 %r0, [n];
+    ld.param.u32 %r1, [iterations];
+    ld.param.u64 %a0, [a];
+    ld.param.u64 %a1, [b];
+    ld.param.u64 %a2, [out];
+    mov.u32 %r2, %ctaid.x;
+    mov.u32 %r3, %ntid.x;
+    mov.u32 %r4, %tid.x;
+    mad.lo.u32 %r2, %r2, %r3, %r4;
+    setp.ge.u32 %p0, %r2, %r0;
+    @%p0 ret;
+    mul.wide.u32 %a3, %r2, 8;
+    add.u64 %a4, %a0, %a3;
+    add.u64 %a5, %a1, %a3;
+    add.u64 %a6, %a2, %a3;
+    ld.global.f64 %d0, [%a4];
+    ld.global.f64 %d8, [%a5];
+    add.rn.f64 %d1, %d0, 0d3FF0000000000000;
+    add.rn.f64 %d2, %d0, 0d4000000000000000;
+    add.rn.f64 %d3, %d0, 0d4010000000000000;
+    add.rn.f64 %d4, %d0, 0d4020000000000000;
+    add.rn.f64 %d5, %d0, 0d4030000000000000;
+    add.rn.f64 %d6, %d0, 0d4040000000000000;
+    add.rn.f64 %d7, %d0, 0d4050000000000000;
+    mov.u32 %r5, 0;
+DIVIDE_LOOP:
+    div.rn.f64 %d0, %d0, %d8;
+    div.rn.f64 %d1, %d1, %d8;
+    div.rn.f64 %d2, %d2, %d8;
+    div.rn.f64 %d3, %d3, %d8;
+    div.rn.f64 %d4, %d4, %d8;
+    div.rn.f64 %d5, %d5, %d8;
+    div.rn.f64 %d6, %d6, %d8;
+    div.rn.f64 %d7, %d7, %d8;
+    add.u32 %r5, %r5, 1;
+    setp.lt.u32 %p1, %r5, %r1;
+    @%p1 bra DIVIDE_LOOP;
+    add.rn.f64 %d0, %d0, %d1;
+    add.rn.f64 %d0, %d0, %d2;
+    add.rn.f64 %d0, %d0, %d3;
+    add.rn.f64 %d0, %d0, %d4;
+    add.rn.f64 %d0, %d0, %d5;
+    add.rn.f64 %d0, %d0, %d6;
+    add.rn.f64 %d0, %d0, %d7;
+    st.global.f64 [%a6], %d0;
+    ret;
+}
+
+.visible .entry probe_sqrt(.param .u32 n, .param .u32 iterations,
+    .param .u64 a, .param .u64 b, .param .u64 out)
+{
+    .reg .pred %p<3>;
+    .reg .u32 %r<8>;
+    .reg .u64 %a<8>;
+    .reg .f64 %d<16>;
+    ld.param.u32 %r0, [n];
+    ld.param.u32 %r1, [iterations];
+    ld.param.u64 %a0, [a];
+    ld.param.u64 %a1, [b];
+    ld.param.u64 %a2, [out];
+    mov.u32 %r2, %ctaid.x;
+    mov.u32 %r3, %ntid.x;
+    mov.u32 %r4, %tid.x;
+    mad.lo.u32 %r2, %r2, %r3, %r4;
+    setp.ge.u32 %p0, %r2, %r0;
+    @%p0 ret;
+    mul.wide.u32 %a3, %r2, 8;
+    add.u64 %a4, %a0, %a3;
+    add.u64 %a5, %a1, %a3;
+    add.u64 %a6, %a2, %a3;
+    ld.global.f64 %d0, [%a4];
+    ld.global.f64 %d8, [%a5];
+    add.rn.f64 %d1, %d0, 0d3FF0000000000000;
+    add.rn.f64 %d2, %d0, 0d4000000000000000;
+    add.rn.f64 %d3, %d0, 0d4010000000000000;
+    add.rn.f64 %d4, %d0, 0d4020000000000000;
+    add.rn.f64 %d5, %d0, 0d4030000000000000;
+    add.rn.f64 %d6, %d0, 0d4040000000000000;
+    add.rn.f64 %d7, %d0, 0d4050000000000000;
+    mov.u32 %r5, 0;
+SQRT_LOOP:
+    sqrt.rn.f64 %d0, %d0;
+    sqrt.rn.f64 %d1, %d1;
+    sqrt.rn.f64 %d2, %d2;
+    sqrt.rn.f64 %d3, %d3;
+    sqrt.rn.f64 %d4, %d4;
+    sqrt.rn.f64 %d5, %d5;
+    sqrt.rn.f64 %d6, %d6;
+    sqrt.rn.f64 %d7, %d7;
+    add.u32 %r5, %r5, 1;
+    setp.lt.u32 %p1, %r5, %r1;
+    @%p1 bra SQRT_LOOP;
+    add.rn.f64 %d0, %d0, %d1;
+    add.rn.f64 %d0, %d0, %d2;
+    add.rn.f64 %d0, %d0, %d3;
+    add.rn.f64 %d0, %d0, %d4;
+    add.rn.f64 %d0, %d0, %d5;
+    add.rn.f64 %d0, %d0, %d6;
+    add.rn.f64 %d0, %d0, %d7;
+    st.global.f64 [%a6], %d0;
+    ret;
+}
+
+.visible .entry probe_empty(.param .u32 n, .param .u32 iterations,
+    .param .u64 a, .param .u64 b, .param .u64 out)
+{
+    ret;
+}
+
+// Positive powers of two with normal finite reciprocals have an exact inverse.
+// For these operands RN(a/b) equals RN(a*inverse), including gradual underflow
+// and signed zero. All other divisors retain the original div.rn instruction.
+.func (.param .b64 inverse) power2_inverse(.param .f64 divisor)
+{
+    .reg .pred %p<3>;
+    .reg .b64 %v<4>;
+    ld.param.b64 %v0, [divisor];
+    and.b64 %v1, %v0, 0x800fffffffffffff;
+    shr.u64 %v2, %v0, 52;
+    and.b64 %v2, %v2, 2047;
+    setp.eq.u64 %p0, %v1, 0;
+    setp.ge.u64 %p1, %v2, 1;
+    setp.le.u64 %p2, %v2, 2045;
+    and.pred %p0, %p0, %p1;
+    and.pred %p0, %p0, %p2;
+    sub.u64 %v3, 2046, %v2;
+    shl.b64 %v3, %v3, 52;
+    selp.b64 %v3, %v3, 0, %p0;
+    st.param.b64 [inverse], %v3;
+    ret;
+}
+
+// Probe the actual inverse helper over CPU-generated rounding edge cases.
+// ABI n,iterations:u32 and disjoint a,b,out:u64 with n FP64 values.
+.visible .entry division_check(.param .u32 n, .param .u32 iterations,
+    .param .u64 a, .param .u64 b, .param .u64 out)
+{
+    .reg .pred %p<2>;
+    .reg .u32 %r<8>;
+    .reg .u64 %v<8>;
+    .reg .f64 %d<4>;
+    .param .b64 inverse;
+    .param .u32 valid;
+    .param .f64 divisor;
+    ld.param.u32 %r0, [n];
+    ld.param.u64 %v0, [a];
+    ld.param.u64 %v1, [b];
+    ld.param.u64 %v2, [out];
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mov.u32 %r3, %tid.x;
+    mad.lo.u32 %r1, %r1, %r2, %r3;
+    setp.ge.u32 %p0, %r1, %r0;
+    @%p0 ret;
+    mul.wide.u32 %v3, %r1, 8;
+    add.u64 %v4, %v0, %v3;
+    add.u64 %v5, %v1, %v3;
+    add.u64 %v6, %v2, %v3;
+    ld.global.f64 %d0, [%v4];
+    ld.global.f64 %d1, [%v5];
+    st.param.f64 [divisor], %d1;
+    call.uni (inverse), power2_inverse, (divisor);
+    ld.param.b64 %v7, [inverse];
+    mov.b64 %d2, %v7;
+    setp.ne.u64 %p1, %v7, 0;
+    @%p1 mul.rn.f64 %d3, %d0, %d2;
+    @!%p1 div.rn.f64 %d3, %d0, %d1;
+    st.global.f64 [%v6], %d3;
+    ret;
+}

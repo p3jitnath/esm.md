@@ -57,4 +57,97 @@ contains
     if(i==1) out(0)=out(i)
     if(i==n) out(n+1)=out(i)
   end subroutine
+  !> Return a first stage from original interior values and ordered parameters.
+  attributes(device) real(8) function eb_euler(n,q,coeff,i,ratio,delta,AA,BB,Tf)
+    integer, value :: n,i
+    real(8), device :: q(0:*),coeff(0:*)
+    real(8), value :: ratio,delta,AA,BB,Tf
+    real(8) :: temperature,right,left,forcing,r,ell
+    integer :: p
+    p=n+2; temperature=q(i); right=0.0_8; left=0.0_8
+    if(i<n) right=coeff(i)*(q(i+1)-temperature)
+    if(i>1) left=coeff(i-1)*(temperature-q(i-1))
+    forcing=coeff(p+i)
+    if(temperature<=Tf) forcing=coeff(2*p+i)
+    r=forcing-(AA+BB*temperature)
+    ell=r+(right-left)/delta
+    eb_euler=temperature+ratio*ell
+  end function
+
+  !> Return both ordered stages with one launch without a cross-block barrier.
+  attributes(global) subroutine eb_complete(n,q,stage,out,work,coeff,par) bind(C,name='eb_complete')
+    integer, value :: n
+    real(8), device :: q(0:*),stage(0:*),out(0:*),work(0:*),coeff(0:*),par(0:*)
+    real(8) :: ratio,delta,AA,BB,Tf,first,right,left,forcing,r,ell,value,e
+    integer :: i,p
+    i=(blockidx%x-1)*blockdim%x+threadidx%x
+    if(i>n) return
+    p=n+2; ratio=par(1)/par(0); delta=par(2)
+    AA=par(3); BB=par(4); Tf=par(5)
+    first=eb_euler(n,q,coeff,i,ratio,delta,AA,BB,Tf)
+    right=0.0_8; left=0.0_8
+    if(i<n) right=coeff(i)*(eb_euler(n,q,coeff,i+1,ratio,delta,AA,BB,Tf)-first)
+    if(i>1) left=coeff(i-1)*(first-eb_euler(n,q,coeff,i-1,ratio,delta,AA,BB,Tf))
+    forcing=coeff(p+i)
+    if(first<=Tf) forcing=coeff(2*p+i)
+    r=forcing-(AA+BB*first); ell=r+(right-left)/delta
+    e=first+ratio*ell; value=q(i)*0.5_8+e*0.5_8
+    stage(i)=first; out(i)=value
+    if(i==1) then
+      q(0)=q(i); stage(0)=first; out(0)=value
+    end if
+    if(i==n) then
+      q(n+1)=q(i); stage(n+1)=first; out(n+1)=value
+    end if
+  end subroutine
+
+  !> Run 1..128 bands in one 128-thread block with two barriers per step.
+  !! All threads reach each barrier, and physical shared rows preserve parity.
+  attributes(global) subroutine eb_persistent(n,q,stage,out,work,coeff,par,steps) bind(C,name='eb_persistent')
+    integer, value :: n,steps
+    real(8), device :: q(0:*),stage(0:*),out(0:*),work(0:*),coeff(0:*),par(0:*)
+    real(8), shared :: cache(0:129,0:2)
+    real(8) :: ratio,delta,AA,BB,Tf,kr,kl,warm,ice,temperature,right,left,forcing,r,ell,value
+    integer :: i,p,source,result,phase_source,phase_result,phase,k,temp
+    logical :: active
+    i=threadidx%x; active=i<=n
+    ratio=0.0_8; delta=1.0_8; AA=0.0_8; BB=0.0_8; Tf=0.0_8
+    kr=0.0_8; kl=0.0_8; warm=0.0_8; ice=0.0_8
+    if(active) then
+      cache(i,0)=q(i); p=n+2
+      ratio=par(1)/par(0); delta=par(2)
+      AA=par(3); BB=par(4); Tf=par(5)
+      kr=coeff(i); kl=coeff(i-1); warm=coeff(p+i); ice=coeff(2*p+i)
+    end if
+    call syncthreads()
+    source=0; result=2
+    do k=1,steps
+      phase_source=source; phase_result=1
+      do phase=0,1
+        if(active) then
+          temperature=cache(i,phase_source); right=0.0_8; left=0.0_8
+          if(i<n) right=kr*(cache(i+1,phase_source)-temperature)
+          if(i>1) left=kl*(temperature-cache(i-1,phase_source))
+          forcing=warm
+          if(temperature<=Tf) forcing=ice
+          r=forcing-(AA+BB*temperature); ell=r+(right-left)/delta
+          value=temperature+ratio*ell
+          if(phase==1) value=cache(i,source)*0.5_8+value*0.5_8
+          cache(i,phase_result)=value
+        end if
+        call syncthreads()
+        phase_source=1; phase_result=result
+      end do
+      temp=source; source=result; result=temp
+    end do
+    if(active) then
+      q(i)=cache(i,0); stage(i)=cache(i,1); out(i)=cache(i,2)
+      if(i==1) then
+        q(0)=q(i); stage(0)=stage(i); out(0)=out(i)
+      end if
+      if(i==n) then
+        q(n+1)=q(i); stage(n+1)=stage(i); out(n+1)=out(i)
+      end if
+    end if
+  end subroutine
 end module

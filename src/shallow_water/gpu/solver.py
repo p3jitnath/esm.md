@@ -1,5 +1,6 @@
 """Run the fused ordered shallow-water method on flat GPU arrays."""
 
+import numpy as np
 from numba import cuda
 from numba.cuda.libdevice import dadd_rn as add, dmul_rn as mul, ddiv_rn as div, dsqrt_rn as sqrt
 
@@ -7,6 +8,26 @@ from numba.cuda.libdevice import dadd_rn as add, dmul_rn as mul, ddiv_rn as div,
 @cuda.jit(device=True, inline=True)
 def sub(x, y):
     return add(x, -y)
+
+
+@cuda.jit(fastmath=False)
+def edges(nx, ny, q):
+    t = cuda.grid(1)
+    p, s = nx + 2, (nx + 2) * (ny + 2)
+    edge = 2 * p + 2 * ny
+    if t >= 3 * edge:
+        return
+    a, z = t // edge, t % edge
+    if z < 2 * p:
+        i = z % p
+        j = 0 if z < p else ny + 1
+        ii = nx if i == 0 else 1 if i == nx + 1 else i
+        jj = ny if j == 0 else 1
+    else:
+        i = 0 if z < 2 * p + ny else nx + 1
+        j = (z - 2 * p) % ny + 1
+        ii, jj = (nx if i == 0 else 1), j
+    q[a * s + j * p + i] = q[a * s + jj * p + ii]
 
 
 @cuda.jit(fastmath=False)
@@ -29,14 +50,7 @@ def prepare(nx, ny, q, work, par):
     s = (nx + 2) * (ny + 2)
     if t >= s:
         return
-    p = nx + 2
-    i, j = t % p, t // p
-    ii = nx if i == 0 else 1 if i == nx + 1 else i
-    jj = ny if j == 0 else 1 if j == ny + 1 else j
-    k = jj * p + ii
-    h, mx, my = q[k], q[s + k], q[2 * s + k]
-    if k != t:
-        q[t], q[s + t], q[2 * s + t] = h, mx, my
+    h, mx, my = q[t], q[s + t], q[2 * s + t]
     u, v = div(mx, h), div(my, h)
     z = mul(par[0], h)
     c = sqrt(z)
@@ -49,20 +63,31 @@ def prepare(nx, ny, q, work, par):
 
 
 @cuda.jit(device=True, inline=True)
-def face(ql, qr, fl, fr, sl, sr):
-    alpha = sl if sl >= sr else sr
-    return sub(mul(add(fl, fr), 0.5), mul(mul(alpha, 0.5), sub(qr, ql)))
+def face(ql, qr, fl, fr, half_alpha):
+    return sub(mul(add(fl, fr), 0.5), mul(half_alpha, sub(qr, ql)))
 
 
 @cuda.jit(fastmath=False)
 def update(nx, ny, q, base, out, work, par, final):
-    t = cuda.grid(1)
+    local_x = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
+    if cuda.gridDim.y > 1:
+        if local_x >= nx:
+            return
+        t = cuda.blockIdx.y * nx + local_x
+    else:
+        t = local_x
     if t >= nx * ny:
         return
     p, s = nx + 2, (nx + 2) * (ny + 2)
     k = (t // nx + 1) * p + t % nx + 1
     sx, sy = 3 * s, 4 * s
-    for a in range(3):
+    ae = mul(work[sx + k] if work[sx + k] >= work[sx + k + 1] else work[sx + k + 1], 0.5)
+    aw = mul(work[sx + k - 1] if work[sx + k - 1] >= work[sx + k] else work[sx + k], 0.5)
+    an = mul(work[sy + k] if work[sy + k] >= work[sy + k + p] else work[sy + k + p], 0.5)
+    ast = mul(work[sy + k - p] if work[sy + k - p] >= work[sy + k] else work[sy + k], 0.5)
+    first = cuda.blockIdx.z if cuda.gridDim.z > 1 else 0
+    last = first + 1 if cuda.gridDim.z > 1 else 3
+    for a in range(first, last):
         b = a * s + k
         if a == 0:
             fx0, fxe, fxw = q[s + k], q[s + k + 1], q[s + k - 1]
@@ -70,10 +95,10 @@ def update(nx, ny, q, base, out, work, par, final):
         else:
             fx0, fxe, fxw = work[(a - 1) * s + k], work[(a - 1) * s + k + 1], work[(a - 1) * s + k - 1]
             fy0, fyn, fys = work[a * s + k], work[a * s + k + p], work[a * s + k - p]
-        east = face(q[b], q[b + 1], fx0, fxe, work[sx + k], work[sx + k + 1])
-        west = face(q[b - 1], q[b], fxw, fx0, work[sx + k - 1], work[sx + k])
-        north = face(q[b], q[b + p], fy0, fyn, work[sy + k], work[sy + k + p])
-        south = face(q[b - p], q[b], fys, fy0, work[sy + k - p], work[sy + k])
+        east = face(q[b], q[b + 1], fx0, fxe, ae)
+        west = face(q[b - 1], q[b], fxw, fx0, aw)
+        north = face(q[b], q[b + p], fy0, fyn, an)
+        south = face(q[b - p], q[b], fys, fy0, ast)
         ell = -add(div(sub(east, west), par[1]), div(sub(north, south), par[2]))
         e = add(q[b], mul(par[3], ell))
         value = add(mul(base[b], 0.5), mul(e, 0.5)) if final else e
@@ -124,10 +149,19 @@ def enqueue(nx, ny, q, stage, out, work, par, steps, stream, block=128):
     None
         Last state is out for an odd count and q for an even count.
     """
+    count = int(nx) * int(ny)
+    if 4096 < count <= 65536:
+        block = 128
     s = (nx + 2) * (ny + 2)
     cells = int((nx * ny + block - 1) // block)
+    if count <= 4096:
+        cells = (cells, 1, 3)
+    elif count <= 65536:
+        cells = (int((nx + block - 1) // block), int(ny), 1)
     halos = int((3 * s + block - 1) // block)
     points = int((s + block - 1) // block)
+    if steps:
+        edges[int((3 * (2 * (nx + 2) + 2 * ny) + block - 1) // block), block, stream](nx, ny, q)
     for _ in range(steps):
         prepare[points, block, stream](nx, ny, q, work, par)
         update[cells, block, stream](nx, ny, q, q, stage, work, par, 0)

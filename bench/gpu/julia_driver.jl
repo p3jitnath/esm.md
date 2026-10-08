@@ -200,6 +200,36 @@ function benchmark(input,prefix,steps,block,timed=true)
     end
 end
 
+function audit(input,prefix,block)
+    nx,ny,host = loadinput(input)
+    b = Buffer.(host)
+    try
+        open(prefix*".ptx","w") do io
+            CUDA.@device_code_ptx io=io enqueue(nx,ny,b,1,block)
+        end
+        syncgpu()
+        upload!.(b,host)
+        open(prefix*".sass","w") do io
+            CUDA.@device_code_sass io=io raw=true enqueue(nx,ny,b,1,block)
+        end
+        syncgpu()
+        readbuffer.(b)
+        println("AUDITED"); flush(stdout)
+    finally
+        closebuffer!.(b)
+    end
+end
+
+# CUDA 12.6 nvdisasm can expand inline line tables without completing.
+# This read-only audit disassembles the same CUPTI-captured machine-code bytes.
+@eval CUDA.CUDATools function disassemble_cubin(io::IO,cubin::Vector{Cchar};raw::Bool)
+    mktemp() do path,file
+        write(file,cubin)
+        flush(file)
+        run(pipeline(`cuobjdump --dump-resource-usage --dump-sass $path`,stdout=io))
+    end
+end
+
 println("READY\t",VERSION,"\t",Base.pkgversion(CUDA)); flush(stdout)
 for line in eachline(stdin)
     fields = split(line,'\t')
@@ -211,6 +241,8 @@ for line in eachline(stdin)
         benchmark(fields[2],fields[3],parse(Int,fields[4]),parse(Int,fields[5]))
     elseif fields[1] == "GRAPH"
         benchmark(fields[2],fields[3],parse(Int,fields[4]),parse(Int,fields[5]),false)
+    elseif fields[1] == "AUDIT"
+        audit(fields[2],fields[3],parse(Int,fields[4]))
     else
         error("Unknown Julia GPU command")
     end

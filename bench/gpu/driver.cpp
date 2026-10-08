@@ -25,10 +25,12 @@ static void check(CUresult result) {
 
 struct Model {
     CUmodule module;
-    CUfunction halo, prepare, faces, update;
+    CUfunction halo, prepare, faces, update, persistent, complete, components, small, medium;
     int model, fused, block;
+    bool xy, clean;
 };
 struct Graph { CUgraph graph; CUgraphExec execution; };
+struct Probe { CUmodule module; CUfunction function; };
 
 extern "C" const char *gpu_error() { return error.c_str(); }
 extern "C" int gpu_init(int device) {
@@ -88,8 +90,24 @@ extern "C" int gpu_model_open(const char *path, int model, int fused, int block,
     check(cuModuleLoad(&m->module, path));
     const std::string prefix=model ? "eb_" : "sw_";
     check(cuModuleGetFunction(&m->halo, m->module, (prefix+"halo").c_str()));
-    check(cuModuleGetFunction(&m->update, m->module, (prefix+"update").c_str()));
-    if (!model) check(cuModuleGetFunction(&m->prepare, m->module, "sw_prepare"));
+    if (!model && cuModuleGetFunction(&m->update,m->module,"sw_update_xy") == CUDA_SUCCESS) {
+        m->xy=true;
+    } else {
+        check(cuModuleGetFunction(&m->update, m->module, (prefix+"update").c_str()));
+    }
+    if (!model) {
+        if (cuModuleGetFunction(&m->prepare,m->module,"sw_prepare_clean") == CUDA_SUCCESS) {
+            m->clean=true;
+            check(cuModuleGetFunction(&m->halo,m->module,"sw_edges"));
+        } else check(cuModuleGetFunction(&m->prepare,m->module,m->xy ? "sw_prepare_xy" : "sw_prepare"));
+        if (cuModuleGetFunction(&m->components,m->module,"sw_update_components") != CUDA_SUCCESS) m->components=nullptr;
+        if (cuModuleGetFunction(&m->small,m->module,"sw_update_small") != CUDA_SUCCESS) m->small=nullptr;
+        if (cuModuleGetFunction(&m->medium,m->module,"sw_update_medium") != CUDA_SUCCESS) m->medium=nullptr;
+    }
+    if (model && fused) {
+        if (cuModuleGetFunction(&m->persistent,m->module,"eb_persistent") != CUDA_SUCCESS) m->persistent=nullptr;
+        if (cuModuleGetFunction(&m->complete,m->module,"eb_complete") != CUDA_SUCCESS) m->complete=nullptr;
+    }
     if (model && !fused) check(cuModuleGetFunction(&m->faces, m->module, "eb_faces"));
     *result=m;
     API_END
@@ -103,9 +121,17 @@ extern "C" int gpu_model_close(void *value) {
 static void launch(CUfunction f, unsigned count, unsigned block, void **args) {
     check(cuLaunchKernel(f, (count+block-1)/block,1,1,block,1,1,0,stream,args,nullptr));
 }
+static void launch_xy(CUfunction f, unsigned columns, unsigned rows, unsigned block, void **args) {
+    check(cuLaunchKernel(f,(columns+block-1)/block,rows,1,block,1,1,0,stream,args,nullptr));
+}
 static void step(Model *m, unsigned nx, unsigned ny, CUdeviceptr q, CUdeviceptr stage,
                  CUdeviceptr out, CUdeviceptr work, CUdeviceptr coeff, CUdeviceptr par) {
     if (m->model) {
+        if (m->complete) {
+            void *args[]={&nx,&q,&stage,&out,&work,&coeff,&par};
+            launch(m->complete,nx,m->block,args);
+            return;
+        }
         void *halo_q[]={&nx,&q};
         if (m->fused != 1) launch(m->halo,2,32,halo_q);
         CUdeviceptr input=q, output=stage;
@@ -122,14 +148,22 @@ static void step(Model *m, unsigned nx, unsigned ny, CUdeviceptr q, CUdeviceptr 
         }
     } else {
         const unsigned size=(nx+2)*(ny+2);
+        const bool small=m->small && nx*ny <= 4096;
+        const bool medium=m->medium && nx*ny > 4096 && nx*ny <= 65536;
+        const unsigned block=medium ? 128 : m->block;
         void *halo_q[]={&nx,&ny,&q};
         if (!m->fused) launch(m->halo,3*size,m->block,halo_q);
         CUdeviceptr input=q, output=stage;
         for (unsigned final=0; final<2; ++final) {
             void *prepare[]={&nx,&ny,&input,&work,&par};
-            launch(m->prepare,size,m->block,prepare);
+            if (m->xy && !m->clean) launch_xy(m->prepare,nx+2,ny+2,m->block,prepare);
+            else launch(m->prepare,size,block,prepare);
             void *args[]={&nx,&ny,&input,&q,&output,&work,&par,&final};
-            launch(m->update,nx*ny,m->block,args);
+            if (small) check(cuLaunchKernel(m->small,(nx*ny+block-1)/block,1,3,block,1,1,0,stream,args,nullptr));
+            else if (medium) launch_xy(m->medium,nx,ny,block,args);
+            else if (m->components) check(cuLaunchKernel(m->components,(nx*ny+m->block-1)/m->block,1,3,m->block,1,1,0,stream,args,nullptr));
+            else if (m->xy) launch_xy(m->update,nx,ny,m->block,args);
+            else launch(m->update,nx*ny,m->block,args);
             void *halo[]={&nx,&ny,&output};
             if (!m->fused) launch(m->halo,3*size,m->block,halo);
             input=stage; output=out;
@@ -141,10 +175,31 @@ extern "C" int gpu_enqueue(void *model, unsigned nx, unsigned ny, std::uint64_t 
     std::uint64_t par, unsigned steps) {
     API_BEGIN
     auto *m=static_cast<Model *>(model);
+    const unsigned block=m->medium && nx*ny > 4096 && nx*ny <= 65536 ? 128 : m->block;
+    if (steps && m->clean) {
+        void *args[]={&nx,&ny,&q};
+        launch(m->halo,3*(2*(nx+2)+2*ny),block,args);
+    }
+    if (steps && m->persistent && nx <= 128) {
+        void *args[]={&nx,&q,&stage,&out,&work,&coeff,&par,&steps};
+        launch(m->persistent,128,128,args);
+        return 0;
+    }
     for (unsigned k=0; k<steps; ++k) {
         step(m,nx,ny,q,stage,out,work,coeff,par);
         std::swap(q,out);
     }
+    API_END
+}
+extern "C" int gpu_model_layout(void *model,unsigned nx,unsigned ny,int *block,int *grid_y,int *grid_z) {
+    API_BEGIN
+    auto *m=static_cast<Model *>(model);
+    *block=m->block; *grid_y=1; *grid_z=1;
+    if (m->model && m->persistent && nx <= 128) *block=128;
+    else if (!m->model && m->small && nx*ny <= 4096) *grid_z=3;
+    else if (!m->model && m->medium && nx*ny <= 65536) { *block=128; *grid_y=ny; }
+    else if (m->components) *grid_z=3;
+    else if (m->xy) *grid_y=ny;
     API_END
 }
 extern "C" int gpu_capture_begin() {
@@ -180,5 +235,36 @@ extern "C" int gpu_graph_close(void *value) {
     auto *g=static_cast<Graph *>(value);
     check(cuStreamSynchronize(stream)); check(cuGraphExecDestroy(g->execution));
     check(cuGraphDestroy(g->graph)); delete g;
+    API_END
+}
+extern "C" int gpu_probe_open(const char *path,const char *symbol,void **value) {
+    API_BEGIN
+    auto *p=new Probe{};
+    check(cuModuleLoad(&p->module,path));
+    check(cuModuleGetFunction(&p->function,p->module,symbol));
+    *value=p;
+    API_END
+}
+extern "C" int gpu_probe_launch(void *value,unsigned n,unsigned iterations,
+    std::uint64_t a,std::uint64_t b,std::uint64_t out,unsigned block) {
+    API_BEGIN
+    if (n) {
+        void *args[]={&n,&iterations,&a,&b,&out};
+        launch(static_cast<Probe *>(value)->function,n,block,args);
+    }
+    API_END
+}
+extern "C" int gpu_probe_close(void *value) {
+    API_BEGIN
+    auto *p=static_cast<Probe *>(value);
+    check(cuStreamSynchronize(stream)); check(cuModuleUnload(p->module)); delete p;
+    API_END
+}
+extern "C" int gpu_probe_attributes(void *value,int *registers,int *shared,int *multiprocessors) {
+    API_BEGIN
+    auto *p=static_cast<Probe *>(value);
+    check(cuFuncGetAttribute(registers,CU_FUNC_ATTRIBUTE_NUM_REGS,p->function));
+    check(cuFuncGetAttribute(shared,CU_FUNC_ATTRIBUTE_SHARED_SIZE_BYTES,p->function));
+    check(cuDeviceGetAttribute(multiprocessors,CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT,selected));
     API_END
 }

@@ -1,8 +1,10 @@
 # esm.md
 
-esm.md generates Arm assembly from short physics and mathematics notes in Markdown. Assembly is a processor’s low-level instruction language. We compare it with Fortran, Julia, and compiled Python on a Neoverse V2 processor, using identical 64-bit floating-point calculations.
+This `gpu` branch carries the shallow-water and Budyko–Sellers models from GitHub main `6536b88` to an NVIDIA GH200. It generates GPU assembly directly from the same short physics and mathematics notes in Markdown. Handwritten PTX is assembled into NVIDIA machine instructions and compared with vanilla and tuned GPU Fortran, Julia and compiled Python. Every implementation preserves the original ordered 64-bit floating-point calculations and canonical output bytes.
 
-The tables show median speed in million complete cell updates per second for optimised solvers across twelve quiet-node runs. Each update advances one cell by one full time step. All seven variants, including the unchanged vanilla language controls, pass independent physics checks and produce identical output bytes. The [full results](bench/results.md) include the controls and timing variation.
+Read the [GPU evaluation instructions](bench/gpu/README.md), [GPU results](bench/gpu/results.md) and [md2asm-gpu skill](skills/md2asm-gpu/SKILL.md). The GPU plots use the same units as the CPU study, million complete cell updates per second. Each update includes both stages and boundaries, and a shallow-water update includes all three fields. The final GPU comparison uses twelve accepted repetitions of all seven variants on one fixed GPU in an exclusive quiet-node allocation.
+
+The CPU results below are the historical upstream comparison on one Neoverse V2 processor. They remain separate from the GPU measurements. Their tables show median speed in million complete cell updates per second across twelve quiet-node runs, and the [original full results](bench/results.md) include the controls and timing variation.
 
 ## Shallow water
 

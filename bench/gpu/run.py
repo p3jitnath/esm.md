@@ -27,7 +27,9 @@ CPU_SW, CPU_EB = protocol._Backend, eb.Backend
 class Julia:
     """Keep a separate warmed CUDA.jl worker for complete GPU trajectories."""
 
-    def __init__(self, name, model, block=128):
+    def __init__(self, name, model, block=None):
+        if block is None:
+            block = runtime.preferred_block(name, model)
         self.name, self.model, self.block = name, model, block
         folder = ROOT / "bench/.runs/gpu" / model
         folder.mkdir(parents=True, exist_ok=True)
@@ -107,15 +109,36 @@ def verify(model, names, metadata, block):
     protocol._fingerprint = eb.fingerprint = runtime.fingerprint
     protocol._software = lambda: {"python": sys.version, "gpu_requirements": (ROOT / "bench/gpu/requirements.txt").read_text()}
     inherited_sw_cases, inherited_eb_cases = protocol._cases, eb.cases
+    inherited_sw_initial, inherited_eb_inputs = protocol._initial, eb.inputs
+    def sw_initial(case, nx, ny):
+        if case != "tiny-momentum":
+            return inherited_sw_initial(case, nx, ny)
+        values = inherited_sw_initial("uniform", nx, ny)
+        values[1] = np.ldexp(1.0, -1024)
+        values[2] = -np.ldexp(1.0, -1024)
+        return values
+    def eb_inputs(n, case="climate", dt=None):
+        if case != "subnormal":
+            return inherited_eb_inputs(n, case, dt)
+        seed = np.full(n, np.ldexp(3.0, -1074))
+        coeff = np.zeros((3, n + 2))
+        par = np.array([1.0, 0.1, 2.0 / n, 0.0, 0.0, -10.0])
+        return seed, coeff, par, None
     def sw_cases():
         yield from inherited_sw_cases()
         for nx, ny in ((1, 7), (7, 1), (1, 129), (129, 1), (127, 3), (131, 3)):
             yield "mixed", nx, ny, 3, None
+        for nx, ny in ((64, 64), (65, 64), (256, 256), (257, 256)):
+            yield "mixed", nx, ny, 2, None
+        yield "tiny-momentum", 7, 5, 3, None
     def eb_cases():
         yield from inherited_eb_cases()
         for n in (1, 127, 129):
             yield "climate", n, 3, None
+        for n in (1, 128, 129):
+            yield "subnormal", n, 3, 0.1
     protocol._cases, eb.cases = sw_cases, eb_cases
+    protocol._initial, eb.inputs = sw_initial, eb_inputs
     if model == "sw":
         protocol._Julia = lambda name: Julia(name, "sw", block)
         protocol._Backend = lambda name: CPU_SW(name) if name == "fortran_vanilla" else runtime.Backend(name, "sw", block)
@@ -135,12 +158,13 @@ def main():
     parser.add_argument("--model", choices=("sw", "eb"), required=True)
     parser.add_argument("--mode", choices=("verify", "graphs", "benchmark"), default="verify")
     parser.add_argument("--names", default="fortran_vanilla,assembly,gpu_fortran_vanilla,gpu_python_vanilla")
-    parser.add_argument("--block", type=int, default=128)
+    parser.add_argument("--block", type=int, default=None)
     parser.add_argument("--sizes", default=None)
     parser.add_argument("--counts", default=None)
     parser.add_argument("--repeats", type=int, default=12)
     parser.add_argument("--repeat-start", type=int, default=0)
     parser.add_argument("--output", type=Path, default=None)
+    parser.add_argument("--screening", action="store_true", help="Screen candidates with ordinary and replay byte checks before the final frozen gates.")
     args = parser.parse_args()
     names = args.names.split(",")
     julias = [name for name in names if name.startswith("julia")]
@@ -156,6 +180,8 @@ def main():
         benchmark.graphs(protocol, eb, args.model, names, metadata, args.block, CPU_SW, CPU_EB, output, Julia)
     else:
         import benchmark
+        if not args.screening:
+            benchmark.require_verified(args.model, names)
         sizes = [int(value) for value in (args.sizes or ("128,4096,65536" if args.model == "eb" else "64,256,1024")).split(",")]
         counts = [int(value) for value in (args.counts or ("512,256,128" if args.model == "eb" else "256,128,32")).split(",")]
         if len(sizes) != len(counts) or any(steps < 1 or steps > 1000000 for steps in counts):

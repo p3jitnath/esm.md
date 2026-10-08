@@ -16,6 +16,17 @@ ROOT = Path(__file__).resolve().parents[2]
 BUILD = ROOT / "bench/.build/gpu"
 CANARY = np.uint64(0x7FF4DEADBEEF5678)
 _driver = None
+_nvml = None
+
+
+def management():
+    """Return NVIDIA telemetry without creating a GPU compute context."""
+    global _nvml
+    if _nvml is None:
+        import pynvml
+        pynvml.nvmlInit()
+        _nvml = pynvml
+    return _nvml
 
 
 def driver():
@@ -42,11 +53,16 @@ def driver():
         "gpu_upload": [u64, pointer, u64], "gpu_download": [pointer, u64, u64],
         "gpu_model_open": [ct.c_char_p, integer, integer, integer, ct.POINTER(pointer)],
         "gpu_model_close": [pointer],
+        "gpu_model_layout": [pointer, ct.c_uint, ct.c_uint, ct.POINTER(integer), ct.POINTER(integer), ct.POINTER(integer)],
         "gpu_enqueue": [pointer, ct.c_uint, ct.c_uint] + [u64] * 6 + [ct.c_uint],
         "gpu_capture_begin": [], "gpu_capture_end": [ct.POINTER(pointer)],
         "gpu_graph_launch": [pointer], "gpu_graph_close": [pointer],
         "gpu_graph_time": [pointer, ct.POINTER(ct.c_float)],
         "gpu_graph_nodes": [pointer, ct.POINTER(u64)], "gpu_sync": [],
+        "gpu_probe_open": [ct.c_char_p, ct.c_char_p, ct.POINTER(pointer)],
+        "gpu_probe_launch": [pointer, ct.c_uint, ct.c_uint, u64, u64, u64, ct.c_uint],
+        "gpu_probe_close": [pointer],
+        "gpu_probe_attributes": [pointer, ct.POINTER(integer), ct.POINTER(integer), ct.POINTER(integer)],
     }
     lib.gpu_error.restype = ct.c_char_p
     lib.gpu_stream.restype = u64
@@ -144,7 +160,9 @@ class State:
 class Backend:
     """Launch direct or independently compiled controls on identical buffers."""
 
-    def __init__(self, name, model, block=128):
+    def __init__(self, name, model, block=None):
+        if block is None:
+            block = preferred_block(name, model)
         self.name, self.model, self.block = name, model, block
         suffix = re.search(r"_b(\d+)$", name)
         source_name = name
@@ -156,7 +174,7 @@ class Backend:
         if "python" in name:
             from numba import cuda
             self.stream = cuda.external_stream(driver().gpu_stream())
-            source = "vanilla" if name.endswith("_vanilla") else "solver"
+            source = "vanilla" if source_name.endswith("_vanilla") else "solver"
             path = ROOT / "src" / ("budyko_sellers" if model == "eb" else "shallow_water") / "gpu" / (source + ".py")
             spec = importlib.util.spec_from_file_location(model + "_gpu_" + source, path)
             self.module = importlib.util.module_from_spec(spec)
@@ -191,6 +209,13 @@ class Backend:
         self.enqueue(state, steps)
         state.download(host)
 
+    def layout(self, nx, ny):
+        if self.handle:
+            block, grid_y, grid_z = ct.c_int(), ct.c_int(), ct.c_int()
+            driver().gpu_model_layout(self.handle, nx, ny, ct.byref(block), ct.byref(grid_y), ct.byref(grid_z))
+            return {"threads": block.value, "grid_y": grid_y.value, "grid_z": grid_z.value}
+        return launch_layout(self.name, self.model, nx, ny, self.block)
+
     def step(self, host):
         self.run(host, 1)
 
@@ -211,6 +236,45 @@ class Backend:
             self.handle = None
 
 
+class Probe:
+    """Launch one documented calibration or arithmetic-check entry."""
+
+    def __init__(self, path, symbol, block=256):
+        self.handle = ct.c_void_p()
+        self.block = block
+        driver().gpu_probe_open(str(path).encode(), symbol.encode(), ct.byref(self.handle))
+
+    def enqueue(self, n, iterations, a, b, out):
+        driver().gpu_probe_launch(self.handle, n, iterations, a.pointer, b.pointer, out.pointer, self.block)
+
+    def attributes(self):
+        registers, shared, multiprocessors = ct.c_int(), ct.c_int(), ct.c_int()
+        driver().gpu_probe_attributes(self.handle, ct.byref(registers), ct.byref(shared), ct.byref(multiprocessors))
+        return {"registers": registers.value, "shared_bytes": shared.value, "multiprocessors": multiprocessors.value}
+
+    def close(self):
+        if self.handle:
+            driver().gpu_probe_close(self.handle)
+            self.handle = None
+
+
+def preferred_block(name, model):
+    """Use measured defaults while preserving an explicit experimental block size."""
+    return 64 if model == "sw" and name in ("assembly", "gpu_fortran", "gpu_python", "julia") else 128
+
+
+def launch_layout(name, model, nx, ny, block):
+    """Record the actual tuned host launch geometry in every timing sample."""
+    if model == "sw" and name in ("assembly", "gpu_fortran", "gpu_python", "julia"):
+        if nx * ny <= 4096:
+            return {"threads": block, "grid_y": 1, "grid_z": 3}
+        if nx * ny <= 65536:
+            return {"threads": 128, "grid_y": ny, "grid_z": 1}
+    if model == "eb" and name in ("assembly", "gpu_fortran", "gpu_python", "julia") and nx <= 128:
+        return {"threads": 128, "grid_y": 1, "grid_z": 1, "persistent": True}
+    return {"threads": block, "grid_y": 1, "grid_z": 1}
+
+
 def fingerprint():
     """Hash the scientific input, GPU sources, build route, and actual binaries.
 
@@ -219,14 +283,16 @@ def fingerprint():
     dict of str to str
         Relative paths mapped to SHA256 identifiers.
     """
-    paths = [ROOT / "Makefile", ROOT / "bench/fp_env.S"]
+    paths = [ROOT / "Makefile", ROOT / "bench/fp_env.S", ROOT / "bench/run.py", ROOT / "bench/energy_balance.py"]
     paths += list((ROOT / "formulations").glob("*.md"))
     paths += list((ROOT / "skills/md2asm/references").glob("*.md"))
     paths += list((ROOT / "skills/md2asm-gpu").rglob("*.md"))
     paths += [p for p in (ROOT / "src").glob("*/gpu/*") if p.suffix in (".ptx", ".cuf", ".py", ".jl")]
     paths += list((ROOT / "src").glob("*/vanilla.f90"))
-    paths += [p for p in (ROOT / "bench/gpu").glob("*") if p.is_file() and p.suffix in (".py", ".cpp", ".jl", ".txt")]
-    paths += list(BUILD.glob("*.cubin")) + [BUILD / "libdriver.so"]
+    paths += [p for p in (ROOT / "bench/gpu").glob("*") if p.is_file() and p.suffix in (".py", ".cpp", ".jl", ".txt", ".ptx", ".sh")]
+    paths += [BUILD / (model + "_" + name + ".cubin") for model in ("sw", "eb")
+              for name in ("assembly", "fortran", "fortran_vanilla", "pass1")]
+    paths += [BUILD / "probes.cubin", BUILD / "libdriver.so", ROOT / "bench/.build/libfp_env.so"]
     paths += list((ROOT / "bench/.build").glob("*fortran_vanilla.so"))
     return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)}
 
@@ -266,14 +332,14 @@ def allocation(initialize=True):
         device = os.environ.get("CUDA_VISIBLE_DEVICES", "0").split(",")[0]
         name, uuid = subprocess.check_output(["nvidia-smi", "-i", device,
             "--query-gpu=name,uuid", "--format=csv,noheader"], text=True).strip().split(", ")
-    metadata = {"job": job, "node": node, "affinity": sorted(os.sched_getaffinity(0)),
+    metadata = {"job": job, "step": os.environ.get("SLURM_STEP_ID"), "node": node, "affinity": sorted(os.sched_getaffinity(0)),
                 "slurm": detail, "gpu": name, "uuid": uuid,
                 "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"), "fpcr": 0}
     metadata["initial_observation"] = observation(metadata)
     return metadata
 
 
-def observation(metadata):
+def observation(metadata, scheduler=True):
     """Read live scheduler occupancy and GPU telemetry outside a timer.
 
     Parameters
@@ -286,16 +352,28 @@ def observation(metadata):
     dict
         CPU load and selected GPU utilisation, clocks, temperature and power.
     """
-    occupants = subprocess.check_output(["squeue", "-h", "-w", metadata["node"], "-o", "%i"], text=True).split()
-    if occupants != [metadata["job"]] or sorted(os.sched_getaffinity(0)) != metadata["affinity"]:
+    if sorted(os.sched_getaffinity(0)) != metadata["affinity"]:
         raise RuntimeError("The allocation or host affinity changed.")
-    query = "uuid,utilization.gpu,memory.used,clocks.sm,clocks.mem,temperature.gpu,power.draw,pstate"
-    values = subprocess.check_output(["nvidia-smi", "-i", metadata["uuid"], "--query-gpu=" + query,
-                                      "--format=csv,noheader,nounits"], text=True).strip().split(", ")
-    processes = subprocess.check_output(["nvidia-smi", "-i", metadata["uuid"],
-        "--query-compute-apps=pid,process_name,used_memory", "--format=csv,noheader"], text=True).splitlines()
-    return {"utc_ns": time.time_ns(), "load": os.getloadavg(),
-            "gpu": dict(zip(query.split(","), values)), "processes": processes}
+    nvml = management()
+    device = nvml.nvmlDeviceGetHandleByUUID(metadata["uuid"])
+    gpu = {"uuid": metadata["uuid"], "utilization.gpu": str(nvml.nvmlDeviceGetUtilizationRates(device).gpu),
+           "memory.used": str(nvml.nvmlDeviceGetMemoryInfo(device).used // 1048576),
+           "clocks.sm": str(nvml.nvmlDeviceGetClockInfo(device, nvml.NVML_CLOCK_SM)),
+           "clocks.mem": str(nvml.nvmlDeviceGetClockInfo(device, nvml.NVML_CLOCK_MEM)),
+           "temperature.gpu": str(nvml.nvmlDeviceGetTemperature(device, nvml.NVML_TEMPERATURE_GPU)),
+           "power.draw": str(nvml.nvmlDeviceGetPowerUsage(device) / 1000),
+           "pstate": "P" + str(nvml.nvmlDeviceGetPerformanceState(device)),
+           "throttle_reasons": int(nvml.nvmlDeviceGetCurrentClocksThrottleReasons(device))}
+    processes = ["%d, GPU compute process, %s MiB" % (p.pid, p.usedGpuMemory // 1048576)
+                 for p in nvml.nvmlDeviceGetComputeRunningProcesses(device)]
+    result = {"utc_ns": time.time_ns(), "load": os.getloadavg(), "gpu": gpu, "processes": processes}
+    if scheduler:
+        occupants = subprocess.check_output(["squeue", "-h", "-w", metadata["node"], "-o", "%i"], text=True).split()
+        steps = subprocess.check_output(["squeue", "--steps", "-h", "-j", metadata["job"], "-o", "%i"], text=True).split()
+        if occupants != [metadata["job"]] or steps != [metadata["job"] + "." + metadata["step"]]:
+            raise RuntimeError("Another Slurm step is active on the benchmark node.")
+        result["scheduler_checked_utc_ns"] = time.time_ns()
+    return result
 
 
 def quiet(metadata, allowed_pids=None):
@@ -320,16 +398,17 @@ def quiet(metadata, allowed_pids=None):
     """
     from run import _cpu_ticks, _foreign_load
     allowed = {os.getpid()} if allowed_pids is None else set(allowed_pids)
+    observation(metadata)
     started, settled = time.monotonic(), 0
     while settled < 2:
         before = _cpu_ticks()
         time.sleep(0.2)
         foreign = _foreign_load(before, _cpu_ticks())
-        result = observation(metadata)
+        result = observation(metadata, scheduler=False)
         pids = {int(line.split(",")[0]) for line in result["processes"]}
         accepted = result["load"][0] <= 2.0 and foreign <= 1.0 and int(result["gpu"]["utilization.gpu"]) == 0 and pids <= allowed
         settled = settled + 1 if accepted else 0
-        if time.monotonic() - started > 10:
+        if settled < 2 and time.monotonic() - started > 10:
             raise RuntimeError("Quiet limits failed. Load %.3f, foreign cores %.3f, GPU utilisation %s, processes %s" % (
                 result["load"][0], foreign, result["gpu"]["utilization.gpu"], sorted(pids)))
     result["foreign_busy_cores"] = foreign

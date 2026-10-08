@@ -122,3 +122,308 @@ EB_STORE:
     @%p1 st.global.f64 [%a12+8], %d15;
     ret;
 }
+.func (.param .f64 result) eb_euler(
+    .param .u32 n, .param .u32 index, .param .u64 q,
+    .param .u64 coeff, .param .f64 ratio, .param .f64 delta,
+    .param .f64 A, .param .f64 B, .param .f64 Tf)
+{
+    .reg .pred %p<4>;
+    .reg .u32 %r<8>;
+    .reg .u64 %a<16>;
+    .reg .f64 %d<24>;
+    ld.param.u32 %r0, [n];
+    ld.param.u64 %a0, [q];
+    ld.param.u64 %a3, [coeff];
+    ld.param.u32 %r1, [index];
+    add.u32 %r4, %r0, 2;
+    mul.wide.u32 %a5, %r4, 8;
+    mul.wide.u32 %a6, %r1, 8;
+    add.u64 %a7, %a0, %a6;
+    add.u64 %a8, %a3, %a6;
+    ld.global.f64 %d0, [%a7];
+    mov.f64 %d1, 0d0000000000000000;
+    mov.f64 %d2, 0d0000000000000000;
+    setp.lt.u32 %p1, %r1, %r0;
+    @!%p1 bra EU_LEFT;
+    ld.global.f64 %d3, [%a7+8];
+    ld.global.f64 %d4, [%a8];
+    sub.rn.f64 %d3, %d3, %d0;
+    mul.rn.f64 %d1, %d4, %d3;
+EU_LEFT:
+    setp.gt.u32 %p1, %r1, 1;
+    @!%p1 bra EU_FORCE;
+    sub.u64 %a13, %a7, 8;
+    sub.u64 %a14, %a8, 8;
+    ld.global.f64 %d3, [%a13];
+    ld.global.f64 %d4, [%a14];
+    sub.rn.f64 %d3, %d0, %d3;
+    mul.rn.f64 %d2, %d4, %d3;
+EU_FORCE:
+    ld.param.f64 %d12, [ratio];
+    ld.param.f64 %d7, [delta];
+    ld.param.f64 %d8, [A];
+    ld.param.f64 %d9, [B];
+    ld.param.f64 %d10, [Tf];
+    setp.le.f64 %p1, %d0, %d10;
+    add.u64 %a9, %a8, %a5;
+    add.u64 %a10, %a9, %a5;
+    selp.u64 %a9, %a10, %a9, %p1;
+    ld.global.f64 %d11, [%a9];
+    mul.rn.f64 %d13, %d9, %d0;
+    add.rn.f64 %d13, %d8, %d13;
+    sub.rn.f64 %d13, %d11, %d13;
+    sub.rn.f64 %d14, %d1, %d2;
+    div.rn.f64 %d14, %d14, %d7;
+    add.rn.f64 %d14, %d13, %d14;
+    mul.rn.f64 %d14, %d12, %d14;
+    add.rn.f64 %d15, %d0, %d14;
+    st.param.f64 [result], %d15;
+    ret;
+}
+// One full step per launch. Recompute the same first-stage neighbours locally.
+// Every first-stage operand comes from the immutable input interior, so blocks
+// need no barrier. The public first stage and both pole copies remain complete.
+.visible .entry eb_complete(
+    .param .u32 n, .param .u64 q, .param .u64 stage,
+    .param .u64 out, .param .u64 work, .param .u64 coeff, .param .u64 par)
+{
+    .reg .pred %p<5>;
+    .reg .u32 %r<8>;
+    .reg .u64 %a<20>;
+    .reg .f64 %d<24>;
+    .param .u32 fn, fi;
+    .param .u64 fq, fc;
+    .param .f64 fratio,fdelta,fA,fB,fTf;
+    .param .f64 euler;
+    ld.param.u32 %r0, [n];
+    ld.param.u64 %a0, [q];
+    ld.param.u64 %a1, [stage];
+    ld.param.u64 %a2, [out];
+    ld.param.u64 %a3, [coeff];
+    ld.param.u64 %a4, [par];
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mov.u32 %r3, %tid.x;
+    mad.lo.u32 %r1, %r1, %r2, %r3;
+    add.u32 %r1, %r1, 1;
+    setp.gt.u32 %p0, %r1, %r0;
+    @%p0 ret;
+    mul.wide.u32 %a5, %r1, 8;
+    add.u64 %a6, %a0, %a5;
+    add.u64 %a7, %a3, %a5;
+    ld.global.f64 %d0, [%a6];
+    setp.eq.u32 %p1, %r1, 1;
+    @%p1 st.global.f64 [%a0], %d0;
+    setp.eq.u32 %p1, %r1, %r0;
+    @%p1 st.global.f64 [%a6+8], %d0;
+    st.param.u32 [fn], %r0;
+    st.param.u32 [fi], %r1;
+    st.param.u64 [fq], %a0;
+    st.param.u64 [fc], %a3;
+    ld.global.f64 %d5, [%a4];
+    ld.global.f64 %d6, [%a4+8];
+    ld.global.f64 %d7, [%a4+16];
+    ld.global.f64 %d8, [%a4+24];
+    ld.global.f64 %d9, [%a4+32];
+    ld.global.f64 %d10, [%a4+40];
+    div.rn.f64 %d12, %d6, %d5;
+    st.param.f64 [fratio], %d12;
+    st.param.f64 [fdelta], %d7;
+    st.param.f64 [fA], %d8;
+    st.param.f64 [fB], %d9;
+    st.param.f64 [fTf], %d10;
+    call.uni (euler), eb_euler, (fn,fi,fq,fc,fratio,fdelta,fA,fB,fTf);
+    ld.param.f64 %d1, [euler];
+    mov.f64 %d2, 0d0000000000000000;
+    mov.f64 %d3, 0d0000000000000000;
+    setp.lt.u32 %p1, %r1, %r0;
+    @!%p1 bra EC_LEFT;
+    add.u32 %r4, %r1, 1;
+    st.param.u32 [fi], %r4;
+    call.uni (euler), eb_euler, (fn,fi,fq,fc,fratio,fdelta,fA,fB,fTf);
+    ld.param.f64 %d4, [euler];
+    ld.global.f64 %d5, [%a7];
+    sub.rn.f64 %d4, %d4, %d1;
+    mul.rn.f64 %d2, %d5, %d4;
+EC_LEFT:
+    setp.gt.u32 %p1, %r1, 1;
+    @!%p1 bra EC_FORCE;
+    sub.u32 %r4, %r1, 1;
+    st.param.u32 [fi], %r4;
+    call.uni (euler), eb_euler, (fn,fi,fq,fc,fratio,fdelta,fA,fB,fTf);
+    ld.param.f64 %d4, [euler];
+    sub.u64 %a8, %a7, 8;
+    ld.global.f64 %d5, [%a8];
+    sub.rn.f64 %d4, %d1, %d4;
+    mul.rn.f64 %d3, %d5, %d4;
+EC_FORCE:
+    add.u32 %r5, %r0, 2;
+    mul.wide.u32 %a8, %r5, 8;
+    add.u64 %a9, %a7, %a8;
+    add.u64 %a10, %a9, %a8;
+    setp.le.f64 %p1, %d1, %d10;
+    selp.u64 %a9, %a10, %a9, %p1;
+    ld.global.f64 %d11, [%a9];
+    mul.rn.f64 %d13, %d9, %d1;
+    add.rn.f64 %d13, %d8, %d13;
+    sub.rn.f64 %d13, %d11, %d13;
+    sub.rn.f64 %d14, %d2, %d3;
+    div.rn.f64 %d14, %d14, %d7;
+    add.rn.f64 %d14, %d13, %d14;
+    mul.rn.f64 %d14, %d12, %d14;
+    add.rn.f64 %d15, %d1, %d14;
+    mul.rn.f64 %d0, %d0, 0d3FE0000000000000;
+    mul.rn.f64 %d15, %d15, 0d3FE0000000000000;
+    add.rn.f64 %d15, %d0, %d15;
+    add.u64 %a11, %a1, %a5;
+    add.u64 %a12, %a2, %a5;
+    st.global.f64 [%a11], %d1;
+    st.global.f64 [%a12], %d15;
+    setp.eq.u32 %p1, %r1, 1;
+    @%p1 st.global.f64 [%a1], %d1;
+    @%p1 st.global.f64 [%a2], %d15;
+    setp.eq.u32 %p1, %r1, %r0;
+    @%p1 st.global.f64 [%a11+8], %d1;
+    @%p1 st.global.f64 [%a12+8], %d15;
+    ret;
+}
+// D02 and D03 with block-local time reuse for 1..128 bands.
+// Exactly one block of 128 threads. Every thread participates in both barriers.
+// Only interior shared values are read. Pole faces remain positive zero.
+// All three observable states are stored after the last completed time step.
+.visible .entry eb_persistent(
+    .param .u32 n, .param .u64 q, .param .u64 stage,
+    .param .u64 out, .param .u64 work, .param .u64 coeff,
+    .param .u64 par, .param .u32 steps)
+{
+    .shared .align 8 .b8 initial[1040];
+    .shared .align 8 .b8 first[1040];
+    .shared .align 8 .b8 result[1040];
+    .reg .pred %p<8>;
+    .reg .u32 %r<12>;
+    .reg .u64 %a<32>;
+    .reg .f64 %d<32>;
+    ld.param.u32 %r0, [n];
+    ld.param.u32 %r2, [steps];
+    setp.eq.u32 %p0, %r2, 0;
+    @%p0 ret;
+    ld.param.u64 %a0, [q];
+    ld.param.u64 %a1, [stage];
+    ld.param.u64 %a2, [out];
+    ld.param.u64 %a3, [coeff];
+    ld.param.u64 %a4, [par];
+    mov.u32 %r1, %tid.x;
+    add.u32 %r1, %r1, 1;
+    setp.le.u32 %p1, %r1, %r0;
+    setp.eq.u32 %p2, %r1, 1;
+    setp.eq.u32 %p3, %r1, %r0;
+    setp.lt.u32 %p4, %r1, %r0;
+    setp.gt.u32 %p5, %r1, 1;
+    mov.u64 %a10, initial;
+    mov.u64 %a11, first;
+    mov.u64 %a12, result;
+    mul.wide.u32 %a5, %r1, 8;
+    add.u64 %a6, %a0, %a5;
+    add.u64 %a7, %a3, %a5;
+    add.u64 %a8, %a10, %a5;
+    @!%p1 bra EP_READY;
+    ld.global.f64 %d0, [%a6];
+    st.shared.f64 [%a8], %d0;
+    ld.global.f64 %d5, [%a4];
+    ld.global.f64 %d6, [%a4+8];
+    ld.global.f64 %d7, [%a4+16];
+    ld.global.f64 %d8, [%a4+24];
+    ld.global.f64 %d9, [%a4+32];
+    ld.global.f64 %d10, [%a4+40];
+    div.rn.f64 %d12, %d6, %d5;
+    ld.global.f64 %d20, [%a7];
+    sub.u64 %a9, %a7, 8;
+    ld.global.f64 %d21, [%a9];
+    add.u32 %r5, %r0, 2;
+    mul.wide.u32 %a9, %r5, 8;
+    add.u64 %a13, %a7, %a9;
+    add.u64 %a14, %a13, %a9;
+    ld.global.f64 %d22, [%a13];
+    ld.global.f64 %d23, [%a14];
+EP_READY:
+    bar.sync 0;
+    mov.u64 %a16, %a10;
+    mov.u64 %a17, %a12;
+    mov.u32 %r3, 0;
+EP_STEP:
+    mov.u32 %r4, 0;
+    mov.u64 %a18, %a16;
+    mov.u64 %a19, %a11;
+EP_PHASE:
+    @!%p1 bra EP_BARRIER;
+    add.u64 %a20, %a18, %a5;
+    ld.shared.f64 %d0, [%a20];
+    mov.f64 %d1, 0d0000000000000000;
+    mov.f64 %d2, 0d0000000000000000;
+    @!%p4 bra EP_LEFT;
+    ld.shared.f64 %d3, [%a20+8];
+    sub.rn.f64 %d3, %d3, %d0;
+    mul.rn.f64 %d1, %d20, %d3;
+EP_LEFT:
+    @!%p5 bra EP_FORCE;
+    sub.u64 %a21, %a20, 8;
+    ld.shared.f64 %d3, [%a21];
+    sub.rn.f64 %d3, %d0, %d3;
+    mul.rn.f64 %d2, %d21, %d3;
+EP_FORCE:
+    setp.le.f64 %p0, %d0, %d10;
+    selp.f64 %d11, %d23, %d22, %p0;
+    mul.rn.f64 %d13, %d9, %d0;
+    add.rn.f64 %d13, %d8, %d13;
+    sub.rn.f64 %d13, %d11, %d13;
+    sub.rn.f64 %d14, %d1, %d2;
+    div.rn.f64 %d14, %d14, %d7;
+    add.rn.f64 %d14, %d13, %d14;
+    mul.rn.f64 %d14, %d12, %d14;
+    add.rn.f64 %d15, %d0, %d14;
+    setp.eq.u32 %p0, %r4, 0;
+    @%p0 bra EP_STORE;
+    add.u64 %a21, %a16, %a5;
+    ld.shared.f64 %d16, [%a21];
+    mul.rn.f64 %d16, %d16, 0d3FE0000000000000;
+    mul.rn.f64 %d15, %d15, 0d3FE0000000000000;
+    add.rn.f64 %d15, %d16, %d15;
+EP_STORE:
+    add.u64 %a21, %a19, %a5;
+    st.shared.f64 [%a21], %d15;
+EP_BARRIER:
+    bar.sync 0;
+    add.u32 %r4, %r4, 1;
+    setp.eq.u32 %p0, %r4, 1;
+    @!%p0 bra EP_ADVANCE;
+    mov.u64 %a18, %a11;
+    mov.u64 %a19, %a17;
+    bra EP_PHASE;
+EP_ADVANCE:
+    mov.u64 %a22, %a16;
+    mov.u64 %a16, %a17;
+    mov.u64 %a17, %a22;
+    add.u32 %r3, %r3, 1;
+    setp.lt.u32 %p0, %r3, %r2;
+    @%p0 bra EP_STEP;
+    @!%p1 ret;
+    add.u64 %a20, %a10, %a5;
+    add.u64 %a21, %a11, %a5;
+    add.u64 %a22, %a12, %a5;
+    ld.shared.f64 %d0, [%a20];
+    ld.shared.f64 %d1, [%a21];
+    ld.shared.f64 %d2, [%a22];
+    add.u64 %a20, %a0, %a5;
+    add.u64 %a21, %a1, %a5;
+    add.u64 %a22, %a2, %a5;
+    st.global.f64 [%a20], %d0;
+    st.global.f64 [%a21], %d1;
+    st.global.f64 [%a22], %d2;
+    @%p2 st.global.f64 [%a0], %d0;
+    @%p2 st.global.f64 [%a1], %d1;
+    @%p2 st.global.f64 [%a2], %d2;
+    @%p3 st.global.f64 [%a20+8], %d0;
+    @%p3 st.global.f64 [%a21+8], %d1;
+    @%p3 st.global.f64 [%a22+8], %d2;
+    ret;
+}
