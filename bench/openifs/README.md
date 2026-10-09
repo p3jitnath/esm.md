@@ -1,6 +1,6 @@
 # OpenIFS verification
 
-Eleven complete direct assembly routines are verified in OpenIFS 48.1.1. Their small checks include independent physical balances, exact output bytes, optional inputs, boundaries and buffer guards. The latest coarse forecast used own exclusive job 7189435 on nid010825, with one process, one thread, CPU 0 and local memory binding. Each routine's compact record preserves its earlier checks.
+Twelve complete direct assembly routines are verified in OpenIFS 48.1.1. Their small checks include independent physical balances, exact output bytes, optional inputs, boundaries and buffer guards. The latest coarse forecast used own exclusive job 7189435 on nid010825, with one process, one thread, CPU 0 and local memory binding. Each routine's compact record preserves its earlier checks.
 
 | Routine | Critical calls | Critical bytes | Forecast calls | Forecast bytes | Differing bytes |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -15,8 +15,9 @@ Eleven complete direct assembly routines are verified in OpenIFS 48.1.1. Their s
 | GPGRXYB | 192 | 640,032 | 2,150 | 47,420,400 | 0 |
 | GPTCO3 | 66 | 3,384 | 2,150 | 490,200 | 0 |
 | GP_SPV | 122 | 58,496 | 2,150 | 18,257,800 | 0 |
+| GPHPRE | 228 | 631,392 | 14,649 | 338,650,208 | 0 |
 
-The strict-source Fortran build uses the original sources with separate multiplication and addition. The global T21 forecast has 2,048 grid points and 19 atmospheric levels. It runs 25 nominal one-hour steps, with one process and one thread. All ten upstream output files at hours 0, 6, 12, 18 and 24 match a fresh strict-source Fortran run with the same pressure math library byte for byte. Every captured call of these eleven routines also matches its strict Fortran counterpart, including inactive cells. The verification drivers record and compare states but supply no missing numerical update. GPRCP and GPPWC captures preserve untouched caller bytes, so hashes identify an archived run. The input capture also records incoming output bytes for exact replay.
+The strict-source Fortran build uses the original sources with separate multiplication and addition. The global T21 forecast has 2,048 grid points and 19 atmospheric levels. It runs 25 nominal one-hour steps, with one process and one thread. All ten upstream output files at hours 0, 6, 12, 18 and 24 match a fresh strict-source Fortran run with the same pressure math library byte for byte. Every captured call of these twelve routines also matches its strict Fortran counterpart, including inactive cells. The verification drivers record and compare states but supply no missing numerical update. GPRCP and GPPWC captures preserve untouched caller bytes, so hashes identify an archived run. The input capture also records incoming output bytes for exact replay.
 
 Other forecast stages remain in Fortran. Their complete raw states and independent whole-forecast physical balances have not been verified. The [build record](build.json) shows that all seven locally rebuilt scientific libraries have zero audited fused or approximate arithmetic instructions, but external numerical libraries remain outside that accepted audit. The [pressure math record](pressure_math.json) now accepts separately rounded scalar exp and log, with 20,849 independent high-precision checks and no forbidden instructions. Both pressure implementations use this same frozen library. Its fresh baseline is separate from the older system-math archive. Other external functions still require an audit before accepting the whole forecast's arithmetic. No OpenIFS comparative timing or optimisation lesson is claimed.
 
@@ -97,7 +98,7 @@ gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -Wall -Wextra -Werror
 cmp .runtime/openifs/gptco3/assembly.bin .runtime/openifs/gptco3/fortran.bin
 ```
 
-The [md2asm contracts](../../skills/md2asm/references/openifs/) define each routine's shapes, units, arithmetic, interfaces and output formats. GP_SPV uses the shared scalar exp library described below. Inspect all accepted objects for forbidden instructions and check the floating-point control register, FPCR. Compiler output is used for verification only.
+The [md2asm contracts](../../skills/md2asm/references/openifs/) define each routine's shapes, units, arithmetic, interfaces and output formats. GP_SPV and GPHPRE use the shared scalar exp/log library described below. Inspect all accepted objects for forbidden instructions and check the floating-point control register, FPCR. Compiler output is used for verification only.
 
 ## Freeze pressure math
 
@@ -105,7 +106,7 @@ Download the fixed Arm math source into the ignored runtime directory, preservin
 
 ```bash
 git clone --depth 1 --branch v26.01 git@github.com:ARM-software/optimized-routines.git .runtime/openifs/arm-math-source
-mkdir -p .runtime/openifs/strict-math .runtime/openifs/gp_spv
+mkdir -p .runtime/openifs/strict-math .runtime/openifs/gp_spv .runtime/openifs/gphpre
 math_source=.runtime/openifs/arm-math-source/math
 gcc -shared -fPIC -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math \
   -DHAVE_FAST_FMA=0 -DHAVE_FAST_ROUND=0 -DWANT_ERRNO=1 \
@@ -127,11 +128,21 @@ pressure_math="$PWD/.runtime/openifs/strict-math/libpressure-math.so"
 LD_PRELOAD="$pressure_math" .runtime/openifs/gp_spv/verify \
   .runtime/openifs/gp_spv/assembly.bin .runtime/openifs/gp_spv/fortran.bin
 cmp .runtime/openifs/gp_spv/assembly.bin .runtime/openifs/gp_spv/fortran.bin
+
+gcc -fPIC -Dgphpre_=gphpre_assembly_ -c src/openifs/dynamics/gphpre.S \
+  -o .runtime/openifs/gphpre/assembly.o
+gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -Wall -Wextra -Werror \
+  bench/openifs/dynamics/gphpre.c .runtime/openifs/gphpre/assembly.o \
+  -L "$strict_build/lib" -larpifs.DP -lfiat -lm -ldl \
+  -Wl,-rpath,"$strict_build/lib" -o .runtime/openifs/gphpre/verify
+LD_PRELOAD="$pressure_math" .runtime/openifs/gphpre/verify \
+  .runtime/openifs/gphpre/assembly.bin .runtime/openifs/gphpre/fortran.bin
+cmp .runtime/openifs/gphpre/assembly.bin .runtime/openifs/gphpre/fortran.bin
 ```
 
 ## Verify calls in the forecast
 
-Build the comparison library, then use a fresh copy of the upstream T21 test directory with its input links intact. Set IFS_EXECUTABLE in its local ifs_env to the strict-source executable. Make a separate Fortran baseline with pressure_math preloaded, then use both libraries for the mixed forecast. The original installation remains unchanged.
+Build the comparison libraries, then use a fresh copy of the upstream T21 test directory with its input links intact. Set IFS_EXECUTABLE in its local ifs_env to the strict-source executable. Make a separate Fortran baseline with pressure_math preloaded, then preload both comparison libraries and pressure_math for the mixed forecast. The original installation remains unchanged.
 
 ```bash
 mkdir -p .runtime/openifs/dynamics-library
@@ -150,9 +161,14 @@ gcc -shared -fPIC -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math \
   .runtime/openifs/gpgrxyb/assembly.o .runtime/openifs/gptco3/assembly.o \
   .runtime/openifs/gp_spv/assembly.o -ldl -lm -o \
   .runtime/openifs/dynamics-library/libverify-surface-pressure.so
+gcc -shared -fPIC -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math \
+  -Wall -Wextra -Werror bench/openifs/dynamics/gphpre_forecast.c \
+  .runtime/openifs/gphpre/assembly.o -ldl -lm \
+  -o .runtime/openifs/gphpre/libverify-gphpre-reviewed.so
+pressure_library="$PWD/.runtime/openifs/gphpre/libverify-gphpre-reviewed.so"
 verification_library="$PWD/.runtime/openifs/dynamics-library/libverify-surface-pressure.so"
 cd /path/to/fresh/t21/test_fc
-srun --jobid="$SLURM_JOB_ID" --overlap --exact --nodes=1 --ntasks=1 --cpus-per-task=1 --mpi=cray_shasta --cpu-bind=cores --mem-bind=local ./ifs-run --nproc=1 --nthread=1 --launch="env LD_PRELOAD=$verification_library:$pressure_math"
+srun --jobid="$SLURM_JOB_ID" --overlap --exact --nodes=1 --ntasks=1 --cpus-per-task=1 --mpi=cray_shasta --cpu-bind=cores --mem-bind=local ./ifs-run --nproc=1 --nthread=1 --launch="env LD_PRELOAD=$pressure_library:$verification_library:$pressure_math"
 cmp cpspe-assembly.bin cpspe-fortran.bin
 cmp gprcp-assembly.bin gprcp-fortran.bin
 cmp gppwc-assembly.bin gppwc-fortran.bin
@@ -164,6 +180,11 @@ cmp wind-assembly.bin wind-fortran.bin
 cmp gpgrxyb-assembly.bin gpgrxyb-fortran.bin
 cmp gptco3-assembly.bin gptco3-fortran.bin
 cmp gp_spv-assembly.bin gp_spv-fortran.bin
+cmp gphpre-assembly.bin gphpre-fortran.bin
 ```
 
-LD_PRELOAD selects the local comparison routines when OpenIFS calls the eleven routines. Each comparison routine calls the complete assembly update and the original Fortran update on separate outputs. GPRT's comparison accepts absent moisture-gradient inputs when the selected mode does not use them. The coarse forecast uses the virtual-temperature mode, while the critical check also covers both other modes. GPGRP handles both conventional layers and the finite-element scheme, which represents vertical variation with basis functions. The coarse forecast uses the finite-element mode, while its small check covers both. GPMKTEND preserves descriptor order and copies each tracer rate without another arithmetic operation. GPADDSLPHY preserves vertical boundary storage and skips the first step. Both modes occur in the forecast. The wind routine's forecast calls use no Rayleigh damping. Its critical check verifies all four damping modes, including tilted geometry and coefficient lower bounds 1, 0 and -1. GPGRXYB uses the caller's actual field capacity for buffer checks and raw captures. Its forecast uses finite-element mode with coefficient outputs disabled. Its critical check covers all four pressure modes and guarded six- and nine-field arrays. GPTCO3 integrates physical ozone mass in its small checks. CPEDIA uses the same routine for signed moisture-change rates in every captured forecast call, producing kg/m²/s. The critical check also verifies this rate against a separate water-column balance. The ozone-specific forecast branch is inactive. GP_SPV updates only the current pressure in this two-time-level forecast, while the critical check covers every previous-level decision. Compare every ICMSH and ICMUA output file directly with the separate Fortran run, then archive hashes to identify the compared files.
+LD_PRELOAD selects the local comparison routines when OpenIFS calls the twelve routines. Each comparison routine calls the complete assembly update and the original Fortran update on separate outputs. GPRT's comparison accepts absent moisture-gradient inputs when the selected mode does not use them. The coarse forecast uses the virtual-temperature mode, while the critical check also covers both other modes. GPGRP handles both conventional layers and the finite-element scheme, which represents vertical variation with basis functions. The coarse forecast uses the finite-element mode, while its small check covers both.
+
+GPMKTEND preserves descriptor order and copies each tracer rate without another arithmetic operation. GPADDSLPHY preserves vertical boundary storage and skips the first step. Both modes occur in the forecast. The wind routine's forecast calls use no Rayleigh damping. Its critical check verifies all four damping modes, including tilted geometry and coefficient lower bounds 1, 0 and -1.
+
+GPGRXYB uses the caller's actual field capacity for buffer checks and raw captures. Its forecast uses finite-element mode with coefficient outputs disabled. Its critical check covers all four pressure modes and guarded six- and nine-field arrays. GPTCO3 integrates physical ozone mass in its small checks. CPEDIA uses the same routine for signed moisture-change rates in every captured forecast call, producing kg/m²/s. The critical check also verifies this rate against a separate water-column balance. The ozone-specific forecast branch is inactive. GP_SPV updates only the current pressure in this two-time-level forecast, while the critical check covers every previous-level decision. GPHPRE's forecast calls use finite-element pressure weights and all three observed optional-output combinations. Its critical check also covers conventional pressures, mixed top selection and a single closed layer with absent unused coefficients. Compare every ICMSH and ICMUA output file directly with the separate Fortran run, then archive hashes to identify the compared files.

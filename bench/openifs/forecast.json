@@ -1,6 +1,6 @@
 {
-  "date_utc": "2026-10-09T12:38:10.799625+00:00",
-  "scope": "T21 forecast with eleven complete direct assembly routines and remaining stages in Fortran",
+  "date_utc": "2026-10-09T13:40:59.502780+00:00",
+  "scope": "T21 forecast with twelve complete direct assembly routines and remaining stages in Fortran",
   "job_id": 7189435,
   "node": "nid010825",
   "ranks": 1,
@@ -20,8 +20,8 @@
   "nominal_step_seconds": 3600,
   "fpcr": "0000000000000000",
   "fortran_baseline": ".runtime/openifs/runs/strict-math-fortran-7189435/t21/test_fc",
-  "raw_archive": ".runtime/openifs/runs/strict-surface-pressure-asm-7189435/t21/test_fc",
-  "previous_forecast_record_commit": "d88e5d16458fe2e142c2edad2e2727be41a18fba",
+  "raw_archive": ".runtime/openifs/runs/strict-layer-pressure-reviewed-7189435/t21/test_fc",
+  "previous_forecast_record_commit": "211cbcd1bc0e0d5019c81b13a231f57515134a93",
   "complete_assembly_routines": [
     "CPSPE",
     "GPRCP",
@@ -33,7 +33,8 @@
     "GP_TNDLAGADIAB_UV",
     "GPGRXYB",
     "GPTCO3",
-    "GP_SPV"
+    "GP_SPV",
+    "GPHPRE"
   ],
   "routines": {
     "cpspe": {
@@ -48,9 +49,9 @@
     },
     "gprcp": {
       "bytes": 81643584,
-      "assembly_sha256": "fbf60b536c1759950ae77c1a0e0ba8eee63607efa4f94bbf197f9504517ff259",
-      "fortran_sha256": "fbf60b536c1759950ae77c1a0e0ba8eee63607efa4f94bbf197f9504517ff259",
-      "input_sha256": "6724e501a45a0af0c8926bacbb44978548e0e54dbf3eda3d497a84157c9c42c9",
+      "assembly_sha256": "32adfcd4dac46251235b57de5535867a890e54aa524c39d886f41f8adadb7116",
+      "fortran_sha256": "32adfcd4dac46251235b57de5535867a890e54aa524c39d886f41f8adadb7116",
+      "input_sha256": "9451779d60a040575088f8c279ec61cda38a079252c18f70a3ed799e5e29ceed",
       "input_bytes": 481964640,
       "differing_bytes": 0,
       "calls": 13846,
@@ -58,9 +59,9 @@
     },
     "gppwc": {
       "bytes": 140145600,
-      "assembly_sha256": "80cefa7bbca918506f9b17572d0dc050a895f11a71cb59179410051969a6cfe8",
-      "fortran_sha256": "80cefa7bbca918506f9b17572d0dc050a895f11a71cb59179410051969a6cfe8",
-      "input_sha256": "a07f012e5cc9b2349be8b43de9324761ebe0d729eb0a06182cbb562c5e314fbf",
+      "assembly_sha256": "a1991444c7427e02f474c8cf053fe7217f66eee85bc6e0e08ac2645c7df52fb4",
+      "fortran_sha256": "a1991444c7427e02f474c8cf053fe7217f66eee85bc6e0e08ac2645c7df52fb4",
+      "input_sha256": "cbda133c2dfbe18f545d1778912966094b879a9aa1c71eb69beba9c8866f6504",
       "input_bytes": 410612160,
       "differing_bytes": 0,
       "calls": 36120,
@@ -68,9 +69,9 @@
     },
     "gprt": {
       "bytes": 23598400,
-      "assembly_sha256": "3a2dd7f766622890aa258b9766a58f3603c8dd8d6757855a9130c0d0196d499a",
-      "fortran_sha256": "3a2dd7f766622890aa258b9766a58f3603c8dd8d6757855a9130c0d0196d499a",
-      "input_sha256": "383cd879925146b76f6c24d3b1a81d50726739e4f0a35e87aa4acc201df90adb",
+      "assembly_sha256": "4ae7146b5b1c6d8b5413df38241c29758a1387d29af4f9520f57873ae2ee6243",
+      "fortran_sha256": "4ae7146b5b1c6d8b5413df38241c29758a1387d29af4f9520f57873ae2ee6243",
+      "input_sha256": "54322a3fd4adb55e7d34c6fa4f809bc18b3b48e6e3359dabec76ec1146f7ff5a",
       "input_bytes": 55005600,
       "differing_bytes": 0,
       "calls": 2150,
@@ -78,9 +79,9 @@
     },
     "gpgrp": {
       "bytes": 15910000,
-      "assembly_sha256": "be3af2fa12db7ca356c12dd70993f10f38ebc85aec1ba837e51d779487a0932d",
-      "fortran_sha256": "be3af2fa12db7ca356c12dd70993f10f38ebc85aec1ba837e51d779487a0932d",
-      "input_sha256": "48598ee7eac81e2d6e82887e445922f5d897a8094f12afbf3ac1cb3ee0d4d091",
+      "assembly_sha256": "28a44ff678759314e4d4d0fefbc02d3b6ee4e85ca14fbf3208aa35478a171277",
+      "fortran_sha256": "28a44ff678759314e4d4d0fefbc02d3b6ee4e85ca14fbf3208aa35478a171277",
+      "input_sha256": "cb208254e84c92529d81a4796428f7f458d9138499b460468958436193b038f1",
       "input_bytes": 95167600,
       "differing_bytes": 0,
       "calls": 2150,
@@ -88,9 +89,9 @@
     },
     "gpmktend": {
       "bytes": 117957600,
-      "assembly_sha256": "8dd486cc4372d68bf6237f2496d0936d8c6f354b9aa109c5c4e56ecfda07a5ba",
-      "fortran_sha256": "8dd486cc4372d68bf6237f2496d0936d8c6f354b9aa109c5c4e56ecfda07a5ba",
-      "input_sha256": "0973f52c8b19b706b240e09cf373c518710c8d1635cf6c45ef0a8456f6a84bbc",
+      "assembly_sha256": "ae3e9fbd48f69cd8e4d27a680ef9297824d8d292e2138b503e2411e8c34b7e41",
+      "fortran_sha256": "ae3e9fbd48f69cd8e4d27a680ef9297824d8d292e2138b503e2411e8c34b7e41",
+      "input_sha256": "9f3ce63f46a5592179b4c7ee111be18b0280a1a84aa9575e9b8262c28d9e5d2e",
       "input_bytes": 204232800,
       "differing_bytes": 0,
       "calls": 2150,
@@ -98,9 +99,9 @@
     },
     "gpaddslphy": {
       "bytes": 43636400,
-      "assembly_sha256": "07470aac9ffce1f3352f204b1f464c5aa612a3d74001ae15c746bf0e685160e5",
-      "fortran_sha256": "07470aac9ffce1f3352f204b1f464c5aa612a3d74001ae15c746bf0e685160e5",
-      "input_sha256": "702c2778962ee0d58b2a6feccae42d4288ee966d46bd766fed6a6438ffa394df",
+      "assembly_sha256": "727c1e34efd87f0620b215f3c00669f7ff432e7cdda72736fb90813953b96b51",
+      "fortran_sha256": "727c1e34efd87f0620b215f3c00669f7ff432e7cdda72736fb90813953b96b51",
+      "input_sha256": "a290ee40985926b4bed31e5ee5ad030b23c7b3bf68f9d1b49a560494ce6fcc82",
       "input_bytes": 81283760,
       "differing_bytes": 0,
       "calls": 2150,
@@ -108,9 +109,9 @@
     },
     "wind": {
       "bytes": 31536200,
-      "assembly_sha256": "dfa94238a97e8b932155e519a86eba64c68e23278d4257156b93e8d097229d62",
-      "fortran_sha256": "dfa94238a97e8b932155e519a86eba64c68e23278d4257156b93e8d097229d62",
-      "input_sha256": "44d76388a5b42553d5b992345fcad4fec25218908d1c5f43c6deab49c4f6afac",
+      "assembly_sha256": "e464c6e4b4523882f88faf40de5555d3f87c6413d3ea26d66165eb714c1b0f3a",
+      "fortran_sha256": "e464c6e4b4523882f88faf40de5555d3f87c6413d3ea26d66165eb714c1b0f3a",
+      "input_sha256": "1eddcbd72d6031d6c369e729c8e48dfbb943bf14559364cba119bd04344c2d87",
       "input_bytes": 188813000,
       "differing_bytes": 0,
       "calls": 2150,
@@ -118,9 +119,9 @@
     },
     "gpgrxyb": {
       "bytes": 47420400,
-      "assembly_sha256": "a9af59d5ace635ba1232a568fd0c467741a89f13bf2946636014261b34df4720",
-      "fortran_sha256": "a9af59d5ace635ba1232a568fd0c467741a89f13bf2946636014261b34df4720",
-      "input_sha256": "03fddf250ad8bb9e77f7893ff7d541909c5e5da9c1b77da420ea7b951e0478f5",
+      "assembly_sha256": "1354e5573cb41ce9922cabea45a0f0471982dca4a00fe56a382d0a6322a91ff5",
+      "fortran_sha256": "1354e5573cb41ce9922cabea45a0f0471982dca4a00fe56a382d0a6322a91ff5",
+      "input_sha256": "78586739199a0fbdf5165736954268b76326325055e20f4f5ed502f6fc9f46cd",
       "input_bytes": 103475200,
       "differing_bytes": 0,
       "calls": 2150,
@@ -128,9 +129,9 @@
     },
     "gptco3": {
       "bytes": 490200,
-      "assembly_sha256": "9e9f1c6b5aed859ba780fd58b82e86cb30a15608e2700d8ce2fdeb06d22b343f",
-      "fortran_sha256": "9e9f1c6b5aed859ba780fd58b82e86cb30a15608e2700d8ce2fdeb06d22b343f",
-      "input_sha256": "de0006a77b09e6d4b240ed1246b8d3034ffce993e18044014147681a478b01ff",
+      "assembly_sha256": "e15a5bbc7e76e6c3514121522d243bdbe769a6ac3643c1e94de500a6f264af3b",
+      "fortran_sha256": "e15a5bbc7e76e6c3514121522d243bdbe769a6ac3643c1e94de500a6f264af3b",
+      "input_sha256": "3897bb42df4080183e703a03f391582c2c036ba51f86ff00308fc6d581d74bca",
       "input_bytes": 16176600,
       "differing_bytes": 0,
       "calls": 2150,
@@ -138,13 +139,23 @@
     },
     "gp_spv": {
       "bytes": 18257800,
-      "assembly_sha256": "13112f8b5d5b46f539cd53b8366b637f617f38e1e5ac21f8b41a1595f9cfeabb",
-      "fortran_sha256": "13112f8b5d5b46f539cd53b8366b637f617f38e1e5ac21f8b41a1595f9cfeabb",
-      "input_sha256": "16bdd8e23ccdf8ea044288b5b7d2272db65b02fe3cabb25367ce1f88e13b78fb",
+      "assembly_sha256": "9d345eba83276edc0af70fe7b3bd90d01fa9eac5f8e31b5f34a757ea30de43f4",
+      "fortran_sha256": "9d345eba83276edc0af70fe7b3bd90d01fa9eac5f8e31b5f34a757ea30de43f4",
+      "input_sha256": "eb58f330e78d6a142123d86c4d227230b3b0d4f9984309100a01f210ec680407",
       "input_bytes": 19496200,
       "differing_bytes": 0,
       "calls": 2150,
       "record": "dynamics/gp_spv.json"
+    },
+    "gphpre": {
+      "bytes": 338650208,
+      "assembly_sha256": "c2582d4e548e49ef8afc371d5e4820ee8851b5ad8c5929aea27b761f6b3c5571",
+      "fortran_sha256": "c2582d4e548e49ef8afc371d5e4820ee8851b5ad8c5929aea27b761f6b3c5571",
+      "input_sha256": "dc912d87d29590fbd4f520c038b9d5175f42d0d9446d311f7ce2ab8c9b008429",
+      "input_bytes": 349630080,
+      "differing_bytes": 0,
+      "calls": 14649,
+      "record": "dynamics/gphpre.json"
     }
   },
   "outputs": [
@@ -219,5 +230,6 @@
   "all_forecast_raw_stages_captured": false,
   "whole_forecast_independent_physics_verified": false,
   "external_numerical_libraries_fully_audited": false,
-  "comparative_timing_performed": false
+  "comparative_timing_performed": false,
+  "pressure_verification_library_sha256": "a968d9c438912208a82fb089a7bb4abcf2713c1d2d0b1db579ea30bf2fec6837"
 }
