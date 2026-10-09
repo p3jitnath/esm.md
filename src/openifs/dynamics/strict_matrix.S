@@ -69,6 +69,94 @@ verdisint_strict_nt_fp64_:
     mov x0, x11
     mov x1, x8
     mov w14, w3
+    /* Independent points share one coefficient without changing their sums. */
+    cmp w2, #8
+    b.lt .Lmatrix_row
+.Lmatrix_vector_row:
+    mov x5, x6
+    mov x10, x0
+    mov w13, w2
+.Lmatrix_vector_block:
+    cmp w13, #8
+    b.lt .Lmatrix_vector_tail
+    movi v0.16b, #0
+    movi v1.16b, #0
+    movi v2.16b, #0
+    movi v3.16b, #0
+    mov x15, x5
+    mov x16, x1
+    mov w17, w4
+    cbz w17, .Lmatrix_vector_store
+.Lmatrix_vector_column:
+    ld1r {v16.2d}, [x16]
+    ldp q4, q5, [x15, #0]
+    ldp q6, q7, [x15, #32]
+    fmul v4.2d, v4.2d, v16.2d
+    fmul v5.2d, v5.2d, v16.2d
+    fmul v6.2d, v6.2d, v16.2d
+    fmul v7.2d, v7.2d, v16.2d
+    fadd v0.2d, v0.2d, v4.2d
+    fadd v1.2d, v1.2d, v5.2d
+    fadd v2.2d, v2.2d, v6.2d
+    fadd v3.2d, v3.2d, v7.2d
+    add x15, x15, x7
+    add x16, x16, x9
+    subs w17, w17, #1
+    b.ne .Lmatrix_vector_column
+.Lmatrix_vector_store:
+    stp q0, q1, [x10, #0]
+    stp q2, q3, [x10, #32]
+    add x5, x5, #64
+    add x10, x10, #64
+    sub w13, w13, #8
+    b .Lmatrix_vector_block
+.Lmatrix_vector_tail:
+    cmp w13, #2
+    b.lt .Lmatrix_vector_scalar
+    movi v0.16b, #0
+    mov x15, x5
+    mov x16, x1
+    mov w17, w4
+    cbz w17, .Lmatrix_pair_store
+.Lmatrix_pair_column:
+    ldr q4, [x15]
+    ld1r {v16.2d}, [x16]
+    fmul v4.2d, v4.2d, v16.2d
+    fadd v0.2d, v0.2d, v4.2d
+    add x15, x15, x7
+    add x16, x16, x9
+    subs w17, w17, #1
+    b.ne .Lmatrix_pair_column
+.Lmatrix_pair_store:
+    str q0, [x10]
+    add x5, x5, #16
+    add x10, x10, #16
+    sub w13, w13, #2
+    b .Lmatrix_vector_tail
+.Lmatrix_vector_scalar:
+    cbz w13, .Lmatrix_vector_next_row
+    fmov d0, xzr
+    mov x15, x5
+    mov x16, x1
+    mov w17, w4
+    cbz w17, .Lmatrix_scalar_store
+.Lmatrix_scalar_column:
+    ldr d1, [x15]
+    ldr d2, [x16]
+    fmul d1, d1, d2
+    fadd d0, d0, d1
+    add x15, x15, x7
+    add x16, x16, x9
+    subs w17, w17, #1
+    b.ne .Lmatrix_scalar_column
+.Lmatrix_scalar_store:
+    str d0, [x10]
+.Lmatrix_vector_next_row:
+    add x1, x1, #8
+    add x0, x0, x12
+    subs w14, w14, #1
+    b.ne .Lmatrix_vector_row
+    ret
 .Lmatrix_row:
     mov x5, x6
     mov x10, x0
