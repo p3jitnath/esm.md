@@ -1,0 +1,139 @@
+{
+  "routine": "radiation_ice_optics_fu::calc_ice_optics_fu_sw",
+  "implementation_status": "Complete direct body accepted by independent critical physics and combined full T21 forecast",
+  "contract": "skills/md2asm/references/openifs/physics/calc_ice_optics_fu_sw.md",
+  "native": "src/openifs/physics/calc_ice_optics_fu_sw.S",
+  "critical_driver": "bench/openifs/physics/calc_ice_optics_fu_sw.c",
+  "forecast_driver": "bench/openifs/physics/calc_ice_optics_fu_sw_forecast.c",
+  "generation_route": "direct emission from frozen source equations, units and ABI; no numerical compiler assembly/IR before emission",
+  "contract_revision": "1.1; numerical contract and corpus frozen at 1.0",
+  "pre_emission_freeze": {
+    "path": ".runtime/openifs/calc_ice_optics_fu_sw/frozen/pre-emission-contract-corpus.json",
+    "sha256": "04700eb6d28a660a03cbb877fd50500d5da5b6812f72052fec7d75dc9232bc44",
+    "bytes": 6071
+  },
+  "first_emission_utc": "2026-10-09T20:28:33.122718+00:00",
+  "critical": {
+    "cases": 331,
+    "complete_output_guard_bytes": 94320,
+    "differing_bytes": 0,
+    "independent_band_points": 3599,
+    "physical_band_points": 2474,
+    "negative_zero_values": 1125,
+    "nonzero_subnormal_values": 1125,
+    "direct_ABI_calls": 331,
+    "FPCR": 0,
+    "protected_inputs_outputs_and_full_descriptor_strides": true
+  },
+  "independent_water_path_linearity": {
+    "configured_table_band_checks": 168,
+    "exact_doubling": true,
+    "zero_water_zero_depth": true,
+    "asymmetry_independent_of_water": true,
+    "source_and_native_direct_bytes_equal": true
+  },
+  "forecast": {
+    "current_reference_calls": 223175,
+    "historical_trace_calls": 223313,
+    "bands": 14,
+    "band_points": 3124450,
+    "complete_input_record_bytes": 333869800,
+    "complete_result_record_bytes_per_stream": 83913800,
+    "step_calls": [
+      10003,
+      10724,
+      10605,
+      10254,
+      9801,
+      9328,
+      9023,
+      8784,
+      8580,
+      8472,
+      8446,
+      8360,
+      8304,
+      8227,
+      8227,
+      8207,
+      8210,
+      8370,
+      8514,
+      8565,
+      8703,
+      8769,
+      8819,
+      8886,
+      8994
+    ],
+    "source_return_offset": "0xb076b4",
+    "ice_water_path_kg_m2": [
+      1.43626136635857e-11,
+      4096.039891341274
+    ],
+    "radius_m": [
+      1.491101029527547e-05,
+      0.0001006756
+    ],
+    "all_optical_bounds_checked": true,
+    "complete_native_vs_reference_vs_pre_emission_source_streams_directly_equal": true,
+    "differing_bytes": 0,
+    "saved_files": 10,
+    "saved_file_total_bytes": 618140,
+    "saved_files_directly_equal_current_strict_reference": true,
+    "FPCR_zero_every_entry": true
+  },
+  "instructions": {
+    "native": 82,
+    "strict_source": 88,
+    "native_stack_frame_bytes": 0,
+    "inspection_after_emission": true
+  },
+  "capacity": "seven register addresses, no stack arguments; complete nb-row outputs and at least nb by ten GNU rank-two coefficient storage; nonunit and reversed strides supported",
+  "scientific_scope": "configured physical table/radius domain plus manufactured optical limits; signed-zero/subnormal/conversion-order cases are numerical checks",
+  "excluded": "longwave helper, caller compatibility transform, delta scaling and radiative-transfer solver",
+  "comparative_timing": null,
+  "parent_combined_integration": {
+    "accepted": true,
+    "calls": 223175,
+    "complete_record_bytes": 83913800,
+    "differing_bytes": 0,
+    "raw_archive": ".runtime/openifs/runs/strict-ice-fu-sw-combined-reviewed-r2-7189435/t21/test_fc",
+    "evidence": {
+      "path": ".runtime/openifs/runs/strict-ice-fu-sw-combined-reviewed-r2-7189435/t21/direct-comparison.json",
+      "sha256": "741221f7bec4960976989279e7070a7abc130865395cec045e630d3db2857a4b"
+    },
+    "paired_streams_identical": 28,
+    "saved_files_identical": 10,
+    "source_only_pre_emission_stream_directly_identical": true
+  },
+  "full_manifest": {
+    "path": ".runtime/openifs/calc_ice_optics_fu_sw/final-manifest.json",
+    "sha256": "6eb31bd43e586bc342fdcfcbb60bb186738698a3abeeeb6480311d70a0ecef87",
+    "bytes": 15679
+  },
+  "build_commands": {
+    "path": ".runtime/openifs/calc_ice_optics_fu_sw/build-commands.sh",
+    "sha256": "f811f25b9c9ee12edb46950385e8b11a0318af2c8fd52f58e2a6ee5eff02745e",
+    "bytes": 3092
+  },
+  "forecast_commands": {
+    "path": ".runtime/openifs/calc_ice_optics_fu_sw/forecast-commands.sh",
+    "sha256": "67a62251fa0dac6f524a3fcc1654befa43f2569fa0e65c822aa62c70a244e583",
+    "bytes": 3552
+  },
+  "parent_observer": {
+    "revision": "1.1",
+    "changes": "Correct physical name in metadata only; native and diagnostic newline escapes unchanged",
+    "evidence": {
+      "path": ".runtime/openifs/calc_ice_optics_fu_sw/parent-observer-r2/parent-observer-review.json",
+      "sha256": "d476efc3c484d584e2c9673dba29303115623818e00eed7f2ebb7fc6a0b2539e"
+    }
+  },
+  "accepted_sources": {
+    "src/openifs/physics/calc_ice_optics_fu_sw.S": "aa493a940cc9e2ccb4a3f3ef2859229cb1bf37f57dede656ec98404ec0f34ff4",
+    "skills/md2asm/references/openifs/physics/calc_ice_optics_fu_sw.md": "2a350462ca53076cefbe4f20551b93e7356ebb84d6a621f74b7e08ff7f4475f2",
+    "bench/openifs/physics/calc_ice_optics_fu_sw.c": "8fc6e572a5d43639456880f3d06a2cf2cbaca808001260d7786a7b3b64a5a540",
+    "bench/openifs/physics/calc_ice_optics_fu_sw_forecast.c": "d057e7b7612c33f0ee749f6e803d5674a2ee97d3d1f464258a2a814a0fe7c2b0"
+  }
+}
