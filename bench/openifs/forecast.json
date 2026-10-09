@@ -1,6 +1,6 @@
 {
-  "date_utc": "2026-10-09T17:21:07.750138+00:00",
-  "scope": "T21 historical forecast with twenty accepted public native bodies; VERDER is critical-only in this case and remaining stages are Fortran",
+  "date_utc": "2026-10-09T17:59:28.437160+00:00",
+  "scope": "T21 historical forecast with twenty-one accepted public native bodies; VERDER is critical-only in this case and remaining stages are Fortran",
   "job_id": 7189435,
   "node": "nid010825",
   "ranks": 1,
@@ -20,8 +20,8 @@
   "nominal_step_seconds": 3600,
   "fpcr": "0000000000000000",
   "fortran_baseline": ".runtime/openifs/runs/strict-vertical-fortran-7189435/t21/test_fc",
-  "raw_archive": ".runtime/openifs/runs/strict-vector-vertical-7189435/t21/test_fc",
-  "previous_forecast_record_commit": "7cb8bfbb004117dfcaaa30736e84c1d9e1b1e2b1",
+  "raw_archive": ".runtime/openifs/runs/strict-sigam-v8-7189435/t21/test_fc",
+  "previous_forecast_record_commit": "84a3e421a6da376b95580c6cd0a57058409ee408",
   "complete_assembly_routines": [
     "CPSPE",
     "GPRCP",
@@ -42,7 +42,8 @@
     "GPGRGEO",
     "GPTF1",
     "GPTF2",
-    "CTVTOT"
+    "CTVTOT",
+    "SIGAM"
   ],
   "routines": {
     "cpspe": {
@@ -57,10 +58,10 @@
     },
     "gprcp": {
       "bytes": 81643584,
-      "assembly_sha256": "b03942a430bf7852ad5f4c59418358f7d47a68ff2d944e3341a15c59c1b9d27c",
-      "fortran_sha256": "b03942a430bf7852ad5f4c59418358f7d47a68ff2d944e3341a15c59c1b9d27c",
+      "assembly_sha256": "d3fc29a8c2c2730ff2eb6a9c596314f75b447e730a4d294cf45dbae02e8ee308",
+      "fortran_sha256": "d3fc29a8c2c2730ff2eb6a9c596314f75b447e730a4d294cf45dbae02e8ee308",
       "input_bytes": 466389008,
-      "input_sha256": "05d6f048efb18d53fbbf4c3ecd97e7f5387db9b189cf5be32d795d022325d0af",
+      "input_sha256": "52eaab60106bbd2cce0be7ae4d1aa814e8882755951b245df20a26712d5a6555",
       "differing_bytes": 0,
       "calls": 13846,
       "record": "dynamics/gprcp.json",
@@ -73,10 +74,10 @@
     },
     "gppwc": {
       "bytes": 140145600,
-      "assembly_sha256": "8dcee6b143fa5725eb48f284ccece68a07e390460897ae2c49e47cb4ed4091ba",
-      "fortran_sha256": "8dcee6b143fa5725eb48f284ccece68a07e390460897ae2c49e47cb4ed4091ba",
+      "assembly_sha256": "8b8e1d6d4db07e1c411e1fb5048fa5f99f241f1f6567567f80a5e63864c306f1",
+      "fortran_sha256": "8b8e1d6d4db07e1c411e1fb5048fa5f99f241f1f6567567f80a5e63864c306f1",
       "input_bytes": 410612160,
-      "input_sha256": "978b564be16908860833471d229128d7254f5ced209edb108372df30e95df6ba",
+      "input_sha256": "2e059495b3b2e314b4fec1690caa22b2d10ede134baaf41a1e4cd5600344b573",
       "differing_bytes": 0,
       "calls": 36120,
       "record": "dynamics/gppwc.json",
@@ -86,10 +87,10 @@
     },
     "gprt": {
       "bytes": 23598400,
-      "assembly_sha256": "db032613e37e06d9f4ed5aaa8201feeb537c73605feda12d1bbca6bb564e8ae6",
-      "fortran_sha256": "db032613e37e06d9f4ed5aaa8201feeb537c73605feda12d1bbca6bb564e8ae6",
+      "assembly_sha256": "9af7b0c4952430acadee0e6b278eadc48d375dd67771fd62c8a431422c9b61b1",
+      "fortran_sha256": "9af7b0c4952430acadee0e6b278eadc48d375dd67771fd62c8a431422c9b61b1",
       "input_bytes": 55005600,
-      "input_sha256": "4a0cb6bc3f2ddb9302c701b51b230bbd695c96b4f425dfe1e11f1216bac3f97e",
+      "input_sha256": "f1f37e6cb82897e073797a81c47b5179ec0a18916c34431563cc015a2b87f26b",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "dynamics/gprt.json",
@@ -101,10 +102,10 @@
     },
     "gpgrp": {
       "bytes": 15910000,
-      "assembly_sha256": "f24a4cf0a98ec31269e0f47ada58219264581007ed4bca8c76c68fba94671e6c",
-      "fortran_sha256": "f24a4cf0a98ec31269e0f47ada58219264581007ed4bca8c76c68fba94671e6c",
+      "assembly_sha256": "81371f9eb7ed8c10802df4bb0b31ebc7ce59cb0d955ddc7248d59920778932ff",
+      "fortran_sha256": "81371f9eb7ed8c10802df4bb0b31ebc7ce59cb0d955ddc7248d59920778932ff",
       "input_bytes": 95167600,
-      "input_sha256": "437431566829b0baedb6fc425e5db1cc446004b315a9d590b0dffb01952563f1",
+      "input_sha256": "b4ae3f34449fe2b6a691a9f95decc555afe7cef22758d87d45dc496f36260ec1",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "dynamics/gpgrp.json",
@@ -115,10 +116,10 @@
     },
     "gpmktend": {
       "bytes": 117957600,
-      "assembly_sha256": "486eb11492962f6fc3b2b220fba94fd0d7f7dfab3f6544369cd781121ab7016e",
-      "fortran_sha256": "486eb11492962f6fc3b2b220fba94fd0d7f7dfab3f6544369cd781121ab7016e",
+      "assembly_sha256": "1cf126b841b2ffbf44f87e6ecbb0635f9d00f9d3dd1b3889d815babc5c306f29",
+      "fortran_sha256": "1cf126b841b2ffbf44f87e6ecbb0635f9d00f9d3dd1b3889d815babc5c306f29",
       "input_bytes": 204232800,
-      "input_sha256": "e37005141ce7ebff0f77b67922d309427b3ef00ca9df5173936044c2c7fc16fb",
+      "input_sha256": "335f3537dbb2b96838ece88632ac4b8798dbc41c8d95bef2396654ef68e4eda6",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "dynamics/gpmktend.json",
@@ -128,10 +129,10 @@
     },
     "gpaddslphy": {
       "bytes": 43636400,
-      "assembly_sha256": "e15e482c14fe2f913001bb0e689d206b37a5f038e20f42c157fa3b0259cd502a",
-      "fortran_sha256": "e15e482c14fe2f913001bb0e689d206b37a5f038e20f42c157fa3b0259cd502a",
+      "assembly_sha256": "4bafb7fef22179dd50afa78576fddf19ea118605bcff9daf83e32322691c917c",
+      "fortran_sha256": "4bafb7fef22179dd50afa78576fddf19ea118605bcff9daf83e32322691c917c",
       "input_bytes": 81283760,
-      "input_sha256": "9bcf49bf913a0095604ef4dedd4571c033b3c4049691a9e2af5f9c2194a32fcd",
+      "input_sha256": "5fb11fc1d14dfbc24b17c07373e61658db694a9bf6e9f695fa9b6a2ea7936ddb",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "physics/gpaddslphy.json",
@@ -143,10 +144,10 @@
     },
     "wind": {
       "bytes": 31536200,
-      "assembly_sha256": "5ae785ea959f77ab5e1210d51b3556061b8dbf3d42b1ab565f0fd26d5c89a76a",
-      "fortran_sha256": "5ae785ea959f77ab5e1210d51b3556061b8dbf3d42b1ab565f0fd26d5c89a76a",
+      "assembly_sha256": "495c6f0d96540c8341635ccd2e86de550c0189838c00538ca013e8626b9160a4",
+      "fortran_sha256": "495c6f0d96540c8341635ccd2e86de550c0189838c00538ca013e8626b9160a4",
       "input_bytes": 188813000,
-      "input_sha256": "faa80fee7c7a68fc306e9b8ee4bdbe3a49ec04d59ef28faa55398dc70eb89da6",
+      "input_sha256": "484b467e85ed0371a4d6109f46d02276fbdad2ffecf09d3b9c0e4e1f6911b2cb",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "dynamics/wind_tendency.json",
@@ -159,10 +160,10 @@
     },
     "gpgrxyb": {
       "bytes": 47420400,
-      "assembly_sha256": "5fb7cbde9782d9c2817c11c0557b19876fa8091f69f6faef388a24c53455066e",
-      "fortran_sha256": "5fb7cbde9782d9c2817c11c0557b19876fa8091f69f6faef388a24c53455066e",
+      "assembly_sha256": "efdea34dc9236c6b17f5a2adfef1ba68f9c0ed2816cbc5c849f35e1d44cca6cb",
+      "fortran_sha256": "efdea34dc9236c6b17f5a2adfef1ba68f9c0ed2816cbc5c849f35e1d44cca6cb",
       "input_bytes": 103475200,
-      "input_sha256": "f93a558b1f611e0a3333580e6856d94256eb41369d094c48a3bad30a0893d62d",
+      "input_sha256": "6b412063180d39a170db31e8c773e8c814f2370e4f7fea4eaec29320db0ad472",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "dynamics/gpgrxyb.json",
@@ -176,10 +177,10 @@
     },
     "gptco3": {
       "bytes": 490200,
-      "assembly_sha256": "e6dc60a93d907e5e0299fa55adce78b0b5556db50859b0beb5f9dd4f95f0fb6d",
-      "fortran_sha256": "e6dc60a93d907e5e0299fa55adce78b0b5556db50859b0beb5f9dd4f95f0fb6d",
+      "assembly_sha256": "a07d9a312f80f13d014ebd75b2053fa26f2b693a919234fcab714aadad244171",
+      "fortran_sha256": "a07d9a312f80f13d014ebd75b2053fa26f2b693a919234fcab714aadad244171",
       "input_bytes": 16176600,
-      "input_sha256": "35af0f2de20d9a3ec2eda77c0971553757dc6431c5e433ad5adaac8401da675a",
+      "input_sha256": "c3d2bf68069d6374e09707c862db60eeb11385ec7185618606d2da5138efa935",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "physics/gptco3.json",
@@ -189,10 +190,10 @@
     },
     "gp_spv": {
       "bytes": 18257800,
-      "assembly_sha256": "6654b9ee12311699d4fc494325c95582bc0eea16881f13d2cca957586883fc56",
-      "fortran_sha256": "6654b9ee12311699d4fc494325c95582bc0eea16881f13d2cca957586883fc56",
+      "assembly_sha256": "88b7faa2f515fa126695880e9f1f310ba1149a3d95c84f2daa64cbffedfc5c0a",
+      "fortran_sha256": "88b7faa2f515fa126695880e9f1f310ba1149a3d95c84f2daa64cbffedfc5c0a",
       "input_bytes": 19496200,
-      "input_sha256": "72481a541c0307ead5645417128750620596011edcc7b4b743694d85575d520d",
+      "input_sha256": "767bcc143571db103cc8fcfe315f82ca7988d551306549272fa5ebd398f8ccbf",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "dynamics/gp_spv.json",
@@ -202,10 +203,10 @@
     },
     "gphpre": {
       "bytes": 338650208,
-      "assembly_sha256": "9526ab0c4f22b142c3ee76206caedc5d7e87311410ff1ea87e5183a59cb041d2",
-      "fortran_sha256": "9526ab0c4f22b142c3ee76206caedc5d7e87311410ff1ea87e5183a59cb041d2",
+      "assembly_sha256": "6cc3b9b606792fcd0367de963ff6ea58e2821b392501dbfd9adc7b96d6cd2604",
+      "fortran_sha256": "6cc3b9b606792fcd0367de963ff6ea58e2821b392501dbfd9adc7b96d6cd2604",
       "input_bytes": 349630080,
-      "input_sha256": "b5c693056be3313dfb3015399aaf22c9295cba160bbc622cbbf25220139254c9",
+      "input_sha256": "e282f44c4ca5abfc5e812651c5ec1c57da42610ceef95e257e921f05ffd2c8ac",
       "differing_bytes": 0,
       "calls": 14649,
       "record": "dynamics/gphpre.json",
@@ -239,10 +240,10 @@
     },
     "gpgeo": {
       "bytes": 32559600,
-      "assembly_sha256": "320d15ed4b3ca8346065f1d1aa3384ff9417549b48d8e1f132e5a56facfe74dd",
-      "fortran_sha256": "320d15ed4b3ca8346065f1d1aa3384ff9417549b48d8e1f132e5a56facfe74dd",
+      "assembly_sha256": "b110f2f8a39f43936fdf07426f0521cd3c818504e9b58e9d7b41820d5ab9c70f",
+      "fortran_sha256": "b110f2f8a39f43936fdf07426f0521cd3c818504e9b58e9d7b41820d5ab9c70f",
       "input_bytes": 94720400,
-      "input_sha256": "c02690adee6f2dcd2e9a3a46bf519304cc16175e9857b32d10d5acc77cd46bd1",
+      "input_sha256": "b1455305d4f3ae5e85fdaf9fae07ca91dc9f1c248435e81f18b386377e472c6c",
       "differing_bytes": 0,
       "calls": 4300,
       "record": "dynamics/gpgeo.json",
@@ -253,10 +254,10 @@
     },
     "gpgrgeo": {
       "bytes": 32447800,
-      "assembly_sha256": "0fd8eb2a8222626fcf53246631adccacc56c8ac87ddf266ca2af97c0e35142d2",
-      "fortran_sha256": "0fd8eb2a8222626fcf53246631adccacc56c8ac87ddf266ca2af97c0e35142d2",
+      "assembly_sha256": "ae2821fce185ff6cf2f9e1c27be9de371009c48f341db7dbc41a03f125f685f5",
+      "fortran_sha256": "ae2821fce185ff6cf2f9e1c27be9de371009c48f341db7dbc41a03f125f685f5",
       "input_bytes": 119256200,
-      "input_sha256": "a98100a80c5ae66eb2c42fdc99d55fe0bd7005376a9321a14bf9a097f1d1e472",
+      "input_sha256": "d937cea4524235ec63621c729e54f200bc187460d75cc29d6fe834a6ea48097f",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "dynamics/gpgrgeo.json",
@@ -304,11 +305,11 @@
       }
     },
     "vertical": {
-      "bytes": 254335808,
-      "assembly_sha256": "3a67656cbc657e7ad613b7cdc27e155710709b7a55789b0dddcaa54235ab92f7",
-      "fortran_sha256": "3a67656cbc657e7ad613b7cdc27e155710709b7a55789b0dddcaa54235ab92f7",
-      "input_bytes": 779983736,
-      "input_sha256": "89aa83a53c690b2c1502a08b6c45aefac860c7c08873ea64b6b6d12aef70ce8d",
+      "bytes": 293372800,
+      "assembly_sha256": "830ecd199b30ec0c91b514ea10df119f86596940a1347c57d1bf952553e36244",
+      "fortran_sha256": "830ecd199b30ec0c91b514ea10df119f86596940a1347c57d1bf952553e36244",
+      "input_bytes": 897102424,
+      "input_sha256": "99b66e029fff22eb23e83379e00ad520e37fed9e332854889473686028468c99",
       "differing_bytes": 0,
       "record": "dynamics/verdisint.json",
       "calls": 21559,
@@ -318,9 +319,33 @@
       "live_summary": {
         "genuine_dispatch": 21559,
         "private_integral": 21559,
-        "comparison_dispatch": 8600,
-        "records": 60318
+        "comparison_dispatch": 12926,
+        "records": 68970
       }
+    },
+    "sigam": {
+      "bytes": 305578584,
+      "assembly_sha256": "af3a6f47cf92e24d1681b4c0676cc49f03498ac6fa0ec8337e50fb4cf8d89462",
+      "fortran_sha256": "af3a6f47cf92e24d1681b4c0676cc49f03498ac6fa0ec8337e50fb4cf8d89462",
+      "input_bytes": 332711256,
+      "input_sha256": "dcaade51315c9578134186b90da720a6c31723e83933fcae89a4b8ecc0c2a5d8",
+      "differing_bytes": 0,
+      "live_summary": {
+        "conventional": 0,
+        "finite_element": 4326,
+        "LASSIE": 4300,
+        "SPCSI": 25,
+        "SUBMAT": 1
+      },
+      "calls": 4326,
+      "evidence": ".runtime/openifs/runs/strict-sigam-v8-7189435/t21/direct-comparison.json",
+      "evidence_sha256": "13bcb85d0a1da347ba16737bc106969ebd3e4bd29c516e6c474c900b7420674e",
+      "archive": ".runtime/openifs/runs/strict-sigam-v8-7189435/t21/test_fc",
+      "dependency_library_sha256": "172462664e03eb8d2ce919282021cc9b9f9c1616836784144da7304e3eeedbfc",
+      "native_library_sha256": "3b0f34003a10f941d724dff729815234cf90f35ee1e8cf291d58f49489489e8e",
+      "saved_files_identical": 10,
+      "paired_streams_identical": 19,
+      "record": "dynamics/sigam.json"
     }
   },
   "outputs": [
@@ -387,7 +412,7 @@
   ],
   "all_upstream_output_files_identical": true,
   "all_paired_routine_streams_identical": true,
-  "comparison_method": "Direct cmp for all eighteen captured stream pairs and ten saved forecast files; hashes identify archives.",
+  "comparison_method": "Direct cmp for all nineteen captured stream pairs and ten saved forecast files; hashes identify archives.",
   "verification_library_sha256": "f511fb025e5b082bda4dffe0e757f0dab1a022b4337716004e85db2ff40efc29",
   "pressure_math_library_sha256": "ec54bd97ec32ef0c68fa5c79102eda6781e74d2469a23c448c89f9db3ad31ed1",
   "strict_scientific_library_sha256": "8e4966877c735976f1e9356bc551294bbfc15c565ecdf1dc7db4cf814012b07b",
@@ -402,6 +427,7 @@
   ],
   "verification_libraries_sha256": {
     ".runtime/openifs/verdisint/preparation/libtrace-grid.so": "ede7c8310fbad467b132b56f7478b4892fbc7a5539ab854f8eaf60c85e200c5e",
+    ".runtime/openifs/sigam/parent-v8-forecast/libverify-sigam-v8.so": "3b0f34003a10f941d724dff729815234cf90f35ee1e8cf291d58f49489489e8e",
     ".runtime/openifs/matrix-tuning/forecast/libverify-vertical-v8.so": "172462664e03eb8d2ce919282021cc9b9f9c1616836784144da7304e3eeedbfc",
     ".runtime/openifs/ctvtot/libverify-ctvtot.so": "9347c33b00dbbfd84d26c7bdb5656ba3b714c16b4a62786fa76fb5a9016df2d2",
     ".runtime/openifs/gpgeo/combined-forecast/libverify-gpgeo.so": "d7f8248cef31e1d74bd75cbea711f40d24d94f9ec10d5813b7f1605e6e75feed",
@@ -413,15 +439,15 @@
     ".runtime/openifs/strict-math/libpressure-math.so": "ec54bd97ec32ef0c68fa5c79102eda6781e74d2469a23c448c89f9db3ad31ed1"
   },
   "verification_load": [
-    0.1416015625,
-    0.07763671875,
-    0.0185546875
+    0.13330078125,
+    0.2158203125,
+    0.11279296875
   ],
   "vertical_reference_library_sha256": "20c17f295a8fd699aa166a28d22b9e71dfa8581bb34dae88aabbd987a2b05ba4",
   "baseline_arithmetic_change": "Unchanged-source vertical routines now use a private ordered matrix sum in both builds. This fresh baseline is separate from the older external-BLAS baseline; no global BLAS symbol is replaced.",
   "historical_initial_time_utc": "2004-10-15T12:00:00Z",
   "historical_final_time_utc": "2004-10-16T12:00:00Z",
-  "paired_output_bytes": 1618789200,
+  "paired_output_bytes": 1963404776,
   "independent_actual_vertical_geometry": {
     "evidence": ".runtime/openifs/verdisint/forecast-reviewed-7189435/results.json",
     "sha256": "e68d90c10e874ff0b63bb67417624cde24f0b32185ab2981a042f2e56ffbe4ce",
@@ -430,11 +456,5 @@
     "all_captured_matrix_and_reciprocal_bits_verified": true
   },
   "private_vertical_matrix_implementation": "Eight-point direct NEON helper, ordered arithmetic unchanged; independent critical bytes and saved forecast match the scalar-helper baseline.",
-  "private_matrix_timing_record": "dynamics/verdisint.json",
-  "separate_run_capture_check": {
-    "local": ".runtime/openifs/matrix-tuning/previous-forecast-capture-check.json",
-    "same_initial_full_buffers": false,
-    "first_difference_evidence": ".runtime/openifs/matrix-tuning/first-cross-run-difference.json",
-    "interpretation": "The first changed byte belongs to PRE0 vertical slot0, which GP_SPV leaves untouched. Each separate run returns its own identical incoming bit pattern. Paired reference/native comparisons use the same full incoming storage and retain every output bit; all 18 paired streams and 10 saved forecast files compare directly."
-  }
+  "private_matrix_timing_record": "dynamics/verdisint.json"
 }

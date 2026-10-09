@@ -30,7 +30,7 @@ Build with `make all ebm` on the target processor, then follow the [evaluation i
 
 ## OpenIFS development
 
-The openifs-md branch extends the workflow to OpenIFS 48.1.1. Twenty complete public assembly routines pass independent small checks. Their observed calls also pass exact byte comparisons inside a coarse global forecast. Files are grouped by dynamics, physics, surface and waves, with forecast dynamics taking priority.
+The openifs-md branch extends the workflow to OpenIFS 48.1.1. Twenty-one complete public assembly routines pass independent small checks. Their observed calls also pass exact byte comparisons inside a coarse global forecast. Files are grouped by dynamics, physics, surface and waves, with forecast dynamics taking priority.
 
 | Verified routine | Critical calls | Forecast calls checked | Differing bytes |
 | --- | ---: | ---: | ---: |
@@ -52,7 +52,8 @@ The openifs-md branch extends the workflow to OpenIFS 48.1.1. Twenty complete pu
 | GPTF1 first filter stage | 202 | 2,150 | 0 |
 | GPTF2 second filter stage | 106 | 2,150 | 0 |
 | CTVTOT air temperature | 189 | 2,150 | 0 |
+| SIGAM hydrostatic operator | 51 | 4,326 | 0 |
 
 The vertical group contains three public routines. The forecast uses its integration routines, while VERDER's derivative is checked by the small verifier only. The GPRCP capture count includes 2,150 reference calls made for comparison, which are recorded separately from model calls.
 
-All ten saved files match a fresh strict-source Fortran forecast using the same pressure math and ordered vertical matrix sum. This historical test starts on 15 October 2004 and advances 24 hours on 2,048 grid points with 19 atmospheric levels. Other stages remain in Fortran, and whole-forecast independent physics and external-library arithmetic checks remain unfinished. [Basic formulations](formulations/openifs/README.md) and [verification](bench/openifs/README.md) describe the coverage and commands. The [routine audit](bench/openifs/ROUTINES.md) establishes 1,466 active Fortran bodies, with 332 source roles reviewed. OpenIFS performance has not been measured.
+All ten saved files match a fresh strict-source Fortran forecast using the same pressure math and ordered vertical matrix sum. This historical test starts on 15 October 2004 and advances 24 hours on 2,048 grid points with 19 atmospheric levels. Other stages remain in Fortran, and whole-forecast independent physics and external-library arithmetic checks remain unfinished. [Basic formulations](formulations/openifs/README.md) and [verification](bench/openifs/README.md) describe the coverage and commands. The [routine audit](bench/openifs/ROUTINES.md) establishes 1,466 active Fortran bodies, with 400 source roles reviewed. Matched timings show a 3.02× gain for complete vertical integration on the 24-point forecast block. Whole-forecast performance has not been measured.

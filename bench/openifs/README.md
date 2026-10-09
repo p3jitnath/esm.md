@@ -1,6 +1,6 @@
 # OpenIFS verification
 
-Twenty complete public direct assembly routines are verified in OpenIFS 48.1.1. Their small checks include independent physical balances, exact output bytes, optional inputs, boundaries and buffer guards. The latest coarse forecast used own exclusive job 7189435 on nid010825, with one process, one thread, CPU 0 and local memory binding. Each routine's compact record preserves its earlier checks.
+Twenty-one complete public direct assembly routines are verified in OpenIFS 48.1.1. Their small checks include independent physical balances, exact output bytes, optional inputs, boundaries and buffer guards. The latest coarse forecast used own exclusive job 7189435 on nid010825, with one process, one thread, CPU 0 and local memory binding. Each routine's compact record preserves its earlier checks.
 
 | Routine | Critical calls | Critical bytes | Forecast calls checked | Forecast bytes | Differing bytes |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -16,16 +16,17 @@ Twenty complete public direct assembly routines are verified in OpenIFS 48.1.1. 
 | GPTCO3 | 66 | 3,384 | 2,150 | 490,200 | 0 |
 | GP_SPV | 122 | 58,496 | 2,150 | 18,257,800 | 0 |
 | GPHPRE | 228 | 631,392 | 14,649 | 338,650,208 | 0 |
-| VERDISINT, VERINT, VERDER | 163 | 1,454,464 | 21,559 | 254,335,808 | 0 |
+| VERDISINT, VERINT, VERDER | 163 | 1,454,464 | 21,559 | 293,372,800 | 0 |
 | GPGEO | 72 | 73,336 | 4,300 | 32,559,600 | 0 |
 | GPGRGEO | 201 | 608,832 | 2,150 | 32,447,800 | 0 |
 | GPTF1 | 202 | 1,555,200 | 2,150 | 206,520,400 | 0 |
 | GPTF2 | 106 | 982,272 | 2,150 | 206,520,400 | 0 |
 | CTVTOT | 189 | 108,080 | 2,150 | 8,049,600 | 0 |
+| SIGAM | 51 | 381,992 | 4,326 | 305,578,584 | 0 |
 
 The strict-source Fortran build uses the original sources with separate multiplication and addition. The global T21 forecast has 2,048 grid points and 19 atmospheric levels. The archived test starts at 12 UTC on 15 October 2004 and saves a 24-hour forecast at 12 UTC on 16 October. Its 25 time-step visits include the initial step, with one process and one thread. All ten upstream output files at hours 0, 6, 12, 18 and 24 match a fresh strict-source Fortran run with the same pressure math and ordered vertical matrix sum byte for byte. Every captured call of the used assembly routines also matches its strict Fortran counterpart, including inactive cells. The verification drivers record and compare states but supply no missing numerical update. GPRCP and GPPWC captures preserve untouched caller bytes, so hashes identify an archived run. The input capture also records incoming output bytes for exact replay.
 
-The vertical row groups three public bodies and their private matrix helper. Its 21,559 forecast calls count genuine VERDISINT visits; each also calls the native integral dependency. The complete capture contains 60,318 dispatcher and helper records, including separately marked reference comparisons. VERDER has no genuine visit in this forecast and is accepted by the small checks only. Constant and fourth-degree polynomial profiles independently verify the actual forecast grid within 1e-11 and 1e-6, respectively.
+The vertical row groups three public bodies and their private matrix helper. Its 21,559 forecast calls count genuine VERDISINT visits; each also calls the native integral dependency. The complete capture contains 68,970 dispatcher and helper records, including separately marked reference comparisons. SIGAM adds 4,326 marked source-shadow vertical calls without changing the genuine count. VERDER has no genuine visit in this forecast and is accepted by the small checks only. Constant and fourth-degree polynomial profiles independently verify the actual forecast grid within 1e-11 and 1e-6, respectively.
 
 GPRCP's 13,846 captured calls comprise 11,696 model visits and 2,150 marked reference comparisons inside CTVTOT. CTVTOT also uses the same accepted native GPRCP body for 2,150 private dependency calls. The small GPRCP verifier retains all 3,976 original cases and adds a separate read-only, protected six-field input check. The two filter stages also pass six complete histories, with twelve stage comparisons and 204 independent final identities. This forecast uses their two-time-level copy and skip branches, while the small checks cover the weighted and clearing branches.
 

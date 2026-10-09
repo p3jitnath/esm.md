@@ -1,0 +1,143 @@
+{
+  "routine": "SIGAM",
+  "contract_revision": "1.4; numerical operator frozen at 1.0; independent unit-amplitude science limit at 1.2",
+  "status": "Complete critical, original-caller and full T21 forecast verification accepted",
+  "target": "AArch64 scalar binary64;accepted complete vertical dependency",
+  "allocation": {
+    "job": 7189435,
+    "node": "nid010825",
+    "cpu_binding": "map_cpu:0",
+    "memory_binding": "local"
+  },
+  "toolchain": "GNU12.3;PrgEnv-gnu;libfabric2.3.1;contraction and fast-math disabled",
+  "generation": {
+    "route": "LLM direct complete AArch64 from frozen Markdown;assembler and linker",
+    "compiler_numerical_instructions_or_IR_before_emission": false,
+    "pre_emission_contract": "preparation/sigam-before-emission.md",
+    "pre_emission_contract_sha256": "823e0c0c709c59a09a4688544b1a9846e8d46c5c415e54614d2c02bb8e17a545",
+    "source_original_sha256": "6d56f81fd6b769530b1a1916d0ea208057309ec4f02f18f09c653f5892f83c0a"
+  },
+  "critical": {
+    "cases": 51,
+    "output_bytes": 381992,
+    "stage_records": 41,
+    "stage_bytes": 778200,
+    "science_values": 45915,
+    "inactive_values": 748,
+    "guarded_calls": 143,
+    "parallel_calls": 3,
+    "closed_error": 1.572161766711624e-14,
+    "actual_constant_error": 2.220446049250313e-15,
+    "actual_quartic_error": 4.4567283676716363e-07,
+    "differing_bytes": 0,
+    "fpcr": 0
+  },
+  "numeric_body_instructions": 196,
+  "abi_bridge": {
+    "direct_nonnumerical_instructions": 16,
+    "callee_saved_registers_touched": [],
+    "argument_storage_static_asserts": 11
+  },
+  "caller_smoke": {
+    "source": "real unchanged SUBMAT/LASSIE;shared sibling fixture reused",
+    "original_directory": ".runtime/openifs/sitnu/caller-preparation",
+    "archived_directory": ".runtime/openifs/sigam/caller-smoke",
+    "report": {
+      "passed": true,
+      "calls": 6,
+      "canonical_bytes": 7312,
+      "input_bytes": 23728,
+      "conventional": 3,
+      "finite_element": 3,
+      "lassie_calls": 2,
+      "caller_lassie": 4,
+      "caller_spcsi": 0,
+      "caller_submat": 2,
+      "differing_bytes": 0,
+      "fpcr": 0
+    },
+    "paired_cmp": "zero differing bytes",
+    "alias_relationships": "whole PGMV and PGMVS with writable output views"
+  },
+  "science_review": {
+    "normalized_quartic_limit": 1e-06,
+    "normalized_constant_limit": 1e-11,
+    "unit_profile_quartic_error_decimal": "4.4567283675674270449036897786744048946218306823423054431255072496371323282475534384848626634757e-7",
+    "failure_archive": "critical-001;unscaled amplitude bound rejected;source/native exact",
+    "changes": "only independently derived amplitude/units acceptance correction;all numeric inputs and assembly unchanged"
+  },
+  "forecast_prepared": {
+    "driver": "bench/openifs/dynamics/sigam_forecast.c",
+    "library": ".runtime/openifs/sigam/forecast/libverify-sigam.so",
+    "source_shadow_hooks": "vertical_forecast_reference_begin/end",
+    "shared_scope_query": "lassie_forecast_scope(geometry,ks,ke,gmv,gmv_elements,gmvs,gmvs_elements)",
+    "no_global_dgemm_interposition": true,
+    "comparison": "whole source-proven parent allocations with shared-view offsets",
+    "source_expected_calls": {
+      "LASSIE": 4300,
+      "SPCSI": 25,
+      "SUBMAT": 1
+    }
+  },
+  "timing": "not performed;no optimisation claim",
+  "hashes": {
+    "src/openifs/dynamics/sigam.S": "1d950b14d2d276be2b1c397c8ba3b3bd0e4f276fcc41ecd20979b6e50f6dd1c4",
+    "bench/openifs/dynamics/sigam.c": "64642dab47bcb95c1c10eb72172cabe6078b8b214d070b7c5dc8f060107a08ad",
+    "bench/openifs/dynamics/sigam_forecast.c": "be28bd4c49e582c2ed0aaf9c8690ac656c958ae97fe73dc4566ea83bc3a557bb",
+    "skills/md2asm/references/openifs/dynamics/sigam.md": "a9b9b5fa5bb919d37a7839c600b73408cd07369bbb761949fe8570de4e21ac59",
+    ".runtime/openifs/sigam/build/sigam.o": "c2c61b30ef1c4a1616067409960b6e8d948618321c9672547d2b490e104d29ba",
+    ".runtime/openifs/sigam/build/sigam-stage.o": "6c1c4bb1d68e5917b2f34dc7ba08df565d6bedaba6251c77fa44ac8d58b38ffb",
+    ".runtime/openifs/sigam/build/sigam-reference.o": "18f21220c85a24098cbf421e368ac2b0400bb5205c987064a8b6035745e08353",
+    ".runtime/openifs/sigam/build/verify": "29e7186a9e50187590b8cd2424d862482584152599212818f07403291eb3a325",
+    ".runtime/openifs/sigam/forecast/sigam_forecast.o": "94f660852a9f4f293da6b295d2d3893b9b5aaf48a80ea1ab34e108931616f0de",
+    ".runtime/openifs/sigam/forecast/libverify-sigam.so": "c11ffcc431b263e1f14b16e000b8bea46438fbb1dbefa2227c20d7abeb23b2ab",
+    ".runtime/openifs/sigam/critical-abi-accepted/reference.bin": "faf0e7d89de4e7db92034113d43792f6568360dbd3328c7f1e2d56a3ae40122e",
+    ".runtime/openifs/sigam/critical-abi-accepted/assembly.bin": "faf0e7d89de4e7db92034113d43792f6568360dbd3328c7f1e2d56a3ae40122e",
+    ".runtime/openifs/sigam/critical-abi-accepted/reference-stages.bin": "b2a5ab846ff3bcb522482148d971e27e4c891c2b6a57a5f5e2c4ace7c1d9503f",
+    ".runtime/openifs/sigam/critical-abi-accepted/assembly-stages.bin": "b2a5ab846ff3bcb522482148d971e27e4c891c2b6a57a5f5e2c4ace7c1d9503f",
+    ".runtime/openifs/sigam/preparation/corpus.bin": "c13df6ceba2c0af75f72cbd7990b2a772a3c5232e772351f5f3f645b78c85158",
+    ".runtime/openifs/sigam/preparation/layout.json": "ce7ac0bb204e174abfd02b0493c9457346cf18893ff44a4fc87af0214f7c1f34",
+    ".runtime/openifs/sigam/preparation/quartic-amplitude-dossier-parent-reviewed.json": "432d0a194ed0296ed252f43912d7ec6b19ba5f99eaad6ce0eba6cdce1c5525d4",
+    ".runtime/openifs/sigam/caller-smoke/fixture.f90": "915682631d5d0d3f30ee41bc37e196231b16d6b34c95922859dbf9e6898e4d91",
+    ".runtime/openifs/sigam/caller-smoke/full-caller.log": "3ce0968022fdf0845e603f5ab1d738a5c92d9e05b3083667b422e7138d35518c",
+    ".runtime/openifs/sigam/caller-smoke/sigam-summary.json": "aba6032ad18c5b917414454faf294af4673d897b6eb4dacd31d71b24105ce6eb",
+    ".runtime/openifs/sigam/caller-smoke/sigam-assembly.bin": "a7742a10d697fd6371f54ac054a30ff96ce9cd09e9c26959cc90adaad66e5831",
+    ".runtime/openifs/sigam/caller-smoke/sigam-fortran.bin": "a7742a10d697fd6371f54ac054a30ff96ce9cd09e9c26959cc90adaad66e5831",
+    ".runtime/openifs/sigam/caller-smoke/sigam-inputs.bin": "606ac764251b3779ec86a2e306ca4490060915ef36fd67600749f15b479ddb00",
+    ".runtime/openifs/sigam/caller-smoke/vertical-summary.json": "1d19eb7bf8fcb1d7d28d9ae77640ccc6311585e7d18727e302e5835b3d194fd1",
+    ".runtime/openifs/sigam/caller-smoke/constants.c": "1630c4d67d66fc23367ed84dee1a9fc8f58ac2dab1b36068857e59475122f082",
+    ".runtime/openifs/sigam/caller-smoke/constants.o": "4346b5e43e709f46ce79089e67fa17d8278432789d0cfcc471185cbd4138337f",
+    ".runtime/openifs/sigam/caller-smoke/fixture": "dd291d16b601c2876d47bbc2a472dfc243f97bffca7f096bae88ed8f240bf1c6"
+  },
+  "forecast": {
+    "bytes": 305578584,
+    "assembly_sha256": "af3a6f47cf92e24d1681b4c0676cc49f03498ac6fa0ec8337e50fb4cf8d89462",
+    "fortran_sha256": "af3a6f47cf92e24d1681b4c0676cc49f03498ac6fa0ec8337e50fb4cf8d89462",
+    "input_bytes": 332711256,
+    "input_sha256": "dcaade51315c9578134186b90da720a6c31723e83933fcae89a4b8ecc0c2a5d8",
+    "differing_bytes": 0,
+    "live_summary": {
+      "calls": 4326,
+      "bytes": 305578584,
+      "differing_bytes": 0,
+      "conventional": 0,
+      "finite_element": 4326,
+      "LASSIE": 4300,
+      "SPCSI": 25,
+      "SUBMAT": 1,
+      "FPCR": 0
+    },
+    "calls": 4326,
+    "evidence": ".runtime/openifs/runs/strict-sigam-v8-7189435/t21/direct-comparison.json",
+    "evidence_sha256": "13bcb85d0a1da347ba16737bc106969ebd3e4bd29c516e6c474c900b7420674e",
+    "archive": ".runtime/openifs/runs/strict-sigam-v8-7189435/t21/test_fc",
+    "dependency_library_sha256": "172462664e03eb8d2ce919282021cc9b9f9c1616836784144da7304e3eeedbfc",
+    "native_library_sha256": "3b0f34003a10f941d724dff729815234cf90f35ee1e8cf291d58f49489489e8e",
+    "saved_files_identical": 10,
+    "paired_streams_identical": 19
+  },
+  "whole_forecast_independent_physics_verified": false,
+  "accepted_parent_commands": {
+    ".runtime/openifs/sigam/parent-v8-forecast/commands.json": "a5a8d56719b6a2f48173c88c45558693eace3c923a97d47c048a415f04b491c8"
+  }
+}
