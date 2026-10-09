@@ -1,0 +1,89 @@
+{
+  "scope": "Complete GP_SPV body, independent surface pressure and chain-rule checks, and paired T21 calls",
+  "date_utc": "2026-10-09T12:38:10.799625+00:00",
+  "openifs_version": "48.1.1",
+  "contract_revision": "1.0",
+  "generation_route": "Direct AArch64 emission from frozen physics and solver contracts before reference instruction inspection",
+  "job_id": 7189435,
+  "node": "nid010825",
+  "cpu_affinity": [
+    0
+  ],
+  "memory_binding": "local",
+  "compiler": "GNU Fortran and GCC 12.3.0",
+  "flags": [
+    "-O2",
+    "-mcpu=neoverse-v2",
+    "-ffp-contract=off",
+    "-fno-fast-math"
+  ],
+  "fpcr": "0000000000000000",
+  "critical_cases": 122,
+  "critical_calls": 122,
+  "trajectory_bytes_per_implementation": 58496,
+  "differing_bytes": 0,
+  "forecast_calls_verified": 2150,
+  "forecast_trajectory_bytes_per_implementation": 18257800,
+  "forecast_previous_time_level_calls": 0,
+  "checks": [
+    "Independent pressure exponential and chain rule",
+    "All Boolean time-level decisions and three iteration signs",
+    "Unused absent previous inputs and outputs",
+    "Current and previous surface rows",
+    "Zero levels, partial and empty intervals",
+    "Odd widths and final columns",
+    "Signed zeros, subnormal gradients and finite extreme pressures",
+    "Read-only inputs and configuration objects",
+    "Inactive rows and columns, guards and protected-page tails",
+    "Unchanged FPCR"
+  ],
+  "instruction_audit": {
+    "instructions.txt": {
+      "decoded_instructions": 95,
+      "forbidden_instructions": 0
+    },
+    "reference-instructions.txt": {
+      "decoded_instructions": 162,
+      "forbidden_instructions": 0
+    }
+  },
+  "layout": {
+    "geometry_bytes": 17096,
+    "nproma_offset": 5144,
+    "nflevg_offset": 5224,
+    "dyn_bytes": 4720,
+    "iteration_offset": 2580,
+    "dyna_bytes": 456,
+    "nonhydrostatic_offset": 8,
+    "two_time_levels_offset": 20,
+    "full_iteration_offset": 336,
+    "simphl_bytes": 168,
+    "simplified_physics_offset": 0
+  },
+  "sha256": {
+    "physics": "3265ec8fcca157427e7565912acd3c139c89490394dcdacb365fb137f2a2b07e",
+    "contract": "2b5a85ae1559cefc0e4b99cbed2b2285a070140ac3c62542f931f00b9c48f94a",
+    "assembly": "20e3eb5f9b41044fac628df6967d8918e7003b71115c9e6d4cfd1857fe49107f",
+    "verifier": "df2d0f7c0c16565b8552e5261795666785f90296700d9710ad6ac65be8f90d53",
+    "forecast_driver": "5c23afa7a45f21d14b3a68fe18fd13d1b10dbd8a372db856d23b3dc13494aea3",
+    "upstream_source": "221b9a24c33fb26eccedf34ecbfb5e452368f04f9354e36d9958fbec62e260fc",
+    "upstream_caller": "7f5ff8d0c9ba971312c52690a76ee845a2a515b0fd18a6ae98c40f4b7597c10b",
+    "layout_probe": "28b1a017c6209c7583f7ccc90bc91ee3335d3d9b8e9cf87bcb8532b59e3d296d",
+    "layout": "88adb36fdfefec822d9eeb36cb5bf0d26925b27863389b82ecc3aee1804995b7",
+    "assembly_object": "cf02ba2e905c8630a3245c46a25bedac679352030352349f09239dabdd6b60c1",
+    "strict_library": "8e4966877c735976f1e9356bc551294bbfc15c565ecdf1dc7db4cf814012b07b",
+    "pressure_math": "ec54bd97ec32ef0c68fa5c79102eda6781e74d2469a23c448c89f9db3ad31ed1",
+    "critical_assembly_trajectory": "0b57a5df6cf5f025a3259b44d1aad7bbec67923bf8319af07096d2d5b788eaac",
+    "critical_fortran_trajectory": "0b57a5df6cf5f025a3259b44d1aad7bbec67923bf8319af07096d2d5b788eaac",
+    "forecast_assembly_trajectory": "13112f8b5d5b46f539cd53b8366b637f617f38e1e5ac21f8b41a1595f9cfeabb",
+    "forecast_fortran_trajectory": "13112f8b5d5b46f539cd53b8366b637f617f38e1e5ac21f8b41a1595f9cfeabb",
+    "forecast_inputs": "16bdd8e23ccdf8ea044288b5b7d2272db65b02fe3cabb25367ce1f88e13b78fb",
+    "verification_library": "2202c4fc65d961d16c87494b569f749f352f8a2cbc719890ce9b375f20d6f769"
+  },
+  "raw_archive": ".runtime/openifs/runs/strict-surface-pressure-asm-7189435/t21/test_fc",
+  "fortran_baseline": ".runtime/openifs/runs/strict-math-fortran-7189435/t21/test_fc",
+  "all_ten_saved_forecast_files_identical": true,
+  "complete_assembly_forecast_implemented": false,
+  "whole_forecast_independent_physics_verified": false,
+  "comparative_timing_performed": false
+}

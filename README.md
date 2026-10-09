@@ -30,7 +30,7 @@ Build with `make all ebm` on the target processor, then follow the [evaluation i
 
 ## OpenIFS development
 
-The openifs-md branch extends the workflow to OpenIFS 48.1.1. Direct assembly implements ten complete routines for surface changes, moist-air properties, pressure terms, wind accelerations, physics updates and column diagnostics. All ten pass independent small checks and byte comparisons inside the upstream coarse forecast. Files are grouped by dynamics, physics, surface and waves, with forecast dynamics taking priority.
+The openifs-md branch extends the workflow to OpenIFS 48.1.1. Direct assembly implements eleven complete routines for surface changes, moist-air properties, pressure terms, wind accelerations, physics updates and column diagnostics. All eleven pass independent small checks and byte comparisons inside the upstream coarse forecast. Files are grouped by dynamics, physics, surface and waves, with forecast dynamics taking priority.
 
 | Verified routine | Critical calls | Calls in the forecast | Differing bytes |
 | --- | ---: | ---: | ---: |
@@ -44,5 +44,6 @@ The openifs-md branch extends the workflow to OpenIFS 48.1.1. Direct assembly im
 | GP_TNDLAGADIAB_UV wind | 137 | 2,150 | 0 |
 | GPGRXYB pressure coefficients | 192 | 2,150 | 0 |
 | GPTCO3 scalar-column integral | 66 | 2,150 | 0 |
+| GP_SPV surface pressure | 122 | 2,150 | 0 |
 
-All ten saved forecast output files match the strict-source Fortran run. Other stages remain in Fortran, and whole-forecast independent physics and external-library arithmetic checks remain unfinished. [Basic formulations](formulations/openifs/README.md) and [verification](bench/openifs/README.md) describe the coverage and commands. OpenIFS performance has not been measured.
+All ten saved forecast output files match a fresh strict-source Fortran run using the same verified pressure math library. Other stages remain in Fortran, and whole-forecast independent physics and external-library arithmetic checks remain unfinished. [Basic formulations](formulations/openifs/README.md) and [verification](bench/openifs/README.md) describe the coverage and commands. OpenIFS performance has not been measured.

@@ -7,6 +7,7 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 | Forecast part | Basic formulation | Assembly coverage |
 | --- | --- | --- |
 | Atmospheric motion | [Motion and heat](dynamics/atmospheric_motion.md) | Pending |
+| Surface pressure | [Logarithm and derivatives](dynamics/surface_pressure.md) | Complete GP_SPV routine |
 | Vertical pressure | [Hybrid pressure](dynamics/hybrid_pressure.md) | Pending |
 | Vertical force balance | [Hydrostatic balance](dynamics/hydrostatic_balance.md) | Pending |
 | Moist-air properties | [Mixture properties](dynamics/thermodynamics.md) | Complete GPRCP routine |
@@ -29,4 +30,4 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 
 These basic balances do not yet cover every configured physical process. Source-derived closure relations, which specify rates and coefficients, and complete numerical contracts are still needed before assembly generation.
 
-The ten assembly routines pass critical checks and captured calls within the coarse upstream forecast. The [verification record](../../bench/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
+The eleven assembly routines pass critical checks and captured calls within the coarse upstream forecast. The [verification record](../../bench/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
