@@ -205,168 +205,48 @@
       }
     },
     "source_role_review": {
-      "review_date_utc": "2026-10-09T18:10:54.776835+00:00",
+      "review_date_utc": "2026-10-09T21:50:50.567745+00:00",
       "counts": {
-        "configuration_support": 11,
+        "configuration_support": 12,
         "io_support": 19,
         "model_driver": 5,
         "numerical_diagnostic": 14,
-        "numerical_helper": 87,
-        "numerical_interface": 33,
+        "numerical_helper": 99,
+        "numerical_interface": 38,
         "numerical_setup": 4,
-        "numerical_stage": 53,
-        "numerical_unspecified": 0,
-        "runtime_support": 79,
-        "state_storage": 145,
-        "unreviewed": 1016
+        "numerical_stage": 66,
+        "runtime_support": 82,
+        "state_storage": 151,
+        "unreviewed": 976,
+        "numerical_unspecified": 0
       },
-      "reviewed_source_bodies": 450,
-      "unreviewed_source_bodies": 1016,
-      "scope": "Complete source-role reviews through batch27; purpose categories are not an assembly conversion denominator",
-      "core_numerical_purpose_bodies": 173,
-      "broad_numerical_purpose_bodies": 191,
+      "reviewed_source_bodies": 490,
+      "unreviewed_source_bodies": 976,
+      "scope": "Complete source-role reviews through batch30; purpose categories do not establish an assembly conversion denominator",
+      "core_numerical_purpose_bodies": 203,
+      "broad_numerical_purpose_bodies": 221,
       "categories_are_disjoint": true,
       "exact_required_numerical_routine_count_established": false,
       "snapshot": {
-        "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-source-role-snapshot-through-batch27-450-bodies.json",
-        "bytes": 23736,
-        "sha256": "22f83be05fb926764b38e27a7eff870acdd0e4e422c8baed0535371948bfd86a"
+        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261009-private-source-role-release-40.json",
+        "bytes": 21643,
+        "sha256": "12992b4d9500923cc49869826cb56526ee685ce73db2d6d5dbfc65a7112e929f"
       },
       "batch_summaries": [
         {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch01-adiab-summary.json",
-          "bytes": 3950,
-          "sha256": "4d319233e1e520ef3ce63fa1c7cc353a33183d7962f379349c2dc1de97f54b30"
+          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261009-batch28r2-transport-interpolation-boundaries-summary.json",
+          "bytes": 4412,
+          "sha256": "d2d651f5c6340e45eaa4d9f1a04d9eec50838e00b7a987fa67ee8519b73101fa"
         },
         {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch02-transport-spectral-summary.json",
-          "bytes": 4221,
-          "sha256": "ae26393a09c5087905869b2c9d45b54b7be3567546295dbdaea4fd5df5cb35e7"
+          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261009-batch29-spectral-arithmetic-storage-interfaces-summary.json",
+          "bytes": 4417,
+          "sha256": "07f3718751dc995f042da3319a24534ce4f5693f12c7f01832868b87d8d2418b"
         },
         {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch03-drivers-diagnostics-summary.json",
-          "bytes": 4232,
-          "sha256": "5ef72c2afc490ad2c5df8f5e80754df6d51684fbb90bed2a42323a83adeaf8fb"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch04r3-radiation-cloud-formulas-summary.json",
-          "bytes": 4379,
-          "sha256": "ba2807fdb33ac1d5281c3aa9411f5a5d477363f2eac481256168809ef62d8782"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch05-radiation-storage-summary.json",
-          "bytes": 4298,
-          "sha256": "76039bbc4ec7c78f4aa7c78235f5d1a4eefb066ca62c9e62cad120cd4b07160a"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch06-gas-concentrations-summary.json",
-          "bytes": 4323,
-          "sha256": "377516241da820ca53f3c0afc4bfe0f4c3c90bb59c513eb0454577d73c4d8926"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch07-radiation-inputs-surface-summary.json",
-          "bytes": 4394,
-          "sha256": "c23c9c00b57e779c44b10c410f977a794c33ae56131f913adc842f4d3f0c514b"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch08-radiation-column-solvers-summary.json",
-          "bytes": 4447,
-          "sha256": "d84a32ba0712abe2d1fcde261765bbe25ab1ef1fa497e6d76a45b2f649b963b3"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch09-radiation-optical-properties-summary.json",
-          "bytes": 4391,
-          "sha256": "9627bc8555aef70f91c44536c9331eff0bd1e291e2a915097fe3079aa74b9d8d"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch10-radiation-interface-gas-summary.json",
-          "bytes": 4404,
-          "sha256": "a1904b27e5c88d6a085385ba2384802786faefd85624f0ad16ed5dbf7a9cbd7e"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch11-physics-state-thermodynamics-summary.json",
-          "bytes": 4399,
-          "sha256": "0a96e8c725c8a0edc8dfffc9ec10628ccecf50f266a11071a7c561ea8f158729"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch12-linear-algebra-adapters-summary.json",
-          "bytes": 4406,
-          "sha256": "fa381ce9809a6524faa738684507857de9c44a22726dbec3f4d303009f7b8b47"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch13-eigensystem-coriolis-summary.json",
-          "bytes": 4266,
-          "sha256": "c8c08d3fa077f9e1d81fb015d568915fc09d8458db928393229bed90b13b4f7c"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch14-cloud-diffusion-wind-summary.json",
-          "bytes": 4239,
-          "sha256": "ef64b9d0a2440ea1578ae7847b4029d58d84872079b38e8d329dcd0115f25dc0"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch15-convection-drag-helpers-summary.json",
-          "bytes": 4235,
-          "sha256": "998cbec062158eef711e44ea32dd601976f043fd8ea1f5a511fefbbde914c509"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch16-physics-tendency-updates-summary.json",
-          "bytes": 4245,
-          "sha256": "b3e3a947fae0f5dce58e17cc603a85390ae7c31a2677afce5ce15fa833262de8"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch17-convection-diffusion-factors-summary.json",
-          "bytes": 4248,
-          "sha256": "fe2de5044f4e0ab2324f3de254f4e95bb95c859f6e41cc6d0e3b9568211a40ca"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch18-cloud-convection-drag-stages-summary.json",
-          "bytes": 4318,
-          "sha256": "9c470dedea3c8425faf0fb4ef11de78423dfe2fc141672d1df898774006c4c00"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch19-physics-interfaces-aerosol-diagnostics-summary.json",
-          "bytes": 4295,
-          "sha256": "486d88b6efe31c74d20407eeb7e22b6f29bbe418878cfef92cc7a51a33b2d9a2"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch20-current-climatology-physics-layers-summary.json",
-          "bytes": 4281,
-          "sha256": "eaeaa1a7e91bccb126cf576b18aed9b354f9d8ca71f1d364c7eb90957769ff5e"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch21-turbulence-convection-wave-operators-summary.json",
-          "bytes": 4326,
-          "sha256": "6e44abbaf6c92448512f58bdf82106fd3ac12add82daf486c16e722b7d80758b"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch22-surface-interfaces-physics-storage-summary.json",
-          "bytes": 4347,
-          "sha256": "b321cc707ad982363b778a9c8f69f9a456ecc2e3f19a8bd4d8649da545ca58d3"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch23-surface-library-numerical-interfaces-summary.json",
-          "bytes": 4381,
-          "sha256": "80d26e83ebed7ed7bedb005974d80ad5f3e9e0d7a8844ca5f0e3f87ed3b9e5a7"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch24-surface-water-heat-albedo-formulas-summary.json",
-          "bytes": 4364,
-          "sha256": "d5458abe6ebe0575621e716e882906a446c0d7e45ab4e2034ec74edde9366c37"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch25-surface-optical-conductive-water-corrections-summary.json",
-          "bytes": 4399,
-          "sha256": "9a55319907041b26fdee9a74d398165b23908a587abdb9b515775b5cc18b88fa"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch26-surface-reservoir-soil-ice-updates-summary.json",
-          "bytes": 4321,
-          "sha256": "2123bf4e02ee81b6535979ee792bb6aa7961c339aed8e4888457401c77fc98c5"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch27-surface-storage-root-photosynthesis-factors-summary.json",
-          "bytes": 4409,
-          "sha256": "0d009be0c60f08f8de0ff171d627c9c394d39c41ccc827533d881912c99bbcbb"
+          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261009-batch30-current-cloud-radiation-gas-helpers-summary.json",
+          "bytes": 4441,
+          "sha256": "187d8c63ddf2dc066dd14abab5d8a32c3e2547a7f94c46e625fad45f06622284"
         }
       ],
       "initial_evidence_artifacts_unchanged": 18,
@@ -379,11 +259,28 @@
       "broad_numerical_purpose_qualification": "Core plus numerical setup and diagnostic bodies. No reviewed mathematical body remains pending a detailed role. This subtotal does not establish required weather-evolution arithmetic or a conversion percentage.",
       "assembly_conversion_denominator_established": false,
       "reviewed_source_bodies_by_phase": {
-        "before_CNT4": 122,
-        "within_CNT4": 359,
+        "before_CNT4": 139,
+        "within_CNT4": 399,
         "after_CNT4": 37
       },
-      "phase_body_sets_overlap": true
+      "phase_body_sets_overlap": true,
+      "previous_snapshot": {
+        "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-source-role-snapshot-through-batch27-450-bodies.json",
+        "bytes": 23736,
+        "sha256": "22f83be05fb926764b38e27a7eff870acdd0e4e422c8baed0535371948bfd86a"
+      },
+      "parent_validation": {
+        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/parent-release40-structural-review.json",
+        "bytes": 437,
+        "sha256": "20010f5607467470eac5b22a02de29026723b3a87e5bad36a68bc7a354e115fa"
+      },
+      "validation_command": ".runtime/python/bin/python .runtime/openifs/routine-audit/coverage-7207705/source-review/verify_role_release.py .runtime/openifs/routine-audit/coverage-7207705/source-review/20261009-private-source-role-release-40.json",
+      "validator": {
+        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/verify_role_release.py",
+        "bytes": 3549,
+        "sha256": "1658306c3088d094d9f0574787d5a862a89df24774f67445023642c9bbb8ff7f"
+      },
+      "prior_batch_summaries_preserved_in_previous_snapshot": true
     },
     "forecast_phase_bodies": {
       "before": 835,
