@@ -1,6 +1,6 @@
 # OpenIFS verification
 
-Thirty complete public direct assembly routines are verified in OpenIFS 48.1.1. Their small checks include independent physical balances, exact output bytes, optional inputs, boundaries and buffer guards. The latest coarse forecast used own exclusive job 7189435 on nid010825, with one process, one thread, CPU 0 and local memory binding. Each routine's compact record preserves its earlier checks.
+Thirty-one complete public direct assembly routines are verified in OpenIFS 48.1.1. Their small checks include independent physical balances, exact output bytes, optional inputs, boundaries and buffer guards. The latest coarse forecast used own exclusive job 7189435 on nid010825, with one process, one thread, CPU 0 and local memory binding. Each routine's compact record preserves its earlier checks.
 
 | Routine | Critical cases | Critical bytes | Forecast calls checked | Forecast bytes | Differing bytes |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -28,10 +28,11 @@ Thirty complete public direct assembly routines are verified in OpenIFS 48.1.1. 
 | SPCIMPFPOST | 168 | 2,183,104 | 550 | 127,045,600 | 0 |
 | SPCIMPFINIT | 197 | 3,973,408 | 550 | 169,488,000 | 0 |
 | CPQTUV | 135 | 252,152 | 2,150 | 134,194,400 | 0 |
-| CUBIDIAG | 106 | 79,336 | 8,600 | 48,228,800 | 0 |
+| CUBIDIAG | 120 | 80,344 | 8,600 | 48,228,800 | 0 |
 | SIMPLICO | 151 | 275,552 | 550 | 84,691,200 | 0 |
 | CALC_LIQ_OPTICS_SOCRATES | 242 | 71,328 | 317,920 | 127,168,000 | 0 |
 | CALC_ICE_OPTICS_FU_SW | 331 | 94,320 | 223,175 | 83,913,800 | 0 |
+| CALC_ICE_OPTICS_FU_LW | 366 | 104,928 | 223,175 | 94,626,200 | 0 |
 
 The strict-source Fortran build uses the original sources with separate multiplication and addition. The global T21 forecast has 2,048 grid points and 19 atmospheric levels. The archived test starts at 12 UTC on 15 October 2004 and saves a 24-hour forecast at 12 UTC on 16 October. Its 25 time-step visits include the initial step, with one process and one thread. All ten upstream output files at hours 0, 6, 12, 18 and 24 match a fresh strict-source Fortran run with the same pressure math and ordered vertical matrix sum byte for byte. Every captured call of the used assembly routines also matches its strict Fortran counterpart, including inactive cells. The verification drivers record and compare states but supply no missing numerical update. GPRCP and GPPWC captures preserve untouched caller bytes, so hashes identify an archived run. The input capture also records incoming output bytes for exact replay.
 
@@ -300,4 +301,6 @@ Run the guarded GPRCP case with --capture-capacity and libverify-capacity.so pre
 
 </details>
 
-The [spectral-filter record](dynamics/spfilt.json) includes twelve paired quiet-node measurements of complete calls. Rounded-factor reuse gives a median 2.394× gain over earlier assembly for the 19-level, 506-column call, with all output bytes identical. The record reports the small-workload variation and empirical component bound. These kernel timings do not measure a complete forecast.
+The [spectral-filter record](dynamics/spfilt.json) includes twelve paired quiet-node measurements of complete calls. Rounded-factor reuse and paired field loads give a median 5.175× gain over the frozen Fortran control for the 19-level, 506-column call, with all output bytes identical. The record reports the small-workload variation and empirical component bound. These kernel timings do not measure a complete forecast.
+
+The [transport record](physics/cubidiag.json) reports twelve paired measurements for each of twelve captured workloads. Bounded vector zero stores and early selection for empty stages improve every pair over the previous assembly, while the busiest case remains slower than Fortran. The record preserves all timing ranges and matching warmed-cache component measurements.

@@ -6,7 +6,7 @@
   "critical_driver": "bench/openifs/physics/calc_ice_optics_fu_sw.c",
   "forecast_driver": "bench/openifs/physics/calc_ice_optics_fu_sw_forecast.c",
   "generation_route": "direct emission from frozen source equations, units and ABI; no numerical compiler assembly/IR before emission",
-  "contract_revision": "1.1; numerical contract and corpus frozen at 1.0",
+  "contract_revision": "1.2; numerical contract and corpus frozen at 1.0",
   "pre_emission_freeze": {
     "path": ".runtime/openifs/calc_ice_optics_fu_sw/frozen/pre-emission-contract-corpus.json",
     "sha256": "04700eb6d28a660a03cbb877fd50500d5da5b6812f72052fec7d75dc9232bc44",
@@ -132,8 +132,13 @@
   },
   "accepted_sources": {
     "src/openifs/physics/calc_ice_optics_fu_sw.S": "aa493a940cc9e2ccb4a3f3ef2859229cb1bf37f57dede656ec98404ec0f34ff4",
-    "skills/md2asm/references/openifs/physics/calc_ice_optics_fu_sw.md": "2a350462ca53076cefbe4f20551b93e7356ebb84d6a621f74b7e08ff7f4475f2",
+    "skills/md2asm/references/openifs/physics/calc_ice_optics_fu_sw.md": "17f334eee22f691688769245b1bbfea63f33d22ab5c4c0c0b9b56db49c8920b3",
     "bench/openifs/physics/calc_ice_optics_fu_sw.c": "8fc6e572a5d43639456880f3d06a2cf2cbaca808001260d7786a7b3b64a5a540",
     "bench/openifs/physics/calc_ice_optics_fu_sw_forecast.c": "d057e7b7612c33f0ee749f6e803d5674a2ee97d3d1f464258a2a814a0fe7c2b0"
+  },
+  "documented_reproduction": {
+    "local": ".runtime/openifs/calc_ice_optics_fu_lw/publication-review/documented-reproduction-check.json",
+    "bytes": 5826,
+    "sha256": "13c70740728c1a894696ef17d4c0da862a5c15ead95776e22859d75c57e0897d"
   }
 }

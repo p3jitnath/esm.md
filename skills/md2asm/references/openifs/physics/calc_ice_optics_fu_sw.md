@@ -1,6 +1,6 @@
 # Fu shortwave ice optical properties
 
-Revision 1.1 adds units, storage detail and combined acceptance while preserving the numerical contract frozen at revision 1.0 for the complete original `radiation_ice_optics_fu::calc_ice_optics_fu_sw` body, at lines 23–66 of `radiation/module/radiation_ice_optics_fu.F90`. It describes how ice water and particle size determine the optical properties in each shortwave band. A band is one interval of light wavelengths. The underlying model is [Fu (1996), *An Accurate Parameterization of the Solar Radiative Properties of Cirrus Clouds for Climate Models*](https://journals.ametsoc.org/view/journals/clim/9/9/1520-0442_1996_009_2058_aapots_2_0_co_2.xml). The model relates ice amount and effective particle size to extinction, absorption and scattering. This contract freezes the original OpenIFS fit and its unit conversions; it does not claim a new validation of the fitted coefficients against observations.
+Revision 1.2 adds units, storage detail and combined acceptance while preserving the numerical contract frozen at revision 1.0 for the complete original `radiation_ice_optics_fu::calc_ice_optics_fu_sw` body, at lines 23–66 of `radiation/module/radiation_ice_optics_fu.F90`. It describes how ice water and particle size determine the optical properties in each shortwave band. A band is one interval of light wavelengths. The underlying model is [Fu (1996), *An Accurate Parameterization of the Solar Radiative Properties of Cirrus Clouds for Climate Models*](https://journals.ametsoc.org/view/journals/clim/9/9/1520-0442_1996_009_2058_aapots_2_0_co_2.xml). The model relates ice amount and effective particle size to extinction, absorption and scattering. This contract freezes the original OpenIFS fit and its unit conversions; it does not claim a new validation of the fitted coefficients against observations.
 
 The input ice water path $`I`$ is the mass of ice per unit horizontal area, in kg m$`^{-2}`$. The effective radius $`r`$ is in metres. The outputs are total optical depth $`\tau`$, scattering optical depth $`\tau_s`$ and asymmetry factor $`g`$. Optical depths are dimensionless measures of interaction with light. The asymmetry factor is the mean cosine of the scattering angle; its physical range is $`[-1,1]`$.
 
@@ -75,9 +75,9 @@ gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math \
   -L "$build_root/lib" -Wl,-rpath,"$build_root/lib" -larpifs.DP -lfiat -lm \
   -o "$check_dir/critical"
 "$check_dir/critical" --verify \
-  .runtime/openifs/calc_ice_optics_fu_sw/frozen/corpus.bin "$check_dir/result"
+  .runtime/openifs/calc_ice_optics_fu_sw/frozen/critical-corpus.bin "$check_dir/result"
 cmp "$check_dir/result-fortran.bin" "$check_dir/result-assembly.bin"
-cmp .runtime/openifs/calc_ice_optics_fu_sw/frozen/canonical-fortran.bin \
+cmp .runtime/openifs/calc_ice_optics_fu_sw/preparation/source-critical-fortran.bin \
   "$check_dir/result-fortran.bin"
 gcc -O2 -mcpu=neoverse-v2 -fPIC -ffp-contract=off -fno-fast-math \
   -Wall -Wextra -Werror -Wno-misleading-indentation \

@@ -1,6 +1,6 @@
 # OpenIFS CUBIDIAG contract
 
-Revision 1.1 adds combined forecast evidence and preserves the numerical contract frozen at revision 1.0 for the complete CUBIDIAG body in OpenIFS 48.1.1. Its physical input is [convection](../../../../../formulations/openifs/physics/convection.md), revision 1.0. Plumes transport wind, heat and water between layers. The unchanged CUDUDV and CUDTDQN callers form the coefficients and forcing for an implicit transport update. CUBIDIAG then solves that supplied column system. This contract covers the complete helper body, while coefficient formation remains in the caller.
+Revision 1.2 adds measured complete-call optimisation and preserves the numerical contract frozen at revision 1.0 for the complete CUBIDIAG body in OpenIFS 48.1.1. Its physical input is [convection](../../../../../formulations/openifs/physics/convection.md), revision 1.0. Plumes transport wind, heat and water between layers. The unchanged CUDUDV and CUDTDQN callers form the coefficients and forcing for an implicit transport update. CUBIDIAG then solves that supplied column system. This contract covers the complete helper body, while coefficient formation remains in the caller.
 
 ## Units and numerical method
 
@@ -43,7 +43,7 @@ The independent physical corpus uses known finite solutions and dimensionless co
 
 ## GNU Fortran interface
 
-Export cubidiag_ for GNU Fortran 12.3 on AArch64. Registers x0 to x7 hold addresses of KIDIA, KFDIA, KLON, KLEV, KCTOP, LD_LCUMASK, PA and PB. Incoming stack offsets zero and eight hold PR and PU. These explicit-shape arrays have ordinary data addresses and no hidden descriptor argument. Storage-only probing confirms all ten argument locations, 32-bit integers and logical values, true = 1 and 64-bit real values.
+An application binary interface (ABI) defines arguments and saved-register rules. Export cubidiag_ for GNU Fortran 12.3 on AArch64. Registers x0 to x7 hold addresses of KIDIA, KFDIA, KLON, KLEV, KCTOP, LD_LCUMASK, PA and PB. Incoming stack offsets zero and eight hold PR and PU. These explicit-shape arrays have ordinary data addresses and no hidden descriptor argument. Storage-only probing confirms all ten argument locations, 32-bit integers and logical values, true = 1 and 64-bit real values.
 
 Preserve x19 to x29, the link register, required lower halves of v8 to v15 and 16-byte stack alignment. Do not use x18. Every final array element and each scalar remainder must remain within its declared capacity. A direct assembly canary caller must seed and check preserved registers immediately around the native body, without a C call that restores a broken register first.
 
@@ -63,11 +63,11 @@ Each deterministic forecast record starts with uint64 call number and six int32 
 
 ## Provenance
 
-Emit primary AArch64 assembly directly from the frozen mathematics, source order, capacities and independent verification. Use no compiler numerical assembly or intermediate representation before emission. Archive original source and caller hashes, storage probes, exact build commands, frozen corpus and source results, first emission, verifier, direct ABI caller and complete captures. Keep the original scientific executable, build and archives unchanged. This milestone includes no comparative timing or numerical conversion denominator.
+Emit primary AArch64 assembly directly from the frozen mathematics, source order, capacities and independent verification. Use no compiler numerical assembly or intermediate representation before emission. Archive original source and caller hashes, storage probes, exact build commands, frozen corpus and source results, first emission, verifier, direct ABI caller and complete captures. Keep the original scientific executable, build and archives unchanged. Measured helper timing is recorded below. A numerical conversion denominator remains unfinished.
 
 ## Combined forecast acceptance
 
-The combined T21 historical forecast accepts all 8,600 calls with the other 26 verified replacements active. Each of the four original wind, temperature and moisture sites runs 2,150 times. There are 83,804 first cloud equations, 403,300 later equations and 3,434,496 positive-zero cells outside those equations. The independent triangular residual checks pass on every used equation. All 48,228,800 result-record bytes match the unchanged source, including complete output capacities. Each entry requires FPCR zero. The 25 paired streams and ten saved forecast files directly compare with the strict Fortran baseline. Whole-forecast physical validation and comparative timing remain unfinished.
+The combined T21 historical forecast accepts all 8,600 calls with the other accepted native bodies active. Each of the four original wind, temperature and moisture sites runs 2,150 times. There are 83,804 first cloud equations, 403,300 later equations and 3,434,496 positive-zero cells outside those equations. The independent triangular residual checks pass on every used equation. All 48,228,800 result-record bytes match the unchanged source, including complete output capacities. Each entry requires FPCR zero. The 29 paired streams and ten saved forecast files directly compare with the strict Fortran baseline. Whole-forecast physical validation and timing remain unfinished.
 
 The [compact record](../../../../../bench/openifs/physics/cubidiag.json) identifies the frozen corpus, source, exact command archive and actual caller capacities. The direct register-canary observer is embedded in the [critical driver](../../../../../bench/openifs/physics/cubidiag.c), so reproduction needs no untracked ABI source. Run these commands through srun in a quiet exclusive allocation, using a fresh ignored directory.
 
@@ -83,11 +83,11 @@ gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math \
   bench/openifs/physics/cubidiag.c "$check_dir/assembly.o" \
   -L "$build_root/lib" -Wl,-rpath,"$build_root/lib" \
   -larpifs.DP -lfiat -ldl -lm -o "$check_dir/verify"
-"$check_dir/verify" --verify .runtime/openifs/cubidiag/frozen/corpus.bin \
+"$check_dir/verify" --verify .runtime/openifs/cubidiag-tuning/critical-corpus.bin \
   "$check_dir/result"
 cmp "$check_dir/result-fortran.bin" "$check_dir/result-assembly.bin"
 cmp "$check_dir/result-fortran.bin" \
-  .runtime/openifs/cubidiag/frozen/canonical-fortran.bin
+  .runtime/openifs/cubidiag-tuning/source-only-fortran.bin
 gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -fPIC \
   -Wall -Wextra -Werror -Wno-misleading-indentation \
   -c bench/openifs/physics/cubidiag_forecast.c -o "$check_dir/forecast.o"
@@ -96,3 +96,22 @@ gcc -shared -Wl,-Bsymbolic "$check_dir/forecast.o" "$check_dir/assembly.o" \
 ```
 
 Preload the complete comparator alongside the accepted parent libraries, retain one forecast thread and compare every captured stream and saved file before acceptance. The observer accepts only the four source sites whose complete arrays have been reviewed.
+## Measured output initialisation and empty-stage selection
+
+The selected body fills the complete output with positive zero using paired vector stores for eight cells at a time, followed by scalar stores for the exact remainder. For a selected interval of at least eight columns, it scans only the integer cloud masks at levels 2 through KLEV. If all are zero, the original body has no equation to solve, so the completed zero output can return immediately. Otherwise it runs the unchanged scalar FP64 equations. The scan reads no cloud-top or floating-point field values. Each grouped access requires eight remaining cells, and scalar tails stay within the buffer. The body uses 86 instructions, no stack frame and only caller-saved registers.
+
+Before emission, fourteen source-only cases added capacities from one to seven and nine to fifteen cells at one level. They protect every remainder of the complete zero stage while leaving unused cloud tops invalid and floating-point inputs non-finite. The original 106 output records remain unchanged. All 120 cases now compare 80,344 complete output and guard bytes, with 5,709 independent residual rows, 5,049 known-solution rows, 4,214 exact positive-zero rows and 120 direct ABI calls.
+
+The quiet timing block uses own exclusive job 7189435 on nid010825, CPU 8 and local memory binding, with all other numerical work paused. Twelve rotated paired repetitions each contain 256 fresh complete calls, after 32 warm calls. Reset and complete-state checks remain outside timing, and both clock boundaries are included. The source control uses GNU 12.3, O2 and Neoverse V2 tuning with contraction and fast-math disabled. The table gives median nanoseconds per call, with minimum and maximum in parentheses, for representative captured calls at the first source site.
+
+| Selected columns | Used equations | Source Fortran | Previous assembly | Selected assembly | Median paired gain over previous assembly |
+| --- | --- | --- | --- | --- | --- |
+| 8 | 0 | 140.562 (139.000–141.875) | 285.562 (281.375–287.125) | 79.688 (78.625–81.250) | 3.579× |
+| 24 | 0 | 243.812 (242.500–244.875) | 466.312 (465.250–467.375) | 93.812 (93.375–95.500) | 4.975× |
+| 24 | 189 | 338.375 (333.125–352.125) | 536.750 (531.625–553.750) | 427.062 (424.375–428.750) | 1.258× |
+
+All twelve pairs improve over previous assembly at each of twelve captured workloads from the four source sites. The selected assembly still trails Fortran on the busiest case. This is a helper comparison on representative calls, rather than a forecast-average speedup. All workload ranges and median absolute deviations remain reported. A median absolute deviation is the median distance from the median. Fourteen disturbed eleven-way measurement rotations and two disturbed four-way calibration rotations were discarded as complete groups; their records and all accepted outliers remain archived.
+
+For the busiest first-site call, matched warmed-cache component medians are 67.125 ns for the zero stage, 416.500 ns for the selected mask, address, read and write schedule, 207.813 ns for separately rounded joint arithmetic and 162.375 ns for exact diagonal divisions. There is no square root. The largest component median divided by the selected 427.063 ns gives 97.53% of this empirical schedule estimate. The probes include setup, loop and clock costs and their work can overlap. The captured input record occupies 16,552 bytes and stays warm in cache. Logical reads and writes differ from physical main-memory traffic. This estimate establishes neither a rigorous hardware bound nor measured main-memory bandwidth, and physical page placement was not sampled. The matched memory probe replaces arithmetic with independently checked integer data movement; it is a timing tool, not part of the solver.
+
+A fresh combined forecast accepts the selected body at all 8,600 calls, with unchanged source streams, exact FPCR zero and zero differing bytes across every complete return. All 29 paired streams directly compare across 3,013,954,408 bytes, and all ten saved files match the strict baseline. The compact record retains the original source and numerical freeze, the added source-only cases, selected first emission, all workload variation and full command archives.
