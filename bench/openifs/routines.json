@@ -205,48 +205,43 @@
       }
     },
     "source_role_review": {
-      "review_date_utc": "2026-10-09T21:50:50.567745+00:00",
+      "review_date_utc": "2026-10-09T22:02:07.603035+00:00",
       "counts": {
-        "configuration_support": 12,
+        "configuration_support": 15,
         "io_support": 19,
         "model_driver": 5,
         "numerical_diagnostic": 14,
-        "numerical_helper": 99,
-        "numerical_interface": 38,
+        "numerical_helper": 111,
+        "numerical_interface": 40,
         "numerical_setup": 4,
         "numerical_stage": 66,
         "runtime_support": 82,
-        "state_storage": 151,
-        "unreviewed": 976,
+        "state_storage": 177,
+        "unreviewed": 933,
         "numerical_unspecified": 0
       },
-      "reviewed_source_bodies": 490,
-      "unreviewed_source_bodies": 976,
-      "scope": "Complete source-role reviews through batch30; purpose categories do not establish an assembly conversion denominator",
-      "core_numerical_purpose_bodies": 203,
-      "broad_numerical_purpose_bodies": 221,
+      "reviewed_source_bodies": 533,
+      "unreviewed_source_bodies": 933,
+      "scope": "Complete source-role reviews through batch32; purpose categories do not establish an assembly conversion denominator",
+      "core_numerical_purpose_bodies": 217,
+      "broad_numerical_purpose_bodies": 235,
       "categories_are_disjoint": true,
       "exact_required_numerical_routine_count_established": false,
       "snapshot": {
-        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261009-private-source-role-release-40.json",
-        "bytes": 21643,
-        "sha256": "12992b4d9500923cc49869826cb56526ee685ce73db2d6d5dbfc65a7112e929f"
+        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261009-private-source-role-release-43-after-490.json",
+        "bytes": 21199,
+        "sha256": "5a22938971b0255aacf1cb87cd828fd204550946fbf9f0625a1916a5e6d5ffa7"
       },
       "batch_summaries": [
         {
-          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261009-batch28r2-transport-interpolation-boundaries-summary.json",
-          "bytes": 4412,
-          "sha256": "d2d651f5c6340e45eaa4d9f1a04d9eec50838e00b7a987fa67ee8519b73101fa"
+          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261009-batch31-radiation-table-inputs-and-simple-bands-summary.json",
+          "bytes": 4478,
+          "sha256": "11b4c38453f2a8832e3844aced5ddc99c21a97a1053eba402dea72e35cdfbefe"
         },
         {
-          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261009-batch29-spectral-arithmetic-storage-interfaces-summary.json",
-          "bytes": 4417,
-          "sha256": "07f3718751dc995f042da3319a24534ce4f5693f12c7f01832868b87d8d2418b"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261009-batch30-current-cloud-radiation-gas-helpers-summary.json",
-          "bytes": 4441,
-          "sha256": "187d8c63ddf2dc066dd14abab5d8a32c3e2547a7f94c46e625fad45f06622284"
+          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261009-batch32-physics-buffer-views-and-loop-controls-summary.json",
+          "bytes": 4438,
+          "sha256": "c3799293bcef7a2288a669fcc726e60700d6ea38de07f51a255c3a923681cd17"
         }
       ],
       "initial_evidence_artifacts_unchanged": 18,
@@ -260,25 +255,25 @@
       "assembly_conversion_denominator_established": false,
       "reviewed_source_bodies_by_phase": {
         "before_CNT4": 139,
-        "within_CNT4": 399,
+        "within_CNT4": 442,
         "after_CNT4": 37
       },
       "phase_body_sets_overlap": true,
       "previous_snapshot": {
-        "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-source-role-snapshot-through-batch27-450-bodies.json",
-        "bytes": 23736,
-        "sha256": "22f83be05fb926764b38e27a7eff870acdd0e4e422c8baed0535371948bfd86a"
+        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261009-private-source-role-release-40.json",
+        "bytes": 21643,
+        "sha256": "12992b4d9500923cc49869826cb56526ee685ce73db2d6d5dbfc65a7112e929f"
       },
       "parent_validation": {
-        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/parent-release40-structural-review.json",
-        "bytes": 437,
-        "sha256": "20010f5607467470eac5b22a02de29026723b3a87e5bad36a68bc7a354e115fa"
+        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/parent-release43-after-490-review.json",
+        "bytes": 427,
+        "sha256": "26941d91608bf9706b11cedd365c929fb962a06ac0338c5874a2c1f5799fcb77"
       },
-      "validation_command": ".runtime/python/bin/python .runtime/openifs/routine-audit/coverage-7207705/source-review/verify_role_release.py .runtime/openifs/routine-audit/coverage-7207705/source-review/20261009-private-source-role-release-40.json",
+      "validation_command": ".runtime/python/bin/python .runtime/openifs/routine-audit/coverage-7207705/source-review/verify_role_release_v2.py .runtime/openifs/routine-audit/coverage-7207705/source-review/20261009-private-source-role-release-43-after-490.json",
       "validator": {
-        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/verify_role_release.py",
-        "bytes": 3549,
-        "sha256": "1658306c3088d094d9f0574787d5a862a89df24774f67445023642c9bbb8ff7f"
+        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/verify_role_release_v2.py",
+        "bytes": 3722,
+        "sha256": "79201a97bd2cef4f22937733c4e93ec9249b0c388a70bec203ba24fd17528543"
       },
       "prior_batch_summaries_preserved_in_previous_snapshot": true
     },
