@@ -24,12 +24,12 @@ A complete T21 call trace now records when each built Fortran routine starts and
 | --- | ---: |
 | Active Fortran routine bodies | 1,466 |
 | Bodies without existing profiling markers | 372 |
-| Reviewed mathematical stages, helpers and interfaces | 62 |
-| Other reviewed mathematical roles | 22 |
-| Reviewed driver, support, configuration and storage bodies | 248 |
-| Bodies still needing source-role review | 1,134 |
+| Reviewed mathematical stages, helpers and interfaces | 135 |
+| Reviewed mathematical setup and diagnostic bodies | 15 |
+| Reviewed driver, support, configuration and storage bodies | 250 |
+| Bodies still needing source-role review | 1,066 |
 
-The older profile has 1,171 labelled regions, so its labels do not give complete routine coverage. The current review covers 332 bodies. It separates full stages, subordinate formulas, mathematical interfaces, setup, diagnostics and support. The 84 bodies with mathematical purposes are a subtotal, not the required conversion count. The source review must distinguish numerical calculations from setup and support before we can count the routines that need assembly. The 1,466 active bodies must therefore not be used as the numerical completion denominator. During the main forecast phase, 711 source bodies run; another 835 run before it and 64 after it, with overlap between these sets.
+The older profile has 1,171 labelled regions, so its labels do not give complete routine coverage. The current review covers 400 bodies through batch19: 42 mathematical stages, 73 subordinate calculations, 20 mathematical interfaces, three setup bodies and 12 diagnostic bodies. An interface calls mathematical routines and can also delegate diagnostics. The 150 bodies with mathematical purposes form a source-purpose subtotal; this count does not establish which routines require assembly or give a numerical completion denominator. SGEMMXZ remains classified as runtime support because its accepted body is an empty compatibility return. During the main forecast phase, 711 source bodies run and 311 have reviewed roles; another 835 run before it and 64 after it, with overlap between these sets.
 
 The trace excludes local C/C++ bodies and uninstrumented external libraries, including numerical libraries. It records routine visits for this T21 case and does not prove every branch or other configurations. The compact [coverage record](routines.json) preserves counts, commands, evidence hashes and these limits. Complete events, source mappings and review evidence stay in ignored .runtime/openifs/routine-audit/ and .runtime/openifs/runs/.
 

@@ -205,32 +205,32 @@
       }
     },
     "source_role_review": {
-      "review_date_utc": "2026-10-09T16:02:52.160292+00:00",
+      "review_date_utc": "2026-10-09T16:56:17.852044+00:00",
       "counts": {
         "configuration_support": 11,
         "io_support": 19,
         "model_driver": 5,
-        "numerical_diagnostic": 5,
-        "numerical_helper": 36,
-        "numerical_interface": 7,
-        "numerical_setup": 2,
-        "numerical_stage": 19,
-        "numerical_unspecified": 15,
+        "numerical_diagnostic": 12,
+        "numerical_helper": 73,
+        "numerical_interface": 20,
+        "numerical_setup": 3,
+        "numerical_stage": 42,
+        "numerical_unspecified": 0,
         "runtime_support": 78,
-        "state_storage": 135,
-        "unreviewed": 1134
+        "state_storage": 137,
+        "unreviewed": 1066
       },
-      "reviewed_source_bodies": 332,
-      "unreviewed_source_bodies": 1134,
-      "scope": "Complete source-role reviews through batch06; purpose categories are not an assembly conversion denominator",
-      "core_numerical_purpose_bodies": 62,
-      "broad_numerical_purpose_bodies": 84,
+      "reviewed_source_bodies": 400,
+      "unreviewed_source_bodies": 1066,
+      "scope": "Complete source-role reviews through batch19; purpose categories are not an assembly conversion denominator",
+      "core_numerical_purpose_bodies": 135,
+      "broad_numerical_purpose_bodies": 150,
       "categories_are_disjoint": true,
       "exact_required_numerical_routine_count_established": false,
       "snapshot": {
-        "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-source-role-snapshot-through-batch06-corrected-sgemmxz.json",
-        "sha256": "cdc7436360199e89c4a65fbf39c477f4d5a896b493f82ff62f5685203dd9f72e",
-        "bytes": 9457
+        "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-source-role-snapshot-through-batch19.json",
+        "bytes": 17825,
+        "sha256": "b32b969eeae5ae505cb015e9df41994cb70f529f57567cb1f9c5d4649e717d5b"
       },
       "batch_summaries": [
         {
@@ -262,6 +262,71 @@
           "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch06-gas-concentrations-summary.json",
           "bytes": 4323,
           "sha256": "377516241da820ca53f3c0afc4bfe0f4c3c90bb59c513eb0454577d73c4d8926"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch07-radiation-inputs-surface-summary.json",
+          "bytes": 4394,
+          "sha256": "c23c9c00b57e779c44b10c410f977a794c33ae56131f913adc842f4d3f0c514b"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch08-radiation-column-solvers-summary.json",
+          "bytes": 4447,
+          "sha256": "d84a32ba0712abe2d1fcde261765bbe25ab1ef1fa497e6d76a45b2f649b963b3"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch09-radiation-optical-properties-summary.json",
+          "bytes": 4391,
+          "sha256": "9627bc8555aef70f91c44536c9331eff0bd1e291e2a915097fe3079aa74b9d8d"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch10-radiation-interface-gas-summary.json",
+          "bytes": 4404,
+          "sha256": "a1904b27e5c88d6a085385ba2384802786faefd85624f0ad16ed5dbf7a9cbd7e"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch11-physics-state-thermodynamics-summary.json",
+          "bytes": 4399,
+          "sha256": "0a96e8c725c8a0edc8dfffc9ec10628ccecf50f266a11071a7c561ea8f158729"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch12-linear-algebra-adapters-summary.json",
+          "bytes": 4406,
+          "sha256": "fa381ce9809a6524faa738684507857de9c44a22726dbec3f4d303009f7b8b47"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch13-eigensystem-coriolis-summary.json",
+          "bytes": 4266,
+          "sha256": "c8c08d3fa077f9e1d81fb015d568915fc09d8458db928393229bed90b13b4f7c"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch14-cloud-diffusion-wind-summary.json",
+          "bytes": 4239,
+          "sha256": "ef64b9d0a2440ea1578ae7847b4029d58d84872079b38e8d329dcd0115f25dc0"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch15-convection-drag-helpers-summary.json",
+          "bytes": 4235,
+          "sha256": "998cbec062158eef711e44ea32dd601976f043fd8ea1f5a511fefbbde914c509"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch16-physics-tendency-updates-summary.json",
+          "bytes": 4245,
+          "sha256": "b3e3a947fae0f5dce58e17cc603a85390ae7c31a2677afce5ce15fa833262de8"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch17-convection-diffusion-factors-summary.json",
+          "bytes": 4248,
+          "sha256": "fe2de5044f4e0ab2324f3de254f4e95bb95c859f6e41cc6d0e3b9568211a40ca"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch18-cloud-convection-drag-stages-summary.json",
+          "bytes": 4318,
+          "sha256": "9c470dedea3c8425faf0fb4ef11de78423dfe2fc141672d1df898774006c4c00"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch19-physics-interfaces-aerosol-diagnostics-summary.json",
+          "bytes": 4295,
+          "sha256": "486d88b6efe31c74d20407eeb7e22b6f29bbe418878cfef92cc7a51a33b2d9a2"
         }
       ],
       "initial_evidence_artifacts_unchanged": 18,
@@ -269,7 +334,16 @@
       "correction_evidence": {
         "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch06-correction-sgemmxz-evidence.json",
         "sha256": "ef1baa1eab1e5cfee735a289197ffbee863706287d936fc7cd8d5b1ac887a32d"
-      }
+      },
+      "core_numerical_purpose_qualification": "Source-reviewed mathematical stages, subordinate calculations and interfaces to mathematical routines. Interfaces may delegate diagnostics. This is an observed-source-purpose subtotal, not an exact required numerical denominator.",
+      "broad_numerical_purpose_qualification": "Core plus numerical setup and diagnostic bodies. No reviewed mathematical body remains pending a detailed role. This subtotal does not establish required weather-evolution arithmetic or a conversion percentage.",
+      "assembly_conversion_denominator_established": false,
+      "reviewed_source_bodies_by_phase": {
+        "before_CNT4": 118,
+        "within_CNT4": 311,
+        "after_CNT4": 37
+      },
+      "phase_body_sets_overlap": true
     },
     "forecast_phase_bodies": {
       "before": 835,
