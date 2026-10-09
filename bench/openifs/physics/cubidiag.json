@@ -1,0 +1,247 @@
+{
+  "routine": "CUBIDIAG",
+  "date_utc": "2026-10-09T19:42:38.533305+00:00",
+  "revision": "1.1; numerical contract frozen at 1.0",
+  "status": "Complete direct body accepted by critical physics and combined full T21 forecast",
+  "openifs_version": "48.1.1",
+  "generation": {
+    "contract": "skills/md2asm/references/openifs/physics/cubidiag.md",
+    "contract_revision": "1.0",
+    "frozen_manifest": {
+      "local": ".runtime/openifs/cubidiag/frozen/pre-emission-contract-corpus.json",
+      "bytes": 4742,
+      "sha256": "36bf6d3f515ce2aed7b6548c0a207d00754064f6d6e83ee57d158dde213a82c2"
+    },
+    "first_emission": {
+      "local": ".runtime/openifs/cubidiag/first-emission.json",
+      "bytes": 474,
+      "sha256": "44f17b00e88417d93c67ca00ffb499bcf5b6edfdf15db7fbfef654c0a18d65e5"
+    },
+    "route": "Direct AArch64 from original source, frozen ordered FP64 equations, independent known solutions/residuals and storage-only ABI probes; compiler numerical instructions first inspected after emission."
+  },
+  "runtime": {
+    "job": 7189435,
+    "node": "nid010825",
+    "ranks": 1,
+    "threads": 1,
+    "affinity": "map_cpu:0",
+    "memory": "local",
+    "compiler": "GNU Fortran/GCC12.3",
+    "flags": [
+      "-O2",
+      "-mcpu=neoverse-v2",
+      "-ffp-contract=off",
+      "-fno-fast-math"
+    ],
+    "purpose": "Numerical verification; no comparative timing"
+  },
+  "critical": {
+    "cases": 106,
+    "compared_complete_output_guard_bytes": 79336,
+    "differing_bytes": 0,
+    "independent_regularised_residual_rows": 5709,
+    "independent_known_solution_rows": 5049,
+    "exact_positive_zero_rows": 4102,
+    "canary_ABI_calls": 106,
+    "FPCR": "0000000000000000",
+    "read_only_input_pages": true,
+    "protected_final_tails": true,
+    "frozen_binary_input_corpus": {
+      "local": ".runtime/openifs/cubidiag/frozen/corpus.bin",
+      "bytes": 439140,
+      "sha256": "b1dfefa6278cf31ed4cf739b7bb2b2d20d91291f851d2f9748aa12cdc90ad2d1"
+    },
+    "canonical_output": {
+      "local": ".runtime/openifs/cubidiag/frozen/canonical-fortran.bin",
+      "bytes": 79336,
+      "sha256": "f2c89e7014f422e084af86a2442dd7210301562c49795704a64f8463b1447ad2"
+    },
+    "checks": [
+      "Known constant/varying wind, positive temperature and moisture solutions",
+      "Regularised lower-bidiagonal residual independent of forward substitution",
+      "Complete PU positive-zero stage, no cloud, before top, holes, first/last levels and inactive columns",
+      "Full/partial/empty intervals, odd widths, zero/one levels and protected bounds",
+      "All ten register/stack arguments, read-only inputs and immediate direct preserved-register observer",
+      "Signed zeros, gradual underflow, zero unmodified diagonal and reciprocal-then-multiply witness"
+    ],
+    "edge_evidence": {
+      "local": ".runtime/openifs/cubidiag/critical-corpus-edge-evidence.json",
+      "bytes": 892,
+      "sha256": "1f8486ba466a8fae3b66dea4a66c89ab9f1c13a9565742aeea062490394b0ae3"
+    }
+  },
+  "ABI": {
+    "argument_count": 10,
+    "integer_logical_bits": 32,
+    "logical_true": 1,
+    "real_bits": 64,
+    "register_arguments": [
+      "KIDIA",
+      "KFDIA",
+      "KLON",
+      "KLEV",
+      "KCTOP",
+      "LD_LCUMASK",
+      "PA",
+      "PB"
+    ],
+    "stack_arguments": {
+      "PR": 0,
+      "PU": 8
+    },
+    "canary_calls": 106,
+    "x19_to_x29_preserved": true,
+    "d8_to_d15_lower64_preserved": true,
+    "stack_restored_16_byte_aligned": true,
+    "observer_source": "bench/openifs/physics/cubidiag.c",
+    "C_bridge_between_native_and_checks": false
+  },
+  "instruction_audit": {
+    "native_instructions": 52,
+    "source_after_emission_instructions": 145,
+    "forbidden_arithmetic": 0,
+    "single_precision_arithmetic": 0,
+    "native_frame_bytes": 0,
+    "native_x18_and_saved_registers_unused": true,
+    "evidence": {
+      "local": ".runtime/openifs/cubidiag/post-emission-instruction-audit.json",
+      "bytes": 235,
+      "sha256": "a5b87b48a902a4233e8b4f228c5e33ab4864c1dc4f31087bd141fd20919fa384"
+    }
+  },
+  "forecast": {
+    "calls": 8600,
+    "source_site_calls": [
+      2150,
+      2150,
+      2150,
+      2150
+    ],
+    "source_sites": [
+      {
+        "caller": "CUDUDV",
+        "source_line": 296,
+        "field": "ZR1",
+        "forcing": "ZDUDT",
+        "units": "m/s",
+        "actual_strict_return": "0x70ddc4"
+      },
+      {
+        "caller": "CUDUDV",
+        "source_line": 301,
+        "field": "ZR2",
+        "forcing": "ZDVDT",
+        "units": "m/s",
+        "actual_strict_return": "0x70ddf4"
+      },
+      {
+        "caller": "CUDTDQN",
+        "source_line": 417,
+        "field": "ZR1",
+        "forcing": "ZDTDT",
+        "units": "K",
+        "actual_strict_return": "0x70b52c"
+      },
+      {
+        "caller": "CUDTDQN",
+        "source_line": 422,
+        "field": "ZR2",
+        "forcing": "ZDQDT",
+        "units": "kg/kg",
+        "actual_strict_return": "0x70b558"
+      }
+    ],
+    "KLON": 24,
+    "KLEV": 19,
+    "steps": [
+      0,
+      24
+    ],
+    "calls_per_step": 344,
+    "partial_calls": 100,
+    "complete_result_record_bytes_per_implementation": 48228800,
+    "full_input_bytes": 142347200,
+    "differing_bytes": 0,
+    "first_cloud_rows": 83804,
+    "recurrent_rows": 403300,
+    "exact_positive_zero_rows": 3434496,
+    "no_equation_calls": 1156,
+    "FPCR_exactly_zero_checked_at_every_entry": true,
+    "inputs_and_scalars_unchanged": true,
+    "saved_files_identical": 10,
+    "saved_bytes": 618140,
+    "fresh_strict_reference_matches_prior_baseline": true,
+    "raw_archive": ".runtime/openifs/runs/strict-cubidiag-combined-reviewed-7189435/t21/test_fc",
+    "fresh_reference": ".runtime/openifs/runs/strict-cubidiag-reference-7189435/t21/test_fc",
+    "evidence": {
+      "local": ".runtime/openifs/runs/strict-cubidiag-combined-reviewed-7189435/t21/direct-comparison.json",
+      "sha256": "cd80f84b2a5dec9207cd658111dcee300ae39a6100e0fa8d7c0f0ba8a0b50bc6"
+    },
+    "capacity_protocol": {
+      "local": ".runtime/openifs/cubidiag/forecast-capture-protocol-fpcr-reviewed.json",
+      "bytes": 3632,
+      "sha256": "cff18f06661ea19b8f24daa987ed2c15bf24e92ac798316aad66151739e66239"
+    },
+    "full_stream_validation": {
+      "local": ".runtime/openifs/cubidiag/full-stream-validation-fpcr-reviewed.json",
+      "bytes": 2447,
+      "sha256": "4f5e2d16e6a50ad39ed5235b6b94a68f62ca6b6bdc5962e33578149c5c0a6753"
+    },
+    "bytes": 48228800,
+    "assembly_sha256": "3e23c8fb5e74a058011faaedaf5f3c34e1a5a27759f6926e977f48ce069f23fa",
+    "fortran_sha256": "3e23c8fb5e74a058011faaedaf5f3c34e1a5a27759f6926e977f48ce069f23fa",
+    "input_bytes": 142347200,
+    "input_sha256": "87826de67eb8459cb40d1fa75e758b7cafaff01799437c804f01e80ce6d7058c",
+    "live_summary": {
+      "calls": 8600,
+      "complete_record_bytes": 48228800,
+      "differing_bytes": 0,
+      "first_rows": 83804,
+      "recurrent_rows": 403300,
+      "positive_zero_rows": 3434496,
+      "FPCR": 0
+    },
+    "paired_streams_identical": 25,
+    "native_library_sha256": "0dbd6d88a2916e1f96752df71d886044c723b46a6deb02398e9e34f67419b20a"
+  },
+  "artifacts": {
+    "manifest": {
+      "local": ".runtime/openifs/cubidiag/final-manifest.json",
+      "bytes": 15844,
+      "sha256": "89150e41cf26937231d0f21dad374e89592094d52d508fe0a926477a3b9e445b"
+    },
+    "build_commands": {
+      "local": ".runtime/openifs/cubidiag/build-commands.txt",
+      "bytes": 10290,
+      "sha256": "d864a97caf0b3b7f2cf224db2aa32a42849cd05dabdf21c64e378f1d03b82240"
+    },
+    "observer_only_strict_FPCR_revision": {
+      "local": ".runtime/openifs/cubidiag/observer-fpcr-correction.json",
+      "bytes": 1776,
+      "sha256": "92698d76b240e0c4a9e3a8d886412e433fd42e2c5a4b8ba2ea8d0bb994ea03e1"
+    }
+  },
+  "sha256": {
+    "cubidiag.S": "014127f6a693effff3d3e3f17644f6b92f8683ce328fe671b401ffda27d855d2",
+    "cubidiag.c": "8d945ed83d9e638cc3b62d1d2c1d6bdf151266ccd1eed6ce677202847af8170d",
+    "cubidiag_forecast.c": "25d0e803c64d267a87590e450407ba0aa52d48adedbdb1f18589b9f7376df2e8",
+    "cubidiag.md": "bf7094d8cd385e1cca4c1d4858705031fb59a64ddb45e7a28eda48dd981d1bff"
+  },
+  "scientific_limits": [
+    "All observed caller PA/PB coefficients are dimensionless; PR/PU retain wind, temperature or mass-fraction units",
+    "The whole output capacity is defined, including positive zero outside cloud equations",
+    "Other original callers CUDUDV2, CUDTDQN2 and CUCTRACER were not forecast-audited",
+    "Manufactured physical examples and residual checks cover the supplied helper system, not all plume physics",
+    "Profiling hooks are excluded from the direct numerical ABI",
+    "No whole-forecast physical proof, exact required numerical denominator, complete assembly forecast or performance claim is established"
+  ],
+  "whole_forecast_independent_physics_verified": false,
+  "complete_assembly_forecast_implemented": false,
+  "assembly_conversion_denominator_established": false,
+  "comparative_timing_performed": false,
+  "prior_isolated_forecast_evidence": {
+    "local": ".runtime/openifs/runs/strict-cubidiag-only-fpcr-reviewed-7189435/t21/direct-comparison.json",
+    "bytes": 13485,
+    "sha256": "163546e72030fca81253aabb9e4758b89cd59adc28d128c8204fdc688c2a686f"
+  }
+}
