@@ -18,7 +18,20 @@ The tool checks each built input with GNU Fortran 12.3 and the original build se
 
 Two count passes produced identical inventory bytes. All built inputs passed, and the 4,071 recorded source files, forecast executable and seven scientific libraries retain their earlier hashes. The [compact record](routines.json) also identifies seven generated Fortran inputs and their source templates. Full names, source paths, reports and the profile mapping remain in ignored .runtime/openifs/routine-audit/.
 
-The T21 forecast profile contains 1,171 labelled regions. Of these labels, 1,002 uniquely match routine names in the inventory. The remaining 169 need source mapping or refer to external calls and code regions. This profile does not record every function call, so the exact number of required numerical routines remains unestablished. A complete call trace and a review of which routines perform numerical stages are needed before using that count to estimate the remaining assembly work.
+A complete T21 call trace now records when each built Fortran routine starts and returns. A separate build adds these notifications without changing the original strict build or its archives. All 153,696,355 entry/return pairs are balanced, with no lost events. Every observed address resolves to one of 1,466 source bodies, seven compiler cleanup helpers or two program startup wrappers. All ten saved forecast files match the strict reference by direct byte comparison.
+
+| Active-source review | Count |
+| --- | ---: |
+| Active Fortran routine bodies | 1,466 |
+| Bodies without existing profiling markers | 372 |
+| Reviewed numerical-purpose bodies, including interfaces and helpers | 39 |
+| Reviewed numerical seed-setup body | 1 |
+| Reviewed support, configuration and storage bodies | 226 |
+| Bodies still needing source-role review | 1,200 |
+
+The older profile has 1,171 labelled regions, so its labels do not give complete routine coverage. The source review must distinguish numerical calculations from setup and support before we can count the routines that need assembly. The 1,466 active bodies must therefore not be used as the numerical completion denominator. During the main forecast phase, 711 source bodies run; another 835 run before it and 64 after it, with overlap between these sets.
+
+The trace excludes local C/C++ bodies and uninstrumented external libraries, including numerical libraries. It records routine visits for this T21 case and does not prove every branch or other configurations. The compact [coverage record](routines.json) preserves counts, commands, evidence hashes and these limits. Complete events, source mappings and review evidence stay in ignored .runtime/openifs/routine-audit/ and .runtime/openifs/runs/.
 
 | Routine | Verified assembly work |
 | --- | --- |

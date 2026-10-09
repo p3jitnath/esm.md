@@ -99,5 +99,146 @@
   "implementation_work": "Resumed on 2026-10-06 to prioritise coarse-forecast dynamics",
   "inventory_reproduced_byte_for_byte": true,
   "accepted_reports_local": ".runtime/openifs/routine-audit/recheck/frontend-reports.zip",
-  "accepted_reports_sha256": "ee9bed8264793334bf5c75be8ca4d8b5c37a19db7fcef9738d3f27f43e3aca85"
+  "accepted_reports_sha256": "ee9bed8264793334bf5c75be8ca4d8b5c37a19db7fcef9738d3f27f43e3aca85",
+  "t21_compiler_entry_coverage": {
+    "date_utc": "2026-10-09T14:17:57.657185+00:00",
+    "scope": "Actual source-body visits in the frozen one-process/thread T21 reference; numerical role review is incomplete",
+    "job_id": 7189435,
+    "node": "nid010825",
+    "cpu_affinity": [
+      0
+    ],
+    "memory_placement": "local",
+    "processes": 1,
+    "threads": 1,
+    "instrumentation": {
+      "compiler": "GNU Fortran 12.3.0",
+      "added_flag": "-finstrument-functions",
+      "strict_flags_preserved": true,
+      "compiler_command_arguments_sha256": "552353767bda4d942921d22d583c8fb3506ac9bd4e7d395c0979ce4f4a495fb5",
+      "link_command_arguments_sha256": "c18bffeee04a9c15ba5cd072c05cc7b789f9079825d37db59b046c1ee58bf067",
+      "logger_source": {
+        "local": ".runtime/openifs/instrumented-build/call_trace.c",
+        "sha256": "0b47c0033f974d10f6aa11a254a4d1e09053e24e9e72767556c11fff752ab803",
+        "bytes": 7814
+      },
+      "build_driver": {
+        "local": ".runtime/openifs/instrumented-build/build_instrumented.py",
+        "sha256": "5adb7bbbf95ed1e7d381dce1c6aa1440d7d37df8851deeaf67e43b8bf9992574",
+        "bytes": 12098
+      }
+    },
+    "trace": {
+      "entries": 153696355,
+      "exits": 153696355,
+      "lost_events": 0,
+      "max_instrumented_stack_depth": 25,
+      "distinct_function_addresses": 1475,
+      "distinct_instrumented_parent_callsite_edges": 10673,
+      "error_count": 0,
+      "balanced_complete_stream": true,
+      "observed_source_routine_bodies": 1466,
+      "observed_compiler_helpers": 7,
+      "observed_program_wrappers": 2,
+      "archive_local": ".runtime/openifs/runs/compiler-entry-trace-7189435/t21/test_fc/call-trace/events.196059.196059.bin.zst",
+      "original_bytes": 9836566792,
+      "original_sha256": "682453ae36e93b0deeec06669210c7675004fc6c1fe6c9e12288fefdc837281f",
+      "archive_bytes": 604107227,
+      "archive_sha256": "1ec2bb696607317f546b7b2d139827d52d8b09804889af356b35cb9928208bd4",
+      "full_decompressed_sha256_matches": true,
+      "stack_validation": {
+        "local": ".runtime/openifs/routine-audit/coverage-7189435/compiler-event-check.json",
+        "sha256": "a84b826bcddb1e73153e7bb4148d919225d2d7f4db1767d73d92380fe7053b87",
+        "bytes": 452
+      }
+    },
+    "mapping": {
+      "all_observed_addresses_source_resolved_or_explicit_helpers": true,
+      "ambiguous_addresses": 0,
+      "active_source_bodies": 1466,
+      "by_target": {
+        "algor.DP": 19,
+        "arpifs.DP": 1164,
+        "trans_dp": 85,
+        "fiat": 73,
+        "ifsaux.DP": 49,
+        "surf.DP": 76
+      },
+      "bodies_with_resolved_dr_hook_markers": 1094,
+      "bodies_without_resolved_dr_hook_markers": 372,
+      "initial_marked_unique_source_bodies_all_present": 1063,
+      "active_manifest": {
+        "local": ".runtime/openifs/routine-audit/coverage-7189435/coverage-active-bodies.json",
+        "sha256": "96baee4d48a0e527b91e4909b4eb3da5700b7048e61f13f54eab40a73b780788",
+        "bytes": 1023154
+      },
+      "compact_manifest": {
+        "local": ".runtime/openifs/routine-audit/coverage-7189435/coverage-active-bodies.tsv",
+        "sha256": "b9ea95859b7bd4acd73b84a076ab1b542b1e4902a2057ec90f91457a9f6a9cfd",
+        "bytes": 289209
+      }
+    },
+    "source_role_review": {
+      "review_date_utc": "2026-10-09T14:02:25.508656+00:00",
+      "counts": {
+        "confirmed_numerical": 39,
+        "unreviewed": 1200,
+        "numerical_seed_setup": 1,
+        "runtime_support": 77,
+        "configuration_support": 10,
+        "storage_support": 7,
+        "file_io_support": 19,
+        "field_storage_and_views": 113
+      },
+      "evidence": {
+        "local": ".runtime/openifs/routine-audit/coverage-7189435/coverage-classification-evidence.json",
+        "sha256": "a1e0530f894b3375a520d92afd0056c551fd3608bb21ae91aacdb826e9ef3ae4",
+        "bytes": 239715
+      },
+      "reviewed_source_bodies": 266,
+      "unreviewed_source_bodies": 1200,
+      "scope": "Reviewed examples and support/storage/configuration groups only; numerical-purpose counts include interfaces and helpers",
+      "categories_are_disjoint": true,
+      "exact_required_numerical_routine_count_established": false
+    },
+    "forecast_phase_bodies": {
+      "before": 835,
+      "within": 711,
+      "after": 64,
+      "sets_overlap": true,
+      "location_classifies_numerical_role": false
+    },
+    "next_source_body_counts": {
+      "GPCTY": 2150,
+      "GPTF1": 2150,
+      "GPTF2": 2150
+    },
+    "output_comparison": {
+      "all_ten_saved_files_directly_equal_reference": true,
+      "namelist_directly_equal_reference": true,
+      "all_21_frozen_elf_files_unchanged": true,
+      "record": {
+        "local": ".runtime/openifs/runs/compiler-entry-trace-7189435/t21/output-check.json",
+        "sha256": "1050472e8187c0de262be6dfd72a8a33d4c237619b2ce0196abb2dca5879634d",
+        "bytes": 7091
+      },
+      "full_stage_raw_state_agreement_established": false,
+      "independent_full_model_physical_acceptance_established": false,
+      "comparative_timing_performed": false
+    },
+    "coverage_exclusions": [
+      "388 configured but unbuilt Fortran inputs",
+      "Reused original local C and C++ objects",
+      "Uninstrumented external numerical and runtime libraries",
+      "Compiler-added helpers are identified separately from source routine bodies",
+      "Fortran program wrappers are outside the source-routine inventory",
+      "Entry coverage does not prove every branch or other model configurations",
+      "Recorded parent edges can span uninstrumented code"
+    ],
+    "full_record": {
+      "local": ".runtime/openifs/routine-audit/coverage-7189435/routines-json-coverage-block.json",
+      "sha256": "01799c5d81e0a15657dea80479b2fc61fd5d34ada22c8a48025b6e87b00a9179"
+    },
+    "strict_reference_and_baseline_replaced": false
+  }
 }
