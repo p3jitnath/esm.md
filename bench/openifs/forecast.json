@@ -1,8 +1,8 @@
 {
-  "date_utc": "2026-10-09T20:59:26.615012+00:00",
-  "scope": "T21 historical forecast with thirty-one accepted public native bodies; VERDER is critical-only and remaining stages are Fortran",
-  "job_id": 7189435,
-  "node": "nid010825",
+  "date_utc": "2026-10-09T22:11:20.502489+00:00",
+  "scope": "T21 historical forecast with thirty-two accepted public native bodies; VERDER is critical-only and remaining stages are Fortran",
+  "job_id": 7207705,
+  "node": "nid011311",
   "ranks": 1,
   "threads": 1,
   "affinity_cpu": 0,
@@ -20,8 +20,8 @@
   "nominal_step_seconds": 3600,
   "fpcr": "0000000000000000",
   "fortran_baseline": ".runtime/openifs/runs/strict-vertical-fortran-7189435/t21/test_fc",
-  "raw_archive": ".runtime/openifs/runs/strict-ice-fu-lw-transport-combined-reviewed-7189435/t21/test_fc",
-  "previous_forecast_record_commit": "a83d57aeb4b5ac0fa82458c6ca98311e68a8875b",
+  "raw_archive": ".runtime/openifs/runs/strict-delta-cub-prefix-combined-reviewed-7207705/t21/test_fc",
+  "previous_forecast_record_commit": "587d58ed90aae6a67f9d7fb80b7f897a5b6a0d0f",
   "complete_assembly_routines": [
     "CPSPE",
     "GPRCP",
@@ -53,7 +53,8 @@
     "SIMPLICO",
     "CALC_LIQ_OPTICS_SOCRATES",
     "CALC_ICE_OPTICS_FU_SW",
-    "CALC_ICE_OPTICS_FU_LW"
+    "CALC_ICE_OPTICS_FU_LW",
+    "RADIATION_CLOUD_OPTICS::DELTA_EDDINGTON_SCAT_OD"
   ],
   "routines": {
     "cpspe": {
@@ -68,168 +69,115 @@
     },
     "gprcp": {
       "bytes": 81643584,
-      "assembly_sha256": "bcca671196b4cf7d02b4f01007280c9dd3e23a7d212b4dc7ba5af96e3e1442ac",
-      "fortran_sha256": "bcca671196b4cf7d02b4f01007280c9dd3e23a7d212b4dc7ba5af96e3e1442ac",
+      "assembly_sha256": "7e44d36620108bb02c0c00774bc636b184d4d21cd3382528414e3c50e7f9eb78",
+      "fortran_sha256": "7e44d36620108bb02c0c00774bc636b184d4d21cd3382528414e3c50e7f9eb78",
       "input_bytes": 466389008,
-      "input_sha256": "7995f81236999beba56ee556bcde224b95ccee75890c2a6de620a86fdb922558",
+      "input_sha256": "6f97073b0e8f77338a127046bacbd37c59eee30af752982cf317cb6319d8ec95",
       "differing_bytes": 0,
       "calls": 13846,
       "record": "dynamics/gprcp.json",
       "genuine_calls": 11696,
-      "comparison_calls": 2150,
-      "live_summary": {
-        "comparison_calls": 2150
-      }
+      "comparison_calls": 2150
     },
     "gppwc": {
       "bytes": 140145600,
-      "assembly_sha256": "1b625b15fabde602a2fb45a1e4a85f2cda530ad18f24b049d65b2a3f6625002d",
-      "fortran_sha256": "1b625b15fabde602a2fb45a1e4a85f2cda530ad18f24b049d65b2a3f6625002d",
+      "assembly_sha256": "d60114481f6007f958748060c6323528c46a7bff5fa3c26108a4cc71daf2d099",
+      "fortran_sha256": "d60114481f6007f958748060c6323528c46a7bff5fa3c26108a4cc71daf2d099",
       "input_bytes": 410612160,
-      "input_sha256": "f0f2454eb0a5e6dfd199021879b9b667bcd7d35742000f2dfb57d7fa4058717b",
+      "input_sha256": "f77a964aad82deb27c481f1bd5934a3792e6bd50a600ae2f08790e29415ad8c0",
       "differing_bytes": 0,
       "calls": 36120,
-      "record": "dynamics/gppwc.json",
-      "live_summary": {
-        "signed_calls": 855
-      }
+      "record": "dynamics/gppwc.json"
     },
     "gprt": {
       "bytes": 23598400,
-      "assembly_sha256": "173d7fea858a7c31d20f166ac796d95248e9bae1a481b6a4edb3960f3ff7d95e",
-      "fortran_sha256": "173d7fea858a7c31d20f166ac796d95248e9bae1a481b6a4edb3960f3ff7d95e",
+      "assembly_sha256": "ce8ccba81613ad1e785e84d0c781da514b7f6b35fa15476d15c763a49bb2a020",
+      "fortran_sha256": "ce8ccba81613ad1e785e84d0c781da514b7f6b35fa15476d15c763a49bb2a020",
       "input_bytes": 55005600,
-      "input_sha256": "26ca72e845c207f03c0fa0c44b423862ce7474ae7dede47c5e27a99d8822e14e",
+      "input_sha256": "0c14062d126ba4d9324977ad87873e40c1a8205ab4b3e212e4964da625f1472e",
       "differing_bytes": 0,
       "calls": 2150,
-      "record": "dynamics/gprt.json",
-      "live_summary": {
-        "virtual": 2150,
-        "explicit": 0,
-        "moisture": 0
-      }
+      "record": "dynamics/gprt.json"
     },
     "gpgrp": {
       "bytes": 15910000,
-      "assembly_sha256": "ce806e53c0e045d07aebae1239972b486a90297ff7ee40c22f5db2d58077261b",
-      "fortran_sha256": "ce806e53c0e045d07aebae1239972b486a90297ff7ee40c22f5db2d58077261b",
+      "assembly_sha256": "33e5d75705c57b032b6f09078c85515f644670e5808827ab8b03ca63f08c9452",
+      "fortran_sha256": "33e5d75705c57b032b6f09078c85515f644670e5808827ab8b03ca63f08c9452",
       "input_bytes": 95167600,
-      "input_sha256": "baae71380aca83a9be6b85be3b8d084b592e6c93b9559d76ca0f1b7978482190",
+      "input_sha256": "34d2aa1c8acf340df4e07cc1c1e922c311ff6080aff176d8c794126da0fb0eb6",
       "differing_bytes": 0,
       "calls": 2150,
-      "record": "dynamics/gpgrp.json",
-      "live_summary": {
-        "conventional": 0,
-        "finite_element": 2150
-      }
+      "record": "dynamics/gpgrp.json"
     },
     "gpmktend": {
       "bytes": 117957600,
-      "assembly_sha256": "f596b0b17d738437293f39f96ad9c1b971154ca3fcd7528ba62fa0d67f375f1d",
-      "fortran_sha256": "f596b0b17d738437293f39f96ad9c1b971154ca3fcd7528ba62fa0d67f375f1d",
+      "assembly_sha256": "47d390d4168d9918278b5d4a19ccf37e60bdb55001171d28cd1e4833b11b96c5",
+      "fortran_sha256": "47d390d4168d9918278b5d4a19ccf37e60bdb55001171d28cd1e4833b11b96c5",
       "input_bytes": 204232800,
-      "input_sha256": "b3bffeb91a4b203bcae3214e286fa4749b2e7ed103970bd2e8bd55fc589ac876",
+      "input_sha256": "09e474bec6e919821c38bd5a55fc4df36832341fd107d592d41006a07d61d93c",
       "differing_bytes": 0,
       "calls": 2150,
-      "record": "dynamics/gpmktend.json",
-      "live_summary": {
-        "selected_descriptor_calls": 12900
-      }
+      "record": "dynamics/gpmktend.json"
     },
     "gpaddslphy": {
       "bytes": 43636400,
-      "assembly_sha256": "e8d57d110507ba5b9618a6f4ddaa47c2623568553544c217790318cad5ad3277",
-      "fortran_sha256": "e8d57d110507ba5b9618a6f4ddaa47c2623568553544c217790318cad5ad3277",
+      "assembly_sha256": "9b7db1bd3ce48ca8bbaf9e73570189903980e8037d0b0e9ab52e27d02d038697",
+      "fortran_sha256": "9b7db1bd3ce48ca8bbaf9e73570189903980e8037d0b0e9ab52e27d02d038697",
       "input_bytes": 81283760,
-      "input_sha256": "bcf061fa3d8bdcfecaeb1dfc5c136baa21e935a69ab72510f531904949776097",
+      "input_sha256": "1be38f4c6566e3708f15e631c7b2f2a1b5727d983eca47896d7f26608017df5e",
       "differing_bytes": 0,
       "calls": 2150,
-      "record": "physics/gpaddslphy.json",
-      "live_summary": {
-        "first_step": 86,
-        "update": 2064,
-        "selected_descriptor_calls": 4128
-      }
+      "record": "physics/gpaddslphy.json"
     },
     "wind": {
       "bytes": 31536200,
-      "assembly_sha256": "a4ee2a15fd534ea505b856d52fa866fb929fcb86c515c7400549eb9282b08ad9",
-      "fortran_sha256": "a4ee2a15fd534ea505b856d52fa866fb929fcb86c515c7400549eb9282b08ad9",
+      "assembly_sha256": "3c830d2b57ab4d65ebcae879eef2cb870610285a113397fc061d2a9bf02bd48c",
+      "fortran_sha256": "3c830d2b57ab4d65ebcae879eef2cb870610285a113397fc061d2a9bf02bd48c",
       "input_bytes": 188813000,
-      "input_sha256": "d8e63aa5b9316da2d20e8acb940a865f8d00f230041db98638c76d72a82e6f57",
+      "input_sha256": "726b169030848663c25fa3cb28004e29d198afcb65e97966c8b68f5568833293",
       "differing_bytes": 0,
       "calls": 2150,
-      "record": "dynamics/wind_tendency.json",
-      "live_summary": {
-        "no_damping": 2150,
-        "isotropic": 0,
-        "untilted": 0,
-        "tilted": 0
-      }
+      "record": "dynamics/wind_tendency.json"
     },
     "gpgrxyb": {
       "bytes": 47420400,
-      "assembly_sha256": "90c30d7cfe0a41efb4ff7749241a614a830f18dd1821bd0c3065b91db4d9e6c9",
-      "fortran_sha256": "90c30d7cfe0a41efb4ff7749241a614a830f18dd1821bd0c3065b91db4d9e6c9",
+      "assembly_sha256": "c021f158744400bd32ac1e7740cd35563823dcb7156b9013d16f92a886a6e9a7",
+      "fortran_sha256": "c021f158744400bd32ac1e7740cd35563823dcb7156b9013d16f92a886a6e9a7",
       "input_bytes": 103475200,
-      "input_sha256": "27ae8eb2b351a4aae7573fb6f97c65295af7bf8a280a3f922fe804d57201e074",
+      "input_sha256": "bd1cc6e473ae7ddf6a9eb12bbdb1cf386c9a23006e7b7134d8344bb556ec56d7",
       "differing_bytes": 0,
       "calls": 2150,
-      "record": "dynamics/gpgrxyb.json",
-      "live_summary": {
-        "finite_element": 2150,
-        "logarithmic": 0,
-        "approximate_1": 0,
-        "approximate_2": 0,
-        "coefficients": 0
-      }
+      "record": "dynamics/gpgrxyb.json"
     },
     "gptco3": {
       "bytes": 490200,
-      "assembly_sha256": "10f83c7c2a4858e25e9f44d074809b34fd5a255e7a41dca852fdfc8053bdaf10",
-      "fortran_sha256": "10f83c7c2a4858e25e9f44d074809b34fd5a255e7a41dca852fdfc8053bdaf10",
+      "assembly_sha256": "30c377d9f1e0ad66f1afd751f895b47f6e19af095031a390bdbd6c326ba7b520",
+      "fortran_sha256": "30c377d9f1e0ad66f1afd751f895b47f6e19af095031a390bdbd6c326ba7b520",
       "input_bytes": 16176600,
-      "input_sha256": "8d170b14b4e70baa5f65e623c9f758834d10842314b411ed576ba96dcc7b4673",
+      "input_sha256": "5968fdfc9ca8e3220e49fecefce387510207164ef924648414b3181d93c67c03",
       "differing_bytes": 0,
       "calls": 2150,
-      "record": "physics/gptco3.json",
-      "live_summary": {
-        "signed_calls": 2150
-      }
+      "record": "physics/gptco3.json"
     },
     "gp_spv": {
       "bytes": 18257800,
-      "assembly_sha256": "47fa9c28427e521eb38ec2c31f9ae5f14306862007b440f9f59bc06085fe6ff8",
-      "fortran_sha256": "47fa9c28427e521eb38ec2c31f9ae5f14306862007b440f9f59bc06085fe6ff8",
+      "assembly_sha256": "ad9c3627a06f21f8633acbc86fa86cac5a7e6cae03db30699509698c25dd126d",
+      "fortran_sha256": "ad9c3627a06f21f8633acbc86fa86cac5a7e6cae03db30699509698c25dd126d",
       "input_bytes": 19496200,
-      "input_sha256": "693fcf027acb6d8935083610e2345c085f197648504831b32b491333c87f95da",
+      "input_sha256": "04978394b83d4d572820362bf7c205d50f9c21a0dc2893b0b6c7ad2175266d4d",
       "differing_bytes": 0,
       "calls": 2150,
-      "record": "dynamics/gp_spv.json",
-      "live_summary": {
-        "previous_calls": 0
-      }
+      "record": "dynamics/gp_spv.json"
     },
     "gphpre": {
       "bytes": 338650208,
-      "assembly_sha256": "509f072fbb079c8c528dfd7cd731b20b3f9d26f9192b97c4358106062763d065",
-      "fortran_sha256": "509f072fbb079c8c528dfd7cd731b20b3f9d26f9192b97c4358106062763d065",
+      "assembly_sha256": "85ac7e6f834e89b72713ebd5472354d15093df3212075a6443fe4ba21f6d9307",
+      "fortran_sha256": "85ac7e6f834e89b72713ebd5472354d15093df3212075a6443fe4ba21f6d9307",
       "input_bytes": 349630080,
-      "input_sha256": "6aa3f252ddc33aec4d953d8e0e9c37a5e66683f3c7c34a0630252133d5267a6f",
+      "input_sha256": "29e5dfd6218ea03022ae1a2d4e003287e75fdde8cafcf1b55ee94f2b04566fdb",
       "differing_bytes": 0,
       "calls": 14649,
-      "record": "dynamics/gphpre.json",
-      "live_summary": {
-        "finite_element": 14649,
-        "logarithmic": 0,
-        "approximate_1": 0,
-        "approximate_2": 0,
-        "pressure_only": 4300,
-        "coefficients_only": 0,
-        "full_only": 888,
-        "both": 9461,
-        "closed_top": 10349
-      }
+      "record": "dynamics/gphpre.json"
     },
     "ctvtot": {
       "bytes": 8049600,
@@ -239,47 +187,27 @@
       "input_sha256": "6668f94fffaa3c6c59fe0e4564ad24d8fb90b793e8e9ce9ddb6fd5636bfa39f9",
       "differing_bytes": 0,
       "calls": 2150,
-      "record": "dynamics/ctvtot.json",
-      "live_summary": {
-        "science_values": 972800,
-        "native_GPRCP_dependencies": 2150,
-        "source_shadow_GPRCP": 2150,
-        "paired_accounting_hooks": 1
-      }
+      "record": "dynamics/ctvtot.json"
     },
     "gpgeo": {
       "bytes": 32559600,
-      "assembly_sha256": "90ca61199c060426e8cfa808e8e29002dedd6f7d366d84c60881f791395ffeb5",
-      "fortran_sha256": "90ca61199c060426e8cfa808e8e29002dedd6f7d366d84c60881f791395ffeb5",
+      "assembly_sha256": "33492cf5a1bd3fc8a3994c8f8e7ab27e0ba02c040082779ae0fefa246126b210",
+      "fortran_sha256": "33492cf5a1bd3fc8a3994c8f8e7ab27e0ba02c040082779ae0fefa246126b210",
       "input_bytes": 94720400,
-      "input_sha256": "336eac4a7085df81d8e4baeab1a444ff32d3092bfdf0f60ce2bd4ace11e3b2e7",
+      "input_sha256": "d75eb8148d8fcd99abbd21a8973757f0883673e160a08fdd41e2c303c1407323",
       "differing_bytes": 0,
       "calls": 4300,
-      "record": "dynamics/gpgeo.json",
-      "live_summary": {
-        "conventional": 0,
-        "finite_element": 4300
-      }
+      "record": "dynamics/gpgeo.json"
     },
     "gpgrgeo": {
       "bytes": 32447800,
-      "assembly_sha256": "c7b3b1b3d7264c009da9a89d88daa6c2683ac2f3823a5d956019b3e9c9675b5a",
-      "fortran_sha256": "c7b3b1b3d7264c009da9a89d88daa6c2683ac2f3823a5d956019b3e9c9675b5a",
+      "assembly_sha256": "6cd9687c33dff78dca4bd2f45c52162ce604d6eb83f4d6ae8b5d059bdd939e4b",
+      "fortran_sha256": "6cd9687c33dff78dca4bd2f45c52162ce604d6eb83f4d6ae8b5d059bdd939e4b",
       "input_bytes": 119256200,
-      "input_sha256": "c9968d16f629acc6f935d580ac2f539b5a1aabda44fa7f14f265940226cc9b67",
+      "input_sha256": "ed4ac21a6a5f1c136bda6ea26dba948ba9b8639c24b230855a05cea6a7689e75",
       "differing_bytes": 0,
       "calls": 2150,
-      "record": "dynamics/gpgrgeo.json",
-      "live_summary": {
-        "conventional": 0,
-        "finite_element": 2150,
-        "hydrostatic": 2150,
-        "pressure_corrected": 0,
-        "optional_none": 2150,
-        "optional_L": 0,
-        "optional_M": 0,
-        "optional_both": 0
-      }
+      "record": "dynamics/gpgrgeo.json"
     },
     "gptf1": {
       "bytes": 206520400,
@@ -289,13 +217,7 @@
       "input_sha256": "fd0499b50f280d957d14e0b1f340b837cde38cbd8247648a0bbd03e30edfe266",
       "differing_bytes": 0,
       "calls": 2150,
-      "record": "dynamics/time_filter.json",
-      "live_summary": {
-        "weighted_calls": 0,
-        "copy_calls": 2150,
-        "clear_calls": 0,
-        "empty_calls": 0
-      }
+      "record": "dynamics/time_filter.json"
     },
     "gptf2": {
       "bytes": 206520400,
@@ -305,87 +227,39 @@
       "input_sha256": "74a27a42aaab2d6eb3cc0b4daad9c2bd079206edfd40aa369ad298b27a7ceb24",
       "differing_bytes": 0,
       "calls": 2150,
-      "record": "dynamics/time_filter.json",
-      "live_summary": {
-        "weighted_calls": 0,
-        "copy_calls": 86,
-        "clear_calls": 0,
-        "empty_calls": 0
-      }
+      "record": "dynamics/time_filter.json"
     },
     "vertical": {
       "bytes": 314924992,
-      "assembly_sha256": "f90892f89c24c1b1def66a279140eaae78d516147f7cb593940a95f43df64722",
-      "fortran_sha256": "f90892f89c24c1b1def66a279140eaae78d516147f7cb593940a95f43df64722",
+      "assembly_sha256": "def7d0685e927a96ba19e2eeafb4b2a723567e2e94fe8c1274dc9a97fcd5bf12",
+      "fortran_sha256": "def7d0685e927a96ba19e2eeafb4b2a723567e2e94fe8c1274dc9a97fcd5bf12",
       "input_bytes": 959942312,
-      "input_sha256": "e638b79df37ebb82c9752f8834cff10174a3d8506384dd4cb567905522682010",
+      "input_sha256": "e319535bd8678b283b954ccfbdbbf9f129f908972e1681d03b9712f55c3bdac3",
       "differing_bytes": 0,
       "record": "dynamics/verdisint.json",
       "calls": 21559,
       "private_integral_calls": 21559,
       "comparison_dispatcher_checks": 8600,
-      "total_capture_records": 60318,
-      "live_summary": {
-        "genuine_dispatch": 21559,
-        "private_integral": 21559,
-        "comparison_dispatch": 15102,
-        "records": 73322
-      }
+      "total_capture_records": 60318
     },
     "sigam": {
       "bytes": 305578584,
-      "assembly_sha256": "9dcbddcc04d82695e64372c127b78a0c6e33af2810d42e15892937f2fe0974a6",
-      "fortran_sha256": "9dcbddcc04d82695e64372c127b78a0c6e33af2810d42e15892937f2fe0974a6",
+      "assembly_sha256": "2fbc10b9ac33063e42d0fe44fbca209ec35a5909cf6806e3f2a898d29e8a1565",
+      "fortran_sha256": "2fbc10b9ac33063e42d0fe44fbca209ec35a5909cf6806e3f2a898d29e8a1565",
       "input_bytes": 332711256,
-      "input_sha256": "5a68bbe0d703193c6f1db7935d090f5b8c6b43a3d79503bcada2a2b0eb2e00e4",
+      "input_sha256": "62345f54356b4394cc128f2450413350647660704c55fcbf3a78e302821d0fe7",
       "differing_bytes": 0,
-      "live_summary": {
-        "conventional": 0,
-        "finite_element": 4326,
-        "LASSIE": 4300,
-        "SPCSI": 25,
-        "SUBMAT": 1
-      },
       "calls": 4326,
-      "evidence": ".runtime/openifs/runs/strict-sigam-v8-7189435/t21/direct-comparison.json",
-      "evidence_sha256": "13bcb85d0a1da347ba16737bc106969ebd3e4bd29c516e6c474c900b7420674e",
-      "archive": ".runtime/openifs/runs/strict-sigam-v8-7189435/t21/test_fc",
-      "dependency_library_sha256": "172462664e03eb8d2ce919282021cc9b9f9c1616836784144da7304e3eeedbfc",
-      "native_library_sha256": "3b0f34003a10f941d724dff729815234cf90f35ee1e8cf291d58f49489489e8e",
-      "saved_files_identical": 10,
-      "paired_streams_identical": 19,
       "record": "dynamics/sigam.json"
     },
     "sitnu": {
       "bytes": 155738840,
-      "assembly_sha256": "a0151382a93ff7d197eff7f8002952818c996aa9875ee0c6001d4c31b6b8a515",
-      "fortran_sha256": "a0151382a93ff7d197eff7f8002952818c996aa9875ee0c6001d4c31b6b8a515",
+      "assembly_sha256": "2e8a995365a7a8a59023ab380ed5125b10a26e0e530ef133554532d16e83c74d",
+      "fortran_sha256": "2e8a995365a7a8a59023ab380ed5125b10a26e0e530ef133554532d16e83c74d",
       "input_bytes": 164930264,
-      "input_sha256": "958a0e067bffaca291096e22bbe0d70bd371f70332c9b2ceefe196ba161a3244",
+      "input_sha256": "087445aed65e6dca8c5ce6b61edf06f928d8af2840a8b8c7f0d5b1aef841b7e9",
       "differing_bytes": 0,
-      "live_summary": {
-        "conventional": 0,
-        "finite_element": 2176,
-        "allocation_bytes": 154624728,
-        "returned_view_bytes": 10283040,
-        "science_values": 1277380,
-        "LASSIE": 2150,
-        "SPCSI": 25,
-        "SUBMAT": 1,
-        "native_vertical_dependencies": 2176,
-        "source_shadow_vertical": 2176,
-        "mass_balance_values": 63869,
-        "paired_accounting_hooks": 1
-      },
       "calls": 2176,
-      "archive": ".runtime/openifs/runs/strict-sitnu-sigam-v8-7189435/t21/test_fc",
-      "evidence": ".runtime/openifs/runs/strict-sitnu-sigam-v8-7189435/t21/direct-comparison.json",
-      "evidence_sha256": "54a734d69a3ac0fe34ef0a01416445e27d2cb8ee0672333e384d70c4d6eefee6",
-      "header_bytes_per_call": 512,
-      "native_library_sha256": "73970aa3331cba9cd2eb73f36c467d8351aed5b49721b3391925553a3b93c243",
-      "vertical_dependency_sha256": "172462664e03eb8d2ce919282021cc9b9f9c1616836784144da7304e3eeedbfc",
-      "saved_files_identical": 10,
-      "paired_streams_identical": 20,
       "record": "dynamics/sitnu.json"
     },
     "spfilt": {
@@ -395,26 +269,8 @@
       "input_bytes": 3902600,
       "input_sha256": "a7e1a77edc57a97216984ebf082a6f96f1ef05186ea05a8449feb1ea56069066",
       "differing_bytes": 0,
-      "live_summary": {
-        "allocation_bytes": 3845600,
-        "independent": 240350,
-        "inactive": 0,
-        "rigid": 1900
-      },
       "calls": 25,
-      "archive": ".runtime/openifs/runs/strict-spfilt-reviewed-7189435/t21/test_fc",
-      "evidence": ".runtime/openifs/runs/strict-spfilt-reviewed-7189435/t21/direct-comparison.json",
-      "evidence_sha256": "f3a009f17ae50047287dccaf4c4cba21d4c9d1e4e83774746b40b3402851d068",
-      "saved_files_identical": 10,
-      "paired_streams_identical": 21,
-      "actual_parent_shape": [
-        19,
-        506
-      ],
-      "actual_degree_bytes": 2024,
-      "native_library_sha256": "a818d62303ab6de50c38cf8bfde265e8eea6dc319c9ac2d7481d883fdcc2843c",
-      "record": "dynamics/spfilt.json",
-      "selected_method": "Private per-call rounded-factor table for T21 intervals of at least24 columns"
+      "record": "dynamics/spfilt.json"
     },
     "spcimpfpost": {
       "bytes": 127045600,
@@ -424,48 +280,15 @@
       "input_sha256": "0c94348f7a1f45c3dc0dcedfc7969d218f9f40a9c0298224334b070440f5f509",
       "differing_bytes": 0,
       "calls": 550,
-      "live_summary": {
-        "spcm_visits": 25,
-        "zero_wave_calls": 25,
-        "empty_neighbor_calls": 25,
-        "wave_numbers": [
-          0,
-          21
-        ],
-        "calls_per_wave_number": 25
-      },
-      "archive": ".runtime/openifs/runs/strict-spcimpfpost-reviewed-7189435/t21/test_fc",
-      "evidence": ".runtime/openifs/runs/strict-spcimpfpost-reviewed-7189435/t21/direct-comparison.json",
-      "evidence_sha256": "37d7e4ec0d7f110cf6b1343fdcbfb1049ef78a728a8d4bd0cc6736516fd7ee04",
-      "native_library_sha256": "ab1651b4b0773b5291668f3a3b46971c176f7476b3946b790ea5a3b05f306081",
-      "saved_files_identical": 10,
-      "paired_streams_identical": 22,
-      "parent_shape": [
-        19,
-        506,
-        3
-      ],
-      "header_bytes_per_call": 256,
       "record": "dynamics/spcimpfpost.json"
     },
     "spcimpfinit": {
       "bytes": 169488000,
-      "assembly_sha256": "26e4ab3495524466fecd45cf1a34d5d087a44483b230d44ec651698f2136c8a8",
-      "fortran_sha256": "26e4ab3495524466fecd45cf1a34d5d087a44483b230d44ec651698f2136c8a8",
+      "assembly_sha256": "a63211d4c0b0b8abf3d7e3e5be5af9f67b95e6251f1131f90f37b555cd540ba2",
+      "fortran_sha256": "a63211d4c0b0b8abf3d7e3e5be5af9f67b95e6251f1131f90f37b555cd540ba2",
       "input_bytes": 169488000,
-      "input_sha256": "885c37416ff69a2e567fc6fe7da4081be669f606442d35ad91ef0a17e7f6bd83",
+      "input_sha256": "9470409d45ade2860e6e71f49cdd613f29dfa45ca894587e653f3689b8f9fc8c",
       "differing_bytes": 0,
-      "live_summary": {
-        "m0": 25,
-        "mpositive": 525,
-        "allocation_bytes": 169206400,
-        "active_vorticity_values": 219450,
-        "active_auxiliary_values": 240350,
-        "admissibility_values": 721050,
-        "science_values": 590425,
-        "source_shadow_calls": 550,
-        "numerical_dependency_calls": 0
-      },
       "calls": 550,
       "record": "dynamics/spcimpfinit.json"
     },
@@ -474,16 +297,8 @@
       "assembly_sha256": "c6e5a66da25ee436413dfba3d96a44489dedc0f56ab53238c8ae1ff9be464e09",
       "fortran_sha256": "c6e5a66da25ee436413dfba3d96a44489dedc0f56ab53238c8ae1ff9be464e09",
       "input_bytes": 212626400,
-      "input_sha256": "32c2d52377272624ea6a2633fe7efa7ef641185aa0e81b87f6c146b5c6a69d34",
+      "input_sha256": "ac9d03e1f7da72bc03ec1786733d0f15da0923884d86b2c1ad392ff201b93e9c",
       "differing_bytes": 0,
-      "live_summary": {
-        "continuity_calls": 0,
-        "water_mass_calls": 0,
-        "partial_calls": 25,
-        "NDIM": 8,
-        "NDIM1": 6,
-        "NUMFLDS": 8
-      },
       "calls": 2150,
       "record": "dynamics/cpqtuv.json"
     },
@@ -492,37 +307,19 @@
       "assembly_sha256": "3e23c8fb5e74a058011faaedaf5f3c34e1a5a27759f6926e977f48ce069f23fa",
       "fortran_sha256": "3e23c8fb5e74a058011faaedaf5f3c34e1a5a27759f6926e977f48ce069f23fa",
       "input_bytes": 142347200,
-      "input_sha256": "8fea7a597fb520f46c77ee9ecb7eb549d20bd3ae8d465502be32e8e2db33b75c",
+      "input_sha256": "b683bdf1b7c7dfe981bc467dadab3c9144419654554b8089ad29af398c021a95",
       "differing_bytes": 0,
-      "live_summary": {
-        "first_rows": 83804,
-        "recurrent_rows": 403300,
-        "positive_zero_rows": 3434496
-      },
       "calls": 8600,
       "record": "physics/cubidiag.json"
     },
     "simplico": {
       "bytes": 84691200,
-      "assembly_sha256": "a5d69c8a3c228cc559eb0b59e34a00f5432b57e08a55fcfc7e854e60defb478b",
-      "fortran_sha256": "a5d69c8a3c228cc559eb0b59e34a00f5432b57e08a55fcfc7e854e60defb478b",
+      "assembly_sha256": "cc4f31fdbc901b390d008c82b58032227d26b96a50715a4d74370bec7f8347ca",
+      "fortran_sha256": "cc4f31fdbc901b390d008c82b58032227d26b96a50715a4d74370bec7f8347ca",
       "input_bytes": 85408400,
-      "input_sha256": "4a43d92b556d0b3d21ed4a40bd632f10a4a3e36c2df68d1aa867d21d89c83883",
+      "input_sha256": "370f36e2b72298d5e234551efcd28b8b3982a428985f1e1fa27d4e46e8f050e4",
       "differing_bytes": 0,
       "calls": 550,
-      "live_summary": {
-        "source_calls": 550,
-        "solve_visits": 25,
-        "shadow_calls": 0,
-        "shadow_solve_visits": 0,
-        "zero_wave_calls": 25,
-        "one_degree_calls": 25,
-        "wave_numbers": [
-          0,
-          21
-        ],
-        "calls_per_wave_number": 25
-      },
       "record": "dynamics/simplico.json"
     },
     "liq-optics": {
@@ -530,24 +327,9 @@
       "assembly_sha256": "78add53f6cd09949f073413d097ef15732b466cc5064e63d3888fb4c5b6de0e5",
       "fortran_sha256": "78add53f6cd09949f073413d097ef15732b466cc5064e63d3888fb4c5b6de0e5",
       "input_bytes": 737574400,
-      "input_sha256": "944c396b05563da3d0a2d6bb94bf6e233fa3bdcd3dca16c7d4688af3279ea495",
+      "input_sha256": "b7e8372942045c8820b3b28ca2181e35be036c58bfd034f556d4aa41038cda66",
       "differing_bytes": 0,
       "calls": 317920,
-      "live_summary": {
-        "bands": 4768800,
-        "table_band_counts": [
-          16,
-          14
-        ],
-        "table_calls": [
-          158960,
-          158960
-        ],
-        "return_offsets": [
-          "0xb07298",
-          "0xb072c8"
-        ]
-      },
       "record": "physics/calc_liq_optics_socrates.json"
     },
     "ice-fu-sw": {
@@ -555,24 +337,9 @@
       "assembly_sha256": "240b1461d8e402bd15e5f476a92f9493af5043672324b0cfa64eaa62bcf7e99a",
       "fortran_sha256": "240b1461d8e402bd15e5f476a92f9493af5043672324b0cfa64eaa62bcf7e99a",
       "input_bytes": 333869800,
-      "input_sha256": "cdd3e1c4c7d92d586d4ce435a5de4209f7bcb0e3cbc08ebfb1160c14f8dc7ba4",
+      "input_sha256": "32ac5c0df7084053d35a757fb072e1c653028f77f6c59db20834e3a02219d98b",
       "differing_bytes": 0,
       "calls": 223175,
-      "live_summary": {
-        "bands": 3124450,
-        "table_band_counts": [
-          14,
-          0
-        ],
-        "table_calls": [
-          223175,
-          0
-        ],
-        "return_offsets": [
-          "0xb076b4",
-          "0x0"
-        ]
-      },
       "record": "physics/calc_ice_optics_fu_sw.json"
     },
     "ice-fu-lw": {
@@ -580,25 +347,20 @@
       "assembly_sha256": "84640de4a257982a67dda3d25814590e6116d3ca775cc05560f78bc21caccdfa",
       "fortran_sha256": "84640de4a257982a67dda3d25814590e6116d3ca775cc05560f78bc21caccdfa",
       "input_bytes": 408856600,
-      "input_sha256": "c18f288c68e7c384ba59bf554270837debc5ce8227da2ceb510108d86981c6cb",
+      "input_sha256": "8d959344d25a96df0b30dddcd211904914b64134d0799770ca9ed7fdd9216ffb",
       "differing_bytes": 0,
       "calls": 223175,
-      "live_summary": {
-        "bands": 3570800,
-        "table_band_counts": [
-          16,
-          0
-        ],
-        "table_calls": [
-          223175,
-          0
-        ],
-        "return_offsets": [
-          "0xb07668",
-          "0x0"
-        ]
-      },
       "record": "physics/calc_ice_optics_fu_lw.json"
+    },
+    "delta-scat-od": {
+      "bytes": 356827600,
+      "assembly_sha256": "810b36fc51063fee0e9fe96d76d449ec53fbeaf159fca492f331dbea8bfa3837",
+      "fortran_sha256": "810b36fc51063fee0e9fe96d76d449ec53fbeaf159fca492f331dbea8bfa3837",
+      "input_bytes": 356827600,
+      "input_sha256": "93c6bc0e9a10d08c88e2913408793e7d99d373c86859dcc153a0a56c08dfffa1",
+      "differing_bytes": 0,
+      "calls": 8920690,
+      "record": "physics/delta_eddington_scat_od.json"
     }
   },
   "outputs": [
@@ -665,7 +427,7 @@
   ],
   "all_upstream_output_files_identical": true,
   "all_paired_routine_streams_identical": true,
-  "comparison_method": "Direct cmp for all twenty-nine captured stream pairs and ten saved forecast files; hashes identify archives.",
+  "comparison_method": "Direct cmp for all thirty captured stream pairs and ten saved forecast files; hashes identify archives.",
   "verification_library_sha256": "f511fb025e5b082bda4dffe0e757f0dab1a022b4337716004e85db2ff40efc29",
   "pressure_math_library_sha256": "ec54bd97ec32ef0c68fa5c79102eda6781e74d2469a23c448c89f9db3ad31ed1",
   "strict_scientific_library_sha256": "8e4966877c735976f1e9356bc551294bbfc15c565ecdf1dc7db4cf814012b07b",
@@ -679,12 +441,13 @@
     "VERDER"
   ],
   "verification_libraries_sha256": {
+    ".runtime/openifs/delta_eddington_scat_od_7207705/native/libverify-delta-scat-od.so": "d5b0d5a40005cbde9732998e60e89de2b9defd030097aedb57ef15efe8b45d0a",
     ".runtime/openifs/verdisint/preparation/libtrace-grid.so": "ede7c8310fbad467b132b56f7478b4892fbc7a5539ab854f8eaf60c85e200c5e",
     ".runtime/openifs/simplico/forecast/libverify-simplico.so": "b6583cf5747ad85cc275b016e075e0918ec4889339df33f71d61ad3fbd6bf83a",
     ".runtime/openifs/calc_liq_optics_socrates/libverify-liquid-optics.so": "3bb4e4e6a538ddb28b9b3bd9141b93140d272f9899232e616a26523e906fad03",
     ".runtime/openifs/calc_ice_optics_fu_sw/parent-observer-r2/libverify-ice-fu-sw.so": "2aebd272a5ae7211072364eeabc130723c0efb8681659b2dc0ed76c30d5eac29",
     ".runtime/openifs/calc_ice_optics_fu_lw/libverify-ice-fu-lw.so": "f23bea78bd5b8f0c5e1b695b26478e18c593ce314924c14f12c1f3ed357aa6c2",
-    ".runtime/openifs/cubidiag-tuning/parent-integration/libverify-cubidiag-wideclear.so": "91a9a5d1ec4afd9a261d1b9f54fe125dd218ded5d86c38ecceff19b6210aef51",
+    ".runtime/openifs/cubidiag-resume-7207705/parent-integration/libverify-cubidiag-prefix.so": "7caedd21747663f51e70464c2b7c772a8cb3bcfe7edb69f6152bfe070a9a49c4",
     ".runtime/openifs/cpqtuv/parent-fpcr-reviewed/libverify-cpqtuv.so": "436830e8505266e664c49953a093f4394006329790c21f3c0a99511e23d860fb",
     ".runtime/openifs/spcimpfinit/parent-observer-r2/libverify-spcimpfinit.so": "d223f4b95d33c660fcce2bc05cf588c5b12179ac387af3e9678a9f1c77b9a4e2",
     ".runtime/openifs/spcimpfpost/forecast/libverify-spcimpfpost.so": "ab1651b4b0773b5291668f3a3b46971c176f7476b3946b790ea5a3b05f306081",
@@ -702,15 +465,15 @@
     ".runtime/openifs/strict-math/libpressure-math.so": "ec54bd97ec32ef0c68fa5c79102eda6781e74d2469a23c448c89f9db3ad31ed1"
   },
   "verification_load": [
-    0.0,
-    0.09912109375,
-    0.177734375
+    1.29638671875,
+    0.75439453125,
+    1.0244140625
   ],
   "vertical_reference_library_sha256": "20c17f295a8fd699aa166a28d22b9e71dfa8581bb34dae88aabbd987a2b05ba4",
   "baseline_arithmetic_change": "Unchanged-source vertical routines now use a private ordered matrix sum in both builds. This fresh baseline is separate from the older external-BLAS baseline; no global BLAS symbol is replaced.",
   "historical_initial_time_utc": "2004-10-15T12:00:00Z",
   "historical_final_time_utc": "2004-10-16T12:00:00Z",
-  "paired_output_bytes": 3013954408,
+  "paired_output_bytes": 3370782008,
   "independent_actual_vertical_geometry": {
     "evidence": ".runtime/openifs/verdisint/forecast-reviewed-7189435/results.json",
     "sha256": "e68d90c10e874ff0b63bb67417624cde24f0b32185ab2981a042f2e56ffbe4ce",
@@ -719,5 +482,22 @@
     "all_captured_matrix_and_reciprocal_bits_verified": true
   },
   "private_vertical_matrix_implementation": "Eight-point direct NEON helper, ordered arithmetic unchanged; independent critical bytes and saved forecast match the scalar-helper baseline.",
-  "private_matrix_timing_record": "dynamics/verdisint.json"
+  "private_matrix_timing_record": "dynamics/verdisint.json",
+  "reproduction_commands": [
+    {
+      "local": ".runtime/openifs/cubidiag-resume-7207705/parent-integration/combined-forecast-command.sh",
+      "bytes": 5024,
+      "sha256": "a3d5eda4f45e4a6826b56ea6fc595a88d9fa4c1dbef28c2ce748e24db72fb05e"
+    },
+    {
+      "local": ".runtime/openifs/cubidiag-resume-7207705/parent-integration/combined-direct-comparison-command.sh",
+      "bytes": 7094,
+      "sha256": "6e2da6dc0f68c77652a38b33747fa660f244b0ac485c641bfb25881e9053b62d"
+    }
+  ],
+  "parent_direct_comparison": {
+    "local": ".runtime/openifs/runs/strict-delta-cub-prefix-combined-reviewed-7207705/t21/direct-comparison.json",
+    "bytes": 31339,
+    "sha256": "e231b7eee3fe24d50a3f17cc13e8f4ed119a31e13959a08201a37baf7b9ed4ad"
+  }
 }

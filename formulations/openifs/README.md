@@ -23,7 +23,7 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 | Clouds and precipitation | [Water and phase changes](physics/clouds.md) | Pending |
 | Convection | [Plume transport](physics/convection.md) | Complete CUBIDIAG helper, other stages pending |
 | Turbulent mixing | [Vertical transport](physics/vertical_mixing.md) | Pending |
-| Radiation | [Radiation balance](physics/radiation.md) | Complete liquid and Fu ice optics, radiative transfer pending |
+| Radiation | [Radiation balance](physics/radiation.md) | Complete liquid and Fu ice optics and cloud delta scaling, radiative transfer pending |
 | Soil, snow, lakes and surface exchange | [Skin balance and tiles](surface/surface_exchange.md) | CPSPE update only, storage balances pending |
 | Column ozone | [Ozone mass](physics/column_ozone.md) | Complete GPTCO3 integral, also used for signed moisture rates |
 | Atmospheric composition | [Tracer balance](physics/atmospheric_composition.md) | Transport and chemical rates pending |
@@ -31,4 +31,4 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 
 These basic balances do not yet cover every configured physical process. Source-derived closure relations, which specify rates and coefficients, and complete numerical contracts are still needed before assembly generation.
 
-Thirty-one complete public assembly bodies pass independent small checks. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../bench/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
+Thirty-two complete public assembly bodies pass independent small checks. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../bench/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.

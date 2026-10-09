@@ -1,0 +1,230 @@
+{
+  "routine": "RADIATION_CLOUD_OPTICS::DELTA_EDDINGTON_SCAT_OD",
+  "date_utc": "2026-10-09T22:20:44.610496+00:00",
+  "implementation_status": "Complete body with critical, isolated and parent combined forecast acceptance",
+  "contract": "skills/md2asm/references/openifs/physics/delta_eddington_scat_od.md",
+  "native": "src/openifs/physics/delta_eddington_scat_od.S",
+  "critical_driver": "bench/openifs/physics/delta_eddington_scat_od.c",
+  "forecast_driver": "bench/openifs/physics/delta_eddington_scat_od_forecast.c",
+  "generation_route": "Direct AArch64 emission from frozen optical equations, ordered FP64 arithmetic and scalar ABI; numerical compiler assembly and IR were not used for construction",
+  "contract_revision": "1.0",
+  "pre_emission_freeze": {
+    "path": ".runtime/openifs/delta_eddington_scat_od_7207705/frozen/pre-emission-contract-corpus.json",
+    "sha256": "2ef3268457c087e9202c4ad61107259e3049bcb8f3066b7f61f0c7cde0c89997"
+  },
+  "first_emission_utc": "2026-10-09T21:59:45.226867+00:00",
+  "critical": {
+    "complete_calls": 588,
+    "complete_bytes": 23520,
+    "independent_relations": 2940,
+    "physical_points": 566,
+    "direct_ABI_calls": 588,
+    "protected_page_placements": 588,
+    "separate_rounding_witnesses": 64,
+    "captured_operand_cases": 20,
+    "positive_zero_outputs": 444,
+    "signed_zero_outputs": 140,
+    "nonzero_subnormal_outputs": 128,
+    "FPCR_zero": true,
+    "differing_bytes": 0,
+    "corpus": {
+      "path": ".runtime/openifs/delta_eddington_scat_od_7207705/frozen/critical-corpus.bin",
+      "sha256": "c2df5caa0d243598b7ed37a5559666f09120df0dc080931b47f947e80c2d2664"
+    },
+    "pre_emission_source": {
+      "path": ".runtime/openifs/delta_eddington_scat_od_7207705/preparation/source-critical-final-fortran.bin",
+      "sha256": "d572dcdbef92ca178c5036313107f40e025a445be9e98ca06a8992d34192c51a"
+    },
+    "native_result": {
+      "path": ".runtime/openifs/delta_eddington_scat_od_7207705/native/assembly.bin",
+      "sha256": "d572dcdbef92ca178c5036313107f40e025a445be9e98ca06a8992d34192c51a"
+    },
+    "result_log": {
+      "path": ".runtime/openifs/delta_eddington_scat_od_7207705/native/critical.log",
+      "sha256": "f387139a345700a36a91ddb4d5faf7e0b3e6bb64572467fcdd284f90106fc208"
+    },
+    "input_records": 294
+  },
+  "forecast": {
+    "scope": "Historical T21 19-level source/native isolated forecast, one process and one thread",
+    "complete_calls": 8920690,
+    "complete_input_bytes": 356827600,
+    "complete_result_bytes": 356827600,
+    "independent_relations": 44603450,
+    "source_sites": [
+      {
+        "source_line": 340,
+        "field": "liquid shortwave",
+        "return_offset": "0xb06fb4",
+        "bands": 14,
+        "calls": 2225440
+      },
+      {
+        "source_line": 434,
+        "field": "ice shortwave",
+        "return_offset": "0xb07324",
+        "bands": 14,
+        "calls": 3124450
+      },
+      {
+        "source_line": 437,
+        "field": "ice longwave",
+        "return_offset": "0xb07118",
+        "bands": 16,
+        "calls": 3570800
+      }
+    ],
+    "every_phase_captured": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24
+    ],
+    "FPCR_zero_every_entry": true,
+    "direct_paired_streams": "zero differing bytes",
+    "direct_pre_emission_source_and_input_streams": "zero differing bytes",
+    "saved_files": 10,
+    "saved_file_bytes": 618140,
+    "direct_saved_file_comparison": "zero differing bytes against source-only and canonical baseline",
+    "acceptance": {
+      "path": ".runtime/openifs/delta_eddington_scat_od_7207705/native/forecast-acceptance.json",
+      "sha256": "1593a9f679e121dd589e95c6135576ac036e32050e7b7c10b7c72d9483cfae21"
+    },
+    "source_acceptance": {
+      "path": ".runtime/openifs/delta_eddington_scat_od_7207705/preparation/source-forecast-acceptance.json",
+      "sha256": "aa2e63d34ec07cc42024ef166ff7c16c0a831f1225453366fa344f97a0a52c8d"
+    },
+    "source_transport_audit": {
+      "path": ".runtime/openifs/delta_eddington_scat_od_7207705/preparation/capture-transport-audit.log",
+      "sha256": "a2a7ba669ad4d03ab1ab77a346a84783667f06b175bfc933471947c04cb2f027"
+    }
+  },
+  "instructions": {
+    "native": 15,
+    "stack_frame_bytes": 0,
+    "numerical_helpers": 0,
+    "forbidden_arithmetic": 0,
+    "saved_register_use": 0,
+    "audit": {
+      "path": ".runtime/openifs/delta_eddington_scat_od_7207705/native/parent-review-preparation.json",
+      "sha256": "687ef1943f3e493798243b6a908df1194aea18e26657ee50da9473c658b27241"
+    }
+  },
+  "capacity": {
+    "ordinary_pointer_arguments": 3,
+    "bytes_per_mutable_scalar": 8,
+    "alignment_bytes": 8,
+    "disjoint": true,
+    "stack_arguments": 0,
+    "output_order": [
+      "total_optical_depth",
+      "scattering_optical_depth",
+      "asymmetry"
+    ],
+    "canonical_record_bytes": 40,
+    "endianness": "little"
+  },
+  "runtime": {
+    "job": 7207705,
+    "node": "nid011311",
+    "cpu": 16,
+    "processes": 1,
+    "threads": 1,
+    "memory_placement": "local binding requested; physical page placement not sampled",
+    "purpose": "Verification, with no comparative timing"
+  },
+  "accepted_sources": [
+    {
+      "path": "src/openifs/physics/delta_eddington_scat_od.S",
+      "sha256": "11df09c4affa6c74dc28956f00db96a240709d230ad019a4d7a6af9abb938173"
+    },
+    {
+      "path": "bench/openifs/physics/delta_eddington_scat_od.c",
+      "sha256": "c70fd8c56299aeedf4a82ee715f143c2ffa56d754e43a356346dd4921bb563c2"
+    },
+    {
+      "path": "bench/openifs/physics/delta_eddington_scat_od_forecast.c",
+      "sha256": "cc2559aad6db2e83c9a458a631ad739a1a21cb7be9cef847665fa9e6e35cffb8"
+    },
+    {
+      "path": "skills/md2asm/references/openifs/physics/delta_eddington_scat_od.md",
+      "sha256": "0642a8a800cb98c5a36991e5d328c7b5d6985ca853ae6ec8942a7fa74c1897d3"
+    }
+  ],
+  "native_object": {
+    "path": ".runtime/openifs/delta_eddington_scat_od_7207705/native/assembly.o",
+    "sha256": "9f11f31eee005a9804fad2ab688df64d3a9df802a7c312e0207bb0bd65215294"
+  },
+  "forecast_comparator": {
+    "path": ".runtime/openifs/delta_eddington_scat_od_7207705/native/libverify-delta-scat-od.so",
+    "sha256": "d5b0d5a40005cbde9732998e60e89de2b9defd030097aedb57ef15efe8b45d0a"
+  },
+  "actual_commands": {
+    "path": ".runtime/openifs/delta_eddington_scat_od_7207705/actual-command-archive.json",
+    "sha256": "68596a4f65a1e20cd11780427913a0f6c7399a0500e1f8df71ae95b5678ffbb5"
+  },
+  "preserved_source_only_corrections": [
+    "Signed-zero extinction identity assertion corrected before freeze, with original source, corpus, ELF and diagnostic preserved",
+    "Initial source-site ordering assertion corrected against source-line metadata before freeze"
+  ],
+  "scientific_scope": "Complete scalar cloud delta scaling and independent optical limits; other module copies, gas optics and whole-forecast physics are outside this body",
+  "comparative_timing": false,
+  "whole_forecast_independent_physics_verified": false,
+  "parent_combined_integration": {
+    "record": {
+      "local": ".runtime/openifs/runs/strict-delta-cub-prefix-combined-reviewed-7207705/t21/direct-comparison.json",
+      "bytes": 31339,
+      "sha256": "e231b7eee3fe24d50a3f17cc13e8f4ed119a31e13959a08201a37baf7b9ed4ad"
+    },
+    "complete_calls": 8920690,
+    "complete_bytes": 356827600,
+    "independent_relations": 44603450,
+    "all_ten_saved_files_identical": true,
+    "differing_bytes": 0
+  },
+  "build_commands": [
+    "gcc -fPIC -march=armv8-a+simd -DORIGINAL_SYMBOL=delta_eddington_scat_od_assembly_ -c src/openifs/physics/delta_eddington_scat_od.S -o .runtime/openifs/delta_eddington_scat_od_7207705/native/assembly.o",
+    "gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -DDELTA_ABI_OBSERVER -Wall -Wextra -Werror -Wno-misleading-indentation bench/openifs/physics/delta_eddington_scat_od.c .runtime/openifs/delta_eddington_scat_od_7207705/native/assembly.o -L .runtime/openifs/strict-build/lib -Wl,-rpath,.runtime/openifs/strict-build/lib -larpifs.DP -lfiat -lm -o .runtime/openifs/delta_eddington_scat_od_7207705/native/critical"
+  ],
+  "documentation_revision": "1.1",
+  "parent_reproduction": {
+    "local": ".runtime/openifs/delta_eddington_scat_od_7207705/parent-review/parent-release-validation.json",
+    "bytes": 532,
+    "sha256": "d8700ce5b245dc20c8df9b786cb2ec81ea07935d079ccf48ea99612e4df96251"
+  },
+  "preserved_pre_publication_record": {
+    "local": ".runtime/openifs/delta_eddington_scat_od_7207705/parent-review/original-public-files/bench/openifs/physics/delta_eddington_scat_od.json",
+    "bytes": 8076,
+    "sha256": "304f567898c8b0a14352fc03312e9000bdfa6370c70894a8137b77e595ab7754"
+  },
+  "pre_publication_manifest": {
+    "path": ".runtime/openifs/delta_eddington_scat_od_7207705/full-manifest.json",
+    "sha256": "c4b10b4598efd6016babe2663ca660446384056da4742dcab0975d90cd3531d6"
+  },
+  "preserved_release_manifest": {
+    "local": ".runtime/openifs/delta_eddington_scat_od_7207705/parent-review/resolved-original-manifest.json",
+    "bytes": 15423,
+    "sha256": "af1d407d678b941115075f836bfc1b415daeb39ac36a21833ea389384aec59b7"
+  }
+}

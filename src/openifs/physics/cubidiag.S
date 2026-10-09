@@ -1,3 +1,5 @@
+/* Retain the first nonempty mask level from the frozen complete prefix proof. */
+/* Frozen tuning candidate, emitted 2026-10-09T21:52:46.319918+00:00. */
 /* Complete lower-bidiagonal solve from the frozen CUBIDIAG contract.
  * All ten inputs are GNU Fortran addresses. Stack slots 0 and 8 are PR/PU.
  * Only caller-saved registers are used; no frame or numerical helper exists. */
@@ -34,10 +36,10 @@ cubidiag_:
     b.lt .Lreturn
     cmp x0,x1
     b.ge .Lreturn
+    mov x10,#1                   // First solve level, retained through the mask proof.
     sub x17,x1,x0
     cmp x17,#8
     b.lt .Lhas_cloud
-    mov x10,#1                   // Scan only levels used by the equations.
 .Lmask_row:
     mul x15,x10,x2
     add x15,x15,x0
@@ -71,19 +73,17 @@ cubidiag_:
     adrp x15,.Lregulariser
     ldr d0,[x15,:lo12:.Lregulariser]
     fmov d1,#1.0
-    mov x10,#1                   // Zero-based level two.
 .Llevel:
+    mul x15,x10,x2               // Common byte offset for this complete level.
+    add x17,x10,#2               // Compare the raw top without per-cell conversion.
     mov x11,x0
 .Lcolumn:
-    mul x12,x10,x2
-    add x12,x12,x11,lsl #3
+    add x12,x15,x11,lsl #3
     lsr x13,x12,#1               // The logical mask uses four bytes per cell.
     ldr w14,[x5,x13]
     cbz w14,.Lnext_column
     ldrsw x13,[x4,x11,lsl #2]
-    sub x13,x13,#1               // Cloud top minus one, still one based.
-    add x14,x10,#1
-    cmp x14,x13
+    cmp x17,x13                 // level + 2 against the original one-based top.
     b.lt .Lnext_column
     ldr d2,[x7,x12]
     fadd d2,d2,d0                // Rounded diagonal including regulariser.
