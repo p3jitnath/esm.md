@@ -1,0 +1,166 @@
+{
+  "revision": "1.1, documentation only; numerical freeze 1.0",
+  "status": "Complete direct body accepted by critical physics and full T21 forecast",
+  "source": "arpifs/adiab/spfilt.F90",
+  "source_sha256": "7bd9d9cec8cba831bce0e72f51949d308a7003e7d4a752a1b90ec15e86de8295",
+  "formulation": "formulations/openifs/dynamics/atmospheric_motion.md",
+  "equation": "P03",
+  "generation": {
+    "route": "Original physics and source equations, frozen ordered arithmetic, storage-only ABI probes, then direct AArch64 emission; instruction audits afterwards",
+    "numerical_compiler_assembly_or_ir_used_for_construction": false,
+    "preemission_freeze": ".runtime/openifs/spfilt/preparation/freeze-before-emission.json",
+    "preemission_freeze_sha256": "72a9f8b5d8730b2cb6ed8094371983c98503254899d4fb1bd78a78a8d809f7b3",
+    "observer_freeze": ".runtime/openifs/spfilt/preparation/forecast-observer-freeze.json",
+    "observer_freeze_sha256": "3496b5e8669a758edf4e8b758593f94153361720308d8c987dacbeecc9beaa98"
+  },
+  "critical": {
+    "cases": 146,
+    "returned_record_bytes": 484240,
+    "independent_active_values": 72028,
+    "inactive_values": 39396,
+    "protected_calls": 146,
+    "abi_calls": 146,
+    "different_bytes": 0,
+    "fpcr": 0
+  },
+  "critical_archive": ".runtime/openifs/spfilt/critical-002",
+  "independent_physics": {
+    "decimal_digits": 110,
+    "active_checks_per_implementation": 36014,
+    "factor_interval": [
+      0.000975609756097561,
+      1.0
+    ],
+    "absolute_limit": "64*DBL_EPSILON*abs(expected)+8*DBL_TRUE_MIN",
+    "requirements": [
+      "closed filter factor",
+      "no amplitude increase",
+      "T21 degree-one preservation",
+      "all inactive storage and divergence unchanged"
+    ]
+  },
+  "abi": {
+    "ordinary_arguments": 5,
+    "geometry_bytes": 17096,
+    "descriptor_bytes": 88,
+    "stack_alignment_bytes": 16,
+    "stack_frame_bytes": 96,
+    "supported_nsmax": [
+      0,
+      4096
+    ],
+    "signed_strides": true,
+    "fpcr": 0
+  },
+  "instruction_audit": {
+    "native": {
+      "decoded_instructions": 104,
+      "forbidden_operations": 0,
+      "local": ".runtime/openifs/spfilt/audit/native.txt",
+      "sha256": "8cbbac8bed2b6f086c354b67b38601f5efd8c7f4505cd078c0dd506c832f4166"
+    },
+    "reference_entry": {
+      "decoded_instructions": 82,
+      "forbidden_operations": 0,
+      "local": ".runtime/openifs/spfilt/audit/reference-entry.txt",
+      "sha256": "e009fd591c98fc1d072091a9dc07b25aa1e4c1f448570370855cdc8c0453bb23"
+    },
+    "reference_worker": {
+      "decoded_instructions": 94,
+      "forbidden_operations": 0,
+      "local": ".runtime/openifs/spfilt/audit/reference-worker.txt",
+      "sha256": "a469d7805b315018dd9e51889fd3a3ce38d71994a79c6ac0eb346837e2c08e2b"
+    },
+    "factors_extracted_from_preemission_corpus": {
+      "local": ".runtime/openifs/spfilt/preparation/factors-by-degree.bin",
+      "sha256": "a8c3aa1248bf1d122adb7b5cfdfb42d03b9d64ade30647d6eb582ba4523e17a9",
+      "bytes": 176
+    }
+  },
+  "forecast": {
+    "bytes": 3902600,
+    "assembly_sha256": "9544cd8ee98f25a5a3ad52b895cd3bcc0d63a9ad0e73b396a41e695549602c2d",
+    "fortran_sha256": "9544cd8ee98f25a5a3ad52b895cd3bcc0d63a9ad0e73b396a41e695549602c2d",
+    "input_bytes": 3902600,
+    "input_sha256": "a7e1a77edc57a97216984ebf082a6f96f1ef05186ea05a8449feb1ea56069066",
+    "differing_bytes": 0,
+    "live_summary": {
+      "calls": 25,
+      "bytes": 3902600,
+      "allocation_bytes": 3845600,
+      "independent": 240350,
+      "inactive": 0,
+      "rigid": 1900,
+      "FPCR": 0,
+      "differing_bytes": 0
+    },
+    "calls": 25,
+    "archive": ".runtime/openifs/runs/strict-spfilt-reviewed-7189435/t21/test_fc",
+    "evidence": ".runtime/openifs/runs/strict-spfilt-reviewed-7189435/t21/direct-comparison.json",
+    "evidence_sha256": "f3a009f17ae50047287dccaf4c4cba21d4c9d1e4e83774746b40b3402851d068",
+    "saved_files_identical": 10,
+    "paired_streams_identical": 21,
+    "actual_parent_shape": [
+      19,
+      506
+    ],
+    "actual_degree_bytes": 2024,
+    "native_library_sha256": "a818d62303ab6de50c38cf8bfde265e8eea6dc319c9ac2d7481d883fdcc2843c"
+  },
+  "runtime": {
+    "job_id": 7189435,
+    "node": "nid010825",
+    "exclusive": true,
+    "affinity": [
+      0
+    ],
+    "memory": "local",
+    "load": [
+      0.24072265625,
+      0.154296875,
+      0.09814453125
+    ],
+    "purpose": "Untimed numerical verification"
+  },
+  "failures_archived": ".runtime/openifs/spfilt/critical-001",
+  "comparative_timing_performed": false,
+  "whole_forecast_independent_physics_verified": false,
+  "sha256": {
+    "src/openifs/dynamics/spfilt.S": "792195094bc939de6bbddc2971d6d579f630aed7c49576f4aa281fd079b1ad15",
+    "bench/openifs/dynamics/spfilt.c": "b19ad493f53ec575b35a5880d63b0fc2a11b50d209d88372705e6ec885ad39af",
+    "bench/openifs/dynamics/spfilt_forecast.c": "4decc5e20960d522149be95062c1bb2f4423639187c1090d256d8a2f945caca9",
+    "bench/openifs/dynamics/spfilt_abi.S": "ec0dcdb1c20f299ad0b031bf0414814e8db4db5a9bcba331a8e94fcaa9c56cae",
+    "skills/md2asm/references/openifs/dynamics/spfilt.md": "ebd64b93956fb3a2edd3b891fa4f9eab28458790f7a90e3e99aaf2f6bb1aca3d",
+    "formulations/openifs/dynamics/atmospheric_motion.md": "0702e45875a201c21b48e75eea536e84e73e7d42124ef20a4f8d9785a89bda7c",
+    ".runtime/openifs/spfilt/preparation/input-corpus.bin": "d92a7ebc2ca609bf19b8f27b0299c218c878517d096da29cbdbd20125a7b4fb6",
+    ".runtime/openifs/spfilt/preparation/reference.bin": "312c7916984d4f0d25c0761e019959cecaf550d3a187a80ffba4760d827151cc",
+    ".runtime/openifs/spfilt/preparation/make-corpus.py": "96abf809b99f6b1917024e2b1c991e09419e8e5f7e0e7803f96a8cb4623c96c4",
+    ".runtime/openifs/spfilt/assembly.o": "09012a2ecf49a5ffac043de2429d138440d350f482692f9386ebceeb8d22063d",
+    ".runtime/openifs/spfilt/critical-002/assembly.bin": "312c7916984d4f0d25c0761e019959cecaf550d3a187a80ffba4760d827151cc",
+    ".runtime/openifs/spfilt/critical-002/fortran.bin": "312c7916984d4f0d25c0761e019959cecaf550d3a187a80ffba4760d827151cc",
+    ".runtime/openifs/spfilt/forecast/libverify-spfilt.so": "a818d62303ab6de50c38cf8bfde265e8eea6dc319c9ac2d7481d883fdcc2843c",
+    ".runtime/openifs/spfilt/empty-descriptor-001/input-corpus.bin": "4b8f1014e92c65a9f3d03e420fe14f6dad616b7ddc60fc0c66b7278200ba9f99",
+    ".runtime/openifs/spfilt/empty-descriptor-001/frozen-reference.bin": "56d495aa4808b6bfdbab9431ce7c049ab3726ce9996e8b5bfd87080776b1f4fc",
+    ".runtime/openifs/spfilt/empty-descriptor-001/assembly.bin": "56d495aa4808b6bfdbab9431ce7c049ab3726ce9996e8b5bfd87080776b1f4fc",
+    ".runtime/openifs/spfilt/empty-descriptor-001/fortran.bin": "56d495aa4808b6bfdbab9431ce7c049ab3726ce9996e8b5bfd87080776b1f4fc",
+    ".runtime/openifs/spfilt/empty-descriptor-001/freeze.json": "d1b0f35536c864ce4f9754d714a895fb6450cf1f5c7656af816f70aa18b37f83"
+  },
+  "supplementary_empty_descriptors": {
+    "cases": 2,
+    "returned_record_bytes": 544,
+    "independent_active_values": 0,
+    "inactive_values": 4,
+    "protected_calls": 2,
+    "abi_calls": 2,
+    "different_bytes": 0,
+    "fpcr": 0,
+    "archive": ".runtime/openifs/spfilt/empty-descriptor-001",
+    "purpose": "Actual zero-row and zero-column arrays, with field data at the protected allocation end; original corpus and kernel unchanged"
+  },
+  "critical_totals": {
+    "cases": 148,
+    "returned_record_bytes": 484784,
+    "abi_calls": 148,
+    "protected_calls": 148
+  }
+}
