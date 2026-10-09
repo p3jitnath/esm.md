@@ -1,0 +1,202 @@
+{
+  "routine": "SPCIMPFINIT",
+  "revision": "1.1, documentation and observer binding only; numerical freeze 1.0",
+  "status": "Complete direct body accepted by critical physics and full T21 source-scoped forecast",
+  "source": {
+    "path": "../ecmwf-openifs/ifs-source/arpifs/adiab/spcimpfinit.F90",
+    "bytes": 5362,
+    "sha256": "736af817369e838582a10c52c226ba9702531669c8c6da457b524a461c9a62dd"
+  },
+  "physics": {
+    "path": "formulations/openifs/dynamics/atmospheric_motion.md",
+    "revision": "1.0",
+    "equation": "P03",
+    "unchanged": true,
+    "bytes": 4053,
+    "sha256": "0702e45875a201c21b48e75eea536e84e73e7d42124ef20a4f8d9785a89bda7c"
+  },
+  "contract": {
+    "path": "skills/md2asm/references/openifs/dynamics/spcimpfinit.md",
+    "revision": "1.1",
+    "bytes": 23048,
+    "sha256": "68e4aaff37b9ace1f6697c49cdcd5a633f87c173d58abe8d14ad2c1edf1a72bd"
+  },
+  "execution": {
+    "job": 7189435,
+    "node": "nid010825",
+    "affinity": "map_cpu:0",
+    "memory": "local",
+    "compiler": "GNU 12.3",
+    "target": "AArch64 / Neoverse V2",
+    "source_SVE_VL_bytes": 16,
+    "FPCR": "0",
+    "timing": "not performed"
+  },
+  "domain": {
+    "m": "0 through NSMAX",
+    "NSMAX": "1 through INT32_MAX-1; integer extents and address calculations must remain in range",
+    "NFLEVL": "nonnegative; empty level arrays supported",
+    "KSTA": "positive, with every selected column within both arrays",
+    "KEND": "unused by the original source; every int32 bit pattern supported",
+    "strides": "injective signed rank-two element strides; contiguous, padded, reversed and transposed layouts covered",
+    "inputs": "finite active values and finite arithmetic intermediates; inactive array cells preserve arbitrary bytes",
+    "boundary": "m=0 preserves every vorticity bit; a single selected degree returns positive-zero auxiliary cells"
+  },
+  "numerical_dependencies": [],
+  "arithmetic": {
+    "precision": "binary64",
+    "rounding": "nearest, ties to even; gradual underflow and signed zeros",
+    "forbidden": "FMA, contraction, reassociation, approximate division or root, reduced precision and fast-math",
+    "native_frame_bytes": 224,
+    "entry": "spcimpfinit_assembly_",
+    "arguments": "eight GNU Fortran by-reference pointers in x0 through x7; no incoming stack arguments"
+  },
+  "critical": {
+    "calls": 197,
+    "m_zero_calls": 47,
+    "m_positive_calls": 150,
+    "empty_calls": 24,
+    "returned_guard_bytes": 3922976,
+    "independent_values": 51668,
+    "protected_calls": 197,
+    "direct_entry_ABI_checks": 198,
+    "genuine_parallel_native_calls": 2,
+    "separate_rounding_witnesses": 131,
+    "differing_bytes": 0,
+    "FPCR": "0",
+    "source_output_bytes": 3973408,
+    "header_bytes_per_call": 256,
+    "independent_checks": [
+      "complex inverse identities",
+      "amplitude squared identity",
+      "closed lower and upper neighbour relation",
+      "basis support and neighbour endpoints",
+      "m=0 input bits and positive-zero closures",
+      "four-stage inverse histories"
+    ],
+    "limits": "Zero differing raw bytes; independent error limits were frozen in the contract before emission."
+  },
+  "corpus": {
+    "reference": {
+      "bytes": 3973408,
+      "sha256": "4a821ca815efba03e14e616e59430a5e022cb50410b309b059016f6ee5a19cfd"
+    },
+    "inputs": {
+      "bytes": 4008080,
+      "sha256": "1062a642853b5f42ce74f4197ba15c9b277c048fa70bf519a07bd66bf1337f33"
+    },
+    "frozen_utc": "2026-10-09T18:20:03.082928+00:00",
+    "freeze": ".runtime/openifs/spcimpfinit/freeze.json"
+  },
+  "instruction_audit": {
+    "native_instructions": 274,
+    "source_instructions": 556,
+    "forbidden_arithmetic": 0,
+    "native_reserved_x18_uses": 0,
+    "source_x18_uses": 13,
+    "native_object_unchanged_since_emission": true,
+    "ABI_bridge": "Direct BL to numerical entry, with canaries and entry/return FPCR read before any restore; 176-byte bridge frame.",
+    "record": ".runtime/openifs/spcimpfinit/accepted/instruction-audit.json"
+  },
+  "forecast": {
+    "status": "550 genuine calls accepted with complete SP3D and AUX allocations",
+    "caller": "SPCM",
+    "OMP_NUM_THREADS": 1,
+    "whole_allocations": [
+      "shared SP3D parent with original VOR view offset",
+      "separate AUX(NFLSUR,NSPEC2)"
+    ],
+    "allocation_provenance": [
+      "spcm.F90:241 and :253",
+      "spectral_fields_mod.F90:273 and :313"
+    ],
+    "query": "int spcm_forecast_scope(const void *geometry,const double **sp3d,size_t *sp3d_elements)",
+    "sole_relay_owner": "SPCIMPFPOST comparator",
+    "preload_order": "INIT before POST, followed by the existing parent library order",
+    "header_bytes_per_call": 512,
+    "magic": "SPFI0001",
+    "stream_bytes": "allocation_bytes + 512 * genuine_calls",
+    "accounting": "Genuine INIT and unchanged-source shadow calls are reported separately; numerical dependency calls are zero.",
+    "write_permissions": "Selected VOR cells only for m>0; selected AUX cells for all m. Every other whole-parent/AUX byte is checked unchanged.",
+    "driver": {
+      "path": "bench/openifs/dynamics/spcimpfinit_forecast.c",
+      "bytes": 17969,
+      "sha256": "0e7a617e1b6744b47266a2d7a701c6891055e1ada39a612d7b43efdec5d9195a"
+    },
+    "object": {
+      "path": ".runtime/openifs/spcimpfinit/parent-observer-r2/forecast.o",
+      "bytes": 25904,
+      "sha256": "d01371df453f68408057c0bd00bd3bb355dc32379e620d1dfab9430e3743afb0"
+    },
+    "library": {
+      "path": ".runtime/openifs/spcimpfinit/parent-observer-r2/libverify-spcimpfinit.so",
+      "bytes": 183240,
+      "sha256": "d223f4b95d33c660fcce2bc05cf588c5b12179ac387af3e9678a9f1c77b9a4e2"
+    },
+    "bytes": 169488000,
+    "assembly_sha256": "6c4078bb8be1a958ad500c5f89d087ba77a1d01d047fda85bc5e6f12e0abe023",
+    "fortran_sha256": "6c4078bb8be1a958ad500c5f89d087ba77a1d01d047fda85bc5e6f12e0abe023",
+    "input_bytes": 169488000,
+    "input_sha256": "acd2e4339f9c48693da895eb8fbcb3ecdef1c378fa267cd2e78f91b6815a58db",
+    "differing_bytes": 0,
+    "live_summary": {
+      "genuine_calls": 550,
+      "m0": 25,
+      "mpositive": 525,
+      "allocation_bytes": 169206400,
+      "active_vorticity_values": 219450,
+      "active_auxiliary_values": 240350,
+      "admissibility_values": 721050,
+      "science_values": 590425,
+      "source_shadow_calls": 550,
+      "numerical_dependency_calls": 0,
+      "differing_bytes": 0,
+      "FPCR": 0
+    },
+    "calls": 550,
+    "archive": ".runtime/openifs/runs/strict-spcimpfinit-reviewed-r2-7189435/t21/test_fc",
+    "evidence": ".runtime/openifs/runs/strict-spcimpfinit-reviewed-r2-7189435/t21/direct-comparison.json",
+    "evidence_sha256": "3825d0c82c943a1ac932e72e83d4f144b2b7a2e5464eb9957a4ff1cdf2bf92a0",
+    "saved_files_identical": 10,
+    "paired_streams_identical": 23
+  },
+  "provenance": {
+    "generation": "Direct AArch64 from frozen source equations and storage probes, with post-emission machine-instruction inspection.",
+    "pre_emission_frontend_exposure": "One compiler-front-end SQRT expression was accidentally displayed by the required configuration supplement; it was excluded from construction and recorded openly.",
+    "exposure_record": ".runtime/openifs/spcimpfinit/preparation-exposure.json",
+    "preserved_failures": [
+      "preparation/attempt01-compile.log",
+      "preparation/earth-like-initial/",
+      "preparation/before-lower-bound-coverage/",
+      "failures/attempt01-bridge/",
+      "accepted-before-worker-fpcr/"
+    ],
+    "commands": ".runtime/openifs/spcimpfinit/build-commands.txt",
+    "parent_observer_correction": {
+      "local": ".runtime/openifs/spcimpfinit/parent-observer-r2/correction.json",
+      "sha256": "fdf1eff98edc12cb3f43702dc587e7963c80831d1c4ac8948f5b02c65eaeb36d",
+      "failed_before_first_numerical_call": true
+    },
+    "release_manifest": {
+      "local": ".runtime/openifs/spcimpfinit/final-manifest.json",
+      "sha256": "cc10e1d87a1fa140eaf531c851c287b9b3815f85833c7e2ad6ecbe7a276a78b7"
+    }
+  },
+  "required_abi_bridge": {
+    "source": "bench/openifs/dynamics/spcimpfinit_abi.S",
+    "object_identical_to_original": true
+  },
+  "sha256": {
+    "src/openifs/dynamics/spcimpfinit.S": "0726cd1275571c51bfdd3bd2042c2fcb3b25257fe9c8d4db98ef08e203d79ab2",
+    "bench/openifs/dynamics/spcimpfinit.c": "2e63795b6dc2a66ed58542a4e4d76fdec5690d7d5c7f1d7595db39a2b70c9936",
+    "bench/openifs/dynamics/spcimpfinit_forecast.c": "0e7a617e1b6744b47266a2d7a701c6891055e1ada39a612d7b43efdec5d9195a",
+    "bench/openifs/dynamics/spcimpfinit_abi.S": "0c10f7724f848ff0372003acff409d657abb0c573d178d3e4c98bbf9ebd0fee2",
+    "skills/md2asm/references/openifs/dynamics/spcimpfinit.md": "68e4aaff37b9ace1f6697c49cdcd5a633f87c173d58abe8d14ad2c1edf1a72bd",
+    ".runtime/openifs/spcimpfinit/assembly.o": "f6331946391b2eebe55ce29b09196bc3b26894a7aeaad037a9b2715f37063111",
+    ".runtime/openifs/spcimpfinit/parent-observer-r2/tracked-abi.o": "3d4ef2e458c363a87982f1e727104835c04ea68be5bbff220f179b499cfdd0dc",
+    ".runtime/openifs/spcimpfinit/accepted/assembly.bin": "4a821ca815efba03e14e616e59430a5e022cb50410b309b059016f6ee5a19cfd",
+    ".runtime/openifs/spcimpfinit/accepted/fortran.bin": "4a821ca815efba03e14e616e59430a5e022cb50410b309b059016f6ee5a19cfd"
+  },
+  "whole_forecast_independent_physics_verified": false,
+  "comparative_timing_performed": false
+}
