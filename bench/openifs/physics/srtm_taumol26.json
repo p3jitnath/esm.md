@@ -1,0 +1,201 @@
+{
+  "model": "SRTM_TAUMOL26",
+  "revision": "1.0",
+  "source_role": "Complete forecast-active shortwave molecular scattering band, daylight absorption zeros and fixed solar spectrum",
+  "input_formulation": "skills/md2asm/references/openifs/physics/srtm_taumol26.md",
+  "source_provenance": "../ecmwf-openifs/ifs-source/arpifs/phys_radi/srtm_taumol26.F90",
+  "source_SHA256": "ff85512b01e980b9291e4b0ac21e0d82068c06e4633c1c60d8547a93c62ba9d8",
+  "caller": "SRTM_GAS_OPTICAL_DEPTH",
+  "caller_return_offset": "0x872b80",
+  "generation_route": "Direct LLM AArch64 source from source-only independently verified frozen Markdown physics, complete ABI, ordered arithmetic, input corpus and full captures; assembler and linker only for primary",
+  "pre_emission_manifest": ".runtime/openifs/srtm_taumol26_7207705/frozen/pre-emission-contract-corpus.json",
+  "pre_emission_manifest_SHA256": "1da6e56afb11354e54fdc6eba0200e389e78b646c00b744c4e0029a3ae766b36",
+  "release": ".runtime/openifs/srtm_taumol26_7207705/release-five-files.json",
+  "quiet_environment": {
+    "job": 7207705,
+    "node": "nid011311",
+    "CPU": 16,
+    "memory": "local",
+    "exclusive": true,
+    "comparative_timing_accepted": false
+  },
+  "critical": {
+    "input_records": 62,
+    "placements_per_record": 2,
+    "protected_calls": 124,
+    "complete_return_bytes": 1153920,
+    "independent_relations": 157456,
+    "immediate_ABI_calls": 124,
+    "positive_Rayleigh_zeros": 2140,
+    "negative_Rayleigh_zeros": 3000,
+    "nonzero_Rayleigh_subnormals": 4724,
+    "differing_bytes": 0
+  },
+  "frozen_actual_input_replay": {
+    "calls": 6400,
+    "full_incoming_bytes": 266035200,
+    "complete_return_bytes": 255795200,
+    "immediate_ABI_calls": 6400,
+    "independent_relations": 37785600,
+    "source_native_and_frozen_original_direct_cmp_differing_bytes": 0
+  },
+  "isolated_forecast": {
+    "case": ".runtime/openifs/runs/strict-srtm26-native-7207705/t21/test_fc",
+    "calls": 6400,
+    "calls_each_phase_0_through_24": 256,
+    "complete_paired_return_bytes": 255795200,
+    "independent_relations": 37785600,
+    "day_column_entries": 51200,
+    "active_Rayleigh_values": 5836800,
+    "fixed_solar_copies": 307200,
+    "preserved_storage_bytes": 159744000,
+    "source_native_direct_cmp_differing_bytes": 0,
+    "ten_saved_file_bytes": 618140,
+    "saved_differing_bytes": 0
+  },
+  "complete_storage_protocol": {
+    "complete_incoming_mutable_bytes_frozen": true,
+    "no_bits_omitted_or_masked": true,
+    "cross_run_inputs_differ_in_unused_storage": true,
+    "cross_run_input_differing_bytes": 45420251,
+    "unused_TDIMV_differing_bytes": 12802,
+    "unused_spectral_storage_differing_bytes": 45407449,
+    "cross_run_return_differing_bytes": 45407449,
+    "all_differences_proven_unused": true,
+    "complete_frozen_input_replay_and_fresh_paired_full_returns_are_acceptance_basis": true
+  },
+  "units": {
+    "COLMOL": "10^20 molecules cm^-2 with original default-real scale",
+    "RAYLC": "cm^2 per 10^20 molecules",
+    "TAUG_TAUR": "dimensionless",
+    "SFLUXREFC": "W m^-2 perpendicular to solar rays"
+  },
+  "independent_coefficient_provenance": {
+    "raw_points": 16,
+    "reduced_points": 6,
+    "group_counts": [
+      1,
+      1,
+      2,
+      2,
+      4,
+      6
+    ],
+    "normalisation_Rayleigh_solar_relations": 18,
+    "raw_source_literal_bits_identical": true
+  },
+  "connected_legacy_wet_physics": {
+    "calls": 6400,
+    "active_layer_columns": 972800,
+    "source_column_compositions_bit_identical": 972800,
+    "physical_molecule_balance_checks": 972800,
+    "source_scale_FP64": 9.999999682655225e-21,
+    "column_and_Rayleigh_min_signed_relative_error": -3.173449708637286e-08,
+    "column_and_Rayleigh_max_signed_relative_error": 0.00023716197891093823,
+    "max_observed_minus_ideal_formula": 2.733512762905044e-14,
+    "legacy_wet_correction_unchanged": true,
+    "formula": "(A/1e-20)/(1-(Md/Mw-1)^2*q^2)-1"
+  },
+  "instruction_ABI_audit": {
+    "instructions": 56,
+    "numerical_helpers": 0,
+    "FP64_multiply_in_loop": 1,
+    "FP32_instructions": 0,
+    "fused_or_approximate_instructions": 0,
+    "x18_touched": false,
+    "callee_saved_float_touched": false,
+    "frame_bytes": 96,
+    "readonly_numerical_globals": [
+      "__yoesrta26_MOD_raylc",
+      "__yoesrta26_MOD_sfluxrefc"
+    ],
+    "private_comparator_so_sha256": "bbcc2bd47f438c45ff2aa66e18fcb0c0a1581af230fd49aa1e87d2a89b6d3425",
+    "critical_ABI_calls": 124,
+    "frozen_actual_replay_ABI_calls": 6400,
+    "all_complete_return_bytes_directly_compared": true
+  },
+  "documentation_math": {
+    "expressions": 44,
+    "errors": 0,
+    "renderer": "MathJax 3.2.2",
+    "sha256": {
+      "skills/md2asm/references/openifs/physics/srtm_taumol26.md": "80ce893b263fbb09fced2fb3b9d067e0b2a2440c14e76c2b61574c6635f738bc"
+    }
+  },
+  "scope": "All 6400 actual calls are daylight n8 H19 capacity19 with tropopause15. Guarded corpus also checks night, mixed day/night, empty/zero/partial capacities, non-one compact bounds, zero/unit/doubled columns, signed zero, subnormals, untouched opaque NaN payloads and off-range storage-only tropopause cases. Fresh cross-run complete streams have different unused incoming bytes; complete frozen replays and fresh complete paired streams remain exact. No speed claim.",
+  "documentation_revision": "1.1",
+  "current_documentation": {
+    "contract": {
+      "local": "skills/md2asm/references/openifs/physics/srtm_taumol26.md",
+      "bytes": 14512,
+      "sha256": "80ce893b263fbb09fced2fb3b9d067e0b2a2440c14e76c2b61574c6635f738bc"
+    },
+    "numerical_revision_unchanged": "1.0",
+    "math_render": {
+      "local": ".runtime/openifs/laitli-7207705/parent-review/math-render.json",
+      "bytes": 348,
+      "sha256": "9d12413bec38b749dbc9e63d6f70befd9a18da0beaf1e5cd0a5d174935614c6d"
+    }
+  },
+  "combined_forecast": {
+    "archive": ".runtime/openifs/runs/strict-interpolation-shortwave-combined-reviewed-7207705/t21/test_fc",
+    "acceptance": {
+      "local": ".runtime/openifs/runs/strict-interpolation-shortwave-combined-reviewed-7207705/t21/direct-comparison.json",
+      "bytes": 39373,
+      "sha256": "980d196b65fb18b28f67e13c05840580baaa6982af705306d4e76e4ced0e3f4e"
+    },
+    "job_id": 7207705,
+    "node": "nid011311",
+    "affinity_cpu": 0,
+    "memory_binding": "local",
+    "calls": 6400,
+    "complete_return_bytes": 255795200,
+    "complete_input_bytes": 266035200,
+    "independent_relations_or_values": 37785600,
+    "complete_same_input_differing_bytes": 0,
+    "all_saved_files_identical": true,
+    "saved_bytes": 618140,
+    "separate_fresh_run_review": {
+      "active_bytes_directly_identical": 95846400,
+      "active_differing_bytes": 0,
+      "different_inactive_bytes": 55905106,
+      "different_inactive_calls": 6398,
+      "complete_input_identity_claimed": false,
+      "reason": "Opaque unused incoming spectral storage differs between fresh forecasts. Every complete byte remains in paired comparisons and frozen replay."
+    }
+  },
+  "parent_reproduction": {
+    "release_review": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/parent-review/parent-release-hash-review.json",
+      "bytes": 265,
+      "sha256": "1331b2f2e1137582b44966a04e93404ffac8f40aa8ce276772a4d4ef65bb825b"
+    },
+    "critical_command": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/parent-review/critical-reproduction-command.sh",
+      "bytes": 1388,
+      "sha256": "1c2f8bce9f00ff162639904d5bbfeb5ea7ec8ba9fa109318dc098cb482c6c752"
+    },
+    "critical_result": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/parent-review/critical-reproduction.log",
+      "bytes": 1050,
+      "sha256": "9588c39f1d1e1e4179413b30a9f8355b2f5f8b0786d7d4e06f3afcbc3dc3f264"
+    },
+    "native_object_identical": true,
+    "protected_critical_calls_or_cases": 124,
+    "complete_critical_return_bytes": 1153920,
+    "differing_bytes": 0,
+    "immediate_ABI_calls": 124,
+    "complete_frozen_replay_calls": 6400,
+    "complete_frozen_replay_bytes": 255795200
+  },
+  "preserved_original_release_resolution": {
+    "local": ".runtime/openifs/srtm_taumol26_7207705/parent-review/resolved-original-manifest.json",
+    "bytes": 16758,
+    "sha256": "c399313d49f061504aadccf66c09b99140a91f29786850f698a47daab71dcf37"
+  },
+  "preserved_pre_publication_record": {
+    "local": ".runtime/openifs/srtm_taumol26_7207705/parent-review/original-public-files/bench/openifs/physics/srtm_taumol26.json",
+    "bytes": 5290,
+    "sha256": "f4bdc343f850f2f1ff905278250cec9c02a63df70bb8bcd9beae5d1866bfc71c"
+  }
+}
