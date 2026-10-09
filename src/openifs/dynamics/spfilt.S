@@ -1,4 +1,4 @@
-/* Selected complete SPFILT with a private T21 factor cache.
+/* Private ldp19 complete SPFILT trial; immutable first release is unchanged.
  * Use the cache for NSMAX=21 and at least 24 selected columns.
  * The full ordered factor arithmetic runs at each degree's first occurrence.
  * Later occurrences reuse those exact FP64 bits. Factors stay in [1/1025,1],
@@ -79,6 +79,12 @@ SPFILT_ENTRY:
     sxtw x11,w26
     sub x10,x11,x10
     add x22,x22,x10,lsl #2
+    cmp w28,#19
+    b.ne .Lfield_gate_done
+    cmp x20,#8
+    b.ne .Lfield_gate_done
+    orr w28,w28,#0x80000000
+.Lfield_gate_done:
 .Lcache_column:
     ldr w9,[x22]
     ldr d0,[x29,w9,uxtw #3]
@@ -110,6 +116,7 @@ SPFILT_ENTRY:
     ldr w9,[x22]
     str d0,[x29,w9,uxtw #3]
 .Lcache_apply:
+    tbnz w28,#31,.Lfield_unroll19
     mov w9,w28
     mov x10,x19
     cbz w9,.Lcache_next
@@ -138,6 +145,31 @@ SPFILT_ENTRY:
     add x10,x10,x20
     subs w9,w9,#1
     b.ne .Lcache_strided
+    b .Lcache_next
+.Lfield_unroll19:
+    dup v0.2d,v0.d[0]
+    ldp q1,q2,[x19]
+    ldp q3,q4,[x19,#32]
+    ldp q5,q6,[x19,#64]
+    ldp q7,q16,[x19,#96]
+    ldr q17,[x19,#128]
+    ldr d18,[x19,#144]
+    fmul v1.2d,v1.2d,v0.2d
+    fmul v2.2d,v2.2d,v0.2d
+    fmul v3.2d,v3.2d,v0.2d
+    fmul v4.2d,v4.2d,v0.2d
+    fmul v5.2d,v5.2d,v0.2d
+    fmul v6.2d,v6.2d,v0.2d
+    fmul v7.2d,v7.2d,v0.2d
+    fmul v16.2d,v16.2d,v0.2d
+    fmul v17.2d,v17.2d,v0.2d
+    fmul d18,d18,d0
+    stp q1,q2,[x19]
+    stp q3,q4,[x19,#32]
+    stp q5,q6,[x19,#64]
+    stp q7,q16,[x19,#96]
+    str q17,[x19,#128]
+    str d18,[x19,#144]
 .Lcache_next:
     cmp w26,w27
     b.eq .Lcache_return

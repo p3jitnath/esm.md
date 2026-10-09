@@ -1,5 +1,5 @@
 {
-  "revision": "1.2; numerical operator frozen at 1.0",
+  "revision": "1.3; numerical contract frozen at 1.0",
   "status": "Complete selected direct body accepted by independent physics, exact combined forecast and quiet complete-call measurements",
   "source": "arpifs/adiab/spfilt.F90",
   "source_sha256": "7bd9d9cec8cba831bce0e72f51949d308a7003e7d4a752a1b90ec15e86de8295",
@@ -53,8 +53,12 @@
     "fpcr": 0
   },
   "instruction_audit": {
-    "decoded_instructions": 232,
-    "forbidden_operations": 0
+    "canonical_instructions": 260,
+    "frame_bytes": 272,
+    "private_table_bytes": 176,
+    "forbidden_operations": 0,
+    "direct_ABI_and_protected_calls": 264,
+    "minimum_isa": "AArch64 Armv8-A SIMD"
   },
   "forecast": {
     "bytes": 3902600,
@@ -76,19 +80,19 @@
     "calls": 25,
     "archive": ".runtime/openifs/runs/strict-spfilt-reviewed-7189435/t21/test_fc",
     "evidence": {
-      "local": ".runtime/openifs/runs/strict-spfilt-cache24-combined-reviewed-7189435/t21/direct-comparison.json",
-      "sha256": "a9c95f91cf02bc2e26e8a9f7ebe34dc00adb8f9d5f72250f9131c3d407814b67"
+      "local": ".runtime/openifs/runs/strict-spfilt-ldp19-combined-reviewed-7189435/t21/direct-comparison.json",
+      "sha256": "a048c59fd5c9508f39e9e70c8a8f6ef0c9d0032edf3e8cd5cbad30e24d413dae"
     },
     "evidence_sha256": "f3a009f17ae50047287dccaf4c4cba21d4c9d1e4e83774746b40b3402851d068",
     "saved_files_identical": 10,
-    "paired_streams_identical": 21,
+    "paired_streams_identical": 28,
     "actual_parent_shape": [
       19,
       506
     ],
     "actual_degree_bytes": 2024,
-    "native_library_sha256": "3e72114fbdd2ef45263a299975081f3a1a0534bed1def9f0bcc2544d872d492f",
-    "raw_archive": ".runtime/openifs/runs/strict-spfilt-cache24-combined-reviewed-7189435/t21/test_fc"
+    "native_library_sha256": "fc10318cea26811cde1b2a02374b0b76d99dd5477fcf36b1f13484ee21558f4a",
+    "raw_archive": ".runtime/openifs/runs/strict-spfilt-ldp19-combined-reviewed-7189435/t21/test_fc"
   },
   "runtime": {
     "job_id": 7189435,
@@ -109,11 +113,11 @@
   "comparative_timing_performed": true,
   "whole_forecast_independent_physics_verified": false,
   "sha256": {
-    "src/openifs/dynamics/spfilt.S": "99a03ee330ea874c50201fc38dd6a9f0c5518eb75e724ad1564a4c814547d802",
+    "src/openifs/dynamics/spfilt.S": "6d1894aadf4cc566503e4c0e460bcbc7cbc2938d550fd667ca75834bf76f389c",
     "bench/openifs/dynamics/spfilt.c": "b19ad493f53ec575b35a5880d63b0fc2a11b50d209d88372705e6ec885ad39af",
     "bench/openifs/dynamics/spfilt_forecast.c": "4decc5e20960d522149be95062c1bb2f4423639187c1090d256d8a2f945caca9",
     "bench/openifs/dynamics/spfilt_abi.S": "ec0dcdb1c20f299ad0b031bf0414814e8db4db5a9bcba331a8e94fcaa9c56cae",
-    "skills/md2asm/references/openifs/dynamics/spfilt.md": "f35aeffc6d3049470b3c440569efbb69d151c64fc0e9619b75262c980edfc693",
+    "skills/md2asm/references/openifs/dynamics/spfilt.md": "737f1bc04aa19d59d9f2a2d04db18d675c3df0b659adfe209441be6e33dd60e5",
     "formulations/openifs/dynamics/atmospheric_motion.md": "0702e45875a201c21b48e75eea536e84e73e7d42124ef20a4f8d9785a89bda7c",
     ".runtime/openifs/spfilt/preparation/input-corpus.bin": "d92a7ebc2ca609bf19b8f27b0299c218c878517d096da29cbdbd20125a7b4fb6",
     ".runtime/openifs/spfilt/preparation/reference.bin": "312c7916984d4f0d25c0761e019959cecaf550d3a187a80ffba4760d827151cc",
@@ -127,7 +131,8 @@
     ".runtime/openifs/spfilt/empty-descriptor-001/assembly.bin": "56d495aa4808b6bfdbab9431ce7c049ab3726ce9996e8b5bfd87080776b1f4fc",
     ".runtime/openifs/spfilt/empty-descriptor-001/fortran.bin": "56d495aa4808b6bfdbab9431ce7c049ab3726ce9996e8b5bfd87080776b1f4fc",
     ".runtime/openifs/spfilt/empty-descriptor-001/freeze.json": "d1b0f35536c864ce4f9754d714a895fb6450cf1f5c7656af816f70aa18b37f83",
-    ".runtime/openifs/spfilt-tuning/parent-integration/assembly.o": "9f18f137f8c48f89996c2b79b1cfb4102e1da17cc43516e9e2b4e753372e6360"
+    ".runtime/openifs/spfilt-tuning/parent-integration/assembly.o": "9f18f137f8c48f89996c2b79b1cfb4102e1da17cc43516e9e2b4e753372e6360",
+    ".runtime/openifs/spfilt-tuning/field-tuning/parent-integration/assembly.o": "b87941f27564397f8020557e19b9466ffee14e860f4e8e4a2ee9e291c40efac5"
   },
   "supplementary_empty_descriptors": {
     "cases": 2,
@@ -142,10 +147,13 @@
     "purpose": "Actual zero-row and zero-column arrays, with field data at the protected allocation end; original corpus and kernel unchanged"
   },
   "critical_totals": {
-    "cases": 148,
-    "returned_record_bytes": 484784,
-    "abi_calls": 148,
-    "protected_calls": 148
+    "cases": 264,
+    "returned_record_bytes": 4955320,
+    "independent_active_values": 655190,
+    "protected_calls": 264,
+    "abi_calls": 264,
+    "different_bytes": 0,
+    "fpcr": 0
   },
   "prior_general_instruction_audit": {
     "native": {
@@ -173,77 +181,28 @@
     }
   },
   "selected_critical": {
-    "suites": [
-      {
-        "cases": 146,
-        "returned_record_bytes": 484240,
-        "independent_active_values": 72028,
-        "inactive_values": 39396,
-        "protected_calls": 146,
-        "abi_calls": 146,
-        "different_bytes": 0,
-        "fpcr": 0
-      },
-      {
-        "cases": 2,
-        "returned_record_bytes": 544,
-        "independent_active_values": 0,
-        "inactive_values": 4,
-        "protected_calls": 2,
-        "abi_calls": 2,
-        "different_bytes": 0,
-        "fpcr": 0
-      },
-      {
-        "cases": 79,
-        "returned_record_bytes": 572480,
-        "independent_active_values": 92392,
-        "inactive_values": 45514,
-        "protected_calls": 79,
-        "abi_calls": 79,
-        "different_bytes": 0,
-        "fpcr": 0
-      },
-      {
-        "cases": 25,
-        "returned_record_bytes": 3848800,
-        "independent_active_values": 480700,
-        "inactive_values": 0,
-        "protected_calls": 25,
-        "abi_calls": 25,
-        "different_bytes": 0,
-        "fpcr": 0
-      },
-      {
-        "cases": 1,
-        "returned_record_bytes": 272,
-        "independent_active_values": 0,
-        "inactive_values": 2,
-        "protected_calls": 1,
-        "abi_calls": 1,
-        "different_bytes": 0,
-        "fpcr": 0
-      }
-    ],
-    "cases": 253,
-    "returned_record_bytes": 4906336,
-    "independent_active_values": 645120,
-    "abi_calls": 253,
-    "different_bytes": 0
+    "cases": 264,
+    "returned_record_bytes": 4955320,
+    "independent_active_values": 655190,
+    "protected_calls": 264,
+    "abi_calls": 264,
+    "different_bytes": 0,
+    "fpcr": 0
   },
   "selected_forecast_replay": {
     "calls": 25,
     "canonical_record_bytes": 3902600,
     "different_bytes": 0,
-    "source_and_accepted_forecast_sha256": "9544cd8ee98f25a5a3ad52b895cd3bcc0d63a9ad0e73b396a41e695549602c2d",
-    "selected_replay_sha256": "9544cd8ee98f25a5a3ad52b895cd3bcc0d63a9ad0e73b396a41e695549602c2d",
+    "copied_metadata_and_degrees_unchanged": true,
     "inputs_sha256": "a7e1a77edc57a97216984ebf082a6f96f1ef05186ea05a8449feb1ea56069066",
-    "copied_metadata_and_degrees_unchanged": true
+    "selected_replay_sha256": "9544cd8ee98f25a5a3ad52b895cd3bcc0d63a9ad0e73b396a41e695549602c2d",
+    "source_and_accepted_forecast_sha256": "9544cd8ee98f25a5a3ad52b895cd3bcc0d63a9ad0e73b396a41e695549602c2d",
+    "fresh_full_forecast_with_selected_schedule_completed": true
   },
   "optimisation": {
-    "method": "Private per-call table of exactly rounded repeated-degree factors",
+    "method": "Per-call rounded-factor reuse and gated paired-vector load/product/store scheduling",
     "selected_threshold": 24,
-    "domain": "NSMAX=21, selected columns>=24; unchanged original body for every other shape",
+    "domain": "NSMAX=21 and selected count>=24; 19-level unroll additionally requires NFLEVL=19 and row_stride=1 FP64 element; other shapes retain cache or unchanged general field loop",
     "frame_bytes": 272,
     "private_table_bytes": 176,
     "all_field_multiplications_retained": true,
@@ -254,16 +213,24 @@
       "exp_dependency_required": ".runtime/openifs/strict-math/libpressure-math.so"
     },
     "release_manifest": {
-      "local": ".runtime/openifs/spfilt-tuning/released/release.json",
-      "sha256": "ebcc2c1f374c30fbf031cc999a2e9a2e91648536023a032eed799a30d16023f4"
+      "local": ".runtime/openifs/spfilt-tuning/field-tuning/released-ldp19/release.json",
+      "sha256": "eac454c5c7c4b0053522b6bce51c24ff0b4a28b806342fb72e8ce1ba047f2eaa"
     },
     "pre_emission_freeze": {
       "local": ".runtime/openifs/spfilt-tuning/preparation/freeze-before-emission.json",
       "sha256": "53b3011363e9d6198611f9e7bae87fa50a9d460cfd97943b0da45454a94832d4"
     },
     "exact_measurement_archive": {
+      "local": ".runtime/openifs/spfilt-tuning/field-tuning/released-ldp19/measurement-summary.json",
+      "sha256": "15ab8dbfc53d443e258895c1a636299dbd5b40a131a2b887716d849b39be19f1"
+    },
+    "previous_cache_measurement_archive": {
       "local": ".runtime/openifs/spfilt-tuning/measure-20261009T192647Z/summary.json",
       "sha256": "768ad6c3d99fd047bf96aed4228491a89ef3c320a79aa3d142a41ee9e6bda70a"
+    },
+    "parent_build": {
+      "local": ".runtime/openifs/spfilt-tuning/field-tuning/parent-integration/parent-build-review.json",
+      "sha256": "6740e34164441bafb23c5580d7b7eb06698a1fc30140f90c336931b0a8f10fff"
     }
   },
   "measurements": {
@@ -273,158 +240,116 @@
       "affinity": [
         8
       ],
-      "memory": "srun --mem-bind=local requested, allocations first touched on CPU8; broad cgroup allowed-node list is preserved in before/after records, and physical page placement was not sampled",
+      "memory": "srun --mem-bind=local; first touch on CPU8; actual page placement was not sampled; broad allowed memory-node list is retained",
       "repeats": 12,
       "fresh_calls_per_sample": 512,
       "warmups": 32,
-      "clock_boundaries_included": true,
+      "same_physical_arrays": true,
+      "full_input_reset_before_each_call": true,
       "resets_and_validation_outside_timers": true,
-      "context_switch_rejection": "entire paired rotation rejected when any sample switched",
-      "all_rejected_rotation_records": 792,
-      "all_eight_variant_variation_archive": ".runtime/openifs/spfilt-tuning/measure-20261009T192647Z/summary.json"
+      "clock_boundaries_included": true,
+      "all_context_rejected_rotations": {
+        "measurements.jsonl": {
+          "rotations": 88,
+          "records": 440,
+          "voluntary_switches": 0,
+          "involuntary_switches": 106,
+          "rotations_per_workload": {
+            "actual_prefix_1": 4,
+            "actual_prefix_7": 1,
+            "actual_prefix_8": 3,
+            "actual_prefix_9": 1,
+            "actual_prefix_15": 2,
+            "actual_prefix_16": 4,
+            "actual_prefix_23": 3,
+            "actual_prefix_24": 1,
+            "actual_prefix_25": 3,
+            "actual_prefix_31": 3,
+            "actual_prefix_32": 3,
+            "actual_prefix_33": 3,
+            "actual_prefix_43": 5,
+            "actual_prefix_44": 1,
+            "actual_prefix_45": 4,
+            "actual_prefix_63": 2,
+            "actual_prefix_64": 3,
+            "actual_prefix_65": 5,
+            "actual_prefix_128": 7,
+            "actual_prefix_256": 5,
+            "actual_prefix_506": 25
+          }
+        },
+        "bounds-ldp19.jsonl": {
+          "rotations": 5,
+          "records": 11,
+          "voluntary_switches": 0,
+          "involuntary_switches": 5,
+          "rotations_per_workload": {
+            "actual_prefix_506": 4,
+            "probe": 1
+          }
+        },
+        "bounds-ldr19.jsonl": {
+          "rotations": 8,
+          "records": 19,
+          "voluntary_switches": 0,
+          "involuntary_switches": 8,
+          "rotations_per_workload": {
+            "actual_prefix_506": 5,
+            "probe": 3
+          }
+        }
+      },
+      "complete_variation_file": "measurement-summary.json"
     },
-    "retained_workloads": {
-      "1": {
-        "source": {
-          "samples": 12,
-          "median_ns_per_call": 296.875,
-          "minimum_ns_per_call": 294.125,
-          "maximum_ns_per_call": 311.25,
-          "mad_ns_per_call": 1.78125
-        },
-        "baseline": {
-          "samples": 12,
-          "median_ns_per_call": 34.53125,
-          "minimum_ns_per_call": 33.6875,
-          "maximum_ns_per_call": 35.25,
-          "mad_ns_per_call": 0.28125
-        },
-        "cache24": {
-          "samples": 12,
-          "median_ns_per_call": 35.09375,
-          "minimum_ns_per_call": 34.4375,
-          "maximum_ns_per_call": 36.125,
-          "mad_ns_per_call": 0.28125
-        },
-        "paired_gain_vs_general": {
-          "median": 0.9839427931168393,
-          "minimum": 0.9522968197879859,
-          "maximum": 1.0053956834532374,
-          "pairs_faster": 3
-        },
-        "paired_gain_vs_source": {
-          "median": 8.456422483123726,
-          "minimum": 8.245674740484429,
-          "maximum": 9.038112522686026,
-          "pairs_faster": 12
-        }
-      },
-      "24": {
-        "source": {
-          "samples": 12,
-          "median_ns_per_call": 497.0,
-          "minimum_ns_per_call": 489.875,
-          "maximum_ns_per_call": 499.5625,
-          "mad_ns_per_call": 1.84375
-        },
-        "baseline": {
-          "samples": 12,
-          "median_ns_per_call": 166.03125,
-          "minimum_ns_per_call": 164.5,
-          "maximum_ns_per_call": 166.5625,
-          "mad_ns_per_call": 0.4375
-        },
-        "cache24": {
-          "samples": 12,
-          "median_ns_per_call": 158.1875,
-          "minimum_ns_per_call": 156.9375,
-          "maximum_ns_per_call": 159.875,
-          "mad_ns_per_call": 0.625
-        },
-        "paired_gain_vs_general": {
-          "median": 1.0455089943068347,
-          "minimum": 1.0387021110242376,
-          "maximum": 1.0613301473516528,
-          "pairs_faster": 12
-        },
-        "paired_gain_vs_source": {
-          "median": 3.1350419497000406,
-          "minimum": 3.082547169811321,
-          "maximum": 3.1711675933280383,
-          "pairs_faster": 12
-        }
-      },
-      "31": {
-        "source": {
-          "samples": 12,
-          "median_ns_per_call": 614.90625,
-          "minimum_ns_per_call": 610.4375,
-          "maximum_ns_per_call": 617.625,
-          "mad_ns_per_call": 1.9375
-        },
-        "baseline": {
-          "samples": 12,
-          "median_ns_per_call": 260.25,
-          "minimum_ns_per_call": 258.375,
-          "maximum_ns_per_call": 261.3125,
-          "mad_ns_per_call": 0.5625
-        },
-        "cache24": {
-          "samples": 12,
-          "median_ns_per_call": 229.90625,
-          "minimum_ns_per_call": 228.9375,
-          "maximum_ns_per_call": 268.875,
-          "mad_ns_per_call": 0.1875
-        },
-        "paired_gain_vs_general": {
-          "median": 1.1315217391304349,
-          "minimum": 0.9642026964202697,
-          "maximum": 1.1414141414141414,
-          "pairs_faster": 11
-        },
-        "paired_gain_vs_source": {
-          "median": 2.672872854457763,
-          "minimum": 2.291957229195723,
-          "maximum": 2.690963690963691,
-          "pairs_faster": 12
-        }
-      },
-      "506": {
-        "source": {
-          "samples": 12,
-          "median_ns_per_call": 7614.5,
-          "minimum_ns_per_call": 7605.9375,
-          "maximum_ns_per_call": 7646.1875,
-          "mad_ns_per_call": 5.40625
-        },
-        "baseline": {
-          "samples": 12,
-          "median_ns_per_call": 5665.71875,
-          "minimum_ns_per_call": 5647.6875,
-          "maximum_ns_per_call": 5694.875,
-          "mad_ns_per_call": 6.4375
-        },
-        "cache24": {
-          "samples": 12,
-          "median_ns_per_call": 2365.6875,
-          "minimum_ns_per_call": 2363.6875,
-          "maximum_ns_per_call": 2399.25,
-          "mad_ns_per_call": 1.3125
-        },
-        "paired_gain_vs_general": {
-          "median": 2.3939041184424297,
-          "minimum": 2.3639939564447223,
-          "maximum": 2.405156002115283,
-          "pairs_faster": 12
-        },
-        "paired_gain_vs_source": {
-          "median": 3.2166084938272776,
-          "minimum": 3.1797176200896113,
-          "maximum": 3.234855495914752,
-          "pairs_faster": 12
-        }
-      }
-    },
+    "variation_columns": [
+      "selected_columns",
+      "source_median_ns",
+      "source_minimum_ns",
+      "source_maximum_ns",
+      "source_mad_ns",
+      "previous_cache_median_ns",
+      "previous_cache_minimum_ns",
+      "previous_cache_maximum_ns",
+      "previous_cache_mad_ns",
+      "selected_median_ns",
+      "selected_minimum_ns",
+      "selected_maximum_ns",
+      "selected_mad_ns",
+      "paired_gain_vs_previous_cache_median",
+      "paired_gain_vs_previous_cache_minimum",
+      "paired_gain_vs_previous_cache_maximum",
+      "paired_gain_vs_previous_cache_mad",
+      "paired_gain_vs_previous_cache_pairs_faster",
+      "paired_gain_vs_source_median",
+      "paired_gain_vs_source_minimum",
+      "paired_gain_vs_source_maximum",
+      "paired_gain_vs_source_mad",
+      "paired_gain_vs_source_pairs_faster"
+    ],
+    "variation_rows": [
+      [1, 292.4375, 289.0625, 297.625, 1.59375, 34.75, 33.9375, 35.3125, 0.4375, 34.78125, 34.0, 35.3125, 0.25, 0.9963866275843609, 0.9679144385026738, 1.0349264705882353, 0.011610277541400649, 3, 8.40441040222357, 8.244206773618538, 8.571691176470589, 0.07726173043865714, 12],
+      [7, 330.6875, 327.875, 333.625, 0.875, 54.15625, 52.625, 55.5, 0.65625, 54.46875, 52.5625, 55.5, 0.75, 0.9947938462363861, 0.97709049255441, 1.041031652989449, 0.014705834587785571, 4, 6.081826869579446, 5.934684684684685, 6.287396937573616, 0.0820879977112634, 12],
+      [8, 337.65625, 334.1875, 354.5, 1.0, 58.90625, 57.0, 60.0625, 0.46875, 58.46875, 57.5, 60.0, 0.5, 1.0053435943141826, 0.9722814498933902, 1.0368364030335862, 0.016426794598436323, 8, 5.843529709726893, 5.663541666666666, 6.131891891891892, 0.08832594095983026, 12],
+      [9, 348.5, 344.125, 354.1875, 1.9375, 62.25, 61.375, 63.3125, 0.3125, 62.65625, 61.75, 63.3125, 0.15625, 0.9935064935064934, 0.9732408325074331, 1.0121457489878543, 0.007464176125361155, 4, 5.548205235631065, 5.492596248766041, 5.65587044534413, 0.03796247838830791, 12],
+      [15, 387.90625, 383.25, 391.625, 2.28125, 91.21875, 89.3125, 113.0, 0.59375, 89.5625, 88.25, 90.75, 0.1875, 1.0185467509556014, 1.0041322314049588, 1.2503457814661134, 0.010478269169335253, 12, 4.323767274331079, 4.2761506276150625, 4.388810198300283, 0.028657321460594076, 12],
+      [16, 394.84375, 388.625, 401.6875, 1.1875, 91.15625, 90.375, 93.5, 0.6875, 94.84375, 92.875, 96.1875, 1.21875, 0.9692311862225382, 0.9433962264150944, 1.0013449899125757, 0.013516255240723085, 1, 4.157717305433415, 4.058555627846454, 4.325033647375505, 0.05864109004021989, 12],
+      [17, 400.65625, 398.0, 405.5625, 1.0625, 96.21875, 94.5, 98.625, 1.03125, 102.75, 100.3125, 104.375, 0.78125, 0.9359143306764244, 0.9070185962807439, 0.9598540145985401, 0.0095358498520699, 0, 3.8973605590626867, 3.8292242934455802, 3.998753894080997, 0.038965837322315844, 12],
+      [23, 478.59375, 475.375, 492.4375, 2.15625, 152.3125, 151.25, 153.5, 0.53125, 155.3125, 154.75, 156.0625, 0.28125, 0.9813045211035221, 0.9691629955947136, 0.9887278582930756, 0.002447280233390914, 0, 3.0808999183182566, 3.0681726502622024, 3.1579158316633267, 0.00658198808345678, 12],
+      [24, 492.0, 485.3125, 496.625, 0.78125, 161.125, 159.8125, 162.5625, 0.8125, 122.03125, 120.9375, 123.3125, 0.625, 1.3156556062552838, 1.299847792998478, 1.3343669250645995, 0.007509666521503866, 12, 4.024882514221963, 3.989863152559554, 4.073901808785529, 0.01925591147411554, 12],
+      [25, 512.15625, 508.375, 514.5, 1.15625, 176.34375, 172.5, 177.5, 0.71875, 135.46875, 134.25, 137.6875, 0.34375, 1.300068013859939, 1.2777777777777777, 1.3133147113594041, 0.008488882401137765, 12, 3.7833292084844703, 3.7367226509305493, 3.802411873840445, 0.0072139035734193335, 12],
+      [31, 609.71875, 607.625, 614.0625, 1.5, 231.4375, 229.5, 235.0, 0.875, 181.46875, 180.25, 182.75, 0.75, 1.2774531362629715, 1.2578659370725034, 1.299688904251642, 0.0054012427901887206, 12, 3.369518753024244, 3.3317340644276903, 3.3905817174515236, 0.019923296534367863, 12],
+      [32, 625.65625, 622.75, 636.75, 0.71875, 237.125, 235.0, 250.5, 0.75, 184.6875, 183.625, 185.75, 0.34375, 1.2838556046935596, 1.2689841376982787, 1.35864406779661, 0.00745232222365777, 12, 3.3890208304625418, 3.364401076716016, 3.438407019912251, 0.006314967304550834, 12],
+      [33, 646.1875, 641.3125, 653.0625, 1.78125, 250.78125, 248.4375, 260.0625, 0.46875, 197.34375, 197.0, 199.75, 0.3125, 1.2688718115472508, 1.2553191489361701, 1.3201142131979695, 0.005548317306255601, 12, 3.2694866920152093, 3.2450980392156863, 3.31503807106599, 0.014734971389353202, 12],
+      [43, 806.71875, 803.375, 827.875, 1.71875, 347.125, 336.4375, 348.8125, 0.625, 274.5625, 273.0625, 275.4375, 0.59375, 1.2651491817378773, 1.2231311065666894, 1.2733287702486882, 0.0027478873411128646, 12, 2.941577404475203, 2.9206998409452396, 3.0138794084186578, 0.010763158857355792, 12],
+      [44, 823.53125, 821.6875, 827.5, 0.8125, 342.46875, 340.4375, 352.5, 1.4375, 277.46875, 275.625, 278.4375, 0.53125, 1.2363734999473555, 1.228956228956229, 1.2705564316287452, 0.005708645850441951, 12, 2.969264028042725, 2.9589225589225587, 2.998867497168743, 0.003127744170162927, 12],
+      [45, 829.53125, 827.6875, 831.8125, 0.5625, 344.9375, 343.4375, 356.75, 0.90625, 279.0625, 278.1875, 280.1875, 0.1875, 1.235386199513007, 1.2298567591763652, 1.2824084475398787, 0.0036280494273822628, 12, 2.9737872330386796, 2.9624413145539905, 2.98006718924972, 0.0029878512570247207, 12],
+      [63, 973.09375, 967.25, 990.5, 1.75, 423.28125, 420.5625, 426.0, 1.65625, 325.0, 321.125, 340.0, 2.9375, 1.3014725313613793, 1.2413475699558174, 1.3201865164173305, 0.008721985933894838, 12, 2.9967953018371967, 2.8490427098674522, 3.073700543056633, 0.03258112446455175, 12],
+      [64, 990.0, 984.0625, 1034.375, 2.96875, 427.1875, 424.25, 427.875, 0.625, 328.34375, 325.0, 332.0625, 1.6875, 1.3005135811642587, 1.2840158520475562, 1.3135446685878962, 0.006056563434570061, 12, 3.016222066612598, 2.985657671258728, 3.1309118426031026, 0.020638027248766955, 12],
+      [65, 1011.25, 1002.4375, 1018.625, 2.6875, 430.65625, 427.8125, 433.0625, 0.625, 329.78125, 328.25, 331.875, 0.5625, 1.3080501163404001, 1.2971385256774683, 1.3130566609816183, 0.0026973370049432344, 12, 3.0658459262033713, 3.049075122687807, 3.087327145292669, 0.011758782339168938, 12],
+      [128, 1890.03125, 1884.3125, 1899.375, 2.78125, 709.59375, 706.1875, 711.9375, 0.625, 496.21875, 494.0625, 501.0625, 1.59375, 1.4296258525146992, 1.4125499001996007, 1.4388980159231644, 0.008561014599734462, 12, 3.8128392883147804, 3.7611027944111775, 3.8299646286003033, 0.01181230122318544, 12],
+      [256, 3622.125, 3597.5, 3644.125, 12.03125, 1270.75, 1269.625, 1279.8125, 0.625, 816.5, 807.25, 834.5, 2.3125, 1.5584471700837668, 1.5214200119832235, 1.5747135336017344, 0.004224638475147202, 12, 4.421433874620856, 4.316132414619533, 4.498064416227934, 0.029979147150175578, 12],
+      [506, 7624.03125, 7616.5625, 7634.3125, 3.15625, 2369.25, 2366.5, 2380.1875, 1.15625, 1473.125, 1461.5, 1487.5625, 4.40625, 1.6096105253118975, 1.590857526994664, 1.625555935682518, 0.006023257302359419, 12, 5.175470499356655, 5.120163018360573, 5.219851180294218, 0.014000012013505536, 12]
+    ],
     "distinct_vorticity_bytes": 76912,
     "logical_field_read_write_bytes": 153824,
     "full_call_operations": {
@@ -454,46 +379,45 @@
       "all_probes": {
         "factor_only_baseline": {
           "samples": 12,
-          "median_ns_per_call": 2399.75,
-          "minimum_ns_per_call": 2378.8125,
-          "maximum_ns_per_call": 2434.0,
-          "mad_ns_per_call": 4.40625
+          "median": 2459.21875,
+          "minimum": 2434.625,
+          "maximum": 2593.5,
+          "mad": 7.6875
         },
-        "factor_only_cache32": {
+        "factor_only_field_ldp19": {
           "samples": 12,
-          "median_ns_per_call": 579.875,
-          "minimum_ns_per_call": 574.0,
-          "maximum_ns_per_call": 583.6875,
-          "mad_ns_per_call": 1.3125
+          "median": 571.96875,
+          "minimum": 565.5,
+          "maximum": 574.3125,
+          "mad": 1.15625
         },
         "matched_field_multiply_schedule": {
           "samples": 12,
-          "median_ns_per_call": 1928.375,
-          "minimum_ns_per_call": 1925.9375,
-          "maximum_ns_per_call": 1941.75,
-          "mad_ns_per_call": 0.40625
+          "median": 1354.59375,
+          "minimum": 1330.0,
+          "maximum": 1396.6875,
+          "mad": 11.03125
         },
         "matched_read_write_schedule": {
           "samples": 12,
-          "median_ns_per_call": 1771.34375,
-          "minimum_ns_per_call": 1769.375,
-          "maximum_ns_per_call": 1797.9375,
-          "mad_ns_per_call": 0.5
+          "median": 1329.0625,
+          "minimum": 1319.625,
+          "maximum": 1403.0625,
+          "mad": 7.75
         },
         "clock_boundaries": {
           "samples": 12,
-          "median_ns_per_call": 29.59375,
-          "minimum_ns_per_call": 28.6875,
-          "maximum_ns_per_call": 31.8125,
-          "mad_ns_per_call": 0.46875
+          "median": 29.75,
+          "minimum": 28.6875,
+          "maximum": 30.875,
+          "mad": 0.3125
         }
       },
-      "compatible_schedule_ns_per_call": 1928.375,
-      "fraction_for_selected": 0.8151435893371377,
-      "calibrated_cached_factor_variant": 32,
-      "compatible_cached_factor_argument": "At506 selected columns, threshold24 and threshold32 execute identical cache arithmetic; only the integer dispatch immediate differs.",
-      "logical_full_field_bytes_per_call": 153824,
-      "assumptions": "These are empirical component schedules with warmed cache and the original two-lane vector width. The field multiply schedule includes traffic and coefficient lookup; factor-only includes exact exp/division and loop/setup. Their maximum is a compatible estimate, not a rigorous hardware or DRAM bound. L1 data is64KiB and private L2 is1MiB; the full read/write field span153824B fits L2. All clock costs stay included."
+      "compatible_schedule_ns": 1354.59375,
+      "fraction_of_compatible_schedule": 0.9195375477301655,
+      "physical_vorticity_bytes": 76912,
+      "logical_read_plus_write_field_bytes": 153824,
+      "assumptions": "Maximum of candidate-matched field, factor-only and traffic median schedules. The two-lane load/product/store schedule is exact; probes include loop/setup and clock costs, and components can overlap. Field storage is warmed by each outside-timer full reset and fits the private 1MiB L2. This is an empirical compatible schedule estimate, not a rigorous hardware or DRAM peak bound."
     },
     "whole_forecast_timing_performed": false
   },

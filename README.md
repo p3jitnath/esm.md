@@ -54,7 +54,7 @@ The openifs-md branch extends the workflow to OpenIFS 48.1.1. Thirty complete pu
 | CTVTOT air temperature | 189 | 2,150 | 0 |
 | SIGAM hydrostatic operator | 51 | 4,326 | 0 |
 | SITNU mass and temperature operators | 265 | 2,176 | 0 |
-| SPFILT spectral vorticity filter | 253 | 25 | 0 |
+| SPFILT spectral vorticity filter | 264 | 25 | 0 |
 | SPCIMPFPOST Coriolis correction | 168 | 550 | 0 |
 | SPCIMPFINIT Coriolis preparation | 197 | 550 | 0 |
 | CPQTUV physics state update | 135 | 2,150 | 0 |
@@ -65,4 +65,4 @@ The openifs-md branch extends the workflow to OpenIFS 48.1.1. Thirty complete pu
 
 The vertical group contains three public routines. The forecast uses its integration routines, while VERDER's derivative is checked by the small verifier only. The GPRCP capture count includes 2,150 reference calls made for comparison, which are recorded separately from model calls.
 
-All ten saved files match a fresh strict-source Fortran forecast using the same pressure math and ordered vertical matrix sum. This historical test starts on 15 October 2004 and advances 24 hours on 2,048 grid points with 19 atmospheric levels. Other stages remain in Fortran, and whole-forecast independent physics and external-library arithmetic checks remain unfinished. [Basic formulations](formulations/openifs/README.md) and [verification](bench/openifs/README.md) describe the coverage and commands. The [routine audit](bench/openifs/ROUTINES.md) establishes 1,466 active Fortran bodies, with 450 source roles reviewed. Matched timings show a 3.02× gain for complete vertical integration on the 24-point forecast block. Whole-forecast performance has not been measured.
+All ten saved files match a fresh strict-source Fortran forecast using the same pressure math and ordered vertical matrix sum. This historical test starts on 15 October 2004 and advances 24 hours on 2,048 grid points with 19 atmospheric levels. Other stages remain in Fortran, and whole-forecast independent physics and external-library arithmetic checks remain unfinished. [Basic formulations](formulations/openifs/README.md) and [verification](bench/openifs/README.md) describe the coverage and commands. The [routine audit](bench/openifs/ROUTINES.md) establishes 1,466 active Fortran bodies, with 450 source roles reviewed. Matched timings show a 3.02× gain for complete vertical integration on the 24-point forecast block. The full spectral filter is 5.18× faster than its frozen Fortran control in matched complete-call measurements. Whole-forecast performance has not been measured.
