@@ -1,0 +1,239 @@
+{
+  "routine": "CPQTUV",
+  "date_utc": "2026-10-09T18:50:36.697361+00:00",
+  "revision": "1.0",
+  "status": "Complete direct body accepted by critical physics and combined full T21 forecast",
+  "openifs_version": "48.1.1",
+  "generation": {
+    "contract": "skills/md2asm/references/openifs/dynamics/cpqtuv.md",
+    "contract_revision": "1.0",
+    "frozen_manifest": {
+      "local": ".runtime/openifs/cpqtuv/frozen/pre-emission-contract-corpus.json",
+      "bytes": 3141,
+      "sha256": "59e64b54f654d66c8e3f56000d01235404484d0002a8a57f2ba9f70ba86974ca"
+    },
+    "first_emission": {
+      "local": ".runtime/openifs/cpqtuv/frozen/first-direct-emission.json",
+      "bytes": 463,
+      "sha256": "009324173d2e2f5f906d6e5089e8e59aeaee9d4d1dec8fcbaf29cf4a51427ad5"
+    },
+    "route": "Direct AArch64 from original source, frozen ordered FP64 equations, independent physical checks and storage-only probes; compiler numerical instructions inspected only after emission."
+  },
+  "runtime": {
+    "job": 7189435,
+    "node": "nid010825",
+    "ranks": 1,
+    "threads": 1,
+    "affinity": "map_cpu:0",
+    "memory": "local",
+    "compiler": "GNU Fortran/GCC12.3",
+    "flags": [
+      "-O2",
+      "-mcpu=neoverse-v2",
+      "-ffp-contract=off",
+      "-fno-fast-math"
+    ],
+    "purpose": "Numerical verification; no comparative timing"
+  },
+  "critical": {
+    "stage": "CPQTUV",
+    "mode": "assembly-verification",
+    "cases": 135,
+    "compared_bytes": 252152,
+    "differing_bytes": 0,
+    "physical_points": 1044,
+    "water_mass_points": 45,
+    "fpcr": "0000000000000000",
+    "canary_ABI_calls": 135,
+    "complete_outputs_and_guards": true,
+    "frozen_binary_input_corpus": {
+      "local": ".runtime/openifs/cpqtuv/frozen/corpus.bin",
+      "bytes": 430232,
+      "sha256": "ed9d8442b6d0e956585dbeda9c7c02d1cb766b87ccf20a5c79e7b477075a3bba"
+    },
+    "canonical_output_sha256": "f6288871b37c1e6e7d9e3489c8f7c70af7fc0e6a7bcc7203aa27985989e7befc",
+    "all_64_special_LT1_combinations": true,
+    "constant_rate_trajectory_steps": 12,
+    "protected_final_tails": true,
+    "read_only_input_configuration_pages": true,
+    "checks": [
+      "Known wind and temperature updates",
+      "Total water and latent-heat conservation during evaporation and cloud clearing",
+      "Cloud bound and strict threshold equality",
+      "Optional five-component water-mass rescaling and continuity balance",
+      "Active/inactive descriptors and branch flags",
+      "Alternate field maps and repeated target order",
+      "NDIM8 earlier fields and NDIM1=6 new/dynamics fields",
+      "Complete/partial/empty intervals, odd widths, zero levels and absent empty fields",
+      "Signed zeros, gradual underflow and unchanged FPCR"
+    ]
+  },
+  "ABI": {
+    "canary_calls": 135,
+    "x19_to_x29_preserved": true,
+    "d8_to_d15_lower64_preserved": true,
+    "stack_restored_and_16_byte_aligned": true,
+    "direct_native_body_called": true
+  },
+  "instruction_audit": {
+    "native": {
+      "decoded_instructions": 482,
+      "forbidden_arithmetic": 0,
+      "single_precision_arithmetic": 0,
+      "frame_bytes": 240,
+      "x18_unused": true,
+      "saved_SIMD_registers_unused": true
+    },
+    "source_after_emission": {
+      "decoded_instructions": 690,
+      "forbidden_arithmetic": 0,
+      "single_precision_arithmetic": 0
+    }
+  },
+  "layout": {
+    "TECLDP_bytes": 2776,
+    "RAMIN": 112,
+    "RLMIN": 120,
+    "TYPE_GFLD_bytes": 1359136,
+    "NUMFLDS": 0,
+    "NDIM": 48,
+    "NDIM1": 64,
+    "YCOMP": 3848,
+    "component_bytes": 368,
+    "LACTIVE": 64,
+    "LT1": 92,
+    "MP": 168,
+    "MP9_PH": 184,
+    "MP1": 188,
+    "named_pointer_slots": {
+      "Q": 799840,
+      "L": 799856,
+      "I": 799848,
+      "R": 799920,
+      "S": 799912,
+      "A": 799984,
+      "PHYCTY": 801104
+    }
+  },
+  "forecast": {
+    "calls": 2150,
+    "trajectory_bytes_per_implementation": 134194400,
+    "input_bytes": 212626400,
+    "differing_bytes": 0,
+    "assembly_sha256": "c6e5a66da25ee436413dfba3d96a44489dedc0f56ab53238c8ae1ff9be464e09",
+    "fortran_sha256": "c6e5a66da25ee436413dfba3d96a44489dedc0f56ab53238c8ae1ff9be464e09",
+    "input_sha256": "53eb2ea13a2ee883042b67622407305f79bb12fa57e5ad1188418a522da8001a",
+    "raw_archive": ".runtime/openifs/runs/strict-cpqtuv-combined-fpcr-reviewed-7189435/t21/test_fc",
+    "fresh_fortran_baseline": ".runtime/openifs/runs/strict-cpqtuv-reference-7189435/t21/test_fc",
+    "saved_files_identical": 10,
+    "saved_bytes": 618140,
+    "evidence": {
+      "local": ".runtime/openifs/runs/strict-cpqtuv-combined-fpcr-reviewed-7189435/t21/direct-comparison.json",
+      "sha256": "e018bb72f4f0732a2c111a36d86118f12e355ba90df7fbc5f8ef89cd1c61122a"
+    },
+    "actual_caller": "EC_PHYS_DRV._omp_fn.3; return offset0x736d64 in the frozen strict ELF",
+    "caller_capacity_evidence": {
+      "local": ".runtime/openifs/cpqtuv/caller-scope.json",
+      "bytes": 980,
+      "sha256": "bf2297cbc7e09d2333d0dda500d70c4ac913847a530d44a2d74d0052d66e2400"
+    },
+    "NPROMA": 24,
+    "NFLEVG": 19,
+    "NDIM": 8,
+    "NDIM1": 6,
+    "NUMFLDS": 8,
+    "full_block_calls": 2125,
+    "partial_KE8_calls": 25,
+    "PDT_seconds": 3600,
+    "LNODRYFLX": false,
+    "continuity_calls": 0,
+    "water_mass_calls": 0,
+    "frozen_PHYCTY": "inactive with unused MP/MP1/MP9_PH=-99999",
+    "read_only_inputs_configurations_unchanged": true,
+    "FPCR": "0000000000000000",
+    "steps": [
+      0,
+      24
+    ],
+    "calls_per_step": 86,
+    "bytes": 134194400,
+    "live_summary": {
+      "calls": 2150,
+      "bytes": 134194400,
+      "differing_bytes": 0,
+      "continuity_calls": 0,
+      "water_mass_calls": 0,
+      "partial_calls": 25,
+      "NDIM": 8,
+      "NDIM1": 6,
+      "NUMFLDS": 8,
+      "FPCR": 0
+    },
+    "paired_streams_identical": 24,
+    "native_library_sha256": "436830e8505266e664c49953a093f4394006329790c21f3c0a99511e23d860fb",
+    "FPCR_zero_checked_at_every_entry": true
+  },
+  "artifacts": {
+    "manifest": {
+      "local": ".runtime/openifs/cpqtuv/final-manifest.json",
+      "bytes": 16853,
+      "sha256": "a8d4f555905bfd754671b0efad38605125711e2f2fd363a177726ead92db775f"
+    },
+    "build_commands": {
+      "local": ".runtime/openifs/cpqtuv/build-commands.txt",
+      "bytes": 2572,
+      "sha256": "a334ae8d03700b795956ed38d14259cb233e87ef7cd6e2045140d99b4977489f"
+    },
+    "source_only_scope": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-cpqtuv-next-small-forecast-target-source-only.json",
+    "parent_observer_correction": {
+      "local": ".runtime/openifs/cpqtuv/parent-fpcr-reviewed/correction.json",
+      "sha256": "8d08a9378fd35658941bfb7fa906030a1e34f416a1240a5bae578f5f4291c905"
+    }
+  },
+  "sha256": {
+    "cpqtuv.S": "801cbddb4a0aeafe4bafda4a9c670a7b2c0f47e706377bd964b3fc271fe2f76d",
+    "cpqtuv.c": "ae3f3add7dd7d70511104286067d787353926afd84d13038a0d0fe6aea6683c7",
+    "cpqtuv_forecast.c": "5e15fc3f6e70eff924e1226fc32d3476cbd2ba605469d5e50e92286f332ce151",
+    "cpqtuv.md": "cab150f4513efb4689fe31fcfd54d7488d2ef188fba89a389e719d6a0278bc86",
+    "cpqtuv_abi.S": "a9259f4f219db32878c3890deb53eeeb0c1de2082327e695d50a24a543c52388"
+  },
+  "scientific_limits": [
+    "Profiling hooks are excluded from the direct numerical ABI.",
+    "The declared named new water/cloud fields are distinct; the active continuity field is separate from earlier water fields.",
+    "The frozen T21 continuity field is inactive; continuity and dry-mass branches are accepted through the independent critical corpus.",
+    "The source caps cloud fraction before the optional mass rescaling; arbitrary signed mass changes do not imply a final cloud bound.",
+    "No whole-forecast physical proof, exact required numerical denominator, complete forecast conversion or performance claim is established."
+  ],
+  "whole_forecast_independent_physics_verified": false,
+  "complete_assembly_forecast_implemented": false,
+  "assembly_conversion_denominator_established": false,
+  "comparative_timing_performed": false,
+  "contract_revision": "1.1, documentation only; numerical freeze 1.0",
+  "physical_admissibility_scope": {
+    "active_cloud_values_decoded": 1089,
+    "final_cloud_range": [
+      0.0,
+      1.0
+    ],
+    "physical_water_mass_points": 45,
+    "mass_change": 0.001953125,
+    "rescaling_factor": 0.998046875,
+    "physical_case_conditions": "0 <= d < 1; 0 <= q < 1; initial and final cloud fraction in [0,1]",
+    "arbitrary_signed_mass_changes_physical_admissibility_verified": false,
+    "source_cap_before_optional_rescaling": true,
+    "evidence": {
+      "local": ".runtime/openifs/cpqtuv/20261009-parent-admissibility-scope-review.json",
+      "sha256": "fd6c68ee99fb2b36057ca5107a269be956e274169517aa0683ff16f018a0a961"
+    }
+  },
+  "prior_isolated_forecast_evidence": {
+    "local": ".runtime/openifs/runs/strict-cpqtuv-only-r2-7189435/t21/direct-comparison.json",
+    "bytes": 6698,
+    "sha256": "b53d27d94e2db291ce8e18a069c83671179f9d36cc03ddb9f6a07d5c28c9fd17"
+  },
+  "required_abi_bridge": {
+    "source": "bench/openifs/dynamics/cpqtuv_abi.S",
+    "accepted_object_identical": true,
+    "direct_saved_register_calls": 135
+  }
+}

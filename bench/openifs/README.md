@@ -1,6 +1,6 @@
 # OpenIFS verification
 
-Twenty-five complete public direct assembly routines are verified in OpenIFS 48.1.1. Their small checks include independent physical balances, exact output bytes, optional inputs, boundaries and buffer guards. The latest coarse forecast used own exclusive job 7189435 on nid010825, with one process, one thread, CPU 0 and local memory binding. Each routine's compact record preserves its earlier checks.
+Twenty-six complete public direct assembly routines are verified in OpenIFS 48.1.1. Their small checks include independent physical balances, exact output bytes, optional inputs, boundaries and buffer guards. The latest coarse forecast used own exclusive job 7189435 on nid010825, with one process, one thread, CPU 0 and local memory binding. Each routine's compact record preserves its earlier checks.
 
 | Routine | Critical cases | Critical bytes | Forecast calls checked | Forecast bytes | Differing bytes |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -27,6 +27,7 @@ Twenty-five complete public direct assembly routines are verified in OpenIFS 48.
 | SPFILT | 148 | 484,784 | 25 | 3,902,600 | 0 |
 | SPCIMPFPOST | 168 | 2,183,104 | 550 | 127,045,600 | 0 |
 | SPCIMPFINIT | 197 | 3,973,408 | 550 | 169,488,000 | 0 |
+| CPQTUV | 135 | 252,152 | 2,150 | 134,194,400 | 0 |
 
 The strict-source Fortran build uses the original sources with separate multiplication and addition. The global T21 forecast has 2,048 grid points and 19 atmospheric levels. The archived test starts at 12 UTC on 15 October 2004 and saves a 24-hour forecast at 12 UTC on 16 October. Its 25 time-step visits include the initial step, with one process and one thread. All ten upstream output files at hours 0, 6, 12, 18 and 24 match a fresh strict-source Fortran run with the same pressure math and ordered vertical matrix sum byte for byte. Every captured call of the used assembly routines also matches its strict Fortran counterpart, including inactive cells. The verification drivers record and compare states but supply no missing numerical update. GPRCP and GPPWC captures preserve untouched caller bytes, so hashes identify an archived run. The input capture also records incoming output bytes for exact replay.
 
