@@ -17,11 +17,38 @@ static unsigned char **configuration;
 static const double *constants[6];
 static const int32_t *step;
 static FILE *ao,*ro,*io;
-static uint64_t calls,bytes,last_fpcr;
+static uint64_t calls,bytes,last_fpcr,genuine_calls,comparison_calls;
+static _Thread_local uint32_t comparison_depth;
 static const size_t water_slots[6]={799840,799848,799856,799920,799912,799928};
 static void fail(const char *message) {
     fprintf(stderr,"GPRCP forecast check failed %s\n",message);
     _Exit(2);
+}
+/* Mark source calls made only to compare another complete assembly routine.
+ * These markers change accounting, never model fields or numerical work. */
+void gprcp_forecast_reference_begin(void) {
+    if(comparison_depth==UINT32_MAX) fail("comparison depth overflow");
+    ++comparison_depth;
+}
+void gprcp_forecast_reference_end(void) {
+    if(!comparison_depth) fail("unbalanced comparison marker");
+    --comparison_depth;
+}
+static void unchanged_inputs(const double *const input[7],double *const copy[7],
+                             const size_t size[7],const char *stage) {
+    for(int f=0;f<7;++f) if(copy[f] && memcmp(copy[f],input[f],size[f])) {
+        size_t byte=0;
+        while(byte<size[f] && ((const unsigned char *)copy[f])[byte]==
+              ((const unsigned char *)input[f])[byte]) ++byte;
+        size_t word=byte/8;
+        uint64_t before,after;
+        memcpy(&before,(const char *)copy[f]+word*8,8);
+        memcpy(&after,(const char *)input[f]+word*8,8);
+        fprintf(stderr,"Mismatch stage=GPRCP input after %s step=%d call=%" PRIu64
+            " field=%d cell=%zu byte=%zu before=%016" PRIx64 " after=%016" PRIx64 "\n",
+            stage,*step,calls,f,word,byte,before,after);
+        fail("changed declared input");
+    }
 }
 static void *symbol(const char *name) {
     void *p=dlsym(RTLD_NEXT,name);
@@ -45,7 +72,7 @@ static void write_bytes(FILE *file,const void *data,size_t size) {
 __attribute__((destructor)) static void finish(void) {
     if(!ao) return;
     if(fclose(ao)||fclose(ro)||fclose(io)) fail("capture close");
-    fprintf(stderr,"GPRCP FORECAST PASS calls=%" PRIu64 " bytes=%" PRIu64 " differing_bytes=0 FPCR=%016" PRIx64 "\n",calls,bytes,last_fpcr);
+    fprintf(stderr,"GPRCP FORECAST PASS calls=%" PRIu64 " bytes=%" PRIu64 " differing_bytes=0 genuine_calls=%" PRIu64 " comparison_calls=%" PRIu64 " FPCR=%016" PRIx64 "\n",calls,bytes,genuine_calls,comparison_calls,last_fpcr);
 }
 void gprcp_(GPRCP_ARGS) {
     const double *inputs[7]={q,qi,ql,qr,qs,qg,gfl};
@@ -73,14 +100,18 @@ void gprcp_(GPRCP_ARGS) {
     if(!*configuration) fail("configuration object");
     int32_t ndim=integer(*configuration,48),numflds=integer(*configuration,0);
     int32_t map=kind?*kind:0,override=thermal?*thermal:-1;
-    if(gfl && (ndim<0 || numflds<0 || numflds>2163 ||
-       !(map==0||map==1||map==5||map==9||map==101))) fail("generic configuration");
+    /* CPGLAG supplies NDIM1 fields for map 1. The observed map 0 and map 9
+     * callers supply full NDIM blocks. Other modes need a caller audit first. */
+    int32_t capacity=gfl?(map==1?integer(*configuration,64):ndim):0;
+    if(gfl && (ndim<0 || capacity<0 || (map==1 && capacity>ndim) ||
+       numflds<0 || numflds>2163 || !(map==0||map==1||map==9)))
+        fail("unreviewed generic buffer or configuration");
     size_t n=(size_t)*np*(size_t)*nl;
-    if(n>INT64_MAX/8 || (gfl && ndim && n>(size_t)INT64_MAX/8/(size_t)ndim))
+    if(n>INT64_MAX/8 || (capacity && n>(size_t)INT64_MAX/8/(size_t)capacity))
         fail("buffer size overflow");
     size_t output_size=n*8;
     for(int f=0;f<7;++f) {
-        sizes[f]=f==6?output_size*(size_t)(gfl?ndim:0):output_size;
+        sizes[f]=f==6?output_size*(size_t)capacity:output_size;
         if(inputs[f]) present|=UINT32_C(1)<<f;
         if(inputs[f] && sizes[f]) {
             if((uintptr_t)inputs[f]&7) fail("input alignment");
@@ -133,7 +164,7 @@ void gprcp_(GPRCP_ARGS) {
                 double gas,heat;
                 memcpy(&gas,component+72,8);
                 memcpy(&heat,component+80,8);
-                if(index<1 || index>ndim || !isfinite(gas) || gas<0 ||
+                if(index<1 || index>capacity || !isfinite(gas) || gas<0 ||
                    !isfinite(heat) || heat<=0) fail("constituent properties or index");
                 fraction=gfl[(size_t)(index-1)*n+cell];
             } else {
@@ -149,6 +180,8 @@ void gprcp_(GPRCP_ARGS) {
     if(thermal) present|=UINT32_C(1)<<11;
     /* Record deterministic dimensions and constants, never pointer addresses. */
     ++calls;
+    if(comparison_depth) ++comparison_calls;else ++genuine_calls;
+    uint32_t comparison_only=comparison_depth?1:0;
     int32_t dims[4]={*np,*ks,*kp,*nl};
     for(int f=0;f<3;++f) {
         FILE *file=f==0?ao:f==1?ro:io;
@@ -162,12 +195,16 @@ void gprcp_(GPRCP_ARGS) {
         write_bytes(file,&numflds,4);
         for(int j=0;j<6;++j) write_bytes(file,constants[j],8);
     }
+    /* The input record adds actual capacity and call role after its fixed
+     * 96-byte header. Output records retain their original byte format. */
+    write_bytes(io,&capacity,4);
+    write_bytes(io,&comparison_only,4);
     if(gfl) {
         size_t map_offset=map==1?188:map==5?192:map==9?184:map==101?216:168;
         for(int j=0;j<numflds;++j) {
             const unsigned char *component=*configuration+3848+368*(size_t)j;
             int32_t flag=integer(component,68),index=integer(component,map_offset);
-            if(flag && (index<1 || index>ndim)) fail("generic field index");
+            if(flag && (index<1 || index>capacity)) fail("generic field index");
             write_bytes(io,&flag,4);
             write_bytes(io,&index,4);
             write_bytes(io,component+72,8);
@@ -179,7 +216,9 @@ void gprcp_(GPRCP_ARGS) {
     for(int f=0;f<7;++f) if(inputs[f]) write_bytes(io,inputs[f],sizes[f]);
     for(int f=0;f<3;++f) if(outputs[f]) write_bytes(io,outputs[f],output_size);
     reference(np,ks,kp,nl,q,qi,ql,qr,qs,qg,shadow[0],shadow[1],shadow[2],gfl,kind,thermal);
+    unchanged_inputs(inputs,copies,sizes,"Fortran");
     gprcp_assembly_(np,ks,kp,nl,q,qi,ql,qr,qs,qg,cp,r,kap,gfl,kind,thermal);
+    unchanged_inputs(inputs,copies,sizes,"assembly");
     bytes+=96;
     for(int f=0;f<3;++f) if(outputs[f]) {
         for(size_t i=0;i<n;++i) {
@@ -198,7 +237,6 @@ void gprcp_(GPRCP_ARGS) {
         free(shadow[f]);
     }
     for(int f=0;f<7;++f) if(copies[f]) {
-        if(memcmp(copies[f],inputs[f],sizes[f])) fail("changed input");
         free(copies[f]);
     }
 }

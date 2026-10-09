@@ -1,0 +1,130 @@
+{
+  "scope": "Three complete public vertical bodies and one private ordered matrix helper",
+  "date_utc": "2026-10-09T16:06:38.520648+00:00",
+  "job_id": 7189435,
+  "node": "nid010825",
+  "cpu_affinity": [
+    0
+  ],
+  "memory_binding": "local",
+  "compiler": "GNU Fortran/GCC 12.3.0",
+  "flags": [
+    "-O3",
+    "-mcpu=native",
+    "-fopenmp",
+    "-ffp-contract=off",
+    "-fno-fast-math"
+  ],
+  "fpcr": "0000000000000000",
+  "public_native_bodies": [
+    "VERDISINT",
+    "VERINT",
+    "VERDER"
+  ],
+  "private_native_helper": "verdisint_strict_nt_fp64_",
+  "generation_route": "Direct AArch64 emission after frozen equations, storage, ABI and input corpus; reference instruction inspection followed emission",
+  "critical_calls": 163,
+  "trajectory_bytes_per_implementation": 1454464,
+  "differing_bytes": 0,
+  "independent_science_values": 174451,
+  "critical_checks": {
+    "FPCR": 0,
+    "canonical_bytes": 1454464,
+    "critical_calls": 163,
+    "dispatch_records": 112,
+    "genuine_parallel_calls": 1,
+    "guarded_calls": 161,
+    "max_actual_constant_scaled_error": 2.0281414952427668e-15,
+    "max_actual_quartic_absolute_error": 4.480143509164036e-07,
+    "max_small_absolute_error": 7.105427357601002e-15,
+    "passed": true,
+    "protected_calls": 2,
+    "public_original_source_calls": 156,
+    "real_abor1_rejections": 1,
+    "science_values": 174451
+  },
+  "instruction_audit": {
+    "verdisint.txt": {
+      "instructions": 230,
+      "forbidden_instructions": 0
+    },
+    "verint.txt": {
+      "instructions": 132,
+      "forbidden_instructions": 0
+    },
+    "verder_reference.txt": {
+      "instructions": 79,
+      "forbidden_instructions": 0
+    },
+    "verint_reference.txt": {
+      "instructions": 750,
+      "forbidden_instructions": 0
+    },
+    "strict_matrix.txt": {
+      "instructions": 92,
+      "forbidden_instructions": 0
+    },
+    "verder.txt": {
+      "instructions": 64,
+      "forbidden_instructions": 0
+    },
+    "verdisint_reference.txt": {
+      "instructions": 3871,
+      "forbidden_instructions": 0
+    }
+  },
+  "reference": "Unchanged public Fortran sources with a private ordered matrix sum, not a global BLAS replacement",
+  "supported_cases": "All defined selector branches listed in the contracts; undefined upstream output branches are outside the accepted numerical contract",
+  "forecast": {
+    "bytes": 254335808,
+    "assembly_sha256": "a010d3edfd08489837078b860b28786f80b94d8e2cb88579d4057c1cd832af65",
+    "fortran_sha256": "a010d3edfd08489837078b860b28786f80b94d8e2cb88579d4057c1cd832af65",
+    "input_bytes": 779983736,
+    "input_sha256": "56356efeb8969cd03522a31c9f92097c81abb9209e54d5802e719d9028630962",
+    "differing_bytes": 0,
+    "live_summary": {
+      "genuine_dispatch": 21559,
+      "private_integral": 21559,
+      "comparison_dispatch": 8600,
+      "records": 60318,
+      "bytes": 254335808,
+      "differing_bytes": 0,
+      "FPCR": 0
+    }
+  },
+  "actual_forecast_geometry": {
+    "evidence": ".runtime/openifs/verdisint/forecast-reviewed-7189435/results.json",
+    "sha256": "e68d90c10e874ff0b63bb67417624cde24f0b32185ab2981a042f2e56ffbe4ce",
+    "constant_limit": 1e-11,
+    "quartic_limit": 1e-06,
+    "all_captured_matrix_and_reciprocal_bits_verified": true
+  },
+  "critical_evidence": ".runtime/openifs/verdisint/accepted.json",
+  "critical_evidence_sha256": "28c97325b6704d97d4555918c12a9f12db98cdcddf918fed4278a6f04c45f375",
+  "freeze_evidence": ".runtime/openifs/verdisint/freeze-before-emission.json",
+  "freeze_sha256": "2c2cd04c9e344ad00f9eb337e2946e4d06384f3d3bbfcebb7cfc3f1e0af85087",
+  "forecast_evidence": "forecast.json",
+  "sha256": {
+    "src/openifs/dynamics/strict_matrix.S": "300bc866828baa4657c2092e0031109a30faa7d255c5c9b8c388079c84be5ca6",
+    "src/openifs/dynamics/verint.S": "43d22de1eaa5b16f0167c99e9b295089db7ef1c23ddc822616383812797b0457",
+    "src/openifs/dynamics/verder.S": "0530f3f842dfb1fd425232a18979e48a1575dc41a9db89e63fca216e30f9236e",
+    "src/openifs/dynamics/verdisint.S": "6ac0d6806f76c94b204bf435152fc3029c9f6e927a572cb05aa7572bced2d4c6",
+    "bench/openifs/dynamics/verdisint.c": "db04899e81c59a57368a227a07e2a03e2cc905a0744476869ff55b969b352120",
+    "bench/openifs/dynamics/vertical_abi.S": "b33b63d33eec52175b2938720b76a652d017bcf6fc9f377a972626165115f9e2",
+    "bench/openifs/dynamics/vertical_fixtures.py": "0c3f9349684a823bea735c75974460779209d27a4d277fa44a1a1795dfdfb97e",
+    "bench/openifs/dynamics/vertical_forecast.c": "dd9c6e8b315189aa8029d7ec5539a042938e7f7d77818c13507db503936d17ce",
+    "formulations/openifs/dynamics/vertical_operators.md": "c8d886c2d4c87299f19054215b65d2bbe521c86b879dfa6a89268b7964a78264",
+    "skills/md2asm/references/openifs/dynamics/strict_matrix.md": "c2290d1dda1ed00174d94d02df940bbb22c2e83a8b43a50b1f68bdfcee7409ab",
+    "skills/md2asm/references/openifs/dynamics/verint.md": "eff535db7328f75321aab6e57e470edca0371c990e6a9e135137d64fd19f78be",
+    "skills/md2asm/references/openifs/dynamics/verder.md": "2e5d79ceb710da367502acaf8646a84e8e35ee766998d5a7dd0293801fa7f873",
+    "skills/md2asm/references/openifs/dynamics/verdisint.md": "98046eb75e68bee61cb2fd2f3848af0deb9929e8e66a355214366e38a5286faf"
+  },
+  "complete_accepted": true,
+  "VERDER_forecast_visits": 0,
+  "comparative_timing_performed": false,
+  "whole_forecast_independent_physics_verified": false,
+  "formulation_prose_revision": "After the original numerical freeze, move matrix and undefined-source details into the existing solver contract; equations V01 to V03 and units are unchanged.",
+  "accepted_build_commands": {
+    ".runtime/openifs/verdisint/REPRODUCTION.md": "8ad3c71633e4748fe143231972888b5a9527b77ae1c5fec08cb5e80a365ba948"
+  }
+}

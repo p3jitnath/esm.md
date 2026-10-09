@@ -24,12 +24,12 @@ A complete T21 call trace now records when each built Fortran routine starts and
 | --- | ---: |
 | Active Fortran routine bodies | 1,466 |
 | Bodies without existing profiling markers | 372 |
-| Reviewed numerical-purpose bodies, including interfaces and helpers | 39 |
-| Reviewed numerical seed-setup body | 1 |
-| Reviewed support, configuration and storage bodies | 226 |
-| Bodies still needing source-role review | 1,200 |
+| Reviewed mathematical stages, helpers and interfaces | 62 |
+| Other reviewed mathematical roles | 22 |
+| Reviewed driver, support, configuration and storage bodies | 248 |
+| Bodies still needing source-role review | 1,134 |
 
-The older profile has 1,171 labelled regions, so its labels do not give complete routine coverage. The source review must distinguish numerical calculations from setup and support before we can count the routines that need assembly. The 1,466 active bodies must therefore not be used as the numerical completion denominator. During the main forecast phase, 711 source bodies run; another 835 run before it and 64 after it, with overlap between these sets.
+The older profile has 1,171 labelled regions, so its labels do not give complete routine coverage. The current review covers 332 bodies. It separates full stages, subordinate formulas, mathematical interfaces, setup, diagnostics and support. The 84 bodies with mathematical purposes are a subtotal, not the required conversion count. The source review must distinguish numerical calculations from setup and support before we can count the routines that need assembly. The 1,466 active bodies must therefore not be used as the numerical completion denominator. During the main forecast phase, 711 source bodies run; another 835 run before it and 64 after it, with overlap between these sets.
 
 The trace excludes local C/C++ bodies and uninstrumented external libraries, including numerical libraries. It records routine visits for this T21 case and does not prove every branch or other configurations. The compact [coverage record](routines.json) preserves counts, commands, evidence hashes and these limits. Complete events, source mappings and review evidence stay in ignored .runtime/openifs/routine-audit/ and .runtime/openifs/runs/.
 
@@ -47,8 +47,13 @@ The trace excludes local C/C++ bodies and uninstrumented external libraries, inc
 | GPTCO3 | Complete ozone and signed scalar-column integral |
 | GP_SPV | Complete surface pressure and both horizontal derivatives |
 | GPHPRE | Complete layer pressures, pressure weights and optional outputs |
+| VERDISINT, VERINT, VERDER | Complete defined vertical integration and derivative branches, with a private ordered matrix helper |
+| GPGEO | Complete gravitational energy from pressure and temperature |
+| GPGRGEO | Complete horizontal gravitational-energy derivatives |
+| GPTF1, GPTF2 | Complete two-part time filter |
+| CTVTOT | Complete temperature from the moist-air equation of state |
 
-All twelve routines pass their critical checks and captured forecast calls. The [verification notes](README.md) state the evidence and its limits. Complete assembly coverage, raw whole-forecast states, independent whole-forecast physical checks and the external numerical-library arithmetic audit remain unfinished.
+All twenty public bodies pass their critical checks. Every captured forecast call also passes; VERDER has no visit in this case, so its acceptance uses the small verifier. The [verification notes](README.md) state the evidence and its limits. Complete assembly coverage, raw whole-forecast states, independent whole-forecast physical checks and the external numerical-library arithmetic audit remain unfinished.
 
 Current work prioritises the coarse forecast. Work proceeds through its active numerical routines one at a time, with dynamics first and the remaining physical schemes later. For each routine, freeze its physics and md2asm contract, emit the complete assembly body, pass physical and exact-byte checks, then verify its forecast calls before proceeding.
 
@@ -60,16 +65,19 @@ The next review order follows the pressure and flow calculations needed by the c
 | --- | --- | ---: | --- |
 | 1 | GP_SPV | 2,150 | Complete and verified, including all time-level decisions |
 | 2 | GPHPRE | 14,649 | Complete and verified, including shared top and optional outputs |
-| 3 | VERDISINT | 21,559 | Ordered vertical integration for the finite-element scheme |
-| 4 | GPGEO | 4,300 | Height-related gravitational energy from pressure and temperature |
-| 5 | GPGRGEO | 2,150 | Horizontal derivatives of that gravitational energy |
-| 6 | GPCTY | 2,150 | Air-mass continuity and vertical pressure motion |
-| 7 | GPTF1 | 2,150 | First part of the time filter |
-| 8 | GPTF2 | 2,150 | Second part of the time filter |
+| 3 | VERDISINT | 21,559 | Complete and verified, including native integral and matrix dependencies |
+| 4 | GPGEO | 4,300 | Complete and verified gravitational energy |
+| 5 | GPGRGEO | 2,150 | Complete and verified horizontal energy derivatives |
+| 6 | GPCTY | 2,150 | Source review pending a correction for unwritten returned bytes |
+| 7 | GPTF1 | 2,150 | Complete and verified first filter stage |
+| 8 | GPTF2 | 2,150 | Complete and verified second filter stage |
+| 9 | CTVTOT | 2,150 | Complete and verified moist-air temperature |
 
-A time filter removes unwanted oscillation between successive time levels. The [pressure math library](../../skills/md2asm/references/openifs/pressure_math.md) now freezes non-fused exp and log arithmetic for both assembly and Fortran. GPHPRE now passes those boundary, optional-output and shared-top checks. Vertical integration next requires an ordered matrix product and complete VERINT and VERDER dependencies.
+A time filter removes unwanted oscillation between successive time levels. The [pressure math library](../../skills/md2asm/references/openifs/pressure_math.md) freezes separate exp and log arithmetic. Vertical integration now has complete native dependencies and independent checks on the actual forecast grid.
 
-These eight entries are review priorities, not a complete count of remaining numerical routines. The six unfinished entries require individual contracts, complete assembly and the same physical and byte checks as the twelve accepted routines. Keep the original sources and measured inventory unchanged, then review the remaining physical schemes.
+GPCTY's unchanged finite-element source writes only the bottom of one returned pressure-divergence field. Repeated runs with identical mathematical inputs and different prior storage leave 760 differing output bytes at other levels. The current forecast uses only the written level, but exact acceptance requires every returned byte, so this routine remains in Fortran until its source contract is corrected and independently reviewed.
+
+These nine entries are completed or reviewed priorities, not a complete list of remaining numerical routines. Next review targets the remaining active pressure-motion and spectral stages before the wider physical schemes. Preserve the original source and all audit evidence while extending the source-role review.
 
 To reproduce the build inventory, load GNU 12.3 and run the following command through srun in your own quiet exclusive allocation. The [counter](count_routines.py) uses Python's standard library and the existing compiler.
 

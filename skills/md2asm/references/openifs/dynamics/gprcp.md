@@ -1,6 +1,6 @@
 # OpenIFS GPRCP contract
 
-Contract revision 1.0 freezes the complete numerical body of GPRCP in local OpenIFS 48.1.1. The physical input is [moist-air properties](../../../../../formulations/openifs/dynamics/thermodynamics.md), revision 1.0. This routine calculates mixture properties and does not advance a forecast.
+Contract revision 1.1 keeps the frozen revision 1.0 numerical body and clarifies the caller's actual input capacity for GPRCP in local OpenIFS 48.1.1. The physical input is [moist-air properties](../../../../../formulations/openifs/dynamics/thermodynamics.md), revision 1.0. This routine calculates mixture properties and does not advance a forecast.
 
 ## Method and arithmetic
 
@@ -28,7 +28,9 @@ Copy R to PR and C to PCP when those outputs are present. When PKAP is present, 
 
 KPROMA is positive. Require 1 <= KSTART <= KPROMA and KSTART - 1 <= KPROF <= KPROMA. KPROF = KSTART - 1 selects an empty interval. KFLEV is nonnegative. Arrays use Fortran column order and FP64 entries, with at least 8-byte alignment. Their byte counts and address calculations must fit signed 64-bit arithmetic. A zero extent is not accessed. Different outputs must not overlap, and an output must not overlap an input. Only active columns in a requested output may change.
 
-Mass fractions and constants are finite. Fractions are nonnegative, their selected sum does not exceed one, and heat capacities are positive. Every required intermediate is finite. A valid generic field index lies between 1 and YGFL%NDIM, and NUMFLDS lies between 0 and 2163. Generic descriptors supply finite nonnegative gas constants and positive heat capacities. Configuration and constants stay fixed throughout a call.
+Mass fractions and constants are finite. Fractions are nonnegative, their selected sum does not exceed one, and heat capacities are positive. Every required intermediate is finite. A valid generic field index lies between one and both the caller's actual field capacity and YGFL%NDIM. NUMFLDS lies between zero and 2163. Generic descriptors supply finite nonnegative gas constants and positive heat capacities. Configuration and constants stay fixed throughout a call.
+
+The actual input capacity is the number of fields stored by the caller. CPGLAG supplies PGFLT1 with YGFL%NDIM1 fields and selects MP1 with KGFLTYP equal to one. Its T21 array stores six fields, while the main NDIM is eight. The source uses only selected fields within those six. The other observed generic callers supply the full main array for modes zero or nine. Capture the whole actual array, preserving every stored bit, and do not read past it.
 
 The exact constant bits from upstream SETUP_CONSTANTS are shown below. Their units are joules per kilogram per kelvin. The solver reads the upstream module variables so that a reviewed forecast configuration remains authoritative.
 
@@ -47,7 +49,7 @@ Export gprcp_ with the GNU Fortran 12.3 explicit-shape interface. All 16 argumen
 
 The first eight addresses arrive in x0 to x7. At the entry stack pointer, PQS is at byte offset 0, PQG at 8, PCP at 16, PR at 24, PKAP at 32, PGFL at 40, KGFLTYP at 48 and LDTHERMACT at 56. Keep the stack 16-byte aligned. Preserve x19 to x29, the link register and the required portions of v8 to v15. Do not use x18. Scalar FP64 instructions are sufficient for the initial complete implementation.
 
-The module symbol __yom_ygfl_MOD_ygfl stores a pointer to TYPE_GFLD. A compiled layout probe, which contains no solver update, established the following offsets for this frozen build. TYPE_GFLD occupies 1,359,136 bytes. Its NUMFLDS is at byte 0, NDIM at 48 and fixed YCOMP array at 3848. Each component occupies 368 bytes, with LTHERMACT at 68, R at 72 and RCP at 80. MP, MP1, MP5, MP9_PH and MP_SL1 are at 168, 188, 192, 184 and 216. Pointer slots for YQ, YI, YL, YR, YS and YG are at 799840, 799848, 799856, 799920, 799912 and 799928. These are pointer-slot offsets, rather than the addresses of their targets.
+The module symbol __yom_ygfl_MOD_ygfl stores a pointer to TYPE_GFLD. A compiled layout probe, which contains no solver update, established the following offsets for this frozen build. TYPE_GFLD occupies 1,359,136 bytes. Its NUMFLDS is at byte 0, NDIM at 48, NDIM1 at 64 and fixed YCOMP array at 3848. Each component occupies 368 bytes, with LTHERMACT at 68, R at 72 and RCP at 80. MP, MP1, MP5, MP9_PH and MP_SL1 are at 168, 188, 192, 184 and 216. Pointer slots for YQ, YI, YL, YR, YS and YG are at 799840, 799848, 799856, 799920, 799912 and 799928. These are pointer-slot offsets, rather than the addresses of their targets.
 
 Keep the YGFL configuration object initialised for this GNU Fortran reference interface. Separate arrays also require its six water pointers when LDTHERMACT is absent. A present LDTHERMACT permits those water pointers to be absent. Profiling hooks are excluded from the numerical output.
 
@@ -61,11 +63,13 @@ Canonical small-check output contains PCP, PR and PKAP in that order for every c
 
 ## Forecast capture
 
-The forecast verifier calls the original strict-source routine on copies of the requested outputs and the complete assembly routine on the forecast outputs. It checks unchanged inputs, non-overlapping output buffers, active mixture fractions and finite active properties. It adds no numerical stage.
+The forecast verifier calls the original strict-source routine on copies of the requested outputs and the complete assembly routine on the forecast outputs. It checks each declared input immediately after each implementation, non-overlapping output buffers, active mixture fractions and finite active properties. The supported forecast capture modes are zero, one and nine, with actual capacities established from all eight observed source callers. Other modes retain their complete numerical small checks and need a caller-capacity review before forecast capture. It adds no numerical stage.
 
 Each recorded call begins with a 96-byte little-endian header. In order, this contains the 8-byte call number, 4-byte forecast step, four 4-byte dimensions, a 4-byte presence mask, the 4-byte field-index mode, 4-byte thermal override, 4-byte NDIM, 4-byte NUMFLDS and six FP64 constants in the table order. The override is -1 when absent. Presence bits 0 to 6 identify the six water arrays and PGFL, bits 7 to 9 identify PCP, PR and PKAP, and bits 10 and 11 identify KGFLTYP and LDTHERMACT.
 
-Output records append each present output array in PCP, PR and PKAP order, including inactive cells. Input records instead append the configuration and present input arrays. Generic configuration records contain each descriptor's 4-byte thermal flag, 4-byte selected field index, FP64 gas constant and FP64 heat capacity. Separate-water records contain six 4-byte flags in argument order. Inputs then follow in argument order, with the complete PGFL array last when present. Finally append each present incoming output array in PCP, PR and PKAP order, preserving its inactive bytes for exact replay. Pointer addresses, clock times and profiling data are excluded.
+Output records append each present output array in PCP, PR and PKAP order, including inactive cells. Input records instead append a four-byte actual PGFL capacity and a four-byte call-role value, then the configuration and present input arrays. The capacity is zero when PGFL is absent. A role of zero identifies a genuine model call, while one identifies a source call made only to check another assembly routine. Generic configuration records contain each descriptor's 4-byte thermal flag, 4-byte selected field index, FP64 gas constant and FP64 heat capacity. Separate-water records contain six 4-byte flags in argument order. Inputs then follow in argument order, with the complete PGFL array last when present. Finally append each present incoming output array in PCP, PR and PKAP order, preserving its inactive bytes for exact replay. Pointer addresses, clock times and profiling data are excluded.
+
+The optional --capture-capacity check extends the existing verifier for this observed buffer defect. It places exactly six PGFL fields beside an unreadable page while the main NDIM is eight, then checks the map-one mixture, complete output bits, unchanged inputs and FPCR. An eight-field capture would cross the page. The original 3,976-case corpus keeps its output bytes. Accounting markers for dependent routines change only call classification and never supply numerical work.
 
 ## Provenance
 

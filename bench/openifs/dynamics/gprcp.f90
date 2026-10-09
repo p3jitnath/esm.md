@@ -89,6 +89,15 @@ program verify_gprcp
   if(ios/=0) error stop 'reference output open'
   fpcr=openifs_fpcr()
   if(iand(fpcr,int(z'03C80000',c_int64_t))/=0) error stop 'FPCR rounding or underflow'
+  call get_command_argument(3,argument)
+  if(trim(argument)=='--capture-capacity') then
+    call capture_capacity(fa,fr,fpcr,gas,heat)
+    close(fa)
+    close(fr)
+    stop
+  else if(len_trim(argument)/=0) then
+    error stop 'unknown optional verifier case'
+  end if
   do shape=1,7
     select case(shape)
     case(1)
@@ -290,3 +299,175 @@ program verify_gprcp
   close(fr)
   write(*,'(a,i0,a,i0,a,z16.16)') 'GPRCP PASS calls=',calls,' bytes=',bytes,' differing_bytes=0 FPCR=',fpcr
 end program
+
+  !> Verify the six-field CPGLAG input allocation with the total metadata at eight.
+  !! The output units are J/(kg K) for heat capacity and gas constant. Kappa
+  !! is dimensionless. Gas and heat each contain the six component constants.
+  !! The two units receive full output buffers, including guards and inactive
+  !! cells. Control is the unchanged 64-bit Arm floating-point control register.
+  !! The last input byte precedes a protected page, so an eight-field capture
+  !! cannot read it safely. Input fractions use kg/kg; outputs use J/(kg K).
+  subroutine capture_capacity(assembly_unit,reference_unit,control,gas,heat)
+  use iso_c_binding, only : c_int64_t, c_int, c_long, c_size_t, c_intptr_t, c_ptr, &
+    c_null_ptr, c_f_pointer, c_associated
+  use parkind1, only : jpim, jprb
+  use yom_ygfl, only : ygfl
+  use, intrinsic :: ieee_arithmetic, only : ieee_is_finite
+  use yomcst, only : rd, rcpd
+  implicit none
+  abstract interface
+    subroutine kernel(np,ks,kp,nl,q,qi,ql,qr,qs,qg,cp,r,kap,gfl,kind,thermal)
+      use parkind1, only : jpim, jprb
+      use yom_ygfl, only : ygfl
+      integer(jpim), intent(in) :: np,ks,kp,nl
+      real(jprb), optional, intent(in) :: q(np,nl),qi(np,nl),ql(np,nl),qr(np,nl),qs(np,nl),qg(np,nl)
+      real(jprb), optional, intent(out) :: cp(np,nl),r(np,nl),kap(np,nl)
+      real(jprb), optional, intent(in) :: gfl(np,nl,ygfl%ndim)
+      integer(jpim), optional, intent(in) :: kind
+      logical, optional, intent(in) :: thermal
+    end subroutine
+  end interface
+  interface
+    function openifs_fpcr() bind(c) result(value)
+      import c_int64_t
+      integer(c_int64_t) :: value
+    end function
+    function libc_mmap(address,length,protection,flags,fd,offset) bind(c,name="mmap") result(mapping)
+      import c_ptr,c_size_t,c_int,c_long
+      type(c_ptr), value :: address
+      integer(c_size_t), value :: length
+      integer(c_int), value :: protection,flags,fd
+      integer(c_long), value :: offset
+      type(c_ptr) :: mapping
+    end function
+    function libc_mprotect(address,length,protection) bind(c,name="mprotect") result(status)
+      import c_ptr,c_size_t,c_int
+      type(c_ptr), value :: address
+      integer(c_size_t), value :: length
+      integer(c_int), value :: protection
+      integer(c_int) :: status
+    end function
+    function libc_munmap(address,length) bind(c,name="munmap") result(status)
+      import c_ptr,c_size_t,c_int
+      type(c_ptr), value :: address
+      integer(c_size_t), value :: length
+      integer(c_int) :: status
+    end function
+    function libc_getpagesize() bind(c,name="getpagesize") result(length)
+      import c_int
+      integer(c_int) :: length
+    end function
+  end interface
+  procedure(kernel) :: gprcp, gprcp_assembly
+  type buffer
+    real(jprb), pointer :: raw(:), field(:,:)
+    integer(c_int64_t), allocatable :: before(:)
+  end type
+    integer, intent(in) :: assembly_unit,reference_unit
+    real(jprb), intent(in) :: gas(6),heat(6)
+    integer(c_int64_t), intent(in) :: control
+    integer(jpim), parameter :: points=3,levels=2,first=2,last=3,fields=6,kind=1
+    integer, parameter :: cells=points*levels
+    type(c_ptr) :: mapping,page_address,field_address
+    integer(c_intptr_t) :: base,page_start,field_start
+    integer(c_size_t) :: page_bytes,mapping_bytes,input_bytes
+    real(jprb), pointer, contiguous :: protected_gfl(:,:,:)
+    type(buffer) :: native(3),source(3)
+    integer(c_int64_t) :: before_input(points*levels*fields),native_bits,source_bits,output_bytes
+    integer :: component,row,column,property,cell,storage_field
+    real(jprb) :: masses(fields),total_mass,wanted(3),allowance,observed
+    page_bytes=int(libc_getpagesize(),c_size_t)
+    input_bytes=int(points*levels*fields*8,c_size_t)
+    if(page_bytes<input_bytes+8) error stop 'page smaller than capacity fixture'
+    mapping_bytes=3*page_bytes
+    mapping=libc_mmap(c_null_ptr,mapping_bytes,0_c_int,34_c_int,-1_c_int,0_c_long)
+    base=transfer(mapping,base)
+    if(.not.c_associated(mapping).or.base==-1_c_intptr_t) error stop 'capacity mmap'
+    page_start=base+int(page_bytes,c_intptr_t)
+    page_address=transfer(page_start,page_address)
+    if(libc_mprotect(page_address,page_bytes,3_c_int)/=0) error stop 'capacity writable page'
+    field_start=base+int(2*page_bytes-input_bytes,c_intptr_t)
+    field_address=transfer(field_start,field_address)
+    call c_f_pointer(field_address,protected_gfl,[points,levels,fields])
+    ygfl%ndim=8
+    ygfl%ndim1=fields
+    ygfl%numflds=fields
+    do component=1,fields
+      ygfl%ycomp(component)%lthermact=.true.
+      storage_field=ygfl%ycomp(component)%mp1
+      if(storage_field<1.or.storage_field>fields) error stop 'capacity MP1'
+      do row=1,levels
+        protected_gfl(1,row,storage_field)=real(component+row,jprb)/4096.0_jprb
+        protected_gfl(2,row,storage_field)=0.0_jprb
+        protected_gfl(3,row,storage_field)=real(component*row,jprb)/1024.0_jprb
+      end do
+    end do
+    before_input=transfer(protected_gfl,before_input)
+    if(libc_mprotect(page_address,page_bytes,1_c_int)/=0) error stop 'capacity read-only page'
+    do property=1,3
+      allocate(native(property)%raw(cells+2),source(property)%raw(cells+2))
+      native(property)%field(1:points,1:levels)=>native(property)%raw(2:cells+1)
+      source(property)%field(1:points,1:levels)=>source(property)%raw(2:cells+1)
+      native(property)%raw=-777.75_jprb
+      source(property)%raw=-777.75_jprb
+    end do
+    if(openifs_fpcr()/=control) error stop 'capacity entry FPCR'
+    call gprcp(points,first,last,levels,cp=source(1)%field,r=source(2)%field,kap=source(3)%field, &
+      gfl=protected_gfl,kind=kind)
+    if(openifs_fpcr()/=control) error stop 'capacity reference FPCR'
+    if(any(transfer(protected_gfl,before_input)/=before_input)) error stop 'capacity reference input'
+    call gprcp_assembly(points,first,last,levels,cp=native(1)%field,r=native(2)%field,kap=native(3)%field, &
+      gfl=protected_gfl,kind=kind)
+    if(openifs_fpcr()/=control) error stop 'capacity native FPCR'
+    if(any(transfer(protected_gfl,before_input)/=before_input)) error stop 'capacity native input'
+    output_bytes=0_c_int64_t
+    do property=1,3
+      do cell=1,cells+2
+        native_bits=transfer(native(property)%raw(cell),native_bits)
+        source_bits=transfer(source(property)%raw(cell),source_bits)
+        if(native_bits/=source_bits) then
+          write(*,'(a,2(i0,1x),2(z16.16,1x))') 'Mismatch capacity property cell ', &
+            property,cell,native_bits,source_bits
+          error stop 'capacity output bits'
+        end if
+        if(cell==1.or.cell==cells+2) then
+          if(native_bits/=transfer(-777.75_jprb,native_bits)) error stop 'capacity output guard'
+        else
+          column=mod(cell-2,points)+1
+          if(column<first.or.column>last) then
+            if(native_bits/=transfer(-777.75_jprb,native_bits)) error stop 'capacity inactive output'
+          end if
+        end if
+      end do
+      write(assembly_unit) native(property)%raw
+      write(reference_unit) source(property)%raw
+      output_bytes=output_bytes+int((cells+2)*8,c_int64_t)
+    end do
+    do row=1,levels
+      do column=first,last
+        do component=1,fields
+          masses(component)=protected_gfl(column,row,ygfl%ycomp(component)%mp1)
+        end do
+        total_mass=sum(masses)
+        if(total_mass<0.0_jprb.or.total_mass>1.0_jprb) error stop 'capacity physical mass'
+        wanted(1)=(1.0_jprb-total_mass)*rcpd+sum(masses*heat)
+        wanted(2)=(1.0_jprb-total_mass)*rd+sum(masses*gas)
+        wanted(3)=wanted(2)/wanted(1)
+        do property=1,3
+          observed=native(property)%field(column,row)
+          if(.not.ieee_is_finite(observed)) error stop 'capacity nonfinite mixture'
+          allowance=64*epsilon(1.0_jprb)*max(1.0_jprb,abs(wanted(property)))
+          if(abs(observed-wanted(property))>allowance) error stop 'capacity independent dry/moist physics'
+          if(column==2.and.transfer(observed,native_bits)/=transfer(wanted(property),source_bits)) &
+            error stop 'capacity exact dry-air bits'
+        end do
+      end do
+    end do
+    if(libc_munmap(mapping,mapping_bytes)/=0) error stop 'capacity munmap'
+    nullify(protected_gfl)
+    do property=1,3
+      deallocate(native(property)%raw,source(property)%raw)
+    end do
+    write(*,'(a,i0,a,i0,a,z16.16)') 'GPRCP CAPACITY PASS calls=1 bytes=',output_bytes, &
+      ' input_bytes=',input_bytes,' differing_bytes=0 FPCR=',control
+  end subroutine

@@ -96,7 +96,33 @@
   "counter_sha256": "e52f434974adba5412de7c160232f56b62255c187eb7b50d6edd9223fcfe2371",
   "full_inventory_local": ".runtime/openifs/routine-audit/inventory.json",
   "frontend_reports_sha256": "8fef54abc602a8d931e31b832940f830d26fed255a448e3a05af3a0dc9c0a501",
-  "implementation_work": "Resumed on 2026-10-06 to prioritise coarse-forecast dynamics",
+  "implementation_work": {
+    "complete_accepted_public_routines": [
+      "CPSPE",
+      "GPRCP",
+      "GPPWC",
+      "GPRT",
+      "GPGRP",
+      "GPMKTEND",
+      "GPADDSLPHY",
+      "GP_TNDLAGADIAB_UV",
+      "GPGRXYB",
+      "GPTCO3",
+      "GP_SPV",
+      "GPHPRE",
+      "VERDISINT",
+      "VERINT",
+      "VERDER",
+      "GPGEO",
+      "GPGRGEO",
+      "GPTF1",
+      "GPTF2",
+      "CTVTOT"
+    ],
+    "private_ordered_matrix_helper_not_counted_as_public_body": true,
+    "forecast_record": "forecast.json",
+    "GPCTY": "Unchanged finite-element source leaves returned lower-level pressure-divergence bytes unwritten; full output contract awaits a reviewed source correction."
+  },
   "inventory_reproduced_byte_for_byte": true,
   "accepted_reports_local": ".runtime/openifs/routine-audit/recheck/frontend-reports.zip",
   "accepted_reports_sha256": "ee9bed8264793334bf5c75be8ca4d8b5c37a19db7fcef9738d3f27f43e3aca85",
@@ -179,27 +205,71 @@
       }
     },
     "source_role_review": {
-      "review_date_utc": "2026-10-09T14:02:25.508656+00:00",
+      "review_date_utc": "2026-10-09T16:02:52.160292+00:00",
       "counts": {
-        "confirmed_numerical": 39,
-        "unreviewed": 1200,
-        "numerical_seed_setup": 1,
-        "runtime_support": 77,
-        "configuration_support": 10,
-        "storage_support": 7,
-        "file_io_support": 19,
-        "field_storage_and_views": 113
+        "configuration_support": 11,
+        "io_support": 19,
+        "model_driver": 5,
+        "numerical_diagnostic": 5,
+        "numerical_helper": 36,
+        "numerical_interface": 7,
+        "numerical_setup": 2,
+        "numerical_stage": 19,
+        "numerical_unspecified": 15,
+        "runtime_support": 78,
+        "state_storage": 135,
+        "unreviewed": 1134
       },
-      "evidence": {
-        "local": ".runtime/openifs/routine-audit/coverage-7189435/coverage-classification-evidence.json",
-        "sha256": "a1e0530f894b3375a520d92afd0056c551fd3608bb21ae91aacdb826e9ef3ae4",
-        "bytes": 239715
-      },
-      "reviewed_source_bodies": 266,
-      "unreviewed_source_bodies": 1200,
-      "scope": "Reviewed examples and support/storage/configuration groups only; numerical-purpose counts include interfaces and helpers",
+      "reviewed_source_bodies": 332,
+      "unreviewed_source_bodies": 1134,
+      "scope": "Complete source-role reviews through batch06; purpose categories are not an assembly conversion denominator",
+      "core_numerical_purpose_bodies": 62,
+      "broad_numerical_purpose_bodies": 84,
       "categories_are_disjoint": true,
-      "exact_required_numerical_routine_count_established": false
+      "exact_required_numerical_routine_count_established": false,
+      "snapshot": {
+        "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-source-role-snapshot-through-batch06-corrected-sgemmxz.json",
+        "sha256": "cdc7436360199e89c4a65fbf39c477f4d5a896b493f82ff62f5685203dd9f72e",
+        "bytes": 9457
+      },
+      "batch_summaries": [
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch01-adiab-summary.json",
+          "bytes": 3950,
+          "sha256": "4d319233e1e520ef3ce63fa1c7cc353a33183d7962f379349c2dc1de97f54b30"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch02-transport-spectral-summary.json",
+          "bytes": 4221,
+          "sha256": "ae26393a09c5087905869b2c9d45b54b7be3567546295dbdaea4fd5df5cb35e7"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch03-drivers-diagnostics-summary.json",
+          "bytes": 4232,
+          "sha256": "5ef72c2afc490ad2c5df8f5e80754df6d51684fbb90bed2a42323a83adeaf8fb"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch04r3-radiation-cloud-formulas-summary.json",
+          "bytes": 4379,
+          "sha256": "ba2807fdb33ac1d5281c3aa9411f5a5d477363f2eac481256168809ef62d8782"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch05-radiation-storage-summary.json",
+          "bytes": 4298,
+          "sha256": "76039bbc4ec7c78f4aa7c78235f5d1a4eefb066ca62c9e62cad120cd4b07160a"
+        },
+        {
+          "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch06-gas-concentrations-summary.json",
+          "bytes": 4323,
+          "sha256": "377516241da820ca53f3c0afc4bfe0f4c3c90bb59c513eb0454577d73c4d8926"
+        }
+      ],
+      "initial_evidence_artifacts_unchanged": 18,
+      "classification_correction": "SGEMMXZ is an empty compatibility body; original evidence is preserved and its role is runtime support.",
+      "correction_evidence": {
+        "local": ".runtime/openifs/routine-audit/coverage-7189435/source-review/20261009-batch06-correction-sgemmxz-evidence.json",
+        "sha256": "ef1baa1eab1e5cfee735a289197ffbee863706287d936fc7cd8d5b1ac887a32d"
+      }
     },
     "forecast_phase_bodies": {
       "before": 835,

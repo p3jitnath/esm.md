@@ -6,11 +6,12 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 
 | Forecast part | Basic formulation | Assembly coverage |
 | --- | --- | --- |
-| Atmospheric motion | [Motion and heat](dynamics/atmospheric_motion.md) | Pending |
+| Atmospheric motion | [Motion and heat](dynamics/atmospheric_motion.md) | Complete GPTF1 and GPTF2 filters, other stages pending |
 | Surface pressure | [Logarithm and derivatives](dynamics/surface_pressure.md) | Complete GP_SPV routine |
 | Vertical pressure | [Hybrid pressure](dynamics/hybrid_pressure.md) | Complete GPHPRE routine |
-| Vertical force balance | [Hydrostatic balance](dynamics/hydrostatic_balance.md) | Pending |
-| Moist-air properties | [Mixture properties](dynamics/thermodynamics.md) | Complete GPRCP routine |
+| Vertical force balance | [Hydrostatic balance](dynamics/hydrostatic_balance.md) | Complete GPGEO and GPGRGEO routines |
+| Vertical operations | [Integrals and derivatives](dynamics/vertical_operators.md) | Complete defined VERDISINT, VERINT and VERDER branches |
+| Moist-air properties | [Mixture properties](dynamics/thermodynamics.md) | Complete GPRCP and CTVTOT routines |
 | Thermal pressure | [Temperature and gradients](dynamics/thermal_pressure.md) | Complete GPRT routine |
 | Pressure-gradient coefficients | [Hybrid-pressure derivatives](dynamics/pressure_gradient_coefficients.md) | Complete GPGRXYB routine |
 | Horizontal pressure force | [Pressure gradients](dynamics/pressure_force.md) | Complete GPGRP routine |
@@ -30,4 +31,4 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 
 These basic balances do not yet cover every configured physical process. Source-derived closure relations, which specify rates and coefficients, and complete numerical contracts are still needed before assembly generation.
 
-The twelve assembly routines pass critical checks and captured calls within the coarse upstream forecast. The [verification record](../../bench/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
+Twenty complete public assembly bodies pass independent small checks. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../bench/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
