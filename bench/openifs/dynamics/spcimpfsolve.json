@@ -1,0 +1,222 @@
+{
+  "routine": "SPCIMPFSOLVE",
+  "status": "Complete single-rank body with critical, isolated and combined forecast acceptance",
+  "contract_revision": "1.0",
+  "generation": {
+    "route": "Complete direct AArch64 from frozen Markdown physics, ordered arithmetic and typed original source ABI; assembler and linker only",
+    "compiler_numerical_assembly_or_IR_before_emission": false,
+    "first_body_numerically_unchanged": true,
+    "pre_emission_contract_sha256": "335b2c690ef6bd06f05477de63efe905f33d02bafe81bc8d3084ef2ba09a9229",
+    "pre_emission_freeze_sha256": "6c98a380cf1c7a0f0e1f4595d67d44c29c82233692f92d676b41f17c0b43f3a4",
+    "release_manifest": ".runtime/openifs/spcimpfsolve-7207705/accepted.json"
+  },
+  "domain": {
+    "processor_partition_counts": [
+      1,
+      1
+    ],
+    "degree": [
+      1,
+      255
+    ],
+    "level_counts": "global=local=storage; zero levels allowed",
+    "wave_permutation": "every m from zero through degree once; MYMS lower zero or one",
+    "descriptor_strides": "signed nonzero strides with valid distinct selected cells",
+    "flags": "all eight canonical zero/one combinations",
+    "distributed_geometry": false,
+    "numerical_dependency": "Previously accepted complete direct SIMPLICO; both single-rank copies inline"
+  },
+  "corpus": {
+    "cases": 66,
+    "input_bytes": 685216,
+    "independent_bytes": 668160,
+    "source_stage_bytes": 2739640,
+    "source_output_bytes": 339392,
+    "independent_method": "100-digit dense original complex matrix with partial row pivoting and original-matrix residual; no parity recurrence"
+  },
+  "source_science": {
+    "created_utc": "2026-10-09T22:01:33.557652+00:00",
+    "cases": 66,
+    "independent_values": 28850,
+    "original_matrix_residuals": 15400,
+    "zero_imaginary_cells": 1950,
+    "identity_values": 3462,
+    "decimal_digits": 100,
+    "maximum_fraction_forward_limit": 0.011878913421144754,
+    "minimum_diagonal_dominance_margin": "0.9880359352176104034109090764799333237474179770573318128445435739849950565472092023355799028649926183",
+    "source_output_bytes": 339392,
+    "source_input_bytes": 685216,
+    "independent_bytes": 668160,
+    "method": "100-digit dense original complex system with partial row pivoting, plus residuals, identity limits, exact zero imaginary modes and inactive/guard preservation",
+    "sha256": {
+      "critical-inputs.bin": "90d520728249b4ed47f38c97eaeb4a9fe78629cee897926a1a9e894bfc04302b",
+      "critical-fortran.bin": "b22f10183553635db296c5a411dbe3fe86a2a0f2cfbe45f66b32cbca09cf6e47",
+      "critical-independent.bin": "708160151b67f881f044717310375cf774eda97a8cf57c5cf3a64aa2b297f5ad",
+      "original-spcimpfsolve.F90": "4bb8014a91f084005d657e80324ff414c6f4be1ca827a9445e7987e2b4716311",
+      "original-trstom.F90": "58c4b0c5386a0b0d799cec2ecdc85bf1a8067151f1e5b8d5e692a45013a32d0f",
+      "original-trmtos.F90": "532f346af37e1a128b0cd150b05f98d5b9bb8e421fc575138ed4ba89f4f11562",
+      "layout.json": "13d9a5537cca6c09b7304de01c80b744ced0c58cb75168be8d8330e466028175",
+      "reference-critical.c": "e9a3e89d6951c2f3e30a8232e19060ed64678b3066b8316836836cbf554133e7"
+    }
+  },
+  "critical": {
+    "cases": 66,
+    "direct_abi_cases": 69,
+    "protected_tail_cases": 66,
+    "genuine_three_thread_calls": 3,
+    "independent_values": 28850,
+    "positive_zero_values": 1950,
+    "stage_calls_each": 763,
+    "canonical_bytes": 339392,
+    "active_cells": 30800,
+    "different_bytes": 0,
+    "fpcr": 0
+  },
+  "object_audit": {
+    "routine": "SPCIMPFSOLVE",
+    "instruction_count": 253,
+    "function_bytes": 1012,
+    "abi_veneer_additional_bytes": 36,
+    "first_primary_object_unchanged": true,
+    "observed_body_text_identical": true,
+    "fp32_arithmetic": 0,
+    "fused_arithmetic": 0,
+    "approximate_arithmetic": 0,
+    "reserved_x18_accesses": 0,
+    "frame_bytes": 352,
+    "undefined_symbols": [
+      "__yomcst_MOD_romega",
+      "abort",
+      "free",
+      "malloc",
+      "simplico_assembly_"
+    ],
+    "source_sha256": "48a7dfcedc4ec18da293a2e4226171f4d5fe15511bf5790d41c8481871946519",
+    "object_sha256": "71f098591d2c06b99d6ad9695649616d247005b7198ef78a6d8f99915621e617"
+  },
+  "allocation": {
+    "job": 7207705,
+    "node": "nid011311",
+    "cpu_binding": "map_cpu:32",
+    "memory_binding": "local",
+    "one_process": true,
+    "forecast_threads": 1
+  },
+  "toolchain": "GNU 12.3; PrgEnv-gnu; libfabric 2.3.1; strict FP64, contraction and fast-math disabled",
+  "forecast": {
+    "summary": {
+      "visits": 25,
+      "source_stage_calls": 550,
+      "native_stage_calls": 550,
+      "canonical_bytes": 1929200,
+      "input_bytes": 8824300,
+      "stage_bytes": 6309600,
+      "different_bytes": 0,
+      "fpcr": 0,
+      "nprtrn": 1,
+      "nprtrv": 1,
+      "wave_numbers": [
+        0,
+        21
+      ],
+      "calls_per_wave_number": 25
+    },
+    "actual_shape": {
+      "degree": 21,
+      "levels": 19,
+      "columns": 506,
+      "waves": 22,
+      "complete_temporary_bytes_each": 76912,
+      "rank": 1,
+      "threads": 1
+    },
+    "actual_flags": [
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "source_archive": ".runtime/openifs/runs/strict-spcimpfsolve-source-spcsi-capacity-7207705/t21/test_fc",
+    "native_archive": ".runtime/openifs/runs/strict-spcimpfsolve-assembly-7207705/t21/test_fc",
+    "native_science": {
+      "checked_utc": "2026-10-09T22:24:18.424251+00:00",
+      "source_only": false,
+      "primary_emitted": true,
+      "whole_forecast_independent_science": false,
+      "visits": 25,
+      "native_stages": 550,
+      "decimal_digits": 100,
+      "ordered_coefficient_values": 27500,
+      "exact_input_copy_values": 240350,
+      "exact_returned_stage_values": 480700,
+      "independent_solution_values": 229900,
+      "original_matrix_residuals": 120175,
+      "positive_zero_imaginary_cells": 10450,
+      "maximum_fraction_forward_limit": 0.014957073414667066,
+      "minimum_diagonal_dominance_margin": "0.9590904267218743306514377331947654298876531421299957625833865183571993173918706981252396375016612412",
+      "scope": "Complete captured SPCIMPFSOLVE closure only; upstream/whole-model science is separate",
+      "stage_sha256": "df060f124a39a794c8233f9f9d18e311b496b8ba33505904bb4d42f325bef43a"
+    },
+    "whole_forecast_independent_science": false,
+    "complete_input_readonly_verified": true,
+    "source_input_sha256": "0c385882782d3ad10fcb0f32e8d1dd882b3bd9ba7e613d54dd5fc3519a873ca5",
+    "native_input_sha256": "fdc983d8ca8f2637d92850dba21dbb1c2886dc8e0402a7f9101b7e0aeaa86f9e",
+    "isolated_acceptance_record": {
+      "local": ".runtime/openifs/spcimpfsolve-7207705/native-forecast-review.json",
+      "bytes": 9673,
+      "sha256": "8cb6cd3bab1514d7955fe843d614853e0ee16b149ea3ebca9ddfce22d1d70a20"
+    },
+    "combined_archive": ".runtime/openifs/runs/strict-spcimpfsolve-combined-reviewed-7207705/t21/test_fc",
+    "combined_acceptance": {
+      "local": ".runtime/openifs/runs/strict-spcimpfsolve-combined-reviewed-7207705/t21/direct-comparison.json",
+      "bytes": 31764,
+      "sha256": "6d9648a5b4510ecd42f1a6f05ef195f049bc826d6c4fba08e218542babfc9076"
+    },
+    "all_ten_saved_files_identical": true,
+    "saved_bytes": 618140
+  },
+  "timing": "Not performed; no measured optimisation claim",
+  "evidence": {
+    "commands": ".runtime/openifs/spcimpfsolve-7207705/commands-release.json",
+    "independent_corpus": ".runtime/openifs/spcimpfsolve-7207705/preparation/critical-independent.bin",
+    "first_emission": ".runtime/openifs/spcimpfsolve-7207705/first-emission.json",
+    "pre_emission_manifest": {
+      "local": ".runtime/openifs/spcimpfsolve-7207705/preparation/freeze-before-emission-r2.json",
+      "bytes": 34680,
+      "sha256": "6c98a380cf1c7a0f0e1f4595d67d44c29c82233692f92d676b41f17c0b43f3a4"
+    },
+    "pre_emission_artifacts_checked": 81
+  },
+  "hashes": {
+    "src/openifs/dynamics/spcimpfsolve.S": "48a7dfcedc4ec18da293a2e4226171f4d5fe15511bf5790d41c8481871946519",
+    "bench/openifs/dynamics/spcimpfsolve.c": "7d48c43d8f17a663618fcbf9915034b90553489d8ae071198d8c5c4ad1d05826",
+    "bench/openifs/dynamics/spcimpfsolve_forecast.c": "613abe75926d1152a40930eca5320d39aecf4cfe8b47869f2e92f7136bed8281",
+    "skills/md2asm/references/openifs/dynamics/spcimpfsolve.md": "87dde2fe10f58ea45fd2529d517c2149fb37330dbf7c94eca7d7c33d1434bcda"
+  },
+  "documentation_revision": "1.2",
+  "parent_reproduction": {
+    "release_hash_review": {
+      "local": ".runtime/openifs/spcimpfsolve-7207705/parent-review/release-hash-review.json",
+      "bytes": 88,
+      "sha256": "2b237a2e776d0e3a4650e043304fe4148cb58eb3b858ebd882ff55e751614497"
+    },
+    "critical_summary": {
+      "local": ".runtime/openifs/spcimpfsolve-7207705/parent-review/reproduce/summary.json",
+      "bytes": 245,
+      "sha256": "c45e185be7f8425cbe2f4616221e70b92e88bfa60fb4a5507e33201f40db8f6d"
+    },
+    "complete_return_and_stage_bytes_match_frozen": true,
+    "primary_objects_match_frozen": true
+  },
+  "preserved_pre_publication_record": {
+    "local": ".runtime/openifs/spcimpfsolve-7207705/parent-review/original-public-files/bench/openifs/dynamics/spcimpfsolve.json",
+    "bytes": 14049,
+    "sha256": "e83e5e0dbc004247a93bbb6dc73640262f6d9916508c7a2248b22aa475ae3813"
+  },
+  "preserved_original_release": {
+    "local": ".runtime/openifs/spcimpfsolve-7207705/parent-review/resolved-original-release.json",
+    "bytes": 8383,
+    "sha256": "404ff5d95476046a621393c3077fe89e6e06357c011835d152cd06922752a45e"
+  }
+}
