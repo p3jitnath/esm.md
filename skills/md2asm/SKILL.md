@@ -38,7 +38,7 @@ Retain a method when its complete-step gain exceeds measured variation and the f
 | Method | Preconditions and implementation |
 | --- | --- |
 | Vector execution | Compare supported SIMD and SVE forms per operation at a verified width, selecting measured load, arithmetic, division, and square-root forms. Keep predicated or scalar tails within buffer bounds, and interleave independent vector groups to cover latency. For ordered sums, vectorise independent outputs while each lane retains its original multiplication and addition order. Share a coefficient across these outputs when its rounded bits are identical. |
-| Rounded-value reuse | Share identical coefficients, speeds, faces, and stencil values across components when their ordered operands and rounding points match. Retain each required stage output. |
+| Rounded-value reuse | Share identical coefficients, speeds, faces, and stencil values across components when their ordered operands and rounding points match. For repeated integer indices, compute each coefficient once and store its rounded bits in a small array owned by the call. Choose an unused marker outside the proven coefficient range. Retain each required stage output. |
 | Early point preparation | Start the next group’s division and square root during independent current-cell work, after the registers’ last consumers. Use carried results directly in their registers, guarding the final look-ahead and partial-vector carry. |
 | Face and update fusion | Compute a rounded face beside its immediate divergence consumer, carrying the shared face in a register or live row. Peel the first cell when aligned loads improve measured timing; a partial vector must carry its last active lane. |
 | Live scratch and temporal blocking | Retain only the rows or neighbours still needed by the stencil while preserving the public pitch and scratch allowance. Consume an old rounded face before overwriting its slot; a separate consumer pass needs its own previous-face row. Use complete halo dependencies for stage tiling, prepare boundaries before consumers, and preserve untouched values across partial writes. |
@@ -48,7 +48,7 @@ Retain a method when its complete-step gain exceeds measured variation and the f
 
 Select unrolling, tiling, prefetch distance, and dispatch ranges from measured cache behaviour and register pressure. Keep thresholds specific to the model and target, and prefer compact code where setup costs dominate small workloads.
 
-The shallow-water implementation combines direct carried registers, a compact scratch window, and load-before-store face reuse. [Matched measurements](../../bench/results.md) establish the retained gains; model-specific rates, thresholds, and evidence stay in that record. The [OpenIFS vertical matrix](references/openifs/dynamics/strict_matrix.md) applies independent lanes and shared coefficients, with measured gains for complete vertical integration.
+The shallow-water implementation combines direct carried registers, a compact scratch window, and load-before-store face reuse. [Matched measurements](../../bench/results.md) establish the retained gains; model-specific rates, thresholds, and evidence stay in that record. The [OpenIFS vertical matrix](references/openifs/dynamics/strict_matrix.md) applies independent lanes and shared coefficients, with measured gains for complete vertical integration. The [OpenIFS spectral filter](references/openifs/dynamics/spfilt.md) uses a private table of rounded factors selected by complete-call measurements.
 
 ## Maintain strong language controls
 

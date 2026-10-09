@@ -1,6 +1,6 @@
 {
-  "revision": "1.1, documentation only; numerical freeze 1.0",
-  "status": "Complete direct body accepted by critical physics and full T21 forecast",
+  "revision": "1.2; numerical operator frozen at 1.0",
+  "status": "Complete selected direct body accepted by independent physics, exact combined forecast and quiet complete-call measurements",
   "source": "arpifs/adiab/spfilt.F90",
   "source_sha256": "7bd9d9cec8cba831bce0e72f51949d308a7003e7d4a752a1b90ec15e86de8295",
   "formulation": "formulations/openifs/dynamics/atmospheric_motion.md",
@@ -53,6 +53,101 @@
     "fpcr": 0
   },
   "instruction_audit": {
+    "decoded_instructions": 232,
+    "forbidden_operations": 0
+  },
+  "forecast": {
+    "bytes": 3902600,
+    "assembly_sha256": "9544cd8ee98f25a5a3ad52b895cd3bcc0d63a9ad0e73b396a41e695549602c2d",
+    "fortran_sha256": "9544cd8ee98f25a5a3ad52b895cd3bcc0d63a9ad0e73b396a41e695549602c2d",
+    "input_bytes": 3902600,
+    "input_sha256": "a7e1a77edc57a97216984ebf082a6f96f1ef05186ea05a8449feb1ea56069066",
+    "differing_bytes": 0,
+    "live_summary": {
+      "calls": 25,
+      "bytes": 3902600,
+      "allocation_bytes": 3845600,
+      "independent": 240350,
+      "inactive": 0,
+      "rigid": 1900,
+      "FPCR": 0,
+      "differing_bytes": 0
+    },
+    "calls": 25,
+    "archive": ".runtime/openifs/runs/strict-spfilt-reviewed-7189435/t21/test_fc",
+    "evidence": {
+      "local": ".runtime/openifs/runs/strict-spfilt-cache24-combined-reviewed-7189435/t21/direct-comparison.json",
+      "sha256": "a9c95f91cf02bc2e26e8a9f7ebe34dc00adb8f9d5f72250f9131c3d407814b67"
+    },
+    "evidence_sha256": "f3a009f17ae50047287dccaf4c4cba21d4c9d1e4e83774746b40b3402851d068",
+    "saved_files_identical": 10,
+    "paired_streams_identical": 21,
+    "actual_parent_shape": [
+      19,
+      506
+    ],
+    "actual_degree_bytes": 2024,
+    "native_library_sha256": "3e72114fbdd2ef45263a299975081f3a1a0534bed1def9f0bcc2544d872d492f",
+    "raw_archive": ".runtime/openifs/runs/strict-spfilt-cache24-combined-reviewed-7189435/t21/test_fc"
+  },
+  "runtime": {
+    "job_id": 7189435,
+    "node": "nid010825",
+    "exclusive": true,
+    "affinity": [
+      0
+    ],
+    "memory": "local",
+    "load": [
+      0.24072265625,
+      0.154296875,
+      0.09814453125
+    ],
+    "purpose": "Untimed numerical verification"
+  },
+  "failures_archived": ".runtime/openifs/spfilt/critical-001",
+  "comparative_timing_performed": true,
+  "whole_forecast_independent_physics_verified": false,
+  "sha256": {
+    "src/openifs/dynamics/spfilt.S": "99a03ee330ea874c50201fc38dd6a9f0c5518eb75e724ad1564a4c814547d802",
+    "bench/openifs/dynamics/spfilt.c": "b19ad493f53ec575b35a5880d63b0fc2a11b50d209d88372705e6ec885ad39af",
+    "bench/openifs/dynamics/spfilt_forecast.c": "4decc5e20960d522149be95062c1bb2f4423639187c1090d256d8a2f945caca9",
+    "bench/openifs/dynamics/spfilt_abi.S": "ec0dcdb1c20f299ad0b031bf0414814e8db4db5a9bcba331a8e94fcaa9c56cae",
+    "skills/md2asm/references/openifs/dynamics/spfilt.md": "f35aeffc6d3049470b3c440569efbb69d151c64fc0e9619b75262c980edfc693",
+    "formulations/openifs/dynamics/atmospheric_motion.md": "0702e45875a201c21b48e75eea536e84e73e7d42124ef20a4f8d9785a89bda7c",
+    ".runtime/openifs/spfilt/preparation/input-corpus.bin": "d92a7ebc2ca609bf19b8f27b0299c218c878517d096da29cbdbd20125a7b4fb6",
+    ".runtime/openifs/spfilt/preparation/reference.bin": "312c7916984d4f0d25c0761e019959cecaf550d3a187a80ffba4760d827151cc",
+    ".runtime/openifs/spfilt/preparation/make-corpus.py": "96abf809b99f6b1917024e2b1c991e09419e8e5f7e0e7803f96a8cb4623c96c4",
+    ".runtime/openifs/spfilt/assembly.o": "09012a2ecf49a5ffac043de2429d138440d350f482692f9386ebceeb8d22063d",
+    ".runtime/openifs/spfilt/critical-002/assembly.bin": "312c7916984d4f0d25c0761e019959cecaf550d3a187a80ffba4760d827151cc",
+    ".runtime/openifs/spfilt/critical-002/fortran.bin": "312c7916984d4f0d25c0761e019959cecaf550d3a187a80ffba4760d827151cc",
+    ".runtime/openifs/spfilt/forecast/libverify-spfilt.so": "a818d62303ab6de50c38cf8bfde265e8eea6dc319c9ac2d7481d883fdcc2843c",
+    ".runtime/openifs/spfilt/empty-descriptor-001/input-corpus.bin": "4b8f1014e92c65a9f3d03e420fe14f6dad616b7ddc60fc0c66b7278200ba9f99",
+    ".runtime/openifs/spfilt/empty-descriptor-001/frozen-reference.bin": "56d495aa4808b6bfdbab9431ce7c049ab3726ce9996e8b5bfd87080776b1f4fc",
+    ".runtime/openifs/spfilt/empty-descriptor-001/assembly.bin": "56d495aa4808b6bfdbab9431ce7c049ab3726ce9996e8b5bfd87080776b1f4fc",
+    ".runtime/openifs/spfilt/empty-descriptor-001/fortran.bin": "56d495aa4808b6bfdbab9431ce7c049ab3726ce9996e8b5bfd87080776b1f4fc",
+    ".runtime/openifs/spfilt/empty-descriptor-001/freeze.json": "d1b0f35536c864ce4f9754d714a895fb6450cf1f5c7656af816f70aa18b37f83",
+    ".runtime/openifs/spfilt-tuning/parent-integration/assembly.o": "9f18f137f8c48f89996c2b79b1cfb4102e1da17cc43516e9e2b4e753372e6360"
+  },
+  "supplementary_empty_descriptors": {
+    "cases": 2,
+    "returned_record_bytes": 544,
+    "independent_active_values": 0,
+    "inactive_values": 4,
+    "protected_calls": 2,
+    "abi_calls": 2,
+    "different_bytes": 0,
+    "fpcr": 0,
+    "archive": ".runtime/openifs/spfilt/empty-descriptor-001",
+    "purpose": "Actual zero-row and zero-column arrays, with field data at the protected allocation end; original corpus and kernel unchanged"
+  },
+  "critical_totals": {
+    "cases": 148,
+    "returned_record_bytes": 484784,
+    "abi_calls": 148,
+    "protected_calls": 148
+  },
+  "prior_general_instruction_audit": {
     "native": {
       "decoded_instructions": 104,
       "forbidden_operations": 0,
@@ -77,90 +172,333 @@
       "bytes": 176
     }
   },
-  "forecast": {
-    "bytes": 3902600,
-    "assembly_sha256": "9544cd8ee98f25a5a3ad52b895cd3bcc0d63a9ad0e73b396a41e695549602c2d",
-    "fortran_sha256": "9544cd8ee98f25a5a3ad52b895cd3bcc0d63a9ad0e73b396a41e695549602c2d",
-    "input_bytes": 3902600,
-    "input_sha256": "a7e1a77edc57a97216984ebf082a6f96f1ef05186ea05a8449feb1ea56069066",
-    "differing_bytes": 0,
-    "live_summary": {
-      "calls": 25,
-      "bytes": 3902600,
-      "allocation_bytes": 3845600,
-      "independent": 240350,
-      "inactive": 0,
-      "rigid": 1900,
-      "FPCR": 0,
-      "differing_bytes": 0
-    },
+  "selected_critical": {
+    "suites": [
+      {
+        "cases": 146,
+        "returned_record_bytes": 484240,
+        "independent_active_values": 72028,
+        "inactive_values": 39396,
+        "protected_calls": 146,
+        "abi_calls": 146,
+        "different_bytes": 0,
+        "fpcr": 0
+      },
+      {
+        "cases": 2,
+        "returned_record_bytes": 544,
+        "independent_active_values": 0,
+        "inactive_values": 4,
+        "protected_calls": 2,
+        "abi_calls": 2,
+        "different_bytes": 0,
+        "fpcr": 0
+      },
+      {
+        "cases": 79,
+        "returned_record_bytes": 572480,
+        "independent_active_values": 92392,
+        "inactive_values": 45514,
+        "protected_calls": 79,
+        "abi_calls": 79,
+        "different_bytes": 0,
+        "fpcr": 0
+      },
+      {
+        "cases": 25,
+        "returned_record_bytes": 3848800,
+        "independent_active_values": 480700,
+        "inactive_values": 0,
+        "protected_calls": 25,
+        "abi_calls": 25,
+        "different_bytes": 0,
+        "fpcr": 0
+      },
+      {
+        "cases": 1,
+        "returned_record_bytes": 272,
+        "independent_active_values": 0,
+        "inactive_values": 2,
+        "protected_calls": 1,
+        "abi_calls": 1,
+        "different_bytes": 0,
+        "fpcr": 0
+      }
+    ],
+    "cases": 253,
+    "returned_record_bytes": 4906336,
+    "independent_active_values": 645120,
+    "abi_calls": 253,
+    "different_bytes": 0
+  },
+  "selected_forecast_replay": {
     "calls": 25,
-    "archive": ".runtime/openifs/runs/strict-spfilt-reviewed-7189435/t21/test_fc",
-    "evidence": ".runtime/openifs/runs/strict-spfilt-reviewed-7189435/t21/direct-comparison.json",
-    "evidence_sha256": "f3a009f17ae50047287dccaf4c4cba21d4c9d1e4e83774746b40b3402851d068",
-    "saved_files_identical": 10,
-    "paired_streams_identical": 21,
-    "actual_parent_shape": [
-      19,
-      506
-    ],
-    "actual_degree_bytes": 2024,
-    "native_library_sha256": "a818d62303ab6de50c38cf8bfde265e8eea6dc319c9ac2d7481d883fdcc2843c"
-  },
-  "runtime": {
-    "job_id": 7189435,
-    "node": "nid010825",
-    "exclusive": true,
-    "affinity": [
-      0
-    ],
-    "memory": "local",
-    "load": [
-      0.24072265625,
-      0.154296875,
-      0.09814453125
-    ],
-    "purpose": "Untimed numerical verification"
-  },
-  "failures_archived": ".runtime/openifs/spfilt/critical-001",
-  "comparative_timing_performed": false,
-  "whole_forecast_independent_physics_verified": false,
-  "sha256": {
-    "src/openifs/dynamics/spfilt.S": "792195094bc939de6bbddc2971d6d579f630aed7c49576f4aa281fd079b1ad15",
-    "bench/openifs/dynamics/spfilt.c": "b19ad493f53ec575b35a5880d63b0fc2a11b50d209d88372705e6ec885ad39af",
-    "bench/openifs/dynamics/spfilt_forecast.c": "4decc5e20960d522149be95062c1bb2f4423639187c1090d256d8a2f945caca9",
-    "bench/openifs/dynamics/spfilt_abi.S": "ec0dcdb1c20f299ad0b031bf0414814e8db4db5a9bcba331a8e94fcaa9c56cae",
-    "skills/md2asm/references/openifs/dynamics/spfilt.md": "ebd64b93956fb3a2edd3b891fa4f9eab28458790f7a90e3e99aaf2f6bb1aca3d",
-    "formulations/openifs/dynamics/atmospheric_motion.md": "0702e45875a201c21b48e75eea536e84e73e7d42124ef20a4f8d9785a89bda7c",
-    ".runtime/openifs/spfilt/preparation/input-corpus.bin": "d92a7ebc2ca609bf19b8f27b0299c218c878517d096da29cbdbd20125a7b4fb6",
-    ".runtime/openifs/spfilt/preparation/reference.bin": "312c7916984d4f0d25c0761e019959cecaf550d3a187a80ffba4760d827151cc",
-    ".runtime/openifs/spfilt/preparation/make-corpus.py": "96abf809b99f6b1917024e2b1c991e09419e8e5f7e0e7803f96a8cb4623c96c4",
-    ".runtime/openifs/spfilt/assembly.o": "09012a2ecf49a5ffac043de2429d138440d350f482692f9386ebceeb8d22063d",
-    ".runtime/openifs/spfilt/critical-002/assembly.bin": "312c7916984d4f0d25c0761e019959cecaf550d3a187a80ffba4760d827151cc",
-    ".runtime/openifs/spfilt/critical-002/fortran.bin": "312c7916984d4f0d25c0761e019959cecaf550d3a187a80ffba4760d827151cc",
-    ".runtime/openifs/spfilt/forecast/libverify-spfilt.so": "a818d62303ab6de50c38cf8bfde265e8eea6dc319c9ac2d7481d883fdcc2843c",
-    ".runtime/openifs/spfilt/empty-descriptor-001/input-corpus.bin": "4b8f1014e92c65a9f3d03e420fe14f6dad616b7ddc60fc0c66b7278200ba9f99",
-    ".runtime/openifs/spfilt/empty-descriptor-001/frozen-reference.bin": "56d495aa4808b6bfdbab9431ce7c049ab3726ce9996e8b5bfd87080776b1f4fc",
-    ".runtime/openifs/spfilt/empty-descriptor-001/assembly.bin": "56d495aa4808b6bfdbab9431ce7c049ab3726ce9996e8b5bfd87080776b1f4fc",
-    ".runtime/openifs/spfilt/empty-descriptor-001/fortran.bin": "56d495aa4808b6bfdbab9431ce7c049ab3726ce9996e8b5bfd87080776b1f4fc",
-    ".runtime/openifs/spfilt/empty-descriptor-001/freeze.json": "d1b0f35536c864ce4f9754d714a895fb6450cf1f5c7656af816f70aa18b37f83"
-  },
-  "supplementary_empty_descriptors": {
-    "cases": 2,
-    "returned_record_bytes": 544,
-    "independent_active_values": 0,
-    "inactive_values": 4,
-    "protected_calls": 2,
-    "abi_calls": 2,
+    "canonical_record_bytes": 3902600,
     "different_bytes": 0,
-    "fpcr": 0,
-    "archive": ".runtime/openifs/spfilt/empty-descriptor-001",
-    "purpose": "Actual zero-row and zero-column arrays, with field data at the protected allocation end; original corpus and kernel unchanged"
+    "source_and_accepted_forecast_sha256": "9544cd8ee98f25a5a3ad52b895cd3bcc0d63a9ad0e73b396a41e695549602c2d",
+    "selected_replay_sha256": "9544cd8ee98f25a5a3ad52b895cd3bcc0d63a9ad0e73b396a41e695549602c2d",
+    "inputs_sha256": "a7e1a77edc57a97216984ebf082a6f96f1ef05186ea05a8449feb1ea56069066",
+    "copied_metadata_and_degrees_unchanged": true
   },
-  "critical_totals": {
-    "cases": 148,
-    "returned_record_bytes": 484784,
-    "abi_calls": 148,
-    "protected_calls": 148
+  "optimisation": {
+    "method": "Private per-call table of exactly rounded repeated-degree factors",
+    "selected_threshold": 24,
+    "domain": "NSMAX=21, selected columns>=24; unchanged original body for every other shape",
+    "frame_bytes": 272,
+    "private_table_bytes": 176,
+    "all_field_multiplications_retained": true,
+    "source_compilation": {
+      "compiler": "GNU12.3 viaCray ftn wrapper",
+      "flags": "-O2 -g -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -fPIC -fopenmp; all exact original flags are in preparation/reference-build-command.json",
+      "source_unchanged": true,
+      "exp_dependency_required": ".runtime/openifs/strict-math/libpressure-math.so"
+    },
+    "release_manifest": {
+      "local": ".runtime/openifs/spfilt-tuning/released/release.json",
+      "sha256": "ebcc2c1f374c30fbf031cc999a2e9a2e91648536023a032eed799a30d16023f4"
+    },
+    "pre_emission_freeze": {
+      "local": ".runtime/openifs/spfilt-tuning/preparation/freeze-before-emission.json",
+      "sha256": "53b3011363e9d6198611f9e7bae87fa50a9d460cfd97943b0da45454a94832d4"
+    },
+    "exact_measurement_archive": {
+      "local": ".runtime/openifs/spfilt-tuning/measure-20261009T192647Z/summary.json",
+      "sha256": "768ad6c3d99fd047bf96aed4228491a89ef3c320a79aa3d142a41ee9e6bda70a"
+    }
+  },
+  "measurements": {
+    "conditions": {
+      "job_id": 7189435,
+      "node": "nid010825",
+      "affinity": [
+        8
+      ],
+      "memory": "srun --mem-bind=local requested, allocations first touched on CPU8; broad cgroup allowed-node list is preserved in before/after records, and physical page placement was not sampled",
+      "repeats": 12,
+      "fresh_calls_per_sample": 512,
+      "warmups": 32,
+      "clock_boundaries_included": true,
+      "resets_and_validation_outside_timers": true,
+      "context_switch_rejection": "entire paired rotation rejected when any sample switched",
+      "all_rejected_rotation_records": 792,
+      "all_eight_variant_variation_archive": ".runtime/openifs/spfilt-tuning/measure-20261009T192647Z/summary.json"
+    },
+    "retained_workloads": {
+      "1": {
+        "source": {
+          "samples": 12,
+          "median_ns_per_call": 296.875,
+          "minimum_ns_per_call": 294.125,
+          "maximum_ns_per_call": 311.25,
+          "mad_ns_per_call": 1.78125
+        },
+        "baseline": {
+          "samples": 12,
+          "median_ns_per_call": 34.53125,
+          "minimum_ns_per_call": 33.6875,
+          "maximum_ns_per_call": 35.25,
+          "mad_ns_per_call": 0.28125
+        },
+        "cache24": {
+          "samples": 12,
+          "median_ns_per_call": 35.09375,
+          "minimum_ns_per_call": 34.4375,
+          "maximum_ns_per_call": 36.125,
+          "mad_ns_per_call": 0.28125
+        },
+        "paired_gain_vs_general": {
+          "median": 0.9839427931168393,
+          "minimum": 0.9522968197879859,
+          "maximum": 1.0053956834532374,
+          "pairs_faster": 3
+        },
+        "paired_gain_vs_source": {
+          "median": 8.456422483123726,
+          "minimum": 8.245674740484429,
+          "maximum": 9.038112522686026,
+          "pairs_faster": 12
+        }
+      },
+      "24": {
+        "source": {
+          "samples": 12,
+          "median_ns_per_call": 497.0,
+          "minimum_ns_per_call": 489.875,
+          "maximum_ns_per_call": 499.5625,
+          "mad_ns_per_call": 1.84375
+        },
+        "baseline": {
+          "samples": 12,
+          "median_ns_per_call": 166.03125,
+          "minimum_ns_per_call": 164.5,
+          "maximum_ns_per_call": 166.5625,
+          "mad_ns_per_call": 0.4375
+        },
+        "cache24": {
+          "samples": 12,
+          "median_ns_per_call": 158.1875,
+          "minimum_ns_per_call": 156.9375,
+          "maximum_ns_per_call": 159.875,
+          "mad_ns_per_call": 0.625
+        },
+        "paired_gain_vs_general": {
+          "median": 1.0455089943068347,
+          "minimum": 1.0387021110242376,
+          "maximum": 1.0613301473516528,
+          "pairs_faster": 12
+        },
+        "paired_gain_vs_source": {
+          "median": 3.1350419497000406,
+          "minimum": 3.082547169811321,
+          "maximum": 3.1711675933280383,
+          "pairs_faster": 12
+        }
+      },
+      "31": {
+        "source": {
+          "samples": 12,
+          "median_ns_per_call": 614.90625,
+          "minimum_ns_per_call": 610.4375,
+          "maximum_ns_per_call": 617.625,
+          "mad_ns_per_call": 1.9375
+        },
+        "baseline": {
+          "samples": 12,
+          "median_ns_per_call": 260.25,
+          "minimum_ns_per_call": 258.375,
+          "maximum_ns_per_call": 261.3125,
+          "mad_ns_per_call": 0.5625
+        },
+        "cache24": {
+          "samples": 12,
+          "median_ns_per_call": 229.90625,
+          "minimum_ns_per_call": 228.9375,
+          "maximum_ns_per_call": 268.875,
+          "mad_ns_per_call": 0.1875
+        },
+        "paired_gain_vs_general": {
+          "median": 1.1315217391304349,
+          "minimum": 0.9642026964202697,
+          "maximum": 1.1414141414141414,
+          "pairs_faster": 11
+        },
+        "paired_gain_vs_source": {
+          "median": 2.672872854457763,
+          "minimum": 2.291957229195723,
+          "maximum": 2.690963690963691,
+          "pairs_faster": 12
+        }
+      },
+      "506": {
+        "source": {
+          "samples": 12,
+          "median_ns_per_call": 7614.5,
+          "minimum_ns_per_call": 7605.9375,
+          "maximum_ns_per_call": 7646.1875,
+          "mad_ns_per_call": 5.40625
+        },
+        "baseline": {
+          "samples": 12,
+          "median_ns_per_call": 5665.71875,
+          "minimum_ns_per_call": 5647.6875,
+          "maximum_ns_per_call": 5694.875,
+          "mad_ns_per_call": 6.4375
+        },
+        "cache24": {
+          "samples": 12,
+          "median_ns_per_call": 2365.6875,
+          "minimum_ns_per_call": 2363.6875,
+          "maximum_ns_per_call": 2399.25,
+          "mad_ns_per_call": 1.3125
+        },
+        "paired_gain_vs_general": {
+          "median": 2.3939041184424297,
+          "minimum": 2.3639939564447223,
+          "maximum": 2.405156002115283,
+          "pairs_faster": 12
+        },
+        "paired_gain_vs_source": {
+          "median": 3.2166084938272776,
+          "minimum": 3.1797176200896113,
+          "maximum": 3.234855495914752,
+          "pairs_faster": 12
+        }
+      }
+    },
+    "distinct_vorticity_bytes": 76912,
+    "logical_field_read_write_bytes": 153824,
+    "full_call_operations": {
+      "field_multiplications": 9614,
+      "baseline": {
+        "factor_evaluations": 506,
+        "exp_calls": 396,
+        "factor_divisions": 902,
+        "factor_multiplications": 2090,
+        "factor_additions": 506
+      },
+      "selected": {
+        "cache_active": true,
+        "factor_evaluations": 22,
+        "exp_calls": 12,
+        "factor_divisions": 34,
+        "factor_multiplications": 70,
+        "factor_additions": 22
+      },
+      "unchanged_setup": {
+        "multiplications": 1,
+        "divisions": 1,
+        "nint_conversions": 2
+      }
+    },
+    "bound": {
+      "all_probes": {
+        "factor_only_baseline": {
+          "samples": 12,
+          "median_ns_per_call": 2399.75,
+          "minimum_ns_per_call": 2378.8125,
+          "maximum_ns_per_call": 2434.0,
+          "mad_ns_per_call": 4.40625
+        },
+        "factor_only_cache32": {
+          "samples": 12,
+          "median_ns_per_call": 579.875,
+          "minimum_ns_per_call": 574.0,
+          "maximum_ns_per_call": 583.6875,
+          "mad_ns_per_call": 1.3125
+        },
+        "matched_field_multiply_schedule": {
+          "samples": 12,
+          "median_ns_per_call": 1928.375,
+          "minimum_ns_per_call": 1925.9375,
+          "maximum_ns_per_call": 1941.75,
+          "mad_ns_per_call": 0.40625
+        },
+        "matched_read_write_schedule": {
+          "samples": 12,
+          "median_ns_per_call": 1771.34375,
+          "minimum_ns_per_call": 1769.375,
+          "maximum_ns_per_call": 1797.9375,
+          "mad_ns_per_call": 0.5
+        },
+        "clock_boundaries": {
+          "samples": 12,
+          "median_ns_per_call": 29.59375,
+          "minimum_ns_per_call": 28.6875,
+          "maximum_ns_per_call": 31.8125,
+          "mad_ns_per_call": 0.46875
+        }
+      },
+      "compatible_schedule_ns_per_call": 1928.375,
+      "fraction_for_selected": 0.8151435893371377,
+      "calibrated_cached_factor_variant": 32,
+      "compatible_cached_factor_argument": "At506 selected columns, threshold24 and threshold32 execute identical cache arithmetic; only the integer dispatch immediate differs.",
+      "logical_full_field_bytes_per_call": 153824,
+      "assumptions": "These are empirical component schedules with warmed cache and the original two-lane vector width. The field multiply schedule includes traffic and coefficient lookup; factor-only includes exact exp/division and loop/setup. Their maximum is a compatible estimate, not a rigorous hardware or DRAM bound. L1 data is64KiB and private L2 is1MiB; the full read/write field span153824B fits L2. All clock costs stay included."
+    },
+    "whole_forecast_timing_performed": false
+  },
+  "prior_general_forecast_evidence": {
+    "local": ".runtime/openifs/spfilt-tuning/parent-integration/spfilt.json",
+    "sha256": "c8b06f02670b3b112a6312a7e6d141c8ac87334b47d3e712259028bcd919544c"
   }
 }

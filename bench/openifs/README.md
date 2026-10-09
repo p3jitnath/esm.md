@@ -24,7 +24,7 @@ Twenty-eight complete public direct assembly routines are verified in OpenIFS 48
 | CTVTOT | 189 | 108,080 | 2,150 | 8,049,600 | 0 |
 | SIGAM | 51 | 381,992 | 4,326 | 305,578,584 | 0 |
 | SITNU | 265 | 146,664 | 2,176 | 155,738,840 | 0 |
-| SPFILT | 148 | 484,784 | 25 | 3,902,600 | 0 |
+| SPFILT | 253 | 4,906,336 | 25 | 3,902,600 | 0 |
 | SPCIMPFPOST | 168 | 2,183,104 | 550 | 127,045,600 | 0 |
 | SPCIMPFINIT | 197 | 3,973,408 | 550 | 169,488,000 | 0 |
 | CPQTUV | 135 | 252,152 | 2,150 | 134,194,400 | 0 |
@@ -297,3 +297,5 @@ gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -Wall -Wextra -Werror
 Run the guarded GPRCP case with --capture-capacity and libverify-capacity.so preloaded. Its six-field input ends at a protected page, and its default corpus still retains all 899,712 original bytes.
 
 </details>
+
+The [spectral-filter record](dynamics/spfilt.json) includes twelve paired quiet-node measurements of complete calls. Rounded-factor reuse gives a median 2.394× gain over earlier assembly for the 19-level, 506-column call, with all output bytes identical. The record reports the small-workload variation and empirical component bound. These kernel timings do not measure a complete forecast.

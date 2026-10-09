@@ -54,7 +54,7 @@ The openifs-md branch extends the workflow to OpenIFS 48.1.1. Twenty-eight compl
 | CTVTOT air temperature | 189 | 2,150 | 0 |
 | SIGAM hydrostatic operator | 51 | 4,326 | 0 |
 | SITNU mass and temperature operators | 265 | 2,176 | 0 |
-| SPFILT spectral vorticity filter | 148 | 25 | 0 |
+| SPFILT spectral vorticity filter | 253 | 25 | 0 |
 | SPCIMPFPOST Coriolis correction | 168 | 550 | 0 |
 | SPCIMPFINIT Coriolis preparation | 197 | 550 | 0 |
 | CPQTUV physics state update | 135 | 2,150 | 0 |
