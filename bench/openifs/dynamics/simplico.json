@@ -1,0 +1,142 @@
+{
+  "routine": "SIMPLICO",
+  "status": "Complete direct body accepted by critical physics and combined full T21 forecast",
+  "contract_revision": "1.2; numerical contract and corpus frozen at 1.0, capacity observer at 1.1",
+  "source_original_sha256": "abeedaccc89e72f614336335bd6096fb16c7ccee1fecbfe69ca8f23ae2f3c4f0",
+  "generation": {
+    "route": "Complete literal AArch64 from original source and frozen Markdown physics, ordered arithmetic and ABI; assembler and linker",
+    "pre_emission_contract_sha256": "a1d5c5ffd3eb10e3ed2e97603c4437d857439f612a104697bca21d3ded75f3ac",
+    "compiler_numerical_assembly_or_IR_before_emission": false,
+    "release_manifest": ".runtime/openifs/simplico/accepted.json"
+  },
+  "corpus": {
+    "cases": 151,
+    "bytes": 2817984,
+    "sha256": "0cc0fbb70e81b785621e9ae301ce38ca3ceb1cb4f603f91041c8586d8d999a20",
+    "science_decimal_digits": 100,
+    "independent_method": "Original dense real/complex matrix with partial-pivot Gauss-Jordan elimination, plus original-matrix residual"
+  },
+  "critical": {
+    "cases": 151,
+    "calls": 610,
+    "output_bytes": 275552,
+    "stage_records": 667,
+    "stage_bytes": 1489728,
+    "science_values": 24440,
+    "residual_values": 24440,
+    "inactive_values": 7588,
+    "protected_calls": 610,
+    "abi_calls": 610,
+    "parallel_calls": 6,
+    "max_forward_limit_fraction": 0.011713342247182344,
+    "max_residual_limit_fraction": 0.008858924394695863,
+    "different_bytes": 0,
+    "fpcr": 0
+  },
+  "native_instructions": 397,
+  "abi_bridge": {
+    "location": "embedded in tracked simplico.c",
+    "ordinary_arguments": 13,
+    "incoming_stack_arguments": 5,
+    "layout_static_asserts": 15,
+    "callee_saved_registers_touched": [],
+    "canary_source": "bench/openifs/dynamics/vertical_abi.S"
+  },
+  "allocation": {
+    "job": 7189435,
+    "node": "nid010825",
+    "cpu_binding": "map_cpu:0",
+    "memory_binding": "local"
+  },
+  "toolchain": "GNU 12.3; PrgEnv-gnu; libfabric 2.3.1; strict FP64 without contraction or fast-math",
+  "source_scope": {
+    "library": ".runtime/openifs/simplico/forecast/libverify-simplico.so",
+    "relay": "spcimpfsolve_",
+    "relay_arguments": 8,
+    "complete_parents": "Separate NFLSUR by NSPEC2 PY and PX, with exact NASM0(m) view offsets",
+    "coefficient_parents": "Four complete 0:NSMAX+1 arrays, PSIVP and allocated -1:NSMAX+2 RLAPDI",
+    "single_existing_SPCM_query": "spcm_forecast_scope",
+    "duplicate_SPCM_relay": false,
+    "capture_thread_domain": "One source-caller thread, including all ancestor OpenMP teams",
+    "native_parallel_domain": "Separate fields in a genuine three-thread team verified",
+    "forecast_output_header_bytes": 160,
+    "input_and_configuration_immutability": true,
+    "no_global_DGEMM_interposition": true
+  },
+  "prior_observed_forecast_entries": 550,
+  "failures": {
+    "build-critical-001": "Werror misleading indentation before execution; corrected formatting, logs retained",
+    "numerical_acceptance": "First attempt passed; second accepted run adds nonempty parallel fixtures without changing numerical input/output or native body"
+  },
+  "timing": "Not performed; no optimisation claim",
+  "forecast": {
+    "bytes": 84691200,
+    "assembly_sha256": "03e09a84c190baf498467f0a5cb3d3a1f7d4c1af590af01ec2101174cf535192",
+    "fortran_sha256": "03e09a84c190baf498467f0a5cb3d3a1f7d4c1af590af01ec2101174cf535192",
+    "input_bytes": 85408400,
+    "input_sha256": "bbf278e5c377069da71673f33cdea8387a7f5d9ad797c8ff2496dc917c9f8627",
+    "differing_bytes": 0,
+    "calls": 550,
+    "live_summary": {
+      "calls": 550,
+      "source_calls": 550,
+      "solve_visits": 25,
+      "shadow_calls": 0,
+      "shadow_solve_visits": 0,
+      "zero_wave_calls": 25,
+      "one_degree_calls": 25,
+      "different_bytes": 0,
+      "fpcr": 0,
+      "wave_numbers": [
+        0,
+        21
+      ],
+      "calls_per_wave_number": 25
+    },
+    "raw_archive": ".runtime/openifs/runs/strict-simplico-combined-reviewed-7189435/t21/test_fc",
+    "evidence": {
+      "local": ".runtime/openifs/runs/strict-simplico-combined-reviewed-7189435/t21/direct-comparison.json",
+      "sha256": "a0340f41351b6e11d37040c1f9c5779c0ca906ddb394d149bd91182b9b40578e"
+    },
+    "paired_streams_identical": 26,
+    "saved_files_identical": 10,
+    "FPCR_zero_checked_at_every_entry_and_return": true,
+    "native_library_sha256": "b6583cf5747ad85cc275b016e075e0918ec4889339df33f71d61ad3fbd6bf83a"
+  },
+  "commands": {
+    "critical_build": ".runtime/openifs/simplico/build/build-critical.sh",
+    "critical_run": "OMP_NUM_THREADS=1 .runtime/openifs/simplico/build/verify .runtime/openifs/simplico/preparation NEW_OUTPUT_DIRECTORY",
+    "observer_build": ".runtime/openifs/simplico/forecast/build-forecast.sh"
+  },
+  "hashes": {
+    "src/openifs/dynamics/simplico.S": "f57cb446bb9be3c39196ada09d86eef8bbc68c31a2def8526953062ea090750f",
+    "bench/openifs/dynamics/simplico.c": "833496a24053c53306fcdc89ec3a4ecc7802ebe239c4c82041ebdab25c0f82be",
+    "bench/openifs/dynamics/simplico_forecast.c": "2c229e84e987d2da1049d2bdf321a278d8cddc187b0f79f97f4c4cc76a1ba5e0",
+    "skills/md2asm/references/openifs/dynamics/simplico.md": "350c2db998f79836821efc88346efe7dd1c2baea730eec1cb5c22bfb27b45a0d",
+    ".runtime/openifs/simplico/build/simplico.o": "04a36ffb79b86ecc77dbe367d042e40180c66d5775c3fb785d3e6aaa90ac02ae",
+    ".runtime/openifs/simplico/build/staged-reference.o": "8cfde84bcaac60cc30a0dc100695bb1272afff9ee7ec766d2dcb5429b6c2fc0e",
+    ".runtime/openifs/simplico/build/verifier.o": "93e38efd6d1ea0f9063ae22946b91a019c268a4b3ac34c0b47c32b3b50c02ba5",
+    ".runtime/openifs/simplico/build/simplico-stage.o": "30e80c46eb63f068ff72f1441d5635ca8c4fd80b6966fdf3a454190f352a91bb",
+    ".runtime/openifs/simplico/build/verify": "494436c253a618e6d53d8ef682aef904220981a8e20a11afc8d4e0fb0d8f6829",
+    ".runtime/openifs/simplico/forecast/simplico_forecast.o": "ef6b47b023681bb1cd9b5c232448857e1c142cc94f9826a73d8ec671883ec3cf",
+    ".runtime/openifs/simplico/forecast/libverify-simplico.so": "b6583cf5747ad85cc275b016e075e0918ec4889339df33f71d61ad3fbd6bf83a",
+    ".runtime/openifs/simplico/critical-accepted/reference-stages.bin": "7d35930f0c09f841911d1b5ae89464ec948c840df477cc9d436570c1b0b1ac03",
+    ".runtime/openifs/simplico/critical-accepted/summary.json": "d8ca125f0d74f83ec96f2df35816d2f98fe9aacb63a7bdd915ef849d08871770",
+    ".runtime/openifs/simplico/critical-accepted/assembly-stages.bin": "7d35930f0c09f841911d1b5ae89464ec948c840df477cc9d436570c1b0b1ac03",
+    ".runtime/openifs/simplico/critical-accepted/assembly.bin": "c2735fb8fb7e644010a7f0a358e480acbd389ab9c6ebe7abfe98a87cda753541",
+    ".runtime/openifs/simplico/critical-accepted/reference.bin": "c2735fb8fb7e644010a7f0a358e480acbd389ab9c6ebe7abfe98a87cda753541",
+    ".runtime/openifs/simplico/critical-accepted/run.log": "560f00f08d46460811879e6961579dc4f41f211377f407f1c44eee3348c1b797"
+  },
+  "whole_forecast_independent_physics_verified": false,
+  "comparative_timing_performed": false,
+  "artifacts": {
+    "release_manifest": {
+      "local": ".runtime/openifs/simplico/accepted.json",
+      "sha256": "1c196b68d94c9e4ef99774f6e2d3c4cb3887ac988d5a96a4ca0dad81000f34dc"
+    },
+    "build_commands": {
+      "local": ".runtime/openifs/simplico/reproduction-commands.txt",
+      "sha256": "d20c02dff8c1423b45c72ae08bbad0688010c6101481bf55a3d5964065613f64"
+    }
+  }
+}
