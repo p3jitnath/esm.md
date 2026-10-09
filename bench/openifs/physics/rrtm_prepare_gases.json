@@ -1,0 +1,224 @@
+{
+  "routine": "RRTM_PREPARE_GASES",
+  "theme": "physics",
+  "status": "Complete numerical body accepted in protected critical, isolated and combined forecast checks",
+  "contract_revision": "1.0",
+  "source": {
+    "path": "../ecmwf-openifs/ifs-source/arpifs/phys_radi/rrtm_prepare_gases.F90",
+    "sha256": "5de1deb6ebb01671a2129134344a7d206f26b1eec565380b4305e8fb1920a725",
+    "original_unchanged": true,
+    "caller_return_offset": "0xb1e9a4"
+  },
+  "route": {
+    "native_language": "AArch64 assembly",
+    "source_emission": "Direct complete body from frozen equations and 27-pointer interface, without numerical compiler assembly or IR construction",
+    "build": "GNU assembler and linker through GCC 12.3.0",
+    "first_emission": {
+      "utc": "2026-10-09T22:39:22.013734+00:00",
+      "pre_emission_freeze_sha256": "a1b8a6ed9b0e012dae7d499a18638546d844c33955bcccee64ca7b0bf5177b05",
+      "native_source_sha256": "c81d09888ca6b1a3439bafb91b9529f448ffd39013c09fa72c0fa2a8ad8de74f",
+      "route": "Complete direct AArch64 source emitted from frozen contract and equations, without numerical compiler assembly or IR construction"
+    },
+    "accepted_source_sha256": "4fda010bd14a55949c86f77b11abddff93dd866bdc6d28c04f8e1681565adaa9",
+    "ISA": "Armv8-A",
+    "instructions": 282,
+    "numerical_helpers": 0,
+    "stack_frame_bytes": 384,
+    "global_numerical_inputs": [
+      "RG",
+      "RPLRG"
+    ],
+    "forbidden_arithmetic": 0
+  },
+  "critical": {
+    "input_records": 62,
+    "guarded_calls": 124,
+    "complete_return_bytes": 1664592,
+    "independent_relations": 212156,
+    "immediate_ABI_calls": 124,
+    "negative_zero_outputs": 3780,
+    "nonzero_subnormal_outputs": 16,
+    "read_only_inputs": true,
+    "complete_protected_output_capacities": true,
+    "differing_bytes": 0,
+    "source_before_emission": true
+  },
+  "isolated_forecast": {
+    "job_id": 7207705,
+    "node": "nid011311",
+    "affinity_cpu": 16,
+    "memory": "local",
+    "calls": 6400,
+    "layers": 972800,
+    "calls_per_phase": [
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256
+    ],
+    "selected_columns": [
+      1,
+      8
+    ],
+    "input_width": 8,
+    "levels": 19,
+    "complete_return_bytes": 351539200,
+    "complete_input_bytes": 110080000,
+    "independent_relations": 44902400,
+    "direct_source_native_and_pre_emission_stream_cmp": true,
+    "direct_pre_emission_input_cmp": true,
+    "saved_files": 10,
+    "saved_bytes": 618140,
+    "direct_source_and_canonical_saved_file_cmp": true,
+    "differing_bytes": 0,
+    "FPCR_zero_every_entry_and_return": true
+  },
+  "science": {
+    "units": "Pressures Pa to hPa, temperatures K, molecular columns molecules cm^-2, trace columns scaled by 1e-20",
+    "water_convention": "Specific humidity is water mass divided by total moist-air mass",
+    "prescribed_wet_correction": "Retain original w=q Md/Mw, M=(1-w)Md+w Mw and dry denominator M(1+w)",
+    "wet_correction_is_approximate": true,
+    "exact_moist_mass_conservation_claimed": false,
+    "normal_humidity_domain": [
+      0,
+      0.05
+    ],
+    "model_max_signed_relative_mass_bias": {
+      "total": 0.002333566517565287,
+      "dry": 0.004845680719363696,
+      "water": -0.04539660331660449
+    },
+    "actual_forecast_max_signed_relative_mass_error": {
+      "total": 0.0006120069743620527,
+      "dry": 0.001254161122743967,
+      "water": -0.024102485208141834
+    },
+    "minimum_subnormal_humidity_arithmetic_edge_relative_water_error": 0.24372799447704768,
+    "minimum_subnormal_edge_is_not_physical_accuracy_evidence": true,
+    "source_coldry_and_all_channels_independently_checked": true,
+    "reverse_order_zero_channels_reflection_and_boundaries_checked": true
+  },
+  "arithmetic": {
+    "precision": "FP64",
+    "rounding": "Nearest with ties to even",
+    "gradual_underflow": true,
+    "contraction_reassociation_reciprocal_approximation": false,
+    "source_water_reassociation_witnesses": 786,
+    "source_pressure_multiply_for_divide_witnesses": 718,
+    "all_output_bits_preserved": true
+  },
+  "documentation": {
+    "renderer": "MathJax 3.2.2",
+    "rendered_expressions": 68,
+    "render_errors": 0,
+    "contract_sha256": "9162284fda65941accc3e1df00b8eab1c9e8d001c798af4f022de0cddc97356f"
+  },
+  "accepted_timing": false,
+  "implementation_hashes": {
+    "src/openifs/physics/rrtm_prepare_gases.S": "4fda010bd14a55949c86f77b11abddff93dd866bdc6d28c04f8e1681565adaa9",
+    "bench/openifs/physics/rrtm_prepare_gases.c": "73104636d196d11a3471d1dbfd84c9cad454c3b8c8236a2db3ba57910134a804",
+    "bench/openifs/physics/rrtm_prepare_gases_forecast.c": "8fc6cb26631568d36724109633159990cc642b04571a441bb6774233b2d18639",
+    "skills/md2asm/references/openifs/physics/rrtm_prepare_gases.md": "327a832f581975f19c926a0f471c90786b992faa6fee6c335b73cf4c9e9ed0e7"
+  },
+  "pre_emission_manifest": {
+    "path": ".runtime/openifs/rrtm_prepare_gases_7207705/frozen/pre-emission-contract-corpus.json",
+    "sha256": "a1b8a6ed9b0e012dae7d499a18638546d844c33955bcccee64ca7b0bf5177b05",
+    "artifacts": 50
+  },
+  "full_artifact_manifest": {
+    "path": ".runtime/openifs/rrtm_prepare_gases_7207705/full-manifest.json",
+    "sha256": "82a6b1a5587fbf17f3bc4e9af9d5895a29fa087afbbaae829f4b0e8b161e30ca",
+    "artifacts": 100,
+    "scope": "Immutable original pre-publication release; resolved public paths are retained separately"
+  },
+  "comparator": {
+    "path": ".runtime/openifs/rrtm_prepare_gases_7207705/native/libverify-rrtm-gases.so",
+    "sha256": "ea68734665833430b2ac04f32370b6173957e66b9689dc6279aa8d6adb782b4d",
+    "environment_dependency": null
+  },
+  "immutable_source_case": ".runtime/openifs/runs/strict-rrtm-gases-source-7207705/t21",
+  "immutable_native_case": ".runtime/openifs/runs/strict-rrtm-gases-native-7207705/t21",
+  "private_failure_history": [
+    ".runtime/openifs/rrtm_prepare_gases_7207705/preparation/source-only-failure-history.json",
+    ".runtime/openifs/rrtm_prepare_gases_7207705/native/assembler-failure.json"
+  ],
+  "reproduction_commands": {
+    "source_only_forecast": ".runtime/openifs/rrtm_prepare_gases_7207705/preparation/source-forecast-command.sh",
+    "isolated_native_forecast": ".runtime/openifs/rrtm_prepare_gases_7207705/native/isolated-forecast-command.sh",
+    "actual_command_archive": ".runtime/openifs/rrtm_prepare_gases_7207705/actual-command-archive.json"
+  },
+  "documentation_revision": "1.1",
+  "combined_forecast": {
+    "archive": ".runtime/openifs/runs/strict-rrtm-gases-combined-reviewed-7207705/t21/test_fc",
+    "acceptance": {
+      "local": ".runtime/openifs/runs/strict-rrtm-gases-combined-reviewed-7207705/t21/direct-comparison.json",
+      "bytes": 34881,
+      "sha256": "83784c54e956876a283b2dcdd4e11556f7ed3b7a80d19904a13d72f8dc7722be"
+    },
+    "job_id": 7207705,
+    "node": "nid011311",
+    "affinity_cpu": 0,
+    "memory_binding": "local",
+    "calls": 6400,
+    "complete_return_bytes": 351539200,
+    "complete_input_bytes": 110080000,
+    "direct_complete_pre_emission_input_and_output_cmp": true,
+    "all_saved_files_identical": true,
+    "saved_bytes": 618140,
+    "differing_bytes": 0
+  },
+  "parent_reproduction": {
+    "release_review": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/parent-review/parent-release-hash-review.json",
+      "bytes": 208,
+      "sha256": "12cd4506155f54bb7c8120c6cc5451be0adf252aec35d76ef33db84ad1755390"
+    },
+    "critical_command": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/parent-review/critical-reproduction-command.sh",
+      "bytes": 897,
+      "sha256": "bed45042957befb1ae72009468ebe08f2be87cdec60d1fb86c3e9a25357b7a9d"
+    },
+    "critical_result": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/parent-review/critical-reproduction.log",
+      "bytes": 503,
+      "sha256": "2bfe2ceb6f4b3753974044cc107db95a9bf6c93cf54907a17c48dbb7f30e236e"
+    },
+    "native_object_identical": true,
+    "guarded_calls": 124,
+    "complete_return_bytes": 1664592,
+    "independent_relations": 212156,
+    "direct_ABI_calls": 124,
+    "differing_bytes": 0
+  },
+  "preserved_pre_publication_record": {
+    "local": ".runtime/openifs/rrtm_prepare_gases_7207705/parent-review/original-public-files/bench/openifs/physics/rrtm_prepare_gases.json",
+    "bytes": 6495,
+    "sha256": "9a1b61d1edfc0f157c96626cd3d00bb1121bedd75f9793dcba31fb6cce60e51d"
+  },
+  "preserved_release_resolution": {
+    "local": ".runtime/openifs/rrtm_prepare_gases_7207705/parent-review/resolved-original-manifest.json",
+    "bytes": 22340,
+    "sha256": "9dd1c727033af630a689ff39e0dd8925c4d27f22708fa5d318953360b9e3f1b7"
+  }
+}
