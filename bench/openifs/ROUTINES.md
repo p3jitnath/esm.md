@@ -53,7 +53,7 @@ The trace excludes local C/C++ bodies and uninstrumented external libraries, inc
 | GPTF1, GPTF2 | Complete two-part time filter |
 | CTVTOT | Complete temperature from the moist-air equation of state |
 
-All thirty-six public bodies pass their critical checks. Every captured forecast call also passes; VERDER has no visit in this case, so its acceptance uses the small verifier. The [verification notes](README.md) state the evidence and its limits. Complete assembly coverage, raw whole-forecast states, independent whole-forecast physical checks and the external numerical-library arithmetic audit remain unfinished.
+All thirty-eight public bodies pass their critical checks. Every captured forecast call also passes; VERDER has no visit in this case, so its acceptance uses the small verifier. The [verification notes](README.md) state the evidence and its limits. Complete assembly coverage, raw whole-forecast states, independent whole-forecast physical checks and the external numerical-library arithmetic audit remain unfinished.
 
 Current work prioritises the coarse forecast. Work proceeds through its active numerical routines one at a time, with dynamics first and the remaining physical schemes later. For each routine, freeze its physics and md2asm contract, emit the complete assembly body, pass physical and exact-byte checks, then verify its forecast calls before proceeding.
 
@@ -77,7 +77,7 @@ A time filter removes unwanted oscillation between successive time levels. The [
 
 GPCTY's unchanged finite-element source writes only the bottom of one returned pressure-divergence field. Repeated runs with identical mathematical inputs and different prior storage leave 760 differing output bytes at other levels. The current forecast uses only the written level, but exact acceptance requires every returned byte, so this routine remains in Fortran until its source contract is corrected and independently reviewed.
 
-These nine entries are completed or reviewed priorities, rather than a complete list of remaining numerical routines. SIGAM, SITNU, SPFILT, SPCIMPFINIT, SPCIMPFPOST, SPCIMPFSOLVE, SIMPLICO and LAITLI now also have verified complete bodies. Verified physics includes CPQTUV and CUBIDIAG for transport, liquid and Fu ice-cloud optics, delta scaling, longwave gas preparation and shortwave spectral band 26. The [current forecast record](forecast.json) lists all 36 accepted bodies. Continue source-role review on the remaining active forecast calculations before each new physics contract, preserving the original source and all audit evidence.
+These nine entries are completed or reviewed priorities, rather than a complete list of remaining numerical routines. SIGAM, SITNU, SPFILT, SPCIMPFINIT, SPCIMPFPOST, SPCIMPFSOLVE, SIMPLICO, LAITLI and LAIDDI now also have verified complete bodies. Verified physics includes CPQTUV and CUBIDIAG for transport, liquid and Fu ice-cloud optics, delta scaling, longwave gas preparation and shortwave spectral bands 25 and 26. The [current forecast record](forecast.json) lists all 38 accepted bodies. Continue source-role review on the remaining active forecast calculations before each new physics contract, preserving the original source and all audit evidence.
 
 To reproduce the build inventory, load GNU 12.3 and run the following command through srun in your own quiet exclusive allocation. The [counter](count_routines.py) uses Python's standard library and the existing compiler.
 

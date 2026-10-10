@@ -1,0 +1,268 @@
+{
+  "routine": "LAIDDI",
+  "status": "Complete numerical body accepted in protected critical, frozen-input replay, isolated and parent combined forecast checks",
+  "contract_revision": "1.0",
+  "documentation_revision": "1.2",
+  "generation": {
+    "route": "Direct complete AArch64 from frozen Markdown physics, ordered arithmetic, clipping and typed original-source ABI; assembler and linker only",
+    "compiler_numerical_assembly_or_IR_before_emission": false,
+    "first_body_unchanged": true,
+    "pre_emission_contract_sha256": "05129951e4c7b0133115eb74be474706de7438b25530592e813a2308a59efb17",
+    "pre_emission_freeze_sha256": "026682b15a671312580a7a25f6449a9c3466937d3e946e1b5ebd732a1649a2f0",
+    "release_manifest": ".runtime/openifs/laiddi-7207705/accepted.json"
+  },
+  "domain": {
+    "integer_bits": 32,
+    "real_bits": 64,
+    "storage": "Contiguous row-fast arrays, fourteen ordinary pointers and complete declared capacities",
+    "shape_bounds": "Nonnegative sizes, signed 32-bit extents and valid twelve-neighbour indices as declared in the contract",
+    "clipping_flags": [
+      0,
+      1
+    ],
+    "coefficients": "Finite used coefficients, including signed extrapolation, with finite ordered intermediates",
+    "zero_ties": "Original typed MIN uses negative zero and MAX uses positive zero for mixed signs; same-sign zero is retained",
+    "inactive_bits": "Arbitrary unused input and incoming output bits remain unchanged",
+    "numerical_dependencies": []
+  },
+  "source_science": {
+    "checked_utc": "2026-10-09T23:35:30.579782+00:00",
+    "source_only": true,
+    "primary_emitted": false,
+    "cases": 288,
+    "decimal_digits": 100,
+    "expanded_corner_values": 52836,
+    "independent_limiter_operations": 79254,
+    "central_neighbour_bounds": 26418,
+    "exact_constant_values": 3596,
+    "affine_values": 3596,
+    "exact_unlimited_endpoint_values": 1798,
+    "exact_negative_zero_values": 3596,
+    "maximum_fraction_forward_limit": 0.0006099626019627046,
+    "maximum_source_magnitude_times_gain": "1.708593749999999863766477598629830021069648033668344386358780823861953483662387703357542230310081354E+151",
+    "method": "Independent expanded twelve-neighbour interpolation with separately clipped row/latitude values, constants, affine coordinates, endpoints, signed-zero original-body probes and central-neighbour bounds",
+    "forward_limit": "256*2^-52*max(max_abs_corner,2^-1022)*gain+128*2^-1074*gain; gain is latitude gain times maximum row gain",
+    "input_bytes": 27119680,
+    "source_bytes": 552512,
+    "independent_bytes": 1049664,
+    "input_sha256": "9159d8b10fe9d5a54f337b01d0e8b78cb230808728348df9eade47e85e147a30",
+    "source_sha256": "e33cf44bcf7bba41df8467982b548d0cc353255d60f38e392f374e8f07655daf",
+    "independent_sha256": "9663ca0cd8ce40f5d8a87084c29cf9eb5d92d7f5e8678f605c47b951fbb98878"
+  },
+  "critical": {
+    "actual_replay": false,
+    "cases": 288,
+    "direct_abi_calls": 291,
+    "protected_tail_cases": 288,
+    "genuine_three_thread_calls": 3,
+    "independent_values": 52836,
+    "canonical_bytes": 552512,
+    "different_bytes": 0,
+    "fpcr": 0
+  },
+  "captured_input_replay": {
+    "actual_replay": true,
+    "cases": 2150,
+    "direct_abi_calls": 2150,
+    "protected_tail_cases": 2150,
+    "genuine_three_thread_calls": 0,
+    "independent_values": 0,
+    "canonical_bytes": 8256000,
+    "different_bytes": 0,
+    "fpcr": 0
+  },
+  "object_audit": {
+    "instructions": 121,
+    "function_bytes": 484,
+    "point_arithmetic_operations": 33,
+    "optional_minimum_maximum_selections": 12,
+    "floating_additions": 11,
+    "floating_subtractions": 11,
+    "floating_multiplications": 11,
+    "floating_minima": 6,
+    "floating_maxima": 6,
+    "external_symbols": [],
+    "primary_frame_bytes": 0,
+    "callee_saved_registers_touched": [],
+    "reserved_x18_accesses": 0,
+    "fused_or_approximate_arithmetic": 0,
+    "fp32_arithmetic": 0,
+    "abi_object_primary_prefix_identical": true,
+    "source_sha256": "bccce5c0ac38e55c8060e795a6e25cf8ed29d07214b2f6504eda3beff1726dae",
+    "object_sha256": "f0dcbe44ad66e1fd9310d5e87e167fe3dde909db9d00ab551802dd64676a3e6c"
+  },
+  "allocation": {
+    "job": 7207705,
+    "node": "nid011311",
+    "cpu_binding": "map_cpu:32",
+    "memory_binding": "local",
+    "processes": 1,
+    "forecast_threads": 1
+  },
+  "toolchain": "GNU 12.3; PrgEnv-gnu; libfabric 2.3.1; strict FP64 with contraction and fast-math disabled",
+  "forecast": {
+    "source_archive": ".runtime/openifs/runs/strict-laiddi-source-complete-7207705/t21/test_fc",
+    "native_archive": ".runtime/openifs/runs/strict-laiddi-assembly-7207705/t21/test_fc",
+    "summary": {
+      "calls": 2150,
+      "active_values": 972800,
+      "canonical_bytes": 8256000,
+      "input_bytes": 1245985200,
+      "different_bytes": 0,
+      "fpcr": 0,
+      "independent_precision_bits": 113,
+      "independent_limiter_operations": 2918400,
+      "limited_bound_values": 972800,
+      "maximum_fraction_forward_limit": 0.000806740642617275,
+      "partial_calls": 25,
+      "flag_calls": [
+        0,
+        2150
+      ]
+    },
+    "complete_same_input_source_native_different_bytes": 0,
+    "all_ten_saved_files_identical": true,
+    "saved_bytes": 618140,
+    "source_input_sha256": "bd87f6d2f7c4372514e748d4570880cf554abf78d79926992e5ed78d5275dc74",
+    "native_input_sha256": "23ddab88a9294a564e29e7f7ec34b7cb476108f4294c1ba8aca0837fe70e4de1",
+    "source_output_sha256": "342f20f2ad2a0a4c1a868198c4af0dd2e638e3937fc487586348776672f6b11f",
+    "native_output_sha256": "ab526b39ba9d71c92b67110ff96f033f59bcd300e8def52d750713f7a0b88700",
+    "separate_run_opaque_storage_review": {
+      "active_values_directly_identical": 972800,
+      "active_different_bytes": 0,
+      "different_inactive_calls": 17,
+      "different_inactive_cells": 5168,
+      "different_inactive_bytes": 36053,
+      "first_complete_input_difference": {
+        "visit": 1,
+        "payload_byte": 575688,
+        "field": "incoming_output",
+        "field_byte": 0,
+        "source_word_hex": "0x0000400031611140",
+        "native_word_hex": "0x000040004f7711c0"
+      },
+      "first_complete_return_difference": {
+        "visit": 258,
+        "level": 1,
+        "row": 9,
+        "selected_rows": [
+          1,
+          8
+        ],
+        "source_word_hex": "0x4026e4260c7a098f",
+        "native_word_hex": "0x4026f72e9447bb9f",
+        "first_stream_byte_one_based": 987137
+      },
+      "explanation": "Fresh forecasts may have different opaque incoming storage. Every output bit is preserved, whole same-input pairs and frozen input replay have zero differences, and no captured bit is masked or normalised."
+    },
+    "whole_forecast_independent_science": false,
+    "independent_physics_scope": "Complete native LAIDDI twelve-neighbour interpolation and all three clips; other forecast stages have separate acceptance",
+    "isolated_acceptance_record": {
+      "local": ".runtime/openifs/laiddi-7207705/native-forecast-review.json",
+      "sha256": "175985469ff3fa9ac23b6bf0ba2a29907ad3827430b6da54524a44753af3f3cf"
+    }
+  },
+  "timing": "Not performed; no measured optimisation claim",
+  "evidence": {
+    "commands": ".runtime/openifs/laiddi-7207705/commands-release.json",
+    "first_emission": ".runtime/openifs/laiddi-7207705/first-emission.json",
+    "pre_emission_artifacts": 43,
+    "complete_source_input_bytes": 1245985200,
+    "critical_input_bytes": 27119680,
+    "independent_bytes": 1049664,
+    "pre_emission_artifacts_rechecked": 43
+  },
+  "hashes": {
+    "src/openifs/dynamics/laiddi.S": "bccce5c0ac38e55c8060e795a6e25cf8ed29d07214b2f6504eda3beff1726dae",
+    "bench/openifs/dynamics/laiddi.c": "3a2a1cfdd05c29e3ebf95f0203269e7fd3cd478e3f877b7de6f2b1203ca3c764",
+    "bench/openifs/dynamics/laiddi_forecast.c": "1cbf9d090941dac94bdcd348a52606f3f81a6a81db3c03ae03e45efa2e731383",
+    "skills/md2asm/references/openifs/dynamics/laiddi.md": "d959322032749d3a86bcfaa375ea308dd8df65c93a626b94bfc2394320e97e09"
+  },
+  "public_reproduction": {
+    "critical_summary": {
+      "path": ".runtime/openifs/laiddi-7207705/public-reviewed/summary.json",
+      "bytes": 198,
+      "sha256": "be8bd26c77e658ed0986cab4beca04b307b354e7b9145304424271760710ae8f"
+    },
+    "complete_return_bytes_identical": true,
+    "primary_and_abi_objects_identical": true,
+    "numerical_C_unchanged": true,
+    "native_comparator": {
+      "path": ".runtime/openifs/laiddi-7207705/public-reviewed/libverify-laiddi.so",
+      "bytes": 187752,
+      "sha256": "d998ad9343c713bbb08303002935dbbb32d509a09d7911388ef92e9f9b23926a"
+    }
+  },
+  "current_documentation": {
+    "contract": {
+      "local": "skills/md2asm/references/openifs/dynamics/laiddi.md",
+      "bytes": 18412,
+      "sha256": "d959322032749d3a86bcfaa375ea308dd8df65c93a626b94bfc2394320e97e09"
+    },
+    "numerical_revision_unchanged": "1.0",
+    "math_render": {
+      "local": ".runtime/openifs/laiddi-7207705/parent-review/math-render.json",
+      "bytes": 348,
+      "sha256": "5def7a6198e28f6c73e48e7dc82cd66aedbb65f623641b28e3a3172773a4d2a6"
+    }
+  },
+  "combined_forecast": {
+    "archive": ".runtime/openifs/runs/strict-laiddi-shortwave25-combined-reviewed-7207705/t21/test_fc",
+    "acceptance": {
+      "local": ".runtime/openifs/runs/strict-laiddi-shortwave25-combined-reviewed-7207705/t21/direct-comparison.json",
+      "bytes": 43236,
+      "sha256": "95fbe90deb449d141c66a4738ddd485dc0e34b8bdfedfbeec6ddc59cd0727dda"
+    },
+    "job_id": 7207705,
+    "node": "nid011311",
+    "affinity_cpu": 4,
+    "memory_binding": "local",
+    "calls": 2150,
+    "complete_return_bytes": 8256000,
+    "complete_input_bytes": 1245985200,
+    "independent_relations_or_values": 972800,
+    "complete_same_input_differing_bytes": 0,
+    "all_saved_files_identical": true,
+    "saved_bytes": 618140,
+    "separate_fresh_run_review": {
+      "active_values_directly_identical": 972800,
+      "active_differing_bytes": 0,
+      "different_inactive_bytes": 42346,
+      "different_inactive_calls": 20,
+      "complete_input_identity_claimed": false,
+      "reason": "All mathematical fields match directly. Differing opaque incoming inactive output storage remains present in full same-input comparisons and frozen-input replay."
+    }
+  },
+  "parent_reproduction": {
+    "release_review": {
+      "local": ".runtime/openifs/laiddi-7207705/parent-review/parent-release-hash-review.json",
+      "bytes": 336,
+      "sha256": "12cda25a5b3c1d3ec29e2b749983c08135dc9fa9ffbbd864e736be1be9ae4c6d"
+    },
+    "critical_command": {
+      "local": ".runtime/openifs/laiddi-7207705/parent-review/critical-reproduction-command.sh",
+      "bytes": 1445,
+      "sha256": "1a324a67b0d3c70a55fbf119e74e89fe372ebadb8e7487b8acc1ef9d3a99bd2a"
+    },
+    "critical_result": {
+      "local": ".runtime/openifs/laiddi-7207705/parent-review/critical-reproduction.log",
+      "bytes": 269,
+      "sha256": "978725e38f1340a4a7e50bb0e8608593128daa836a1a0fed709442ebf0d8ad2f"
+    },
+    "native_object_identical": true,
+    "protected_critical_calls_or_cases": 288,
+    "complete_critical_return_bytes": 552512,
+    "immediate_ABI_calls": 291,
+    "differing_bytes": 0
+  },
+  "preserved_original_release_resolution": {
+    "local": ".runtime/openifs/laiddi-7207705/parent-review/resolved-original-release.json",
+    "bytes": 35106,
+    "sha256": "d40724ac74c027bd736b6336104659ecbc692ef76f866d509b2d8df6c536e67b"
+  },
+  "preserved_pre_publication_record": {
+    "local": ".runtime/openifs/laiddi-7207705/parent-review/original-public-files/bench/openifs/dynamics/laiddi.json",
+    "bytes": 8582,
+    "sha256": "01e0003c467b89663094862850dda3e84440fe20a57f319deca5cef773621607"
+  }
+}

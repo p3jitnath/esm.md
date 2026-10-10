@@ -1,6 +1,6 @@
 # OpenIFS verification
 
-Thirty-six complete public direct assembly routines are verified in OpenIFS 48.1.1. Their small checks include independent physical balances, exact output bytes, optional inputs, boundaries and buffer guards. The latest coarse forecast used own exclusive job 7207705 on nid011311, with one process, one thread, CPU 4 and local memory binding. Each routine's compact record preserves its earlier checks.
+Thirty-eight complete public direct assembly routines are verified in OpenIFS 48.1.1. Their small checks include independent physical balances, exact output bytes, optional inputs, boundaries and buffer guards. The latest coarse forecast used own exclusive job 7207705 on nid011311, with one process, one thread, CPU 4 and local memory binding. Each routine's compact record preserves its earlier checks.
 
 | Routine | Critical cases | Critical bytes | Forecast calls checked | Forecast bytes | Differing bytes |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -38,6 +38,8 @@ Thirty-six complete public direct assembly routines are verified in OpenIFS 48.1
 | RRTM_PREPARE_GASES | 124 | 1,664,592 | 6,400 | 351,539,200 | 0 |
 | LAITLI | 126 | 237,728 | 47,300 | 180,118,400 | 0 |
 | SRTM_TAUMOL26 | 124 | 1,153,920 | 6,400 | 255,795,200 | 0 |
+| LAIDDI | 288 | 552,512 | 2,150 | 8,256,000 | 0 |
+| SRTM_TAUMOL25 | 92 | 893,056 | 6,400 | 255,795,200 | 0 |
 
 The strict-source Fortran build uses the original sources with separate multiplication and addition. The global T21 forecast has 2,048 grid points and 19 atmospheric levels. The archived test starts at 12 UTC on 15 October 2004 and saves a 24-hour forecast at 12 UTC on 16 October. Its 25 time-step visits include the initial step, with one process and one thread. All ten upstream output files at hours 0, 6, 12, 18 and 24 match a fresh strict-source Fortran run with the same pressure math and ordered vertical matrix sum byte for byte. Every captured call of the used assembly routines also matches its strict Fortran counterpart, including inactive cells. The verification drivers record and compare states but supply no missing numerical update. GPRCP and GPPWC captures preserve untouched caller bytes, so hashes identify an archived run. The input capture also records incoming output bytes for exact replay.
 
@@ -63,6 +65,6 @@ Run every build and simulation through srun in your own quiet exclusive allocati
 
 For transport and cloud checks, use the [transport contract](../../skills/md2asm/references/openifs/physics/cubidiag.md) and [cloud delta-scaling contract](../../skills/md2asm/references/openifs/physics/delta_eddington_scat_od.md). Both commands compare the complete native and Fortran outputs directly, then compare Fortran with its frozen source-only stream. The [implicit solve](../../skills/md2asm/references/openifs/dynamics/spcimpfsolve.md) and [longwave gas preparation](../../skills/md2asm/references/openifs/physics/rrtm_prepare_gases.md) give their complete checks in the same form.
 
-The [forecast record](forecast.json) identifies all accepted bodies, the exact verification libraries and the archived launch and comparison commands. Use a fresh copy of the historical T21 case, one process, one thread and local memory binding. Launch its OpenIFS executable with srun and the cray_shasta MPI option. Retain all thirty-four paired routine streams, compare each pair with cmp, and compare all ten saved files with the listed canonical baseline. Check that FPCR is zero at each numerical entry. A mismatch stops acceptance before any comparative timing. Interpolation and spectral buffers can contain unused incoming storage. Retain those complete bytes, compare fresh complete source/native pairs with the same inputs, and replay every original complete frozen input. Their active physical fields also match the earlier source run directly.
+The [forecast record](forecast.json) identifies all accepted bodies, the exact verification libraries and the archived launch and comparison commands. Use a fresh copy of the historical T21 case, one process, one thread and local memory binding. Launch its OpenIFS executable with srun and the cray_shasta MPI option. Retain all thirty-six paired routine streams, compare each pair with cmp, and compare all ten saved files with the listed canonical baseline. Check that FPCR is zero at each numerical entry. A mismatch stops acceptance before any comparative timing. Interpolation and spectral buffers can contain unused incoming storage. Retain those complete bytes, compare fresh complete source/native pairs with the same inputs, and replay every original complete frozen input. Their active physical fields also match the earlier source run directly.
 
 Large source inputs, shared libraries, commands and captures stay in ignored .runtime/openifs/. These local paths identify reproducible evidence for this checkout. Downloaded OpenIFS files retain their upstream licence and are not copied into Git.
