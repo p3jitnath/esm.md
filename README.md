@@ -24,7 +24,7 @@ This model gives one average temperature for each latitude band. The Sun’s rad
 | 4096 | 599.68 | 498.27 | 509.81 | 493.75 |
 | 65536 | 590.51 | 488.69 | 489.47 | 514.88 |
 
-Start with the [short template](formulations/TEMPLATE.md), [shallow-water maths](formulations/sw/shallow_water.md), or [energy-balance maths](formulations/ebm/budyko_sellers.md). The [md2asm skill](skills/md2asm/SKILL.md) supplies the numerical and implementation details and retains the measured assembly optimisations.
+Start with the [short template](formulations/TEMPLATE.md), [shallow-water maths](formulations/sw/shallow_water_2d_periodic.md), or [energy-balance maths](formulations/ebm/budyko_sellers.md). The [md2asm skill](skills/md2asm/SKILL.md) supplies the numerical and implementation details and retains the measured assembly optimisations.
 
 The published tree contains Markdown and assembly. Build instructions and the local comparison protocol are in the [evaluation notes](skills/md2asm/SKILL.md). [AGENTS.md](AGENTS.md) defines the first-year-undergraduate writing convention. Local tools, language controls, data and the poster remain outside Git.
 
