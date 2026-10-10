@@ -1,0 +1,314 @@
+{
+  "routine": "LAITRI",
+  "status": "Complete supported numerical body accepted in protected critical, frozen-input replay, isolated and parent combined forecast checks",
+  "contract_revision": "1.0",
+  "documentation_revision": "1.2",
+  "generation": {
+    "route": "Direct complete supported AArch64 from frozen Markdown physics, ordered arithmetic, clipping and typed source ABI; assembler and linker only",
+    "compiler_numerical_assembly_or_IR_before_emission": false,
+    "first_body_unchanged": true,
+    "pre_emission_contract_sha256": "eb494ccde6620043dbf9c7669a996279d251e4c7ecda5d93457318372f134627",
+    "pre_emission_freeze_sha256": "6555031f3fa1aa6ead1a6fe2850bdd42c0e08c99a8f6b3b33e3aed64341b95a1",
+    "release_manifest": ".runtime/openifs/laitri-7207705/accepted.json"
+  },
+  "domain": {
+    "integer_bits": 32,
+    "real_bits": 64,
+    "source_index_kind_bits": 32,
+    "storage": "Contiguous row-fast arrays, eighteen ordinary pointers and complete declared capacities",
+    "accepted_flags": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "excluded_original_conservation_flag": -1,
+    "other_flags": "Rejected before numerical execution",
+    "shape_bounds": "Nonnegative sizes, original signed 32-bit offset/extent bounds and valid 32-neighbour indices in the contract",
+    "coefficients": "Finite used coefficients, including signed extrapolation, with finite ordered intermediates",
+    "optional_inputs": "Absent or present, unchanged and unused for supported flags",
+    "source_layout_settings_checked": [
+      0,
+      1
+    ],
+    "zero_ties": "Mixed zero signs give negative zero for MIN and positive zero for MAX; same-sign zeros retain their sign",
+    "inactive_bits": "Arbitrary unused inputs and incoming output bits are retained",
+    "numerical_dependencies": []
+  },
+  "source_science": {
+    "checked_utc": "2026-10-10T00:07:09.269720+00:00",
+    "source_only": true,
+    "primary_emitted": false,
+    "cases": 1152,
+    "decimal_digits": 100,
+    "expanded_corner_values": 211344,
+    "whole_layout_pairs_identical": 576,
+    "exact_constant_values": 14384,
+    "independent_clip_operations": 739704,
+    "eight_central_neighbour_bounds": 52836,
+    "closed_form_affine_values": 14384,
+    "exact_endpoint_values": 14384,
+    "exact_negative_zero_values": 14384,
+    "maximum_fraction_forward_limit": 4.7856962713823025e-05,
+    "maximum_source_magnitude_times_gain": "5.766503906249999540211861895375676321110062113630662303960885280534093007360558498831705027296524569E+151",
+    "method": "Expanded 32-neighbour polynomial with separately clipped row/latitude/vertical values; closed-form affine coordinates, constants, endpoints, exact negative zeros and whole source-layout pairs",
+    "forward_limit": "1024*2^-52*max(max_abs_corner,2^-1022)*gain+512*2^-1074*gain; gain=max_longitude_gain*max_latitude_gain*vertical_gain",
+    "input_bytes": 115916096,
+    "source_bytes": 2246720,
+    "independent_bytes": 4235328,
+    "input_sha256": "9f77cc185ec78f74f103b5094d8a7138c543b29fba4076464c99d9849cdcc4c4",
+    "source_sha256": "24cdbe3dbbd36c38db5253c095ad188ea27a430f617264c0a63d9a38e87dedf9",
+    "independent_sha256": "82a474d75a63686acf8be0b3260e2f2b8cb7a7c6d39ed33784469b9ffa4ee377"
+  },
+  "critical": {
+    "actual_replay": false,
+    "cases": 1152,
+    "direct_abi_calls": 1159,
+    "protected_tail_cases": 1152,
+    "genuine_three_thread_calls": 3,
+    "independent_values": 211344,
+    "canonical_bytes": 2246720,
+    "different_bytes": 0,
+    "fpcr": 0
+  },
+  "captured_input_replay": {
+    "actual_replay": true,
+    "cases": 4300,
+    "direct_abi_calls": 4300,
+    "protected_tail_cases": 4300,
+    "genuine_three_thread_calls": 0,
+    "independent_values": 0,
+    "canonical_bytes": 16649600,
+    "different_bytes": 0,
+    "fpcr": 0
+  },
+  "object_audit": {
+    "instructions": 304,
+    "function_bytes": 1216,
+    "point_arithmetic_operations": 93,
+    "source_samples_per_point": 32,
+    "maximum_minimum_maximum_selections": 28,
+    "floating_additions": 31,
+    "floating_subtractions": 31,
+    "floating_multiplications": 31,
+    "floating_minima": 14,
+    "floating_maxima": 14,
+    "external_symbols": [],
+    "primary_frame_bytes": 0,
+    "callee_saved_registers_touched": [],
+    "reserved_x18_accesses": 0,
+    "fused_or_approximate_arithmetic": 0,
+    "fp32_arithmetic": 0,
+    "abi_object_primary_prefix_identical": true,
+    "unsupported_flag_branch_before_other_scalar_or_numerical_array_reads": true,
+    "source_sha256": "75e455a2ba931fe5cf1c3c1e72739ff9a39fa92caa52670e527d691acfacf73a",
+    "object_sha256": "297b731451dd84665ac1410b8313441173d1c57847ab94371e3af3e7d35c662d"
+  },
+  "guard_checks": {
+    "source_observer_unsupported_flags": 4,
+    "native_observer_unsupported_flags": 4,
+    "both_verifier_modes_unsupported_flag_headers": 8,
+    "primary_unsupported_flag_early_return_abi_calls": 4,
+    "neither_numerical_body_executed_for_rejected_flags": true,
+    "native_guard_record": {
+      "local": ".runtime/openifs/laitri-7207705/build/native-unsupported-flag-rejection.json",
+      "sha256": "3dc20d8d593af86da85e3545ed5ade8ac1d46a4583194912f99ddb1f834837a6"
+    }
+  },
+  "allocation": {
+    "job": 7207705,
+    "node": "nid011311",
+    "cpu_binding": "map_cpu:32",
+    "memory_binding": "local",
+    "processes": 1,
+    "forecast_threads": 1
+  },
+  "toolchain": "GNU 12.3; PrgEnv-gnu; libfabric 2.3.1; strict FP64 with contraction and fast-math disabled",
+  "forecast": {
+    "source_archive": ".runtime/openifs/runs/strict-laitri-source-complete-7207705/t21/test_fc",
+    "native_archive": ".runtime/openifs/runs/strict-laitri-assembly-7207705/t21/test_fc",
+    "summary": {
+      "calls": 4300,
+      "active_values": 1945600,
+      "canonical_bytes": 16649600,
+      "input_bytes": 2554853600,
+      "different_bytes": 0,
+      "fpcr": 0,
+      "independent_precision_bits": 113,
+      "independent_clip_operations": 11673600,
+      "central_bound_values": 0,
+      "maximum_fraction_forward_limit": 0.00011060881085331144,
+      "partial_calls": 50,
+      "flag_calls": [
+        0,
+        4300,
+        0,
+        0
+      ],
+      "caller_calls": [
+        4300,
+        0,
+        0
+      ],
+      "optional_present_calls": [
+        0,
+        0
+      ],
+      "layout_calls": [
+        4300,
+        0
+      ]
+    },
+    "complete_same_input_source_native_different_bytes": 0,
+    "separate_fresh_returned_stream_different_bytes": 0,
+    "complete_input_identity_claimed": false,
+    "all_ten_saved_files_identical": true,
+    "saved_bytes": 618140,
+    "source_input_sha256": "6e1c70aaa228afa9ff24b1ddf11ad690bea8156b6399e6e54effdbcf01dea468",
+    "native_input_sha256": "73809de93b0fbb3ee78dd8f45d2cdc830df35afa716e89ab46d9343be2e4475e",
+    "source_output_sha256": "7fda45993ee7a892bc077b6ed9518c54e49571f5a2c3e8c90a784d2cb2d41a92",
+    "native_output_sha256": "7fda45993ee7a892bc077b6ed9518c54e49571f5a2c3e8c90a784d2cb2d41a92",
+    "separate_run_input_scope_review": {
+      "checked_utc": "2026-10-10T00:17:55.300773+00:00",
+      "calls": 4300,
+      "active_values": 1945600,
+      "selected_sample_bit_comparisons": 62259200,
+      "selected_coefficient_fraction_index_differences": 0,
+      "selected_source_sample_differences": 0,
+      "different_input_bytes_by_field": {
+        "source_field": 11928200,
+        "source_indices": 133000
+      },
+      "different_input_words_by_field": {
+        "source_field": 1515750,
+        "source_indices": 57950
+      },
+      "different_input_calls_by_field": {
+        "source_field": 2150,
+        "source_indices": 50
+      },
+      "first_changed_input_word": {
+        "visit": 1,
+        "field": "source_field",
+        "word": 55129,
+        "source_word_hex": "0x528197819584da88",
+        "native_word_hex": "0xc675469bd70a960",
+        "read_by_this_call": false
+      },
+      "complete_input_identity_claimed": false,
+      "returned_stream_differences": 0,
+      "explanation": "Complete incoming captures differ only in unused source samples and other unconsumed storage. Every selected coefficient, fraction, index and all thirty-two source reads agree bit for bit. Complete raw captures are retained, whole same-input outputs and frozen replay have zero differences, and no bit is masked or normalised."
+    },
+    "whole_forecast_independent_science": false,
+    "independent_physics_scope": "Complete supported native LAITRI 32-neighbour interpolation for flags zero through three and its six actual horizontal clips; separate flag minus one conservation correction is excluded; other forecast stages have separate acceptance",
+    "isolated_acceptance_record": {
+      "local": ".runtime/openifs/laitri-7207705/native-forecast-review.json",
+      "sha256": "3fa79977b649d6021c4cef1908089bab8048a3ff888d0990a810543573ed2f96"
+    }
+  },
+  "timing": "Not performed; no measured optimisation claim",
+  "evidence": {
+    "commands": ".runtime/openifs/laitri-7207705/commands-release.json",
+    "first_emission": ".runtime/openifs/laitri-7207705/first-emission.json",
+    "pre_emission_artifacts": 65,
+    "complete_source_input_bytes": 2554853600,
+    "critical_input_bytes": 115916096,
+    "independent_bytes": 4235328,
+    "pre_emission_artifacts_rechecked": 65
+  },
+  "hashes": {
+    "src/openifs/dynamics/laitri.S": "75e455a2ba931fe5cf1c3c1e72739ff9a39fa92caa52670e527d691acfacf73a",
+    "bench/openifs/dynamics/laitri.c": "caa3076917104a59a6a11ed371ce66a0fd9c1bc76f99074d7fc19cf107ad3908",
+    "bench/openifs/dynamics/laitri_forecast.c": "d558e39c0d0702fb37a8ea0e4658e64610ae98d07131e14d33cf5771616483cd",
+    "skills/md2asm/references/openifs/dynamics/laitri.md": "ed6cf1571c9abb7795363eacf29044c8a41bbc95428c17fe6ef07dcd7393573e"
+  },
+  "public_reproduction": {
+    "critical_summary": {
+      "path": ".runtime/openifs/laitri-7207705/public-reviewed/summary.json",
+      "bytes": 203,
+      "sha256": "b17cbb03556afe66d732765a374f66514f29c2e0b3ddd25835cafe92f061d930"
+    },
+    "complete_return_bytes_identical": true,
+    "primary_and_abi_objects_identical": true,
+    "numerical_C_unchanged": true,
+    "native_comparator": {
+      "path": ".runtime/openifs/laitri-7207705/public-reviewed/libverify-laitri.so",
+      "bytes": 187904,
+      "sha256": "37b20f67034c953793714e3fc233a60c2c075d24ac5257c749fb2b778133d99d"
+    }
+  },
+  "current_documentation": {
+    "contract": {
+      "local": "skills/md2asm/references/openifs/dynamics/laitri.md",
+      "bytes": 19472,
+      "sha256": "ed6cf1571c9abb7795363eacf29044c8a41bbc95428c17fe6ef07dcd7393573e"
+    },
+    "numerical_revision_unchanged": "1.0",
+    "math_render": {
+      "local": ".runtime/openifs/laitri-7207705/parent-review/math-render.json",
+      "bytes": 348,
+      "sha256": "49504dc7215cdda34761e2e65d3aeba64071be60303ea3ba4e2e9c3f98391934"
+    }
+  },
+  "combined_forecast": {
+    "archive": ".runtime/openifs/runs/strict-laitri-shortwave27-combined-reviewed-7207705/t21/test_fc",
+    "acceptance": {
+      "local": ".runtime/openifs/runs/strict-laitri-shortwave27-combined-reviewed-7207705/t21/direct-comparison.json",
+      "bytes": 47688,
+      "sha256": "d4c5fd28935b98c0152e6eb1bc907b3219cc5c539a0e0f35d91935fb31ef2b7d"
+    },
+    "job_id": 7207705,
+    "node": "nid011311",
+    "affinity_cpu": 4,
+    "memory_binding": "local",
+    "calls": 4300,
+    "complete_return_bytes": 16649600,
+    "complete_input_bytes": 2554853600,
+    "independent_relations_or_values": 1945600,
+    "complete_same_input_differing_bytes": 0,
+    "all_saved_files_identical": true,
+    "saved_bytes": 618140,
+    "separate_fresh_run_review": {
+      "active_values_directly_identical": 1945600,
+      "active_differing_bytes": 0,
+      "different_inactive_bytes": 0,
+      "different_inactive_calls": 0,
+      "complete_input_identity_claimed": false,
+      "reason": "Every active physical value matches directly. Complete same-input comparisons and original frozen replay retain all unused incoming storage, including unconsumed source samples and inactive indices."
+    }
+  },
+  "parent_reproduction": {
+    "release_review": {
+      "local": ".runtime/openifs/laitri-7207705/parent-review/parent-release-hash-review.json",
+      "bytes": 337,
+      "sha256": "ec37c0b41139d2dd9ce81d3176725cd7a9b6488e8dabc191411c931ce31e8198"
+    },
+    "critical_command": {
+      "local": ".runtime/openifs/laitri-7207705/parent-review/critical-reproduction-command.sh",
+      "bytes": 1499,
+      "sha256": "52d1dbaa7d2f6e642130ca54b4c2c14fd68290749abc0787390f3592ba507840"
+    },
+    "critical_result": {
+      "local": ".runtime/openifs/laitri-7207705/parent-review/critical-reproduction.log",
+      "bytes": 75,
+      "sha256": "3225abb9a4451a326b5baad21198f91dc554c3042c01c48ac726462a444669d3"
+    },
+    "native_object_identical": true,
+    "affinity_cpu": 2,
+    "memory_binding": "local",
+    "protected_critical_calls_or_cases": 1152,
+    "complete_critical_return_bytes": 2246720,
+    "immediate_ABI_calls": 1159,
+    "differing_bytes": 0
+  },
+  "preserved_original_release_resolution": {
+    "local": ".runtime/openifs/laitri-7207705/parent-review/resolved-original-release.json",
+    "bytes": 60344,
+    "sha256": "37292591c79fa21aef5e48789a7a691575971841efdec68b761a1afd19814d8c"
+  },
+  "preserved_pre_publication_record": {
+    "local": ".runtime/openifs/laitri-7207705/parent-review/original-public-files/bench/openifs/dynamics/laitri.json",
+    "bytes": 10295,
+    "sha256": "f8ebc8ce0b6f02dcc91ede2ebfb5178ec7170aeaa27b2e0fa890c6ac40166f3d"
+  }
+}
