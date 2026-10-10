@@ -1,5 +1,5 @@
-// Direct AArch64 NEON/SVE realisation of formulations/sw/shallow_water_2d_periodic.md revision 1.0.
-// The public ABI is in skills/md2asm/references/shallow_water_2d_rusanov_ssprk2.md; helpers follow explicit internal register contracts.
+// Direct AArch64 NEON/SVE realisation of formulations/sw/2d_periodic.md revision 1.0.
+// The public ABI is in skills/md2asm/references/2d_rusanov_ssprk2.md; helpers follow explicit internal register contracts.
 // Public entries preserve x19-x29, the required d8-d15 halves, and stack alignment.
 // Arithmetic follows D03 and D04 without contraction or approximations.
 
