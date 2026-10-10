@@ -205,58 +205,53 @@
       }
     },
     "source_role_review": {
-      "review_date_utc": "2026-10-10T00:54:24.761469+00:00",
+      "review_date_utc": "2026-10-10T01:22:13.188957+00:00",
       "counts": {
         "configuration_support": 25,
-        "io_support": 28,
+        "io_support": 37,
         "model_driver": 38,
-        "numerical_diagnostic": 27,
-        "numerical_helper": 158,
-        "numerical_interface": 55,
-        "numerical_setup": 4,
+        "numerical_diagnostic": 30,
+        "numerical_helper": 165,
+        "numerical_interface": 56,
+        "numerical_setup": 5,
         "numerical_stage": 81,
-        "runtime_support": 97,
+        "runtime_support": 102,
         "state_storage": 196,
-        "unreviewed": 757,
+        "unreviewed": 731,
         "numerical_unspecified": 0
       },
-      "reviewed_source_bodies": 709,
-      "unreviewed_source_bodies": 757,
-      "scope": "Complete source-role review through the sealed 709-body release; returned means used by pressure and tracer corrections remain numerical dependencies",
-      "core_numerical_purpose_bodies": 294,
-      "broad_numerical_purpose_bodies": 325,
+      "reviewed_source_bodies": 735,
+      "unreviewed_source_bodies": 731,
+      "scope": "Complete source-role review through the sealed 735-body release; physical and output arithmetic remain explicit numerical dependencies",
+      "core_numerical_purpose_bodies": 302,
+      "broad_numerical_purpose_bodies": 337,
       "categories_are_disjoint": true,
       "exact_required_numerical_routine_count_established": false,
       "snapshot": {
-        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-private-source-role-release-31-after-678.json",
-        "bytes": 21726,
-        "sha256": "ab63a673b06ef94f998b1d34308d619b66a7aca2d180de473ad7f54a2c912583"
+        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-private-source-role-release-26-after-709.json",
+        "bytes": 18229,
+        "sha256": "f775cd0daafff545fa38e73e7547a908b109d0bfecb3e6c10a127af7357dc111"
       },
       "batch_summaries": [
         {
-          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-batch68-complete-transform-entry-guards-batch-drivers-and-layout-exchange-summary.json",
-          "bytes": 4577,
-          "sha256": "a216c076288446c4bc5453150340e570cb7480e185c22863bcbe5f4d9676a600"
+          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-batch73-complete-grib-metadata-packing-and-model-level-field-selection-summary.json",
+          "bytes": 4613,
+          "sha256": "b7e86d8d253b873515608c1b2ead29225e2f6e9ad789891d9bf16e3f1ac5f9d6"
         },
         {
-          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-batch69-weighted-grid-reductions-and-spectral-norm-workflow-summary.json",
-          "bytes": 4577,
-          "sha256": "f49df94875673b7ef85bdf8d7639e48073ab01459d5217a02116c4b340601c91"
+          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-batch74-complete-spectral-status-diagnostics-and-output-monitor-transform-summary.json",
+          "bytes": 4635,
+          "sha256": "965c7207a3b6b8eda83146d3a74c2d23015108021cf6a30635ae905ff99a50a9"
         },
         {
-          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-batch70-grid-and-spectral-gather-entry-guards-and-complete-placement-summary.json",
-          "bytes": 4543,
-          "sha256": "f8403df74107b1919c9300ce5b6cb284adb1dd5e08f03c6f12ed3c7a98a0e5fa"
+          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-batch75-complete-entered-grid-model-output-diagnostics-and-pressure-interpolation-summary.json",
+          "bytes": 4681,
+          "sha256": "3d02e3a7e0275aba673514b939685a55d594b064a0f809ca97dc11e84b21cd6e"
         },
         {
-          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-batch71-complete-grid-latitude-transfers-and-transform-table-inquiry-summary.json",
-          "bytes": 4593,
-          "sha256": "c432e5c530616961c0bbf8b06efe8cc41e5e99e7903aec0f4e3c7cc289abcaf2"
-        },
-        {
-          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-batch72-grid-correction-mean-wrappers-spectral-diagnostics-and-packing-fit-summary.json",
-          "bytes": 4623,
-          "sha256": "e3866922f80bfdfc14ae3fef83e3298aba009dc77fdcb12ca827eeea8a9a6326"
+          "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-batch76-complete-entered-spectral-transposes-and-process-addressing-summary.json",
+          "bytes": 4596,
+          "sha256": "43af7a9bf1760bf82ca39817d6da61271b3a956ec0a29259d28dbc23226fc2bd"
         }
       ],
       "initial_evidence_artifacts_unchanged": 18,
@@ -269,26 +264,26 @@
       "broad_numerical_purpose_qualification": "Core plus numerical setup and diagnostic bodies. No reviewed mathematical body remains pending a detailed role. This subtotal does not establish required weather-evolution arithmetic or a conversion percentage.",
       "assembly_conversion_denominator_established": false,
       "reviewed_source_bodies_by_phase": {
-        "before_CNT4": 178,
-        "within_CNT4": 618,
-        "after_CNT4": 37
+        "before_CNT4": 182,
+        "within_CNT4": 644,
+        "after_CNT4": 38
       },
       "phase_body_sets_overlap": true,
       "previous_snapshot": {
-        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-private-source-role-release-23-after-655.json",
-        "bytes": 17442,
-        "sha256": "195d84bb67415c72574d718acee59bdde44a4a3192a3cd3636f7dd738ad6bb1a"
+        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-private-source-role-release-31-after-678.json",
+        "bytes": 21726,
+        "sha256": "ab63a673b06ef94f998b1d34308d619b66a7aca2d180de473ad7f54a2c912583"
       },
       "parent_validation": {
-        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/parent-release31-after678-review.json",
+        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/parent-release26-after709-review.json",
         "bytes": 421,
-        "sha256": "7757da36dac7940bcc19736be5653c0d98f2fe850b51bdf1fd8c5fb46e1473cd"
+        "sha256": "1f4bcb881890f5431b6c4c3df430f8659d5715988ae5d4089a4451d79dc4c866"
       },
-      "validation_command": ".runtime/python/bin/python .runtime/openifs/routine-audit/coverage-7207705/source-review/verify_role_release_v9.py .runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-private-source-role-release-31-after-678.json",
+      "validation_command": ".runtime/python/bin/python .runtime/openifs/routine-audit/coverage-7207705/source-review/verify_role_release_v10.py .runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-private-source-role-release-26-after-709.json",
       "validator": {
-        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/verify_role_release_v9.py",
+        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/verify_role_release_v10.py",
         "bytes": 3857,
-        "sha256": "1f62a1079b3cc70f25c25030c6fbe78571ac863ba025171a91c457a65a67a1f0"
+        "sha256": "b5405157ac46ffb9f7401ac8b935b1351eb8cf26ec6a6b5b8d7234aa04a332a6"
       },
       "prior_batch_summaries_preserved_in_previous_snapshot": true
     },
