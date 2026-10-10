@@ -25,6 +25,8 @@ Add cases only for a scientific requirement or a changed critical path, such as 
 
 Reuse accepted verification tools and qualified arithmetic routes. Keep one focused review of the changed physics, interface and instructions, with critical tests for new requirements or observed defects. Verify several completed OpenIFS replacements in one forecast batch when their dependencies permit it, retaining independent physics and zero differing bytes for each routine. Record the new result once in compact Markdown and avoid repeated provenance reviews, full-file hashing and redundant reruns.
 
+For long FP64 capture checks, represent physical residuals and their existing rounding budgets with bounded exact integers when this preserves the accepted equations. Check carries, cancellation and threshold ties on a small exact-rational corpus, then stream the accepted inputs once. The [shortwave adding contract](references/openifs/physics/adding_ica_sw.md) records a complete 97,750-call physical check using this method.
+
 ## Locate the performance bound
 
 Profile complete steps and inspect their machine instructions before tuning. Registers are small storage locations inside the processor; vector instructions apply one operation to several values at once. Build a [roofline model](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2008/EECS-2008-134.pdf) from useful operations, live working sets, and traffic at each relevant memory level. Keep estimated logical bytes distinct from measured cache refills and DRAM traffic.

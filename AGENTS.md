@@ -56,6 +56,8 @@ Optimise generated assembly as far as the declared target and numerical contract
 
 Apply the md2asm skill's roofline analysis to identify the attainable compute and memory bounds, including division and square-root throughput under the numerical contract, then use measured bottlenecks to reduce the gap. Report the measured fraction of the relevant bound and its assumptions rather than claiming global optimality.
 
+After the complete forecast runs in assembly, maximise its measured speed. Profile whole time steps, prioritise the largest costs and tune vector instructions, register reuse, memory access and instruction scheduling within the frozen numerical contract. Retain improvements only when repeated quiet-node measurements support them, preserve every verified output bit and put all reusable positive optimisation lessons in md2asm.
+
 - For Python, use reusable NumPy buffers or compiled numerical loops, with a strong compiled baseline and no interpreted loops in the timed kernel.
 - For Fortran, use explicit kinds and interfaces, contiguous arrays, and suitable loop order, enabling strong optimisation for the actual CPU and inspecting vectorisation reports.
 - For Julia, use type-stable functions, concrete arrays, and reusable buffers, measuring allocations and reporting just-in-time compilation separately from steady-state timing.
