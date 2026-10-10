@@ -1,0 +1,267 @@
+{
+  "schema_revision": "1.1",
+  "routine": "SRTM_TAUMOL19",
+  "numerical_revision": "1.0",
+  "original_lines": 175,
+  "model": "Complete eight-channel mixed water and carbon dioxide absorption, lower water continua, upper carbon dioxide, molecular scattering and nine-column lower solar interpolation",
+  "generation": {
+    "primary_emissions": 1,
+    "direct_AArch64_from_frozen_science_ABI_and_ordered_arithmetic": true,
+    "compiler_numerical_assembly_or_IR_used_for_construction": false,
+    "instructions": 321,
+    "body_bytes": 1284,
+    "frame_bytes": 384,
+    "pointers": 26,
+    "complete_globals_bytes": 107908,
+    "fixed_frame_bytes": 352,
+    "extra_frame_bytes": "16*ceil(4*n/16)",
+    "maximum_frame_bytes": 16736
+  },
+  "target": "Armv8-A binary64 on Neoverse-V2",
+  "numerical_features": {
+    "FPCR": 0,
+    "FMA": false,
+    "FP32": false,
+    "approximate_arithmetic": false,
+    "signed_zero_and_gradual_underflow": true
+  },
+  "critical": {
+    "input_records": 148,
+    "protected_calls": 296,
+    "complete_bytes": 3652352,
+    "independent_relations": 1040144,
+    "ABI": 296,
+    "positive_zeros": 544,
+    "negative_zeros": 6656,
+    "nonzero_subnormals": 10656,
+    "differing_bytes": 0
+  },
+  "actual_frozen_replay": {
+    "input_records": 6400,
+    "protected_calls": 6400,
+    "complete_bytes": 255795200,
+    "independent_relations": 80691200,
+    "ABI": 6400,
+    "differing_bytes": 0
+  },
+  "source_science": {
+    "source_only_calls": 6400,
+    "full_input_bytes": 1052697600,
+    "full_return_bytes": 255795200,
+    "connected_gas_continuum_cap_relations": 10547200,
+    "layer_columns": 972800,
+    "critical_mixture_layers": 3825,
+    "actual_mixture_layers": 768000,
+    "all_eight_mixture_intervals_visited": true,
+    "bounded_INT_MOD_complete_bit_proof": true,
+    "original_moist_air_approximation_preserved": true,
+    "exact_wet_mass_conservation_claimed": false
+  },
+  "coefficient_provenance": {
+    "original_RADSRTM_record": 4,
+    "record_marker_offset": 435224,
+    "payload_offset": 435228,
+    "payload_bytes": 104960,
+    "whole_RADSRTM_sha256": "068ab620ee7a42d0a4dc26240a595b96fe40e027b5c612983f58d01dbb8577e7",
+    "payload_sha256": "c69416ebad4bf3a452eab2848518df15db1af9a67028f3a32b6b68d70243e528",
+    "raw_and_converted_table_bytes_identical": true,
+    "all_literal_continuum_and_nine_solar_column_coefficients_bits_identical": true,
+    "ordered_reduction_bits_identical": true,
+    "high_precision_relations": 6745,
+    "coefficient_groups": [
+      {
+        "point": 1,
+        "raw_points": 1,
+        "weight_sum": "1"
+      },
+      {
+        "point": 2,
+        "raw_points": 1,
+        "weight_sum": "1"
+      },
+      {
+        "point": 3,
+        "raw_points": 1,
+        "weight_sum": "1"
+      },
+      {
+        "point": 4,
+        "raw_points": 1,
+        "weight_sum": "1"
+      },
+      {
+        "point": 5,
+        "raw_points": 2,
+        "weight_sum": "1.00000000000000000000000000000000000000000000000000000"
+      },
+      {
+        "point": 6,
+        "raw_points": 2,
+        "weight_sum": "0.99999999999999988897769753748434595763683319091796875"
+      },
+      {
+        "point": 7,
+        "raw_points": 4,
+        "weight_sum": "1.00000000000000000000000000000000000000000000000000000000"
+      },
+      {
+        "point": 8,
+        "raw_points": 4,
+        "weight_sum": "1.0000000000000000173472347597680709441192448139190673828125"
+      }
+    ],
+    "active_channels": 8,
+    "complete_channels": 16,
+    "complete_ABSA_rows": 585,
+    "complete_ABSB_rows": 235,
+    "complete_self_rows": 10,
+    "complete_foreign_rows": 3,
+    "complete_solar_columns": 9,
+    "weight_offset": 48,
+    "rayleigh_inverse_scaled_column": 2.29e-09,
+    "solar_reference_pressure_index": 3,
+    "dimensionless_STRRAT": 5.49281,
+    "units": {
+      "columns": "10^20 molecules/cm^2, including original rounded default-real1.E-20 scaling",
+      "line_continuum_and_rayleigh_coefficients": "inverse corresponding scaled molecular column",
+      "density_factors": "dimensionless relative density at1013hPa and296K",
+      "fractions_and_optical_depth": "dimensionless",
+      "solar": "W/m^2"
+    },
+    "actual_original_optional_setup": {
+      "source_only_original_setup": true,
+      "optional_argument_present": true,
+      "selected_value": 0,
+      "CAVIAR_modification_active": false,
+      "FPCR": 0
+    },
+    "nonselected_continuum_paths_source_archived": true
+  },
+  "isolated_forecast": {
+    "calls": 6400,
+    "complete_same_input_return_bytes": 255795200,
+    "differing_bytes": 0,
+    "all_ten_saved_file_bytes": 618140,
+    "saved_file_differing_bytes": 0,
+    "complete_frozen_replay_direct_cmp": true
+  },
+  "fresh_input_qualification": {
+    "all_complete_readonly_argument_arrays_globals_and_headers_identical": true,
+    "selected_readonly_bytes_identical": 96256000,
+    "opaque_object_differing_bytes": 12802,
+    "complete_incoming_differing_bytes": 51410061,
+    "preserved_unused_return_differing_bytes": 51397259,
+    "preserved_gas_differing_bytes": 25022015,
+    "preserved_rayleigh_differing_bytes": 26375244,
+    "complete_fresh_input_identity_claimed": false,
+    "complete_fresh_return_identity_claimed": false,
+    "all_bits_retained_without_normalization": true
+  },
+  "verification_release": ".runtime/openifs/srtm_taumol19_7207705",
+  "pre_emission_freeze": ".runtime/openifs/srtm_taumol19_7207705/preparation/pre-emission-freeze.json",
+  "pre_emission_freeze_sha256": "d73eab77373d43b4e8043bc8b5746bc792027635419c3e6b61ec72565cd9797d",
+  "isolated_comparator": {
+    "path": ".runtime/openifs/srtm_taumol19_7207705/native/libverify-srtm19.so",
+    "bytes": 192440,
+    "sha256": "3cd63c7b5efc3e43ddf294cd70797c4c80cb4e465ea5e870b7a6839888734600"
+  },
+  "actual_allocation": {
+    "job": 7207705,
+    "node": "nid011311",
+    "cpu": 16,
+    "memory": "local"
+  },
+  "accepted_comparative_timing": false,
+  "first_body_peer": {
+    "path": ".runtime/openifs/srtm_taumol19_7207705/native/independent-first-body-static-peer-review.json",
+    "sha256": "9a69a2fda71999b247b8dae7ff87d451469f82ca528edd4156954ae1a93314cc"
+  },
+  "actual_public_reproduction": {
+    "path": ".runtime/openifs/srtm_taumol19_7207705/public-reproduction/acceptance.json",
+    "bytes": 2005,
+    "sha256": "be69615bf8dd160b5476dfecf524daa24f0b8209e2cf63432613c9bb71b7b28e"
+  },
+  "documentation_revision": "1.1",
+  "first_parent_comparator": {
+    "path": ".runtime/openifs/srtm_taumol19_7207705/native/libverify-srtm19-parent.so",
+    "bytes": 192400,
+    "sha256": "a794a7565454da99651f5a221edd054831763901baab36436d4d860cd5ef29f2",
+    "build_define": "SRTM19_OMIT_INIT_RELAY",
+    "requirement": "Accepted band29 observer records unchanged original initialization with present flag0"
+  },
+  "current_public_comparators": {
+    "standalone": {
+      "local": "/lus/lfs1aip2/projects/u6yq/users/p3jitnath/esm.md/.runtime/openifs/srtm_taumol19_7207705/parent-review/current-public-reproduction-refined/libverify-srtm19.so",
+      "bytes": 192440,
+      "sha256": "a6dbf79434a3b43e0309ce30b01330b06a4a37f561303fe86ec59292967a3145"
+    },
+    "parent": {
+      "local": "/lus/lfs1aip2/projects/u6yq/users/p3jitnath/esm.md/.runtime/openifs/srtm_taumol19_7207705/parent-review/current-public-reproduction-refined/libverify-srtm19-parent.so",
+      "bytes": 192400,
+      "sha256": "7b22df6979fdf1ed9716c0002257f8cb6ae0596f75d9e1b9831e588ca6d07c73"
+    },
+    "parent_build_define": "SRTM19_OMIT_INIT_RELAY",
+    "requirement": "The sole accepted band29 observer forwards unchanged original initialization with present flag zero."
+  },
+  "root_current_public_reproduction": {
+    "local": ".runtime/openifs/srtm_taumol19_7207705/parent-review/current-refined-public-reproduction-and-label-preflight-review.json",
+    "bytes": 5707,
+    "sha256": "77832f3bbd67d243736948c49fae66171cb877d7d9336ce9c27add70b608829d"
+  },
+  "source_label_preflight": {
+    "wide_count_before_shape_check": true,
+    "maximum_KFDIA": 2147483646,
+    "invalid_extreme_headers_rejected": 3,
+    "complete_high_label_protected_ABI_calls": 4,
+    "complete_high_label_bytes": 4992,
+    "different_bytes": 0,
+    "first_numerical_primary_unchanged": true
+  },
+  "combined_forecast": {
+    "calls": 6400,
+    "same_input_complete_return_bytes": 255795200,
+    "input_bytes": 1052697600,
+    "selected_readonly_numerical_input_bytes": 96256000,
+    "used_input_differing_bytes": 0,
+    "active_output_differing_bytes": 0,
+    "preserved_unused_return_differing_bytes": 54610831,
+    "opaque_incoming_object_differing_bytes": 12802,
+    "complete_fresh_input_identity_claimed": false,
+    "complete_fresh_return_identity_claimed": false,
+    "all_preserved_returns_equal_own_incoming_storage": true,
+    "all_full_raw_artifacts_retained": true,
+    "complete_direct_comparison": {
+      "local": ".runtime/openifs/runs/strict-shortwave19-combined-reviewed-7207705/t21/direct-comparison.json",
+      "bytes": 69469,
+      "sha256": "b766689e2ccf0d20e7598561b1e6501ee2d604afbcc3186cafc6260bc01e8c65"
+    },
+    "complete_raw_input_qualification": {
+      "local": ".runtime/openifs/srtm_taumol19_7207705/parent-review/current-public-combined-fresh-input-review-r2.json",
+      "bytes": 8046,
+      "sha256": "d91385dd6f6e760c95545a22f03c145c6e78b0ab1e47b4b3d24e37bff3e3f38f"
+    },
+    "sole_original_setup_record": {
+      "local": ".runtime/openifs/runs/strict-shortwave19-combined-reviewed-7207705/t21/test_fc/srtm29-continuum-option.json",
+      "bytes": 132,
+      "sha256": "e7cc1770ecbdd68f0706404c53daa73fd614a62f37156af8e012fb38e59adf81"
+    },
+    "all_previous_36_libraries_unchanged": true,
+    "paired_streams": 46,
+    "paired_output_bytes": 6748998408,
+    "saved_files": 10,
+    "saved_bytes": 618140,
+    "different_bytes": 0
+  },
+  "root_immutable_reference_review": {
+    "local": ".runtime/openifs/srtm_taumol19_7207705/parent-review/root-immutable-reference-review.json",
+    "bytes": 1959,
+    "sha256": "9b746cd4351c360ac22ba6da7720543745f325951f13d5d55e56f8c5f6c0b933"
+  },
+  "root_verification_allocation": {
+    "job": 7207705,
+    "node": "nid011311",
+    "critical_CPU": 2,
+    "forecast_CPU": 4,
+    "memory": "local"
+  }
+}

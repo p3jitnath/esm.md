@@ -1,6 +1,6 @@
 # OpenIFS verification
 
-Forty-seven public direct assembly routines are verified in OpenIFS 48.1.1 within their declared input ranges. Their small checks include independent physical balances, exact output bytes, optional inputs, boundaries and buffer guards. The latest coarse forecast used own exclusive job 7207705 on nid011311, with one process, one thread, CPU 4 and local memory binding. Each routine's compact record preserves its earlier checks.
+Forty-eight public direct assembly routines are verified in OpenIFS 48.1.1 within their declared input ranges. Their small checks include independent physical balances, exact output bytes, optional inputs, boundaries and buffer guards. The latest coarse forecast used own exclusive job 7207705 on nid011311, with one process, one thread, CPU 4 and local memory binding. Each routine's compact record preserves its earlier checks.
 
 LAITRI implements the complete declared interpolation for clipping flags zero through three. Its separate original conservation branch, selected by flag minus one, is outside this accepted release. LASCAW_CLO accepts fourteen defined flag combinations and excludes combinations one and nine. LASCAW_VINTW accepts fifty-six defined flag combinations and excludes combinations 2, 3, 18, 19, 34, 35, 50 and 51. Every other routine also retains its declared input range.
 
@@ -51,6 +51,7 @@ LAITRI implements the complete declared interpolation for clipping flags zero th
 | SRTM_TAUMOL20 | 80 | 914,432 | 6,400 | 255,795,200 | 0 |
 | SRTM_TAUMOL16 | 296 | 3,652,352 | 6,400 | 255,795,200 | 0 |
 | LASCAW_CLA | 1,512 | 24,218,944 | 2,150 | 71,964,800 | 0 |
+| SRTM_TAUMOL19 | 296 | 3,652,352 | 6,400 | 255,795,200 | 0 |
 
 The strict-source Fortran build uses the original sources with separate multiplication and addition. The global T21 forecast has 2,048 grid points and 19 atmospheric levels. The archived test starts at 12 UTC on 15 October 2004 and saves a 24-hour forecast at 12 UTC on 16 October. Its 26 recorded iterations contain 25 physical advances, with one process and one thread. All ten upstream output files at hours 0, 6, 12, 18 and 24 match a fresh strict-source Fortran run with the same pressure math and ordered vertical matrix sum byte for byte. Every captured call of the used assembly routines also matches its strict Fortran counterpart, including inactive cells. The verification drivers record and compare states but supply no missing numerical update. GPRCP and GPPWC captures preserve untouched caller bytes, so hashes identify an archived run. The input capture also records incoming output bytes for exact replay.
 
