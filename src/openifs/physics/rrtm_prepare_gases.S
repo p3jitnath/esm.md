@@ -73,6 +73,26 @@ ORIGINAL_SYMBOL:
     fdiv d8,d8,d0
     fmul d8,d8,d13          /* Rounded gravity in centimetres per second squared. */
     cbz x20,.Lgas_return
+    cmp x20,#2
+    b.lo .Lgas_lane_constants_ready
+    dup v8.2d,v8.d[0]
+    dup v9.2d,v9.d[0]
+    dup v10.2d,v10.d[0]
+    dup v11.2d,v11.d[0]
+    dup v12.2d,v12.d[0]
+    dup v13.2d,v13.d[0]
+    dup v14.2d,v14.d[0]
+    dup v15.2d,v15.d[0]
+    dup v16.2d,v16.d[0]
+    dup v17.2d,v17.d[0]
+    dup v18.2d,v18.d[0]
+    dup v19.2d,v19.d[0]
+    dup v20.2d,v20.d[0]
+    dup v21.2d,v21.d[0]
+    dup v22.2d,v22.d[0]
+    dup v23.2d,v23.d[0]
+    dup v24.2d,v24.d[0]
+.Lgas_lane_constants_ready:
     ldr x9,[sp,#368]
     mov x10,x20
 .Lgas_reflection:
@@ -107,6 +127,23 @@ ORIGINAL_SYMBOL:
     ldr x2,[sp,#352]
     ldr x3,[sp,#360]
     mov x27,#0
+    cmp x20,#2
+    b.lo .Lgas_surface_row
+.Lgas_surface_row_vector:
+    add x28,x25,x27,lsl#3
+    ldr q0,[x0,x28]
+    fdiv v0.2d,v0.2d,v13.2d
+    add x11,x2,x27,lsl#3
+    str q0,[x11]
+    ldr q1,[x1,x28]
+    add x11,x3,x27,lsl#3
+    str q1,[x11]
+    add x27,x27,#2
+    sub x9,x20,x27
+    cmp x9,#2
+    b.hs .Lgas_surface_row_vector
+    cmp x27,x20
+    b.eq .Lgas_surface_row_done
 .Lgas_surface_row:
     add x28,x25,x27,lsl#3
     ldr d0,[x0,x28]
@@ -117,6 +154,7 @@ ORIGINAL_SYMBOL:
     add x27,x27,#1
     cmp x27,x20
     b.ne .Lgas_surface_row
+.Lgas_surface_row_done:
     cbz x22,.Lgas_return
     mov x23,#0
 .Lgas_first_level:
@@ -129,6 +167,87 @@ ORIGINAL_SYMBOL:
     mul x26,x24,x9
     lsl x26,x26,#3          /* Output gas layer base, in bytes. */
     mov x27,#0
+    cmp x20,#2
+    b.lo .Lgas_first_row
+.Lgas_first_row_vector:
+    add x28,x25,x27
+    lsl x28,x28,#3          /* Complete input cell byte offset. */
+    add x10,x24,x27
+    lsl x10,x10,#3          /* Compact scalar-output cell byte offset. */
+    ldr x9,[sp,#200]
+    ldr q0,[x9,x28]
+    fdiv v0.2d,v0.2d,v13.2d
+    ldr x9,[sp,#336]
+    str q0,[x9,x10]
+    ldr x9,[sp,#216]
+    ldr q1,[x9,x28]
+    ldr x9,[sp,#344]
+    str q1,[x9,x10]
+    ldr x9,[sp,#192]
+    ldr q3,[x9,x28]
+    fdiv v3.2d,v3.2d,v13.2d
+    ldr x9,[sp,#352]
+    ldr q2,[x9,x10]         /* Previous rounded interface pressure. */
+    add x11,x10,x20,lsl#3
+    str q3,[x9,x11]         /* Current rounded interface pressure. */
+    ldr x9,[sp,#208]
+    ldr q1,[x9,x28]
+    ldr x9,[sp,#360]
+    str q1,[x9,x11]
+    ldr x9,[sp,#320]
+    add x9,x9,x26
+    add x9,x9,x27,lsl#3     /* First gas channel at this cell. */
+    lsl x4,x20,#3           /* Channel stride in bytes. */
+    ldr x11,[sp,#224]
+    ldr q0,[x11,x28]
+    fmul v0.2d,v0.2d,v9.2d
+    fdiv v0.2d,v0.2d,v10.2d
+    str q0,[x9]             /* Rounded water volume ratio. */
+    add x11,x9,x4
+    ldr x12,[sp,#232]
+    ldr q1,[x12,x28]
+    fmul v1.2d,v1.2d,v9.2d
+    fdiv v1.2d,v1.2d,v16.2d
+    str q1,[x11]
+    add x11,x11,x4
+    ldr x12,[sp,#296]
+    ldr q1,[x12,x28]
+    fmul v1.2d,v1.2d,v9.2d
+    fdiv v1.2d,v1.2d,v17.2d
+    str q1,[x11]
+    add x11,x11,x4
+    ldr x12,[sp,#248]
+    ldr q1,[x12,x28]
+    fmul v1.2d,v1.2d,v9.2d
+    fdiv v1.2d,v1.2d,v18.2d
+    str q1,[x11]
+    add x11,x11,x4,lsl#1    /* Keep channel five at its initial positive zero. */
+    ldr x12,[sp,#240]
+    ldr q1,[x12,x28]
+    fmul v1.2d,v1.2d,v9.2d
+    fdiv v1.2d,v1.2d,v19.2d
+    str q1,[x11]
+    add x11,x11,x4
+    str q15,[x11]
+    fsub v5.2d,v12.2d,v0.2d
+    fmul v5.2d,v5.2d,v9.2d
+    fmul v6.2d,v0.2d,v10.2d
+    fadd v5.2d,v5.2d,v6.2d           /* Legacy mixture molar mass. */
+    fsub v4.2d,v2.2d,v3.2d
+    fmul v4.2d,v4.2d,v14.2d
+    fmul v4.2d,v4.2d,v11.2d          /* Ordered column numerator. */
+    fmul v5.2d,v8.2d,v5.2d
+    fadd v6.2d,v12.2d,v0.2d
+    fmul v5.2d,v5.2d,v6.2d
+    fdiv v4.2d,v4.2d,v5.2d
+    ldr x9,[sp,#304]
+    str q4,[x9,x10]         /* Complete dry molecular column. */
+    add x27,x27,#2
+    sub x9,x20,x27
+    cmp x9,#2
+    b.hs .Lgas_first_row_vector
+    cmp x27,x20
+    b.eq .Lgas_first_row_done
 .Lgas_first_row:
     add x28,x25,x27
     lsl x28,x28,#3          /* Complete input cell byte offset. */
@@ -205,6 +324,7 @@ ORIGINAL_SYMBOL:
     add x27,x27,#1
     cmp x27,x20
     b.ne .Lgas_first_row
+.Lgas_first_row_done:
     add x23,x23,#1
     cmp x23,x22
     b.ne .Lgas_first_level
@@ -225,6 +345,86 @@ ORIGINAL_SYMBOL:
     add x25,x25,x19
     lsl x26,x24,#5          /* Four-channel layer base, in bytes. */
     mov x27,#0
+    cmp x20,#2
+    b.lo .Lgas_second_row
+.Lgas_second_row_vector:
+    add x28,x25,x27
+    lsl x28,x28,#3
+    add x10,x24,x27
+    lsl x10,x10,#3
+    ldr x9,[sp,#304]
+    ldr q0,[x9,x10]         /* Stored rounded dry column. */
+    ldr x9,[sp,#328]
+    add x9,x9,x26
+    add x9,x9,x27,lsl#3
+    lsl x4,x20,#3
+    ldr x11,[sp,#288]
+    ldr q1,[x11,x28]
+    fmul v1.2d,v1.2d,v9.2d
+    fdiv v1.2d,v1.2d,v20.2d
+    str q1,[x9]
+    add x12,x9,x4
+    ldr x11,[sp,#264]
+    ldr q1,[x11,x28]
+    fmul v1.2d,v1.2d,v9.2d
+    fdiv v1.2d,v1.2d,v21.2d
+    str q1,[x12]
+    add x12,x12,x4
+    ldr x11,[sp,#272]
+    ldr q1,[x11,x28]
+    fmul v1.2d,v1.2d,v9.2d
+    fdiv v1.2d,v1.2d,v22.2d
+    str q1,[x12]
+    add x12,x12,x4
+    ldr x11,[sp,#280]
+    ldr q1,[x11,x28]
+    fmul v1.2d,v1.2d,v9.2d
+    fdiv v1.2d,v1.2d,v23.2d
+    str q1,[x12]
+    mov x11,x9
+    mov x12,#4
+.Lgas_scale_trace_vector:
+    ldr q1,[x11]
+    fmul v1.2d,v0.2d,v1.2d
+    fmul v1.2d,v1.2d,v24.2d
+    str q1,[x11]
+    add x11,x11,x4
+    subs x12,x12,#1
+    b.ne .Lgas_scale_trace_vector
+    mov x11,#35
+    mul x11,x24,x11
+    add x11,x11,x27
+    lsl x11,x11,#3
+    ldr x9,[sp,#320]
+    add x9,x9,x11           /* First rounded gas volume ratio. */
+    add x11,x9,x4
+    mov x12,#6
+    movi v1.2d,#0
+.Lgas_sum_volume_vector:
+    ldr q2,[x11]
+    fadd v1.2d,v1.2d,v2.2d
+    add x11,x11,x4
+    subs x12,x12,#1
+    b.ne .Lgas_sum_volume_vector
+    fsub v1.2d,v12.2d,v1.2d
+    fmul v1.2d,v0.2d,v1.2d
+    ldr x11,[sp,#312]
+    str q1,[x11,x10]
+    mov x11,x9
+    mov x12,#7
+.Lgas_scale_molecules_vector:
+    ldr q1,[x11]
+    fmul v1.2d,v0.2d,v1.2d
+    str q1,[x11]
+    add x11,x11,x4
+    subs x12,x12,#1
+    b.ne .Lgas_scale_molecules_vector
+    add x27,x27,#2
+    sub x9,x20,x27
+    cmp x9,#2
+    b.hs .Lgas_second_row_vector
+    cmp x27,x20
+    b.eq .Lgas_second_row_done
 .Lgas_second_row:
     add x28,x25,x27
     lsl x28,x28,#3
@@ -300,6 +500,7 @@ ORIGINAL_SYMBOL:
     add x27,x27,#1
     cmp x27,x20
     b.ne .Lgas_second_row
+.Lgas_second_row_done:
     add x23,x23,#1
     cmp x23,x22
     b.ne .Lgas_second_level

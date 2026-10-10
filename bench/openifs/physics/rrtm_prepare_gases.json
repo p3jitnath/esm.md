@@ -1,7 +1,7 @@
 {
   "routine": "RRTM_PREPARE_GASES",
   "theme": "physics",
-  "status": "Complete numerical body accepted with measured bounded zero stores and exact combined forecast output",
+  "status": "Complete body accepted with measured paired independent columns, retained bounded zero stores and exact combined forecast output",
   "contract_revision": "1.0",
   "source": {
     "path": "../ecmwf-openifs/ifs-source/arpifs/phys_radi/rrtm_prepare_gases.F90",
@@ -19,9 +19,9 @@
       "native_source_sha256": "c81d09888ca6b1a3439bafb91b9529f448ffd39013c09fa72c0fa2a8ad8de74f",
       "route": "Complete direct AArch64 source emitted from frozen contract and equations, without numerical compiler assembly or IR construction"
     },
-    "accepted_source_sha256": "581ee82abf59ac6c05af777e8851187e27b3b7e18b61e92799b9b1c131de15a9",
-    "ISA": "Armv8-A",
-    "instructions": 291,
+    "accepted_source_sha256": "2674da6bd294e66ee14a6d6cf99b8dcfdf08ccbd01a065cdde8c414827dc34e9",
+    "ISA": "Armv8-A+SIMD",
+    "instructions": 482,
     "numerical_helpers": 0,
     "stack_frame_bytes": 384,
     "global_numerical_inputs": [
@@ -133,15 +133,15 @@
     "renderer": "MathJax 3.2.2",
     "rendered_expressions": 68,
     "render_errors": 0,
-    "contract_sha256": "9a1cac3d5786f0d1bd06b0349ff90852c51fdbfec66339c2dc89b2dc8e0046eb"
+    "contract_sha256": "cfe4f3cd094d26d04d9016373199a5bc777bc0931dd36081f127695454d68f1f"
   },
   "accepted_timing": true,
   "implementation_hashes": {
-    "src/openifs/physics/rrtm_prepare_gases.S": "581ee82abf59ac6c05af777e8851187e27b3b7e18b61e92799b9b1c131de15a9",
+    "src/openifs/physics/rrtm_prepare_gases.S": "2674da6bd294e66ee14a6d6cf99b8dcfdf08ccbd01a065cdde8c414827dc34e9",
     "bench/openifs/physics/rrtm_prepare_gases.c": "73104636d196d11a3471d1dbfd84c9cad454c3b8c8236a2db3ba57910134a804",
     "bench/openifs/physics/rrtm_prepare_gases_forecast.c": "8fc6cb26631568d36724109633159990cc642b04571a441bb6774233b2d18639",
-    "skills/md2asm/references/openifs/physics/rrtm_prepare_gases.md": "9a1cac3d5786f0d1bd06b0349ff90852c51fdbfec66339c2dc89b2dc8e0046eb",
-    "bench/openifs/physics/rrtm_prepare_gases_timing.c": "e2421b881a233d3a06002746b3a6918f3eb505c63844f3c51d36dcac7bc16795"
+    "skills/md2asm/references/openifs/physics/rrtm_prepare_gases.md": "cfe4f3cd094d26d04d9016373199a5bc777bc0931dd36081f127695454d68f1f",
+    "bench/openifs/physics/rrtm_prepare_gases_timing.c": "20b01c9b3fe0542aa505c9e13d12b7bebd6511a4fed5f0444f7d612a8b85689f"
   },
   "pre_emission_manifest": {
     "path": ".runtime/openifs/rrtm_prepare_gases_7207705/frozen/pre-emission-contract-corpus.json",
@@ -155,9 +155,9 @@
     "scope": "Immutable original pre-publication release; resolved public paths are retained separately"
   },
   "comparator": {
-    "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/parent-integration/libverify-rrtm-gases-zero-pairs.so",
-    "bytes": 180432,
-    "sha256": "ebbb85fb3c8660b275cf87e0b7893173310c9e8ed585429563cf8c22e053b1d5"
+    "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/parent-integration/libverify-rrtm-gases-paired-columns.so",
+    "bytes": 180424,
+    "sha256": "36aedff6cb2811125af3f257bee6065a03b8eb59f1a91fe5d8553305e6c47872"
   },
   "immutable_source_case": ".runtime/openifs/runs/strict-rrtm-gases-source-7207705/t21",
   "immutable_native_case": ".runtime/openifs/runs/strict-rrtm-gases-native-7207705/t21",
@@ -170,13 +170,13 @@
     "isolated_native_forecast": ".runtime/openifs/rrtm_prepare_gases_7207705/native/isolated-forecast-command.sh",
     "actual_command_archive": ".runtime/openifs/rrtm_prepare_gases_7207705/actual-command-archive.json"
   },
-  "documentation_revision": "1.2",
+  "documentation_revision": "1.3",
   "combined_forecast": {
-    "archive": ".runtime/openifs/runs/strict-gas-zero-pairs-combined-reviewed-7207705/t21/test_fc",
+    "archive": ".runtime/openifs/runs/strict-gas-paired-columns-combined-reviewed-7207705/t21/test_fc",
     "acceptance": {
-      "local": ".runtime/openifs/runs/strict-gas-zero-pairs-combined-reviewed-7207705/t21/direct-comparison.json",
-      "bytes": 39364,
-      "sha256": "13e46f0f7e1dd8154facbd8d4aec9acf51354822546c4b99034a23e007d78c0b"
+      "local": ".runtime/openifs/runs/strict-gas-paired-columns-combined-reviewed-7207705/t21/direct-comparison.json",
+      "bytes": 47688,
+      "sha256": "aba7c8cc8edd12ba6cec1b3c31edd3407e7f6920087415420a2d6f4590599eb4"
     },
     "job_id": 7207705,
     "node": "nid011311",
@@ -188,16 +188,18 @@
     "direct_complete_pre_emission_input_and_output_cmp": true,
     "all_saved_files_identical": true,
     "saved_bytes": 618140,
-    "differing_bytes": 0
+    "differing_bytes": 0,
+    "paired_streams": 38,
+    "paired_output_bytes": 4618278408
   },
   "parent_reproduction": {
     "public_command": {
-      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/publication/public-build-and-critical-command.sh",
-      "bytes": 1984,
-      "sha256": "01d43899d51786ae87715ccc130159f9ffec558634c7a896ad5967c52db96410"
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/publication/public-build-and-critical-command.sh",
+      "bytes": 2191,
+      "sha256": "e38e7be5eb661a415df088678f7fe8c8009723278de910fa4faffefcdc144ccd"
     },
     "actual_result": {
-      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/publication/public-build-and-critical.log",
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/publication/public-build-and-critical.log",
       "bytes": 503,
       "sha256": "2bfe2ceb6f4b3753974044cc107db95a9bf6c93cf54907a17c48dbb7f30e236e"
     },
@@ -219,36 +221,49 @@
     "bytes": 22340,
     "sha256": "9dd1c727033af630a689ff39e0dd8925c4d27f22708fa5d318953360b9e3f1b7"
   },
-  "implementation_revision": "bounded-paired-zero-stores-1",
+  "implementation_revision": "bounded-paired-column-arithmetic-1",
   "selected_optimisation": {
     "freeze": {
-      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/freeze-before-emission.json",
-      "bytes": 2627,
-      "sha256": "b5962816bb99af7f6f016c6fdf93d0988a0f3f39e4248edeeeab6105c4a6dc1b"
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/freeze-before-emission.json",
+      "bytes": 4979,
+      "sha256": "d34f6b13a7eacbf14ea822a51c4fa60e41cb2ad373a6c08a4e841e472af26c12"
     },
     "resolved_freeze": {
-      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/publication/resolved-optimisation-freeze.json",
-      "bytes": 3238,
-      "sha256": "2ee9bab310f6e21cff8acd1eec7313d54eb1caae0c180f49c735e485c49e8e8b"
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/publication/resolved-pre-emission-freeze.json",
+      "bytes": 5890,
+      "sha256": "578f5f6be2e6f495a9fd9561151694127969ed695540061bf2b17f7e68b5280f"
     },
-    "pre_measurement_audit": {
-      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/pre-measurement-audit.json",
-      "bytes": 593,
-      "sha256": "04558c310c9f26c2647e5db2f0411740f2f24fa45c91b15505ba9525d84a7d08"
+    "first_direct_emission": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/direct-emission-record.json",
+      "bytes": 1007,
+      "sha256": "3241c4d78ea646cdb03879befb294500ac8478679a701f0d34d4336e7a3d1cd3"
+    },
+    "instruction_review": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/instruction-and-critical-review.json",
+      "bytes": 458,
+      "sha256": "a4e16d4c09ed27101b32fba7d48784906a934621b5b976bd5b04919e8d467f3f"
+    },
+    "independent_static_review": {
+      "local": ".runtime/openifs/radiation_leaf_reviews_7207705/gas-paired-columns-static-review.json",
+      "bytes": 3663,
+      "sha256": "672ac243ef7851d964844dc7669f51ff0401adcaa37fb7b5ec0d64a5f4886edd"
     },
     "source_compilation_evidence": {
       "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/source-compilation-supplement.json",
       "bytes": 534,
       "sha256": "2a26abc1a5dc339689407a0a24b0755befb1ebfbae28b3a9e805dba3820871c4"
     },
-    "independent_static_review": {
-      "local": ".runtime/openifs/radiation_leaf_reviews_7207705/gas-paired-zero-fill-static-review.json",
-      "bytes": 2884,
-      "sha256": "a8a88239e518b008dfacd812367bf214ca6c9d1d7b623821efdf018768885164"
-    },
-    "only_complete_zero_stores_changed": true,
-    "all_FP64_instruction_lines_identical": true,
-    "complete_extents": "PWKL 35*n*H cells and PWX 4*n*H cells",
+    "all_original_scalar_FP64_lines_and_constant_bits_identical": true,
+    "ordered_FP64_dependency_tree_identical_per_lane": true,
+    "rounded_constants_duplicated_from_scalar_registers": 17,
+    "bounded_paired_row_stages": [
+      "surface",
+      "first",
+      "second"
+    ],
+    "original_scalar_remainders_retained": true,
+    "complete_original_zero_stages_retained": true,
+    "buffer_alignment_bytes": 8,
     "whole_forecast_performance_claimed": false
   },
   "timing": {
@@ -267,248 +282,236 @@
       {
         "workload": 0,
         "phase": 0,
-        "whole_calls": {
-          "paired-zero-assembly": {
-            "repetitions": 12,
-            "median_ns": 2530.25,
-            "min_ns": 2523.875,
-            "max_ns": 2608.125,
-            "population_stddev_ns": 23.96038714023048
-          },
-          "previous-assembly": {
-            "repetitions": 12,
-            "median_ns": 3874.5625,
-            "min_ns": 3871.5,
-            "max_ns": 3908.875,
-            "population_stddev_ns": 13.27874567892448
-          },
+        "whole_call_ns": {
           "source": {
             "repetitions": 12,
-            "median_ns": 3316.8125,
-            "min_ns": 3298.125,
-            "max_ns": 3333.875,
-            "population_stddev_ns": 10.224620298233845
-          }
-        },
-        "zero_stage_components": {
-          "paired-zero-stores": {
-            "repetitions": 12,
-            "median_ns": 545.4375,
-            "min_ns": 490.875,
-            "max_ns": 600.0,
-            "population_stddev_ns": 53.908200447806024
+            "median": 3325.625,
+            "min": 3321.125,
+            "max": 3366.75,
+            "population_stddev": 13.318851999192306
           },
-          "scalar-zero-stores": {
+          "paired-zero-assembly": {
             "repetitions": 12,
-            "median_ns": 2092.3125,
-            "min_ns": 1854.125,
-            "max_ns": 2348.625,
-            "population_stddev_ns": 239.53804531203332
+            "median": 2552.9375,
+            "min": 2546.75,
+            "max": 2573.625,
+            "population_stddev": 8.32155417508586
+          },
+          "paired-column-assembly": {
+            "repetitions": 12,
+            "median": 2071.5625,
+            "min": 2069.25,
+            "max": 2089.5,
+            "population_stddev": 5.151354999738742
           }
         },
-        "paired_gain_over_previous": {
-          "median": 1.532625034577961,
-          "min": 1.4844955667385573,
-          "max": 1.5487593482244564,
-          "winning_pairs": 12
+        "paired_speedup": {
+          "source": {
+            "repetitions": 12,
+            "median": 1.6057415898112204,
+            "min": 1.5894352715960756,
+            "max": 1.6250754193314831,
+            "population_stddev": 0.00828815233495828,
+            "winning_pairs": 12
+          },
+          "paired-zero-assembly": {
+            "repetitions": 12,
+            "median": 1.232254911128307,
+            "min": 1.2223618090452262,
+            "max": 1.2422468927235428,
+            "population_stddev": 0.005063005684802872,
+            "winning_pairs": 12
+          }
         },
-        "paired_gain_over_source": {
-          "median": 1.3088393630463968,
-          "min": 1.272130361849988,
-          "max": 1.3200197970799308,
-          "winning_pairs": 12
+        "empirical_references": {
+          "exact_division_ns": 1409.737325,
+          "same_footprint_array_copy_ns": 1346.0625,
+          "larger_reference_ns": 1409.737325,
+          "reference_fraction_of_selected_complete_call": 0.6805188474883089,
+          "interpretation": "Measured costs under declared input, instruction and cache assumptions, rather than proven hardware or DRAM limits. Memory copies include addressing and register-copy issue. Arithmetic components use smaller active arrays. Costs overlap and must not be added."
         }
       },
       {
         "workload": 1,
         "phase": 8,
-        "whole_calls": {
-          "paired-zero-assembly": {
-            "repetitions": 12,
-            "median_ns": 2529.25,
-            "min_ns": 2527.5,
-            "max_ns": 2566.125,
-            "population_stddev_ns": 11.903237625630357
-          },
-          "previous-assembly": {
-            "repetitions": 12,
-            "median_ns": 3871.875,
-            "min_ns": 3870.5,
-            "max_ns": 3876.75,
-            "population_stddev_ns": 1.8074342523004505
-          },
+        "whole_call_ns": {
           "source": {
             "repetitions": 12,
-            "median_ns": 3307.625,
-            "min_ns": 3282.875,
-            "max_ns": 3386.625,
-            "population_stddev_ns": 26.78791405484425
-          }
-        },
-        "zero_stage_components": {
-          "paired-zero-stores": {
-            "repetitions": 12,
-            "median_ns": 491.0,
-            "min_ns": 489.625,
-            "max_ns": 492.125,
-            "population_stddev_ns": 0.7150417625721047
+            "median": 3341.9375,
+            "min": 3224.75,
+            "max": 3371.375,
+            "population_stddev": 38.483981324395074
           },
-          "scalar-zero-stores": {
+          "paired-zero-assembly": {
             "repetitions": 12,
-            "median_ns": 1854.75,
-            "min_ns": 1853.5,
-            "max_ns": 1871.25,
-            "population_stddev_ns": 4.6272048047990655
+            "median": 2547.9375,
+            "min": 2546.25,
+            "max": 2565.0,
+            "population_stddev": 5.1239412863103295
+          },
+          "paired-column-assembly": {
+            "repetitions": 12,
+            "median": 2071.0,
+            "min": 2067.625,
+            "max": 2088.75,
+            "population_stddev": 6.47232188019364
           }
         },
-        "paired_gain_over_previous": {
-          "median": 1.5307897934609571,
-          "min": 1.5087924399629793,
-          "max": 1.5329939202214424,
-          "winning_pairs": 12
+        "paired_speedup": {
+          "source": {
+            "repetitions": 12,
+            "median": 1.613536987845126,
+            "min": 1.5457159976033552,
+            "max": 1.6305543800253914,
+            "population_stddev": 0.021398606684615684,
+            "winning_pairs": 12
+          },
+          "paired-zero-assembly": {
+            "repetitions": 12,
+            "median": 1.2305928375642607,
+            "min": 1.2190903650508678,
+            "max": 1.2397293378443692,
+            "population_stddev": 0.0047765036242279945,
+            "winning_pairs": 12
+          }
         },
-        "paired_gain_over_source": {
-          "median": 1.304871991037476,
-          "min": 1.2925130303473136,
-          "max": 1.3380580798103516,
-          "winning_pairs": 12
+        "empirical_references": {
+          "exact_division_ns": 1409.737325,
+          "same_footprint_array_copy_ns": 1343.1875,
+          "larger_reference_ns": 1409.737325,
+          "reference_fraction_of_selected_complete_call": 0.6807036817962338,
+          "interpretation": "Measured costs under declared input, instruction and cache assumptions, rather than proven hardware or DRAM limits. Memory copies include addressing and register-copy issue. Arithmetic components use smaller active arrays. Costs overlap and must not be added."
         }
       },
       {
         "workload": 2,
         "phase": 16,
-        "whole_calls": {
-          "paired-zero-assembly": {
-            "repetitions": 12,
-            "median_ns": 2527.75,
-            "min_ns": 2522.625,
-            "max_ns": 2571.75,
-            "population_stddev_ns": 13.193060965480637
-          },
-          "previous-assembly": {
-            "repetitions": 12,
-            "median_ns": 3873.375,
-            "min_ns": 3869.875,
-            "max_ns": 3891.0,
-            "population_stddev_ns": 8.06311905461459
-          },
+        "whole_call_ns": {
           "source": {
             "repetitions": 12,
-            "median_ns": 3317.5,
-            "min_ns": 3303.875,
-            "max_ns": 3331.875,
-            "population_stddev_ns": 8.150354403933747
-          }
-        },
-        "zero_stage_components": {
-          "paired-zero-stores": {
-            "repetitions": 12,
-            "median_ns": 489.0,
-            "min_ns": 487.5,
-            "max_ns": 490.0,
-            "population_stddev_ns": 0.613346212500647
+            "median": 3335.0625,
+            "min": 3206.375,
+            "max": 3354.25,
+            "population_stddev": 50.744479208470445
           },
-          "scalar-zero-stores": {
+          "paired-zero-assembly": {
             "repetitions": 12,
-            "median_ns": 1855.1875,
-            "min_ns": 1854.25,
-            "max_ns": 1966.125,
-            "population_stddev_ns": 30.582898711148832
+            "median": 2548.3125,
+            "min": 2546.375,
+            "max": 2573.25,
+            "population_stddev": 9.497869598479557
+          },
+          "paired-column-assembly": {
+            "repetitions": 12,
+            "median": 2068.6875,
+            "min": 2065.25,
+            "max": 2074.375,
+            "population_stddev": 2.8554589531865684
           }
         },
-        "paired_gain_over_previous": {
-          "median": 1.532108759637361,
-          "min": 1.5047632934772042,
-          "max": 1.5416769847952059,
-          "winning_pairs": 12
+        "paired_speedup": {
+          "source": {
+            "repetitions": 12,
+            "median": 1.6098854823916038,
+            "min": 1.5516907628092675,
+            "max": 1.6225662111500787,
+            "population_stddev": 0.024319970799090773,
+            "winning_pairs": 12
+          },
+          "paired-zero-assembly": {
+            "repetitions": 12,
+            "median": 1.2315623646375613,
+            "min": 1.228283802519742,
+            "max": 1.2449201741654572,
+            "population_stddev": 0.005614241898141252,
+            "winning_pairs": 12
+          }
         },
-        "paired_gain_over_source": {
-          "median": 1.3118000059847343,
-          "min": 1.29002624671916,
-          "max": 1.320796789059016,
-          "winning_pairs": 12
+        "empirical_references": {
+          "exact_division_ns": 1409.737325,
+          "same_footprint_array_copy_ns": 1344.875,
+          "larger_reference_ns": 1409.737325,
+          "reference_fraction_of_selected_complete_call": 0.6814646122239343,
+          "interpretation": "Measured costs under declared input, instruction and cache assumptions, rather than proven hardware or DRAM limits. Memory copies include addressing and register-copy issue. Arithmetic components use smaller active arrays. Costs overlap and must not be added."
         }
       },
       {
         "workload": 3,
         "phase": 24,
-        "whole_calls": {
-          "paired-zero-assembly": {
-            "repetitions": 12,
-            "median_ns": 2531.625,
-            "min_ns": 2525.25,
-            "max_ns": 2550.5,
-            "population_stddev_ns": 7.845236966182447
-          },
-          "previous-assembly": {
-            "repetitions": 12,
-            "median_ns": 3873.875,
-            "min_ns": 3871.875,
-            "max_ns": 3893.625,
-            "population_stddev_ns": 7.34170331999931
-          },
+        "whole_call_ns": {
           "source": {
             "repetitions": 12,
-            "median_ns": 3305.6875,
-            "min_ns": 3278.375,
-            "max_ns": 3337.25,
-            "population_stddev_ns": 14.32213634238001
-          }
-        },
-        "zero_stage_components": {
-          "paired-zero-stores": {
-            "repetitions": 12,
-            "median_ns": 489.6875,
-            "min_ns": 489.0,
-            "max_ns": 573.25,
-            "population_stddev_ns": 23.10183712331602
+            "median": 3317.5,
+            "min": 3299.75,
+            "max": 3336.0,
+            "population_stddev": 8.803408430829505
           },
-          "scalar-zero-stores": {
+          "paired-zero-assembly": {
             "repetitions": 12,
-            "median_ns": 1854.75,
-            "min_ns": 1852.875,
-            "max_ns": 1882.375,
-            "population_stddev_ns": 7.718236881280307
+            "median": 2547.5625,
+            "min": 2545.875,
+            "max": 2568.5,
+            "population_stddev": 8.634279428533686
+          },
+          "paired-column-assembly": {
+            "repetitions": 12,
+            "median": 2068.875,
+            "min": 2064.625,
+            "max": 2142.375,
+            "population_stddev": 21.0820157691073
           }
         },
-        "paired_gain_over_previous": {
-          "median": 1.5313890656011386,
-          "min": 1.51837874926485,
-          "max": 1.5373870983663196,
-          "winning_pairs": 12
+        "paired_speedup": {
+          "source": {
+            "repetitions": 12,
+            "median": 1.6029462907533558,
+            "min": 1.5494486259408367,
+            "max": 1.61110775731965,
+            "population_stddev": 0.016349188642505657,
+            "winning_pairs": 12
+          },
+          "paired-zero-assembly": {
+            "repetitions": 12,
+            "median": 1.232232632231595,
+            "min": 1.189392613338001,
+            "max": 1.2421492103830096,
+            "population_stddev": 0.01337495383303875,
+            "winning_pairs": 12
+          }
         },
-        "paired_gain_over_source": {
-          "median": 1.3057267983670342,
-          "min": 1.2972359328726555,
-          "max": 1.3177690029615006,
-          "winning_pairs": 12
+        "empirical_references": {
+          "exact_division_ns": 1409.737325,
+          "same_footprint_array_copy_ns": 1348.6875,
+          "larger_reference_ns": 1409.737325,
+          "reference_fraction_of_selected_complete_call": 0.6814028517914326,
+          "interpretation": "Measured costs under declared input, instruction and cache assumptions, rather than proven hardware or DRAM limits. Memory copies include addressing and register-copy issue. Arithmetic components use smaller active arrays. Costs overlap and must not be added."
         }
       }
     ],
     "accepted_whole_call_rows": 144,
-    "rejected_whole_call_rows": 36,
-    "accepted_component_rows": 96,
-    "rejected_component_rows": 2,
+    "rejected_whole_call_rows": 15,
+    "accepted_component_rows": 312,
+    "rejected_component_rows": 12,
     "context_switch_rejections_apply_to_complete_rotation": true,
     "raw_summary": {
-      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/measure-20261009T233111Z/summary.json",
-      "bytes": 6827,
-      "sha256": "0aa80e1555343ed68114f57832be807c3b357a48f4f83b91d5d9efce398a38c6"
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/measure-20261010T005541Z/summary.json",
+      "bytes": 12478,
+      "sha256": "0ee8a402fb2e183e07c445b79a5760d5739d86b7e70fee27d6ac147954b8deef"
     },
     "quiet_before": {
-      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/measure-20261009T233111Z/before.json",
-      "bytes": 3103,
-      "sha256": "ff387ad5c50db276d3d176b98e14fb4dccb1f0ab767d136bb84589906789cd63"
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/measure-20261010T005541Z/before.json",
+      "bytes": 3101,
+      "sha256": "6dd7b1562e7f2c75a92f5addc7f3cd0b55e954966a73e65927767646176b31be"
     },
     "quiet_after": {
-      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/measure-20261009T233111Z/after.json",
-      "bytes": 3102,
-      "sha256": "382170015f6aa509812d09bed499be284df10780bc9cf04af76b73afb2f17eb1"
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/measure-20261010T005541Z/after.json",
+      "bytes": 3100,
+      "sha256": "5154c7522e297b8fa6d23c0a47881b711d71c6799d2a5237f3eb994ba3069a22"
     },
     "raw_rows": {
-      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/measure-20261009T233111Z/raw.jsonl",
-      "bytes": 70781,
-      "sha256": "17c60e05190d55139043bf65090e1b8bfea0f98d9111245c4535f5baf98b64bf"
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/measure-20261010T005541Z/whole-raw.jsonl",
+      "bytes": 65880,
+      "sha256": "1ab6c82e4a29958ba1d5fa4d1f3c3c5aff1f7483c5fe305ba09adb2ab4178516"
     },
     "corpus": {
       "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/timing-corpus.bin",
@@ -525,11 +528,51 @@
     "hardware_bound_fraction_claimed": false,
     "non_JSON_runtime_messages_retained": [
       "[CRAYBLAS_WARNING] Application linked against multiple cray-libsci libraries"
-    ]
+    ],
+    "calibration_raw_rows": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/measure-20261010T005541Z/calibration-raw.jsonl",
+      "bytes": 65059,
+      "sha256": "56523b9fd90163fea382a2d46cff31d7d1787a150c1b845ccdfcd5da0af18c62"
+    },
+    "measurement_freeze": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/measure-20261010T005541Z/measurement-freeze.json",
+      "bytes": 8881,
+      "sha256": "dfc1db56998d5278fcf1199460ef99a73c3a77dac49d6d808bc395d46af4f006"
+    },
+    "calibration_protocol": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/calibration/pre-measurement-protocol.json",
+      "bytes": 2087,
+      "sha256": "93bd938b7a11021349eafb3645e23de9b419450be383428bb1324e4bf78e7280"
+    },
+    "empirical_references_are_proved_hardware_bounds": false
   },
   "pre_selected_public_record": {
-    "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/publication/pre-selected-public-files/bench/openifs/physics/rrtm_prepare_gases.json",
-    "bytes": 8815,
-    "sha256": "51e6f23d73dd0979817892ac503d30bc987c2f226ca851198faf156669caa163"
+    "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/publication/pre-selected-public-files/bench/openifs/physics/rrtm_prepare_gases.json",
+    "bytes": 19938,
+    "sha256": "3ff6f9379e976241b6cc29774f24e8723d1f5c25c678bfecd6b1989bbf4b64fe"
+  },
+  "complete_original_forecast_input_replay": {
+    "protocol": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/original-forecast-replay-protocol.json",
+      "bytes": 1435,
+      "sha256": "360d4b1bedd85c9f0e75c2ca7c91d4942e2dfaa02f51fb7a3a6e723024641b0d"
+    },
+    "preparation": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/complete-original-forecast-replay-preparation.json",
+      "bytes": 967,
+      "sha256": "034ed9b108ccea8c67316bc2e452dd43236c9f517811f5ab39a4b91eb8c8f506"
+    },
+    "result": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/paired-column-tuning/complete-original-forecast-replay.log",
+      "bytes": 514,
+      "sha256": "6f4d4bc6894b64ad795074a078fa741273c2eddff480d04dbab4e1af052005df"
+    },
+    "states": 6400,
+    "protected_placements_per_state": 2,
+    "immediate_ABI_calls": 12800,
+    "complete_return_bytes": 703078400,
+    "independent_relations": 89804800,
+    "differing_bytes": 0,
+    "direct_native_source_and_unchanged_original_canonical_cmp": true
   }
 }

@@ -8,8 +8,8 @@
 #include <time.h>
 #include <sys/resource.h>
 #include <sched.h>
-extern void rrtm_prepare_gases_previous_(PARAMETERS);
 extern void rrtm_prepare_gases_paired_zero_(PARAMETERS);
+extern void rrtm_prepare_gases_paired_columns_(PARAMETERS);
 struct sample {
  unsigned char *input,*expected;
  void *arg[27];
@@ -20,8 +20,8 @@ struct sample {
  int32_t phase;
 };
 static struct sample samples[4];
-static kernel variants[]={rrtm_prepare_gases_,rrtm_prepare_gases_previous_,rrtm_prepare_gases_paired_zero_};
-static const char *names[]={"source","previous-assembly","paired-zero-assembly"};
+static kernel variants[]={rrtm_prepare_gases_,rrtm_prepare_gases_paired_zero_,rrtm_prepare_gases_paired_columns_};
+static const char *names[]={"source","paired-zero-assembly","paired-column-assembly"};
 static uint64_t time_ns(void){struct timespec t;if(clock_gettime(CLOCK_MONOTONIC_RAW,&t))fail("clock");return (uint64_t)t.tv_sec*1000000000ULL+t.tv_nsec;}
 static uint64_t control(void){uint64_t r;__asm__ volatile("mrs %0,fpcr":"=r"(r));return r;}
 static void *aligned(size_t n){void *p=NULL;if(posix_memalign(&p,64,n?n:64))fail("aligned complete allocation");return p;}
