@@ -60,7 +60,7 @@ The immutable pre-emission contract, corpus, source hashes, command hashes, comp
 
 The combined T21 forecast accepts all 223,175 original shortwave calls and all 83,913,800 complete result-record bytes. The full native stream also directly matches the source-only stream frozen before generation. Full tables, scalar values, descriptors and all three output capacities are preserved, with unchanged inputs and exact FPCR zero. All 28 paired streams directly compare across 2,919,328,208 bytes, and all ten saved files match the strict Fortran baseline. Whole-forecast independent physics and comparative timing remain unfinished.
 
-The [compact record](../../../../../bench/openifs/physics/calc_ice_optics_fu_sw.json) identifies the frozen source, corpus, full capture, command archive and preserved first emission. Run these commands through srun in a quiet exclusive allocation, with a fresh ignored output directory. The direct ABI observer is embedded in the tracked critical driver.
+The [compact record](../../../../../bench/openifs/EVIDENCE.md#routine-records) identifies the frozen source, corpus, full capture, command archive and preserved first emission. Run these commands through srun in a quiet exclusive allocation, with a fresh ignored output directory. The direct ABI observer is embedded in the retained local critical driver.
 
 ```bash
 module load PrgEnv-gnu gcc-native/12.3 libfabric/2.3.1
@@ -71,7 +71,7 @@ gcc -fPIC -DORIGINAL_SYMBOL=calc_ice_optics_fu_sw_assembly_ \
   -c src/openifs/physics/calc_ice_optics_fu_sw.S -o "$check_dir/assembly.o"
 gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math \
   -Wall -Wextra -Werror -Wno-misleading-indentation \
-  bench/openifs/physics/calc_ice_optics_fu_sw.c "$check_dir/assembly.o" \
+  .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/physics/calc_ice_optics_fu_sw.c "$check_dir/assembly.o" \
   -L "$build_root/lib" -Wl,-rpath,"$build_root/lib" -larpifs.DP -lfiat -lm \
   -o "$check_dir/critical"
 "$check_dir/critical" --verify \
@@ -81,7 +81,7 @@ cmp .runtime/openifs/calc_ice_optics_fu_sw/preparation/source-critical-fortran.b
   "$check_dir/result-fortran.bin"
 gcc -O2 -mcpu=neoverse-v2 -fPIC -ffp-contract=off -fno-fast-math \
   -Wall -Wextra -Werror -Wno-misleading-indentation \
-  -c bench/openifs/physics/calc_ice_optics_fu_sw_forecast.c \
+  -c .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/physics/calc_ice_optics_fu_sw_forecast.c \
   -o "$check_dir/forecast.o"
 gcc -shared -Wl,-Bsymbolic "$check_dir/forecast.o" "$check_dir/assembly.o" \
   -ldl -lm -o "$check_dir/libverify-ice-fu-sw.so"

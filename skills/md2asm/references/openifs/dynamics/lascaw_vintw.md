@@ -144,7 +144,7 @@ gcc -c -x assembler-with-cpp -mcpu=neoverse-v2 \
 gcc -fPIC -march=armv8-a+simd -c \
   bench/openifs/dynamics/vertical_abi.S -o "$task_dir/vertical-abi.o"
 gcc -O2 -g -mcpu=neoverse-v2 -fopenmp -ffp-contract=off -fno-fast-math \
-  -Wall -Wextra -Werror bench/openifs/dynamics/lascaw_vintw.c \
+  -Wall -Wextra -Werror .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/lascaw_vintw.c \
   "$task_dir/lascaw_vintw-abi.o" "$task_dir/vertical-abi.o" -lm \
   -o "$task_dir/verify"
 "$task_dir/verify" \
@@ -162,7 +162,7 @@ cmp "$task_dir/frozen-assembly.bin" \
   .runtime/openifs/runs/strict-lascaw_vintw-source-complete-7207705/t21/test_fc/lascaw_vintw-fortran.bin
 gcc -O2 -g -mcpu=neoverse-v2 -fPIC -shared -fopenmp \
   -ffp-contract=off -fno-fast-math -Wall -Wextra -Werror \
-  bench/openifs/dynamics/lascaw_vintw_forecast.c \
+  .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/lascaw_vintw_forecast.c \
   "$task_dir/lascaw_vintw.o" -ldl -lm \
   -o "$task_dir/libverify-lascaw_vintw.so"
 ```

@@ -88,7 +88,7 @@ Twelve quiet rotations compare complete calls on the same warmed buffers for fou
 | 3072 | 818.08 | 721.54 | 170.39 | 155.88–174.03 | 3.61 | 4.80× |
 | 6144 | 817.95 | 720.29 | 170.85 | 152.12–174.02 | 0.94 | 4.79× |
 
-The selected medians improve by 4.79–4.82 times over the stronger Fortran control. Full sample variation for every compared implementation remains in the adjacent JSON record and immutable local CSV. Measurements use own exclusive job 7207705 on nid011311, CPU 8 and local memory. All three agents confirm a pause, node occupancy and load are recorded, and before/after per-CPU observations pass.
+The selected medians improve by 4.79–4.82 times over the stronger Fortran control. Full sample variation for every compared implementation remains in the retained local record and immutable local timing table. Measurements use own exclusive job 7207705 on nid011311, CPU 8 and local memory. All three agents confirm a pause, node occupancy and load are recorded, and before/after per-CPU observations pass.
 
 The active data use 16 KiB within the observed 64 KiB first-level data cache. A complete call makes 912 separate FP64 products and an estimated 22,464 bytes of active-array traffic, plus dimension, global-address and stack traffic. A matching assembly reference keeps the complete bounds, copies, loads and stores, but replaces products with unchanged column copies. Its full return is checked independently. The selected rate is 93.9–99.6% of this empirical warmed memory/instruction rate, with calibration variation recorded. This rate describes these four workloads. It is not a global hardware limit. Division and square root are absent from this band.
 
@@ -108,7 +108,7 @@ check="$release/contiguous-cell-tuning-20261010/public-reproduction"
 tuning="$release/contiguous-cell-tuning-20261010"
 mkdir -p "$check"
 gcc -fPIC -march=armv8-a+simd -DORIGINAL_SYMBOL=srtm_taumol26_assembly_ -c src/openifs/physics/srtm_taumol26.S -o "$check/assembly.o"
-gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -DSRTM26_ABI_OBSERVER bench/openifs/physics/srtm_taumol26.c "$check/assembly.o" -L.runtime/openifs/strict-build/lib -Wl,-rpath,"$PWD/.runtime/openifs/strict-build/lib" -larpifs.DP -lfiat -lm -ldl -o "$check/critical"
+gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -DSRTM26_ABI_OBSERVER .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/physics/srtm_taumol26.c "$check/assembly.o" -L.runtime/openifs/strict-build/lib -Wl,-rpath,"$PWD/.runtime/openifs/strict-build/lib" -larpifs.DP -lfiat -lm -ldl -o "$check/critical"
 "$check/critical" guarded "$tuning/extended-corpus.bin" "$check/critical-fortran.bin" "$check/critical-assembly.bin"
 cmp "$check/critical-fortran.bin" "$check/critical-assembly.bin"
 cmp "$tuning/extended-fortran.bin" "$check/critical-fortran.bin"

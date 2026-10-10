@@ -69,7 +69,7 @@ Emit primary AArch64 assembly directly from the frozen mathematics, source order
 
 The combined T21 historical forecast accepts all 8,600 calls with the other accepted native bodies active. Each of the four original wind, temperature and moisture sites runs 2,150 times. There are 83,804 first cloud equations, 403,300 later equations and 3,434,496 positive-zero cells outside those equations. The independent triangular residual checks pass on every used equation. All 48,228,800 result-record bytes match the unchanged source, including complete output capacities. Each entry requires FPCR zero. The 30 paired streams and ten saved forecast files directly compare with the strict Fortran baseline. Whole-forecast physical validation and timing remain unfinished.
 
-The [compact record](../../../../../bench/openifs/physics/cubidiag.json) identifies the frozen corpus, source, exact command archive and actual caller capacities. The direct register-canary observer is embedded in the [critical driver](../../../../../bench/openifs/physics/cubidiag.c), so reproduction needs no untracked ABI source. Run these commands through srun in a quiet exclusive allocation, using a fresh ignored directory.
+The [compact record](../../../../../bench/openifs/EVIDENCE.md#routine-records) identifies the frozen corpus, source, exact command archive and actual caller capacities. The direct register-canary observer is embedded in the [critical driver](../../../../../bench/openifs/EVIDENCE.md#local-reproduction), so the complete local ABI source is preserved for reproduction. Run these commands through srun in a quiet exclusive allocation, using a fresh ignored directory.
 
 ```bash
 module load PrgEnv-gnu gcc-native/12.3 libfabric/2.3.1
@@ -80,7 +80,7 @@ gcc -fPIC -Dcubidiag_=cubidiag_assembly_ -c src/openifs/physics/cubidiag.S \
   -o "$check_dir/assembly.o"
 gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math \
   -Wall -Wextra -Werror -Wno-misleading-indentation \
-  bench/openifs/physics/cubidiag.c "$check_dir/assembly.o" \
+  .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/physics/cubidiag.c "$check_dir/assembly.o" \
   -L "$build_root/lib" -Wl,-rpath,"$build_root/lib" \
   -larpifs.DP -lfiat -ldl -lm -o "$check_dir/verify"
 "$check_dir/verify" --verify .runtime/openifs/cubidiag-tuning/critical-corpus.bin \
@@ -90,7 +90,7 @@ cmp "$check_dir/result-fortran.bin" \
   .runtime/openifs/cubidiag-tuning/source-only-fortran.bin
 gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -fPIC \
   -Wall -Wextra -Werror -Wno-misleading-indentation \
-  -c bench/openifs/physics/cubidiag_forecast.c -o "$check_dir/forecast.o"
+  -c .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/physics/cubidiag_forecast.c -o "$check_dir/forecast.o"
 gcc -shared -Wl,-Bsymbolic "$check_dir/forecast.o" "$check_dir/assembly.o" \
   -ldl -lm -o "$check_dir/libverify-cubidiag.so"
 ```

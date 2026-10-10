@@ -119,15 +119,15 @@ release="$PWD/.runtime/openifs/srtm_taumol20_7207705"
 check="$release/reproduction"
 mkdir -p "$check"
 gcc -fPIC -march=armv8-a+simd -c src/openifs/physics/srtm_taumol20.S -o "$check/assembly.o"
-gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -DSRTM20_ABI_OBSERVER bench/openifs/physics/srtm_taumol20.c "$check/assembly.o" -L.runtime/openifs/strict-build/lib -Wl,-rpath,"$PWD/.runtime/openifs/strict-build/lib" -larpifs.DP -lfiat -lm -ldl -o "$check/critical"
+gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -DSRTM20_ABI_OBSERVER .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/physics/srtm_taumol20.c "$check/assembly.o" -L.runtime/openifs/strict-build/lib -Wl,-rpath,"$PWD/.runtime/openifs/strict-build/lib" -larpifs.DP -lfiat -lm -ldl -o "$check/critical"
 "$check/critical" guarded "$release/preparation/critical-corpus-v1.bin" "$check/critical-fortran.bin" "$check/critical-assembly.bin"
 cmp "$check/critical-fortran.bin" "$check/critical-assembly.bin"
 cmp "$release/preparation/critical-fortran-v1.bin" "$check/critical-fortran.bin"
 "$check/critical" replay .runtime/openifs/runs/strict-srtm20-source-7207705/t21/test_fc/srtm20-inputs.bin "$check/replay-fortran.bin" "$check/replay-assembly.bin"
 cmp "$check/replay-fortran.bin" "$check/replay-assembly.bin"
 cmp .runtime/openifs/runs/strict-srtm20-source-7207705/t21/test_fc/srtm20-fortran.bin "$check/replay-fortran.bin"
-gcc -shared -fPIC -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math bench/openifs/physics/srtm_taumol20_forecast.c "$check/assembly.o" -lm -ldl -o "$check/libverify-srtm20.so"
-gcc -shared -fPIC -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -DSRTM20_OMIT_INIT_RELAY bench/openifs/physics/srtm_taumol20_forecast.c "$check/assembly.o" -lm -ldl -o "$check/libverify-srtm20-parent.so"
+gcc -shared -fPIC -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/physics/srtm_taumol20_forecast.c "$check/assembly.o" -lm -ldl -o "$check/libverify-srtm20.so"
+gcc -shared -fPIC -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -DSRTM20_OMIT_INIT_RELAY .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/physics/srtm_taumol20_forecast.c "$check/assembly.o" -lm -ldl -o "$check/libverify-srtm20-parent.so"
 ```
 
 Documentation revision 1.1 records the unchanged numerical revision 1.0 and first direct body. Root reproduction passes eighty protected calls and every original-input replay. The fresh primary, complete public verifier and both complete public observer libraries directly match. The selected forty-five-body combined forecast passes forty-three complete paired streams across 6,165,443,208 bytes and all ten saved files across 618,140 bytes. Every band20 mathematical input and full global also matches the original source capture, as do all 159,744,000 active physical output bytes. Differences in unused returned storage exactly equal its preserved incoming bytes and remain fully archived. The sole band29 relay records the unchanged original setup with a present flag of zero. No comparative timing is accepted.

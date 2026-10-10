@@ -103,7 +103,7 @@ cd /lus/lfs1aip2/projects/u6yq/users/p3jitnath/esm.md
 check=.runtime/openifs/srtm27-public-critical-review-7207705
 mkdir -p "$check"
 gcc -c -fPIC -mcpu=neoverse-v2 src/openifs/physics/srtm_taumol27.S -o "$check/native.o"
-gcc -c -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -DSRTM27_ABI_OBSERVER bench/openifs/physics/srtm_taumol27.c -o "$check/critical.o"
+gcc -c -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -DSRTM27_ABI_OBSERVER .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/physics/srtm_taumol27.c -o "$check/critical.o"
 gcc "$check/critical.o" "$check/native.o" -L.runtime/openifs/strict-build/lib -Wl,-rpath,"$PWD/.runtime/openifs/strict-build/lib" -larpifs.DP -lfiat -lm -ldl -o "$check/critical"
 "$check/critical" guarded .runtime/openifs/srtm_taumol27_7207705/preparation/critical-corpus.bin "$check/critical-source.bin" "$check/critical-native.bin"
 cmp "$check/critical-source.bin" "$check/critical-native.bin"

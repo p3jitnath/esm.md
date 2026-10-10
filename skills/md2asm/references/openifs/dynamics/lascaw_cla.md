@@ -123,7 +123,7 @@ gcc -c -march=armv8.2-a+sve src/openifs/dynamics/lascaw_cla.S \
 gcc -c -march=armv8.2-a+sve bench/openifs/dynamics/vertical_abi.S \
   -o "$task_dir/vertical_abi.o"
 gcc -O2 -g -mcpu=neoverse-v2 -fopenmp -ffp-contract=off -fno-fast-math \
-  -Wall -Wextra -Werror bench/openifs/dynamics/lascaw_cla.c \
+  -Wall -Wextra -Werror .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/lascaw_cla.c \
   "$task_dir/lascaw_cla.o" "$task_dir/vertical_abi.o" -lm \
   -o "$task_dir/verify"
 "$task_dir/verify" \
@@ -141,7 +141,7 @@ cmp "$task_dir/frozen-assembly.bin" \
   .runtime/openifs/runs/strict-lascaw_cla-source-complete2-7207705/t21/test_fc/lascaw_cla-fortran.bin
 gcc -O2 -g -mcpu=neoverse-v2 -fPIC -shared -fopenmp \
   -ffp-contract=off -fno-fast-math -Wall -Wextra -Werror \
-  bench/openifs/dynamics/lascaw_cla_forecast.c "$task_dir/lascaw_cla.o" \
+  .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/lascaw_cla_forecast.c "$task_dir/lascaw_cla.o" \
   -ldl -lm -o "$task_dir/libverify-lascaw_cla.so"
 ```
 

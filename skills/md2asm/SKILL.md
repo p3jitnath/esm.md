@@ -15,13 +15,15 @@ For the existing models, read the frozen [shallow-water contract](references/sha
 
 For exact agreement, freeze input bits, intermediate rounding points, reductions, tie rules, signed zeros, and subnormal handling. Verify the floating-point control register and vector length before execution. This project uses FP64, the 64-bit floating-point format, with round-to-nearest with ties to even and gradual underflow, with correctly rounded division and square root; contraction, reassociation, approximate arithmetic, and fast-math are forbidden.
 
-Emit the complete solver as assembly source and build it with an assembler and linker. Keep language controls separate and use neither compiler-generated assembly nor compiler intermediate representations to construct the direct solver. Include all boundaries and stages inside the solver, preserve the ABI’s register and stack obligations, and document equation correspondence and observable generation provenance.
+Emit the complete solver as assembly source and build it with an assembler and linker. Keep language controls and verification tools locally under `.runtime/`, separate from published assembly and Markdown. Use neither compiler-generated assembly nor compiler intermediate representations to construct the direct solver. Include all boundaries and stages inside the solver, preserve the ABI’s register and stack obligations, and document equation correspondence and observable generation provenance.
 
 ## Establish correctness
 
 Use one small verifier for independent physical solutions, conserved quantities, physically valid states, complete trajectories, standard output files, buffer guards, and allowed mutation. A buffer guard is a value placed beside an array to detect writes beyond its bounds. Compare raw states after every stage and step against the reviewed vanilla reference, requiring zero differing bytes and reporting the first phase, step, field, cell, and bit patterns if agreement fails. Check the returned state after each timed run outside the timer.
 
 Add cases only for a scientific requirement or a changed critical path, such as a dispatch threshold, boundary, partial vector, threshold tie, or scratch lifetime. State the requirement each case protects, and repeat the verifier and instruction audit after a numerical change.
+
+Reuse accepted verification tools and qualified arithmetic routes. Keep one focused review of the changed physics, interface and instructions, with critical tests for new requirements or observed defects. Verify several completed OpenIFS replacements in one forecast batch when their dependencies permit it, retaining independent physics and zero differing bytes for each routine. Record the new result once in compact Markdown and avoid repeated provenance reviews, full-file hashing and redundant reruns.
 
 ## Locate the performance bound
 
@@ -52,7 +54,7 @@ The shallow-water implementation combines direct carried registers, a compact sc
 
 ## Maintain strong language controls
 
-Keep reviewed vanilla sources fixed and tune separate optimised implementations under the same numerical contract. Use CPU-aware optimisation for both, with contraction and fast-math disabled. Apply successful algorithmic reuse to the optimised controls as well as assembly, retaining a specialised implementation when it improves on its matched vanilla control across the declared workloads.
+Keep reviewed vanilla sources fixed in the local evidence archive and tune separate optimised implementations under the same numerical contract. Use CPU-aware optimisation for both, with contraction and fast-math disabled. Apply successful algorithmic reuse to the optimised controls as well as assembly, retaining a specialised implementation when it improves on its matched vanilla control across the declared workloads.
 
 Use explicit Fortran kinds and interfaces, contiguous arrays, suitable loop order, and inspected vectorisation. Use concrete Julia arrays, type-stable specialisation, and reusable buffers, measuring warmed allocations. Use reusable NumPy storage or compiled Python loops with fastmath=False. Inspect emitted instructions, and report JIT compilation and process startup separately from steady-state execution.
 
@@ -62,4 +64,4 @@ Run benchmarks through srun on a quiet node in a verified exclusive Slurm alloca
 
 Reuse the same physical arrays for paired native kernels, restoring inputs before warm-up and timing; record their addresses and alignment. Disclose separate-runtime placement limits and measure their variation. Keep compilation, initialisation, output, and validation outside the timer, rotate implementation order, and report repeated medians, dispersion, and ranges at every workload.
 
-Keep the [implementation record](../../bench/results.md) compact and tied to source hashes, commands, canonical outputs, and measurement conditions. Store detailed tuning records locally, preserve only positive reusable lessons in this skill, and update the concise project handover after completed milestones. Add only the source and tools required by the current phase.
+Keep the [implementation record](../../bench/results.md) compact and tied to source hashes, commands, canonical outputs, and measurement conditions. Store detailed tuning records locally, preserve only positive reusable lessons in this skill, and update the concise project handover after completed milestones. Publish only assembly and Markdown. Keep the shallow-water input and solver under `sw/`, and the energy-balance input and solver under `ebm/`. Retain local tools and detailed evidence under `.runtime/`, with readable tables and provenance in `bench/`. Start a new checkpoint only when it can finish, including verification and publication, within the allocation time left.

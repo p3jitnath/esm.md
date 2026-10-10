@@ -1,10 +1,10 @@
 # Arm interfaces and evaluation
 
-The target is Linux on little-endian AArch64 Neoverse V2, with one pinned core, binary64 NEON, and a verified 128-bit SVE vector length. The short formulations explain [shallow water](../formulations/shallow_water.md) and [energy balance](../formulations/budyko_sellers.md). The md2asm [shallow-water contract](../skills/md2asm/references/shallow_water.md) and [energy-balance contract](../skills/md2asm/references/budyko_sellers.md) define the numerical operations and output encoding, while [results.md](results.md) records the accepted comparisons.
+The target is Linux on little-endian AArch64 Neoverse V2, with one pinned core, binary64 NEON, and a verified 128-bit SVE vector length. The short formulations explain [shallow water](../sw/shallow_water.md) and [energy balance](../ebm/budyko_sellers.md). The md2asm [shallow-water contract](../skills/md2asm/references/shallow_water.md) and [energy-balance contract](../skills/md2asm/references/budyko_sellers.md) define the numerical operations and output encoding, while [results.md](results.md) records the accepted comparisons.
 
 ## Solver interfaces
 
-The application binary interface (ABI) specifies how a function receives arguments and preserves the caller’s data. Assembly and both Fortran libraries expose the following C ABI entry points, with signed 32-bit dimensions and step counts passed by value and 64-bit buffer pointers.
+The application binary interface (ABI) specifies how a function receives arguments and preserves the caller’s data. Assembly and the local Fortran comparison libraries expose the following C ABI entry points, with signed 32-bit dimensions and step counts passed by value and 64-bit buffer pointers.
 
 | Entry points | Registers | Arguments |
 | --- | --- | --- |
@@ -25,25 +25,27 @@ The stack stays 16-byte aligned under the [Arm procedure call standard](https://
 
 Vanilla Fortran supplies the canonical discrete trajectory after independent physical verification. Both Python variants use Numba, and each Julia variant runs in a separate persistent worker, with shared input bytes and direct returned-state comparisons; the driver supplies storage and evaluation without performing an omitted numerical stage.
 
-## Local toolchains and commands
+## Build and local evaluation
 
-Keep project installations in the Git-ignored `.runtime/` folder. The current paths are `.runtime/python` and `.runtime/julia-1.12.7`, with the Python packages pinned in [requirements.txt](requirements.txt), Julia's depot inside `.runtime/`, and one thread for every language runtime.
+The published tree contains assembly and Markdown. The unchanged language controls, small verifiers, timing tools and original detailed records are retained locally under `.runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/`. That archive preserves the earlier tracked files byte for byte. Local archives are not distributed with a Git clone. For a new checkout, add `.runtime/`, `.agents/` and `poster/` to `.git/info/exclude` before creating local files.
 
-Load `gcc-native/14.2` and `cray-python/3.11.7` on this system, then build with `make all ebm`; the compiler reports GNU Fortran 14.3.0 despite the module label. Normal CPU-aware controls use `-O3 -mcpu=neoverse-v2 -msve-vector-bits=128`, with contraction and fast-math disabled, while [Makefile](../Makefile) records the additional measured compiler tuning for specialised Fortran.
-
-Obtain an exclusive single-node Slurm allocation, confirm that no other job occupies its node, and use the following launch inside that allocation after setting OMP_NUM_THREADS, OPENBLAS_NUM_THREADS, and NUMBA_NUM_THREADS to 1.
+On the declared Arm target, the GNU compiler driver sends the assembly source to the assembler and linker. It does not generate the numerical instructions from a high-level language. Run these commands through `srun` in your own quiet exclusive allocation, with local memory binding.
 
 ```bash
-srun --jobid="$SLURM_JOB_ID" --overlap --exact \
-  --ntasks=1 --cpus-per-task=2 --cpu-bind=map_cpu:1 \
-  --mem-bind=local .runtime/python/bin/python bench/run.py verify
+mkdir -p .runtime/build
+gcc -mcpu=neoverse-v2 -fPIC -shared sw/solver.S -o .runtime/build/libsw_assembly.so
+gcc -mcpu=neoverse-v2 -fPIC -shared ebm/solver.S -o .runtime/build/libeb_assembly.so
 ```
 
-The Slurm step reserves two CPUs so that CPU 1 can be selected explicitly, while the process itself uses that single core with local NUMA placement. Replace the command arguments with `--model budyko_sellers verify` for energy balance, keeping the same launch and environment; all development commands and benchmarks use the allocated compute node.
+The accepted comparison used GNU Fortran and GCC 14.3.0, GNU Binutils 2.43.1.20241209, Python 3.11.7, NumPy 2.4.6, Numba 0.68.0, llvmlite 0.50.0 and Julia 1.12.7. The system modules were `gcc-native/14.2` and `cray-python/3.11.7`. Julia and Python remain installed under `.runtime/`, with one thread for every runtime.
 
-After both verifiers pass for the current source and binary hashes, use `bench --sizes 64,256,1024 --steps-per-size 8192,512,32 --target-seconds 0.4` for shallow water and `--model budyko_sellers bench --sizes 128,4096,65536 --steps-per-size 1000000,40000,2048 --target-seconds 0.2` for energy balance. Verification and raw timing records stay in `bench/.runs/`, with energy-balance records under its model subfolder and all binaries under `bench/.build/`; these folders are ignored by Git.
+Both Fortran controls use `-O3 -mcpu=neoverse-v2 -msve-vector-bits=128 -fPIC -fno-fast-math -ffp-contract=off -fprotect-parens`. Measured Fortran tuning adds `--param=max-unswitch-insns=600 -fopenmp-simd`, and energy balance also adds `-funroll-loops -finline-limit=1000`. Julia uses `-O3 --math-mode=ieee --cpu-target=neoverse-v2`, while Numba uses `fastmath=False`.
 
-The compact verifier covers analytic states, convergence, budgets, admissibility, complete trajectories, boundary copies, input preservation, parameter immutability, and guarded buffers. It compares every verification stage and step bit for bit and then compares canonical files directly, rejecting a mismatch with its first stage, step, field, cell, and bit patterns; hashes identify artifacts without replacing byte comparisons.
+The archived `Makefile` and `.runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/run.py` record the original build and launch commands. Reproduction requires the local archive, original input bytes and declared toolchain. Use the archive’s original layout when running those tools, while retaining new binaries and logs outside Git. Do not replace missing scientific stages with driver calculations.
+
+The small verifier checks physical solutions, convergence, budgets, admissibility, complete trajectories, boundaries, immutable inputs and guarded buffers. It compares each stage and step bit for bit, then compares complete canonical files. A mismatch must identify its first stage, step, field, cell and bit patterns.
+
+The accepted shallow-water workloads use grid widths 64, 256 and 1024 with 8192, 512 and 32 steps per batch. Energy balance uses 128, 4096 and 65536 bands with 1000000, 40000 and 2048 steps per batch. All numerical versions must pass the verifier and instruction audit before timing.
 
 ## Controlled measurement
 
@@ -63,6 +65,6 @@ Specialised paths replace division by a positive normal power of two with multip
 
 Apply [md2asm](../skills/md2asm/SKILL.md) to analyse the [roofline model](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2008/EECS-2008-134.pdf) using the [Neoverse V2 optimisation guide](https://documentation-service.arm.com/static/668bc0a369e89f01e39c4668). The relevant bound combines compatible arithmetic throughput with bandwidth at the memory level that supplies the kernel's traffic, including division and square-root resources where needed; fused-multiply-add peak throughput is outside this experiment's arithmetic contract.
 
-Run `roof --target-seconds 0.2` under the same launch to calibrate add, multiply, division, square root, and representative mixed-instruction throughput, together with one-read/one-write, seven-read/one-write, five-read/two-write, and eleven-read/two-write streams. Cache-sized and memory-sized working sets, numerical probe checks, repeated variation, and PMU readings remain in `bench/.runs/roofline.json`, with model-specific counts and achieved fractions in the compact results.
+The local archived roofline tool uses `roof --target-seconds 0.2` under the same quiet-node launch to calibrate add, multiply, division, square root, and representative mixed-instruction throughput, together with one-read/one-write, seven-read/one-write, five-read/two-write, and eleven-read/two-write streams. Cache-sized and memory-sized working sets, numerical probe checks, repeated variation, and PMU readings remain in `bench/.runs/roofline.json`, with model-specific counts and achieved fractions in the compact results.
 
 The per-thread Linux PMU group measures user-space cycles, retired instructions, and Arm L1D and L2D refills without multiplexing, rejecting incomplete readings. Refills describe cache fills rather than complete memory traffic, so the analysis keeps logical load/store bytes, cache refills, and DRAM bandwidth separate and treats calibrated roofs as empirical ceilings rather than proof of global optimality.

@@ -1,6 +1,6 @@
 # SPCIMPFINIT: implicit Coriolis preparation
 
-Revision 1.1 records full T21 acceptance and its observer binding while preserving the complete numerical body frozen in revision 1.0. It uses revision 1.0, equation P03, of the unchanged [atmospheric motion formulation](../../../../../formulations/openifs/dynamics/atmospheric_motion.md). The formulation SHA256 is 0702e45875a201c21b48e75eea536e84e73e7d42124ef20a4f8d9785a89bda7c. The unchanged OpenIFS source is `arpifs/adiab/spcimpfinit.F90`, SHA256 736af817369e838582a10c52c226ba9702531669c8c6da457b524a461c9a62dd, identified by the [source record](../../../../../bench/openifs/source.json). The freeze time and input/output hashes are in the ignored `.runtime/openifs/spcimpfinit/freeze.json`.
+Revision 1.1 records full T21 acceptance and its observer binding while preserving the complete numerical body frozen in revision 1.0. It uses revision 1.0, equation P03, of the unchanged [atmospheric motion formulation](../../../../../formulations/openifs/dynamics/atmospheric_motion.md). The formulation SHA256 is 0702e45875a201c21b48e75eea536e84e73e7d42124ef20a4f8d9785a89bda7c. The unchanged OpenIFS source is `arpifs/adiab/spcimpfinit.F90`, SHA256 736af817369e838582a10c52c226ba9702531669c8c6da457b524a461c9a62dd, identified by the [source record](../../../../../bench/openifs/EVIDENCE.md#source). The freeze time and input/output hashes are in the ignored `.runtime/openifs/spcimpfinit/freeze.json`.
 
 ## Physical meaning
 
@@ -173,7 +173,7 @@ The verifier's assembly canary bridge receives these eight prepared arguments, c
 
 ## Frozen input corpus and independent science
 
-The [critical verifier](../../../../../bench/openifs/dynamics/spcimpfinit.c), SHA256 2e63795b6dc2a66ed58542a4e4d76fdec5690d7d5c7f1d7595db39a2b70c9936, defines the complete deterministic corpus before native emission. Its reference-only preparation passed 197 source calls, with 47 zero-wave-number calls, 150 positive-wave-number calls, and 24 empty-level calls. It checks 51,668 independent values. Both writable physical spans end at a protected page in every case, and preceding guards and inactive elements retain their raw bytes.
+The [critical verifier](../../../../../bench/openifs/EVIDENCE.md#local-reproduction), SHA256 2e63795b6dc2a66ed58542a4e4d76fdec5690d7d5c7f1d7595db39a2b70c9936, defines the complete deterministic corpus before native emission. Its reference-only preparation passed 197 source calls, with 47 zero-wave-number calls, 150 positive-wave-number calls, and 24 empty-level calls. It checks 51,668 independent values. Both writable physical spans end at a protected page in every case, and preceding guards and inactive elements retain their raw bytes.
 
 The corpus includes `N=1,2,3,5,8` with every wave number; empty, one, three and five levels; all 22 `T21` wave blocks at 19 levels in the full 506-column allocation; higher degrees `127,32767,65535`; one-mode endpoints; different array strides and capacities; negative strides and shifted lower bounds; and inconsistent unused `KEND` values. It includes real/imaginary basis waves, mixed and constant histories, four-stage repeated inverse histories, signed zeros, gradual underflow, zero/reversed Coriolis factors, finite large factors with small vorticity, and zero-factor cases with the largest finite FP64 input. A genuine two-thread native fixture uses separate writable allocations with the same immutable physical inputs; its two entry calls are counted separately from the 197 reference cases.
 
@@ -205,9 +205,9 @@ The critical milestones require zero differing bytes against the immutable stric
 
 All 550 genuine INIT calls pass in the fresh combined T21 forecast, with 25 zero-wave and 525 positive-wave calls. The observer checks 590,425 independent relations and 721,050 finite active values. The 169,206,400 full allocation bytes and 550 deterministic 512-byte headers give 169,488,000 canonical returned bytes. They include every shared SP3D field and the separate complete AUX allocation. All 23 paired streams and ten saved files directly match the strict Fortran baseline. This checkpoint runs through own exclusive job 7189435 on nid010825, with CPU 0 and local memory placement.
 
-The observer compares the source image with the unchanged EC_PHYS_DRV image, so the equivalent bin/../lib loader spelling is accepted. Its first pathname-only guard stopped at call zero before numerical execution. The failed run and original observer are archived, and the assembly body, corpus and critical outputs are unchanged. The [compact record](../../../../../bench/openifs/dynamics/spcimpfinit.json) identifies the accepted artifacts and command archive. Whole-forecast physics and comparative timing remain unfinished.
+The observer compares the source image with the unchanged EC_PHYS_DRV image, so the equivalent bin/../lib loader spelling is accepted. Its first pathname-only guard stopped at call zero before numerical execution. The failed run and original observer are archived, and the assembly body, corpus and critical outputs are unchanged. The [compact record](../../../../../bench/openifs/EVIDENCE.md#routine-records) identifies the accepted artifacts and command archive. Whole-forecast physics and comparative timing remain unfinished.
 
-The [ABI bridge](../../../../../bench/openifs/dynamics/spcimpfinit_abi.S) checks preserved registers and FPCR immediately after the numerical call. Rebuilding its tracked source produces the identical accepted object. Run the commands below through srun in a quiet exclusive allocation, using the frozen strict OpenIFS build and a new ignored output directory.
+The [ABI bridge](../../../../../bench/openifs/EVIDENCE.md#local-reproduction) checks preserved registers and FPCR immediately after the numerical call. Rebuilding its retained local source produces the identical accepted object. Run the commands below through srun in a quiet exclusive allocation, using the frozen strict OpenIFS build and a new ignored output directory.
 
 ```bash
 module load PrgEnv-gnu gcc-native/12.3 libfabric/2.3.1
@@ -217,7 +217,7 @@ mkdir -p "$check_dir"
 gcc -fPIC -c src/openifs/dynamics/spcimpfinit.S -o "$check_dir/assembly.o"
 gcc -c bench/openifs/dynamics/spcimpfinit_abi.S -o "$check_dir/abi.o"
 gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -fopenmp \
-  -Wall -Wextra -Werror bench/openifs/dynamics/spcimpfinit.c \
+  -Wall -Wextra -Werror .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/spcimpfinit.c \
   "$check_dir/assembly.o" "$check_dir/abi.o" -L "$build_root/lib" \
   -larpifs.DP -lfiat -lm -ldl -Wl,-rpath,"$build_root/lib" \
   -o "$check_dir/verify"
@@ -226,7 +226,7 @@ OMP_NUM_THREADS=1 "$check_dir/verify" "$check_dir/assembly.bin" \
 cmp "$check_dir/assembly.bin" "$check_dir/fortran.bin"
 cmp "$check_dir/fortran.bin" .runtime/openifs/spcimpfinit/preparation/reference.bin
 gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -fPIC \
-  -Wall -Wextra -Werror -c bench/openifs/dynamics/spcimpfinit_forecast.c \
+  -Wall -Wextra -Werror -c .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/spcimpfinit_forecast.c \
   -o "$check_dir/forecast.o"
 gcc -shared -Wl,-Bsymbolic "$check_dir/forecast.o" "$check_dir/assembly.o" \
   -ldl -lpthread -lm -o "$check_dir/libverify-spcimpfinit.so"

@@ -144,7 +144,7 @@ gcc -fPIC -march=armv8-a+simd \
 cmp "$review_dir/abi.o" .runtime/openifs/spcimpfsolve-7207705/build/spcimpfsolve-abi.o
 cmp "$review_dir/observed.o" .runtime/openifs/spcimpfsolve-7207705/build/spcimpfsolve-observed.o
 gcc -O2 -mcpu=neoverse-v2 -fopenmp -ffp-contract=off -fno-fast-math \
- -Wall -Wextra -Werror bench/openifs/dynamics/spcimpfsolve.c \
+ -Wall -Wextra -Werror .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/spcimpfsolve.c \
  "$review_dir/abi.o" "$review_dir/observed.o" \
  .runtime/openifs/simplico/build/simplico.o .runtime/openifs/verdisint/build/vertical_abi.o \
  -L .runtime/openifs/strict-build/lib -larpifs.DP -lalgor.DP -lfiat -lm -ldl \
@@ -158,7 +158,8 @@ cmp "$review_dir/fortran.bin" .runtime/openifs/spcimpfsolve-7207705/preparation/
 cmp "$review_dir/fortran.bin" "$review_dir/assembly.bin"
 cmp "$review_dir/fortran-stages.bin" .runtime/openifs/spcimpfsolve-7207705/preparation/critical-fortran-stages.bin
 cmp "$review_dir/fortran-stages.bin" "$review_dir/assembly-stages.bin"
-cat "$review_dir/summary.json"```
+cat "$review_dir/summary.json"
+```
 
 The direct-register build adds only an argument-loading tail veneer. The stage-observation build forwards complete arguments to the accepted numerical helper. The primary instruction bytes remain identical apart from that call's observer relocation. Every cmp command must return zero.
 
@@ -166,4 +167,4 @@ Build the forecast observer without SPCIMPFSOLVE_MINIMAL_SCOPE when the accepted
 
 The accepted isolated run is `.runtime/openifs/runs/strict-spcimpfsolve-assembly-7207705/t21/test_fc`. It ran on the exclusive own job 7207705, node `nid011311`, with `map_cpu:32`, local memory placement, one process, one thread and `--mpi=cray_shasta`. Builds, source checks and simulations used that same own allocation. Instrumented forecast wall time is verification evidence and is not an accepted timing.
 
-The [compact benchmark record](../../../../../bench/openifs/dynamics/spcimpfsolve.json) identifies every public file, frozen corpus, accepted object, source/native stream and saved model file. The ignored `accepted.json` manifest seals the release and exact command archive for parent review.
+The [compact benchmark record](../../../../../bench/openifs/EVIDENCE.md#routine-records) identifies every public file, frozen corpus, accepted object, source/native stream and saved model file. The ignored `accepted.json` manifest seals the release and exact command archive for parent review.

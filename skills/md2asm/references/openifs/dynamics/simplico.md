@@ -164,7 +164,7 @@ Exported nonnumerical simplico_forecast_reference_begin/end hooks can distinguis
 
 The combined T21 historical forecast accepts all 550 original calls in 25 SPCIMPFSOLVE visits, with 25 calls for each wave number from zero through 21. The complete separate PY and PX parents each contain 19 by 506 values. Every returned parent byte matches the unchanged source across 84,691,200 canonical record bytes, including untouched modes and zero-wave imaginary storage. All configuration and coefficient allocations retain their input bytes, and FPCR is zero at every entry and return. All 26 paired streams and ten saved files directly compare with the strict Fortran baseline. The frozen critical verifier separately checks independent dense solutions and original-matrix residuals. Whole-forecast physical validation and comparative timing remain unfinished.
 
-The [compact record](../../../../../bench/openifs/dynamics/simplico.json) identifies the frozen corpus, original source, accepted stage streams and exact command archive. The direct thirteen-argument forwarding bridge is embedded in the [critical driver](../../../../../bench/openifs/dynamics/simplico.c), with the existing [preserved-register checker](../../../../../bench/openifs/dynamics/vertical_abi.S). Run these commands through srun in a quiet exclusive allocation, using a fresh ignored directory.
+The [compact record](../../../../../bench/openifs/EVIDENCE.md#routine-records) identifies the frozen corpus, original source, accepted stage streams and exact command archive. The direct thirteen-argument forwarding bridge is embedded in the [critical driver](../../../../../bench/openifs/EVIDENCE.md#local-reproduction), with the existing [preserved-register checker](../../../../../bench/openifs/EVIDENCE.md#local-reproduction). Run these commands through srun in a quiet exclusive allocation, using a fresh ignored directory.
 
 ```bash
 module load PrgEnv-gnu gcc-native/12.3 libfabric/2.3.1
@@ -184,7 +184,7 @@ gfortran -O2 -mcpu=native -fPIC -fopenmp -ffp-contract=off -fno-fast-math \
   -c .runtime/openifs/simplico/preparation/staged-simplico.F90 \
   -o "$check_dir/reference.o"
 gcc -O2 -mcpu=native -fPIC -fopenmp -ffp-contract=off -fno-fast-math \
-  -Wall -Wextra -Werror -c bench/openifs/dynamics/simplico.c \
+  -Wall -Wextra -Werror -c .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/simplico.c \
   -o "$check_dir/verifier.o"
 gcc -fPIC -pie -fopenmp "$check_dir/verifier.o" "$check_dir/assembly.o" \
   "$check_dir/stages.o" "$check_dir/reference.o" "$check_dir/abi.o" \
@@ -195,7 +195,7 @@ OMP_NUM_THREADS=1 "$check_dir/verify" .runtime/openifs/simplico/preparation \
 cmp "$check_dir/result/assembly.bin" "$check_dir/result/reference.bin"
 cmp "$check_dir/result/assembly-stages.bin" "$check_dir/result/reference-stages.bin"
 gcc -O2 -mcpu=native -fPIC -fopenmp -ffp-contract=off -fno-fast-math \
-  -Wall -Wextra -Werror -c bench/openifs/dynamics/simplico_forecast.c \
+  -Wall -Wextra -Werror -c .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/simplico_forecast.c \
   -o "$check_dir/forecast.o"
 gcc -shared -fopenmp "$check_dir/forecast.o" "$check_dir/assembly.o" \
   -L "$build_root/lib" -lalgor.DP -larpifs.DP -lfiat -lgfortran -lm -ldl \

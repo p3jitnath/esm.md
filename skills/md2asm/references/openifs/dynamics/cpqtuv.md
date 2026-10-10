@@ -60,7 +60,7 @@ Emit primary assembly directly from this contract and build it with an assembler
 
 The fresh combined T21 forecast accepts all 2,150 CPQTUV calls, with 86 at each time visit from zero through 24. It captures the complete earlier eight-field allocation and complete new six-field allocation. There are 2,125 full 24-column blocks and 25 final eight-column blocks, all at 19 levels. Every returned buffer byte, including inactive cells, matches the original source across 134,194,400 canonical bytes. The reviewed observer requires all FPCR bits to be zero before every call. The optional continuity and dry-flux branches are inactive here and remain covered by the frozen critical physical cases. All 24 paired streams and ten saved files directly compare with the strict Fortran baseline. Own exclusive job 7189435 on nid010825 supplies CPU 0 and local memory placement.
 
-The [compact record](../../../../../bench/openifs/dynamics/cpqtuv.json) retains the frozen source, contract, corpus, actual call metadata and full command archives. The [direct ABI bridge](../../../../../bench/openifs/dynamics/cpqtuv_abi.S) forwards all 18 original arguments and checks preserved registers before restoring its own state. Its tracked source rebuilds to the identical accepted object. Whole-forecast physical validation and comparative timing remain unfinished.
+The [compact record](../../../../../bench/openifs/EVIDENCE.md#routine-records) retains the frozen source, contract, corpus, actual call metadata and full command archives. The [direct ABI bridge](../../../../../bench/openifs/EVIDENCE.md#local-reproduction) forwards all 18 original arguments and checks preserved registers before restoring its own state. Its retained local source rebuilds to the identical accepted object. Whole-forecast physical validation and comparative timing remain unfinished.
 
 Run the following commands through srun in a quiet exclusive allocation. Use the frozen strict OpenIFS build and a new ignored output directory.
 
@@ -73,7 +73,7 @@ gcc -fPIC -Dcpqtuv_=cpqtuv_assembly_ -c src/openifs/dynamics/cpqtuv.S \
   -o "$check_dir/assembly.o"
 gcc -c bench/openifs/dynamics/cpqtuv_abi.S -o "$check_dir/abi.o"
 gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math \
-  -Wall -Wextra -Werror bench/openifs/dynamics/cpqtuv.c \
+  -Wall -Wextra -Werror .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/cpqtuv.c \
   "$check_dir/assembly.o" "$check_dir/abi.o" -Wl,--wrap=cpqtuv_assembly_ \
   -L "$build_root/lib" -larpifs.DP -lfiat -ldl -lm \
   -Wl,-rpath,"$build_root/lib" -o "$check_dir/verify"
@@ -83,7 +83,7 @@ cmp "$check_dir/result.assembly.bin" "$check_dir/result.fortran.bin"
 cmp "$check_dir/result.assembly.bin" \
   .runtime/openifs/cpqtuv/frozen/reference.fortran.bin
 gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -fPIC \
-  -Wall -Wextra -Werror -c bench/openifs/dynamics/cpqtuv_forecast.c \
+  -Wall -Wextra -Werror -c .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/cpqtuv_forecast.c \
   -o "$check_dir/forecast.o"
 gcc -shared -Wl,-Bsymbolic "$check_dir/forecast.o" "$check_dir/assembly.o" \
   -ldl -lm -o "$check_dir/libverify-cpqtuv.so"

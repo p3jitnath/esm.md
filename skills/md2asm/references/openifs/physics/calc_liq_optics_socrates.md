@@ -40,7 +40,7 @@ Only the first NB rows and first16 coefficient columns are used. Extra rows, col
 
 The manufactured physical cases use constant known extinction, absorption and asymmetry, or finite positive rational coefficients. Independently evaluate the rational functions in long-double arithmetic using explicit radius powers and polynomial sums. Compare with a limit of8192*DBL_EPSILON*max(1,abs(independent result))+8*DBL_TRUE_MIN. The constant cases also check their analytic depth and water-path scaling exactly. Physical bounds use256*DBL_EPSILON*max(1,abs(tau)+abs(tau_s)) for depth rounding and256*DBL_EPSILON for g. These tolerances apply only to independent physical checks; source/native output acceptance permits zero differing bytes.
 
-The242-case corpus includes NB0,1,3,14,16,17,24; surplus descriptor rows; ordinary, doubled, reversed-row, doubled-column and reversed-column strides; zero water; signed zeros; nonzero subnormals; and a multiply-before-division witness. It also includes both complete configured coefficient tables at radii4,10,20,30 micrometres and water paths0,1/16,1/8,898 kilograms per square metre. Numerical edge cases do not assert that their arbitrary radius or coefficients describe a real cloud. Protect all input/descriptor/scalar pages from writes and place an inaccessible page after every exact output tail. Compare all outputs and leading guards against unchanged strict-source Fortran. The direct ABI observer is explicit assembly embedded in the tracked critical C source.
+The 242-case corpus includes NB0,1,3,14,16,17,24; surplus descriptor rows; ordinary, doubled, reversed-row, doubled-column and reversed-column strides; zero water; signed zeros; nonzero subnormals; and a multiply-before-division witness. It also includes both complete configured coefficient tables at radii 4, 10, 20, 30 micrometres and water paths 0, 1/16, 1/8, 898 kilograms per square metre. Numerical edge cases do not assert that their arbitrary radius or coefficients describe a real cloud. Protect all input/descriptor/scalar pages from writes and place an inaccessible page after every exact output tail. Compare all outputs and leading guards against unchanged strict-source Fortran. The direct ABI observer is explicit assembly embedded in the retained local critical C source.
 
 The little-endian input corpus begins with LIQO0001 and a uint32 case count. Each record stores eight int32 values: case number, NB, coefficient row extent, layout, pattern, radius index, water index and reserved zero. Two FP64 values give L and r. Two uint64 values give physical coefficient-storage cells and first-logical-element index. An88-byte descriptor follows with its pointer word zeroed, then complete physical coefficient storage and three incoming NB-element outputs. Reconstruct only the pointer from the separately captured base index; preserve all other descriptor bits. Canonical result files append an8-byte guard and complete output for tau, tau_s and g in that order for every case. Report the first mismatching case, output, band and two64-bit patterns.
 
@@ -60,7 +60,7 @@ Freeze original source/caller hashes, storage-only probes, coefficient tables, c
 
 The combined forecast accepts all 317,920 original calls at the two CLOUD_OPTICS sites. All 127,168,000 complete returned record bytes also match the source-only stream frozen before generation. The whole coefficient tables and incoming output capacities are captured on every call, with all inputs unchanged and FPCR exactly zero. All 27 paired streams directly compare across 2,835,414,408 bytes, and all ten saved files match the strict Fortran baseline. The independent optical and ABI checks remain separate from these exact comparisons.
 
-The [compact record](../../../../../bench/openifs/physics/calc_liq_optics_socrates.json) identifies the corpus, source tables, first emission and exact command archive. Run the following commands through srun in a quiet exclusive allocation, using a fresh ignored output directory. The direct register observer is embedded in the tracked critical driver.
+The [compact record](../../../../../bench/openifs/EVIDENCE.md#routine-records) identifies the corpus, source tables, first emission and exact command archive. Run the following commands through srun in a quiet exclusive allocation, using a fresh ignored output directory. The direct register observer is embedded in the retained local critical driver.
 
 ```bash
 module load PrgEnv-gnu gcc-native/12.3 libfabric/2.3.1
@@ -72,7 +72,7 @@ gcc -fPIC \
   -c src/openifs/physics/calc_liq_optics_socrates.S -o "$check_dir/assembly.o"
 gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math \
   -Wall -Wextra -Werror -Wno-misleading-indentation \
-  bench/openifs/physics/calc_liq_optics_socrates.c "$check_dir/assembly.o" \
+  .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/physics/calc_liq_optics_socrates.c "$check_dir/assembly.o" \
   -L "$build_root/lib" -Wl,-rpath,"$build_root/lib" -larpifs.DP -lfiat -lm \
   -o "$check_dir/critical"
 "$check_dir/critical" --verify \
@@ -82,7 +82,7 @@ cmp .runtime/openifs/calc_liq_optics_socrates/frozen/canonical-fortran.bin \
   "$check_dir/result-fortran.bin"
 gcc -O2 -mcpu=neoverse-v2 -fPIC -ffp-contract=off -fno-fast-math \
   -Wall -Wextra -Werror -Wno-misleading-indentation \
-  -c bench/openifs/physics/calc_liq_optics_socrates_forecast.c \
+  -c .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/physics/calc_liq_optics_socrates_forecast.c \
   -o "$check_dir/forecast.o"
 gcc -shared -Wl,-Bsymbolic "$check_dir/forecast.o" "$check_dir/assembly.o" \
   -ldl -lm -o "$check_dir/libverify-liquid-optics.so"

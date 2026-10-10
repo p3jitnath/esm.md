@@ -1,6 +1,6 @@
 # Shallow-water solver contract
 
-This reference records the numerical choices derived from the [basic model note](../../../formulations/shallow_water.md). A numerical method replaces continuous space and time with cells and steps; the contract fixes those choices, the order of arithmetic, and the required outputs so that implementations can be compared exactly. Read it when generating or changing this model. The verified equations and revision below are retained unchanged.
+This reference records the numerical choices derived from the [basic model note](../../../sw/shallow_water.md). A numerical method replaces continuous space and time with cells and steps; the contract fixes those choices, the order of arithmetic, and the required outputs so that implementations can be compared exactly. Read it when generating or changing this model. The verified equations and revision below are retained unchanged.
 
 ## 01. Document control
 

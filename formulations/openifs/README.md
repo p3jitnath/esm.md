@@ -1,6 +1,6 @@
 # OpenIFS formulations
 
-OpenIFS is a global weather model. It combines atmospheric motion with radiation, clouds, rainfall and exchanges with the surface. The local source used here is OpenIFS 48.1.1, identified by the [source record](../../bench/openifs/source.json).
+OpenIFS is a global weather model. It combines atmospheric motion with radiation, clouds, rainfall and exchanges with the surface. The local source used here is OpenIFS 48.1.1, identified by the [source record](../../bench/openifs/EVIDENCE.md#source).
 
 The notes contain the physical idea and basic equations. The md2asm contracts contain the numerical method, ordered arithmetic and assembly interface. A complete routine is verified separately before it replaces the corresponding Fortran routine in the forecast.
 
@@ -24,6 +24,7 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 | Convection | [Plume transport](physics/convection.md) | Complete CUBIDIAG helper, other stages pending |
 | Turbulent mixing | [Vertical transport](physics/vertical_mixing.md) | Pending |
 | Radiation | [Radiation balance](physics/radiation.md) | Complete liquid and Fu ice optics and cloud delta scaling, radiative transfer pending |
+| Shortwave Band 21 | [Absorption and scattering](physics/shortwave_band21.md) | Complete SRTM_TAUMOL21 within its verified contract |
 | Soil, snow, lakes and surface exchange | [Skin balance and tiles](surface/surface_exchange.md) | CPSPE update only, storage balances pending |
 | Column ozone | [Ozone mass](physics/column_ozone.md) | Complete GPTCO3 integral, also used for signed moisture rates |
 | Atmospheric composition | [Tracer balance](physics/atmospheric_composition.md) | Transport and chemical rates pending |
@@ -31,4 +32,4 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 
 These basic balances do not yet cover every configured physical process. Source-derived closure relations, which specify rates and coefficients, and complete numerical contracts are still needed before assembly generation.
 
-Fifty-one public assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../bench/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
+Fifty-three public assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../bench/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.

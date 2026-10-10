@@ -4,7 +4,7 @@ These measurements ran overnight on 4–5 October 2026 on one Arm Neoverse V2 co
 
 Speed is measured in million complete cell updates per second; each update advances one cell through one full time step. The median is the middle timing of twelve runs. MAD is the median absolute distance from that middle value, while the range gives the shortest and longest observed times. These ranges describe the runs and are not confidence intervals. Vanilla means the unchanged language control, compiled for the same processor; optimised means its loops were tuned using measured performance.
 
-The [compact evidence](results.json) records all accepted timings, physical checks, input and output hashes, implementation fingerprints, hardware counters, and software versions. See the [evaluation instructions](README.md) to reproduce the comparison.
+The tables below retain accepted timings and variation. The [evidence](#evidence) identifies preserved local records, canonical outputs and measured assembly sources. See the [evaluation instructions](README.md) to reproduce the comparison.
 
 ## Shallow water
 
@@ -83,4 +83,36 @@ The core is pinned to CPU 1 with nearby memory on NUMA node 0, which keeps proce
 
 The retained assembly methods and their conditions are in [md2asm](../skills/md2asm/SKILL.md). Conclusions apply to these two models, this processor, and the measured workloads.
 
-The formulation explanations were expanded after measurement without changing the mathematics or numerical contracts. The JSON record preserves the measured source hashes and records the revised documentation hashes separately.
+The formulation explanations were expanded after measurement without changing the mathematics or numerical contracts. The preserved local record keeps measured source hashes and revised documentation hashes separately.
+
+## Evidence
+
+The original detailed comparison record remains locally at `.runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/results.json`. Its SHA256 is `48a2ed2e828956697e9aaee329a0ea2de7e74439f60c08dc2b00ad35628500c8`. SHA256 identifies archived bytes. Acceptance used direct byte comparisons, rather than hash equality alone.
+
+The assembly sources retain their measured bytes. The numerical equations and ordered arithmetic are unchanged. The table identifies the archived measured contract revisions.
+
+| Published file | Measured SHA256 |
+| --- | --- |
+| `sw/solver.S` | `e12383e16436fba3b5798c88432b0da26cc0e15db0063b7a3588500c021741e6` |
+| `ebm/solver.S` | `4a5945222947dabbb01dac1455a883bc0294d90ee8b10d812f0d64a5260021cc` |
+| `skills/md2asm/references/shallow_water.md` | `0fe0d86f74f784dd06832918180ca42761d00a511a7877f0367564d0d6b09211` |
+| `skills/md2asm/references/budyko_sellers.md` | `c22dcb30010aa34d881decacfef4e4d53c7b37e2986e4633471581c5b08e89e5` |
+
+| Model | Grid | Input SHA256 | First-stage SHA256 | Final-state SHA256 |
+| --- | ---: | --- | --- | --- |
+| Shallow water | 64 | `5bc0954e390bb4c28556989e8a0a99f97158f76cee32774d71e965ece704d154` | `27d52cf621bc5e875c523a449110f8bf17845f1395e0302908f6fb7da42f47b1` | `dbcbf00edac324d8e2a0db449490bb48ab1ce4b167ae488ab415e36d7452e8d8` |
+| Shallow water | 256 | `9fa3f7cfa20d5aaf0a91d96b52187aa3b606a4f514f5d333a94a65566c3e69bc` | `1dfb15e2140e24e12e8a7cbce41521bd59efb43aae0d3830a42a7ecce2992e0e` | `ec23623760b4b33301fd209346e6ee3e03c23423ba05e46b2058a7fa7335ce0b` |
+| Shallow water | 1024 | `268e8f7ac815c25fa2d27e8ec0d090600affcb96dc91904d839aa40697e073b2` | `f1ccf65d940646d37cfb03e95e045484e6d774ae32600af8a55fcd788fc83a2b` | `3db13c4d04944c78b1455c6b47d29189577082af76744062b7354e0670856e86` |
+| Energy balance | 128 | `5d586acc41539d3efa332e879d963d4ac1d8a3f60a055d2300d877d4ec9536ff` | `8fed861379d7f04b0a6ad7a3d85135d517b984c5f9afbe1356a39e24a0ff4564` | `64c137dfef716463526596571e7d7fdb055df6b04763d0046fe62051c4fc23b8` |
+| Energy balance | 4096 | `7533fe5fa51cb09c1c400f3e0c3463fd7fc08ae644b069db489aed0358b3e49e` | `1e5523faef8bc405c6fdfc711c0a258dc52918e6addd2b63643967f6541d236c` | `3c2d653517d6ae5eade6cdcb428a8fe69c91b4a49157c52cae44699a17a8d89c` |
+| Energy balance | 65536 | `067f72fcfe391b0f655faa92bdc2e52e54968bd6e6cd6fc0a3a6a532e0e10ccb` | `9aac49d5545059aadb6ea21123172efdbe2ca2d7833f0038f7684cb2c247a12d` | `0915843c854f5a3c26b7710a1083d947e3c2dc08d4f4af74d340196d271679de` |
+
+| Local record | SHA256 |
+| --- | --- |
+| shallow_water raw timing | `800072130317f191fe36f1a01f4ab67a97aa46de6dce31cc9dfef8c4f0b97845` |
+| shallow_water raw verification | `ebf1c174f97a1291ae674aa7c7960b511a1be20083a61b8bebcc70b34dacad13` |
+| budyko_sellers raw timing | `d4b9732fd8e9a34f91de676282dea6f848a9e019a9af9515b0d056a37f500627` |
+| budyko_sellers raw verification | `393bfe7f76db42ade970dc028146b50ed00e00da2415bbd3dffb6526e3ffd69e` |
+| Matched hardware calibration | `4bd14019d617d6fb69d2545c24bef95187fbb901eff826f51be2adbcf70e9b10` |
+
+The [evaluation notes](README.md) give the processor, software versions, compiler settings, complete-step workloads and quiet-node protocol. Full samples, machine-instruction audits, physical tolerances, startup measurements and observed load remain in the local archive. Historical conclusions apply to the recorded versions and workloads.

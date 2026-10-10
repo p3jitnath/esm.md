@@ -15,7 +15,7 @@ Band17's separate cross-run complete-storage check records 53,713,296 differing 
 
 The four archived reports below retain the actual comparisons. SHA256 identifies each file and does not replace byte comparison.
 
-- [Original physics](../../../.runtime/openifs/implicit_stage_reviews_7207705/band21-actual-complete-capture-physics-r2/complete-original-capture-physics-review-r1.json), SHA256 `e4eaecae5323c03f15f737d6f95b01ab978bdc02983a0f51eca1d8390def41fa`.
-- [Protected native calls](../../../.runtime/openifs/band21_direct_source_7207705/native-critical-run-r1/complete-76-case-native-critical-review-r1.json), SHA256 `b03fc8ffaa556185892ef6013b4fa8f3538200755c0b6d0064d1cccb48f86bdf`.
-- [Complete live pairs](../../../.runtime/openifs/runs/strict-band21-parent52-live-original-native-pair-r1-7207705/t21/complete-Band21-live-pair-and-ten-saved-review-r1.json), SHA256 `bdaf21eab0255365e348f9abc10d7fad8495b589c984915541798a47d3aab50f`.
-- [Combined forecast](../../../.runtime/openifs/srtm_taumol21_7207705/parent52-band21-integrated-launch-source-r1/single-checker-status/complete-parent52-and-Band21-integrated-acceptance-r1.json), SHA256 `056428d7ebceca9439be2c91de0af004711aa45165817807311c3ce581e36b22`.
+- Original physics, `.runtime/openifs/implicit_stage_reviews_7207705/band21-actual-complete-capture-physics-r2/complete-original-capture-physics-review-r1.json`, SHA256 `e4eaecae5323c03f15f737d6f95b01ab978bdc02983a0f51eca1d8390def41fa`.
+- Protected native calls, `.runtime/openifs/band21_direct_source_7207705/native-critical-run-r1/complete-76-case-native-critical-review-r1.json`, SHA256 `b03fc8ffaa556185892ef6013b4fa8f3538200755c0b6d0064d1cccb48f86bdf`.
+- Complete live pairs, `.runtime/openifs/runs/strict-band21-parent52-live-original-native-pair-r1-7207705/t21/complete-Band21-live-pair-and-ten-saved-review-r1.json`, SHA256 `bdaf21eab0255365e348f9abc10d7fad8495b589c984915541798a47d3aab50f`.
+- Combined forecast, `.runtime/openifs/srtm_taumol21_7207705/parent52-band21-integrated-launch-source-r1/single-checker-status/complete-parent52-and-Band21-integrated-acceptance-r1.json`, SHA256 `056428d7ebceca9439be2c91de0af004711aa45165817807311c3ce581e36b22`.

@@ -127,11 +127,11 @@ mkdir -p "$build"
 gcc -fPIC -march=armv8-a+simd -c src/openifs/dynamics/laitli.S -o "$build/laitli.o"
 gcc -fPIC -march=armv8-a+simd -DLAITLI_ABI_PROBE -c src/openifs/dynamics/laitli.S -o "$build/laitli-abi.o"
 gcc -c bench/openifs/dynamics/vertical_abi.S -o "$build/vertical-abi.o"
-gcc -O2 -mcpu=neoverse-v2 -fopenmp -ffp-contract=off -fno-fast-math -Wall -Wextra -Werror bench/openifs/dynamics/laitli.c "$build/laitli-abi.o" "$build/vertical-abi.o" -lm -o "$build/verify"
+gcc -O2 -mcpu=neoverse-v2 -fopenmp -ffp-contract=off -fno-fast-math -Wall -Wextra -Werror .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/laitli.c "$build/laitli-abi.o" "$build/vertical-abi.o" -lm -o "$build/verify"
 d=.runtime/openifs/laitli-7207705
 OMP_NUM_THREADS=1 OMP_DYNAMIC=FALSE "$build/verify" "$d/preparation/critical-inputs.bin" "$d/preparation/critical-fortran.bin" "$d/preparation/critical-independent.bin" "$build/assembly.bin" "$build/summary.json"
 cmp "$d/preparation/critical-fortran.bin" "$build/assembly.bin"
-gcc -O2 -mcpu=neoverse-v2 -fPIC -shared -fopenmp -ffp-contract=off -fno-fast-math -Wall -Wextra -Werror bench/openifs/dynamics/laitli_forecast.c "$build/laitli.o" -ldl -lm -o "$build/libverify-laitli.so"
+gcc -O2 -mcpu=neoverse-v2 -fPIC -shared -fopenmp -ffp-contract=off -fno-fast-math -Wall -Wextra -Werror .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/laitli_forecast.c "$build/laitli.o" -ldl -lm -o "$build/libverify-laitli.so"
 ```
 
 For full frozen-input replay, use `verify --actual INPUT SOURCE NATIVE SUMMARY` with the complete files in `.runtime/openifs/runs/strict-laitli-source-complete-7207705/t21/test_fc/`. For a fresh source-only capture, compile the forecast observer with `-DLAITLI_SOURCE_ONLY` and omit the assembly object. For native capture, put `libverify-laitli.so` first in the preload list, before the immutable strict-vertical reference and pressure-math library. This observer defines no SPCM scope relay and introduces no numerical helper.

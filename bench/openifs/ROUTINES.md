@@ -16,7 +16,7 @@ A stub is a placeholder for an unavailable feature. The 4,825 other bodies also 
 
 The tool checks each built input with GNU Fortran 12.3 and the original build settings. It excludes interface declarations, modules, program entry blocks and compiler-added helpers. Empty bodies count, and alternate ENTRY names share one body. The compilation database lists 3,675 Fortran inputs, but 388 belong to targets that were not built and are excluded.
 
-Two count passes produced identical inventory bytes. All built inputs passed, and the 4,071 recorded source files, forecast executable and seven scientific libraries retain their earlier hashes. The [compact record](routines.json) also identifies seven generated Fortran inputs and their source templates. Full names, source paths, reports and the profile mapping remain in ignored .runtime/openifs/routine-audit/.
+Two count passes produced identical inventory bytes. All built inputs passed, and the 4,071 recorded source files, forecast executable and seven scientific libraries retain their earlier hashes. The retained local audit, indexed in the [evidence](EVIDENCE.md#routine-records), also identifies seven generated Fortran inputs and their source templates. Full names, source paths, reports and the profile mapping remain in ignored .runtime/openifs/routine-audit/.
 
 A complete T21 call trace now records when each built Fortran routine starts and returns. A separate build adds these notifications without changing the original strict build or its archives. All 153,696,355 entry/return pairs are balanced, with no lost events. Every observed address resolves to one of 1,466 source bodies, seven compiler cleanup helpers or two program startup wrappers. All ten saved forecast files match the strict reference by direct byte comparison.
 
@@ -31,7 +31,7 @@ A complete T21 call trace now records when each built Fortran routine starts and
 
 The older profile has 1,171 labelled regions, so its labels do not give complete routine coverage. The current review covers 802 bodies, including 81 mathematical stages, 172 subordinate calculations, 60 mathematical interfaces, five setup bodies and 33 diagnostic bodies. An interface calls mathematical routines and can also delegate diagnostics. The 351 bodies with mathematical purposes form a source-purpose subtotal; this count does not establish which routines require assembly or give a numerical completion denominator. SGEMMXZ remains classified as runtime support because its accepted body is an empty compatibility return. During the main forecast phase, all 711 entered source bodies now have reviewed roles; another 835 run before it and 64 after it, with overlap between these sets.
 
-The trace excludes local C/C++ bodies and uninstrumented external libraries, including numerical libraries. It records routine visits for this T21 case and does not prove every branch or other configurations. The compact [coverage record](routines.json) preserves counts, commands, evidence hashes and these limits. Complete events, source mappings and review evidence stay in ignored .runtime/openifs/routine-audit/ and .runtime/openifs/runs/.
+The trace excludes local C/C++ bodies and uninstrumented external libraries, including numerical libraries. It records routine visits for this T21 case and does not prove every branch or other configurations. The compact [coverage record](EVIDENCE.md#routine-records) preserves counts, commands, evidence hashes and these limits. Complete events, source mappings and review evidence stay in ignored .runtime/openifs/routine-audit/ and .runtime/openifs/runs/.
 
 | Routine | Verified assembly work |
 | --- | --- |
@@ -53,25 +53,25 @@ The trace excludes local C/C++ bodies and uninstrumented external libraries, inc
 | GPTF1, GPTF2 | Complete two-part time filter |
 | CTVTOT | Complete temperature from the moist-air equation of state |
 
-All fifty-two public bodies pass their critical checks within their declared input ranges. Every captured forecast call also passes; VERDER has no visit in this case, so its acceptance uses the small verifier. The [verification notes](README.md) state the evidence and its limits. Complete assembly coverage, raw whole-forecast states, independent whole-forecast physical checks and the external numerical-library arithmetic audit remain unfinished.
+All 53 public bodies pass their critical checks within their declared input ranges. Every captured forecast call also passes; VERDER has no visit in this case, so its acceptance uses the small verifier. The [verification notes](README.md) state the evidence and its limits. Complete assembly coverage, raw whole-forecast states, independent whole-forecast physical checks and the external numerical-library arithmetic audit remain unfinished.
 
-Current work prioritises the weather calculations that take the most time in the coarse forecast. Finish the current Band21 checks, then develop radiation transport and cloud sampling from their smaller calculation children toward the larger solvers. Assembly development, independent physics checks and forecast integration can proceed in parallel for separate tasks. Every replacement still needs a frozen md2asm contract, physical acceptance and complete byte agreement before it joins the verified forecast.
+The exact [remaining weather list](WEATHER.md) retains every routine identifier and original source path. Current work prioritises the weather calculations that take the most time in the coarse forecast. Band 21 has passed its complete native and forecast checks. Continue with radiation transport and cloud sampling from their smaller calculation children toward the larger solvers. Assembly development, independent physics checks and forecast integration can proceed in parallel for separate tasks. Every replacement still needs a frozen md2asm contract, physical acceptance and complete byte agreement before it joins the verified forecast.
 
 ## Remaining Rewrites
 
-The current 52 accepted assembly bodies match 51 of the 711 original bodies used in this forecast's main phase, which advances the model after setup. VERDER is outside that main-phase list and passes separate small checks. Each match retains its declared input and branch limits.
+The current 53 accepted assembly bodies match 52 of the 711 original bodies used in this forecast's main phase, which advances the model after setup. VERDER is outside that main-phase list and passes separate small checks. Each match retains its declared input and branch limits.
 
 | Scope in this T21 main phase | Original bodies | Accepted matches | Remaining |
 | --- | ---: | ---: | ---: |
-| Weather or forcing calculations | 255 | 48 | **207** |
-| All bodies with local calculations | 356 | 50 | **306** |
-| All main-phase bodies | 711 | 51 | **660** |
+| Weather or forcing calculations | 255 | 49 | **206** |
+| All bodies with local calculations | 356 | 51 | **305** |
+| All main-phase bodies | 711 | 52 | **659** |
 
-The rows overlap. The last row also includes output, storage and support routines, so 660 is not a count of remaining weather calculations. The [compact record](routines.json) identifies the full 660-name list with original source paths and the independently checked name mapping. Its source checks cover 457 original files and six unchanged generated compiler inputs. These exact scoped counts do not cover every branch, numerical dependency or other forecast configuration.
+The rows overlap. The last row also includes output, storage and support routines, so 659 is not a count of remaining weather calculations. The retained local audit retains the historical 660-name list with original source paths and the independently checked name mapping. Its source checks cover 457 original files and six unchanged generated compiler inputs. Removing only the accepted SRTM_TAUMOL21 body gives the current 659-name scope. These exact scoped counts do not cover every branch, numerical dependency or other forecast configuration.
 
 ## Next Coarse-Forecast Checkpoints
 
-The exact source-linked list now assigns each of the 711 main-phase bodies to one group. A local expression calculates a value in that body. A delegate passes the calculation to another body. The compact [record](routines.json) identifies the complete names, original source evidence and checked call sites.
+The exact source-linked list now assigns each of the 711 main-phase bodies to one group. A local expression calculates a value in that body. A delegate passes the calculation to another body. The compact [record](EVIDENCE.md#routine-records) identifies the complete names, original source evidence and checked call sites.
 
 | Original main-phase work | Bodies |
 | --- | ---: |
@@ -88,17 +88,16 @@ The first four rows contain 356 local-expression owners. The other rows contain 
 
 | Order | Remaining weather family | Bodies | First checkpoint |
 | --- | --- | ---: | --- |
-| Close | Band21 absorption | 1 | Complete SRTM_TAUMOL21 and its forecast checks. |
-| 1 | Radiation transport and cloud sampling | 33 | ADDING_ICA_SW, then two-stream coefficients, cloud sampling and their callers. |
+| 1 | Radiation transport and cloud sampling | 33 | ADDING_ICA_SW has complete original captures, with science acceptance pending. Then proceed to its coefficient and cloud-sampling dependencies. |
 | 2 | Radiation coefficients and forcing | 29 | RADGHG and INTERP_GAS, then SETCOEF and remaining absorption bands. |
 | 3 | Atmospheric cloud, convection and diffusion | 50 | Complete calculation children before CLOUDSC, CUMASTRN and VDFMAIN. |
 | 4 | Dynamics, interpolation and time stepping | 27 | LAITRI_WENO, LAITRIQM3D and LARCINA before their larger callers. |
 | 5 | Surface, forcing and support | 53 | Qualify each active physical update and its required dependencies. |
 | 6 | Spectral transforms | 13 | Review child dependencies before replacing complete transforms. |
 | Deferred | Wind tendency | 1 | Resolve the original TANH accuracy and external arithmetic qualification. |
-| Total | Exact remaining weather queue | **207** | Keep every identifier until its complete replacement passes. |
+| Total | Exact remaining weather queue | **206** | Keep every identifier until its complete replacement passes. |
 
-Two existing diagnostic profiles place matched radiation transport and cloud sampling at 57.98 and 62.22 percent of recorded self time. Self time excludes separately recorded child calls, while the MCICA caller includes its unrecorded two-stream calculations. These profiles guide priority and do not establish accepted comparative forecast timing or a future speed gain. The [compact record](routines.json) preserves both profiles, the exact family partition and its source evidence. Of the 207 queued identifiers, 172 have separate matched profile records and 35 need source-based dependency priority. The single private queue preserves every original name and source path.
+Two existing diagnostic profiles place matched radiation transport and cloud sampling at 57.98 and 62.22 percent of recorded self time. Self time excludes separately recorded child calls, while the MCICA caller includes its unrecorded two-stream calculations. These profiles guide priority and do not establish accepted comparative forecast timing or a future speed gain. The [compact record](EVIDENCE.md#routine-records) preserves both profiles, the exact family partition and its source evidence. At the historical 207-routine checkpoint, 172 identifiers had separate matched profile records and 35 needed source-based dependency priority. The current 206-name list removes only the accepted Band 21 body. The single private queue preserves every original name and source path.
 
 For each family, reuse complete-buffer, interface, physics and saved-file comparison methods. New routines still need their own whole input and return states. Random-number work must preserve each seed, complete generator state and exact sampling sequence. A complete original-versus-assembly forecast closes each accepted batch.
 
@@ -106,10 +105,10 @@ LASCAW_CLO and LASCAW_VINTW are verified within their contracts. LASCAW_CLA is n
 
 GPCTY's unchanged finite-element source writes only the bottom of one returned pressure-divergence field. Repeated source calls leave 760 differing returned bytes at other levels. The current forecast uses the written level, but complete acceptance requires a corrected and independently reviewed output contract. This routine remains in Fortran.
 
-The [current forecast record](forecast.json) lists all 52 accepted direct bodies. A matching name does not prove that a whole parent or every branch has been replaced. All nested calculations, external numerical dependencies, buffer bounds and selected physical consumers must be closed before an exact assembly denominator can be stated.
+The [historical forecast record](EVIDENCE.md#forecast) lists its 52 accepted direct bodies. The [Band 21 note](physics/srtm_taumol21.md) closes the current 53-body checkpoint. A matching name does not prove that a whole parent or every branch has been replaced. All nested calculations, external numerical dependencies, buffer bounds and selected physical consumers must be closed before an exact assembly denominator can be stated.
 
-To reproduce the build inventory, load GNU 12.3 and run the following command through srun in your own quiet exclusive allocation. The [counter](count_routines.py) uses Python's standard library and the existing compiler.
+To reproduce the build inventory, load GNU 12.3 and run the following command through srun in your own quiet exclusive allocation. The [counter](EVIDENCE.md#local-reproduction) uses Python's standard library and the existing compiler.
 
 ```bash
-.runtime/python/bin/python bench/openifs/count_routines.py --workers 16
+.runtime/python/bin/python .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/count_routines.py --workers 16
 ```

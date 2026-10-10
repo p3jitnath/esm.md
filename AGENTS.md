@@ -4,10 +4,11 @@
 
 This project studies direct assembly generation from physics and mathematics in Markdown, beginning with shallow-water equations on an Arm CPU. Before starting work, read the local `.agents/HANDOVER.md` if it exists so that current decisions and unfinished work remain clear.
 
-- Keep the basic physical model in `formulations/`, using the concise [TEMPLATE.md](formulations/TEMPLATE.md). Store the derived numerical and implementation contracts under `skills/md2asm/references/`.
-- Group generated assembly and language comparison code by model under `src/`, using model folders such as `src/shallow_water/` and `src/budyko_sellers/`, with `solver.S`, `solver.f90`, `solver.jl`, and `solver.py` for optimised implementations and `vanilla.f90`, `vanilla.jl`, and `vanilla.py` for the unchanged language controls, with verification, timing tools, and compact benchmark records in `bench/`.
+- Publish only Markdown documents and assembly source. Keep shallow-water physics and `solver.S` under `sw/`, and energy-balance physics and `solver.S` under `ebm/`. Keep OpenIFS formulations in `formulations/openifs/` and assembly in `src/openifs/`, grouped by physical theme.
+- Use the concise [TEMPLATE.md](formulations/TEMPLATE.md) for physical inputs. Store derived numerical and implementation contracts under `skills/md2asm/references/`, and keep readable evidence and comparison tables under `bench/`.
+- Retain language controls, verification and timing tools, detailed records, downloaded data and dependencies locally under `.runtime/`. Preserve their source versions and hashes before removing them from the published tree. The published evidence must explain actual checks and limits.
 - Keep writing conventions in `standards/`, with AGENTS.md and README.md at the repository root so that instructions and the entry point are easy to find.
-- Exclude `.agents/research.md` and `.agents/HANDOVER.md` through the `.agents/` rule in `.gitignore`, and keep venue names and submission details outside tracked files. Store local poster drafts under Git-ignored `poster/` and exclude them from every commit.
+- Keep `.agents/`, `.runtime/`, `poster/`, binaries, caches and large logs outside commits through local rules in `.git/info/exclude`. Keep venue names and submission details outside tracked files. Retain local tools and poster drafts when cleaning published files.
 
 ## Documentation
 
@@ -37,7 +38,7 @@ Keep comparison implementations and evaluation drivers separate from the direct 
 
 ## Arithmetic and output agreement
 
-Focus the current study on implementation comparisons among direct assembly, Fortran, Julia, and compiled Python, deferring comparisons among LLMs and skill ablations. Keep vanilla and optimised language sources, with normal CPU-aware compilation for the vanilla controls and measured tuning for the optimised implementations; assembly always follows the optimised md2asm workflow. Retain a specialised language implementation only when its accepted measurements improve on the matched vanilla control, with variation reported for every workload. Use the reviewed vanilla Fortran implementation as the canonical discrete reference after independent physical verification, and require byte-for-byte identical simulation outputs from every implementation before comparative timing.
+Focus the current study on implementation comparisons among direct assembly, Fortran, Julia, and compiled Python, deferring comparisons among LLMs and skill ablations. Keep vanilla and optimised language sources locally under `.runtime/`, with normal CPU-aware compilation for the vanilla controls and measured tuning for the optimised implementations; assembly always follows the optimised md2asm workflow. Retain a specialised language implementation only when its accepted measurements improve on the matched vanilla control, with variation reported for every workload. Use the reviewed vanilla Fortran implementation as the canonical discrete reference after independent physical verification, and require byte-for-byte identical simulation outputs from every implementation before comparative timing.
 
 Freeze shared binary inputs and constants, ordered FP64 arithmetic dependencies, intermediate rounding points, and deterministic reduction and tie rules. Use round-to-nearest with ties to even, gradual underflow, and preserved signed zeros, verifying the Arm floating-point control register before execution. Forbid fused multiply-add, expression contraction, reassociation, approximate division or square root, reduced precision, and fast-math in the primary contract.
 
@@ -47,7 +48,7 @@ Reject a mismatch before timing and report its first stage, step, field, cell, a
 
 ## Optimisation and verification
 
-Run every benchmark through `srun` on a quiet compute node in a verified exclusive Slurm allocation, using the [Slurm allocation rules](https://slurm.schedmd.com/salloc.html). Check node exclusivity and load before timing, stop disturbed measurements, and record the job ID, node, affinity, memory placement, and observed load. Keep compilation and model inference outside timed work, and exclude login nodes and unallocated nodes from benchmarking.
+Run all development, file work, simulations and benchmarks through `srun` in an owned, verified exclusive allocation on a quiet compute node. Use the [Slurm allocation rules](https://slurm.schedmd.com/salloc.html). Check node exclusivity and load before timing, stop disturbed measurements, and record the job ID, node, affinity, memory placement, and observed load. Keep compilation and model inference outside timed work, and exclude login nodes and unallocated nodes from benchmarking.
 
 Maximise measured performance within the frozen numerical contract by matching the method, precision, layout, workload, and CPU features across implementations. Profile complete time steps and inspect machine instructions before changing memory access, arithmetic, or allocation patterns.
 
@@ -64,6 +65,10 @@ Use strong CPU-aware optimisation with contraction and fast-math disabled, inclu
 
 Limit tests to critical numerical or other business logic paths and their edge cases, identifying the requirement or defect that each check addresses. Use one small verifier for independent physics, conservation, complete trajectories, admissibility, exact output agreement, boundaries, and buffer bounds, adding checks only for new scientific requirements or observed defects. Do not write boilerplate, standard-framework checks, trivial unit tests, coverage-driven suites, mocks, repeated tests, or checks that merely repeat the implementation, and remove project-authored tests that do not meet this restriction.
 
+Work efficiently towards the requested 24-hour target for the remaining weather routines. Keep an exact ordered list with original routine names, source paths, completed checks and remaining counts. Prioritise forecast-reachable calculations and develop numerical children before their callers. Use the original Fortran to understand the interface and ordered calculations, record the physics and numerical contract, then write the assembly directly. Verify several completed replacements in one forecast batch when their dependencies permit it. Report accepted routines and blockers plainly, update the completion estimate from actual results, and keep the published evidence compact.
+
+Keep checks lean. Run only checks needed to accept changed numerical behaviour or investigate an observed defect, then stop when they pass. Reuse accepted results, verification tools, arithmetic routes and interface checks for unchanged code. Do not repeat provenance reviews, large-file hashes, full forecasts or broad audits without a specific unresolved requirement. Documentation and layout changes need only a focused review of affected content and links. Retain independent physical verification and zero differing output bytes for changed numerical routines.
+
 Freeze the formulation, ordered arithmetic, input corpus, output encoding, implementation revisions, target features, toolchains, and measurement protocol before final comparisons. Preserve build commands, generator provenance, failures, hashes, and measured tuning results while timing only implementations that pass both the exact agreement and independent scientific checks.
 
 Report repeated timing variation for each implementation, and limit conclusions to the equations, hardware, and conditions that the experiments cover.
@@ -74,6 +79,6 @@ Keep Julia and any dependencies installed for this project in the Git-ignored `.
 
 Add files and dependencies only when the current research phase needs them, preferring small functions and direct build commands over general frameworks, orchestration layers, containers, or large CI configurations. Keep binaries, model weights, caches, and large logs outside Git, and preserve unrelated work without using destructive Git operations.
 
-Commit each completed and verified research milestone during longer work, and record its actual checks in the local handover.
+Commit and push each completed and verified research milestone during longer work, and record its actual checks in the local handover. When the user requests a pause after the current checkpoint, finish its required checks, cleanup, commit and push, record the handover, then pause the goal and stop. Before starting another checkpoint, compare its expected duration with the allocation time left. Leave time to verify, clean up, commit and push. If a new checkpoint cannot finish within that time, ask for a new allocation before starting it.
 
 After meaningful work, update the local `.agents/HANDOVER.md`, creating it if necessary and keeping the current state, decisions, and next steps concise. Append a dated entry that records completed work and actual checks, rather than every tool call, so that the handover remains useful without presenting plans as results.

@@ -79,7 +79,7 @@ gcc -fPIC -DORIGINAL_SYMBOL=delta_eddington_scat_od_assembly_ \
   -c src/openifs/physics/delta_eddington_scat_od.S -o "$check_dir/assembly.o"
 gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math \
   -DDELTA_ABI_OBSERVER -Wall -Wextra -Werror -Wno-misleading-indentation \
-  bench/openifs/physics/delta_eddington_scat_od.c "$check_dir/assembly.o" \
+  .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/physics/delta_eddington_scat_od.c "$check_dir/assembly.o" \
   -L "$strict_build/lib" -Wl,-rpath,"$strict_build/lib" -larpifs.DP -lfiat -lm \
   -o "$check_dir/critical"
 "$check_dir/critical" \
@@ -90,7 +90,7 @@ cmp .runtime/openifs/delta_eddington_scat_od_7207705/preparation/source-critical
   "$check_dir/fortran.bin"
 gcc -shared -fPIC -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math \
   -Wall -Wextra -Werror -Wno-misleading-indentation \
-  bench/openifs/physics/delta_eddington_scat_od_forecast.c "$check_dir/assembly.o" \
+  .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/physics/delta_eddington_scat_od_forecast.c "$check_dir/assembly.o" \
   -ldl -lm -Wl,-Bsymbolic -o "$check_dir/libverify-delta-scat-od.so"
 ```
 

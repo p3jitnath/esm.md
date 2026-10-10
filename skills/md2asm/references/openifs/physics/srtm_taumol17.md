@@ -240,8 +240,8 @@ cd /lus/lfs1aip2/projects/u6yq/users/p3jitnath/esm.md
 release="$PWD/.runtime/openifs/srtm_taumol17_7207705"
 check="$release/public-reproduction-r1"
 mkdir "$check"
-cp bench/openifs/physics/srtm_taumol17.c "$check/critical.c"
-cp bench/openifs/physics/srtm_taumol17_forecast.c "$check/forecast.c"
+cp .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/physics/srtm_taumol17.c "$check/critical.c"
+cp .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/physics/srtm_taumol17_forecast.c "$check/forecast.c"
 gcc -c -mcpu=neoverse-v2 src/openifs/physics/srtm_taumol17.S -o "$check/assembly.o"
 gcc -O2 -mcpu=neoverse-v2 -fno-fast-math -ffp-contract=off -DSRTM17_ABI_OBSERVER "$check/critical.c" "$check/assembly.o" -o "$check/verify" -L .runtime/openifs/strict-build/lib -Wl,-rpath,"$PWD/.runtime/openifs/strict-build/lib" -Wl,--no-as-needed -l:libarpifs.DP.so -ldl -lm
 "$check/verify" guarded "$release/preparation/critical-corpus-v1.bin" "$check/critical-source.bin" "$check/critical-native.bin" > "$check/critical.log" 2>&1

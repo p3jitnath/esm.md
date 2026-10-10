@@ -154,7 +154,7 @@ gcc -fPIC -march=armv8-a+simd -DLAITRI_ABI_PROBE \
 gcc -fPIC -march=armv8-a+simd -c bench/openifs/dynamics/vertical_abi.S \
     -o "$task_dir/vertical-abi.o"
 gcc -O2 -mcpu=neoverse-v2 -fopenmp -ffp-contract=off -fno-fast-math \
-    -Wall -Wextra -Werror bench/openifs/dynamics/laitri.c \
+    -Wall -Wextra -Werror .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/laitri.c \
     "$task_dir/laitri-abi.o" "$task_dir/vertical-abi.o" -lm \
     -o "$task_dir/verify"
 OMP_NUM_THREADS=1 OMP_DYNAMIC=FALSE "$task_dir/verify" \
@@ -164,7 +164,7 @@ OMP_NUM_THREADS=1 OMP_DYNAMIC=FALSE "$task_dir/verify" \
     "$task_dir/assembly.bin" "$task_dir/summary.json"
 gcc -O2 -mcpu=neoverse-v2 -fPIC -shared -fopenmp -ffp-contract=off \
     -fno-fast-math -Wall -Wextra -Werror \
-    bench/openifs/dynamics/laitri_forecast.c "$task_dir/laitri.o" \
+    .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/laitri_forecast.c "$task_dir/laitri.o" \
     -ldl -lm -o "$task_dir/libverify-laitri.so"
 ```
 

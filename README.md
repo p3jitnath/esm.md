@@ -16,7 +16,7 @@ This model follows water depth and horizontal flow over a flat bottom. Gravity c
 
 ## Budyko–Sellers energy balance
 
-This model gives one average temperature for each latitude band. Sunlight warms the surface, radiation cools it, and heat moves between neighbouring bands. The grid size is the number of bands from the South Pole to the North Pole.
+This model gives one average temperature for each latitude band. The Sun’s radiation warms the surface, radiation cools it, and heat moves between neighbouring bands. The grid size is the number of bands from the South Pole to the North Pole.
 
 | Grid | Assembly | Fortran | Julia | Python |
 | --- | ---: | ---: | ---: | ---: |
@@ -24,19 +24,20 @@ This model gives one average temperature for each latitude band. Sunlight warms 
 | 4096 | 599.68 | 498.27 | 509.81 | 493.75 |
 | 65536 | 590.51 | 488.69 | 489.47 | 514.88 |
 
-Start with the [short template](formulations/TEMPLATE.md), [shallow-water maths](formulations/shallow_water.md), or [energy-balance maths](formulations/budyko_sellers.md). The [md2asm skill](skills/md2asm/SKILL.md) supplies the numerical and implementation details and retains the measured assembly optimisations.
+Start with the [short template](formulations/TEMPLATE.md), [shallow-water maths](sw/shallow_water.md), or [energy-balance maths](ebm/budyko_sellers.md). The [md2asm skill](skills/md2asm/SKILL.md) supplies the numerical and implementation details and retains the measured assembly optimisations.
 
-Build with `make all ebm` on the target processor, then follow the [evaluation instructions](bench/README.md). [AGENTS.md](AGENTS.md) defines the first-year-undergraduate writing convention. Runtimes, binaries, and local research records stay outside Git.
+The published tree contains Markdown and assembly. Build instructions and the local comparison protocol are in the [evaluation notes](bench/README.md). [AGENTS.md](AGENTS.md) defines the first-year-undergraduate writing convention. Local tools, language controls, data and the poster remain outside Git.
 
 ## OpenIFS development
 
-The openifs-md branch extends this workflow to OpenIFS 48.1.1. Fifty-two complete assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons in a coarse global forecast.
+The openifs-md branch extends this workflow to OpenIFS 48.1.1. Fifty-three complete assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons in a coarse global forecast.
 
 | Check | Coverage | Differing bytes |
 | --- | --- | ---: |
-| Complete routine-stream pairs | 50 pairs across 7,595,504,008 bytes | 0 |
+| Prior complete routine streams | 50 pairs across 7,595,504,008 bytes | 0 |
+| Complete Band 21 same-input pairs | 6,400 calls across 361,958,400 returned bytes | 0 |
 | Saved forecast files | 10 files across 618,140 bytes | 0 |
 
-This historical forecast starts on 15 October 2004 and advances 24 hours on 2,048 grid points with 19 atmospheric levels. Other stages remain in Fortran. Complete assembly coverage, independent whole-forecast physics and external-library arithmetic checks remain unfinished. Whole-forecast speed has not been measured.
+The latest verified forecast starts on 15 October 2004 and advances 24 hours on 2,048 grid points with 19 atmospheric levels. Other stages remain in Fortran. Complete assembly coverage, independent whole-forecast physics and external-library arithmetic checks remain unfinished. Whole-forecast speed has not been measured. The [Band 21 note](bench/openifs/physics/srtm_taumol21.md) gives the latest evidence and the limits of complete-storage comparisons.
 
-The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [verification tables](bench/openifs/README.md) give each routine's checks, timing gains and reproduction commands. The [routine work list](bench/openifs/ROUTINES.md) records **207 remaining weather or forcing routines** in this T21 main phase. It also separates the broader 306 local-calculation and 660 total-body counts, with their original names and source paths.
+The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [verification tables](bench/openifs/README.md) give each routine's checks, timing gains and reproduction commands. The [routine work list](bench/openifs/ROUTINES.md) records **206 remaining weather or forcing routines** in this T21 main phase. It also separates the broader 305 local-calculation and 659 total-body counts, with their original names and source paths.

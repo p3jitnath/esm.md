@@ -154,7 +154,7 @@ gcc -c -x assembler-with-cpp -mcpu=neoverse-v2 -DLASCAW_CLO_ABI_CHECK \
 gcc -fPIC -march=armv8-a+simd -c bench/openifs/dynamics/vertical_abi.S \
   -o "$task_dir/vertical-abi.o"
 gcc -O2 -g -mcpu=neoverse-v2 -fopenmp -ffp-contract=off -fno-fast-math \
-  -Wall -Wextra -Werror bench/openifs/dynamics/lascaw_clo.c \
+  -Wall -Wextra -Werror .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/lascaw_clo.c \
   "$task_dir/lascaw_clo-abi.o" "$task_dir/vertical-abi.o" -lm \
   -o "$task_dir/verify"
 "$task_dir/verify" \
@@ -166,7 +166,7 @@ cmp "$task_dir/assembly.bin" \
   .runtime/openifs/lascaw_clo-7207705/preparation/critical-fortran.bin
 gcc -O2 -g -mcpu=neoverse-v2 -fPIC -shared -fopenmp \
   -ffp-contract=off -fno-fast-math -Wall -Wextra -Werror \
-  bench/openifs/dynamics/lascaw_clo_forecast.c "$task_dir/lascaw_clo.o" \
+  .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/lascaw_clo_forecast.c "$task_dir/lascaw_clo.o" \
   -ldl -lm -o "$task_dir/libverify-lascaw_clo.so"
 ```
 

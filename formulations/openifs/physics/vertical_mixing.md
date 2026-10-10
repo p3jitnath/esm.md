@@ -39,4 +39,4 @@ This equation describes the mixing contribution, with large-scale transport trea
 
 Mixing coefficients depend on atmospheric stability, wind and the configured scheme. The energy and moisture variables must match that scheme, including its treatment of liquid water and ice. Initial profiles come from the forecast. Surface exchange supplies the bottom flux, while the configured atmosphere supplies the upper boundary condition.
 
-The local VDFMAIN and VDFDIFH sources define the coupled energy, water and surface updates, identified by the [source record](../../../bench/openifs/source.json). Their coefficients and complete numerical update belong in md2asm contracts.
+The local VDFMAIN and VDFDIFH sources define the coupled energy, water and surface updates, identified by the [source record](../../../bench/openifs/EVIDENCE.md#source). Their coefficients and complete numerical update belong in md2asm contracts.

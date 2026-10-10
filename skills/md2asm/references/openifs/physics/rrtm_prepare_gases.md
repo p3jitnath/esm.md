@@ -156,7 +156,7 @@ release="$PWD/.runtime/openifs/rrtm_prepare_gases_7207705"
 check="$release/reproduction"
 mkdir -p "$check"
 gcc -fPIC -march=armv8-a+simd -DORIGINAL_SYMBOL=rrtm_prepare_gases_assembly_ -c src/openifs/physics/rrtm_prepare_gases.S -o "$check/assembly.o"
-gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -DGASES_ABI_OBSERVER bench/openifs/physics/rrtm_prepare_gases.c "$check/assembly.o" -L.runtime/openifs/strict-build/lib -Wl,-rpath,"$PWD/.runtime/openifs/strict-build/lib" -larpifs.DP -lfiat -lm -ldl -o "$check/critical"
+gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -DGASES_ABI_OBSERVER .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/physics/rrtm_prepare_gases.c "$check/assembly.o" -L.runtime/openifs/strict-build/lib -Wl,-rpath,"$PWD/.runtime/openifs/strict-build/lib" -larpifs.DP -lfiat -lm -ldl -o "$check/critical"
 "$check/critical" "$release/frozen/corpus.bin" "$check/fortran.bin" "$check/assembly.bin"
 cmp "$check/fortran.bin" "$check/assembly.bin"
 cmp "$release/preparation/critical-fortran-frozen.bin" "$check/fortran.bin"
@@ -164,4 +164,4 @@ cmp "$release/preparation/critical-fortran-frozen.bin" "$check/fortran.bin"
 
 The original source SHA-256 is 5de1deb6ebb01671a2129134344a7d206f26b1eec565380b4305e8fb1920a725, and the original caller SHA-256 is 352e48ae31e27cd69e8e25706812507cbcc08dcd962c10d13536bfd26fa1861d. The strict science image SHA-256 is 8e4966877c735976f1e9356bc551294bbfc15c565ecdf1dc7db4cf814012b07b.
 
-The [complete-call timing tool](../../../../../bench/openifs/physics/rrtm_prepare_gases_timing.c) uses the preserved earlier body and selected public source. Its exact build command lives under `paired-column-tuning/publication/public-build-and-critical-command.sh` in the local release. The rebuilt timing instruction and constant sections directly match the measured executable. Pause other node work before running the rebuilt timer through srun on CPU 8 with the archived four-state corpus and quiet checks. Component sources, complete raw rows, rejected rotations, quiet observations, summaries and commands remain in that ignored archive.
+The [complete-call timing tool](../../../../../bench/openifs/EVIDENCE.md#local-reproduction) uses the preserved earlier body and selected public source. Its exact build command lives under `paired-column-tuning/publication/public-build-and-critical-command.sh` in the local release. The rebuilt timing instruction and constant sections directly match the measured executable. Pause other node work before running the rebuilt timer through srun on CPU 8 with the archived four-state corpus and quiet checks. Component sources, complete raw rows, rejected rotations, quiet observations, summaries and commands remain in that ignored archive.
