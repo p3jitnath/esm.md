@@ -70,6 +70,8 @@ GPPWC integrates both physical water fractions and signed diagnostic quantities.
 
 Each routine's compact JSON record sits beside its verifier in dynamics/, physics/ or surface/. Common records preserve [source identity](source.json), [the reference build](build.json), [pressure math](pressure_math.json) and [the mixed forecast](forecast.json). Large inputs, logs, downloaded sources and raw captures remain in ignored .runtime/openifs/.
 
+The [complete-state comparison](state_capture.json) adds 29 captured boundaries, with 755 items and 598,372,890 bytes in each archive. The saved forecast files match, but the complete captured state has 239,956 differing bytes. The source trace identifies initial storage before assignment and nine padding cells, which are extra allocated cells beyond the active grid. Every later difference is in those padding cells, while all captured active grid values match. All raw bits remain in the comparison. This check does not cover every intermediate stage or the complete process state.
+
 The [routine work list](ROUTINES.md) records the exact-count task and the one-at-a-time implementation sequence.
 
 The SIMPLICO table row retains its earlier complete-parent record. The current SPCIMPFSOLVE observer checks all 550 wave calls through their complete defined arguments and mutable fields, before and after each wave. These paired stage records contain 6,309,600 bytes, while the complete returned temporary records add 1,929,200 bytes. Both streams directly match the independently checked source-only archive.

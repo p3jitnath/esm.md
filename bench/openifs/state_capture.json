@@ -1,0 +1,140 @@
+{
+  "schema": "openifs-selected-boundary-state-comparison-v1",
+  "date_UTC": "2026-10-10",
+  "assembly_commit": "212dbb626ee2b52031cfa79449fc8fe07edfa43d",
+  "assembly_bodies": 51,
+  "workload": {
+    "model": "OpenIFS 48.1.1",
+    "start_UTC": "2004-10-15T12:00:00Z",
+    "grid_points": 2048,
+    "atmospheric_levels": 19,
+    "physical_advances": 25,
+    "iteration_labels": 26,
+    "processes": 1,
+    "threads": 1
+  },
+  "execution": {
+    "job": 7207705,
+    "node": "nid011311",
+    "exclusive_node": true,
+    "CPU": 48,
+    "memory_placement": "local",
+    "MPI": "cray_shasta",
+    "unchanged_numerical_libraries": 40,
+    "read_only_capture_library_added": true
+  },
+  "capture": {
+    "boundaries": 29,
+    "items_per_boundary": 755,
+    "item_records_per_archive": 21895,
+    "bytes_per_archive": 598372890,
+    "original": {
+      "local": ".runtime/openifs/runs/strict-prognostic-radiation-original-r1-7207705/t21/whole-prognostic-raw.bin",
+      "bytes": 598372890,
+      "sha256": "f42bcac025b7143b86b4abc79ebf075d8ec44b93d25dbbc9084a4d05f56142a6"
+    },
+    "assembly": {
+      "local": ".runtime/openifs/runs/strict-prognostic-radiation-native51-r1-7207705/t21/whole-prognostic-raw.bin",
+      "bytes": 598372890,
+      "sha256": "4c7e68db85fd8f7778cabdcc36326c6670d41587ae476e111c24ed8b548897e7"
+    }
+  },
+  "direct_comparison": {
+    "compared_regions": 43848,
+    "differing_bytes": 239956,
+    "changed_FP64_cell_records": 35427,
+    "complete_captured_state_identical": false,
+    "all_later_complete_boundaries_identical": false,
+    "differing_bytes_by_field": {
+      "YRGMV%GMVS": 24,
+      "YRGFL%GFLSLP": 24,
+      "MODEL%YRML_PHY_RAD%YRRADF%EMTD": 230110,
+      "MODEL%YRML_PHY_RAD%YRRADF%SRSWD": 9798
+    }
+  },
+  "initial_boundaries": {
+    "names": [
+      "ENTRY",
+      "READY0"
+    ],
+    "differing_bytes_each": 119519,
+    "changed_cells_each": 17592,
+    "interpretation": "The original model allocates some storage before assigning values. Every original bit remains in the archives. The source trace follows the first defining writes and the selected physical consumers."
+  },
+  "later_boundaries": {
+    "count": 27,
+    "differing_bytes_each": 34,
+    "changed_cells_each": 9,
+    "active_grid_differing_bytes": 0,
+    "field": "MODEL%YRML_PHY_RAD%YRRADF%SRSWD",
+    "block": 86,
+    "active_rows_in_last_block": 8,
+    "changed_padding_rows_one_based": [
+      12,
+      13,
+      14,
+      15,
+      16,
+      19,
+      20,
+      21,
+      24
+    ],
+    "interpretation": "Padding is extra allocated space beyond the active grid. These nine cells lie outside the eight active rows of the last block. All padding bytes remain part of the failed complete comparison."
+  },
+  "source_trace": {
+    "original_archive_pairs": 18,
+    "checked_original_lines": 1317,
+    "selected_control_descriptor_and_payload_comparisons": 696,
+    "EMTD_units": "W/m^2",
+    "SRSWD_units": "dimensionless",
+    "EMTD": "Net longwave radiation flux. The driver first copies incoming active values into staging, then the original radiation routine defines every active column and level from new fluxes.",
+    "SRSWD": "On this configuration, surface shortwave transmissivity is the fraction of incoming radiation that passes through the atmosphere. The physical consumer multiplies this fraction by incoming radiation.",
+    "qualification": "Restart routines and configuration printing can read complete allocations. The source trace does not claim that the initial values or padding are never read."
+  },
+  "saved_forecast": {
+    "files": 10,
+    "bytes": 618140,
+    "differing_bytes": 0,
+    "directly_identical_to_original_and_canonical": true
+  },
+  "checks": {
+    "complete_direct_raw_comparison": true,
+    "every_changed_cell_bits_offsets_and_indices_checked": true,
+    "independent_source_range_peer": true,
+    "all_raw_bits_retained": true,
+    "masked_rounded_or_normalised": false,
+    "automatic_retry": false,
+    "original_reference_changed": false,
+    "published_51_body_numerical_library_set_changed": false
+  },
+  "evidence": [
+    {
+      "local": ".runtime/openifs/prognostic-state-capture-7207705/persistent-radiation-implementation-r1/parent-review/root-independent-complete598MB-pair-parse43848-regions35427-changed-cells-and-allten-saved-files-review.json",
+      "bytes": 10290,
+      "sha256": "96d7b2280ff4e487839fcaad3c26f2280aa60350f63c341db72fa5f6f0eef59d"
+    },
+    {
+      "local": ".runtime/openifs/prognostic-state-capture-7207705/persistent-radiation-implementation-r1/parent-review/root-complete245-runtime-refs18-source-pairs1317-lines696-controls-and-native51-qualified-acceptance.json",
+      "bytes": 4324,
+      "sha256": "6bbc42b22f31c544ebe2765af5a7927f5f04e62900ab1763fa3d6c04adc787f9"
+    },
+    {
+      "local": ".runtime/openifs/prognostic-state-capture-7207705/persistent-radiation-implementation-r1/native51-companion-proposal-r1/native51-source-allocation-selected-consumer-review-r1/native51-complete-runtime-qualified-release-r1.json",
+      "bytes": 29498,
+      "sha256": "63cbd8f4abeb03600c072e6e54d5346b911428d0faf7ec8c71a605153ccc7bd6"
+    },
+    {
+      "local": ".runtime/openifs/radiation_leaf_reviews_7207705/native51-radiation-ranges-r1/independent-original-EMTD-SRSWD-all-changed-cells-source-range-peer-r1.json",
+      "bytes": 23666,
+      "sha256": "12bd4d9b6ae9a740829526807361e7af8547b5f48d4e89a02bb2ee57f27667bb"
+    }
+  ],
+  "limits": {
+    "all_intermediate_stages_captured": false,
+    "whole_process_state_identity_proven": false,
+    "independent_whole_forecast_physics_verified": false,
+    "comparative_timing": false,
+    "scope": "One fixed forecast and selected execution boundaries. This record documents the complete-state differences. Saved-file agreement and later active-grid agreement do not establish complete-state identity."
+  }
+}
