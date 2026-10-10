@@ -1,6 +1,6 @@
 # OpenIFS Gas Preparation
 
-Numerical revision 1.0 freezes the complete `RRTM_PREPARE_GASES` numerical body before assembly generation. This routine prepares atmospheric pressure, temperature and gas amounts for the longwave radiation model. Longwave radiation is the heat that the Earth emits. Documentation revision 1.1 adds the combined acceptance record. The source and its one forecast caller remain unchanged, and the [OpenIFS rules](../../../../../bench/openifs/README.md) apply.
+Numerical revision 1.0 freezes the complete `RRTM_PREPARE_GASES` numerical body before assembly generation. This routine prepares atmospheric pressure, temperature and gas amounts for the longwave radiation model. Longwave radiation is the heat that the Earth emits. Documentation revision 1.2 adds the measured bounded zero-store implementation and its combined acceptance record. The source and its one forecast caller remain unchanged, and the [OpenIFS rules](../../../../../bench/openifs/README.md) apply.
 
 ## Physical Meaning and Units
 
@@ -115,9 +115,28 @@ The unchanged source forecast gives 6,400 calls, 256 in each phase 0 through 24.
 
 Canonical input and output records start with a 48-byte header, consisting of the call index as a little-endian 64-bit integer, phase and source-site integers, the four dimension integers, then the two FP64 gravity globals. Inputs append all 14 full arrays in argument order. Outputs append `PCOLDRY`, `PWBRODL`, `PWKL`, `PWX`, `PAVEL`, `PTAVEL`, `PZ`, `PTZ` and `KREFLECT` in complete column-first storage order. A returned record has $`48+n(360H+20)`$ bytes. No inactive input, zero output, boundary, or deterministic header is omitted.
 
-Acceptance requires zero differing bytes for each complete native return, each complete critical stream, the independent pre-emission source capture, the full isolated input capture, and all ten saved files. Report the first call, phase, field, cell or byte and its bit patterns before stopping. Hashes identify preserved artifacts but do not replace direct comparison. The immediate ABI observer forwards all 27 pointers and checks saved integer and floating-point registers before C can restore them. No timing is accepted in this milestone.
+Acceptance requires zero differing bytes for each complete native return, each complete critical stream, the independent pre-emission source capture, the full isolated input capture, and all ten saved files. Report the first call, phase, field, cell or byte and its bit patterns before stopping. Hashes identify preserved artifacts but do not replace direct comparison. The immediate ABI observer forwards all 27 pointers and checks saved integer and floating-point registers before C can restore them. The initial checkpoint established numerical correctness before comparative timing.
 
 The independently reviewed combined forecast also passes every gas call and all its complete input and returned bytes against the pre-emission source-only archive. All thirty-two paired routine streams match across 3,645,868,808 returned bytes, and all ten saved files match across 618,140 bytes. The original wet-air approximation and its stated mass errors remain unchanged.
+
+## Measured Zero-Store Optimisation
+
+The selected body uses paired vector stores to write four positive-zero FP64 values at once. Each pair is issued only when four complete cells remain. A scalar tail writes the remaining PWKL cells, while the PWX extent is already a multiple of four. The complete zero stages still finish before their numerical consumers. Their buffers are disjoint, the empty-shape returns remain valid and no stronger alignment is required. All floating-point instruction operands, constants and ordered dependencies are unchanged. The body has 291 instructions and the same 384-byte frame.
+
+The complete gas call was measured on four frozen forecast states at phases 0, 8, 16 and 24. Each state has eight columns and nineteen levels. Own exclusive job 7207705 used nid011311, CPU 8, local memory binding and the same 64-byte-aligned physical arrays for all variants. Local binding and first touch were used, while physical page placement was not separately measured. Both quiet checks found zero activity on other CPUs and a one-minute load of 0.0615. The unchanged Fortran control uses GNU 12.3, O2, the actual CPU target and strict separate arithmetic.
+
+A nanosecond, abbreviated ns, is one billionth of a second. Each measurement has thirty-two warm calls, then 256 complete calls per variant in each of twelve accepted rotations. The timer surrounds only a complete call. Initialisation, scientific checks and complete final-state comparisons remain outside it. Every accepted pair favours the selected body at all four states. Whole-call paired gains are 1.53 times the previous assembly and 1.30 to 1.31 times the Fortran control.
+
+| Phase | Fortran Median, ns | Previous Assembly Median, ns | Selected Median, ns | Selected Range, ns |
+| --- | ---: | ---: | ---: | ---: |
+| 0 | 3316.812 | 3874.562 | 2530.250 | 2523.875–2608.125 |
+| 8 | 3307.625 | 3871.875 | 2529.250 | 2527.500–2566.125 |
+| 16 | 3317.500 | 3873.375 | 2527.750 | 2522.625–2571.750 |
+| 24 | 3305.688 | 3873.875 | 2531.625 | 2525.250–2550.500 |
+
+The compact record preserves variation for every variant and all raw rotations. Thirty-six whole-call rows and two component rows belong to rotations disturbed by context switches, so those complete rotations remain archived outside the accepted statistics. The matched zero-stage probes explain the reduced store-loop cost. They are component costs, with cache effects and timing overhead, and do not establish a hardware or DRAM bound. These warmed-call results support this workload and target. Whole-forecast comparative performance remains unmeasured.
+
+All 124 protected critical calls and immediate ABI checks pass with unchanged complete bytes and independent relations. The selected parent forecast also matches all complete gas inputs and returns against the frozen source run. All thirty-four paired streams match across 4,081,782,408 returned bytes, and all ten saved files match across 618,140 bytes.
 
 ## Reproduction
 
@@ -140,3 +159,5 @@ cmp "$release/preparation/critical-fortran-frozen.bin" "$check/fortran.bin"
 ```
 
 The original source SHA-256 is 5de1deb6ebb01671a2129134344a7d206f26b1eec565380b4305e8fb1920a725, and the original caller SHA-256 is 352e48ae31e27cd69e8e25706812507cbcc08dcd962c10d13536bfd26fa1861d. The strict science image SHA-256 is 8e4966877c735976f1e9356bc551294bbfc15c565ecdf1dc7db4cf814012b07b.
+
+The [complete-call timing tool](../../../../../bench/openifs/physics/rrtm_prepare_gases_timing.c) uses the preserved earlier body and selected public source. Its build command is recorded under `zero-fill-tuning/publication/public-build-and-critical-command.sh` in the local release. The original and rebuilt timing executable have byte-identical instruction and constant sections. After rebuilding, pause other node work and execute `publication/reproduction/timing timing-corpus.bin` from the tuning directory through srun on CPU 8, with the same quiet checks and local memory binding. The frozen four-state timing corpus, full raw rows, quiet records, summaries and commands remain in that archive.

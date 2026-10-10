@@ -84,6 +84,16 @@ ORIGINAL_SYMBOL:
     mul x10,x10,x11
     cbz x10,.Lgas_surface
     ldr x9,[sp,#320]
+    movi v0.2d,#0
+    cmp x10,#4
+    b.lo .Lgas_zero_wkl_tail
+.Lgas_zero_wkl_vector:
+    stp q0,q0,[x9],#32
+    sub x10,x10,#4
+    cmp x10,#4
+    b.hs .Lgas_zero_wkl_vector
+.Lgas_zero_wkl_tail:
+    cbz x10,.Lgas_surface
 .Lgas_zero_wkl:
     str xzr,[x9],#8
     subs x10,x10,#1
@@ -201,9 +211,10 @@ ORIGINAL_SYMBOL:
     mul x10,x20,x22
     lsl x10,x10,#2
     ldr x9,[sp,#328]
+    movi v0.2d,#0
 .Lgas_zero_wx:
-    str xzr,[x9],#8
-    subs x10,x10,#1
+    stp q0,q0,[x9],#32
+    subs x10,x10,#4
     b.ne .Lgas_zero_wx
     mov x23,#0
 .Lgas_second_level:

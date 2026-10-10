@@ -1,7 +1,7 @@
 {
   "routine": "RRTM_PREPARE_GASES",
   "theme": "physics",
-  "status": "Complete numerical body accepted in protected critical, isolated and combined forecast checks",
+  "status": "Complete numerical body accepted with measured bounded zero stores and exact combined forecast output",
   "contract_revision": "1.0",
   "source": {
     "path": "../ecmwf-openifs/ifs-source/arpifs/phys_radi/rrtm_prepare_gases.F90",
@@ -19,9 +19,9 @@
       "native_source_sha256": "c81d09888ca6b1a3439bafb91b9529f448ffd39013c09fa72c0fa2a8ad8de74f",
       "route": "Complete direct AArch64 source emitted from frozen contract and equations, without numerical compiler assembly or IR construction"
     },
-    "accepted_source_sha256": "4fda010bd14a55949c86f77b11abddff93dd866bdc6d28c04f8e1681565adaa9",
+    "accepted_source_sha256": "581ee82abf59ac6c05af777e8851187e27b3b7e18b61e92799b9b1c131de15a9",
     "ISA": "Armv8-A",
-    "instructions": 282,
+    "instructions": 291,
     "numerical_helpers": 0,
     "stack_frame_bytes": 384,
     "global_numerical_inputs": [
@@ -92,7 +92,8 @@
     "saved_bytes": 618140,
     "direct_source_and_canonical_saved_file_cmp": true,
     "differing_bytes": 0,
-    "FPCR_zero_every_entry_and_return": true
+    "FPCR_zero_every_entry_and_return": true,
+    "historical_implementation_source_sha256": "4fda010bd14a55949c86f77b11abddff93dd866bdc6d28c04f8e1681565adaa9"
   },
   "science": {
     "units": "Pressures Pa to hPa, temperatures K, molecular columns molecules cm^-2, trace columns scaled by 1e-20",
@@ -132,14 +133,15 @@
     "renderer": "MathJax 3.2.2",
     "rendered_expressions": 68,
     "render_errors": 0,
-    "contract_sha256": "9162284fda65941accc3e1df00b8eab1c9e8d001c798af4f022de0cddc97356f"
+    "contract_sha256": "9a1cac3d5786f0d1bd06b0349ff90852c51fdbfec66339c2dc89b2dc8e0046eb"
   },
-  "accepted_timing": false,
+  "accepted_timing": true,
   "implementation_hashes": {
-    "src/openifs/physics/rrtm_prepare_gases.S": "4fda010bd14a55949c86f77b11abddff93dd866bdc6d28c04f8e1681565adaa9",
+    "src/openifs/physics/rrtm_prepare_gases.S": "581ee82abf59ac6c05af777e8851187e27b3b7e18b61e92799b9b1c131de15a9",
     "bench/openifs/physics/rrtm_prepare_gases.c": "73104636d196d11a3471d1dbfd84c9cad454c3b8c8236a2db3ba57910134a804",
     "bench/openifs/physics/rrtm_prepare_gases_forecast.c": "8fc6cb26631568d36724109633159990cc642b04571a441bb6774233b2d18639",
-    "skills/md2asm/references/openifs/physics/rrtm_prepare_gases.md": "327a832f581975f19c926a0f471c90786b992faa6fee6c335b73cf4c9e9ed0e7"
+    "skills/md2asm/references/openifs/physics/rrtm_prepare_gases.md": "9a1cac3d5786f0d1bd06b0349ff90852c51fdbfec66339c2dc89b2dc8e0046eb",
+    "bench/openifs/physics/rrtm_prepare_gases_timing.c": "e2421b881a233d3a06002746b3a6918f3eb505c63844f3c51d36dcac7bc16795"
   },
   "pre_emission_manifest": {
     "path": ".runtime/openifs/rrtm_prepare_gases_7207705/frozen/pre-emission-contract-corpus.json",
@@ -153,9 +155,9 @@
     "scope": "Immutable original pre-publication release; resolved public paths are retained separately"
   },
   "comparator": {
-    "path": ".runtime/openifs/rrtm_prepare_gases_7207705/native/libverify-rrtm-gases.so",
-    "sha256": "ea68734665833430b2ac04f32370b6173957e66b9689dc6279aa8d6adb782b4d",
-    "environment_dependency": null
+    "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/parent-integration/libverify-rrtm-gases-zero-pairs.so",
+    "bytes": 180432,
+    "sha256": "ebbb85fb3c8660b275cf87e0b7893173310c9e8ed585429563cf8c22e053b1d5"
   },
   "immutable_source_case": ".runtime/openifs/runs/strict-rrtm-gases-source-7207705/t21",
   "immutable_native_case": ".runtime/openifs/runs/strict-rrtm-gases-native-7207705/t21",
@@ -168,17 +170,17 @@
     "isolated_native_forecast": ".runtime/openifs/rrtm_prepare_gases_7207705/native/isolated-forecast-command.sh",
     "actual_command_archive": ".runtime/openifs/rrtm_prepare_gases_7207705/actual-command-archive.json"
   },
-  "documentation_revision": "1.1",
+  "documentation_revision": "1.2",
   "combined_forecast": {
-    "archive": ".runtime/openifs/runs/strict-rrtm-gases-combined-reviewed-7207705/t21/test_fc",
+    "archive": ".runtime/openifs/runs/strict-gas-zero-pairs-combined-reviewed-7207705/t21/test_fc",
     "acceptance": {
-      "local": ".runtime/openifs/runs/strict-rrtm-gases-combined-reviewed-7207705/t21/direct-comparison.json",
-      "bytes": 34881,
-      "sha256": "83784c54e956876a283b2dcdd4e11556f7ed3b7a80d19904a13d72f8dc7722be"
+      "local": ".runtime/openifs/runs/strict-gas-zero-pairs-combined-reviewed-7207705/t21/direct-comparison.json",
+      "bytes": 39364,
+      "sha256": "13e46f0f7e1dd8154facbd8d4aec9acf51354822546c4b99034a23e007d78c0b"
     },
     "job_id": 7207705,
     "node": "nid011311",
-    "affinity_cpu": 0,
+    "affinity_cpu": 4,
     "memory_binding": "local",
     "calls": 6400,
     "complete_return_bytes": 351539200,
@@ -189,26 +191,22 @@
     "differing_bytes": 0
   },
   "parent_reproduction": {
-    "release_review": {
-      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/parent-review/parent-release-hash-review.json",
-      "bytes": 208,
-      "sha256": "12cd4506155f54bb7c8120c6cc5451be0adf252aec35d76ef33db84ad1755390"
+    "public_command": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/publication/public-build-and-critical-command.sh",
+      "bytes": 1984,
+      "sha256": "01d43899d51786ae87715ccc130159f9ffec558634c7a896ad5967c52db96410"
     },
-    "critical_command": {
-      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/parent-review/critical-reproduction-command.sh",
-      "bytes": 897,
-      "sha256": "bed45042957befb1ae72009468ebe08f2be87cdec60d1fb86c3e9a25357b7a9d"
-    },
-    "critical_result": {
-      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/parent-review/critical-reproduction.log",
+    "actual_result": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/publication/public-build-and-critical.log",
       "bytes": 503,
       "sha256": "2bfe2ceb6f4b3753974044cc107db95a9bf6c93cf54907a17c48dbb7f30e236e"
     },
-    "native_object_identical": true,
-    "guarded_calls": 124,
+    "selected_critical_and_both_timing_objects_identical": true,
+    "timed_executable_text_and_rodata_identical": true,
+    "protected_calls": 124,
+    "immediate_ABI_calls": 124,
     "complete_return_bytes": 1664592,
     "independent_relations": 212156,
-    "direct_ABI_calls": 124,
     "differing_bytes": 0
   },
   "preserved_pre_publication_record": {
@@ -220,5 +218,318 @@
     "local": ".runtime/openifs/rrtm_prepare_gases_7207705/parent-review/resolved-original-manifest.json",
     "bytes": 22340,
     "sha256": "9dd1c727033af630a689ff39e0dd8925c4d27f22708fa5d318953360b9e3f1b7"
+  },
+  "implementation_revision": "bounded-paired-zero-stores-1",
+  "selected_optimisation": {
+    "freeze": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/freeze-before-emission.json",
+      "bytes": 2627,
+      "sha256": "b5962816bb99af7f6f016c6fdf93d0988a0f3f39e4248edeeeab6105c4a6dc1b"
+    },
+    "resolved_freeze": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/publication/resolved-optimisation-freeze.json",
+      "bytes": 3238,
+      "sha256": "2ee9bab310f6e21cff8acd1eec7313d54eb1caae0c180f49c735e485c49e8e8b"
+    },
+    "pre_measurement_audit": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/pre-measurement-audit.json",
+      "bytes": 593,
+      "sha256": "04558c310c9f26c2647e5db2f0411740f2f24fa45c91b15505ba9525d84a7d08"
+    },
+    "source_compilation_evidence": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/source-compilation-supplement.json",
+      "bytes": 534,
+      "sha256": "2a26abc1a5dc339689407a0a24b0755befb1ebfbae28b3a9e805dba3820871c4"
+    },
+    "independent_static_review": {
+      "local": ".runtime/openifs/radiation_leaf_reviews_7207705/gas-paired-zero-fill-static-review.json",
+      "bytes": 2884,
+      "sha256": "a8a88239e518b008dfacd812367bf214ca6c9d1d7b623821efdf018768885164"
+    },
+    "only_complete_zero_stores_changed": true,
+    "all_FP64_instruction_lines_identical": true,
+    "complete_extents": "PWKL 35*n*H cells and PWX 4*n*H cells",
+    "whole_forecast_performance_claimed": false
+  },
+  "timing": {
+    "accepted": true,
+    "job_id": 7207705,
+    "node": "nid011311",
+    "cpu": 8,
+    "memory_binding": "local",
+    "physical_page_placement_measured": false,
+    "cache_condition": "32 warmed complete calls, identical 64-byte-aligned physical arrays",
+    "repetitions_per_workload": 12,
+    "complete_calls_per_variant_per_rotation": 256,
+    "timer": "CLOCK_MONOTONIC_RAW around each complete call",
+    "timed_final_full_outputs_and_inputs_verified_outside_timer": true,
+    "workloads": [
+      {
+        "workload": 0,
+        "phase": 0,
+        "whole_calls": {
+          "paired-zero-assembly": {
+            "repetitions": 12,
+            "median_ns": 2530.25,
+            "min_ns": 2523.875,
+            "max_ns": 2608.125,
+            "population_stddev_ns": 23.96038714023048
+          },
+          "previous-assembly": {
+            "repetitions": 12,
+            "median_ns": 3874.5625,
+            "min_ns": 3871.5,
+            "max_ns": 3908.875,
+            "population_stddev_ns": 13.27874567892448
+          },
+          "source": {
+            "repetitions": 12,
+            "median_ns": 3316.8125,
+            "min_ns": 3298.125,
+            "max_ns": 3333.875,
+            "population_stddev_ns": 10.224620298233845
+          }
+        },
+        "zero_stage_components": {
+          "paired-zero-stores": {
+            "repetitions": 12,
+            "median_ns": 545.4375,
+            "min_ns": 490.875,
+            "max_ns": 600.0,
+            "population_stddev_ns": 53.908200447806024
+          },
+          "scalar-zero-stores": {
+            "repetitions": 12,
+            "median_ns": 2092.3125,
+            "min_ns": 1854.125,
+            "max_ns": 2348.625,
+            "population_stddev_ns": 239.53804531203332
+          }
+        },
+        "paired_gain_over_previous": {
+          "median": 1.532625034577961,
+          "min": 1.4844955667385573,
+          "max": 1.5487593482244564,
+          "winning_pairs": 12
+        },
+        "paired_gain_over_source": {
+          "median": 1.3088393630463968,
+          "min": 1.272130361849988,
+          "max": 1.3200197970799308,
+          "winning_pairs": 12
+        }
+      },
+      {
+        "workload": 1,
+        "phase": 8,
+        "whole_calls": {
+          "paired-zero-assembly": {
+            "repetitions": 12,
+            "median_ns": 2529.25,
+            "min_ns": 2527.5,
+            "max_ns": 2566.125,
+            "population_stddev_ns": 11.903237625630357
+          },
+          "previous-assembly": {
+            "repetitions": 12,
+            "median_ns": 3871.875,
+            "min_ns": 3870.5,
+            "max_ns": 3876.75,
+            "population_stddev_ns": 1.8074342523004505
+          },
+          "source": {
+            "repetitions": 12,
+            "median_ns": 3307.625,
+            "min_ns": 3282.875,
+            "max_ns": 3386.625,
+            "population_stddev_ns": 26.78791405484425
+          }
+        },
+        "zero_stage_components": {
+          "paired-zero-stores": {
+            "repetitions": 12,
+            "median_ns": 491.0,
+            "min_ns": 489.625,
+            "max_ns": 492.125,
+            "population_stddev_ns": 0.7150417625721047
+          },
+          "scalar-zero-stores": {
+            "repetitions": 12,
+            "median_ns": 1854.75,
+            "min_ns": 1853.5,
+            "max_ns": 1871.25,
+            "population_stddev_ns": 4.6272048047990655
+          }
+        },
+        "paired_gain_over_previous": {
+          "median": 1.5307897934609571,
+          "min": 1.5087924399629793,
+          "max": 1.5329939202214424,
+          "winning_pairs": 12
+        },
+        "paired_gain_over_source": {
+          "median": 1.304871991037476,
+          "min": 1.2925130303473136,
+          "max": 1.3380580798103516,
+          "winning_pairs": 12
+        }
+      },
+      {
+        "workload": 2,
+        "phase": 16,
+        "whole_calls": {
+          "paired-zero-assembly": {
+            "repetitions": 12,
+            "median_ns": 2527.75,
+            "min_ns": 2522.625,
+            "max_ns": 2571.75,
+            "population_stddev_ns": 13.193060965480637
+          },
+          "previous-assembly": {
+            "repetitions": 12,
+            "median_ns": 3873.375,
+            "min_ns": 3869.875,
+            "max_ns": 3891.0,
+            "population_stddev_ns": 8.06311905461459
+          },
+          "source": {
+            "repetitions": 12,
+            "median_ns": 3317.5,
+            "min_ns": 3303.875,
+            "max_ns": 3331.875,
+            "population_stddev_ns": 8.150354403933747
+          }
+        },
+        "zero_stage_components": {
+          "paired-zero-stores": {
+            "repetitions": 12,
+            "median_ns": 489.0,
+            "min_ns": 487.5,
+            "max_ns": 490.0,
+            "population_stddev_ns": 0.613346212500647
+          },
+          "scalar-zero-stores": {
+            "repetitions": 12,
+            "median_ns": 1855.1875,
+            "min_ns": 1854.25,
+            "max_ns": 1966.125,
+            "population_stddev_ns": 30.582898711148832
+          }
+        },
+        "paired_gain_over_previous": {
+          "median": 1.532108759637361,
+          "min": 1.5047632934772042,
+          "max": 1.5416769847952059,
+          "winning_pairs": 12
+        },
+        "paired_gain_over_source": {
+          "median": 1.3118000059847343,
+          "min": 1.29002624671916,
+          "max": 1.320796789059016,
+          "winning_pairs": 12
+        }
+      },
+      {
+        "workload": 3,
+        "phase": 24,
+        "whole_calls": {
+          "paired-zero-assembly": {
+            "repetitions": 12,
+            "median_ns": 2531.625,
+            "min_ns": 2525.25,
+            "max_ns": 2550.5,
+            "population_stddev_ns": 7.845236966182447
+          },
+          "previous-assembly": {
+            "repetitions": 12,
+            "median_ns": 3873.875,
+            "min_ns": 3871.875,
+            "max_ns": 3893.625,
+            "population_stddev_ns": 7.34170331999931
+          },
+          "source": {
+            "repetitions": 12,
+            "median_ns": 3305.6875,
+            "min_ns": 3278.375,
+            "max_ns": 3337.25,
+            "population_stddev_ns": 14.32213634238001
+          }
+        },
+        "zero_stage_components": {
+          "paired-zero-stores": {
+            "repetitions": 12,
+            "median_ns": 489.6875,
+            "min_ns": 489.0,
+            "max_ns": 573.25,
+            "population_stddev_ns": 23.10183712331602
+          },
+          "scalar-zero-stores": {
+            "repetitions": 12,
+            "median_ns": 1854.75,
+            "min_ns": 1852.875,
+            "max_ns": 1882.375,
+            "population_stddev_ns": 7.718236881280307
+          }
+        },
+        "paired_gain_over_previous": {
+          "median": 1.5313890656011386,
+          "min": 1.51837874926485,
+          "max": 1.5373870983663196,
+          "winning_pairs": 12
+        },
+        "paired_gain_over_source": {
+          "median": 1.3057267983670342,
+          "min": 1.2972359328726555,
+          "max": 1.3177690029615006,
+          "winning_pairs": 12
+        }
+      }
+    ],
+    "accepted_whole_call_rows": 144,
+    "rejected_whole_call_rows": 36,
+    "accepted_component_rows": 96,
+    "rejected_component_rows": 2,
+    "context_switch_rejections_apply_to_complete_rotation": true,
+    "raw_summary": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/measure-20261009T233111Z/summary.json",
+      "bytes": 6827,
+      "sha256": "0aa80e1555343ed68114f57832be807c3b357a48f4f83b91d5d9efce398a38c6"
+    },
+    "quiet_before": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/measure-20261009T233111Z/before.json",
+      "bytes": 3103,
+      "sha256": "ff387ad5c50db276d3d176b98e14fb4dccb1f0ab767d136bb84589906789cd63"
+    },
+    "quiet_after": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/measure-20261009T233111Z/after.json",
+      "bytes": 3102,
+      "sha256": "382170015f6aa509812d09bed499be284df10780bc9cf04af76b73afb2f17eb1"
+    },
+    "raw_rows": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/measure-20261009T233111Z/raw.jsonl",
+      "bytes": 70781,
+      "sha256": "17c60e05190d55139043bf65090e1b8bfea0f98d9111245c4535f5baf98b64bf"
+    },
+    "corpus": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/timing-corpus.bin",
+      "bytes": 288528,
+      "sha256": "9c53c465e73dc5fafeeb25b8143caf4230b279b1b06a816f2134a56eee2932f9"
+    },
+    "corpus_provenance": {
+      "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/timing-corpus.json",
+      "bytes": 591,
+      "sha256": "a69e4e7552493e9ef5f6c79f9bace7d51edbb0289828b06d2e1ae2f28198af01"
+    },
+    "matched_component_costs_are_hardware_bound": false,
+    "hardware_or_DRAM_bound_established": false,
+    "hardware_bound_fraction_claimed": false,
+    "non_JSON_runtime_messages_retained": [
+      "[CRAYBLAS_WARNING] Application linked against multiple cray-libsci libraries"
+    ]
+  },
+  "pre_selected_public_record": {
+    "local": ".runtime/openifs/rrtm_prepare_gases_7207705/zero-fill-tuning/publication/pre-selected-public-files/bench/openifs/physics/rrtm_prepare_gases.json",
+    "bytes": 8815,
+    "sha256": "51e6f23d73dd0979817892ac503d30bc987c2f226ca851198faf156669caa163"
   }
 }

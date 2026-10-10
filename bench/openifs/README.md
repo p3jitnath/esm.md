@@ -1,6 +1,6 @@
 # OpenIFS verification
 
-Thirty-six complete public direct assembly routines are verified in OpenIFS 48.1.1. Their small checks include independent physical balances, exact output bytes, optional inputs, boundaries and buffer guards. The latest coarse forecast used own exclusive job 7207705 on nid011311, with one process, one thread, CPU 0 and local memory binding. Each routine's compact record preserves its earlier checks.
+Thirty-six complete public direct assembly routines are verified in OpenIFS 48.1.1. Their small checks include independent physical balances, exact output bytes, optional inputs, boundaries and buffer guards. The latest coarse forecast used own exclusive job 7207705 on nid011311, with one process, one thread, CPU 4 and local memory binding. Each routine's compact record preserves its earlier checks.
 
 | Routine | Critical cases | Critical bytes | Forecast calls checked | Forecast bytes | Differing bytes |
 | --- | ---: | ---: | ---: | ---: | ---: |
