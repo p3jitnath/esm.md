@@ -40,4 +40,4 @@ Condensation and freezing release heat. Reversing a transfer changes its sign an
 
 At 273.16 kelvin, upstream values are 2,500,800 joules per kilogram for vaporisation and 2,834,500 for sublimation. Their difference gives 333,700 for melting. Latent energies can depend on temperature, and their exact configured treatment must be preserved. Initial water classes, cloud fraction and temperature come from the forecast. Precipitation reaching the ground enters the surface water balance.
 
-The local CLOUDSC and SUPHEC sources define the phase processes and constants, identified by the [source record](../../../bench/openifs/EVIDENCE.md#source). Rates for condensation, particle growth, falling and evaporation require their source-derived md2asm contracts.
+The local CLOUDSC and SUPHEC sources define the phase processes and constants, identified by the [source record](../../../src/openifs/README.md). Rates for condensation, particle growth, falling and evaporation require their source-derived md2asm contracts.

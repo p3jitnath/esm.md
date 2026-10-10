@@ -116,7 +116,7 @@ The parent combined forecast also accepts all 2,150 complete paired returns, 972
 
 ## Reproduction
 
-Use the own exclusive allocation and CPU32 route recorded in the compact [acceptance record](../../../../../bench/openifs/EVIDENCE.md#routine-records). Load `PrgEnv-gnu`, `gcc-native/12.3` and `libfabric/2.3.1`. The commands below run inside `srun --jobid=7207705 --overlap --exact -N1 -n1 -c33 --cpu-bind=map_cpu:32 --mem-bind=local bash -lc '<command>'`, from the repository root. A full forecast also uses `--mpi=cray_shasta` and one process and thread.
+Use the own exclusive allocation and CPU32 route recorded in the compact [acceptance record](../../../../../src/openifs/README.md). Load `PrgEnv-gnu`, `gcc-native/12.3` and `libfabric/2.3.1`. The commands below run inside `srun --jobid=7207705 --overlap --exact -N1 -n1 -c33 --cpu-bind=map_cpu:32 --mem-bind=local bash -lc '<command>'`, from the repository root. A full forecast also uses `--mpi=cray_shasta` and one process and thread.
 
 ```sh
 task_dir=.runtime/openifs/laiddi-7207705/public-reviewed

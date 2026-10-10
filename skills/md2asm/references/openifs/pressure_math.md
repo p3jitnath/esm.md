@@ -4,7 +4,7 @@ Revision 1.0 freezes the scalar exp and log library used for pressure comparison
 
 ## Frozen library
 
-Use the unmodified scalar exp.c, exp_data.c, log.c, log_data.c and math_err.c from [Arm Optimized Routines v26.01](https://github.com/ARM-software/optimized-routines/tree/649ccc8411e7c4862965710f25c570d854a1483f/math), commit 649ccc8411e7c4862965710f25c570d854a1483f. Preserve its headers and coefficient tables, with their hashes in the [math record](../../../../bench/openifs/EVIDENCE.md#pressure-math). The source is an external elementary-function library, not generated solver assembly.
+Use the unmodified scalar exp.c, exp_data.c, log.c, log_data.c and math_err.c from [Arm Optimized Routines v26.01](https://github.com/ARM-software/optimized-routines/tree/649ccc8411e7c4862965710f25c570d854a1483f/math), commit 649ccc8411e7c4862965710f25c570d854a1483f. Preserve its headers and coefficient tables, with their hashes in the [math record](../../../../src/openifs/README.md). The source is an external elementary-function library, not generated solver assembly.
 
 Build with GNU 12.3.0, -O2, -mcpu=neoverse-v2, -ffp-contract=off and -fno-fast-math. Define HAVE_FAST_FMA=0, HAVE_FAST_ROUND=0 and WANT_ERRNO=1. These choices select separately rounded polynomial arithmetic and the shift-based integer reduction. FPCR must select round-to-nearest with ties to even, gradual underflow and preserved signed zeros. Inspect the complete library's instructions, since flags alone do not establish these conditions.
 

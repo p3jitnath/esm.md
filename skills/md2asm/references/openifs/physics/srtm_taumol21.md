@@ -1,6 +1,6 @@
 # SRTM_TAUMOL21 Solver Contract
 
-Revision 1.0 is the pre-generation record of the original numerical expressions, complete storage and Arm interface for OpenIFS Band 21. Its frozen source has SHA256 `dd7ca6046d0c9ff7a6e6515667c053b88250e17be5019f8b395782eb2084a39c`. The original physics, direct assembly and forecast-call comparisons now pass within this contract, as recorded in the [Band 21 evidence](../../../../../bench/openifs/physics/srtm_taumol21.md). Only this status paragraph changes from the frozen record.
+Revision 1.0 is the pre-generation record of the original numerical expressions, complete storage and Arm interface for OpenIFS Band 21. Its frozen source has SHA256 `dd7ca6046d0c9ff7a6e6515667c053b88250e17be5019f8b395782eb2084a39c`. The original physics, direct assembly and forecast-call comparisons now pass within this contract, as recorded in the [Band 21 evidence](../../../../../src/openifs/README.md). Only this status paragraph changes from the frozen record.
 
 ## Method and source
 

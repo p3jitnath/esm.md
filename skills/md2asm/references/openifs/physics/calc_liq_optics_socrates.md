@@ -60,7 +60,7 @@ Freeze original source/caller hashes, storage-only probes, coefficient tables, c
 
 The combined forecast accepts all 317,920 original calls at the two CLOUD_OPTICS sites. All 127,168,000 complete returned record bytes also match the source-only stream frozen before generation. The whole coefficient tables and incoming output capacities are captured on every call, with all inputs unchanged and FPCR exactly zero. All 27 paired streams directly compare across 2,835,414,408 bytes, and all ten saved files match the strict Fortran baseline. The independent optical and ABI checks remain separate from these exact comparisons.
 
-The [compact record](../../../../../bench/openifs/EVIDENCE.md#routine-records) identifies the corpus, source tables, first emission and exact command archive. Run the following commands through srun in a quiet exclusive allocation, using a fresh ignored output directory. The direct register observer is embedded in the retained local critical driver.
+The [compact record](../../../../../src/openifs/README.md) identifies the corpus, source tables, first emission and exact command archive. Run the following commands through srun in a quiet exclusive allocation, using a fresh ignored output directory. The direct register observer is embedded in the retained local critical driver.
 
 ```bash
 module load PrgEnv-gnu gcc-native/12.3 libfabric/2.3.1

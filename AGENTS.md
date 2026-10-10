@@ -4,9 +4,9 @@
 
 This project studies direct assembly generation from physics and mathematics in Markdown, beginning with shallow-water equations on an Arm CPU. Before starting work, read the local `.agents/HANDOVER.md` if it exists so that current decisions and unfinished work remain clear.
 
-- Publish only Markdown documents and assembly source. Keep shallow-water physics and `solver.S` under `sw/`, and energy-balance physics and `solver.S` under `ebm/`. Keep OpenIFS formulations in `formulations/openifs/` and assembly in `src/openifs/`, grouped by physical theme.
-- Use the concise [TEMPLATE.md](formulations/TEMPLATE.md) for physical inputs. Store derived numerical and implementation contracts under `skills/md2asm/references/`, and keep readable evidence and comparison tables under `bench/`.
-- Retain language controls, verification and timing tools, detailed records, downloaded data and dependencies locally under `.runtime/`. Preserve their source versions and hashes before removing them from the published tree. The published evidence must explain actual checks and limits.
+- Publish only Markdown documents and assembly source. Keep shallow-water physics under `formulations/sw/` and its solver under `src/sw/`. Keep energy-balance physics under `formulations/ebm/` and its solver under `src/ebm/`. Keep OpenIFS formulations in `formulations/openifs/` and assembly in `src/openifs/`, grouped by physical theme.
+- Use the concise [TEMPLATE.md](formulations/TEMPLATE.md) for physical inputs. Store derived numerical and implementation contracts under `skills/md2asm/references/`. Keep the public comparison tables in README.md and detailed benchmark results locally under the ignored `.agents/bench/` folder.
+- Retain language controls, verification and timing tools, detailed records, downloaded data and dependencies locally under `.runtime/`. Preserve their source versions and hashes before removing them from the published tree. The public documentation must explain actual checks and limits.
 - Keep writing conventions in `standards/`, with AGENTS.md and README.md at the repository root so that instructions and the entry point are easy to find.
 - Keep `.agents/`, `.runtime/`, `poster/`, binaries, caches and large logs outside commits through local rules in `.git/info/exclude`. Keep venue names and submission details outside tracked files. Retain local tools and poster drafts when cleaning published files.
 

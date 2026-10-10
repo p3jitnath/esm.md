@@ -1,6 +1,6 @@
 # OpenIFS Shortwave Molecular Scattering
 
-Numerical revision 1.0 freezes the complete `SRTM_TAUMOL26` numerical body before direct assembly generation. The routine describes molecular scattering in one shortwave band of the Sun's radiation. Scattering changes a light ray's direction. This band covers 22,650 to 29,000 cm$`^{-1}`$, or wavelengths of about 0.345 to 0.442 micrometres. The original source, coefficient setup and forecast caller remain unchanged. The [OpenIFS rules](../../../../../bench/openifs/README.md) apply.
+Numerical revision 1.0 freezes the complete `SRTM_TAUMOL26` numerical body before direct assembly generation. The routine describes molecular scattering in one shortwave band of the Sun's radiation. Scattering changes a light ray's direction. This band covers 22,650 to 29,000 cm$`^{-1}`$, or wavelengths of about 0.345 to 0.442 micrometres. The original source, coefficient setup and forecast caller remain unchanged. The [OpenIFS rules](../../../../../src/openifs/README.md) apply.
 
 Documentation revision 1.2 adds the measured contiguous-cell implementation. Numerical revision 1.0, physical equations, ordered products and complete output bytes remain unchanged.
 

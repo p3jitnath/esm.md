@@ -1,6 +1,6 @@
 # OpenIFS Shortwave Water Absorption and Continua
 
-Numerical revision 1.0 freezes the complete SRTM_TAUMOL23 body before direct assembly generation. The routine describes water absorption and molecular scattering in part of the Sun's radiation, from 8,050 to 12,850 cm$`^{-1}`$, or wavelengths of about 0.778 to 1.242 micrometres. Absorption removes energy from a light ray, while scattering changes its direction. The unchanged original source and full caller remain the reference. The [OpenIFS rules](../../../../../bench/openifs/README.md) apply.
+Numerical revision 1.0 freezes the complete SRTM_TAUMOL23 body before direct assembly generation. The routine describes water absorption and molecular scattering in part of the Sun's radiation, from 8,050 to 12,850 cm$`^{-1}`$, or wavelengths of about 0.778 to 1.242 micrometres. Absorption removes energy from a light ray, while scattering changes its direction. The unchanged original source and full caller remain the reference. The [OpenIFS rules](../../../../../src/openifs/README.md) apply.
 
 ## Physics and Units
 

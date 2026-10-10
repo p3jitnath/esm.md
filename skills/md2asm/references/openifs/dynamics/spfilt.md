@@ -51,7 +51,7 @@ The selected complete body passes 253 protected cases and direct preserved-regis
 
 The full T21 forecast accepts all 25 calls, with 3,845,600 returned allocation bytes and 3,902,600 canonical stream bytes. It checks 240,350 active values and preserves 1,900 degree-one values exactly. The actual full module arrays have 19 levels and 506 columns each. The observer verifies their complete descriptors against the module allocations and records the full NVALUE allocation. The fresh combined run with all 28 accepted public bodies passes all 26 paired streams and ten saved files with zero differing bytes. Whole-forecast physical validation and comparative timing remain unfinished.
 
-Run these commands through srun in a quiet exclusive allocation. The frozen corpus, independent factors, build commands and failed initial assembler invocation are preserved under ignored .runtime/openifs/spfilt/. The [critical verifier](../../../../../bench/openifs/EVIDENCE.md#local-reproduction) uses the shared register checker and a small [direct-entry bridge](../../../../../bench/openifs/EVIDENCE.md#local-reproduction). The [forecast observer](../../../../../bench/openifs/EVIDENCE.md#local-reproduction) performs no numerical solver stage.
+Run these commands through srun in a quiet exclusive allocation. The frozen corpus, independent factors, build commands and failed initial assembler invocation are preserved under ignored .runtime/openifs/spfilt/. The [critical verifier](../../../../../src/openifs/README.md) uses the shared register checker and a small [direct-entry bridge](../../../../../src/openifs/README.md). The [forecast observer](../../../../../src/openifs/README.md) performs no numerical solver stage.
 
 ```bash
 module load PrgEnv-gnu gcc-native/12.3 libfabric/2.3.1
@@ -78,7 +78,7 @@ gcc -shared -Wl,-Bsymbolic "$r/forecast.o" "$r/assembly.o" -ldl -lpthread -lm \
   -o "$r/forecast/libverify-spfilt.so"
 ```
 
-The [compact record](../../../../../bench/openifs/EVIDENCE.md#routine-records) identifies the accepted source, frozen input and output hashes, actual node, comparison streams and original Fortran baseline. The separately rounded scalar exp library remains a required preload for both implementations.
+The [compact record](../../../../../src/openifs/README.md) identifies the accepted source, frozen input and output hashes, actual node, comparison streams and original Fortran baseline. The separately rounded scalar exp library remains a required preload for both implementations.
 
 ## Measured factor reuse and field scheduling
 
@@ -101,4 +101,4 @@ All twelve pairs improve for each of the fourteen measured prefixes at or above 
 
 Candidate-matched warmed-cache component medians are 1,354.594 ns for the exact field multiplication schedule, 1,329.063 ns for its reads and writes, and 571.969 ns for factor preparation. Their maximum divided by the selected complete-call time gives 91.95% of this empirical schedule estimate. The probes include loop/setup and clock costs and can overlap. They describe this warmed field, which fits the private 1 MiB L2 cache. They establish neither a rigorous hardware bound nor main-memory bandwidth, and physical page placement was not sampled. Each component's minimum, maximum and deviation remain recorded.
 
-The selected object rebuilds byte-for-byte identically to the verified release. Its complete 25-call replay and fresh combined forecast reproduce all 3,902,600 canonical filter bytes. All 28 paired streams directly compare across 2,919,328,208 bytes, and all ten saved files match the strict baseline. The [compact record](../../../../../bench/openifs/EVIDENCE.md#routine-records) identifies the current source, all workload variations, matching calibration and immutable command archive. Earlier factor-cache measurements remain in their original archive. Whole-forecast timing remains unfinished.
+The selected object rebuilds byte-for-byte identically to the verified release. Its complete 25-call replay and fresh combined forecast reproduce all 3,902,600 canonical filter bytes. All 28 paired streams directly compare across 2,919,328,208 bytes, and all ten saved files match the strict baseline. The [compact record](../../../../../src/openifs/README.md) identifies the current source, all workload variations, matching calibration and immutable command archive. Earlier factor-cache measurements remain in their original archive. Whole-forecast timing remains unfinished.

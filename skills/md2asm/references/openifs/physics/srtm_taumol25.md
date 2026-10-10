@@ -2,7 +2,7 @@
 
 Documentation revision 1.1 records the independently reviewed parent forecast. The physical equations, ordered update and direct numerical body remain unchanged.
 
-Numerical revision 1.0 freezes the complete `SRTM_TAUMOL25` body before direct assembly generation. It describes absorption by water and ozone, and scattering by molecules, in a visible band of the Sun's radiation. Absorption removes energy from a light ray. Scattering changes the ray's direction. This band covers 16,000 to 22,650 cm$`^{-1}`$, or wavelengths of about 0.442 to 0.625 micrometres. The unchanged source and its complete forecast caller remain the reference. The [OpenIFS rules](../../../../../bench/openifs/README.md) apply.
+Numerical revision 1.0 freezes the complete `SRTM_TAUMOL25` body before direct assembly generation. It describes absorption by water and ozone, and scattering by molecules, in a visible band of the Sun's radiation. Absorption removes energy from a light ray. Scattering changes the ray's direction. This band covers 16,000 to 22,650 cm$`^{-1}`$, or wavelengths of about 0.442 to 0.625 micrometres. The unchanged source and its complete forecast caller remain the reference. The [OpenIFS rules](../../../../../src/openifs/README.md) apply.
 
 ## Physics and Units
 

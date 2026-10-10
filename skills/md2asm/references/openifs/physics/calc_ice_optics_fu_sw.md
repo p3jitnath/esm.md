@@ -60,7 +60,7 @@ The immutable pre-emission contract, corpus, source hashes, command hashes, comp
 
 The combined T21 forecast accepts all 223,175 original shortwave calls and all 83,913,800 complete result-record bytes. The full native stream also directly matches the source-only stream frozen before generation. Full tables, scalar values, descriptors and all three output capacities are preserved, with unchanged inputs and exact FPCR zero. All 28 paired streams directly compare across 2,919,328,208 bytes, and all ten saved files match the strict Fortran baseline. Whole-forecast independent physics and comparative timing remain unfinished.
 
-The [compact record](../../../../../bench/openifs/EVIDENCE.md#routine-records) identifies the frozen source, corpus, full capture, command archive and preserved first emission. Run these commands through srun in a quiet exclusive allocation, with a fresh ignored output directory. The direct ABI observer is embedded in the retained local critical driver.
+The [compact record](../../../../../src/openifs/README.md) identifies the frozen source, corpus, full capture, command archive and preserved first emission. Run these commands through srun in a quiet exclusive allocation, with a fresh ignored output directory. The direct ABI observer is embedded in the retained local critical driver.
 
 ```bash
 module load PrgEnv-gnu gcc-native/12.3 libfabric/2.3.1

@@ -167,4 +167,4 @@ Build the forecast observer without SPCIMPFSOLVE_MINIMAL_SCOPE when the accepted
 
 The accepted isolated run is `.runtime/openifs/runs/strict-spcimpfsolve-assembly-7207705/t21/test_fc`. It ran on the exclusive own job 7207705, node `nid011311`, with `map_cpu:32`, local memory placement, one process, one thread and `--mpi=cray_shasta`. Builds, source checks and simulations used that same own allocation. Instrumented forecast wall time is verification evidence and is not an accepted timing.
 
-The [compact benchmark record](../../../../../bench/openifs/EVIDENCE.md#routine-records) identifies every public file, frozen corpus, accepted object, source/native stream and saved model file. The ignored `accepted.json` manifest seals the release and exact command archive for parent review.
+The [compact benchmark record](../../../../../src/openifs/README.md) identifies every public file, frozen corpus, accepted object, source/native stream and saved model file. The ignored `accepted.json` manifest seals the release and exact command archive for parent review.

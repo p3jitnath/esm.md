@@ -1,6 +1,6 @@
 # OpenIFS Gas Preparation
 
-Numerical revision 1.0 freezes the complete `RRTM_PREPARE_GASES` numerical body before assembly generation. This routine prepares atmospheric pressure, temperature and gas amounts for the longwave radiation model. Longwave radiation is the heat that the Earth emits. Documentation revision 1.3 adds measured two-column arithmetic while retaining the earlier bounded zero stores. The source and its one forecast caller remain unchanged, and the [OpenIFS rules](../../../../../bench/openifs/README.md) apply.
+Numerical revision 1.0 freezes the complete `RRTM_PREPARE_GASES` numerical body before assembly generation. This routine prepares atmospheric pressure, temperature and gas amounts for the longwave radiation model. Longwave radiation is the heat that the Earth emits. Documentation revision 1.3 adds measured two-column arithmetic while retaining the earlier bounded zero stores. The source and its one forecast caller remain unchanged, and the [OpenIFS rules](../../../../../src/openifs/README.md) apply.
 
 ## Physical Meaning and Units
 
@@ -164,4 +164,4 @@ cmp "$release/preparation/critical-fortran-frozen.bin" "$check/fortran.bin"
 
 The original source SHA-256 is 5de1deb6ebb01671a2129134344a7d206f26b1eec565380b4305e8fb1920a725, and the original caller SHA-256 is 352e48ae31e27cd69e8e25706812507cbcc08dcd962c10d13536bfd26fa1861d. The strict science image SHA-256 is 8e4966877c735976f1e9356bc551294bbfc15c565ecdf1dc7db4cf814012b07b.
 
-The [complete-call timing tool](../../../../../bench/openifs/EVIDENCE.md#local-reproduction) uses the preserved earlier body and selected public source. Its exact build command lives under `paired-column-tuning/publication/public-build-and-critical-command.sh` in the local release. The rebuilt timing instruction and constant sections directly match the measured executable. Pause other node work before running the rebuilt timer through srun on CPU 8 with the archived four-state corpus and quiet checks. Component sources, complete raw rows, rejected rotations, quiet observations, summaries and commands remain in that ignored archive.
+The [complete-call timing tool](../../../../../src/openifs/README.md) uses the preserved earlier body and selected public source. Its exact build command lives under `paired-column-tuning/publication/public-build-and-critical-command.sh` in the local release. The rebuilt timing instruction and constant sections directly match the measured executable. Pause other node work before running the rebuilt timer through srun on CPU 8 with the archived four-state corpus and quiet checks. Component sources, complete raw rows, rejected rotations, quiet observations, summaries and commands remain in that ignored archive.

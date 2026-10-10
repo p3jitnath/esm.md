@@ -48,4 +48,4 @@ The study uses a 1 m by 1 m square. Its boundaries are periodic: water leaving o
 
 A simple starting state is still water, with $`h=1`$ m and $`u=v=0`$. A dam-break example starts with depth 2 m in the left half, depth 1 m in the right half, and zero velocity everywhere. Gravity then moves water from the deeper region towards the shallower region, creating waves. The still-water case should remain unchanged and provides a simple physical check.
 
-Physics revision: 1.0. [md2asm](../skills/md2asm/SKILL.md) derives the numerical method and implementation; its [solver contract](../skills/md2asm/references/shallow_water.md) preserves the verified choices and equation IDs.
+Physics revision: 1.0. [md2asm](../../skills/md2asm/SKILL.md) derives the numerical method and implementation; its [solver contract](../../skills/md2asm/references/shallow_water.md) preserves the verified choices and equation IDs.
