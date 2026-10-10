@@ -1,6 +1,6 @@
 # OpenIFS verification
 
-Forty-nine public direct assembly routines are verified in OpenIFS 48.1.1 within their declared input ranges. Their small checks include independent physical balances, exact output bytes, optional inputs, boundaries and buffer guards. The latest coarse forecast used own exclusive job 7207705 on nid011311, with one process, one thread, CPU 4 and local memory binding. Each routine's compact record preserves its earlier checks.
+Fifty public direct assembly routines are verified in OpenIFS 48.1.1 within their declared input ranges. Their small checks include independent physical balances, exact output bytes, optional inputs, boundaries and buffer guards. The latest coarse forecast used own exclusive job 7207705 on nid011311, with one process, one thread, CPU 4 and local memory binding. Each routine's compact record preserves its earlier checks.
 
 LAITRI implements the complete declared interpolation for clipping flags zero through three. Its separate original conservation branch, selected by flag minus one, is outside this accepted release. LASCAW_CLO accepts fourteen defined flag combinations and excludes combinations one and nine. LASCAW_VINTW accepts fifty-six defined flag combinations and excludes combinations 2, 3, 18, 19, 34, 35, 50 and 51. Every other routine also retains its declared input range.
 
@@ -51,6 +51,7 @@ LAITRI implements the complete declared interpolation for clipping flags zero th
 | SRTM_TAUMOL20 | 80 | 914,432 | 6,400 | 255,795,200 | 0 |
 | SRTM_TAUMOL16 | 296 | 3,652,352 | 6,400 | 255,795,200 | 0 |
 | LASCAW_CLA | 1,512 | 24,218,944 | 2,150 | 71,964,800 | 0 |
+| SRTM_TAUMOL18 | 296 | 3,652,352 | 6,400 | 255,795,200 | 0 |
 | SRTM_TAUMOL19 | 296 | 3,652,352 | 6,400 | 255,795,200 | 0 |
 | LAMINMAXINT | 1,584 | 483,264 | 10,750 | 79,120,000 | 0 |
 
