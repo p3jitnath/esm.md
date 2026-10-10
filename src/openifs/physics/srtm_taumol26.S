@@ -4,6 +4,8 @@
  * Columns have units 10^20 molecules/cm^2. Rayleigh depth is dimensionless.
  * The coefficient arrays are read-only globals with 16 slots and 6 active slots.
  * Complete night, extra-layer and unused-slot storage remains unchanged.
+ * A checked all-day path traverses contiguous independent cell prefixes.
+ * Bounded four-cell, two-cell and scalar tails retain full capacities.
  * The 96-byte frame preserves x19..x30. d8..d15 and x18 remain untouched. */
 #ifndef ORIGINAL_SYMBOL
 #define ORIGINAL_SYMBOL srtm_taumol26_
@@ -32,6 +34,103 @@ ORIGINAL_SYMBOL:
     ldr x24,[x24,:got_lo12:__yoesrta26_MOD_raylc]
     adrp x25,:got:__yoesrta26_MOD_sfluxrefc
     ldr x25,[x25,:got_lo12:__yoesrta26_MOD_sfluxrefc]
+    cmp x19,#2
+    b.lo .Lscalar_start
+    mov x26,#0
+/* Establish a complete daylight prefix with defined solar values. */
+.Lscan_day:
+    ldr d3,[x23,x26,lsl #3]
+    fcmp d3,#0.0
+    b.le .Lscalar_start
+    ldr w9,[x5,x26,lsl #2]
+    cmp w9,#1
+    b.lo .Lscalar_start
+    cmp w9,w20
+    b.hi .Lscalar_start
+    add x26,x26,#1
+    cmp x26,x19
+    b.lo .Lscan_day
+    mul x1,x19,x20
+    mul x2,x19,x21
+    lsl x2,x2,#3
+    lsl x3,x19,#3
+    movi v0.2d,#0
+    mov x26,#0
+/* A spectral plane has a contiguous active cell prefix. */
+.Lvector_point:
+    ldr d2,[x24,x26,lsl #3]
+    dup v2.2d,v2.d[0]
+    ldr d3,[x25,x26,lsl #3]
+    dup v3.2d,v3.d[0]
+    mov x11,x6
+    mov x27,x19
+.Lsolar_four:
+    cmp x27,#4
+    b.lo .Lsolar_two
+    stp q3,q3,[x11],#32
+    sub x27,x27,#4
+    b .Lsolar_four
+.Lsolar_two:
+    cmp x27,#2
+    b.lo .Lsolar_one
+    str q3,[x11],#16
+    sub x27,x27,#2
+.Lsolar_one:
+    cbz x27,.Lsolar_finished
+    str d3,[x11]
+.Lsolar_finished:
+    mov x28,x4
+    mov x8,x7
+    mov x9,x22
+    mov x27,x1
+.Lcells_eight:
+    cmp x27,#8
+    b.lo .Lcells_four
+    ldp q4,q5,[x28],#32
+    ldp q6,q7,[x28],#32
+    fmul v4.2d,v4.2d,v2.2d
+    fmul v5.2d,v5.2d,v2.2d
+    fmul v6.2d,v6.2d,v2.2d
+    fmul v7.2d,v7.2d,v2.2d
+    stp q0,q0,[x8],#32
+    stp q0,q0,[x8],#32
+    stp q4,q5,[x9],#32
+    stp q6,q7,[x9],#32
+    sub x27,x27,#8
+    b .Lcells_eight
+.Lcells_four:
+    cmp x27,#4
+    b.lo .Lcells_two
+    ldp q4,q5,[x28],#32
+    fmul v4.2d,v4.2d,v2.2d
+    fmul v5.2d,v5.2d,v2.2d
+    stp q0,q0,[x8],#32
+    stp q4,q5,[x9],#32
+    sub x27,x27,#4
+    b .Lcells_four
+.Lcells_two:
+    cmp x27,#2
+    b.lo .Lcells_one
+    ldr q4,[x28],#16
+    fmul v4.2d,v4.2d,v2.2d
+    str q0,[x8],#16
+    str q4,[x9],#16
+    sub x27,x27,#2
+.Lcells_one:
+    cbz x27,.Lvector_next_point
+    ldr d4,[x28]
+    fmul d4,d4,d2
+    str xzr,[x8]
+    str d4,[x9]
+.Lvector_next_point:
+    add x6,x6,x3
+    add x7,x7,x2
+    add x22,x22,x2
+    add x26,x26,#1
+    cmp x26,#6
+    b.lo .Lvector_point
+    b .Lreturn
+.Lscalar_start:
     mov x26,#0
 .Lcolumn:
     ldr d3,[x23,x26,lsl #3]

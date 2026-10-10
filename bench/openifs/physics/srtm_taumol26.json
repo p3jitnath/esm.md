@@ -10,22 +10,23 @@
   "generation_route": "Direct LLM AArch64 source from source-only independently verified frozen Markdown physics, complete ABI, ordered arithmetic, input corpus and full captures; assembler and linker only for primary",
   "pre_emission_manifest": ".runtime/openifs/srtm_taumol26_7207705/frozen/pre-emission-contract-corpus.json",
   "pre_emission_manifest_SHA256": "1da6e56afb11354e54fdc6eba0200e389e78b646c00b744c4e0029a3ae766b36",
-  "release": ".runtime/openifs/srtm_taumol26_7207705/release-five-files.json",
+  "release": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/publication/release-five-files.json",
   "quiet_environment": {
     "job": 7207705,
     "node": "nid011311",
-    "CPU": 16,
+    "verification_CPU": 2,
+    "timing_CPU": 8,
     "memory": "local",
     "exclusive": true,
-    "comparative_timing_accepted": false
+    "comparative_timing_accepted": true
   },
   "critical": {
-    "input_records": 62,
+    "input_records": 66,
     "placements_per_record": 2,
-    "protected_calls": 124,
-    "complete_return_bytes": 1153920,
-    "independent_relations": 157456,
-    "immediate_ABI_calls": 124,
+    "protected_calls": 132,
+    "complete_return_bytes": 1191296,
+    "independent_relations": 162456,
+    "immediate_ABI_calls": 132,
     "positive_Rayleigh_zeros": 2140,
     "negative_Rayleigh_zeros": 3000,
     "nonzero_Rayleigh_subnormals": 4724,
@@ -97,9 +98,8 @@
     "formula": "(A/1e-20)/(1-(Md/Mw-1)^2*q^2)-1"
   },
   "instruction_ABI_audit": {
-    "instructions": 56,
+    "instructions": 139,
     "numerical_helpers": 0,
-    "FP64_multiply_in_loop": 1,
     "FP32_instructions": 0,
     "fused_or_approximate_instructions": 0,
     "x18_touched": false,
@@ -109,44 +109,51 @@
       "__yoesrta26_MOD_raylc",
       "__yoesrta26_MOD_sfluxrefc"
     ],
-    "private_comparator_so_sha256": "bbcc2bd47f438c45ff2aa66e18fcb0c0a1581af230fd49aa1e87d2a89b6d3425",
-    "critical_ABI_calls": 124,
+    "private_comparator_so_sha256": "36d29cb2a5dc882f8a2fd6a5909ad66b3a3cef5c36380f0e4090206edf0cca7b",
+    "critical_ABI_calls": 132,
     "frozen_actual_replay_ABI_calls": 6400,
-    "all_complete_return_bytes_directly_compared": true
+    "all_complete_return_bytes_directly_compared": true,
+    "independent_peer": {
+      "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-srtm26-contiguous-candidate-v2-delta-static-peer-review.json",
+      "bytes": 4119,
+      "sha256": "26fa4b1aa72e23f1f4f0a996273c9a1ff3499984ab15df1a271b656b7fce61c6"
+    },
+    "separately_rounded_FP64_products_per_active_cell": 1,
+    "vector_multiply_instructions_per_eight_cell_group": 4
   },
   "documentation_math": {
     "expressions": 44,
     "errors": 0,
     "renderer": "MathJax 3.2.2",
     "sha256": {
-      "skills/md2asm/references/openifs/physics/srtm_taumol26.md": "80ce893b263fbb09fced2fb3b9d067e0b2a2440c14e76c2b61574c6635f738bc"
+      "skills/md2asm/references/openifs/physics/srtm_taumol26.md": "57b5371af75db0ab68b2afa98cb0b30e75a73775901a35cf9ab0908a2167bd19"
     }
   },
-  "scope": "All 6400 actual calls are daylight n8 H19 capacity19 with tropopause15. Guarded corpus also checks night, mixed day/night, empty/zero/partial capacities, non-one compact bounds, zero/unit/doubled columns, signed zero, subnormals, untouched opaque NaN payloads and off-range storage-only tropopause cases. Fresh cross-run complete streams have different unused incoming bytes; complete frozen replays and fresh complete paired streams remain exact. No speed claim.",
-  "documentation_revision": "1.1",
+  "scope": "All 6400 actual calls are daylight n8 H19 capacity19 with tropopause15. Guarded corpus also checks night, mixed day/night, empty/zero/partial capacities, non-one compact bounds, zero/unit/doubled columns, signed zero, subnormals, untouched opaque NaN payloads and off-range storage-only tropopause cases. Fresh cross-run complete streams have different unused incoming bytes; complete frozen replays and fresh complete paired streams remain exact. Accepted complete-call timings cover four warmed eight-column, nineteen-layer states against the unchanged CPU-aware Fortran -O3 control, with variation reported for each state.",
+  "documentation_revision": "1.2",
   "current_documentation": {
     "contract": {
       "local": "skills/md2asm/references/openifs/physics/srtm_taumol26.md",
-      "bytes": 14512,
-      "sha256": "80ce893b263fbb09fced2fb3b9d067e0b2a2440c14e76c2b61574c6635f738bc"
+      "bytes": 16968,
+      "sha256": "57b5371af75db0ab68b2afa98cb0b30e75a73775901a35cf9ab0908a2167bd19"
     },
     "numerical_revision_unchanged": "1.0",
     "math_render": {
-      "local": ".runtime/openifs/laitli-7207705/parent-review/math-render.json",
-      "bytes": 348,
-      "sha256": "9d12413bec38b749dbc9e63d6f70befd9a18da0beaf1e5cd0a5d174935614c6d"
+      "local": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/publication/math-render.json",
+      "bytes": 221,
+      "sha256": "26b8b70c46316dd3e2540cfcbd949a28c32dcbf30478cf0243041ccedb6d2fd5"
     }
   },
   "combined_forecast": {
-    "archive": ".runtime/openifs/runs/strict-interpolation-shortwave-combined-reviewed-7207705/t21/test_fc",
+    "archive": ".runtime/openifs/runs/strict-srtm26-contiguous-reviewed-7207705/t21/test_fc",
     "acceptance": {
-      "local": ".runtime/openifs/runs/strict-interpolation-shortwave-combined-reviewed-7207705/t21/direct-comparison.json",
-      "bytes": 39373,
-      "sha256": "980d196b65fb18b28f67e13c05840580baaa6982af705306d4e76e4ced0e3f4e"
+      "local": ".runtime/openifs/runs/strict-srtm26-contiguous-reviewed-7207705/t21/direct-comparison.json",
+      "bytes": 60658,
+      "sha256": "6c3860289a76181e1fe4e8a7e0e73a03ca4dc1000b242b0eb801db4d51aa4111"
     },
     "job_id": 7207705,
     "node": "nid011311",
-    "affinity_cpu": 0,
+    "affinity_cpu": 4,
     "memory_binding": "local",
     "calls": 6400,
     "complete_return_bytes": 255795200,
@@ -156,15 +163,79 @@
     "all_saved_files_identical": true,
     "saved_bytes": 618140,
     "separate_fresh_run_review": {
-      "active_bytes_directly_identical": 95846400,
+      "utc": "2026-10-10T03:14:10.098990+00:00",
+      "calls": 6400,
+      "complete_mathematical_input_and_global_bytes_identical": 10060800,
+      "active_output_bytes_directly_identical": 95846400,
       "active_differing_bytes": 0,
-      "different_inactive_bytes": 55905106,
-      "different_inactive_calls": 6398,
-      "complete_input_identity_claimed": false,
-      "reason": "Opaque unused incoming spectral storage differs between fresh forecasts. Every complete byte remains in paired comparisons and frozen replay."
+      "opaque_object_different_bytes": 12802,
+      "complete_unused_incoming_output_buffer_different_bytes": [
+        0,
+        29330737,
+        29993199
+      ],
+      "complete_unused_returned_buffer_different_bytes": [
+        0,
+        29330737,
+        29993199
+      ],
+      "all_unused_returned_differences_equal_complete_preserved_incoming_bytes": true,
+      "complete_fresh_input_identity_claimed": false,
+      "complete_fresh_return_identity_claimed": false,
+      "no_masking_or_omitted_bytes": true
+    },
+    "complete_original_input_review": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/selected-forecast-complete-input-and-return-review.json",
+      "bytes": 680,
+      "sha256": "6f3fcfa8a1b811c8bdcd927d6de99082b01d944159238bed293c23fe0e3f22b7"
     }
   },
   "parent_reproduction": {
+    "actual_current_public_command": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/actual-current-public-reproduction-command.sh",
+      "bytes": 1325,
+      "sha256": "bee297e7bf90a3ccd6cf35a4ff61464a80bbefaaac31e2fa3958a2c2dd4c667b"
+    },
+    "result": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/current-public-reproduction.log",
+      "bytes": 691,
+      "sha256": "fe963ad04470b03647476c68935386dbbd3110fe014f7a8a1ed2d3890201e4d5"
+    },
+    "complete_artifact_review": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/current-public-reproduction-review.json",
+      "bytes": 2084,
+      "sha256": "5e2947d50bc9d9cee6e5db7901429d278fef3c24beb3d299134c214a52591ae7"
+    },
+    "primary_object_identical": true,
+    "all_runtime_executable_and_data_sections_identical": true,
+    "whole_executable_and_shared_library_identical": false,
+    "whole_artifact_qualification": "Only build identifiers and nonexecuted symbol/string tables differ because object basenames differ. Complete raw artifacts remain archived. No simulation outputs are excluded.",
+    "protected_calls": 132,
+    "critical_complete_bytes": 1191296,
+    "frozen_calls": 6400,
+    "frozen_complete_bytes": 255795200,
+    "immediate_ABI_calls": 6532,
+    "differing_output_bytes": 0
+  },
+  "preserved_original_release_resolution": {
+    "local": ".runtime/openifs/srtm_taumol26_7207705/parent-review/resolved-original-manifest.json",
+    "bytes": 16758,
+    "sha256": "c399313d49f061504aadccf66c09b99140a91f29786850f698a47daab71dcf37"
+  },
+  "preserved_pre_publication_record": {
+    "local": ".runtime/openifs/srtm_taumol26_7207705/parent-review/original-public-files/bench/openifs/physics/srtm_taumol26.json",
+    "bytes": 5290,
+    "sha256": "f4bdc343f850f2f1ff905278250cec9c02a63df70bb8bcd9beae5d1866bfc71c"
+  },
+  "preserved_previous_implementation_record": {
+    "local": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/publication/previous-public-files/bench/openifs/physics/srtm_taumol26.json",
+    "bytes": 8542,
+    "sha256": "accab61bf43603d5c5ebbf25b874cd934225a0a6a53147bd1ea9d4cf54918779"
+  },
+  "original_release": ".runtime/openifs/srtm_taumol26_7207705/release-five-files.json",
+  "implementation_revision": "1.1",
+  "assembly_SHA256": "85d72f01282e4e2ad045c6c3db5c827398615ba41852aa7793c82accb1a0993e",
+  "original_parent_reproduction": {
     "release_review": {
       "local": ".runtime/openifs/srtm_taumol26_7207705/parent-review/parent-release-hash-review.json",
       "bytes": 265,
@@ -188,14 +259,252 @@
     "complete_frozen_replay_calls": 6400,
     "complete_frozen_replay_bytes": 255795200
   },
-  "preserved_original_release_resolution": {
-    "local": ".runtime/openifs/srtm_taumol26_7207705/parent-review/resolved-original-manifest.json",
-    "bytes": 16758,
-    "sha256": "c399313d49f061504aadccf66c09b99140a91f29786850f698a47daab71dcf37"
-  },
-  "preserved_pre_publication_record": {
-    "local": ".runtime/openifs/srtm_taumol26_7207705/parent-review/original-public-files/bench/openifs/physics/srtm_taumol26.json",
-    "bytes": 5290,
-    "sha256": "f4bdc343f850f2f1ff905278250cec9c02a63df70bb8bcd9beae5d1866bfc71c"
+  "measured_optimisation": {
+    "method": "Check complete daylight and tropopause masks once, traverse contiguous independent active prefixes, duplicate original rounded coefficients, use bounded eight-cell paired loads and stores with four-, two- and one-cell tails, step between planes by the full capacity and copy disjoint defined solar fields once. Preserve the complete scalar path for general masks.",
+    "frozen_before_emission": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/freeze-before-emission.json",
+      "bytes": 4669,
+      "sha256": "38ec333a3b7599e053fb9d6164e518e17e8fb7f03f22b7696f305725fb1017de"
+    },
+    "eight_cell_schedule_frozen_before_emission": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/candidate2-before-emission.json",
+      "bytes": 1469,
+      "sha256": "c20e8fc3f6e4f1dcf93e38593f01ccf546e1401d0cba8fd149b23447f8ad6598"
+    },
+    "first_candidate_peer": {
+      "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-srtm26-contiguous-candidate-v1-static-peer-review.json",
+      "bytes": 4995,
+      "sha256": "56726e93d315fad965b629e68059044867a6c2372313e90d8e2911d2c9c4e315"
+    },
+    "complete_candidate_audit": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/parent-candidate-complete-audit.json",
+      "bytes": 1394,
+      "sha256": "179be13f0523f3c3cfdbf99157d79a4e233dbb317f90f54216dddc53642329c9"
+    },
+    "strong_control_build": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/fortran-O3-actual-build.json",
+      "bytes": 8875,
+      "sha256": "96454e8953b7e32c4f840fa4533d207a876f084ccaeb4851d6fc69ebdaeb0477"
+    },
+    "strong_control_complete_verification": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/fortran-O3-complete-verification.json",
+      "bytes": 617,
+      "sha256": "a08d26cbb0f678742fdd4b51b4108a53c77556f396e68617be7d38f9239d1aa4"
+    },
+    "timing_protocol": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/strong-control-timing-protocol-before-run.json",
+      "bytes": 11075,
+      "sha256": "553a6a2e99b4ca7e6bb95666b3c26e12bfb631a66a6d92852bc5c83188b5cfc3"
+    },
+    "quiet_before": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/quiet-O3-timing-preflight.json",
+      "bytes": 51812,
+      "sha256": "2365f57ce6e48682a776d930b7e96edbacef88da5229b1cb9218432c11e83988"
+    },
+    "quiet_after": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/quiet-O3-timing-outcome.json",
+      "bytes": 49427,
+      "sha256": "97b34a83ea7167e7ca2e5a408362436c4c234e0b7f15d27f9ce019837c26e324"
+    },
+    "raw_CSV": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/complete-call-O3-timings.csv",
+      "bytes": 26482,
+      "sha256": "99e4ca85dde0a7ee7df7c0b40d6048174321ca7d03c48cafacfe56c609834dd0"
+    },
+    "full_analysis": {
+      "local": ".runtime/openifs/srtm_taumol26_7207705/contiguous-cell-tuning-20261010/strong-control-complete-call-analysis.json",
+      "bytes": 10506,
+      "sha256": "5a7dc2d57a04c57800eafcdd604a3c4544dda870684114eb4329f66ed7cec8ec"
+    },
+    "rotations_per_workload": 12,
+    "calls_per_sample": 200000,
+    "same_buffers": true,
+    "FPCR": 0,
+    "whole_timed_return_checked_outside_timer": true,
+    "rate_reference_assumptions": "Empirical warm eight-cell memory/instruction rate. 22464 active-array logical bytes, plus dimension/GOT/stack traffic shared by selected and reference schedules. 912 separately rounded FP64 products. No division or square root. Active data16KiB inside observed64KiB L1. Reference copies original columns instead of multiplying and never enters a forecast. Report each raw fraction with timing variation.",
+    "workloads": [
+      {
+        "original_record": 0,
+        "statistics_ns_per_complete_call": {
+          "fortran_O3": {
+            "samples": 12,
+            "median_ns": 817.90512,
+            "minimum_ns": 813.19664,
+            "maximum_ns": 832.66704,
+            "standard_deviation_ns": 7.584642081706157,
+            "median_absolute_deviation_ns": 3.4324000000000296,
+            "relative_standard_deviation_percent": 0.9246919647038834
+          },
+          "scalar": {
+            "samples": 12,
+            "median_ns": 720.4504,
+            "minimum_ns": 705.18,
+            "maximum_ns": 731.2664,
+            "standard_deviation_ns": 9.100555997496183,
+            "median_absolute_deviation_ns": 7.6751200000000495,
+            "relative_standard_deviation_percent": 1.2698585365638007
+          },
+          "vector_eight": {
+            "samples": 12,
+            "median_ns": 170.49736000000001,
+            "minimum_ns": 152.14736,
+            "maximum_ns": 174.57824,
+            "standard_deviation_ns": 8.62539734187991,
+            "median_absolute_deviation_ns": 2.413039999999981,
+            "relative_standard_deviation_percent": 5.240158519418683
+          },
+          "memory_reference_eight": {
+            "samples": 12,
+            "median_ns": 169.12768,
+            "minimum_ns": 151.288,
+            "maximum_ns": 173.63104,
+            "standard_deviation_ns": 8.666921406557375,
+            "median_absolute_deviation_ns": 4.294080000000008,
+            "relative_standard_deviation_percent": 5.286494838066842
+          }
+        },
+        "gain_over_Fortran_O3": 4.7971717567943575,
+        "gain_over_earlier_assembly": 4.22558097087251,
+        "empirical_memory_instruction_rate_fraction": 0.9919665618282886
+      },
+      {
+        "original_record": 256,
+        "statistics_ns_per_complete_call": {
+          "fortran_O3": {
+            "samples": 12,
+            "median_ns": 818.4273599999999,
+            "minimum_ns": 813.47616,
+            "maximum_ns": 833.99312,
+            "standard_deviation_ns": 7.193071652008839,
+            "median_absolute_deviation_ns": 1.0212799999999334,
+            "relative_standard_deviation_percent": 0.8758608164492985
+          },
+          "scalar": {
+            "samples": 12,
+            "median_ns": 721.2632000000001,
+            "minimum_ns": 702.5576,
+            "maximum_ns": 727.09984,
+            "standard_deviation_ns": 8.768994758257717,
+            "median_absolute_deviation_ns": 2.2792800000000284,
+            "relative_standard_deviation_percent": 1.2216206162787904
+          },
+          "vector_eight": {
+            "samples": 12,
+            "median_ns": 169.8676,
+            "minimum_ns": 155.6904,
+            "maximum_ns": 173.8216,
+            "standard_deviation_ns": 7.831147755160257,
+            "median_absolute_deviation_ns": 3.952239999999989,
+            "relative_standard_deviation_percent": 4.745822644942476
+          },
+          "memory_reference_eight": {
+            "samples": 12,
+            "median_ns": 169.18528,
+            "minimum_ns": 151.176,
+            "maximum_ns": 170.40272,
+            "standard_deviation_ns": 7.054624964831528,
+            "median_absolute_deviation_ns": 1.1427199999999829,
+            "relative_standard_deviation_percent": 4.2693806485798405
+          }
+        },
+        "gain_over_Fortran_O3": 4.81803098413117,
+        "gain_over_earlier_assembly": 4.246031615210906,
+        "empirical_memory_instruction_rate_fraction": 0.9959832245819685
+      },
+      {
+        "original_record": 3072,
+        "statistics_ns_per_complete_call": {
+          "fortran_O3": {
+            "samples": 12,
+            "median_ns": 818.0820000000001,
+            "minimum_ns": 814.216,
+            "maximum_ns": 831.87568,
+            "standard_deviation_ns": 4.5967989512175835,
+            "median_absolute_deviation_ns": 1.4351199999998698,
+            "relative_standard_deviation_percent": 0.5615918205219484
+          },
+          "scalar": {
+            "samples": 12,
+            "median_ns": 721.5419999999999,
+            "minimum_ns": 703.28544,
+            "maximum_ns": 729.29376,
+            "standard_deviation_ns": 7.499394238887212,
+            "median_absolute_deviation_ns": 2.4064800000001014,
+            "relative_standard_deviation_percent": 1.0415331182186152
+          },
+          "vector_eight": {
+            "samples": 12,
+            "median_ns": 170.38920000000002,
+            "minimum_ns": 155.8776,
+            "maximum_ns": 174.03312,
+            "standard_deviation_ns": 7.522263291581782,
+            "median_absolute_deviation_ns": 3.614159999999984,
+            "relative_standard_deviation_percent": 4.527872886503878
+          },
+          "memory_reference_eight": {
+            "samples": 12,
+            "median_ns": 168.88136,
+            "minimum_ns": 151.11872,
+            "maximum_ns": 173.63472,
+            "standard_deviation_ns": 7.854454906997726,
+            "median_absolute_deviation_ns": 0.930800000000005,
+            "relative_standard_deviation_percent": 4.757847372806166
+          }
+        },
+        "gain_over_Fortran_O3": 4.801255009120297,
+        "gain_over_earlier_assembly": 4.2346698030156835,
+        "empirical_memory_instruction_rate_fraction": 0.9911506128322686
+      },
+      {
+        "original_record": 6144,
+        "statistics_ns_per_complete_call": {
+          "fortran_O3": {
+            "samples": 12,
+            "median_ns": 817.95056,
+            "minimum_ns": 813.57024,
+            "maximum_ns": 833.75328,
+            "standard_deviation_ns": 6.407918987101861,
+            "median_absolute_deviation_ns": 1.1163199999999733,
+            "relative_standard_deviation_percent": 0.7816160984516953
+          },
+          "scalar": {
+            "samples": 12,
+            "median_ns": 720.2862399999999,
+            "minimum_ns": 705.52864,
+            "maximum_ns": 723.85568,
+            "standard_deviation_ns": 8.177445009470198,
+            "median_absolute_deviation_ns": 3.4757600000000934,
+            "relative_standard_deviation_percent": 1.1429240359107398
+          },
+          "vector_eight": {
+            "samples": 12,
+            "median_ns": 170.8508,
+            "minimum_ns": 152.12064,
+            "maximum_ns": 174.01664,
+            "standard_deviation_ns": 7.687222503365073,
+            "median_absolute_deviation_ns": 0.9370399999999819,
+            "relative_standard_deviation_percent": 4.595182076820952
+          },
+          "memory_reference_eight": {
+            "samples": 12,
+            "median_ns": 160.42912,
+            "minimum_ns": 151.1928,
+            "maximum_ns": 173.14384,
+            "standard_deviation_ns": 8.111202553738986,
+            "median_absolute_deviation_ns": 6.918479999999988,
+            "relative_standard_deviation_percent": 5.0078796371517145
+          }
+        },
+        "gain_over_Fortran_O3": 4.787513783956529,
+        "gain_over_earlier_assembly": 4.215878649675623,
+        "empirical_memory_instruction_rate_fraction": 0.9390012806495494
+      }
+    ],
+    "publication_peer": {
+      "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-srtm26-seven-file-optimisation-publication-peer-review.json",
+      "bytes": 10533,
+      "sha256": "7d031eb88069f9ba5c564c36a113439681d6aa6c0daa677e37497a93008a184d"
+    },
+    "peer_followup": "Root corrected only the median definition after the independent seven-file review. Numerical and timing artifacts remain unchanged."
   }
 }

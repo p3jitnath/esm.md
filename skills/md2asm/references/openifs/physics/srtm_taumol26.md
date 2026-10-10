@@ -2,7 +2,7 @@
 
 Numerical revision 1.0 freezes the complete `SRTM_TAUMOL26` numerical body before direct assembly generation. The routine describes molecular scattering in one shortwave band of the Sun's radiation. Scattering changes a light ray's direction. This band covers 22,650 to 29,000 cm$`^{-1}`$, or wavelengths of about 0.345 to 0.442 micrometres. The original source, coefficient setup and forecast caller remain unchanged. The [OpenIFS rules](../../../../../bench/openifs/README.md) apply.
 
-Documentation revision 1.1 adds the parent combined forecast and states the complete spectral array order. The physical equations, ordered update and accepted direct body remain unchanged.
+Documentation revision 1.2 adds the measured contiguous-cell implementation. Numerical revision 1.0, physical equations, ordered products and complete output bytes remain unchanged.
 
 ## Physics and Units
 
@@ -54,6 +54,8 @@ Unused caller storage and seven unused `YDDIMV` fields can contain unspecified i
 
 The original source has separate loops below and above the tropopause. Their returned cells are independent, so the direct body may enumerate all active layers in one loop without changing any arithmetic operation or observed state. It must retain the daylight condition and all untouched bytes. Do not use fused operations, approximate arithmetic, reduced precision, contraction or fast-math. No driver supplies a missing numerical stage.
 
+For at least two selected columns, a short scan checks that every column is daylight and every tropopause lies in active layers 1 through H. This checked path then processes each spectral plane as a contiguous prefix of nH independent cells. It loads eight cells at a time, applies the original separate FP64 product to each lane and stores both positive absorption zeros and Rayleigh depths. Bounded groups of four, two and one handle the remainder. The next plane starts after the full nV capacity, so extra layers remain untouched. Solar coefficients are copied once per column and point because outputs are disjoint and every selected tropopause is valid. Other masks and tropopause ranges retain the complete scalar path.
+
 The complete ABI, meaning the calling interface between separately built code, uses ten ordinary pointers with no descriptors or hidden arguments. The first eight arrive in `x0` through `x7`. `P_TAUR` arrives at incoming stack byte zero, and `PRMU0` at incoming stack byte eight. The pointer order is `YDDIMV, KIDIA, KFDIA, KLEV, P_COLMOL, K_LAYTROP, P_SFLUXZEN, P_TAUG, P_TAUR, PRMU0`. The two coefficient globals are the only extra numerical inputs. The primary name is `srtm_taumol26_`, and verification gives the same body the private name `srtm_taumol26_assembly_`.
 
 The direct Armv8-A body preserves `x19` through `x30`, the lower 64 bits of `d8` through `d15`, stack alignment and the floating-point control register. It leaves `x18` untouched and calls no numerical helper. Its stack frame is 96 bytes. Profiling is outside the numerical return. Standalone source checks disable the profiling hook because MPI is not started, while the full forecast retains normal profiling.
@@ -67,19 +69,29 @@ B_{\rm input}=320+8nV+12n+128n(2V+1),\qquad
 B_{\rm output}=32+128n(2V+1).
 ```
 
-The source-only corpus has 62 complete input records. Both start and end placement against protected pages give 124 calls and 1,153,920 returned bytes. Read-only pages protect inputs, and poisoned neighbours and inaccessible pages protect complete outputs. The 157,456 independent relations check scattering dimensions, absorption zeros, solar copies, known unit depth, exact doubled-column response, zero column and coefficient limits, night masks, unused slots, extra layer capacity and complete preservation. Active Rayleigh results include 2,140 positive zeros, 3,000 negative zeros and 4,724 nonzero subnormal values.
+The current source-only corpus retains all 62 original complete input records and adds four cases for changed vector groups and remainders. The added shapes use two, three and five columns, one through three active layers and extra layer capacity. Both placements against protected pages give 132 calls and 1,191,296 returned bytes. Read-only pages protect inputs, and poisoned neighbours and inaccessible pages protect complete outputs. The 162,456 independent relations check scattering dimensions, absorption zeros, solar copies, known unit depth, exact doubled-column response, zero column and coefficient limits, night masks, unused slots, extra layer capacity and complete preservation. Active Rayleigh results include 2,140 positive zeros, 3,000 negative zeros and 4,724 nonzero subnormal values.
 
 The unchanged source forecast has 6,400 calls, with 256 calls in each phase 0 through 24 at original caller return offset `0x872b80`. Every call has $`n=8`$ and $`H=V=19`$. All 51,200 column entries are daylight. The complete input stream is 266,035,200 bytes and the complete output stream is 255,795,200 bytes, including 159,744,000 unchanged storage bytes. All 37,785,600 independent relations pass. The full frozen-input replay directly matches every returned byte. All ten saved forecast files match the strict-vertical baseline across 618,140 bytes.
 
-Acceptance requires zero differing bytes for every paired complete return, every guarded stream, every original complete input replay and all ten saved files. An immediate ABI observer checks saved registers before C can restore them. Report the first call, phase, field and byte with its source/native bit patterns before stopping on a mismatch. Hashes identify immutable artifacts and do not replace direct byte comparison. No comparative timing is accepted in this milestone.
+Acceptance requires zero differing bytes for every paired complete return, every guarded stream, every original complete input replay and all ten saved files. An immediate ABI observer checks saved registers before C can restore them. Report the first call, phase, field and byte with its source/native bit patterns before stopping on a mismatch. Hashes identify immutable artifacts and do not replace direct byte comparison. Comparative timing starts only after these checks pass.
 
 ## Verified Direct Body
 
-The complete direct body has 56 instructions, a 96-byte stack frame and one FP64 multiplication in its spectral loop. All 124 guarded calls and 6,400 frozen-input replay calls pass the immediate ABI observer and complete output comparisons. The isolated forecast also passes every paired complete return and all ten saved files. No timing is accepted.
+The selected complete body has 139 instructions and a 96-byte frame. All 132 guarded calls and all 6,400 original frozen-input calls pass complete output comparisons and immediate ABI checks. Its combined forecast passes all forty-three complete paired streams across 6,165,443,208 bytes and all ten saved files across 618,140 bytes. Every mathematical input and global matches the original source capture. All 95,846,400 active band 26 output bytes match it directly. Unused returned differences exactly equal their corresponding incoming bytes, with no masking.
 
-The fresh run has 45,420,251 different incoming bytes, all in seven unused object fields or unused spectral storage. Its complete returned source stream therefore differs from the earlier source run in 45,407,449 preserved storage bytes. These different complete inputs give corresponding differences in the preserved storage. Every earlier complete frozen input replays exactly, and every fresh paired complete source/native return compares exactly. All bytes remain present in the captures and comparisons.
+Twelve quiet rotations compare complete calls on the same warmed buffers for four original eight-column, nineteen-layer states. Each sample repeats 200,000 calls, with compilation, loading, warm-up and byte checks outside the timer. The unchanged Fortran control uses CPU-aware GNU native 12.3 optimisation at -O3 with strict original arithmetic. It independently passes the same critical and frozen-input checks. Earlier assembly remains the matched scalar control. Times below are nanoseconds per complete call. The median is the mean of the two middle times after sorting these twelve measurements. MAD is the median absolute distance from that value.
 
-The independently reviewed parent combined forecast also passes all 6,400 complete paired returns, 37,785,600 independent relations and all ten saved files. Its 95,846,400 active solar, absorption and scattering bytes directly match the pre-emission source run. The 159,744,000 unused storage bytes remain in every full paired comparison and frozen-input replay. No output bytes are masked or removed.
+| Original record | Fortran -O3 median | Earlier assembly median | Selected median | Selected range | Selected MAD | Gain over Fortran |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0 | 817.91 | 720.45 | 170.50 | 152.15–174.58 | 2.41 | 4.80× |
+| 256 | 818.43 | 721.26 | 169.87 | 155.69–173.82 | 3.95 | 4.82× |
+| 3072 | 818.08 | 721.54 | 170.39 | 155.88–174.03 | 3.61 | 4.80× |
+| 6144 | 817.95 | 720.29 | 170.85 | 152.12–174.02 | 0.94 | 4.79× |
+
+The selected medians improve by 4.79–4.82 times over the stronger Fortran control. Full sample variation for every compared implementation remains in the adjacent JSON record and immutable local CSV. Measurements use own exclusive job 7207705 on nid011311, CPU 8 and local memory. All three agents confirm a pause, node occupancy and load are recorded, and before/after per-CPU observations pass.
+
+The active data use 16 KiB within the observed 64 KiB first-level data cache. A complete call makes 912 separate FP64 products and an estimated 22,464 bytes of active-array traffic, plus dimension, global-address and stack traffic. A matching assembly reference keeps the complete bounds, copies, loads and stores, but replaces products with unchanged column copies. Its full return is checked independently. The selected rate is 93.9–99.6% of this empirical warmed memory/instruction rate, with calibration variation recorded. This rate describes these four workloads. It is not a global hardware limit. Division and square root are absent from this band.
+
 
 ## Reproduction
 
@@ -92,13 +104,14 @@ set -euo pipefail
 ulimit -c 0
 module load PrgEnv-gnu gcc-native/12.3 libfabric/2.3.1
 release="$PWD/.runtime/openifs/srtm_taumol26_7207705"
-check="$release/reproduction"
+check="$release/contiguous-cell-tuning-20261010/public-reproduction"
+tuning="$release/contiguous-cell-tuning-20261010"
 mkdir -p "$check"
 gcc -fPIC -march=armv8-a+simd -DORIGINAL_SYMBOL=srtm_taumol26_assembly_ -c src/openifs/physics/srtm_taumol26.S -o "$check/assembly.o"
 gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -DSRTM26_ABI_OBSERVER bench/openifs/physics/srtm_taumol26.c "$check/assembly.o" -L.runtime/openifs/strict-build/lib -Wl,-rpath,"$PWD/.runtime/openifs/strict-build/lib" -larpifs.DP -lfiat -lm -ldl -o "$check/critical"
-"$check/critical" guarded "$release/frozen/corpus.bin" "$check/critical-fortran.bin" "$check/critical-assembly.bin"
+"$check/critical" guarded "$tuning/extended-corpus.bin" "$check/critical-fortran.bin" "$check/critical-assembly.bin"
 cmp "$check/critical-fortran.bin" "$check/critical-assembly.bin"
-cmp "$release/preparation/critical-fortran-final.bin" "$check/critical-fortran.bin"
+cmp "$tuning/extended-fortran.bin" "$check/critical-fortran.bin"
 "$check/critical" replay .runtime/openifs/runs/strict-srtm26-source-7207705/t21/test_fc/srtm26-inputs.bin "$check/replay-fortran.bin" "$check/replay-assembly.bin"
 cmp "$check/replay-fortran.bin" "$check/replay-assembly.bin"
 cmp .runtime/openifs/runs/strict-srtm26-source-7207705/t21/test_fc/srtm26-fortran.bin "$check/replay-fortran.bin"
