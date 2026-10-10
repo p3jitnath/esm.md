@@ -24,12 +24,12 @@ A complete T21 call trace now records when each built Fortran routine starts and
 | --- | ---: |
 | Active Fortran routine bodies | 1,466 |
 | Bodies without existing profiling markers | 372 |
-| Reviewed mathematical stages, helpers and interfaces | 308 |
+| Reviewed mathematical stages, helpers and interfaces | 313 |
 | Reviewed mathematical setup and diagnostic bodies | 38 |
-| Reviewed driver, support, configuration and storage bodies | 428 |
-| Bodies still needing source-role review | 692 |
+| Reviewed driver, support, configuration and storage bodies | 451 |
+| Bodies still needing source-role review | 664 |
 
-The older profile has 1,171 labelled regions, so its labels do not give complete routine coverage. The current review covers 774 bodies, including 81 mathematical stages, 169 subordinate calculations, 58 mathematical interfaces, five setup bodies and 33 diagnostic bodies. An interface calls mathematical routines and can also delegate diagnostics. The 346 bodies with mathematical purposes form a source-purpose subtotal; this count does not establish which routines require assembly or give a numerical completion denominator. SGEMMXZ remains classified as runtime support because its accepted body is an empty compatibility return. During the main forecast phase, 711 source bodies run and 683 have reviewed roles; another 835 run before it and 64 after it, with overlap between these sets.
+The older profile has 1,171 labelled regions, so its labels do not give complete routine coverage. The current review covers 802 bodies, including 81 mathematical stages, 172 subordinate calculations, 60 mathematical interfaces, five setup bodies and 33 diagnostic bodies. An interface calls mathematical routines and can also delegate diagnostics. The 351 bodies with mathematical purposes form a source-purpose subtotal; this count does not establish which routines require assembly or give a numerical completion denominator. SGEMMXZ remains classified as runtime support because its accepted body is an empty compatibility return. During the main forecast phase, all 711 entered source bodies now have reviewed roles; another 835 run before it and 64 after it, with overlap between these sets.
 
 The trace excludes local C/C++ bodies and uninstrumented external libraries, including numerical libraries. It records routine visits for this T21 case and does not prove every branch or other configurations. The compact [coverage record](routines.json) preserves counts, commands, evidence hashes and these limits. Complete events, source mappings and review evidence stay in ignored .runtime/openifs/routine-audit/ and .runtime/openifs/runs/.
 
@@ -53,7 +53,7 @@ The trace excludes local C/C++ bodies and uninstrumented external libraries, inc
 | GPTF1, GPTF2 | Complete two-part time filter |
 | CTVTOT | Complete temperature from the moist-air equation of state |
 
-All forty public bodies pass their critical checks within their declared input ranges. Every captured forecast call also passes; VERDER has no visit in this case, so its acceptance uses the small verifier. The [verification notes](README.md) state the evidence and its limits. Complete assembly coverage, raw whole-forecast states, independent whole-forecast physical checks and the external numerical-library arithmetic audit remain unfinished.
+All forty-two public bodies pass their critical checks within their declared input ranges. Every captured forecast call also passes; VERDER has no visit in this case, so its acceptance uses the small verifier. The [verification notes](README.md) state the evidence and its limits. Complete assembly coverage, raw whole-forecast states, independent whole-forecast physical checks and the external numerical-library arithmetic audit remain unfinished.
 
 Current work prioritises the coarse forecast. Work proceeds through its active numerical routines one at a time, with dynamics first and the remaining physical schemes later. For each routine, freeze its physics and md2asm contract, emit the complete assembly body, pass physical and exact-byte checks, then verify its forecast calls before proceeding.
 
@@ -77,7 +77,9 @@ A time filter removes unwanted oscillation between successive time levels. The [
 
 GPCTY's unchanged finite-element source writes only the bottom of one returned pressure-divergence field. Repeated runs with identical mathematical inputs and different prior storage leave 760 differing output bytes at other levels. The current forecast uses only the written level, but exact acceptance requires every returned byte, so this routine remains in Fortran until its source contract is corrected and independently reviewed.
 
-These nine entries are completed or reviewed priorities, rather than a complete list of remaining numerical routines. SIGAM, SITNU, SPFILT, SPCIMPFINIT, SPCIMPFPOST, SPCIMPFSOLVE, SIMPLICO, LAITLI, LAIDDI and LAITRI now also have verified complete bodies. Verified physics includes CPQTUV and CUBIDIAG for transport, liquid and Fu ice-cloud optics, delta scaling, longwave gas preparation and shortwave spectral bands 25, 26 and 27. The [current forecast record](forecast.json) lists all 40 accepted bodies. Continue source-role review on the remaining active forecast calculations before each new physics contract, preserving the original source and all audit evidence.
+These nine entries are completed or reviewed priorities, rather than a complete list of remaining numerical routines. SIGAM, SITNU, SPFILT, SPCIMPFINIT, SPCIMPFPOST, SPCIMPFSOLVE, SIMPLICO, LAITLI, LAIDDI and LAITRI now also have verified complete bodies. LASCAW_CLO also has verified interpolation coefficients. Verified physical schemes include CPQTUV and CUBIDIAG for transport, liquid and Fu ice-cloud optics, delta scaling, longwave gas preparation and shortwave spectral bands 23, 25, 26 and 27. The [current forecast record](forecast.json) lists all 42 accepted bodies.
+
+The main-phase role review is complete. The next audit follows each numerical dependency, including local calculations inside drivers, physical correction inputs and external numerical libraries, before establishing the exact assembly work list. Preserve original source and all audit evidence.
 
 To reproduce the build inventory, load GNU 12.3 and run the following command through srun in your own quiet exclusive allocation. The [counter](count_routines.py) uses Python's standard library and the existing compiler.
 
