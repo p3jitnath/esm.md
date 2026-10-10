@@ -30,59 +30,13 @@ Build with `make all ebm` on the target processor, then follow the [evaluation i
 
 ## OpenIFS development
 
-The openifs-md branch extends the workflow to OpenIFS 48.1.1. Fifty public assembly routines pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside a coarse global forecast. Files are grouped by dynamics, physics, surface and waves, with forecast dynamics taking priority.
+The openifs-md branch extends this workflow to OpenIFS 48.1.1. Fifty-one complete assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons in a coarse global forecast.
 
-| Verified routine | Critical cases | Forecast calls checked | Differing bytes |
-| --- | ---: | ---: | ---: |
-| CPSPE surface update | 449 | 2,150 | 0 |
-| GPRCP moist-air properties | 3,976 | 13,846 | 0 |
-| GPPWC column integral | 13 | 36,120 | 0 |
-| GPRT thermal pressure | 73 | 2,150 | 0 |
-| GPGRP pressure force | 46 | 2,150 | 0 |
-| GPMKTEND state-change rates | 69 | 2,150 | 0 |
-| GPADDSLPHY physics increments | 117 | 2,150 | 0 |
-| GP_TNDLAGADIAB_UV wind | 137 | 2,150 | 0 |
-| GPGRXYB pressure coefficients | 192 | 2,150 | 0 |
-| GPTCO3 scalar-column integral | 66 | 2,150 | 0 |
-| GP_SPV surface pressure | 122 | 2,150 | 0 |
-| GPHPRE layer pressure | 228 | 14,649 | 0 |
-| VERDISINT, VERINT, VERDER vertical operations | 163 | 21,559 | 0 |
-| GPGEO gravitational energy | 72 | 4,300 | 0 |
-| GPGRGEO horizontal energy gradients | 201 | 2,150 | 0 |
-| GPTF1 first filter stage | 202 | 2,150 | 0 |
-| GPTF2 second filter stage | 106 | 2,150 | 0 |
-| CTVTOT air temperature | 189 | 2,150 | 0 |
-| SIGAM hydrostatic operator | 51 | 4,326 | 0 |
-| SITNU mass and temperature operators | 265 | 2,176 | 0 |
-| SPFILT spectral vorticity filter | 264 | 25 | 0 |
-| SPCIMPFPOST Coriolis correction | 168 | 550 | 0 |
-| SPCIMPFINIT Coriolis preparation | 197 | 550 | 0 |
-| CPQTUV physics state update | 135 | 2,150 | 0 |
-| CUBIDIAG vertical transport solve | 120 | 8,600 | 0 |
-| SIMPLICO pressure and rotation solve | 151 | 550 | 0 |
-| Liquid-cloud optics | 242 | 317,920 | 0 |
-| Ice-cloud shortwave optics | 331 | 223,175 | 0 |
-| Ice-cloud longwave optics | 366 | 223,175 | 0 |
-| Cloud delta scaling | 588 | 8,920,690 | 0 |
-| SPCIMPFSOLVE implicit wave solve | 66 | 25 | 0 |
-| Longwave gas preparation | 124 | 6,400 | 0 |
-| Trilinear field interpolation | 126 | 47,300 | 0 |
-| Shortwave spectral band 26 | 132 | 6,400 | 0 |
-| Limited horizontal interpolation | 288 | 2,150 | 0 |
-| Shortwave water and ozone absorption | 92 | 6,400 | 0 |
-| Thirty-two-neighbour interpolation | 1,152 | 4,300 | 0 |
-| Shortwave ozone absorption | 86 | 6,400 | 0 |
-| Longitude interpolation weights | 1,512 | 4,300 | 0 |
-| Shortwave water absorption | 122 | 6,400 | 0 |
-| Vertical interpolation weights | 6,048 | 6,450 | 0 |
-| Shortwave water and carbon dioxide absorption | 80 | 6,400 | 0 |
-| Shortwave water and methane absorption | 80 | 6,400 | 0 |
-| Shortwave spectral band 16 | 296 | 6,400 | 0 |
-| Latitude interpolation weights | 1,512 | 2,150 | 0 |
-| Shortwave spectral band 18 | 296 | 6,400 | 0 |
-| Shortwave spectral band 19 | 296 | 6,400 | 0 |
-| Eight-corner minimum and maximum | 1,584 | 10,750 | 0 |
+| Check | Coverage | Differing bytes |
+| --- | --- | ---: |
+| Complete routine-stream pairs | 49 pairs across 7,339,708,808 bytes | 0 |
+| Saved forecast files | 10 files across 618,140 bytes | 0 |
 
-The vertical group contains three public routines. The forecast uses its integration routines, while VERDER's derivative is checked by the small verifier only. The GPRCP capture count includes 2,150 reference calls made for comparison, which are recorded separately from model calls.
+This historical forecast starts on 15 October 2004 and advances 24 hours on 2,048 grid points with 19 atmospheric levels. Other stages remain in Fortran. Complete assembly coverage, independent whole-forecast physics and external-library arithmetic checks remain unfinished. Whole-forecast speed has not been measured.
 
-All ten saved files match a fresh strict-source Fortran forecast using the same pressure math and ordered vertical matrix sum. This historical test starts on 15 October 2004 and advances 24 hours on 2,048 grid points with 19 atmospheric levels. Other stages remain in Fortran, and whole-forecast independent physics and external-library arithmetic checks remain unfinished. [Basic formulations](formulations/openifs/README.md) and [verification](bench/openifs/README.md) describe the coverage and commands. The [routine audit](bench/openifs/ROUTINES.md) establishes 1,466 active Fortran bodies, with 802 source roles reviewed. Matched timings show a 3.02× gain for complete vertical integration on the 24-point forecast block. The full spectral filter is 5.18× faster than its frozen Fortran control in matched complete-call measurements. Longwave gas preparation is 1.60–1.61× faster than strict Fortran on four warmed eight-column, nineteen-level states. Shortwave band 26 is 4.79–4.82× faster than the unchanged CPU-aware Fortran -O3 control on the same four warmed states, with full byte checks and repeated variation recorded. Whole-forecast performance has not been measured.
+The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [verification tables](bench/openifs/README.md) give each routine's checks, timing gains and reproduction commands. The [routine audit](bench/openifs/ROUTINES.md) records 1,466 active Fortran bodies, with 802 source roles reviewed. These source counts do not define the number of assembly routines still required.
