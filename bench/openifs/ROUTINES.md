@@ -57,29 +57,38 @@ All forty-five public bodies pass their critical checks within their declared in
 
 Current work prioritises the coarse forecast. Work proceeds through its active numerical routines one at a time, with dynamics first and the remaining physical schemes later. For each routine, freeze its physics and md2asm contract, emit the complete assembly body, pass physical and exact-byte checks, then verify its forecast calls before proceeding.
 
-## Next coarse-forecast stages
+## Next Coarse-Forecast Checkpoints
 
-The next review order follows the pressure and flow calculations needed by the coarse forecast. The call counts come from the existing T21 profile. A call count says how often a routine ran, not how much assembly work it needs.
+The exact source-linked list now assigns each of the 711 main-phase bodies to one group. A local expression calculates a value in that body. A delegate passes the calculation to another body. The compact [record](routines.json) identifies the complete names, original source evidence and checked call sites.
 
-| Order | Routine | Recorded calls | Required work |
-| --- | --- | ---: | --- |
-| 1 | GP_SPV | 2,150 | Complete and verified, including all time-level decisions |
-| 2 | GPHPRE | 14,649 | Complete and verified, including shared top and optional outputs |
-| 3 | VERDISINT | 21,559 | Complete and verified, including native integral and matrix dependencies |
-| 4 | GPGEO | 4,300 | Complete and verified gravitational energy |
-| 5 | GPGRGEO | 2,150 | Complete and verified horizontal energy derivatives |
-| 6 | GPCTY | 2,150 | Source review pending a correction for unwritten returned bytes |
-| 7 | GPTF1 | 2,150 | Complete and verified first filter stage |
-| 8 | GPTF2 | 2,150 | Complete and verified second filter stage |
-| 9 | CTVTOT | 2,150 | Complete and verified moist-air temperature |
+| Original main-phase work | Bodies |
+| --- | ---: |
+| Local weather or forcing expressions | 255 |
+| Local geometry expressions | 1 |
+| Local pressure and tracer corrections or returned means | 4 |
+| Local output, reporting and control expressions | 96 |
+| Numerical delegates, including physical output and corrections | 55 |
+| Physical copy or lookup helpers | 2 |
+| Other storage, control and service bodies | 298 |
+| **All main-phase bodies** | **711** |
 
-A time filter removes unwanted oscillation between successive time levels. The [pressure math library](../../skills/md2asm/references/openifs/pressure_math.md) freezes separate exp and log arithmetic. Vertical integration now has complete native dependencies and independent checks on the actual forecast grid.
+The first four rows contain 356 local-expression owners. The other rows contain 355 bodies without local expressions. The underlying list has thirteen disjoint groups, so printed statistics, physical output and runtime accounting remain separate. These ownership counts do not give an assembly completion denominator.
 
-GPCTY's unchanged finite-element source writes only the bottom of one returned pressure-divergence field. Repeated runs with identical mathematical inputs and different prior storage leave 760 differing output bytes at other levels. The current forecast uses only the written level, but exact acceptance requires every returned byte, so this routine remains in Fortran until its source contract is corrected and independently reviewed.
+| Priority | Original bodies | Next required work |
+| ---: | --- | --- |
+| 1 | LASCAW | Complete the parent around verified interpolation helpers, including coordinates, weights and every output family. |
+| 2 | SPCSI | Close its complete wave input, vertical matrix products, selected solve branch and final increments. |
+| 3 | SPCM, SPCHOR | Close the selected implicit updates, transforms, corrections and damping. |
+| 4 | CPGLAG | Preserve provisional-state additions, selected corrections and map factors. |
+| 5 | CPG_GP_HYD, CPG_GP, GP_MODEL | Verify smaller weather stages before replacing their complete parents. |
+| 6 | LAMINMAXINT, LAVENT | Verify neighbouring minima and maxima, then wind extrapolation and rotation. |
+| 7 | PFIXER, QMFIXER, GPNORM1, GPNORM_TRANS, GPNORM_TRANS_CTL | Preserve physical means, latitude weights and ordered sums. |
 
-These nine entries are completed or reviewed priorities, rather than a complete list of remaining numerical routines. SIGAM, SITNU, SPFILT, SPCIMPFINIT, SPCIMPFPOST, SPCIMPFSOLVE, SIMPLICO, LAITLI, LAIDDI and LAITRI now also have verified complete bodies. LASCAW_CLO and LASCAW_VINTW also have verified interpolation coefficients. Verified physical schemes include CPQTUV and CUBIDIAG for transport, liquid and Fu ice-cloud optics, delta scaling, longwave gas preparation and shortwave spectral bands 20, 23, 25, 26, 27 and 29. The [current forecast record](forecast.json) lists all 45 accepted bodies.
+LASCAW_CLO and LASCAW_VINTW are verified within their contracts. LASCAW_CLA is in preparation. The work list also retains 55 original call sites for named numerical and real-valued output dependencies. Intrinsic mathematics, other branches and process-wide sums can add work, so this bounded list is not a complete runtime graph.
 
-The main-phase role review is complete. A separate original-source review has identified local calculations or delegation in all 711 bodies. Of these, 356 contain local arithmetic and 355 delegate work or manage storage and control. These counts include random-state preparation, output, reporting and control calculations, so they do not give an assembly completion denominator. The remaining audit follows actual branches, physical correction inputs and external numerical dependencies before establishing the exact work list. Preserve original source and all audit evidence.
+GPCTY's unchanged finite-element source writes only the bottom of one returned pressure-divergence field. Repeated source calls leave 760 differing returned bytes at other levels. The current forecast uses the written level, but complete acceptance requires a corrected and independently reviewed output contract. This routine remains in Fortran.
+
+The [current forecast record](forecast.json) lists all 45 accepted direct bodies. A matching name does not prove that a whole parent or every branch has been replaced. All nested calculations, external numerical dependencies, buffer bounds and selected physical consumers must be closed before an exact assembly denominator can be stated.
 
 To reproduce the build inventory, load GNU 12.3 and run the following command through srun in your own quiet exclusive allocation. The [counter](count_routines.py) uses Python's standard library and the existing compiler.
 
