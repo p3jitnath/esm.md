@@ -127,6 +127,8 @@ No comparative timing is accepted for this body. The instrumented forecast wall 
 
 Root reproduction passes the complete public recipe, all original-input replays and twenty-four logical or capacity guards. Fresh primary and ABI objects, the complete public verifier and shared library directly match their accepted counterparts. The selected forty-four-body combined forecast passes forty-two complete paired streams across 5,909,648,008 bytes and ten saved files across 618,140 bytes. All selected VINTW inputs and 34,565,397 written coefficient values also match the separate original source capture. Unused incoming and returned storage can differ between fresh runs, and every such byte remains archived. Whole separate-run input and return identity is not claimed.
 
+The current observer optionally shares its original parent relay with CLA. A complete pair of metadata hooks records the original geometry and enclosing capacities, forwards the same seventy-eight pointers once, then closes that separate scope. With both hooks absent, the standalone route retains its previous behaviour. The forty-seven-body combined forecast verifies all 6,450 complete VINTW returns across 637,776,000 bytes. Its numerical assembly, ABI and critical driver remain unchanged. The earlier observer source, library and reproduction records remain preserved.
+
 ## Reproduce The Accepted Checks
 
 Use a unique ignored directory and run these commands on the exclusive node allocation. The existing ABI checker forwards arguments and checks register preservation. It supplies no interpolation, correction, smoothing or boundary calculation.

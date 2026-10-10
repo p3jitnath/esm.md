@@ -202,6 +202,11 @@ __attribute__((destructor))static void finish(void){
  fprintf(stderr,"LASCAW_VINTW PAIRED PASS calls=%"PRIu64" coefficients=%"PRIu64" moments=%"PRIu64" bytes=%"PRIu64" inputs=%"PRIu64" FPCR=0\n",visits,values,moments,bytes,inputbytes);
 }
 
+/* Optional leaf metadata hooks share this complete original caller relay.
+ * Their absence preserves the previous observer route exactly.
+ */
+extern void lascaw_cla_scope_enter(void *const *,size_t) __attribute__((weak));
+extern void lascaw_cla_scope_leave(void) __attribute__((weak));
 /* The read-only parent relay freezes complete enclosing capacities and
  * forwards every original LASCAW argument without supplying mathematics.
  */
@@ -215,5 +220,7 @@ void lascaw_(void*p0,void*p1,void*p2,void*p3,void*p4,void*p5,void*p6,void*p7,voi
  caller_scope.kwis=*(int32_t*)args[11];caller_scope.kweno=*(int32_t*)args[13];
  if(caller_scope.kweno!=1&&caller_scope.kweno!=3)fail("supported parent KWENO before source forwarding");
  caller_scope.full[0]=args[70];caller_scope.full[1]=args[74];caller_scope.full[2]=args[71];caller_scope.full[3]=args[72];caller_scope.full[4]=args[73];
- parent_original(p0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,p26,p27,p28,p29,p30,p31,p32,p33,p34,p35,p36,p37,p38,p39,p40,p41,p42,p43,p44,p45,p46,p47,p48,p49,p50,p51,p52,p53,p54,p55,p56,p57,p58,p59,p60,p61,p62,p63,p64,p65,p66,p67,p68,p69,p70,p71,p72,p73,p74,p75,p76,p77);caller_scope.active=0;
+ if((lascaw_cla_scope_enter!=NULL)!=(lascaw_cla_scope_leave!=NULL))fail("complete optional leaf hook pair");
+ if(lascaw_cla_scope_enter)lascaw_cla_scope_enter(args,78);
+ parent_original(p0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,p26,p27,p28,p29,p30,p31,p32,p33,p34,p35,p36,p37,p38,p39,p40,p41,p42,p43,p44,p45,p46,p47,p48,p49,p50,p51,p52,p53,p54,p55,p56,p57,p58,p59,p60,p61,p62,p63,p64,p65,p66,p67,p68,p69,p70,p71,p72,p73,p74,p75,p76,p77);if(lascaw_cla_scope_leave)lascaw_cla_scope_leave();caller_scope.active=0;
 }

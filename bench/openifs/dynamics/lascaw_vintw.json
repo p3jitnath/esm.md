@@ -222,7 +222,7 @@
     "isolated_original_observer_preserved": true,
     "public_guard_change_has_no_supported_numerical_operation": true
   },
-  "documentation_revision": "1.2",
+  "documentation_revision": "1.3",
   "numerical_revision": "1.0",
   "parent_reproduction": {
     "local": ".runtime/openifs/lascaw_vintw-7207705/parent-review/complete-parent-reproduction.json",
@@ -253,5 +253,52 @@
     "complete_fresh_input_identity_claimed": false,
     "complete_fresh_return_identity_claimed": false,
     "all_unused_bytes_retained": true
+  },
+  "observer_revision": "1.2",
+  "current_optional_leaf_scope": {
+    "source": {
+      "local": "bench/openifs/dynamics/lascaw_vintw_forecast.c",
+      "bytes": 20422,
+      "sha256": "eca567bcef143f51dad852ea63bc71d818d0ff9b820d89b93a451342fb0922e3"
+    },
+    "original_public_source": {
+      "local": ".runtime/openifs/lascaw_cla-7207705/publication/previous-public-files/bench/openifs/dynamics/lascaw_vintw_forecast.c",
+      "bytes": 19915,
+      "sha256": "e88e61cc972d416bd25df4a7db1ac279e9c146ff4b674c4ca56f24c148ab49b7"
+    },
+    "original_no_hook_library": {
+      "local": ".runtime/openifs/lascaw_vintw-7207705/public-reviewed/libverify-lascaw_vintw.so",
+      "bytes": 272216,
+      "sha256": "bfd60bece3ca1b9832abf4943e2db1fd782e1e812ef759645e56f75dac04ec2d"
+    },
+    "all_numerical_sources_and_ABI_unchanged": true,
+    "optional_hooks": [
+      "lascaw_cla_scope_enter",
+      "lascaw_cla_scope_leave"
+    ],
+    "both_absent_preserves_standalone_route": true,
+    "both_present_forward_original_78_pointers_once": true,
+    "scope_metadata_only": true,
+    "combined_forecast": {
+      "local": ".runtime/openifs/runs/strict-lascaw-cla-public-target-reviewed-7207705/t21/direct-comparison.json",
+      "bytes": 65460,
+      "sha256": "ac76803407977da488cfa7acc00d898efca76ea2350555225758229611b3f963"
+    },
+    "old_no_hook_whole_library_identity_claimed": false,
+    "previous_generic_target_scope_library": {
+      "local": ".runtime/openifs/lascaw_cla-7207705/parent-composition/libverify-lascaw_vintw-scope.so",
+      "bytes": 191384,
+      "sha256": "d5eafc9a8c8e3598943d793e770ccff40b69c64bc7d2e65971ec456813dd1258"
+    },
+    "accepted_current_public_scope_library": {
+      "local": ".runtime/openifs/lascaw_cla-7207705/publication/current-hook-reproduction/libverify-lascaw_vintw.so",
+      "bytes": 272608,
+      "sha256": "48e7065e717597a446506cbe8657a7acd6814f2e5347c5728a92dc7b9ea4011a"
+    },
+    "root_current_public_reproduction": {
+      "local": ".runtime/openifs/lascaw_cla-7207705/publication/current-public-hook-reproduction-review.json",
+      "bytes": 1821,
+      "sha256": "2956a67b16c9027d5f0b3b4daf53f2a377d06787450a008840f44941741a95f2"
+    }
   }
 }
