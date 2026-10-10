@@ -8,15 +8,15 @@ A routine body is one function or subroutine that performs a calculation. These 
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 63 | 648 |
-| Local calculations | 356 | 62 | 294 |
-| Weather calculations | 255 | 60 | 195 |
+| Main forecast phase | 711 | 73 | 638 |
+| Local calculations | 356 | 72 | 284 |
+| Weather calculations | 255 | 70 | 185 |
 
-There are 64 accepted assembly bodies overall. VERDER is outside the main forecast count. The ordered 195-routine weather queue and completed checks remain local. The latest eleven replacements cover radiation transfer, random samples, cloud overlap, interpolation, dry layer mass and aerosol scaling. Each one has genuine forecast calls.
+There are 74 accepted assembly bodies overall. VERDER is outside the main forecast count. The ordered 185-routine weather queue and completed checks remain local. The latest ten replacements cover cloud sampling, longwave flux, surface sensitivity, thermal emission, spectral sums and small-cloud filtering. Each has genuine forecast calls.
 
 ## Verification
 
-Each accepted routine passes its declared critical physics and exact-output checks. The latest combined batch adds eleven bodies, including 97,750 shortwave adding calls over 5,255,040,000 returned bytes. Every new routine has zero differing bytes in its actual same-input calls. All ten saved forecast files match over 618,140 bytes. Earlier accepted body checks and mathematical routes are reused. The run used own exclusive allocation 7240564 on nid010555, one process, one thread, CPU 16 and local memory binding.
+Each accepted routine passes its declared critical physics and exact-output checks. The latest combined batch adds ten bodies. It includes 11,730,600 cloud-column calls and compares their complete random streams and output matrices. Every new routine has zero differing bytes in its actual same-input calls. All ten saved forecast files match over 618,140 bytes. Earlier accepted body checks and mathematical routes are reused. The run used own exclusive allocation 7240564 on nid010555, one process, one thread, CPU 16 and local memory binding.
 
 The comparisons cover declared routine inputs and saved files. Whole-process byte identity, independent physics of the whole forecast and comparative forecast speed remain unproved. Historical full-storage mismatches are preserved in the local records. Individual numerical contracts define supported inputs, arithmetic, interfaces and scientific limits.
 

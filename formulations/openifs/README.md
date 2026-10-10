@@ -23,7 +23,7 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 | Clouds and precipitation | [Water and phase changes](physics/clouds.md) | Pending |
 | Convection | [Plume transport](physics/convection.md) | Complete CUBIDIAG helper, other stages pending |
 | Turbulent mixing | [Vertical transport](physics/vertical_mixing.md) | Pending |
-| Radiation | [Radiation balance](physics/radiation.md) | Complete liquid and Fu ice optics, cloud delta scaling, shortwave adding and selected two-stream children, remaining transfer stages pending |
+| Radiation | [Radiation balance](physics/radiation.md) | Complete liquid and Fu ice optics, cloud delta scaling, shortwave and longwave adding, thermal emission and selected two-stream children, remaining transfer stages pending |
 | Shortwave Band 21 | [Absorption and scattering](physics/shortwave_band21.md) | Complete SRTM_TAUMOL21 within its verified contract |
 | Soil, snow, lakes and surface exchange | [Skin balance and tiles](surface/surface_exchange.md) | CPSPE update only, storage balances pending |
 | Column ozone | [Ozone mass](physics/column_ozone.md) | Complete GPTCO3 integral, also used for signed moisture rates |
@@ -32,4 +32,4 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 
 These basic balances do not yet cover every configured physical process. Source-derived closure relations, which specify rates and coefficients, and complete numerical contracts are still needed before assembly generation.
 
-Sixty-four public assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../src/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
+Seventy-four public assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../src/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
