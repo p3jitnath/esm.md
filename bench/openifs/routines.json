@@ -329,7 +329,58 @@
         "bytes": 3709,
         "sha256": "e79497e3e1fbff78d2cd99606b0c32c222e288a4ec717ccc0038f2e8ef33f4ca"
       },
-      "work_order": "Proceed through weather and forcing routines one at a time, including their required geometry, corrections and numerical delegates."
+      "work_order": "Close Band21, then develop high-impact weather families from calculation children toward their callers. Keep independent physics, assembly and integration tasks parallel, with full exact-byte forecast acceptance at each completed batch.",
+      "forecast_work_priority": {
+        "date_utc": "2026-10-10T18:37:40.747818+00:00",
+        "basis": "Historical diagnostic profiles and original call dependencies, not accepted comparative forecast timing.",
+        "families": {
+          "close_Band21": 1,
+          "radiation_transport_and_cloud_sampling": 33,
+          "radiation_coefficients_and_forcing": 29,
+          "atmospheric_cloud_convection_and_diffusion": 50,
+          "dynamics_interpolation_and_time_stepping": 27,
+          "surface_forcing_and_support": 53,
+          "spectral_transforms": 13,
+          "deferred_wind_tendency": 1
+        },
+        "remaining_identifiers": 207,
+        "matched_profile_identifiers": 172,
+        "source_dependency_identifiers": 35,
+        "diagnostic_profiles": [
+          {
+            "local": ".runtime/openifs/runs/strict-fortran-1/t21/test_fc/drhook.prof.1",
+            "bytes": 135260,
+            "sha256": "95a50194194505e3e5e41bfa84209541b25d416b8ded0b66acd146d731285538"
+          },
+          {
+            "local": ".runtime/openifs/runs/strict-math-fortran-7189435/t21/test_fc/drhook.prof.1",
+            "bytes": 135260,
+            "sha256": "d1724557d6e5cd56e8613a2afa5a0d57cbddc548cc383b1a370b39e3287aead3"
+          }
+        ],
+        "transport_and_sampling_matched_self_percent": [
+          57.98,
+          62.22
+        ],
+        "MCICA_self_includes_unrecorded_two_stream_children": true,
+        "source_priority_note": {
+          "local": ".runtime/openifs/implicit_stage_reviews_7207705/weather-forecast-impact-priority-source-r1/concise-weather-forecast-impact-order-r1.md",
+          "bytes": 5798,
+          "sha256": "14bde87fbc691d0bebbd64d0643d644ae117e44c8733385b3f79a891a89dab6e"
+        },
+        "public_accepted_routine_count_unchanged": 52,
+        "complete_identifier_priority_mapping": {
+          "local": ".runtime/openifs/implicit_stage_reviews_7207705/weather-forecast-impact-priority-source-r1/complete207-weather-forecast-impact-order-r1.tsv",
+          "bytes": 53841,
+          "sha256": "ae2e8468f0b078b16a8ac33df883b1c32bcf5694a223146359c5ac90e3062afe"
+        },
+        "ordered_remaining_weather_queue": {
+          "local": ".agents/weather-routine-queue-7207705.tsv",
+          "bytes": 30426,
+          "sha256": "59bff298710bd99eacb883bd3c53127d9de110b387af8d289cba9b7f6f2a4677"
+        },
+        "active_first_checkpoint": "Close Band21, then adding_ica_sw. Its capture and independent physics work have started, so it precedes the remaining radiation family."
+      }
     }
   },
   "inventory_reproduced_byte_for_byte": true,

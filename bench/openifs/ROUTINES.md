@@ -55,7 +55,7 @@ The trace excludes local C/C++ bodies and uninstrumented external libraries, inc
 
 All fifty-two public bodies pass their critical checks within their declared input ranges. Every captured forecast call also passes; VERDER has no visit in this case, so its acceptance uses the small verifier. The [verification notes](README.md) state the evidence and its limits. Complete assembly coverage, raw whole-forecast states, independent whole-forecast physical checks and the external numerical-library arithmetic audit remain unfinished.
 
-Current work prioritises the coarse forecast. Work proceeds through its active numerical routines one at a time, with dynamics first and the remaining physical schemes later. For each routine, freeze its physics and md2asm contract, emit the complete assembly body, pass physical and exact-byte checks, then verify its forecast calls before proceeding.
+Current work prioritises the weather calculations that take the most time in the coarse forecast. Finish the current Band21 checks, then develop radiation transport and cloud sampling from their smaller calculation children toward the larger solvers. Assembly development, independent physics checks and forecast integration can proceed in parallel for separate tasks. Every replacement still needs a frozen md2asm contract, physical acceptance and complete byte agreement before it joins the verified forecast.
 
 ## Remaining Rewrites
 
@@ -86,15 +86,21 @@ The exact source-linked list now assigns each of the 711 main-phase bodies to on
 
 The first four rows contain 356 local-expression owners. The other rows contain 355 bodies without local expressions. The underlying list has thirteen disjoint groups, so printed statistics, physical output and runtime accounting remain separate. These ownership counts do not give an assembly completion denominator.
 
-| Priority | Original bodies | Next required work |
-| ---: | --- | --- |
-| 1 | LASCAW | Complete the parent around verified interpolation helpers, including coordinates, weights and every output family. |
-| 2 | SPCSI | Close its complete wave input, vertical matrix products, selected solve branch and final increments. |
-| 3 | SPCM, SPCHOR | Close the selected implicit updates, transforms, corrections and damping. |
-| 4 | CPGLAG | Preserve provisional-state additions, selected corrections and map factors. |
-| 5 | CPG_GP_HYD, CPG_GP, GP_MODEL | Verify smaller weather stages before replacing their complete parents. |
-| 6 | LAVENT | Preserve complete wind extrapolation, rotation and containing buffers. |
-| 7 | PFIXER, QMFIXER, GPNORM1, GPNORM_TRANS, GPNORM_TRANS_CTL | Preserve physical means, latitude weights and ordered sums. |
+| Order | Remaining weather family | Bodies | First checkpoint |
+| --- | --- | ---: | --- |
+| Close | Band21 absorption | 1 | Complete SRTM_TAUMOL21 and its forecast checks. |
+| 1 | Radiation transport and cloud sampling | 33 | ADDING_ICA_SW, then two-stream coefficients, cloud sampling and their callers. |
+| 2 | Radiation coefficients and forcing | 29 | RADGHG and INTERP_GAS, then SETCOEF and remaining absorption bands. |
+| 3 | Atmospheric cloud, convection and diffusion | 50 | Complete calculation children before CLOUDSC, CUMASTRN and VDFMAIN. |
+| 4 | Dynamics, interpolation and time stepping | 27 | LAITRI_WENO, LAITRIQM3D and LARCINA before their larger callers. |
+| 5 | Surface, forcing and support | 53 | Qualify each active physical update and its required dependencies. |
+| 6 | Spectral transforms | 13 | Review child dependencies before replacing complete transforms. |
+| Deferred | Wind tendency | 1 | Resolve the original TANH accuracy and external arithmetic qualification. |
+| Total | Exact remaining weather queue | **207** | Keep every identifier until its complete replacement passes. |
+
+Two existing diagnostic profiles place matched radiation transport and cloud sampling at 57.98 and 62.22 percent of recorded self time. Self time excludes separately recorded child calls, while the MCICA caller includes its unrecorded two-stream calculations. These profiles guide priority and do not establish accepted comparative forecast timing or a future speed gain. The [compact record](routines.json) preserves both profiles, the exact family partition and its source evidence. Of the 207 queued identifiers, 172 have separate matched profile records and 35 need source-based dependency priority. The single private queue preserves every original name and source path.
+
+For each family, reuse complete-buffer, interface, physics and saved-file comparison methods. New routines still need their own whole input and return states. Random-number work must preserve each seed, complete generator state and exact sampling sequence. A complete original-versus-assembly forecast closes each accepted batch.
 
 LASCAW_CLO and LASCAW_VINTW are verified within their contracts. LASCAW_CLA is now also verified within its declared contract. The work list also retains 55 original call sites for named numerical and real-valued output dependencies. Intrinsic mathematics, other branches and process-wide sums can add work, so this bounded list is not a complete runtime graph.
 
