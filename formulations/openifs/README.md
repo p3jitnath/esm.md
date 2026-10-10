@@ -21,8 +21,8 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 | Column water | [Water mass](dynamics/column_water.md) | Complete GPPWC routine |
 | Surface-state change | [Surface change](surface/surface_state.md) | Complete CPSPE routine |
 | Clouds and precipitation | [Water and phase changes](physics/clouds.md) | Pending |
-| Convection | [Plume transport](physics/convection.md) | Complete CUBIDIAG helper, other stages pending |
-| Turbulent mixing | [Vertical transport](physics/vertical_mixing.md) | Pending |
+| Convection | [Plume transport](physics/convection.md) | Complete CUBIDIAG, wind transport and cloud diagnostics, other stages pending |
+| Turbulent mixing | [Vertical transport](physics/vertical_mixing.md) | Complete diffusion increments, transport stages pending |
 | Radiation | [Radiation balance](physics/radiation.md) | Complete liquid and Fu ice optics, cloud delta scaling, shortwave and longwave adding, thermal emission and selected two-stream children, remaining transfer stages pending |
 | Shortwave Band 21 | [Absorption and scattering](physics/shortwave_band21.md) | Complete SRTM_TAUMOL21 within its verified contract |
 | Soil, snow, lakes and surface exchange | [Skin balance and tiles](surface/surface_exchange.md) | CPSPE update only, storage balances pending |
@@ -32,4 +32,4 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 
 These basic balances do not yet cover every configured physical process. Source-derived closure relations, which specify rates and coefficients, and complete numerical contracts are still needed before assembly generation.
 
-Seventy-eight public assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../src/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
+Ninety-two public assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../src/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
