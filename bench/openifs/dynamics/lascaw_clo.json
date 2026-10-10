@@ -1,0 +1,264 @@
+{
+  "routine": "LASCAW_CLO",
+  "revision": "1.1",
+  "utc": "2026-10-10T00:59:31.893318+00:00",
+  "scope": "Complete longitude cubic and correction weights, lower-order blends, semi-Lagrangian horizontal diffusion and final turbulence smoothing in all fourteen defined logical masks",
+  "unsupported_masks": [
+    1,
+    9
+  ],
+  "typed_interface": {
+    "ordinary_pointer_arguments": 14,
+    "integer_and_logical_bytes": 4,
+    "real_bytes": 8,
+    "derived_bytes": 456,
+    "selected_member_offsets": [
+      120,
+      128,
+      136
+    ],
+    "nullable_unused_arguments": [
+      "minimum",
+      "kappa",
+      "turbulence"
+    ],
+    "canonical_logical_values": [
+      0,
+      1
+    ]
+  },
+  "generation": {
+    "route": "Direct AArch64 text from frozen source physics and ordered binary64 arithmetic, assembled and linked without compiler numerical assembly or IR",
+    "first_source": {
+      "path": ".runtime/openifs/lascaw_clo-7207705/solver.S",
+      "bytes": 5775,
+      "sha256": "b91a74ac6f2a154645756f89d6a1700cb6b9cc384b0fc560650dc8099372bf72"
+    },
+    "unchanged_first_primary": {
+      "path": ".runtime/openifs/lascaw_clo-7207705/build/lascaw_clo.o",
+      "bytes": 2008,
+      "sha256": "10b1bd8477e5622c01c4d07500b05d71fdd372f927d35a9a18e56e6c2482938b"
+    },
+    "pre_emission_contract": {
+      "path": ".runtime/openifs/lascaw_clo-7207705/preparation/contract-before-emission.md",
+      "bytes": 10208,
+      "sha256": "d70810981090282d92ad54f946110b3e68388ae3ef935fcbdb71c6a02bbed9cf"
+    },
+    "pre_emission_freeze": {
+      "path": ".runtime/openifs/lascaw_clo-7207705/preparation/freeze-before-emission.json",
+      "bytes": 20133,
+      "sha256": "f7272ed777f8927a30672f0fdbf8f04129eaace24c7d87b2b5037cf711ca04ed"
+    }
+  },
+  "object": {
+    "instructions": 229,
+    "primary_bytes": 916,
+    "numerical_helpers": 0,
+    "stack_frame_bytes": 0,
+    "callee_saved_general_or_fp_used": false,
+    "fp_operation_counts": {
+      "fadd": 25,
+      "fsub": 24,
+      "fmul": 58,
+      "fabs": 1
+    },
+    "primary_object_sha256": "10b1bd8477e5622c01c4d07500b05d71fdd372f927d35a9a18e56e6c2482938b",
+    "primary_source_sha256": "b91a74ac6f2a154645756f89d6a1700cb6b9cc384b0fc560650dc8099372bf72"
+  },
+  "critical": {
+    "actual_replay": false,
+    "cases": 1512,
+    "direct_abi_calls": 1525,
+    "protected_tail_cases": 1512,
+    "genuine_three_thread_calls": 3,
+    "unsupported_guard_calls": 10,
+    "independent_coefficients": 1891386,
+    "canonical_bytes": 17890048,
+    "different_bytes": 0,
+    "fpcr": 0
+  },
+  "independent_source_science": {
+    "decimal_digits": 100,
+    "counts": {
+      "cases": 1512,
+      "hundred_digit_coefficients": 1891386,
+      "polynomial_moments": 1230902,
+      "selected_points": 210154,
+      "cubic_endpoint_coefficients": 59094
+    },
+    "maximum_fraction_forward_limit": "0.00003232946502180761308001889411751403672364013798661858242374700347251848566644986062287411169189498492",
+    "evidence": {
+      "path": ".runtime/openifs/lascaw_clo-7207705/preparation/independent-critical-summary.json",
+      "bytes": 1295,
+      "sha256": "9baccca923b8ec5f8c2e9b9d4f13143a0e4ea91015e32836b3f1adde66faffca"
+    }
+  },
+  "forecast": {
+    "calls": 4300,
+    "shape": {
+      "levels": 19,
+      "rows": 24
+    },
+    "mask": 0,
+    "full_row_calls": 4250,
+    "eight_row_calls": 50,
+    "optional_presence": {
+      "minimum": true,
+      "kappa": false,
+      "unused_turbulence": true
+    },
+    "coefficient_values": 17510400,
+    "polynomial_moments": 9728000,
+    "same_input_complete_pair_different_bytes": 0,
+    "complete_returned_archive_bytes": 142003200,
+    "whole_fresh_return_archives_identical": true,
+    "full_fresh_input_archives_identical": false,
+    "unused_turbulence_input_different_bytes": 4859104,
+    "unused_turbulence_input_different_words": 637288,
+    "used_coordinate_pairs_identical": 3891200,
+    "used_epsilon_pairs_identical": 4300,
+    "saved_file_count": 10,
+    "saved_file_bytes": 618140,
+    "saved_file_different_bytes": 0,
+    "evidence": {
+      "path": ".runtime/openifs/lascaw_clo-7207705/native-forecast-review.json",
+      "bytes": 10740,
+      "sha256": "1852ebf5c743ef41649e1dc8dc7b6564f22010119f3cd55cf0de0475f8c7c722"
+    },
+    "complete_raw_input_scope": {
+      "path": ".runtime/openifs/lascaw_clo-7207705/fresh-input-scope-review.json",
+      "bytes": 943,
+      "sha256": "9a58d3def09a52c02065377e505cd83c4c4ccdbc9c383b9e4365b074362775d7"
+    }
+  },
+  "guards": {
+    "source_guard_cases": 10,
+    "native_observer_guard_cases": 10,
+    "native_record_guard_cases": 10,
+    "primary_guard_abi_cases": 10,
+    "excluded_before_either_numerical_body": true,
+    "source": {
+      "path": ".runtime/openifs/lascaw_clo-7207705/preparation/source-flag-guard-review.json",
+      "bytes": 1057,
+      "sha256": "1ceb60e3f45b0bb6f5bd2e6b89778af7260af2e0f9822355496ff90cf5d4a8ab"
+    },
+    "native": {
+      "path": ".runtime/openifs/lascaw_clo-7207705/build/native-flag-guard-review.json",
+      "bytes": 2841,
+      "sha256": "b29ad1a16619c4b8ac4cad7d2b5021bac11f1314e0d3e32db5fc221430caf6ff"
+    }
+  },
+  "peer_static_review": {
+    "path": ".runtime/openifs/radiation_leaf_reviews_7207705/lascaw-clo-first-body-static-review.json",
+    "bytes": 10404,
+    "sha256": "b3bc31e3356ea7cbbcca39b3f5234fd6368c39bb9c1c21a07b49eafdb29af297"
+  },
+  "measurement": {
+    "accepted_comparative_timing": false,
+    "allocation": 7207705,
+    "exclusive_node": "nid011311",
+    "cpu": 32,
+    "processes": 1,
+    "forecast_threads": 1,
+    "memory_placement": "local"
+  },
+  "artifacts": {
+    "critical_inputs": {
+      "path": ".runtime/openifs/lascaw_clo-7207705/preparation/critical-inputs.bin",
+      "bytes": 25140304,
+      "sha256": "135d556b540d1e082b98771e7a6fbcf12bd136e17c928fd1d4f1fa5c10dd2e50"
+    },
+    "critical_source": {
+      "path": ".runtime/openifs/lascaw_clo-7207705/preparation/critical-fortran.bin",
+      "bytes": 17890048,
+      "sha256": "44a00ba455cb0ca1c204216269bb14d61430fa055c5d81afa2a31376d180afee"
+    },
+    "critical_independent": {
+      "path": ".runtime/openifs/lascaw_clo-7207705/preparation/critical-independent.bin",
+      "bytes": 35489728,
+      "sha256": "c0497aefee9c4b92464317f73df5031964f97a990f72a62b39ef12c3fedc05ea"
+    },
+    "critical_native": {
+      "path": ".runtime/openifs/lascaw_clo-7207705/build/critical-assembly.bin",
+      "bytes": 17890048,
+      "sha256": "44a00ba455cb0ca1c204216269bb14d61430fa055c5d81afa2a31376d180afee"
+    },
+    "source_forecast_inputs": {
+      "path": ".runtime/openifs/runs/strict-lascaw_clo-source-complete2-7207705/t21/test_fc/lascaw_clo-inputs.bin",
+      "bytes": 191057600,
+      "sha256": "9491c6e44f4839a8109c4e568fdfda43ec83d1b3e15883c74c58c86bac642c75"
+    },
+    "native_forecast_inputs": {
+      "path": ".runtime/openifs/runs/strict-lascaw_clo-assembly-7207705/t21/test_fc/lascaw_clo-inputs.bin",
+      "bytes": 191057600,
+      "sha256": "87963e9ff5eedac4ba6ccfeff088109d1df8286f42e132abc0d2c489ef6b172c"
+    },
+    "source_only_returns": {
+      "path": ".runtime/openifs/runs/strict-lascaw_clo-source-complete2-7207705/t21/test_fc/lascaw_clo-fortran.bin",
+      "bytes": 142003200,
+      "sha256": "fa9bc6968326a960c101aec340db67983a38c512868086802d5d4af6d7382561"
+    },
+    "same_input_source_returns": {
+      "path": ".runtime/openifs/runs/strict-lascaw_clo-assembly-7207705/t21/test_fc/lascaw_clo-fortran.bin",
+      "bytes": 142003200,
+      "sha256": "fa9bc6968326a960c101aec340db67983a38c512868086802d5d4af6d7382561"
+    },
+    "same_input_native_returns": {
+      "path": ".runtime/openifs/runs/strict-lascaw_clo-assembly-7207705/t21/test_fc/lascaw_clo-assembly.bin",
+      "bytes": 142003200,
+      "sha256": "fa9bc6968326a960c101aec340db67983a38c512868086802d5d4af6d7382561"
+    },
+    "frozen_input_native_replay": {
+      "path": ".runtime/openifs/lascaw_clo-7207705/build/frozen-actual-assembly.bin",
+      "bytes": 142003200,
+      "sha256": "fa9bc6968326a960c101aec340db67983a38c512868086802d5d4af6d7382561"
+    }
+  },
+  "public_reproduction": {
+    "critical": {
+      "path": ".runtime/openifs/lascaw_clo-7207705/public-reviewed/summary.json",
+      "bytes": 240,
+      "sha256": "c190b6912c7caf72846daa003e501e5d543fa107b063e4e445822a15c095acbb"
+    },
+    "primary_and_abi_objects_identical": true,
+    "both_C_sources_identical": true,
+    "native_comparator": {
+      "path": ".runtime/openifs/lascaw_clo-7207705/public-reviewed/libverify-lascaw_clo.so",
+      "bytes": 231656,
+      "sha256": "3a36d5c180ba0518a2d6565e696aff999aa16d9c76f85a0a5e1f842adf702681"
+    },
+    "only_defined_dynamic_symbols": [
+      "lascaw_clo_",
+      "lascaw_clo_assembly_"
+    ]
+  },
+  "documentation_revision": "1.2",
+  "parent_reproduction": {
+    "local": ".runtime/openifs/lascaw_clo-7207705/parent-review/complete-parent-reproduction.json",
+    "bytes": 1949,
+    "sha256": "ca5cbcb979f26c5c3beaa92a913d554c2597ea90c3fc3fc92c141bafe4f12a6c"
+  },
+  "original_release": {
+    "local": ".runtime/openifs/lascaw_clo-7207705/accepted.json",
+    "bytes": 70464,
+    "sha256": "e6e59220efa4877d601db02b905be348014f4820de66e4bd343e99425e210e8d"
+  },
+  "resolved_original_release": {
+    "local": ".runtime/openifs/lascaw_clo-7207705/parent-review/resolved-original-accepted.json",
+    "bytes": 71199,
+    "sha256": "a18b038833e3230d600bb5d969c4e6a1a71a8364e3018d026f7a2f327c632b74"
+  },
+  "combined_forecast": {
+    "acceptance": {
+      "local": ".runtime/openifs/runs/strict-lascaw-clo-shortwave23-combined-reviewed-7207705/t21/direct-comparison.json",
+      "bytes": 52420,
+      "sha256": "8cd293894b8802346a31b8fd8f34883ecd59b4c658c29b31c2d03393261d37b0"
+    },
+    "calls": 4300,
+    "paired_stream_bytes": 142003200,
+    "all_complete_same_input_bytes_identical": true,
+    "all_active_original_source_values_identical": 17510400,
+    "complete_input_identity_claimed": false,
+    "unused_incoming_storage_retained": true
+  }
+}
