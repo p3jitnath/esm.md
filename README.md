@@ -30,7 +30,7 @@ Build with `make all ebm` on the target processor, then follow the [evaluation i
 
 ## OpenIFS development
 
-The openifs-md branch extends the workflow to OpenIFS 48.1.1. Forty-eight public assembly routines pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside a coarse global forecast. Files are grouped by dynamics, physics, surface and waves, with forecast dynamics taking priority.
+The openifs-md branch extends the workflow to OpenIFS 48.1.1. Forty-nine public assembly routines pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside a coarse global forecast. Files are grouped by dynamics, physics, surface and waves, with forecast dynamics taking priority.
 
 | Verified routine | Critical cases | Forecast calls checked | Differing bytes |
 | --- | ---: | ---: | ---: |
@@ -80,6 +80,7 @@ The openifs-md branch extends the workflow to OpenIFS 48.1.1. Forty-eight public
 | Shortwave spectral band 16 | 296 | 6,400 | 0 |
 | Latitude interpolation weights | 1,512 | 2,150 | 0 |
 | Shortwave spectral band 19 | 296 | 6,400 | 0 |
+| Eight-corner minimum and maximum | 1,584 | 10,750 | 0 |
 
 The vertical group contains three public routines. The forecast uses its integration routines, while VERDER's derivative is checked by the small verifier only. The GPRCP capture count includes 2,150 reference calls made for comparison, which are recorded separately from model calls.
 
