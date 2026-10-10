@@ -1,4 +1,4 @@
-// Direct AArch64 NEON/SVE realisation of budyko_sellers.md revision 1.1.
+// Direct AArch64 NEON/SVE realisation of formulations/ebm/budyko_sellers.md revision 1.1.
 // Public ABI: w0=N; x1=q, x2=stage, x3=out, x4=work, x5=K/W/I, x6=par.
 // eb_run also takes w7=steps. Buffers are disjoint, contiguous, and 8-byte aligned.
 // Each state has N+2 doubles; coefficients contain three such planes.

@@ -201,7 +201,7 @@ SPFILT_ENTRY:
 /* Complete SPFILT revision 1.0, derived from its frozen filter equations.
  * x0 geometry, x1 first column, x2 last column, x3 vorticity descriptor,
  * x4 divergence descriptor. Only selected vorticity cells can change.
- * Geometry and rank-two buffer bounds are defined in spfilt.md.
+ * Geometry and rank-two buffer bounds are defined in skills/md2asm/references/openifs/dynamics/spfilt.md.
  * Preserve x19-x29, d8-d15, x18 and FPCR; stack alignment is 16 bytes.
  * exp is the frozen external scalar dependency, not a driver stage. */
 #ifndef SPFILT_ENTRY

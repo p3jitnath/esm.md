@@ -1,4 +1,4 @@
-/* Direct vertical integral from verint.md revision 1.
+/* Direct vertical integral from skills/md2asm/references/openifs/dynamics/verint.md revision 1.
  * Obtain all Q by ordered matrix reduction, then optionally subtract Q_last.
  * AAPCS64 preserves x19..x29 and LR; d0/d1 are caller-saved.
  */

@@ -1,4 +1,4 @@
-/* Direct AArch64 from strict_matrix.md revision 1.
+/* Direct AArch64 from skills/md2asm/references/openifs/dynamics/strict_matrix.md revision 1.
  * A(i,c) * B(r,c), then the rounded sum in increasing c.
  * GNU DGEMM argument ABI; private, scoped N,T,+1,+0 operation.
  */

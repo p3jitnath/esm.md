@@ -1,4 +1,4 @@
-/* Direct vertical interface from verdisint.md revision 1.1.
+/* Direct vertical interface from skills/md2asm/references/openifs/dynamics/verdisint.md revision 1.1.
  * Select the complete source-defined operator and prepare local integral data.
  * Table status 0: defined, 1: undefined upstream, 2: upstream abort.
  */

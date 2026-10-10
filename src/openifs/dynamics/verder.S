@@ -1,4 +1,4 @@
-/* Direct FP64 derivative from verder.md revision 1.
+/* Direct FP64 derivative from skills/md2asm/references/openifs/dynamics/verder.md revision 1.
  * x0..x7 are integer-address arguments, matrix, input and output.
  * The complete reduction is in the private direct matrix dependency.
  */
