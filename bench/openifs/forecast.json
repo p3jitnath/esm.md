@@ -1,6 +1,6 @@
 {
-  "date_utc": "2026-10-10T01:38:44.646197+00:00",
-  "scope": "T21 historical forecast with forty accepted public native bodies within their declared input domains; VERDER is critical-only and remaining stages are Fortran",
+  "date_utc": "2026-10-10T02:23:22.554480+00:00",
+  "scope": "T21 historical forecast with forty-four accepted public native bodies within their declared input domains. VERDER is critical-only and remaining stages are Fortran.",
   "job_id": 7207705,
   "node": "nid011311",
   "ranks": 1,
@@ -20,8 +20,8 @@
   "nominal_step_seconds": 3600,
   "fpcr": "0000000000000000",
   "fortran_baseline": ".runtime/openifs/runs/strict-vertical-fortran-7189435/t21/test_fc",
-  "raw_archive": ".runtime/openifs/runs/strict-lascaw-clo-shortwave23-combined-reviewed-7207705/t21/test_fc",
-  "previous_forecast_record_commit": "d22df6fded1bbd360ca0a1d8afe8dd0aae037f4b",
+  "raw_archive": ".runtime/openifs/runs/strict-vintw-shortwave29-combined-reviewed-7207705/t21/test_fc",
+  "previous_forecast_record_commit": "7f7b21019ae0733707c6d54be28ccff7f3665d34",
   "complete_assembly_routines": [
     "CPSPE",
     "GPRCP",
@@ -64,7 +64,9 @@
     "LAITRI",
     "SRTM_TAUMOL27",
     "LASCAW_CLO",
-    "SRTM_TAUMOL23"
+    "SRTM_TAUMOL23",
+    "LASCAW_VINTW",
+    "SRTM_TAUMOL29"
   ],
   "routines": {
     "cpqtuv": {
@@ -102,7 +104,7 @@
       "assembly_sha256": "3e23c8fb5e74a058011faaedaf5f3c34e1a5a27759f6926e977f48ce069f23fa",
       "fortran_sha256": "3e23c8fb5e74a058011faaedaf5f3c34e1a5a27759f6926e977f48ce069f23fa",
       "input_bytes": 142347200,
-      "input_sha256": "8472c97a63a21f85349d710880ed8fa3758805ba04cb0de89d9a9633334b7cf8",
+      "input_sha256": "3a0adb38e0c3c52f7742eb9f21f384c8b813560d03d06b7fb0d5b594b11e07db",
       "differing_bytes": 0,
       "calls": 8600,
       "record": "physics/cubidiag.json"
@@ -119,70 +121,70 @@
     },
     "gp_spv": {
       "bytes": 18257800,
-      "assembly_sha256": "76870d4b002c0d0e3046e826b0890df7c7857dfdaa1f709870c3fd3208722e2f",
-      "fortran_sha256": "76870d4b002c0d0e3046e826b0890df7c7857dfdaa1f709870c3fd3208722e2f",
+      "assembly_sha256": "26b05bc154753c2f019e1a2a3362adf157ad11fc809797c39991aab66d47b65b",
+      "fortran_sha256": "26b05bc154753c2f019e1a2a3362adf157ad11fc809797c39991aab66d47b65b",
       "input_bytes": 19496200,
-      "input_sha256": "aae94348396c9a8158c1e7a2d7b8292c5f1613829288e501649716697a0588da",
+      "input_sha256": "920c0ee78f6b65e33fd41f68f109edabd30d4782f25124d4088371f4a9722aa6",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "dynamics/gp_spv.json"
     },
     "gpaddslphy": {
       "bytes": 43636400,
-      "assembly_sha256": "b23ccdc586af8ad3a4627b4c61abcaddf5b343c6490b827d26c8b63eb2ce4e7d",
-      "fortran_sha256": "b23ccdc586af8ad3a4627b4c61abcaddf5b343c6490b827d26c8b63eb2ce4e7d",
+      "assembly_sha256": "4f0e521935ca407771597d48c64339385c9eeb3585f6cede48e7d3729253c9fb",
+      "fortran_sha256": "4f0e521935ca407771597d48c64339385c9eeb3585f6cede48e7d3729253c9fb",
       "input_bytes": 81283760,
-      "input_sha256": "4208b879ca3b461c15030d4b806c368b05ac6ee958bf746f214ea79896d725fa",
+      "input_sha256": "0d26d6037272cfedb3aaf607c465bcfcefcce4d18d7348561587e6082739746b",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "physics/gpaddslphy.json"
     },
     "gpgeo": {
       "bytes": 32559600,
-      "assembly_sha256": "48302f858ed0c4d15713bb4c49581e281da65ae3ae60c6b84af140ecf535b209",
-      "fortran_sha256": "48302f858ed0c4d15713bb4c49581e281da65ae3ae60c6b84af140ecf535b209",
+      "assembly_sha256": "39e1e731b9886d5048067ae794b2a23566a8301ecb5afa3022ea9f846516cb62",
+      "fortran_sha256": "39e1e731b9886d5048067ae794b2a23566a8301ecb5afa3022ea9f846516cb62",
       "input_bytes": 94720400,
-      "input_sha256": "8e07f4de0c37e35821da22dff864fd99b508a75285d2b31803373081503c8362",
+      "input_sha256": "69717899e48062f590523323836e6a48c7dfcf46922ff7e489d2609d994141a8",
       "differing_bytes": 0,
       "calls": 4300,
       "record": "dynamics/gpgeo.json"
     },
     "gpgrgeo": {
       "bytes": 32447800,
-      "assembly_sha256": "3af809895b28db769e3b9e7257880a0f02eab448fdb2b6c71366038e8ff3167e",
-      "fortran_sha256": "3af809895b28db769e3b9e7257880a0f02eab448fdb2b6c71366038e8ff3167e",
+      "assembly_sha256": "a0d992129cd88902cbe412ceb3c026e9609ef86ec3a2f2ddc353f0b39770f214",
+      "fortran_sha256": "a0d992129cd88902cbe412ceb3c026e9609ef86ec3a2f2ddc353f0b39770f214",
       "input_bytes": 119256200,
-      "input_sha256": "2613aeaba74511391a7149b34abfad8fc9ede030bdc3fe572c90db8c5c6774cd",
+      "input_sha256": "4bf393fdf7c1442a70af478495748b64b201e4040ae1fa8020c9aa7c7f16e94a",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "dynamics/gpgrgeo.json"
     },
     "gpgrp": {
       "bytes": 15910000,
-      "assembly_sha256": "d816273dd9d1af4b928361c22db66ac14d70c3ded2ef5e363d97c2ca1a7e849e",
-      "fortran_sha256": "d816273dd9d1af4b928361c22db66ac14d70c3ded2ef5e363d97c2ca1a7e849e",
+      "assembly_sha256": "ed57cc4b09bf1788f20fb09992faa6a034fc362ab1bf1b5ca97b146df9693f37",
+      "fortran_sha256": "ed57cc4b09bf1788f20fb09992faa6a034fc362ab1bf1b5ca97b146df9693f37",
       "input_bytes": 95167600,
-      "input_sha256": "245ac7635dedfc8b174837236a6c9fb1948a8d73cb965d0fad560cd8792570d7",
+      "input_sha256": "54d86c73ce52f1d95bd7e6041d4273b34b9c400b168cdaf23865fd73f663aca1",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "dynamics/gpgrp.json"
     },
     "gpgrxyb": {
       "bytes": 47420400,
-      "assembly_sha256": "63070d81f81f40b5dc1e03dceb80b163d2ba429f2d551ee871d6b0c3d8947406",
-      "fortran_sha256": "63070d81f81f40b5dc1e03dceb80b163d2ba429f2d551ee871d6b0c3d8947406",
+      "assembly_sha256": "1f346d9bab99dbd3f0bbe25100d1ff9062e0cb291037ea8937d9f858ace2088a",
+      "fortran_sha256": "1f346d9bab99dbd3f0bbe25100d1ff9062e0cb291037ea8937d9f858ace2088a",
       "input_bytes": 103475200,
-      "input_sha256": "3e63e41933aea0acc62f64116f4137b384a8fcb928c76b0af8df71cfcbcef371",
+      "input_sha256": "4ad0a568c3975ec921538ffda36578929a0ef29c96e4bfe98fe067b1e6036e27",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "dynamics/gpgrxyb.json"
     },
     "gphpre": {
       "bytes": 338650208,
-      "assembly_sha256": "6c92b43a429901fbcaefa5b5c5f7fb3b2bbd1115db9c9f7a155fa6619aa5a910",
-      "fortran_sha256": "6c92b43a429901fbcaefa5b5c5f7fb3b2bbd1115db9c9f7a155fa6619aa5a910",
+      "assembly_sha256": "9816ae0b0e598879773604b71252daae2cdbef34ba7e2e6a3f422fe981eed8c3",
+      "fortran_sha256": "9816ae0b0e598879773604b71252daae2cdbef34ba7e2e6a3f422fe981eed8c3",
       "input_bytes": 349630080,
-      "input_sha256": "c8fe069d2bdccfc482cb4ca8ab80ea89740baccc0483b43e67c3ab8644091281",
+      "input_sha256": "69df63e33e82e6e598f7c0b5db48479bd53d6dcdbef0801f9a9c1f591455d386",
       "differing_bytes": 0,
       "calls": 14649,
       "record": "dynamics/gphpre.json"
@@ -192,47 +194,47 @@
       "assembly_sha256": "10cb846c20a756a21973ad6588dc7be1fa5bf21c1198c654e558b71dbf509af8",
       "fortran_sha256": "10cb846c20a756a21973ad6588dc7be1fa5bf21c1198c654e558b71dbf509af8",
       "input_bytes": 204232800,
-      "input_sha256": "d1828b16b899e2d2ab8ff7aac5a662b1d3b736b3e638f942a933b3b029c541ea",
+      "input_sha256": "05b8ad3031b909535c19e3cb5f73230fe8d8244efc7544c919b482955da214b4",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "dynamics/gpmktend.json"
     },
     "gppwc": {
       "bytes": 140145600,
-      "assembly_sha256": "57f9647ca2aaa400b77e51916a9af8a7262764192ada7ada4f307adb09769e18",
-      "fortran_sha256": "57f9647ca2aaa400b77e51916a9af8a7262764192ada7ada4f307adb09769e18",
+      "assembly_sha256": "176714d9b59992895d60febe68fc90d13e4a529d7baba1c308668206edffb116",
+      "fortran_sha256": "176714d9b59992895d60febe68fc90d13e4a529d7baba1c308668206edffb116",
       "input_bytes": 410612160,
-      "input_sha256": "400324e88dd89c26593130941d382ca9ac1f83bdbf4804e019f9bffeb3ba39dd",
+      "input_sha256": "0c451feb90fcd300163b70abb1963afc30b2af4019685079527052edfed6e09b",
       "differing_bytes": 0,
       "calls": 36120,
       "record": "dynamics/gppwc.json"
     },
     "gprcp": {
       "bytes": 81643584,
-      "assembly_sha256": "a0f831d429bb8e22d7e2973cf1bff050f2d31d264cee7028c00a7fbc67ac72d8",
-      "fortran_sha256": "a0f831d429bb8e22d7e2973cf1bff050f2d31d264cee7028c00a7fbc67ac72d8",
+      "assembly_sha256": "cc37ae439b5777ada4ed67f78f82826ab1e10a2db0ca2d3f9b71fc1defd6bb1e",
+      "fortran_sha256": "cc37ae439b5777ada4ed67f78f82826ab1e10a2db0ca2d3f9b71fc1defd6bb1e",
       "input_bytes": 466389008,
-      "input_sha256": "aeb506f6d68cad1e58a4d3fd56766a7dbf477b2516c539f60d16a41f063d3c3b",
+      "input_sha256": "2f8a762fa823b08351be5edf0036f1510c3982926de25e08be818a03ea6be44c",
       "differing_bytes": 0,
       "calls": 13846,
       "record": "dynamics/gprcp.json"
     },
     "gprt": {
       "bytes": 23598400,
-      "assembly_sha256": "619dd518dd14f5b2218356c7f95da8276ce7f918b3f76968b4d58d33c432e2ee",
-      "fortran_sha256": "619dd518dd14f5b2218356c7f95da8276ce7f918b3f76968b4d58d33c432e2ee",
+      "assembly_sha256": "6ea839c466f17fbb39d05506ed7a738346e434134b760f8cde09f9449aaa0975",
+      "fortran_sha256": "6ea839c466f17fbb39d05506ed7a738346e434134b760f8cde09f9449aaa0975",
       "input_bytes": 55005600,
-      "input_sha256": "de089445ceb466882a9038327dba042a28a9c9863b929d5d17cda05f86c6135e",
+      "input_sha256": "ceb91db4f2d1821d2dbd2eac35ab985bd105e99cc5ee0df797354261639b1836",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "dynamics/gprt.json"
     },
     "gptco3": {
       "bytes": 490200,
-      "assembly_sha256": "e6af3eee5eca24e4b102ac0c600e412f0c3b3c77b431cbe101366c9714dcaa88",
-      "fortran_sha256": "e6af3eee5eca24e4b102ac0c600e412f0c3b3c77b431cbe101366c9714dcaa88",
+      "assembly_sha256": "36ec5253ad8945c06e0054aa3c0448c9eb58e452051d075b8153ab60e95f7b7b",
+      "fortran_sha256": "36ec5253ad8945c06e0054aa3c0448c9eb58e452051d075b8153ab60e95f7b7b",
       "input_bytes": 16176600,
-      "input_sha256": "a209e994d3d22277ea84a836d7a53319e3718ac9852bb9736ff9f9af5aeb5e5f",
+      "input_sha256": "7c31eddc0e9017b9b87c6387b33a388d5d7b32baebcca88206cc53a665214720",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "physics/gptco3.json"
@@ -262,7 +264,7 @@
       "assembly_sha256": "84640de4a257982a67dda3d25814590e6116d3ca775cc05560f78bc21caccdfa",
       "fortran_sha256": "84640de4a257982a67dda3d25814590e6116d3ca775cc05560f78bc21caccdfa",
       "input_bytes": 408856600,
-      "input_sha256": "7060d41def946800492e4d8cc1c6121c0eb7f114235bab634f0d039e9e7345e0",
+      "input_sha256": "0bf9eacd87ac948a4b20809785322848c82c91c0c0181629a1bb8baa484c37a7",
       "differing_bytes": 0,
       "calls": 223175,
       "record": "physics/calc_ice_optics_fu_lw.json"
@@ -272,24 +274,24 @@
       "assembly_sha256": "240b1461d8e402bd15e5f476a92f9493af5043672324b0cfa64eaa62bcf7e99a",
       "fortran_sha256": "240b1461d8e402bd15e5f476a92f9493af5043672324b0cfa64eaa62bcf7e99a",
       "input_bytes": 333869800,
-      "input_sha256": "8164b709e84fa740c3b3ea31370431c0fc3471c5ee093cd09b363856ca014da3",
+      "input_sha256": "e06248fa88675d2fc1650961481e4886044747895020ef5d5691a2e228fb0a1f",
       "differing_bytes": 0,
       "calls": 223175,
       "record": "physics/calc_ice_optics_fu_sw.json"
     },
     "laiddi": {
       "bytes": 8256000,
-      "assembly_sha256": "14c533a0a10235ca551bb0492d45447bc371c26d6600d6a2047b4570954dc4be",
-      "fortran_sha256": "14c533a0a10235ca551bb0492d45447bc371c26d6600d6a2047b4570954dc4be",
+      "assembly_sha256": "0939f0f56bcbdf5e0deb592979ffd7904a20a88c782d1b4eaf91bda84e519d47",
+      "fortran_sha256": "0939f0f56bcbdf5e0deb592979ffd7904a20a88c782d1b4eaf91bda84e519d47",
       "input_bytes": 1245985200,
-      "input_sha256": "21446a2a60ad9e819be55b700770289cbd262fea02476d5107cf0fe64f834d12",
+      "input_sha256": "7852efe0cec6952432b11c55e7178084b423b9a098c4467b6e2b7d92c1cf9d7d",
       "differing_bytes": 0,
       "calls": 2150,
       "separate_fresh_run_review": {
         "active_values_directly_identical": 972800,
         "active_differing_bytes": 0,
-        "different_inactive_bytes": 40901,
-        "different_inactive_calls": 20,
+        "different_inactive_bytes": 38478,
+        "different_inactive_calls": 19,
         "complete_input_identity_claimed": false,
         "reason": "All mathematical fields match directly. Differing opaque incoming inactive output storage remains present in full same-input comparisons and frozen-input replay."
       },
@@ -297,17 +299,17 @@
     },
     "laitli": {
       "bytes": 180118400,
-      "assembly_sha256": "c21a9e920d5cd38aca6706136540c48ac7d339624c6615e290f25836c828f135",
-      "fortran_sha256": "c21a9e920d5cd38aca6706136540c48ac7d339624c6615e290f25836c828f135",
+      "assembly_sha256": "cb7c6114ffd1f44d261848b4f2761565a9c6abb50708f29590b1694cf3ab9bbd",
+      "fortran_sha256": "cb7c6114ffd1f44d261848b4f2761565a9c6abb50708f29590b1694cf3ab9bbd",
       "input_bytes": 25684656800,
-      "input_sha256": "6287b339a19b59816e7eb392f366979a34dd7a9e6b9f20d99bf536546d35ea7b",
+      "input_sha256": "2943d33d54c219fcd841cc3174da15c4e2efe3a7804b0f2f63f650e955317cf9",
       "differing_bytes": 0,
       "calls": 47300,
       "separate_fresh_run_review": {
         "active_values_directly_identical": 21401600,
         "active_differing_bytes": 0,
-        "different_inactive_bytes": 496509,
-        "different_inactive_calls": 240,
+        "different_inactive_bytes": 421959,
+        "different_inactive_calls": 222,
         "complete_input_identity_claimed": false,
         "reason": "Opaque incoming inactive output storage differs between fresh forecasts. All bytes remain in complete same-input comparisons and the original frozen-input replay."
       },
@@ -318,7 +320,7 @@
       "assembly_sha256": "7fda45993ee7a892bc077b6ed9518c54e49571f5a2c3e8c90a784d2cb2d41a92",
       "fortran_sha256": "7fda45993ee7a892bc077b6ed9518c54e49571f5a2c3e8c90a784d2cb2d41a92",
       "input_bytes": 2554853600,
-      "input_sha256": "1f3d2305add6f55648f3db18756acfcacf6812179dc0da3e20774219d6d668ee",
+      "input_sha256": "170a63eb3d32396727a2cf23cd6f7328928463d4b253d12d58e55460a51fb431",
       "differing_bytes": 0,
       "calls": 4300,
       "accepted_flags": [
@@ -343,7 +345,7 @@
       "assembly_sha256": "78add53f6cd09949f073413d097ef15732b466cc5064e63d3888fb4c5b6de0e5",
       "fortran_sha256": "78add53f6cd09949f073413d097ef15732b466cc5064e63d3888fb4c5b6de0e5",
       "input_bytes": 737574400,
-      "input_sha256": "799ccc28def6cf03f5120e4cc5c7a284295d02c2b0d8fe8dacad51f32fa9984e",
+      "input_sha256": "0acaf0039f6fb8cbf983e5cc4a25bc1eabe7e6846ea69a74eab2e261b3687e0f",
       "differing_bytes": 0,
       "calls": 317920,
       "record": "physics/calc_liq_optics_socrates.json"
@@ -360,30 +362,30 @@
     },
     "sigam": {
       "bytes": 305578584,
-      "assembly_sha256": "23ecef56a7bf1ff26baabad9e5d43f58c5cb5497743bbcbc4215a6bf7bf921f2",
-      "fortran_sha256": "23ecef56a7bf1ff26baabad9e5d43f58c5cb5497743bbcbc4215a6bf7bf921f2",
+      "assembly_sha256": "29ae5319136906da5b005087c2db42ca6b11e0870bfcc3f47b4e976309216938",
+      "fortran_sha256": "29ae5319136906da5b005087c2db42ca6b11e0870bfcc3f47b4e976309216938",
       "input_bytes": 332711256,
-      "input_sha256": "6b4b14ef4934af3966793042a6c2200ba13a03397061c1c625b64ee80dc9043d",
+      "input_sha256": "8bf3b8868e904f351af61a0ebfd29c35eb0f2c92e324f76daf59d13342fb401d",
       "differing_bytes": 0,
       "calls": 4326,
       "record": "dynamics/sigam.json"
     },
     "sitnu": {
       "bytes": 155738840,
-      "assembly_sha256": "f844e74c7566d52d3dde7601520b211b1dfde9a9830b79757d528c42e02b02ec",
-      "fortran_sha256": "f844e74c7566d52d3dde7601520b211b1dfde9a9830b79757d528c42e02b02ec",
+      "assembly_sha256": "1252d990cc9d7d6b1896994256d5e52f9cf0a8cede6a096b692c76c58a51081b",
+      "fortran_sha256": "1252d990cc9d7d6b1896994256d5e52f9cf0a8cede6a096b692c76c58a51081b",
       "input_bytes": 164930264,
-      "input_sha256": "7bfe62a4d92b5dd023f1933da3e6ed0e976af37c28f41348766d2d838e6b9e7b",
+      "input_sha256": "0d5885a1905abe324e3aab421511d505f59939960920c284acab6347ff63205a",
       "differing_bytes": 0,
       "calls": 2176,
       "record": "dynamics/sitnu.json"
     },
     "spcimpfinit": {
       "bytes": 169488000,
-      "assembly_sha256": "c2194b8a3be7d46d66f71b4c7988ff6dbcdcd812a7a4ff4597ee7be5b5f6fbb1",
-      "fortran_sha256": "c2194b8a3be7d46d66f71b4c7988ff6dbcdcd812a7a4ff4597ee7be5b5f6fbb1",
+      "assembly_sha256": "d02364d4956d4ca78ac0efb5641bd5419adf333dd57b830f4f401d684822db8b",
+      "fortran_sha256": "d02364d4956d4ca78ac0efb5641bd5419adf333dd57b830f4f401d684822db8b",
       "input_bytes": 169488000,
-      "input_sha256": "7a391c743c4912bfe6bae0e37fc0692277bda6c3513036fc5f2188a5d777e59b",
+      "input_sha256": "1b788c65400a91b59809b6a48cb81d55286ab0d4d22383951eab1ef3ca45febb",
       "differing_bytes": 0,
       "calls": 550,
       "record": "dynamics/spcimpfinit.json"
@@ -403,7 +405,7 @@
       "assembly_sha256": "290616cf5e3a9a0acd89105b1b7eb9c1c023f67612d3c8ebe1020f6225b360d9",
       "fortran_sha256": "290616cf5e3a9a0acd89105b1b7eb9c1c023f67612d3c8ebe1020f6225b360d9",
       "input_bytes": 8824300,
-      "input_sha256": "bb2e4a0b81d9d4a5f7e8da1a7365386b303ce4e7edbf6c5278ad17cf0b29c823",
+      "input_sha256": "570912f4c69ed2a41761283fac335b117c3d3852cc5c9ad1686b017470dcc582",
       "differing_bytes": 0,
       "calls": 25,
       "record": "dynamics/spcimpfsolve.json"
@@ -420,16 +422,16 @@
     },
     "srtm25": {
       "bytes": 255795200,
-      "assembly_sha256": "174a293c0c101865232d23fbf11ce48f849f9f3a58890ddace9e4f410f200c00",
-      "fortran_sha256": "174a293c0c101865232d23fbf11ce48f849f9f3a58890ddace9e4f410f200c00",
+      "assembly_sha256": "3b552cb222fd1d58930d0a7a4ab0c452082e3f934fa7826c0483a400355c0e7e",
+      "fortran_sha256": "3b552cb222fd1d58930d0a7a4ab0c452082e3f934fa7826c0483a400355c0e7e",
       "input_bytes": 379673600,
-      "input_sha256": "5ebd5bfe20731e4cb6a744b4200df76625e28bdfda52eeef802a5038f13e1622",
+      "input_sha256": "8b8ab81f47572142f9dd66043e1f8b8a7398b5afc62e65e9b3e426330fa538fd",
       "differing_bytes": 0,
       "calls": 6400,
       "separate_fresh_run_review": {
         "active_bytes_directly_identical": 95846400,
         "active_differing_bytes": 0,
-        "different_inactive_bytes": 56396752,
+        "different_inactive_bytes": 54374506,
         "different_inactive_calls": 6399,
         "complete_input_identity_claimed": false,
         "reason": "Changed incoming unused spectral storage remains in every complete same-input comparison and original frozen-input replay."
@@ -438,16 +440,16 @@
     },
     "srtm26": {
       "bytes": 255795200,
-      "assembly_sha256": "59caedfe21b45d6b5acd99b7963b4bc84ceaa6fc9324525dc20afe2eee63dcc5",
-      "fortran_sha256": "59caedfe21b45d6b5acd99b7963b4bc84ceaa6fc9324525dc20afe2eee63dcc5",
+      "assembly_sha256": "4de7fcc04ff459ed1b604c1867721a7a628ae9d0e7d650d88188307659e7ad8a",
+      "fortran_sha256": "4de7fcc04ff459ed1b604c1867721a7a628ae9d0e7d650d88188307659e7ad8a",
       "input_bytes": 266035200,
-      "input_sha256": "3b504414f5ae36ed97e348ba5d128d9f59769aa377a62d26a4003f5935c775c9",
+      "input_sha256": "594bd700b15140269701e8ff49169a5e9c8a2d2ccdf376161cee4ec8f1f11a2e",
       "differing_bytes": 0,
       "calls": 6400,
       "separate_fresh_run_review": {
         "active_bytes_directly_identical": 95846400,
         "active_differing_bytes": 0,
-        "different_inactive_bytes": 57445317,
+        "different_inactive_bytes": 55599473,
         "different_inactive_calls": 6398,
         "complete_input_identity_claimed": false,
         "reason": "Opaque unused incoming spectral storage differs between fresh forecasts. Every complete byte remains in paired comparisons and frozen replay."
@@ -456,16 +458,16 @@
     },
     "srtm27": {
       "bytes": 255795200,
-      "assembly_sha256": "4f1e1c25b9de673dca2632a2282cf5c447799a38b81e70a90266fc9722375747",
-      "fortran_sha256": "4f1e1c25b9de673dca2632a2282cf5c447799a38b81e70a90266fc9722375747",
+      "assembly_sha256": "43dd9b85123976c128704a45b2d5f0fa489b7354f1544e196baee5b1a3bf2464",
+      "fortran_sha256": "43dd9b85123976c128704a45b2d5f0fa489b7354f1544e196baee5b1a3bf2464",
       "input_bytes": 563174400,
-      "input_sha256": "ae0c6e68f80e5887eca06ce86045a5e4cc6f9e23cc12b9e3820296059c4fb91a",
+      "input_sha256": "96198c13f1dcbe3f9394acbc600b7e94fbbf74160326c3682c53bc3589300f6f",
       "differing_bytes": 0,
       "calls": 6400,
       "separate_fresh_run_review": {
         "active_bytes_directly_identical": 127795200,
         "active_differing_bytes": 0,
-        "different_inactive_bytes": 57179469,
+        "different_inactive_bytes": 51696197,
         "different_inactive_calls": 6399,
         "complete_input_identity_claimed": false,
         "reason": "Every unused incoming spectral byte remains in complete same-input comparisons and the frozen-input replay. All physical output bytes match the original source run directly."
@@ -474,19 +476,19 @@
     },
     "vertical": {
       "bytes": 314924992,
-      "assembly_sha256": "fa33b6d37661df5ffbb54210d09590ca325f71ab41c5a5c2688bec21646e1e73",
-      "fortran_sha256": "fa33b6d37661df5ffbb54210d09590ca325f71ab41c5a5c2688bec21646e1e73",
+      "assembly_sha256": "b054d52342a761f3914fcafee9a59fac3edad9a207798d59fc6c1dc0a90ddc75",
+      "fortran_sha256": "b054d52342a761f3914fcafee9a59fac3edad9a207798d59fc6c1dc0a90ddc75",
       "input_bytes": 959942312,
-      "input_sha256": "b0287dbc2780d0fd933aa320d9228fefc20655077a9da505fed193bc89d85fce",
+      "input_sha256": "642cee7d1ac6fbef66b92a17149fa4db0c0a598521cb89c1f904bc098811cc38",
       "differing_bytes": 0,
       "record": "dynamics/verdisint.json"
     },
     "wind": {
       "bytes": 31536200,
-      "assembly_sha256": "8c196ffcb7df26fd8eb4e8ea99754abc768c6f904f0f175f797d307c89a5dfe8",
-      "fortran_sha256": "8c196ffcb7df26fd8eb4e8ea99754abc768c6f904f0f175f797d307c89a5dfe8",
+      "assembly_sha256": "f4a9630d2f35c07842c8a055a7b0d546723904be39881e55903531f14506909b",
+      "fortran_sha256": "f4a9630d2f35c07842c8a055a7b0d546723904be39881e55903531f14506909b",
       "input_bytes": 188813000,
-      "input_sha256": "0469abdffac1af566fd11c1fe0a33befb5bd7fb6c75184fb076e4755fca0214f",
+      "input_sha256": "a94113f762b5646c9e06547e6f1e3a9861bce632a7088425f7605352648fab19",
       "differing_bytes": 0,
       "calls": 2150,
       "record": "dynamics/wind_tendency.json"
@@ -505,20 +507,40 @@
       "assembly_sha256": "fa9bc6968326a960c101aec340db67983a38c512868086802d5d4af6d7382561",
       "fortran_sha256": "fa9bc6968326a960c101aec340db67983a38c512868086802d5d4af6d7382561",
       "input_bytes": 191057600,
-      "input_sha256": "605771aa8929f94185545e9ae64be92fb39f3b8f1e656bad22845e7fccb17f19",
+      "input_sha256": "a54644d506d9a2e530d42849f28323962802f38dfb5b7aa81509f84f0b9a89d3",
       "differing_bytes": 0,
       "calls": 4300,
       "record": "dynamics/lascaw_clo.json"
     },
     "srtm23": {
       "bytes": 255795200,
-      "assembly_sha256": "b3405e0a2efd2203efad198794be404b2e15d61684c94523e52727bafed82111",
-      "fortran_sha256": "b3405e0a2efd2203efad198794be404b2e15d61684c94523e52727bafed82111",
+      "assembly_sha256": "d2ad0d560c10fbebc3668c6357fb564353044d210b3c4fc99e99dcdb206e11fd",
+      "fortran_sha256": "d2ad0d560c10fbebc3668c6357fb564353044d210b3c4fc99e99dcdb206e11fd",
       "input_bytes": 419865600,
-      "input_sha256": "5d1c3a3e68ec6b16a8f6eb34aab33a8ca0b85c9bada80420f7df7f92b2a75480",
+      "input_sha256": "b3c9906c4f189fe27e65bcf28d56e5bf4ff061c3194a3c4ce758bc43658e9f1c",
       "differing_bytes": 0,
       "calls": 6400,
       "record": "physics/srtm_taumol23.json"
+    },
+    "lascaw_vintw": {
+      "bytes": 637776000,
+      "assembly_sha256": "585f58a08ae3557b7ed98bf8511960714d9d892265fd4c8ef7bb6f52fbcedba8",
+      "fortran_sha256": "585f58a08ae3557b7ed98bf8511960714d9d892265fd4c8ef7bb6f52fbcedba8",
+      "input_bytes": 748716000,
+      "input_sha256": "4466b1fe31a15860bf2992bf03458d51f136c17cc28b017af868e6d00e2bcadb",
+      "differing_bytes": 0,
+      "calls": 6450,
+      "record": "dynamics/lascaw_vintw.json"
+    },
+    "srtm29": {
+      "bytes": 255795200,
+      "assembly_sha256": "67926cab1b5e3ddc5df09da9c81042c064a567e648815f07a9475ab9ed6cbb0f",
+      "fortran_sha256": "67926cab1b5e3ddc5df09da9c81042c064a567e648815f07a9475ab9ed6cbb0f",
+      "input_bytes": 622156800,
+      "input_sha256": "ea468df94776891007144a69752886a0ab4fc56d7c9bddf4b50c3cf81459bbb4",
+      "differing_bytes": 0,
+      "calls": 6400,
+      "record": "physics/srtm_taumol29.json"
     }
   },
   "outputs": [
@@ -585,7 +607,7 @@
   ],
   "all_upstream_output_files_identical": true,
   "all_paired_routine_streams_identical": true,
-  "comparison_method": "Direct cmp for all forty captured stream pairs and ten saved forecast files; hashes identify archives.",
+  "comparison_method": "Direct cmp for all forty-two captured stream pairs and ten saved forecast files; hashes identify archives.",
   "verification_library_sha256": "f511fb025e5b082bda4dffe0e757f0dab1a022b4337716004e85db2ff40efc29",
   "pressure_math_library_sha256": "ec54bd97ec32ef0c68fa5c79102eda6781e74d2469a23c448c89f9db3ad31ed1",
   "strict_scientific_library_sha256": "8e4966877c735976f1e9356bc551294bbfc15c565ecdf1dc7db4cf814012b07b",
@@ -599,6 +621,8 @@
     "VERDER"
   ],
   "verification_libraries_sha256": {
+    ".runtime/openifs/srtm_taumol29_7207705/native/libverify-srtm29.so": "14c9dbc299deb348e195b2b7ad151595615fdb2233d8e918d8dad0393b26f60b",
+    ".runtime/openifs/lascaw_vintw-7207705/public-reviewed/libverify-lascaw_vintw.so": "bfd60bece3ca1b9832abf4943e2db1fd782e1e812ef759645e56f75dac04ec2d",
     ".runtime/openifs/lascaw_clo-7207705/parent-review/reproduction/libverify-lascaw_clo.so": "3a36d5c180ba0518a2d6565e696aff999aa16d9c76f85a0a5e1f842adf702681",
     ".runtime/openifs/srtm_taumol23_7207705/native/libverify-srtm23.so": "32db98fc1c0a731b23353039999d18aada0e4919ade32f6ed039c55537a7f1ee",
     ".runtime/openifs/laitri-7207705/public-reviewed/libverify-laitri.so": "37b20f67034c953793714e3fc233a60c2c075d24ac5257c749fb2b778133d99d",
@@ -632,15 +656,15 @@
     ".runtime/openifs/strict-math/libpressure-math.so": "ec54bd97ec32ef0c68fa5c79102eda6781e74d2469a23c448c89f9db3ad31ed1"
   },
   "verification_load": [
-    0.0185546875,
-    0.22705078125,
-    0.36181640625
+    0.43359375,
+    0.20654296875,
+    0.26318359375
   ],
   "vertical_reference_library_sha256": "20c17f295a8fd699aa166a28d22b9e71dfa8581bb34dae88aabbd987a2b05ba4",
   "baseline_arithmetic_change": "Unchanged-source vertical routines now use a private ordered matrix sum in both builds. This fresh baseline is separate from the older external-BLAS baseline; no global BLAS symbol is replaced.",
   "historical_initial_time_utc": "2004-10-15T12:00:00Z",
   "historical_final_time_utc": "2004-10-16T12:00:00Z",
-  "paired_output_bytes": 5016076808,
+  "paired_output_bytes": 5909648008,
   "independent_actual_vertical_geometry": {
     "evidence": ".runtime/openifs/verdisint/forecast-reviewed-7189435/results.json",
     "sha256": "e68d90c10e874ff0b63bb67417624cde24f0b32185ab2981a042f2e56ffbe4ce",
@@ -652,20 +676,20 @@
   "private_matrix_timing_record": "dynamics/verdisint.json",
   "reproduction_commands": [
     {
-      "local": ".runtime/openifs/lascaw_clo-7207705/parent-review/combined-forecast-command.sh",
-      "bytes": 6364,
-      "sha256": "16c616fd12d4515bc1f4d207c3c302e0075a80c65e93a43f752a8fd880f7fc1a"
+      "local": ".runtime/openifs/lascaw_vintw-7207705/parent-review/combined-forecast-command.sh",
+      "bytes": 7275,
+      "sha256": "d3b006cff320e4d7bd8547f8972e1b3b7af35ec32d7e66e6f8c4e4f5890d2d0c"
     },
     {
-      "local": ".runtime/openifs/lascaw_clo-7207705/parent-review/combined-direct-comparison-command.sh",
-      "bytes": 30676,
-      "sha256": "0f35cc22967e674bf50be43f4c2fff518988c6c831f8b474b3a87d3be2162e2c"
+      "local": ".runtime/openifs/lascaw_vintw-7207705/parent-review/combined-direct-comparison-command.sh",
+      "bytes": 37519,
+      "sha256": "c2655f8fc1c488f7b97432613d0d294ba3b4cfb0d87e4863203d24454bc951cf"
     }
   ],
   "parent_direct_comparison": {
-    "local": ".runtime/openifs/runs/strict-lascaw-clo-shortwave23-combined-reviewed-7207705/t21/direct-comparison.json",
-    "bytes": 52420,
-    "sha256": "8cd293894b8802346a31b8fd8f34883ecd59b4c658c29b31c2d03393261d37b0"
+    "local": ".runtime/openifs/runs/strict-vintw-shortwave29-combined-reviewed-7207705/t21/direct-comparison.json",
+    "bytes": 57724,
+    "sha256": "f39984a9b5e68d3c29a1083f2e758c35b23b000b52ec884dce1de9532ae434d6"
   },
   "simplico_capture_scope": "All 550 calls appear as complete defined before/after wave stages inside SPCIMPFSOLVE; earlier whole-spectral-parent records remain archived.",
   "assembly_optimisations": {

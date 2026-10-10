@@ -139,12 +139,27 @@
       "LAITRI",
       "SRTM_TAUMOL27",
       "LASCAW_CLO",
-      "SRTM_TAUMOL23"
+      "SRTM_TAUMOL23",
+      "LASCAW_VINTW",
+      "SRTM_TAUMOL29"
     ],
     "private_ordered_matrix_helper_not_counted_as_public_body": true,
     "forecast_record": "forecast.json",
     "GPCTY": "Unchanged finite-element source leaves returned lower-level pressure-divergence bytes unwritten; full output contract awaits a reviewed source correction.",
-    "complete_accepted_public_routine_count": 42
+    "complete_accepted_public_routine_count": 44,
+    "numerical_dependency_review": {
+      "source_linked_queue": {
+        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-main-arithmetic-dependency-queue-r3.json",
+        "bytes": 1466534,
+        "sha256": "8b5e4de1527453887082dc37ba4ad1abf4bc24721fd09a4706a7ab4b6f1d319d"
+      },
+      "reviewed_main_phase_bodies": 555,
+      "pending_main_phase_bodies": 156,
+      "reviewed_bodies_with_local_arithmetic": 341,
+      "reviewed_bodies_without_local_arithmetic": 214,
+      "complete_branch_and_external_dependency_closure_established": false,
+      "exact_assembly_denominator_established": false
+    }
   },
   "inventory_reproduced_byte_for_byte": true,
   "accepted_reports_local": ".runtime/openifs/routine-audit/recheck/frontend-reports.zip",

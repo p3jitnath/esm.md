@@ -1,0 +1,257 @@
+{
+  "routine": "LASCAW_VINTW",
+  "revision": "1.1",
+  "utc": "2026-10-10T01:47:56.859562+00:00",
+  "scope": "Complete supported vertical cubic and correction weights, lower-order blends, diffusion, heat and vertical filtering, including all boundaries and enclosing WENO storage",
+  "supported_logical_masks": 56,
+  "unsupported_logical_masks": [
+    2,
+    3,
+    18,
+    19,
+    34,
+    35,
+    50,
+    51
+  ],
+  "typed_interface": {
+    "ordinary_pointer_arguments": 27,
+    "integer_and_logical_bytes": 4,
+    "real_bytes": 8,
+    "derived_bytes": 456,
+    "selected_member_offsets": [
+      120,
+      128
+    ],
+    "canonical_logical_values": [
+      0,
+      1
+    ],
+    "nullable_unused_arguments": true,
+    "complete_parent_pointer_arguments": 78,
+    "supported_parent_WENO_windows": [
+      1,
+      3
+    ]
+  },
+  "generation": {
+    "route": "Direct AArch64 text from frozen source physics and ordered binary64 arithmetic, assembled and linked without compiler numerical assembly or intermediate representation",
+    "first_source": {
+      "path": ".runtime/openifs/lascaw_vintw-7207705/solver.S",
+      "bytes": 8670,
+      "sha256": "adeb33526a60b975d51fad6d0b3f268fe43f80fad4246a3930eb4830e2ed90d0"
+    },
+    "unchanged_first_primary": {
+      "path": ".runtime/openifs/lascaw_vintw-7207705/build/lascaw_vintw.o",
+      "bytes": 2472,
+      "sha256": "1e524dff7e766034227ac48cede9d452d63760600fd22ca8974933d149747f3f"
+    },
+    "pre_emission_contract": {
+      "path": ".runtime/openifs/lascaw_vintw-7207705/preparation/contract-before-emission.md",
+      "bytes": 11046,
+      "sha256": "54356adfb9e92d52087c54b4938509052862690ec4e6343a18f87f550ba0ad7d"
+    },
+    "pre_emission_freeze": {
+      "path": ".runtime/openifs/lascaw_vintw-7207705/preparation/freeze-before-emission.json",
+      "bytes": 36424,
+      "sha256": "60e1a02a25fad3c9dade219b1cf1e5d5c1d62767edd3f3b9808c430f90c2c2ae"
+    }
+  },
+  "object": {
+    "instructions": 410,
+    "instruction_bytes": 1640,
+    "numerical_helper_calls": 0,
+    "fused_arithmetic": 0,
+    "frame_bytes": 320,
+    "callee_saved_integer_registers": "x19 through x28 saved and restored",
+    "callee_saved_fp_registers": "unused",
+    "platform_x18": "unused",
+    "route": "Direct text assembled and linked without compiler numerical assembly or intermediate representation"
+  },
+  "critical": {
+    "actual_replay": false,
+    "cases": 6048,
+    "direct_abi_calls": 6071,
+    "protected_tail_cases": 6048,
+    "genuine_three_thread_calls": 3,
+    "unsupported_guard_calls": 20,
+    "independent_coefficients": 8815488,
+    "canonical_bytes": 147524032,
+    "different_bytes": 0,
+    "fpcr": 0
+  },
+  "independent_source_science": {
+    "decimal_digits": 100,
+    "counts": {
+      "cases": 6048,
+      "hundred_digit_coefficients": 8815488,
+      "polynomial_moments": 4002944,
+      "selected_points": 838208
+    },
+    "distinct_reference_points": 21416,
+    "distinct_same_input_return_proofs": 21416,
+    "maximum_fraction_forward_limit": "0.00004438920454545454635058030783925988090332260390487192466213649442107140798038658706399446716134985329",
+    "source_before_primary": true,
+    "reference": "General nonuniform four-node Lagrange products, exact-geometry lower weights, expanded full blends and four-by-four matrices. Binary input keys retain signed-zero kappa."
+  },
+  "frozen_actual_replay": {
+    "actual_replay": true,
+    "cases": 6450,
+    "direct_abi_calls": 6450,
+    "protected_tail_cases": 6450,
+    "genuine_three_thread_calls": 0,
+    "unsupported_guard_calls": 0,
+    "independent_coefficients": 0,
+    "canonical_bytes": 637776000,
+    "different_bytes": 0,
+    "fpcr": 0
+  },
+  "forecast": {
+    "calls": 6450,
+    "rows": 24,
+    "levels": 19,
+    "mask": 48,
+    "WENO_windows": 3,
+    "full_row_calls": 6375,
+    "eight_row_calls": 75,
+    "whole_main_and_filter_family_bytes": 32832,
+    "whole_other_family_bytes": 10944,
+    "view_window_bytes": [
+      0,
+      10944,
+      21888
+    ],
+    "same_input_complete_pair_different_bytes": 0,
+    "complete_returned_archive_bytes": 637776000,
+    "whole_fresh_return_archives_identical": true,
+    "full_fresh_input_archives_identical": false,
+    "unused_fresh_input_different_bytes": 239562,
+    "fresh_selected_numerical_input_bytes_compared": 49441352,
+    "selected_input_different_bytes": 0,
+    "written_coefficient_different_bytes": 0,
+    "independent_coefficient_checks": 69130794,
+    "independent_moment_checks": 34109994,
+    "saved_files": 10,
+    "saved_bytes": 618140,
+    "saved_different_bytes": 0,
+    "raw_review": {
+      "path": ".runtime/openifs/lascaw_vintw-7207705/native-forecast-review.json",
+      "bytes": 12657,
+      "sha256": "63ca8c71e0dc0a79d5fe19998fd9188f17c19d7150e062b95515f4b871fbdb74"
+    },
+    "shifted_WENO_qualification": "Shifted calls retain original low-order distances. The independent reference follows that source-selected polynomial rather than imposing a shifted target."
+  },
+  "source_peer": {
+    "path": ".runtime/openifs/lascaw_vintw-7207705/preparation/source-science-caller-peer-review.json",
+    "bytes": 5020,
+    "sha256": "beb1c601455fc541b0db0da35d3a4604f0ac380462389a06462ebe3aca86d43c"
+  },
+  "unsupported_observer_guards": {
+    "source": {
+      "path": ".runtime/openifs/lascaw_vintw-7207705/preparation/source-flag-guard-review.json",
+      "bytes": 4416,
+      "sha256": "bde49ee6dae6437215d08b536e1a5c1c07fa6d3f9336708eac48956758ff3ba0"
+    },
+    "native": {
+      "path": ".runtime/openifs/lascaw_vintw-7207705/native-flag-guard-review.json",
+      "bytes": 5108,
+      "sha256": "ed0840fc22d789fc84919ab4951958058b9f72a9ffefe0f5d219e9b7ee175e08"
+    },
+    "cases_each": 20,
+    "source_and_primary_executed": false
+  },
+  "capacity_guard_refinement": {
+    "path": ".runtime/openifs/lascaw_vintw-7207705/observer-capacity-guard-refinement.json",
+    "bytes": 517,
+    "sha256": "82988aba351b06b205b94b173d276cd462144c0e7cc514243e2de1bd4414d12f"
+  },
+  "comparative_timing": {
+    "accepted": false
+  },
+  "allocation": {
+    "job": 7207705,
+    "node": "nid011311",
+    "cpu": 32,
+    "processes": 1,
+    "forecast_threads": 1,
+    "memory": "local"
+  },
+  "source_identity": {
+    "path": ".runtime/openifs/lascaw_vintw-7207705/preparation/original-lascaw_vintw.F90",
+    "bytes": 11705,
+    "sha256": "6b6650192935f2bdbe27f55a5348ca580e7c6acbe450a06cdba824e6ff10b1ae"
+  },
+  "caller_identity": {
+    "path": ".runtime/openifs/lascaw_vintw-7207705/preparation/original-lascaw.F90",
+    "bytes": 48284,
+    "sha256": "af4c8f564380f545eaf55bf6b55bb8f68fc036d9e26086eb6939b0d034818b07"
+  },
+  "public_reproduction": {
+    "critical": {
+      "path": ".runtime/openifs/lascaw_vintw-7207705/public-reviewed/summary.json",
+      "bytes": 241,
+      "sha256": "d42d7132457d205ef59b666cb24cc04aa837352dcb10c08e403e419c20f02020"
+    },
+    "frozen_actual_replay": {
+      "path": ".runtime/openifs/lascaw_vintw-7207705/public-reviewed/frozen-summary.json",
+      "bytes": 233,
+      "sha256": "d757e3bc8ccf5513c554cf105445adc50adc1981b94971e3fac8b0c580144d54"
+    },
+    "primary_and_abi_objects_identical": true,
+    "both_C_sources_identical": true,
+    "native_comparator": {
+      "path": ".runtime/openifs/lascaw_vintw-7207705/public-reviewed/libverify-lascaw_vintw.so",
+      "bytes": 272216,
+      "sha256": "bfd60bece3ca1b9832abf4943e2db1fd782e1e812ef759645e56f75dac04ec2d"
+    },
+    "only_defined_dynamic_symbols": [
+      "lascaw_",
+      "lascaw_vintw_",
+      "lascaw_vintw_assembly_"
+    ],
+    "capacity_guards": {
+      "path": ".runtime/openifs/lascaw_vintw-7207705/public-capacity-guard-review.json",
+      "bytes": 1184,
+      "sha256": "5359d319a4e3a1fdd4ab2756a0955bd57896eae7ffaee594f7ea3cb89743c9ed"
+    },
+    "logical_guards": {
+      "path": ".runtime/openifs/lascaw_vintw-7207705/public-flag-guard-review.json",
+      "bytes": 3175,
+      "sha256": "ee3792e2d7545249a5eb5dba96d5224a9791a86324d4761413cf4dc08affa3b3"
+    },
+    "isolated_original_observer_preserved": true,
+    "public_guard_change_has_no_supported_numerical_operation": true
+  },
+  "documentation_revision": "1.2",
+  "numerical_revision": "1.0",
+  "parent_reproduction": {
+    "local": ".runtime/openifs/lascaw_vintw-7207705/parent-review/complete-parent-reproduction.json",
+    "bytes": 2049,
+    "sha256": "5388ba8d88226bbd36093221488473eb1060cfd713af5ff92e31e15cdac02e6b"
+  },
+  "original_release": {
+    "local": ".runtime/openifs/lascaw_vintw-7207705/accepted.json",
+    "bytes": 103050,
+    "sha256": "519f480cbc8fd62076c6e80d280d93e79b007e72016caa64fece1f497b465771"
+  },
+  "resolved_original_release": {
+    "local": ".runtime/openifs/lascaw_vintw-7207705/parent-review/resolved-original-accepted.json",
+    "bytes": 103420,
+    "sha256": "df20c73bbf393798080168bd990d811e26722c5959dc8158c0e91c35db9dc024"
+  },
+  "combined_forecast": {
+    "acceptance": {
+      "local": ".runtime/openifs/runs/strict-vintw-shortwave29-combined-reviewed-7207705/t21/direct-comparison.json",
+      "bytes": 57724,
+      "sha256": "f39984a9b5e68d3c29a1083f2e758c35b23b000b52ec884dce1de9532ae434d6"
+    },
+    "calls": 6450,
+    "paired_stream_bytes": 637776000,
+    "all_complete_same_input_bytes_identical": true,
+    "selected_original_source_input_bytes_identical": 49441352,
+    "original_source_written_coefficient_values_identical": 34565397,
+    "complete_fresh_input_identity_claimed": false,
+    "complete_fresh_return_identity_claimed": false,
+    "all_unused_bytes_retained": true
+  }
+}
