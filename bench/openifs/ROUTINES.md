@@ -53,9 +53,21 @@ The trace excludes local C/C++ bodies and uninstrumented external libraries, inc
 | GPTF1, GPTF2 | Complete two-part time filter |
 | CTVTOT | Complete temperature from the moist-air equation of state |
 
-All fifty-one public bodies pass their critical checks within their declared input ranges. Every captured forecast call also passes; VERDER has no visit in this case, so its acceptance uses the small verifier. The [verification notes](README.md) state the evidence and its limits. Complete assembly coverage, raw whole-forecast states, independent whole-forecast physical checks and the external numerical-library arithmetic audit remain unfinished.
+All fifty-two public bodies pass their critical checks within their declared input ranges. Every captured forecast call also passes; VERDER has no visit in this case, so its acceptance uses the small verifier. The [verification notes](README.md) state the evidence and its limits. Complete assembly coverage, raw whole-forecast states, independent whole-forecast physical checks and the external numerical-library arithmetic audit remain unfinished.
 
 Current work prioritises the coarse forecast. Work proceeds through its active numerical routines one at a time, with dynamics first and the remaining physical schemes later. For each routine, freeze its physics and md2asm contract, emit the complete assembly body, pass physical and exact-byte checks, then verify its forecast calls before proceeding.
+
+## Remaining Rewrites
+
+The current 52 accepted assembly bodies match 51 of the 711 original bodies used in this forecast's main phase, which advances the model after setup. VERDER is outside that main-phase list and passes separate small checks. Each match retains its declared input and branch limits.
+
+| Scope in this T21 main phase | Original bodies | Accepted matches | Remaining |
+| --- | ---: | ---: | ---: |
+| Weather or forcing calculations | 255 | 48 | **207** |
+| All bodies with local calculations | 356 | 50 | **306** |
+| All main-phase bodies | 711 | 51 | **660** |
+
+The rows overlap. The last row also includes output, storage and support routines, so 660 is not a count of remaining weather calculations. The [compact record](routines.json) identifies the full 660-name list with original source paths and the independently checked name mapping. Its source checks cover 457 original files and six unchanged generated compiler inputs. These exact scoped counts do not cover every branch, numerical dependency or other forecast configuration.
 
 ## Next Coarse-Forecast Checkpoints
 
@@ -81,14 +93,14 @@ The first four rows contain 356 local-expression owners. The other rows contain 
 | 3 | SPCM, SPCHOR | Close the selected implicit updates, transforms, corrections and damping. |
 | 4 | CPGLAG | Preserve provisional-state additions, selected corrections and map factors. |
 | 5 | CPG_GP_HYD, CPG_GP, GP_MODEL | Verify smaller weather stages before replacing their complete parents. |
-| 6 | LAMINMAXINT, LAVENT | Verify neighbouring minima and maxima, then wind extrapolation and rotation. |
+| 6 | LAVENT | Preserve complete wind extrapolation, rotation and containing buffers. |
 | 7 | PFIXER, QMFIXER, GPNORM1, GPNORM_TRANS, GPNORM_TRANS_CTL | Preserve physical means, latitude weights and ordered sums. |
 
 LASCAW_CLO and LASCAW_VINTW are verified within their contracts. LASCAW_CLA is now also verified within its declared contract. The work list also retains 55 original call sites for named numerical and real-valued output dependencies. Intrinsic mathematics, other branches and process-wide sums can add work, so this bounded list is not a complete runtime graph.
 
 GPCTY's unchanged finite-element source writes only the bottom of one returned pressure-divergence field. Repeated source calls leave 760 differing returned bytes at other levels. The current forecast uses the written level, but complete acceptance requires a corrected and independently reviewed output contract. This routine remains in Fortran.
 
-The [current forecast record](forecast.json) lists all 51 accepted direct bodies. A matching name does not prove that a whole parent or every branch has been replaced. All nested calculations, external numerical dependencies, buffer bounds and selected physical consumers must be closed before an exact assembly denominator can be stated.
+The [current forecast record](forecast.json) lists all 52 accepted direct bodies. A matching name does not prove that a whole parent or every branch has been replaced. All nested calculations, external numerical dependencies, buffer bounds and selected physical consumers must be closed before an exact assembly denominator can be stated.
 
 To reproduce the build inventory, load GNU 12.3 and run the following command through srun in your own quiet exclusive allocation. The [counter](count_routines.py) uses Python's standard library and the existing compiler.
 

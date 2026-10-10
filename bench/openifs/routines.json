@@ -148,12 +148,13 @@
       "SRTM_TAUMOL19",
       "LAMINMAXINT",
       "SRTM_TAUMOL18",
-      "SRTM_TAUMOL28"
+      "SRTM_TAUMOL28",
+      "SRTM_TAUMOL17"
     ],
     "private_ordered_matrix_helper_not_counted_as_public_body": true,
     "forecast_record": "forecast.json",
     "GPCTY": "Unchanged finite-element source leaves returned lower-level pressure-divergence bytes unwritten; full output contract awaits a reviewed source correction.",
-    "complete_accepted_public_routine_count": 51,
+    "complete_accepted_public_routine_count": 52,
     "numerical_dependency_review": {
       "source_linked_queue": {
         "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/20261010-main-arithmetic-dependency-queue-r5.json",
@@ -192,7 +193,6 @@
         "physical_copy_or_lookup_helpers": 2,
         "remaining_storage_control_and_service_bodies": 298
       },
-      "original_source_files": 463,
       "source_named_dependency_sites": 55,
       "direct_original_evidence_lines": 495,
       "exact_required_numerical_denominator_established": false,
@@ -215,7 +215,121 @@
         "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/root-consumer-v1-validation-20261010.log",
         "bytes": 310,
         "sha256": "a4ba1532def9aff6b3aedce7a87e74ed6af0ac466a30f5e9d4f66575829f6b81"
-      }
+      },
+      "source_input_files": 463,
+      "original_source_files": 457,
+      "unchanged_frozen_generated_compiler_inputs": 6
+    },
+    "exact_scoped_remaining_replacements": {
+      "date_utc": "2026-10-10T11:45:40.754878+00:00",
+      "scope": "Unique original bodies in this audited T21 main forecast phase, matched to accepted assembly within each declared input contract. Counts do not prove every branch, every numerical dependency or other configurations.",
+      "public_accepted_routines": 52,
+      "main_phase_original_bodies": 711,
+      "matched_main_phase_bodies": 51,
+      "remaining_main_phase_bodies": 660,
+      "original_local_expression_owners": 356,
+      "matched_local_expression_owners": 50,
+      "remaining_local_expression_owners": 306,
+      "weather_or_forcing_original_local_expression_owners": 255,
+      "matched_weather_or_forcing_local_expression_owners": 48,
+      "remaining_weather_or_forcing_local_expression_owners": 207,
+      "remaining_bodies_without_local_expressions": 354,
+      "public_names_outside_main_phase": [
+        "VERDER"
+      ],
+      "missing_or_ambiguous_name_matches": 0,
+      "disjoint_original_groups": {
+        "weather_or_forcing_local_expression_owners": {
+          "total": 255,
+          "matched": 48,
+          "remaining": 207
+        },
+        "geometry_basis_local_expression_owners": {
+          "total": 1,
+          "matched": 0,
+          "remaining": 1
+        },
+        "pressure_tracer_correction_and_returned_mean_local_expression_owners": {
+          "total": 4,
+          "matched": 0,
+          "remaining": 4
+        },
+        "physical_output_or_observation": {
+          "total": 43,
+          "matched": 2,
+          "remaining": 41
+        },
+        "output_encoding_or_metadata": {
+          "total": 11,
+          "matched": 0,
+          "remaining": 11
+        },
+        "printed_statistics_or_labels": {
+          "total": 15,
+          "matched": 0,
+          "remaining": 15
+        },
+        "runtime_accounting_or_progress": {
+          "total": 22,
+          "matched": 0,
+          "remaining": 22
+        },
+        "event_validation_or_control": {
+          "total": 5,
+          "matched": 0,
+          "remaining": 5
+        },
+        "forecast_transform_or_mixed_numerical_delegates": {
+          "total": 44,
+          "matched": 1,
+          "remaining": 43
+        },
+        "physical_output_numerical_delegates": {
+          "total": 10,
+          "matched": 0,
+          "remaining": 10
+        },
+        "physical_correction_numerical_delegate": {
+          "total": 1,
+          "matched": 0,
+          "remaining": 1
+        },
+        "physical_copy_or_lookup_helpers": {
+          "total": 2,
+          "matched": 0,
+          "remaining": 2
+        },
+        "remaining_storage_control_and_service_bodies": {
+          "total": 298,
+          "matched": 0,
+          "remaining": 298
+        }
+      },
+      "original_source_files_checked": 457,
+      "unchanged_frozen_generated_compiler_inputs_checked": 6,
+      "private_ordered_matrix_helper_counted_as_original_body": false,
+      "complete_numerical_conversion_denominator_established": false,
+      "full_remaining_names_and_original_paths": {
+        "local": ".runtime/openifs/implicit_stage_reviews_7207705/exact-main-phase-accepted51-pending52-source-count-r1/all660-main-phase-identifiers-without-pending52-replacement-and-original-paths.tsv",
+        "bytes": 129401,
+        "sha256": "0ca4a06e6e81eb6beec338ab2a6f43c0e09ff552ba90dc5d7076abf9226a6c00"
+      },
+      "root_complete_count": {
+        "local": ".runtime/openifs/routine-audit/coverage-7207705/source-review/root-exact51-and-pending52-main-phase-replacement-count-r1.json",
+        "bytes": 604528,
+        "sha256": "9e0e5dd45349d97803568d3e16261e854cbf728596ca577477ea81564a37b320"
+      },
+      "independent_source_identity_and_export_peer": {
+        "local": ".runtime/openifs/implicit_stage_reviews_7207705/exact-main-phase-accepted51-pending52-source-count-r1/exact-scoped-main-phase-count-independent-peer-release-r1.json",
+        "bytes": 4044,
+        "sha256": "dd9094acc9a791014a91532abf90d4fa68418a006e1843afe723085b49488ea5"
+      },
+      "accepted52_forecast": {
+        "local": ".runtime/openifs/srtm_taumol17_7207705/parent-review/root-parent52-complete-actual-runtime-independent-peer-qualified-acceptance-r1.json",
+        "bytes": 3709,
+        "sha256": "e79497e3e1fbff78d2cd99606b0c32c222e288a4ec717ccc0038f2e8ef33f4ca"
+      },
+      "work_order": "Proceed through weather and forcing routines one at a time, including their required geometry, corrections and numerical delegates."
     }
   },
   "inventory_reproduced_byte_for_byte": true,

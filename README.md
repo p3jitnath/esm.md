@@ -30,13 +30,13 @@ Build with `make all ebm` on the target processor, then follow the [evaluation i
 
 ## OpenIFS development
 
-The openifs-md branch extends this workflow to OpenIFS 48.1.1. Fifty-one complete assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons in a coarse global forecast.
+The openifs-md branch extends this workflow to OpenIFS 48.1.1. Fifty-two complete assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons in a coarse global forecast.
 
 | Check | Coverage | Differing bytes |
 | --- | --- | ---: |
-| Complete routine-stream pairs | 49 pairs across 7,339,708,808 bytes | 0 |
+| Complete routine-stream pairs | 50 pairs across 7,595,504,008 bytes | 0 |
 | Saved forecast files | 10 files across 618,140 bytes | 0 |
 
 This historical forecast starts on 15 October 2004 and advances 24 hours on 2,048 grid points with 19 atmospheric levels. Other stages remain in Fortran. Complete assembly coverage, independent whole-forecast physics and external-library arithmetic checks remain unfinished. Whole-forecast speed has not been measured.
 
-The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [verification tables](bench/openifs/README.md) give each routine's checks, timing gains and reproduction commands. The [routine audit](bench/openifs/ROUTINES.md) records 1,466 active Fortran bodies, with 802 source roles reviewed. These source counts do not define the number of assembly routines still required.
+The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [verification tables](bench/openifs/README.md) give each routine's checks, timing gains and reproduction commands. The [routine work list](bench/openifs/ROUTINES.md) records **207 remaining weather or forcing routines** in this T21 main phase. It also separates the broader 306 local-calculation and 660 total-body counts, with their original names and source paths.
