@@ -72,4 +72,14 @@ The original scientific check passed before direct emission. Twenty-two protecte
 
 The corpus includes first and later steps, all and mixed constituent flags, repeated slots, partial final columns, empty intervals, zero levels, active and passive saturation, all cloud budgets, 4096 columns and 512 levels. Seven paired calls also preserve 241,536 complete bytes with zero differences and 4,971 independent relations. Eleven required prewrite cases preserve 251,328 shared output bytes.
 
-Two additional starting-step cases check signed-zero rates and subnormal previous changes. Their original, native and paired outputs agree, and the profiling-enabled caller also passes. These seven comparisons cover 57,120 bytes with zero differences and 1,007 independent relations. Actual forecast acceptance and performance measurements remain pending. Whole-forecast autonomy remains a separate requirement because the current forecast gate uses an original Fortran driver.
+Two additional starting-step cases check signed-zero rates and subnormal previous changes. Their original, native and paired outputs agree, and the profiling-enabled caller also passes. These seven comparisons cover 57,120 bytes with zero differences and 1,007 independent relations. Performance measurements remain pending. Whole-forecast autonomy remains a separate requirement because the current forecast gate uses an original Fortran driver.
+
+## Actual Forecast Acceptance
+
+The combined coarse forecast in exclusive allocation 7240564 on nid010555 passes these positive actual calls with zero differing bytes. Each byte scope describes the complete arrays and records compared by that routine.
+
+| Original routine | Actual calls | Compared bytes | Byte scope |
+| --- | ---: | ---: | --- |
+| sltend | 2,150 | 125,491,200 | Native private slow-physics child, complete record-layer owners and unchanged child proof |
+
+All ten saved files also match across 618,140 bytes. The accepted critical physics and interface checks are reused. These checks cover the declared routine domains and saved files. Whole-forecast physical verification, whole-process byte identity and comparative timing remain open in the [coverage record](../../../../../src/openifs/README.md).

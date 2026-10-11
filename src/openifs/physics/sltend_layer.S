@@ -247,7 +247,20 @@ md2asm_sltend_layer:
     adds x12,x12,#1
     b.vs .Lsll_bad
     cmp x12,x2
+    b.eq .Lsll_pointer
+    cbz x5,.Lsll_bad
+    cbnz x2,.Lsll_bad
+    cmp x4,#1
     b.ne .Lsll_bad
+    cmp x12,#1
+    b.ne .Lsll_bad
+    ldr x9,[x0]
+    cbz x9,.Lsll_bad
+    tst x9,#7
+    b.ne .Lsll_bad
+    lsl x10,x21,#3
+    adds x10,x9,x10
+    b.cs .Lsll_bad
 .Lsll_pointer:
     ldr x0,[x0]
     mul x10,x21,x4
