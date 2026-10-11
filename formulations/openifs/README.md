@@ -6,7 +6,7 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 
 | Forecast part | Basic formulation | Assembly coverage |
 | --- | --- | --- |
-| Atmospheric motion | [Motion and heat](dynamics/atmospheric_motion.md) | Complete time filters, SITNU and spectral stages, other stages pending |
+| Atmospheric motion | [Motion and heat](dynamics/atmospheric_motion.md) | Complete time filters, linear terms, bounded transport and selected spectral stages, other stages pending |
 | Surface pressure | [Logarithm and derivatives](dynamics/surface_pressure.md) | Complete GP_SPV routine |
 | Vertical pressure | [Hybrid pressure](dynamics/hybrid_pressure.md) | Complete GPHPRE routine |
 | Vertical force balance | [Hydrostatic balance](dynamics/hydrostatic_balance.md) | Complete GPGEO, GPGRGEO and SIGAM routines |
@@ -25,11 +25,11 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 | Turbulent mixing | [Vertical transport](physics/vertical_mixing.md) | Complete diffusion increments and implicit wind diffusion, other transport stages pending |
 | Radiation | [Radiation balance](physics/radiation.md) | Complete liquid and Fu ice optics, cloud delta scaling, shortwave and longwave adding, thermal emission and selected two-stream children, remaining transfer stages pending |
 | Shortwave Band 21 | [Absorption and scattering](physics/shortwave_band21.md) | Complete SRTM_TAUMOL21 within its verified contract |
-| Soil, snow, lakes and surface exchange | [Skin balance and tiles](surface/surface_exchange.md) | CPSPE update only, storage balances pending |
+| Soil, snow, lakes and surface exchange | [Skin balance and tiles](surface/surface_exchange.md) | Complete soil-water recovery, diffusion and correction, snow layer, heat, albedo and water updates, and lake radiation, other stages pending |
 | Column ozone | [Ozone mass](physics/column_ozone.md) | Complete GPTCO3 integral, also used for signed moisture rates |
-| Atmospheric composition | [Tracer balance](physics/atmospheric_composition.md) | Transport and chemical rates pending |
+| Atmospheric composition | [Tracer balance](physics/atmospheric_composition.md) | Complete monthly gas and ozone interpolation and gas/solar forcing, chemical rates pending |
 | Ocean waves and coupling | [Wave action](waves/ocean_waves.md) | Pending |
 
 These basic balances do not yet cover every configured physical process. Source-derived closure relations, which specify rates and coefficients, and complete numerical contracts are still needed before assembly generation.
 
-One hundred and seventeen public assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../src/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
+159 public assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../src/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.

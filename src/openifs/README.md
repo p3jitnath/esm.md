@@ -8,15 +8,15 @@ A routine body is one function or subroutine that performs a calculation. These 
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 116 | 595 |
-| Local calculations | 356 | 115 | 241 |
-| Weather calculations | 255 | 113 | 142 |
+| Main forecast phase | 711 | 158 | 553 |
+| Local calculations | 356 | 157 | 199 |
+| Weather calculations | 255 | 155 | 100 |
 
-There are 117 accepted assembly bodies overall. VERDER is outside the main forecast count. The ordered 142-routine weather queue and completed checks remain local. The latest twenty-four replacements cover complete shortwave gas optics, ten longwave bands, both atmospheric coefficient preparations, convection, saturation adjustment, gravity-wave drag, boundary-layer height, field transfer and implicit momentum diffusion. Each has genuine forecast calls. The contained GPRCP accumulation is also identified in its unchanged accepted parent, with 8,600 actual model stages and reused complete parent checks.
+There are 159 accepted assembly bodies overall. VERDER is outside the main forecast count. The ordered 100-routine weather queue and completed checks remain local. The latest combined batch accepts 42 complete atmospheric, surface, snow, transport and spectral bodies from genuine model calls.
 
 ## Verification
 
-Each accepted routine passes its declared critical physics and exact-output checks. The latest combined batch adds twenty-four bodies, with 2,150 through 234,868 actual calls per body. Every compared output byte agrees. All ten saved forecast files match over 618,140 bytes. Earlier accepted body checks and mathematical routes are reused. The run used own exclusive allocation 7240564 on nid010555, one process, one thread, CPU 16 and local memory binding.
+Each accepted routine passes independent critical physics and exact-output checks. The latest batch adds 42 complete bodies with positive actual calls. Every compared owner byte agrees, and all ten saved files match across 618,140 bytes. The earlier twenty-four-body and corrected fourteen-body native closures also pass their saved-file gate. Unchanged physical, mathematical and interface checks are reused. The run uses exclusive allocation 7240564 on nid010555, one process, one thread, CPU16 and local memory binding.
 
 The comparisons cover declared routine inputs and saved files. Whole-process byte identity, independent physics of the whole forecast and comparative forecast speed remain unproved. Historical full-storage mismatches are preserved in the local records. Individual numerical contracts define supported inputs, arithmetic, interfaces and scientific limits.
 

@@ -1,23 +1,19 @@
-# Ozone From Climatology
+# Monthly Ozone Climatology
 
-Revision 1.0.
+Revision 1. Ozone absorbs some of the Sun's radiation. This input describes how a monthly ozone distribution changes smoothly through the year, rather than calculating chemical reactions.
 
-Ozone absorbs radiation. A supplied climatology gives its average mixing ratio, which is ozone mass divided by air mass in kilograms per kilogram. This calculation places that profile on the model's latitude and pressure layers.
-
-Let $`p`$ be pressure in pascals and $`s`$ the sine of latitude. Between neighbouring supplied latitudes, the weight $`w`$ and ozone mixing ratio $`q`$ are
+The supplied table gives an ozone volume fraction at 19 latitudes from minus 90 to 90 degrees, 34 vertical levels and 12 months. A fraction has no unit. The supplied positive conversion factor $`k`$ changes the volume fraction into a mass fraction in kilograms of ozone per kilogram of air. Let $`q_1`$ and $`q_2`$ be neighbouring monthly values and let $`w`$ be the fraction of time from the first month to the next.
 
 ```math
-w=\frac{s-s_0}{s_1-s_0}, \qquad q=(1-w)q_0+wq_1. \tag{P01}
+q(t)=k\bigl[(1-w)q_1+wq_2\bigr].
 ```
 
-Interpolate the resulting profile linearly between its supplied pressure levels. Below the last supplied level, keep its final mixing ratio. The pressure-weighted ozone amount $`M`$ in a model layer is estimated from its two edge values.
+Time repeats over a mean year of 365.25 days. Use the supplied date and minute of the day, with the existing monthly calendar convention. The first boundary level has zero ozone and the last repeats the neighbouring interior value.
+
+An optional amplitude $`A`$ from minus one to one changes ozone over nine middle latitudes and seven vertical levels. Two supplied integer modes select the vertical interval, while other modes leave the distribution unchanged. The smooth sine shapes are zero at the interval ends and largest near its centre.
 
 ```math
-M_i=(p_{i+1}-p_i)\frac{q(p_i)+q(p_{i+1})}{2}. \tag{P02}
+q_{\mathrm{perturbed}}=q(t)\bigl[1+A\sin(\alpha)\sin(\beta)\bigr].
 ```
 
-The output $`M_i`$ has units of pascals. Dividing it by gravity gives ozone mass per square metre. The trapezoid in P02 is exact for a profile that is linear across the layer.
-
-## Supplied State And Boundaries
-
-Supply finite, nonnegative ozone profiles and strictly increasing latitude and pressure coordinates. The usual climatology has 19 latitudes and 36 pressure points. Its first and last latitude intervals use profiles 1 and 18 respectively. The aquaplanet option has 64 latitudes and 61 pressure points, with nearest-profile values outside the latitude range. Pressure must be at or below the top climatology boundary. Process the requested columns, spacing and destination shift. Other output cells stay unchanged.
+The angles $`\alpha`$ and $`\beta`$ run from zero to $`\pi`$ across the chosen latitude and height intervals. The grid and the physical constant $`\pi`$ are fixed, so all required sine values are constants.
