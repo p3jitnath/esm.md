@@ -29,9 +29,9 @@ Apply each physical bound to the values used by its calculation. Derive table bo
 
 Reuse accepted verification tools and qualified arithmetic routes. Keep one focused review of the changed physics, interface and instructions, with critical tests for new requirements or observed defects. Verify several completed OpenIFS replacements in one forecast batch when their dependencies permit it, retaining independent physics and zero differing bytes for each routine. Record the new result once in compact Markdown and avoid repeated provenance reviews, full-file hashing and redundant reruns.
 
-Check the complete private call route with distinct nonzero values in preserved registers. This makes the ABI check independent of incidental caller values. When a batch exposes an interface defect, use one focused observation of the affected call, then qualify that input shape. Continue independent candidate groups through their normal acceptance gate while the affected routine is corrected.
+Check the complete private call route with distinct nonzero values in preserved registers. This makes the ABI check independent of incidental caller values. Record native execution counts separately from reference calls made by the verifier. Qualify each newly observed supported input shape with one focused check and record it in the interface contract. Continue independent candidate groups through their normal acceptance gate while other candidates are developed.
 
-For long FP64 capture checks, represent physical residuals and their existing rounding budgets with bounded exact integers when this preserves the accepted equations. Check carries, cancellation and threshold ties on a small exact-rational corpus, then stream the accepted inputs once. The [shortwave adding contract](references/openifs/physics/adding_ica_sw.md) records a complete 97,750-call physical check using this method.
+For long FP64 capture checks, represent physical residuals and their existing rounding budgets with bounded exact integers when this preserves the accepted equations. Check carries, cancellation and threshold ties on a small exact-rational corpus, then stream the accepted inputs once. The [shortwave adding contract](references/openifs/physics/adding_ica_sw.md) demonstrates this method.
 
 ## Locate the performance bound
 
