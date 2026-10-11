@@ -1,0 +1,224 @@
+// Physics input formulations/openifs/physics/convective_initial_state.md.
+// Contract skills/md2asm/references/openifs/physics/cuinin.md.
+// Complete normal-physics CUADJTQ ICALL=3 body, privately used by CUININ.
+// Other queued CUADJTQ modes are separate and are not counted here.
+.text
+.p2align 4
+.global md2asm_cuinin_environment
+.type md2asm_cuinin_environment,%function
+md2asm_cuinin_environment:
+    ldr x9,[sp,#16]
+    ldr w9,[x9]
+    cmp w9,#3
+    b.ne .Lchild_domain
+    ldr w9,[x0,#4]
+    cbnz w9,.Lchild_domain
+    sub sp,sp,#320
+    stp x29,x30,[sp]
+    stp x19,x20,[sp,#16]
+    stp x21,x22,[sp,#32]
+    stp x23,x24,[sp,#48]
+    stp x25,x26,[sp,#64]
+    stp x27,x28,[sp,#80]
+    ldr w19,[x1]
+    ldr w20,[x2]
+    ldr w21,[x3]
+    ldr w9,[x5]
+    sub w9,w9,#1
+    uxtw x21,w21
+    uxtw x9,w9
+    mul x22,x21,x9
+    mov x25,x6
+    mov x24,x7
+    ldr x23,[sp,#320]
+    cmp w19,w20
+    b.gt .Lchild_return
+    adrp x9,:got:__yomcst_MOD_rtt
+    ldr x9,[x9,:got_lo12:__yomcst_MOD_rtt]
+    ldr d0,[x9]
+    str d0,[sp,#112]
+    adrp x9,:got:__yoethf_MOD_r2es
+    ldr x9,[x9,:got_lo12:__yoethf_MOD_r2es]
+    ldr d0,[x9]
+    str d0,[sp,#120]
+    adrp x9,:got:__yoethf_MOD_r3les
+    ldr x9,[x9,:got_lo12:__yoethf_MOD_r3les]
+    ldr d0,[x9]
+    str d0,[sp,#128]
+    adrp x9,:got:__yoethf_MOD_r3ies
+    ldr x9,[x9,:got_lo12:__yoethf_MOD_r3ies]
+    ldr d0,[x9]
+    str d0,[sp,#136]
+    adrp x9,:got:__yoethf_MOD_r4les
+    ldr x9,[x9,:got_lo12:__yoethf_MOD_r4les]
+    ldr d0,[x9]
+    str d0,[sp,#144]
+    adrp x9,:got:__yoethf_MOD_r4ies
+    ldr x9,[x9,:got_lo12:__yoethf_MOD_r4ies]
+    ldr d0,[x9]
+    str d0,[sp,#152]
+    adrp x9,:got:__yoethf_MOD_r5alvcp
+    ldr x9,[x9,:got_lo12:__yoethf_MOD_r5alvcp]
+    ldr d0,[x9]
+    str d0,[sp,#160]
+    adrp x9,:got:__yoethf_MOD_r5alscp
+    ldr x9,[x9,:got_lo12:__yoethf_MOD_r5alscp]
+    ldr d0,[x9]
+    str d0,[sp,#168]
+    adrp x9,:got:__yoethf_MOD_ralvdcp
+    ldr x9,[x9,:got_lo12:__yoethf_MOD_ralvdcp]
+    ldr d0,[x9]
+    str d0,[sp,#176]
+    adrp x9,:got:__yoethf_MOD_ralsdcp
+    ldr x9,[x9,:got_lo12:__yoethf_MOD_ralsdcp]
+    ldr d0,[x9]
+    str d0,[sp,#184]
+    adrp x9,:got:__yoethf_MOD_rtwat
+    ldr x9,[x9,:got_lo12:__yoethf_MOD_rtwat]
+    ldr d0,[x9]
+    str d0,[sp,#192]
+    adrp x9,:got:__yoethf_MOD_rticecu
+    ldr x9,[x9,:got_lo12:__yoethf_MOD_rticecu]
+    ldr d0,[x9]
+    str d0,[sp,#200]
+    adrp x9,:got:__yoethf_MOD_rtwat_rticecu_r
+    ldr x9,[x9,:got_lo12:__yoethf_MOD_rtwat_rticecu_r]
+    ldr d0,[x9]
+    str d0,[sp,#208]
+    adrp x9,:got:__yomcst_MOD_retv
+    ldr x9,[x9,:got_lo12:__yomcst_MOD_retv]
+    ldr d0,[x9]
+    str d0,[sp,#216]
+
+    sub w26,w19,#1
+.Lchild_column:
+    add x28,x22,x26
+    ldr d0,[x24,x28,lsl #3]
+    str d0,[sp,#224]
+    ldr d0,[x23,x28,lsl #3]
+    str d0,[sp,#232]
+    ldr d0,[x25,x26,lsl #3]
+    fmov d1,#1.0
+    fdiv d0,d1,d0
+    str d0,[sp,#248]
+    mov w27,#2
+.Lchild_pass:
+    ldr d0,[sp,#224]
+    ldr d1,[sp,#192]
+    fmin d0,d1,d0
+    ldr d1,[sp,#200]
+    fmax d0,d1,d0
+    fsub d0,d0,d1
+    ldr d1,[sp,#208]
+    fmul d0,d0,d1
+    fmul d0,d0,d0
+    fmov d1,#1.0
+    fmin d0,d1,d0
+    str d0,[sp,#240]
+    ldr d0,[sp,#224]
+    ldr d1,[sp,#112]
+    fsub d1,d0,d1
+    ldr d2,[sp,#128]
+    fmul d1,d2,d1
+    ldr d2,[sp,#144]
+    fsub d0,d0,d2
+    fdiv d0,d1,d0
+    bl exp
+    str d0,[sp,#280]
+    ldr d0,[sp,#224]
+    ldr d1,[sp,#112]
+    fsub d1,d0,d1
+    ldr d2,[sp,#136]
+    fmul d1,d2,d1
+    ldr d2,[sp,#152]
+    fsub d0,d0,d2
+    fdiv d0,d1,d0
+    bl exp
+    ldr d1,[sp,#240]
+    fmov d2,#1.0
+    fsub d2,d2,d1
+    fmul d0,d2,d0
+    ldr d2,[sp,#280]
+    fmul d2,d1,d2
+    fadd d0,d2,d0
+    ldr d1,[sp,#120]
+    fmul d0,d1,d0
+    ldr d1,[sp,#248]
+    fmul d0,d0,d1
+    fmov d1,#0.5
+    fmin d0,d1,d0
+    ldr d1,[sp,#216]
+    fmul d1,d1,d0
+    fmov d2,#1.0
+    fsub d1,d2,d1
+    fdiv d1,d2,d1
+    str d1,[sp,#264]
+    fmul d0,d0,d1
+    str d0,[sp,#256]
+    // FOEDEMCU retains denominator squares before exact divisions.
+    ldr d0,[sp,#224]
+    ldr d1,[sp,#144]
+    fsub d1,d0,d1
+    fmul d1,d1,d1
+    fmov d2,#1.0
+    fdiv d1,d2,d1
+    ldr d2,[sp,#240]
+    ldr d3,[sp,#160]
+    fmul d3,d2,d3
+    fmul d3,d3,d1
+    ldr d1,[sp,#152]
+    fsub d1,d0,d1
+    fmul d1,d1,d1
+    fmov d0,#1.0
+    fdiv d1,d0,d1
+    fsub d2,d0,d2
+    ldr d4,[sp,#168]
+    fmul d2,d2,d4
+    fmul d2,d2,d1
+    fadd d3,d3,d2
+    ldr d0,[sp,#256]
+    ldr d1,[sp,#264]
+    fmul d1,d0,d1
+    fmul d1,d1,d3
+    fmov d2,#1.0
+    fadd d1,d2,d1
+    ldr d2,[sp,#232]
+    fsub d0,d2,d0
+    fdiv d0,d0,d1
+    ldr d1,[sp,#240]
+    ldr d2,[sp,#176]
+    fmul d2,d1,d2
+    fmov d3,#1.0
+    fsub d1,d3,d1
+    ldr d3,[sp,#184]
+    fmul d1,d1,d3
+    fadd d1,d2,d1
+    fmul d1,d1,d0
+    ldr d2,[sp,#224]
+    fadd d1,d2,d1
+    str d1,[sp,#224]
+    ldr d1,[sp,#232]
+    fsub d1,d1,d0
+    str d1,[sp,#232]
+    subs w27,w27,#1
+    b.ne .Lchild_pass
+    ldr d0,[sp,#224]
+    str d0,[x24,x28,lsl #3]
+    ldr d0,[sp,#232]
+    str d0,[x23,x28,lsl #3]
+    add w26,w26,#1
+    cmp w26,w20
+    b.lt .Lchild_column
+.Lchild_return:
+    ldp x19,x20,[sp,#16]
+    ldp x21,x22,[sp,#32]
+    ldp x23,x24,[sp,#48]
+    ldp x25,x26,[sp,#64]
+    ldp x27,x28,[sp,#80]
+    ldp x29,x30,[sp]
+    add sp,sp,#320
+    ret
+.Lchild_domain:
+    brk #0x4c2
+.size md2asm_cuinin_environment,.-md2asm_cuinin_environment
+.section .note.GNU-stack,"",%progbits

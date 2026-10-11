@@ -1,0 +1,31 @@
+# Diagnostic Boundary-Layer Height Contract
+
+Revision 1 implements `VDFDPBL` from [the boundary-layer height formulation](../../../../../formulations/openifs/physics/boundary_layer_height.md), revision 1. The source is `ifs-source/arpifs/phys_ec/vdfdpbl.F90`. The [direct assembly](../../../../../src/openifs/physics/vdfdpbl.S) supplies the complete stability scan and height interpolation.
+
+## Ordered Scan And Domain
+
+Let $`K`$ count columns and $`N`$ count full levels, numbered downwards. Support $`0\leq K\leq4096`$, $`1\leq N\leq1024`$, valid one-based selected columns and empty ranges. The five state arrays have complete contiguous FP64 shape $`K\times N`$, with columns contiguous. FP64 is the 64-bit floating-point format. Selected temperatures are positive, humidity lies in $`[0,1]`$, winds are finite, and nonnegative geopotential increases upwards. All consumed intermediates and results must be finite, with positive virtual thermal energy.
+
+Reuse the accepted `RG` and `RCPD` thermodynamic globals. `RETV` supplies the finite nonnegative humidity correction and `RPLRG` the finite positive planet factor. Every constant is supplied through the same global value as the original. Form `RCPD*T`, `RETV*q`, `1+product`, their product and the geopotential addition in that order, rounding each operation. First calculate the lowest level's static energy and separately add FP64 `1.e-10`. The default height is separately rounded `1000/RPLRG`. The previous Richardson number starts at positive zero.
+
+Scan levels `N-1..1` for each column. Square each wind component, add the squares and select the maximum with the source constant `0.1*0.1`. Calculate `(S-S_bottom_perturbed)/(S-Phi)`, then `(Phi-Phi_bottom)*ratio/wind_square`, with each subtraction, multiplication and division rounded separately. A strict comparison `R>0.25` accepts the first crossing. Otherwise save `R` and continue. At a crossing, separately form `(R-0.25)*Phi_lower` and `(0.25-R_previous)*Phi_upper`, add them, then divide by `(R-R_previous)*RG`. This returns an absolute geopotential height in metres. A one-level column or a column with no crossing retains the default.
+
+Require FPCR zero for nearest rounding with ties to even, gradual underflow and signed zeros. Forbid contraction, fused multiply-add, reassociation, approximate division and reduced precision. Independent columns can run in a different order because they share no numerical state.
+
+## Fourteen-Pointer ABI
+
+The default symbol `vdfdpbl_` receives fourteen addresses with no scalar return. `ORIGINAL_SYMBOL` changes only the symbol. Arguments are `YDEPHY, KIDIA, KFDIA, KLON, KLEV, PUM1, PVM1, PTM1, PQM1, PGEOM1, PKMFL, PKHFL, PKQFL, PDHPBL`. Registers `x0..x7` carry eight addresses and the caller's aligned stack carries six. Integer scalars use 32 bits and numerical arrays use FP64.
+
+The accepted `TEPHY` object is 448 bytes, with its registered surface handle at byte 440. The original's `SURF_INQ` call requests only `PREPUST`, which copies a surface constant into an unused local value. `GET_SURF` reads its existing allocation registry without changing it. With profiling disabled, this query has no returned numerical or state effect and the direct routine omits it. The focused original fixture registers a surface context using the metadata allocator, sets its unused minimum wind-speed constant and verifies that the complete 11,584-byte context stays unchanged. This setup supplies no numerical stage. Its `REPUST` value is at byte 4,056.
+
+The three surface-flux arguments have complete length $`K`$ but are never consumed. They may contain arbitrary bit patterns. The output is a complete length-$`K`$ owner. Arrays and globals align to eight bytes, scalars to four. All inputs and globals stay read-only and the output overlaps no input. The native preserves `x19..x30`, leaves `x18` and the preserved low halves of `v8..v15` untouched, and restores its aligned stack. The native uses a fixed 96-byte stack frame and keeps each column scan in registers. No external numerical helper is required.
+
+## Independent Checks And Canonical Bytes
+
+The independent check forms the exact rational Richardson expression from physical inputs. It compares each rounded stability value with a rigorous accumulated rounding-error bound. At the accepted crossing, an independent positive-weight interpolation verifies that the height lies between the adjacent geopotential heights and agrees with their weighted height within the rounding budget. Columns without a crossing must give the prescribed default height.
+
+Canonical bytes are the complete `PDHPBL` owner, including unselected columns. The focused corpus covers early and absent crossings, the exact threshold and its adjacent values, the wind floor, signed zeros, input and output subnormals, planet factors, a one-level column, interior columns, empty ranges, unused NaN fluxes and the column and level limits. Acceptance permits zero differing bytes, unchanged metadata and physical bounds, protected numerical owners and preserved registers. The original passed 21 cases over 33,216 complete output bytes and 26,988 independent stability and height relations. The native passed both protected placements, with 42 calls, 66,432 bytes, 53,976 relations, 8,268 crossings and 24 nonzero subnormal values. All inputs, globals and the registered surface context stayed unchanged. Bounds, preserved registers and FPCR zero passed on job 7240564, node nid010555, CPU 64. The paired relay passed 21 calls and returned 33,216 bytes with zero differences. No comparative timing or speed claim is available.
+
+## Actual Forecast Acceptance
+
+The combined coarse forecast in exclusive allocation 7240564 on nid010555 observed 2,150 genuine calls. The same-input comparison covers 412,800 complete returned owner bytes with zero differences. Independent critical physics, unchanged inputs and the declared interface checks passed. All ten saved forecast files also match across 618,140 bytes. This result covers the declared routine domain and saved files. Independent whole-forecast physics, whole-process byte identity and comparative speed remain unproved.
