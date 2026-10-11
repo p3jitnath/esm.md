@@ -22,6 +22,21 @@
     bl md2asm_round_product_sum_candidate
     fmov \dest,d0
 .endm
+.global md2asm_log10_radiation_original_rounding
+.type md2asm_log10_radiation_original_rounding,%function
+md2asm_log10_radiation_original_rounding:
+    mrs x9,fpcr
+    cbnz x9,.Llog10_bad
+    fmov x10,d0
+    mov x11,#0x3d70000000000000
+    cmp x10,x11
+    b.lo .Llog10_bad
+    mov x11,#0x4130000000000000
+    cmp x10,x11
+    b.hi .Llog10_bad
+    b .Llog10_body
+.size md2asm_log10_radiation_original_rounding,.-md2asm_log10_radiation_original_rounding
+.p2align 4
 .global md2asm_log10_original_rounding
 .type md2asm_log10_original_rounding,%function
 md2asm_log10_original_rounding:
@@ -34,6 +49,7 @@ md2asm_log10_original_rounding:
     mov x11,#0x4040000000000000
     cmp x10,x11
     b.hi .Llog10_bad
+.Llog10_body:
     stp x19,x20,[sp,#-128]!
     stp x29,x30,[sp,#16]
     stp d8,d9,[sp,#32]
