@@ -71,6 +71,8 @@ Output records append each present output array in PCP, PR and PKAP order, inclu
 
 The optional --capture-capacity check extends the existing verifier for this observed buffer defect. It places exactly six PGFL fields beside an unreadable page while the main NDIM is eight, then checks the map-one mixture, complete output bits, unchanged inputs and FPCR. An eight-field capture would cross the page. The original 3,976-case corpus keeps its output bytes. Accounting markers for dependent routines change only call classification and never supply numerical work.
 
+The contained [ACCUMULATE stage](gprcp_accumulate.md) is written inside the water macro. Its supporting contract maps all six phase inputs and both property updates to the original host arguments and records their actual accepted forecast executions.
+
 ## Provenance
 
 Emit the complete assembly directly from this contract and build it with an assembler and linker. Inspect compiler output only to verify arithmetic and the interface. Keep source, contract, assembly, reference and verifier hashes with actual checks. Do not claim timing or an optimisation lesson before repeated quiet-node measurements establish a gain.

@@ -8,11 +8,11 @@ A routine body is one function or subroutine that performs a calculation. These 
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 115 | 596 |
-| Local calculations | 356 | 114 | 242 |
-| Weather calculations | 255 | 112 | 143 |
+| Main forecast phase | 711 | 116 | 595 |
+| Local calculations | 356 | 115 | 241 |
+| Weather calculations | 255 | 113 | 142 |
 
-There are 116 accepted assembly bodies overall. VERDER is outside the main forecast count. The ordered 143-routine weather queue and completed checks remain local. The latest twenty-four replacements cover complete shortwave gas optics, ten longwave bands, both atmospheric coefficient preparations, convection, saturation adjustment, gravity-wave drag, boundary-layer height, field transfer and implicit momentum diffusion. Each has genuine forecast calls.
+There are 117 accepted assembly bodies overall. VERDER is outside the main forecast count. The ordered 142-routine weather queue and completed checks remain local. The latest twenty-four replacements cover complete shortwave gas optics, ten longwave bands, both atmospheric coefficient preparations, convection, saturation adjustment, gravity-wave drag, boundary-layer height, field transfer and implicit momentum diffusion. Each has genuine forecast calls. The contained GPRCP accumulation is also identified in its unchanged accepted parent, with 8,600 actual model stages and reused complete parent checks.
 
 ## Verification
 
