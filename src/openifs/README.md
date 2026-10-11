@@ -8,11 +8,11 @@ A routine body is one function or subroutine that performs a calculation. These 
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 158 | 553 |
-| Local calculations | 356 | 157 | 199 |
-| Weather calculations | 255 | 155 | 100 |
+| Main forecast phase | 711 | 200 | 511 |
+| Local calculations | 356 | 199 | 157 |
+| Weather calculations | 255 | 197 | 58 |
 
-There are 159 accepted assembly bodies overall. VERDER is outside the main forecast count. The ordered 100-routine weather queue and completed checks remain local. The latest combined batch accepts 42 complete atmospheric, surface, snow, transport and spectral bodies from genuine model calls.
+There are 201 accepted assembly bodies overall. VERDER is outside the main forecast count. The ordered 58-routine weather queue and completed checks remain local. The latest combined batch accepts 42 complete atmospheric, surface, snow, transport and spectral bodies from genuine model calls.
 
 ## Verification
 

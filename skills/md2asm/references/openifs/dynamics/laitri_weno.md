@@ -1,0 +1,57 @@
+# WENO Departure-Point Contract
+
+The physical input is [departure_point_weno.md](../../../../../formulations/openifs/dynamics/departure_point_weno.md), revision 1. The queued name is `laitri_weno` from `arpifs/interpol/laitri_weno.F90`. Emit the complete calculation directly in [laitri_weno.S](../../../../../src/openifs/dynamics/laitri_weno.S).
+
+## Calculation and Scientific Domain
+
+Retain all five smoothness choices, both boundary settings, the optional exponent, the upper-level exponent adjustment, and limiter modes −1, 0, 1, 2 and 3. A smoothness value measures variation within a vertical stencil. The first four choices use squared polynomial derivatives. The fifth uses undivided differences, which compare adjacent sampled values without dividing by their spacing. Each exact quadratic form is nonnegative.
+
+Calculate the complete longitude and latitude interpolation for six vertical positions. Keep the original linear edge rows and cubic inner rows. Apply the horizontal limits only in modes 1 and 2, leaving the outer vertical positions unchanged. Construct three cubic vertical candidates with the source's boundary shifts. Weight each candidate with its supplied nonnegative linear weight divided by the powered smoothness-plus-cutoff value. Preserve the source's signed magnitude floor, the ordered three-weight sum, its two explicit normalisations and its final difference form. Use the approved original-compatible opaque POWER primitive without global power interposition.
+
+The supplied horizontal and vertical weights come from the model grid and can include diffusion. The grid spacing can be unequal, and its coordinates are not arguments of this routine. Require finite weights only where the source consumes them. When WENO is enabled for a cell, its supplied linear weights must be nonnegative and normalised. All consumed field values and candidates are finite. Require strictly positive finite powered bases, finite positive denominators, a finite positive weight sum and a finite returned field. Preserve the original `1e-6` smoothness cutoff and `100*EPSILON(FP64)` magnitude floor. Exponents are finite from zero to four. These are explicit acceptance limits, not repairs to source arithmetic.
+
+When a nonzero source boundary flag disables WENO when its boundary option is off, retain its complete central cubic candidate. Modes 2 and 3 bound the returned value between the two inner vertical values. Mode −1 bounds the result by the eight surrounding old cells. When its conservative option is enabled, add the previous column residual and carry the newly removed amount after multiplying by the supplied vertical factor. State the resulting local residual balance without claiming global mass conservation.
+
+## Ordered Arithmetic and Storage
+
+Use separately rounded FP64 addition, subtraction, multiplication and division. Keep each coefficient multiplication followed by its field multiplication, then add the ten smoothness terms from left to right. The eight-cell minimum and maximum reductions retain the first value when later values are equal, including signed-zero ties. The final clamp uses the original Arm min/max number instructions. Preserve all subtraction signs, the POWER result's sign and the original positive-zero residual initialisation. The source object's consumed POWER calls are scalar `pow` calls, and its body has no fused floating-point instruction.
+
+Process each active cell's 56 old values with small fixed scratch rows. Stage the complete returned owner and one residual per column in a single private allocation. Validate every new base and weight sum before committing any public output word. Preserve inactive cells exactly. This storage permits a domain rejection before public changes, and it removes the source's many separate temporary allocations. No performance claim is made before measurement.
+
+## Interface and Bounds
+
+All 22 GNU Fortran arguments are ordinary addresses. The first eight use registers `x0` through `x7`, and the final 14 begin at the caller's stack pointer. The final three pointers are optional exponent, vertical factor and conservative flag. A null address means that an optional argument is absent. Mode −1 requires the final two arguments. Other modes do not consume them.
+
+The `TDYN` owner is 4,720 bytes. Its exponent is at 4,264, upper exponent at 4,272, upper-level count at 4,280, smoothness code at 4,284 and boundary logical at 4,288. A metadata-only GNU type probe establishes these offsets. Integers and logicals are four bytes, and fields are eight-byte FP64 values.
+
+Support one through 2,048 departure columns and one through 512 returned levels, including cropped intervals and every empty interval with a valid start and an end from zero through the column count. The old horizontal stride `KSLB1` is from 4 through 134,217,728 words, the supplied field count is from 1 through 512, and their product must not exceed 2,147,483,647 words. The old field has `KSLB1*(KFLDX-KFLDN+1)` words. Each supplied integer index and all 56 source stencil offsets must lie within that owner. The first array dimension is the departure-column count. Latitude distance has one plane, latitude cubic weights three, longitude distances four, longitude cubic weights six, old indices four, boundary flags one, linear WENO weights three and vertical cubic weights nine. Every plane contains `KPROMA*KFLEV` entries. The returned field has one such plane. Canonical output consists of every eight-byte FP64 word of that complete owner, in little-endian order, with the departure column changing fastest and then the returned level. There is no output header or timing metadata, and inactive words retain their original bit patterns.
+
+Require aligned input owners and an output owner disjoint from every consumed input, valid integer bounds, four-byte integer alignment and eight-byte field alignment. Preserve `x19` through `x29`, the lower 64 bits of `v8` through `v15`, stack alignment and FPCR zero. Profiling may be enabled. The original scalar and vector loop organisations must return the same admitted output words.
+
+## Independent Acceptance
+
+Before emission, check the original calculation against independent polynomial interpolation, nonnegative derivative or difference quadratic forms, convex WENO weighting, limiter bounds, constant, horizontal-affine and vertical-cubic reproduction and the carried residual identity. Check source/native complete output bytes, finite input consumption, boundary shifts, optional arguments, all smoothness and limiter choices, cropped and empty columns, read-only owners, register preservation and floating-point status. Qualify only new POWER operands and reuse its unchanged primitive proof. Actual forecast calls and saved files remain required before counting this queued name.
+
+The 56-point source stencil uses linear longitude interpolation on its outer latitude rows. Its polynomial reproduction claim therefore covers horizontal affine fields and vertical cubic fields. It does not claim exact reproduction of every three-dimensional cubic polynomial. The independent gate checks this stencil through a weighted linear combination of its supplied values. Polynomial reproduction checks use controlled fixtures with known grid coordinates; they do not impose equal spacing on actual model weights.
+
+## Focused Result And Limits
+
+The complete source/native gate passes 31 protected calls over 8,096 returned bytes with zero differences and 16,800 independent relations at 120 decimal digits. The paired observer passes the same 31 calls, all output bytes and fresh floating-point status, with 7,770 independent live relations. Both checks cover all five smoothness choices, every limiter mode and the earlier boundary flags −1, 0 and 1. Eight additional signed-zero cases pass 384 bytes through both original loop routes, and a deeper empty interval preserves all 120 bytes. A bad consumed field value and output/input overlap each reject before public bytes change. The original eight-cell reduction retains its first equal corner; its first native tie failure and corrected evidence remain local. The object has no fused or approximate floating-point instruction.
+
+The unchanged private POWER primitive reuses its earlier source review. WENO adds 545 distinct qualified operand pairs from 2,823 recorded original calls; each result and fresh status agrees, and its largest sampled error is 0.496897 ulp at 120 decimal digits. An ulp is the spacing between adjacent FP64 values near the result. This sampled check is not a global accuracy bound. No separate forecast or timing run is part of this checkpoint, and actual forecast calls and saved files remain pending.
+
+The actual LAITRE_GMV caller supplies boundary flag 2. The original shifts the two outer samples by the flag and uses cubic starts `1`, `2 + min(0, flag)` and `max(0, flag)`. Flags from −2 through 2 keep all enabled cubic starts between zero and two. The guard now admits that full range. Two protected source/native/paired flag-2 placements match 96 bytes with zero differences and 168 independent relations; fresh status and ABI pass. A WENO start of three rejects before all 48 public output bytes change. Existing arithmetic, earlier full gates and unchanged prewrite proofs are reused.
+
+The first actual call exposed a guard defect: its latitude weight was 0.018896070671919264, while a unit-spacing assumption predicted 0.018748034987344394. The LASCAW caller uses model-grid weights, with unequal vertical spacing and possible diffusion. The paired guard now checks the supplied weighted calculation without inferring unavailable grid coordinates. A boundary fallback consumes only the first vertical weight triple and no linear WENO weights, so unused planes may contain nonfinite values. The numerical assembly is unchanged.
+
+Three focused source/native/paired calls pass 3,744 complete output bytes with zero differences, including the captured actual call of 24 columns and 19 levels. Independent checks pass 5,220 relations at 120 decimal digits, and the paired observer passes 2,610 live relations. The actual call includes all flags from −2 through 2. Two controlled cases cover unequal spacing and unused boundary planes. Six consumed-weight rejections preserve all 48 public bytes. Another 1,060 distinct POWER operands match source bits and fresh status; their maximum sampled error is 0.502234 ulp within the accepted one-ulp sampled limit. Actual complete forecast and saved-file acceptance remain required.
+
+## Actual Forecast Acceptance
+
+The combined coarse forecast in exclusive allocation 7240564 on nid010555 passes these positive actual calls with zero differing bytes. Each byte scope describes the complete owners compared by that routine.
+
+| Original routine | Actual calls | Compared bytes | Byte scope |
+| --- | ---: | ---: | --- |
+| laitri_weno | 4,300 | 15,686,400 | Complete returned routine owners |
+
+All ten saved files also match across 618,140 bytes. The accepted critical physics and interface checks are reused. These checks cover the declared routine domains and saved files. Whole-forecast physical verification, whole-process byte identity and comparative timing remain open in the [coverage record](../../../../../src/openifs/README.md).

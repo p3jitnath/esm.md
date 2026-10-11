@@ -1,52 +1,28 @@
-# OpenIFS surface exchange
+# Surface Exchange
 
-Revision 1.0 describes the basic surface energy and water balances in OpenIFS 48.1.1.
+Revision 1. Wind moves momentum, heat and water between the surface and the lowest atmosphere layer. Stable air reduces this mixing, while surface heating increases it.
 
-## The idea
-
-The surface receives radiation and exchanges heat and water with the air. OpenIFS represents different surface types as tiles. Each tile occupies a known fraction of the grid cell.
-
-## Symbols
-
-| Symbol | Meaning and unit |
-| --- | --- |
-| $`R,H,F_L,G`$ | Net incoming radiation, upward heat, upward latent heat and heat into the ground, in watts per square metre |
-| $`E,L`$ | Upward water flux in kilograms per square metre per second and phase-change energy in joules per kilogram |
-| $`\lambda,T_s,T_b`$ | Surface conductance in watts per square metre per kelvin and skin and underlying temperatures in kelvin |
-| $`a_i,X_i,\overline X`$ | Tile area fraction, tile flux and grid-cell average flux |
-
-## Equations
-
-**P01. Skin energy balance**
+Let $`U`$ be wind speed relative to the surface in metres per second, $`\rho`$ air density in kilograms per cubic metre and $`\kappa`$ the dimensionless von Kármán constant. Let $`M`$, $`H`$, $`Q`$ and $`C`$ describe the dimensionless wind, temperature, moisture and tracer profiles. A tracer is a substance carried by the air.
 
 ```math
-R=H+F_L+G,
-\qquad
-F_L=L E.
+c_m=\frac{\rho U\kappa^2}{M^2},\qquad
+c_h=\frac{\rho U\kappa^2}{MH},\qquad
+c_q=\frac{\rho U\kappa^2}{MQ}.
 ```
 
-The latent heat flux is the phase-change energy multiplied by the water flux. The surface skin balances incoming radiation against the three outgoing energy terms.
-
-**P02. Heat passed to the material below**
+These coefficients give momentum, heat and water transfer in kilograms per square metre per second. Heat and tracer transfer without density have units of metres per second.
 
 ```math
-G=\lambda(T_s-T_b).
+k_h=\frac{c_h}{\rho},\qquad
+k_c=\frac{U\kappa^2}{MC}.
 ```
 
-A warmer skin transfers heat downwards. The configured surface type determines the conductance.
-
-**P03. Combine the tiles**
+Each profile combines a logarithmic height ratio with a stability correction $`\psi`$. Here $`z`$ is height in metres, $`z_0`$ a roughness length in metres and $`L`$ the Obukhov length in metres. The ratio $`z/L`$ describes atmospheric stability.
 
 ```math
-\overline X=\sum_i a_iX_i,
-\qquad
-\sum_i a_i=1.
+M=\ln\!\left(\frac{z}{z_{0m}}\right)-\psi_m(z/L)+\psi_m(z_{0m}/L).
 ```
 
-Each tile contributes according to its area, so the average retains the flux units.
+Heat, water and tracer profiles use their corresponding roughness lengths and corrections. The retained OpenIFS parameter set supplies the empirical stable and unstable functions, $`\kappa`$, a minimum squared wind speed and the height used for convective mixing.
 
-## Parameters, initial state, and boundaries
-
-Tile fractions, vegetation, surface conductance, emissivity and starting temperatures come from the upstream state and configuration. Preserve their values. Soil, snow, lakes and sea ice store the energy and water received beneath the skin. Their separate balances require the corresponding model contracts.
-
-The local SURFSEB and surfseb_ctl_mod sources define the skin balance and tile coupling, identified by the [source record](../../../src/openifs/README.md). Aerodynamic exchange, evaporation limits and coupling details belong in md2asm contracts.
+The inputs are the current surface state and the lowest atmosphere layer. Pressure is in pascals, temperature in kelvins, humidity in kilograms per kilogram, wind in metres per second and geopotential in square metres per square second. Each column is independent. The [md2asm contract](../../../skills/md2asm/references/openifs/surface/vexcs.md) specifies the numerical method, complete iteration and verification limits.

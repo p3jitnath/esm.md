@@ -1,0 +1,1239 @@
+/* Complete gas absorption and emission parent.
+ * Physics formulations/openifs/physics/gas_absorption_and_emission.md.
+ * Contract skills/md2asm/references/openifs/physics/gas_optics.md.
+ * Fifteen addresses, complete private native numerical children.
+ * Preserve x18, x19 through x29 and d8 through d15. */
+#ifndef ORIGINAL_SYMBOL
+#define ORIGINAL_SYMBOL __radiation_ifs_rrtm_MOD_gas_optics
+#endif
+.text
+.p2align 4
+.global md2asm_gas_optics
+.global ORIGINAL_SYMBOL
+.type md2asm_gas_optics,%function
+.type ORIGINAL_SYMBOL,%function
+md2asm_gas_optics:
+ORIGINAL_SYMBOL:
+    mov x16,sp
+    sub sp,sp,#2048
+    str x18,[sp,#1400]
+stp x19,x20,[sp,#352]
+stp x21,x22,[sp,#368]
+stp x23,x24,[sp,#384]
+stp x25,x26,[sp,#400]
+stp x27,x28,[sp,#416]
+stp x29,x30,[sp,#432]
+str x0,[sp,#448]
+str x1,[sp,#456]
+str x2,[sp,#464]
+str x3,[sp,#472]
+str x4,[sp,#480]
+str x5,[sp,#488]
+str x6,[sp,#496]
+str x7,[sp,#504]
+ldr x9,[x16,#0]
+    str x9,[sp,#512]
+ldr x9,[x16,#8]
+    str x9,[sp,#520]
+ldr x9,[x16,#16]
+    str x9,[sp,#528]
+ldr x9,[x16,#24]
+    str x9,[sp,#536]
+ldr x9,[x16,#32]
+    str x9,[sp,#544]
+ldr x9,[x16,#40]
+    str x9,[sp,#552]
+ldr x9,[x16,#48]
+    str x9,[sp,#560]
+ldr x9,[sp,#464]
+    ldrsw x22,[x9]
+    ldr x9,[sp,#472]
+    ldrsw x19,[x9]
+    sub x19,x19,x22
+    add x19,x19,#1
+    cmp x19,#0
+    b.le .Lreturn
+    sub x22,x22,#1
+    ldr x9,[sp,#448]
+    ldrsw x21,[x9]
+    ldr x9,[sp,#456]
+    ldrsw x20,[x9]
+    ldr x23,[sp,#480]
+    ldr x24,[sp,#488]
+    ldr x25,[sp,#496]
+    ldr x27,[sp,#504]
+    str w19,[sp,#1312]
+    str xzr,[sp,#1280]
+    str xzr,[sp,#1288]
+    str xzr,[sp,#1296]
+    str xzr,[sp,#1304]
+    str w20,[sp,#1280]
+    mov x9,#0
+str x9,[sp,#576]
+mul x10,x21,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#584]
+mul x10,x21,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#592]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#600]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#608]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#616]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#624]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#632]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#640]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#648]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#656]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#664]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#672]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#680]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#688]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#696]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#704]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#712]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#720]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#728]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#736]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#744]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#752]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#760]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#768]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#776]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#784]
+mul x10,x19,x20
+mov x11,#35
+    mul x10,x10,x11
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#792]
+mul x10,x19,x20
+mov x11,#4
+    mul x10,x10,x11
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#800]
+add x10,x20,#1
+    mul x10,x19,x10
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#808]
+add x10,x20,#1
+    mul x10,x19,x10
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#816]
+mul x10,x19,x20
+lsl x10,x10,#2
+add x10,x10,#7
+    and x10,x10,#-8
+add x9,x9,x10
+str x9,[sp,#824]
+mul x10,x19,x20
+lsl x10,x10,#2
+add x10,x10,#7
+    and x10,x10,#-8
+add x9,x9,x10
+str x9,[sp,#832]
+mul x10,x19,x20
+lsl x10,x10,#2
+add x10,x10,#7
+    and x10,x10,#-8
+add x9,x9,x10
+str x9,[sp,#840]
+mul x10,x19,x20
+lsl x10,x10,#2
+add x10,x10,#7
+    and x10,x10,#-8
+add x9,x9,x10
+str x9,[sp,#848]
+mul x10,x19,x20
+lsl x10,x10,#2
+add x10,x10,#7
+    and x10,x10,#-8
+add x9,x9,x10
+str x9,[sp,#856]
+mul x10,x19,x20
+lsl x10,x10,#2
+add x10,x10,#7
+    and x10,x10,#-8
+add x9,x9,x10
+str x9,[sp,#864]
+mov x10,x19
+lsl x10,x10,#2
+add x10,x10,#7
+    and x10,x10,#-8
+add x9,x9,x10
+str x9,[sp,#872]
+mov x10,x19
+lsl x10,x10,#2
+add x10,x10,#7
+    and x10,x10,#-8
+add x9,x9,x10
+str x9,[sp,#880]
+mov x10,x19
+lsl x10,x10,#2
+add x10,x10,#7
+    and x10,x10,#-8
+add x9,x9,x10
+str x9,[sp,#888]
+mov x10,x19
+lsl x10,x10,#2
+add x10,x10,#7
+    and x10,x10,#-8
+add x9,x9,x10
+str x9,[sp,#896]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#904]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#912]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#920]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#928]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#936]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#944]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#952]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#960]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#968]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#976]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#984]
+mul x10,x19,x20
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#992]
+mul x10,x19,x20
+mov x11,#140
+    mul x10,x10,x11
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#1000]
+mul x10,x19,x20
+mov x11,#140
+    mul x10,x10,x11
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#1008]
+mul x10,x19,x20
+mov x11,#16
+    mul x10,x10,x11
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#1016]
+mul x10,x19,x20
+mov x11,#112
+    mul x10,x10,x11
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#1024]
+mul x10,x19,x20
+mov x11,#112
+    mul x10,x10,x11
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#1032]
+mov x10,x19
+mov x11,#112
+    mul x10,x10,x11
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#1040]
+mov x10,x19
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#1048]
+mov x10,x19
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#1056]
+mov x10,x19
+lsl x10,x10,#3
+add x9,x9,x10
+str x9,[sp,#1336]
+    mov x0,x9
+    bl malloc
+    cbz x0,.Lallocation_failed
+    mov x26,x0
+    str x26,[sp,#1328]
+ldr x9,[sp,#576]
+    add x9,x26,x9
+    str x9,[sp,#576]
+ldr x9,[sp,#584]
+    add x9,x26,x9
+    str x9,[sp,#584]
+ldr x9,[sp,#592]
+    add x9,x26,x9
+    str x9,[sp,#592]
+ldr x9,[sp,#600]
+    add x9,x26,x9
+    str x9,[sp,#600]
+ldr x9,[sp,#608]
+    add x9,x26,x9
+    str x9,[sp,#608]
+ldr x9,[sp,#616]
+    add x9,x26,x9
+    str x9,[sp,#616]
+ldr x9,[sp,#624]
+    add x9,x26,x9
+    str x9,[sp,#624]
+ldr x9,[sp,#632]
+    add x9,x26,x9
+    str x9,[sp,#632]
+ldr x9,[sp,#640]
+    add x9,x26,x9
+    str x9,[sp,#640]
+ldr x9,[sp,#648]
+    add x9,x26,x9
+    str x9,[sp,#648]
+ldr x9,[sp,#656]
+    add x9,x26,x9
+    str x9,[sp,#656]
+ldr x9,[sp,#664]
+    add x9,x26,x9
+    str x9,[sp,#664]
+ldr x9,[sp,#672]
+    add x9,x26,x9
+    str x9,[sp,#672]
+ldr x9,[sp,#680]
+    add x9,x26,x9
+    str x9,[sp,#680]
+ldr x9,[sp,#688]
+    add x9,x26,x9
+    str x9,[sp,#688]
+ldr x9,[sp,#696]
+    add x9,x26,x9
+    str x9,[sp,#696]
+ldr x9,[sp,#704]
+    add x9,x26,x9
+    str x9,[sp,#704]
+ldr x9,[sp,#712]
+    add x9,x26,x9
+    str x9,[sp,#712]
+ldr x9,[sp,#720]
+    add x9,x26,x9
+    str x9,[sp,#720]
+ldr x9,[sp,#728]
+    add x9,x26,x9
+    str x9,[sp,#728]
+ldr x9,[sp,#736]
+    add x9,x26,x9
+    str x9,[sp,#736]
+ldr x9,[sp,#744]
+    add x9,x26,x9
+    str x9,[sp,#744]
+ldr x9,[sp,#752]
+    add x9,x26,x9
+    str x9,[sp,#752]
+ldr x9,[sp,#760]
+    add x9,x26,x9
+    str x9,[sp,#760]
+ldr x9,[sp,#768]
+    add x9,x26,x9
+    str x9,[sp,#768]
+ldr x9,[sp,#776]
+    add x9,x26,x9
+    str x9,[sp,#776]
+ldr x9,[sp,#784]
+    add x9,x26,x9
+    str x9,[sp,#784]
+ldr x9,[sp,#792]
+    add x9,x26,x9
+    str x9,[sp,#792]
+ldr x9,[sp,#800]
+    add x9,x26,x9
+    str x9,[sp,#800]
+ldr x9,[sp,#808]
+    add x9,x26,x9
+    str x9,[sp,#808]
+ldr x9,[sp,#816]
+    add x9,x26,x9
+    str x9,[sp,#816]
+ldr x9,[sp,#824]
+    add x9,x26,x9
+    str x9,[sp,#824]
+ldr x9,[sp,#832]
+    add x9,x26,x9
+    str x9,[sp,#832]
+ldr x9,[sp,#840]
+    add x9,x26,x9
+    str x9,[sp,#840]
+ldr x9,[sp,#848]
+    add x9,x26,x9
+    str x9,[sp,#848]
+ldr x9,[sp,#856]
+    add x9,x26,x9
+    str x9,[sp,#856]
+ldr x9,[sp,#864]
+    add x9,x26,x9
+    str x9,[sp,#864]
+ldr x9,[sp,#872]
+    add x9,x26,x9
+    str x9,[sp,#872]
+ldr x9,[sp,#880]
+    add x9,x26,x9
+    str x9,[sp,#880]
+ldr x9,[sp,#888]
+    add x9,x26,x9
+    str x9,[sp,#888]
+ldr x9,[sp,#896]
+    add x9,x26,x9
+    str x9,[sp,#896]
+ldr x9,[sp,#904]
+    add x9,x26,x9
+    str x9,[sp,#904]
+ldr x9,[sp,#912]
+    add x9,x26,x9
+    str x9,[sp,#912]
+ldr x9,[sp,#920]
+    add x9,x26,x9
+    str x9,[sp,#920]
+ldr x9,[sp,#928]
+    add x9,x26,x9
+    str x9,[sp,#928]
+ldr x9,[sp,#936]
+    add x9,x26,x9
+    str x9,[sp,#936]
+ldr x9,[sp,#944]
+    add x9,x26,x9
+    str x9,[sp,#944]
+ldr x9,[sp,#952]
+    add x9,x26,x9
+    str x9,[sp,#952]
+ldr x9,[sp,#960]
+    add x9,x26,x9
+    str x9,[sp,#960]
+ldr x9,[sp,#968]
+    add x9,x26,x9
+    str x9,[sp,#968]
+ldr x9,[sp,#976]
+    add x9,x26,x9
+    str x9,[sp,#976]
+ldr x9,[sp,#984]
+    add x9,x26,x9
+    str x9,[sp,#984]
+ldr x9,[sp,#992]
+    add x9,x26,x9
+    str x9,[sp,#992]
+ldr x9,[sp,#1000]
+    add x9,x26,x9
+    str x9,[sp,#1000]
+ldr x9,[sp,#1008]
+    add x9,x26,x9
+    str x9,[sp,#1008]
+ldr x9,[sp,#1016]
+    add x9,x26,x9
+    str x9,[sp,#1016]
+ldr x9,[sp,#1024]
+    add x9,x26,x9
+    str x9,[sp,#1024]
+ldr x9,[sp,#1032]
+    add x9,x26,x9
+    str x9,[sp,#1032]
+ldr x9,[sp,#1040]
+    add x9,x26,x9
+    str x9,[sp,#1040]
+ldr x9,[sp,#1048]
+    add x9,x26,x9
+    str x9,[sp,#1048]
+ldr x9,[sp,#1056]
+    add x9,x26,x9
+    str x9,[sp,#1056]
+ldr x10,[sp,#1336]
+    mov x9,#0
+.Lclear:
+    cmp x9,x10
+    b.hs .Lcleared
+    str xzr,[x26,x9]
+    add x9,x9,#8
+    b .Lclear
+.Lcleared:
+    ldr x9,[x27,#224]
+    sub x9,x9,x20
+    mul x10,x21,x9
+    ldr x11,[x25,#0]
+    add x11,x11,x10,lsl #3
+str x11,[sp,#1064]
+ldr x11,[x25,#88]
+    add x11,x11,x10,lsl #3
+str x11,[sp,#1072]
+ldr x12,[x27,#144]
+    add x12,x12,x10,lsl #3
+    ldr x11,[x27,#232]
+    lsl x11,x11,#3
+str x12,[sp,#1080]
+    add x12,x12,x11
+str x12,[sp,#1088]
+    add x12,x12,x11
+str x12,[sp,#1096]
+    add x12,x12,x11
+str x12,[sp,#1104]
+    add x12,x12,x11
+str x12,[sp,#1112]
+    add x12,x12,x11
+str x12,[sp,#1120]
+    add x12,x12,x11
+str x12,[sp,#1128]
+    add x12,x12,x11
+str x12,[sp,#1136]
+    add x12,x12,x11
+str x12,[sp,#1144]
+    add x12,x12,x11
+str x12,[sp,#1152]
+    add x12,x12,x11
+str x12,[sp,#1160]
+    add x12,x12,x11
+str x12,[sp,#1168]
+    add x12,x12,x11
+ldr x9,[sp,#1064]
+ldr x10,[sp,#1072]
+ldr x11,[sp,#576]
+ldr x12,[sp,#584]
+mov x13,#0
+    fmov d4,#0.5
+.Lmean_layer:
+    cmp x13,x20
+    b.hs .Lmean_done
+    mul x15,x13,x21
+    add x15,x15,x22
+    add x16,x15,x21
+    mov x14,#0
+.Lmean_column:
+    cmp x14,x19
+    b.hs .Lmean_next
+    add x17,x15,x14
+    ldr d0,[x9,x17,lsl #3]
+    add x17,x16,x14
+    ldr d1,[x9,x17,lsl #3]
+    fadd d0,d0,d1
+    fmul d0,d0,d4
+    add x17,x15,x14
+    str d0,[x11,x17,lsl #3]
+    ldr d0,[x10,x17,lsl #3]
+    add x17,x16,x14
+    ldr d1,[x10,x17,lsl #3]
+    fadd d0,d0,d1
+    fmul d0,d0,d4
+    add x17,x15,x14
+    str d0,[x12,x17,lsl #3]
+    add x14,x14,#1
+    b .Lmean_column
+.Lmean_next:
+    add x13,x13,#1
+    b .Lmean_layer
+.Lmean_done:
+movz x9,#0x0be9
+movk x9,#0xe721,lsl #16
+movk x9,#0xfffd,lsl #32
+movk x9,#0x3fef,lsl #48
+str x9,[sp,#1320]
+ldr x10,[sp,#1040]
+ldr x11,[sp,#1056]
+ldr x12,[x24,#0]
+    add x12,x12,x22,lsl #3
+    mov x13,#0
+.Lcolumn_constants:
+    cmp x13,x19
+    b.hs .Lconstants_done
+    str x9,[x10,x13,lsl #3]
+    ldr x14,[x12,x13,lsl #3]
+    str x14,[x11,x13,lsl #3]
+    add x13,x13,#1
+    b .Lcolumn_constants
+.Lconstants_done:
+ldr x0,[sp,#464]
+ldr x1,[sp,#472]
+ldr x2,[sp,#448]
+ldr x3,[sp,#456]
+ldr x4,[sp,#1064]
+ldr x5,[sp,#576]
+ldr x6,[sp,#1072]
+ldr x7,[sp,#584]
+ldr x9,[sp,#1080]
+str x9,[sp,#0]
+ldr x9,[sp,#1088]
+str x9,[sp,#8]
+ldr x9,[sp,#1120]
+str x9,[sp,#16]
+ldr x9,[sp,#1104]
+str x9,[sp,#24]
+ldr x9,[sp,#1168]
+str x9,[sp,#32]
+ldr x9,[sp,#1136]
+str x9,[sp,#40]
+ldr x9,[sp,#1144]
+str x9,[sp,#48]
+ldr x9,[sp,#1152]
+str x9,[sp,#56]
+ldr x9,[sp,#1160]
+str x9,[sp,#64]
+ldr x9,[sp,#1096]
+str x9,[sp,#72]
+ldr x9,[sp,#592]
+str x9,[sp,#80]
+ldr x9,[sp,#600]
+str x9,[sp,#88]
+ldr x9,[sp,#784]
+str x9,[sp,#96]
+ldr x9,[sp,#792]
+str x9,[sp,#104]
+ldr x9,[sp,#608]
+str x9,[sp,#112]
+ldr x9,[sp,#616]
+str x9,[sp,#120]
+ldr x9,[sp,#800]
+str x9,[sp,#128]
+ldr x9,[sp,#808]
+str x9,[sp,#136]
+ldr x9,[sp,#888]
+str x9,[sp,#144]
+bl md2asm_gas_optics_prepare_gases
+add x0,sp,#1280
+ldr x1,[sp,#464]
+ldr x2,[sp,#472]
+ldr x3,[sp,#456]
+ldr x4,[sp,#592]
+ldr x5,[sp,#600]
+ldr x6,[sp,#784]
+ldr x7,[sp,#624]
+ldr x9,[sp,#632]
+str x9,[sp,#0]
+ldr x9,[sp,#640]
+str x9,[sp,#8]
+ldr x9,[sp,#648]
+str x9,[sp,#16]
+ldr x9,[sp,#656]
+str x9,[sp,#24]
+ldr x9,[sp,#664]
+str x9,[sp,#32]
+ldr x9,[sp,#816]
+str x9,[sp,#40]
+ldr x9,[sp,#824]
+str x9,[sp,#48]
+ldr x9,[sp,#832]
+str x9,[sp,#56]
+ldr x9,[sp,#840]
+str x9,[sp,#64]
+ldr x9,[sp,#672]
+str x9,[sp,#72]
+ldr x9,[sp,#680]
+str x9,[sp,#80]
+ldr x9,[sp,#688]
+str x9,[sp,#88]
+ldr x9,[sp,#696]
+str x9,[sp,#96]
+ldr x9,[sp,#704]
+str x9,[sp,#104]
+ldr x9,[sp,#712]
+str x9,[sp,#112]
+ldr x9,[sp,#720]
+str x9,[sp,#120]
+ldr x9,[sp,#728]
+str x9,[sp,#128]
+ldr x9,[sp,#864]
+str x9,[sp,#136]
+ldr x9,[sp,#872]
+str x9,[sp,#144]
+ldr x9,[sp,#880]
+str x9,[sp,#152]
+ldr x9,[sp,#608]
+str x9,[sp,#160]
+ldr x9,[sp,#616]
+str x9,[sp,#168]
+ldr x9,[sp,#736]
+str x9,[sp,#176]
+ldr x9,[sp,#744]
+str x9,[sp,#184]
+ldr x9,[sp,#848]
+str x9,[sp,#192]
+ldr x9,[sp,#856]
+str x9,[sp,#200]
+ldr x9,[sp,#752]
+str x9,[sp,#208]
+ldr x9,[sp,#760]
+str x9,[sp,#216]
+ldr x9,[sp,#768]
+str x9,[sp,#224]
+ldr x9,[sp,#896]
+str x9,[sp,#232]
+ldr x9,[sp,#904]
+str x9,[sp,#240]
+ldr x9,[sp,#912]
+str x9,[sp,#248]
+ldr x9,[sp,#920]
+str x9,[sp,#256]
+ldr x9,[sp,#928]
+str x9,[sp,#264]
+ldr x9,[sp,#936]
+str x9,[sp,#272]
+ldr x9,[sp,#944]
+str x9,[sp,#280]
+ldr x9,[sp,#952]
+str x9,[sp,#288]
+ldr x9,[sp,#960]
+str x9,[sp,#296]
+ldr x9,[sp,#968]
+str x9,[sp,#304]
+ldr x9,[sp,#976]
+str x9,[sp,#312]
+ldr x9,[sp,#984]
+str x9,[sp,#320]
+bl md2asm_rrtm_setcoef_140gp
+add x0,sp,#1280
+ldr x1,[sp,#464]
+ldr x2,[sp,#472]
+ldr x3,[sp,#456]
+ldr x4,[sp,#1000]
+ldr x5,[sp,#608]
+ldr x6,[sp,#592]
+ldr x7,[sp,#728]
+ldr x9,[sp,#792]
+str x9,[sp,#0]
+ldr x9,[sp,#1008]
+str x9,[sp,#8]
+ldr x9,[sp,#624]
+str x9,[sp,#16]
+ldr x9,[sp,#632]
+str x9,[sp,#24]
+ldr x9,[sp,#640]
+str x9,[sp,#32]
+ldr x9,[sp,#648]
+str x9,[sp,#40]
+ldr x9,[sp,#656]
+str x9,[sp,#48]
+ldr x9,[sp,#664]
+str x9,[sp,#56]
+ldr x9,[sp,#816]
+str x9,[sp,#64]
+ldr x9,[sp,#824]
+str x9,[sp,#72]
+ldr x9,[sp,#832]
+str x9,[sp,#80]
+ldr x9,[sp,#840]
+str x9,[sp,#88]
+add x9,sp,#1320
+str x9,[sp,#96]
+ldr x9,[sp,#672]
+str x9,[sp,#104]
+ldr x9,[sp,#680]
+str x9,[sp,#112]
+ldr x9,[sp,#688]
+str x9,[sp,#120]
+ldr x9,[sp,#696]
+str x9,[sp,#128]
+ldr x9,[sp,#704]
+str x9,[sp,#136]
+ldr x9,[sp,#712]
+str x9,[sp,#144]
+ldr x9,[sp,#720]
+str x9,[sp,#152]
+ldr x9,[sp,#864]
+str x9,[sp,#160]
+ldr x9,[sp,#872]
+str x9,[sp,#168]
+ldr x9,[sp,#880]
+str x9,[sp,#176]
+ldr x9,[sp,#736]
+str x9,[sp,#184]
+ldr x9,[sp,#744]
+str x9,[sp,#192]
+ldr x9,[sp,#848]
+str x9,[sp,#200]
+ldr x9,[sp,#992]
+str x9,[sp,#208]
+ldr x9,[sp,#856]
+str x9,[sp,#216]
+ldr x9,[sp,#752]
+str x9,[sp,#224]
+ldr x9,[sp,#760]
+str x9,[sp,#232]
+ldr x9,[sp,#768]
+str x9,[sp,#240]
+ldr x9,[sp,#896]
+str x9,[sp,#248]
+ldr x9,[sp,#904]
+str x9,[sp,#256]
+ldr x9,[sp,#912]
+str x9,[sp,#264]
+ldr x9,[sp,#920]
+str x9,[sp,#272]
+ldr x9,[sp,#928]
+str x9,[sp,#280]
+ldr x9,[sp,#936]
+str x9,[sp,#288]
+ldr x9,[sp,#944]
+str x9,[sp,#296]
+ldr x9,[sp,#952]
+str x9,[sp,#304]
+ldr x9,[sp,#960]
+str x9,[sp,#312]
+ldr x9,[sp,#968]
+str x9,[sp,#320]
+ldr x9,[sp,#976]
+str x9,[sp,#328]
+ldr x9,[sp,#984]
+str x9,[sp,#336]
+bl md2asm_rrtm_gas_optical_depth
+ldr x9,[sp,#536]
+    cbz x9,.Lskip_emission
+ldr x0,[sp,#456]
+ldr x1,[sp,#464]
+ldr x2,[sp,#472]
+ldr x3,[sp,#480]
+ldr x4,[sp,#496]
+ldr x5,[sp,#992]
+ldr x6,[sp,#544]
+bl md2asm_planck_function_atmos
+ldr w9,[x24,#616]
+    cbz w9,.Lcanopy
+ldr x0,[sp,#464]
+ldr x1,[sp,#472]
+ldr x2,[sp,#480]
+add x3,x24,#64
+ldr x4,[sp,#992]
+ldr x5,[sp,#552]
+bl md2asm_planck_function_surf
+ldr x9,[sp,#552]
+    ldr x10,[sp,#536]
+    mov x11,#140
+    mul x11,x19,x11
+    mov x12,#0
+    fmov d2,#1.0
+.Lsurface_factor:
+    cmp x12,x11
+    b.hs .Lskip_emission
+    ldr d0,[x9,x12,lsl #3]
+    ldr d1,[x10,x12,lsl #3]
+    fsub d1,d2,d1
+    fmul d0,d0,d1
+    str d0,[x9,x12,lsl #3]
+    add x12,x12,#1
+    b .Lsurface_factor
+.Lcanopy:
+    ldr w9,[x23,#7988]
+    ldr x10,[x24,#392]
+    ldr x11,[x24,#456]
+    ldr x12,[sp,#552]
+    ldr x13,[x23,#10864]
+    ldr x14,[x23,#10368]
+    mov x15,#0
+.Lcanopy_g:
+    cmp x15,#140
+    b.hs .Lskip_emission
+    mov x16,x15
+    cbnz w9,.Lcanopy_index
+    ldrsw x16,[x13,x15,lsl #2]
+    sub x16,x16,#1
+    ldrsw x16,[x14,x16,lsl #2]
+    sub x16,x16,#1
+.Lcanopy_index:
+    mul x16,x16,x11
+    add x16,x16,x22
+    mov x17,#0
+.Lcanopy_column:
+    cmp x17,x19
+    b.hs .Lcanopy_next
+    add x0,x16,x17
+    ldr x1,[x10,x0,lsl #3]
+    mov x0,#140
+    madd x0,x17,x0,x15
+    str x1,[x12,x0,lsl #3]
+    add x17,x17,#1
+    b .Lcanopy_column
+.Lcanopy_next:
+    add x15,x15,#1
+    b .Lcanopy_g
+.Lskip_emission:
+ldr x9,[sp,#1000]
+ldr x10,[sp,#512]
+    ldr w11,[x23,#624]
+    ldr x12,[x23,#10736]
+    ldr d2,[x23,#576]
+    mov x13,#0
+.Llw_column:
+    cmp x13,x19
+    b.hs .Llw_done
+    mov x14,#0
+.Llw_layer:
+    cmp x14,x20
+    b.hs .Llw_next_column
+    mov x15,#0
+.Llw_g:
+    cmp x15,#140
+    b.hs .Llw_next_layer
+    mov x16,x15
+    cmp w11,#3
+    b.ne .Llw_index
+    ldrsw x16,[x12,x15,lsl #2]
+    sub x16,x16,#1
+.Llw_index:
+    sub x17,x20,x14
+    sub x17,x17,#1
+    madd x17,x13,x20,x17
+    mov x0,#140
+    madd x17,x17,x0,x16
+    ldr d0,[x9,x17,lsl #3]
+    fmax d0,d2,d0
+    madd x17,x13,x20,x14
+    madd x17,x17,x0,x15
+    str d0,[x10,x17,lsl #3]
+    add x15,x15,#1
+    b .Llw_g
+.Llw_next_layer:
+    add x14,x14,#1
+    b .Llw_layer
+.Llw_next_column:
+    add x13,x13,#1
+    b .Llw_column
+.Llw_done:
+add x0,sp,#1280
+ldr x1,[sp,#464]
+ldr x2,[sp,#472]
+ldr x3,[sp,#456]
+ldr x4,[sp,#608]
+ldr x5,[sp,#616]
+ldr x6,[sp,#592]
+ldr x7,[sp,#784]
+ldr x9,[sp,#864]
+str x9,[sp,#0]
+ldr x9,[sp,#704]
+str x9,[sp,#8]
+ldr x9,[sp,#680]
+str x9,[sp,#16]
+ldr x9,[sp,#672]
+str x9,[sp,#24]
+ldr x9,[sp,#776]
+str x9,[sp,#32]
+ldr x9,[sp,#712]
+str x9,[sp,#40]
+ldr x9,[sp,#688]
+str x9,[sp,#48]
+ldr x9,[sp,#656]
+str x9,[sp,#56]
+ldr x9,[sp,#664]
+str x9,[sp,#64]
+ldr x9,[sp,#816]
+str x9,[sp,#72]
+ldr x9,[sp,#736]
+str x9,[sp,#80]
+ldr x9,[sp,#744]
+str x9,[sp,#88]
+ldr x9,[sp,#848]
+str x9,[sp,#96]
+ldr x9,[sp,#624]
+str x9,[sp,#104]
+ldr x9,[sp,#632]
+str x9,[sp,#112]
+ldr x9,[sp,#640]
+str x9,[sp,#120]
+ldr x9,[sp,#648]
+str x9,[sp,#128]
+ldr x9,[sp,#824]
+str x9,[sp,#136]
+ldr x9,[sp,#832]
+str x9,[sp,#144]
+ldr x9,[sp,#840]
+str x9,[sp,#152]
+ldr x9,[sp,#1056]
+str x9,[sp,#160]
+bl md2asm_srtm_setcoef
+ldr x0,[sp,#464]
+ldr x1,[sp,#472]
+ldr x2,[sp,#456]
+ldr x3,[sp,#1040]
+ldr x4,[sp,#1056]
+ldr x5,[sp,#864]
+ldr x6,[sp,#704]
+ldr x7,[sp,#680]
+ldr x9,[sp,#672]
+str x9,[sp,#0]
+ldr x9,[sp,#776]
+str x9,[sp,#8]
+ldr x9,[sp,#712]
+str x9,[sp,#16]
+ldr x9,[sp,#688]
+str x9,[sp,#24]
+ldr x9,[sp,#656]
+str x9,[sp,#32]
+ldr x9,[sp,#664]
+str x9,[sp,#40]
+ldr x9,[sp,#816]
+str x9,[sp,#48]
+ldr x9,[sp,#736]
+str x9,[sp,#56]
+ldr x9,[sp,#744]
+str x9,[sp,#64]
+ldr x9,[sp,#848]
+str x9,[sp,#72]
+ldr x9,[sp,#624]
+str x9,[sp,#80]
+ldr x9,[sp,#632]
+str x9,[sp,#88]
+ldr x9,[sp,#640]
+str x9,[sp,#96]
+ldr x9,[sp,#648]
+str x9,[sp,#104]
+ldr x9,[sp,#824]
+str x9,[sp,#112]
+ldr x9,[sp,#832]
+str x9,[sp,#120]
+ldr x9,[sp,#840]
+str x9,[sp,#128]
+ldr x9,[sp,#1016]
+str x9,[sp,#136]
+ldr x9,[sp,#1024]
+str x9,[sp,#144]
+ldr x9,[sp,#1032]
+str x9,[sp,#152]
+bl md2asm_srtm_gas_optical_depth
+ldr w9,[x23,#0]
+    cbz w9,.Lsolar_scaled
+ldr x9,[sp,#1032]
+ldr x10,[x23,#10928]
+    ldr x11,[x24,#488]
+    mov x12,#0
+.Lsolar_band:
+    cmp x12,#112
+    b.hs .Lsolar_scaled
+    ldrsw x13,[x10,x12,lsl #2]
+    sub x13,x13,#1
+    ldr d1,[x11,x13,lsl #3]
+    mul x14,x12,x19
+    mov x15,#0
+.Lsolar_column:
+    cmp x15,x19
+    b.hs .Lsolar_next_band
+    add x16,x14,x15
+    ldr d0,[x9,x16,lsl #3]
+    fmul d0,d0,d1
+    str d0,[x9,x16,lsl #3]
+    add x15,x15,#1
+    b .Lsolar_column
+.Lsolar_next_band:
+    add x12,x12,#1
+    b .Lsolar_band
+.Lsolar_scaled:
+    ldr x9,[sp,#560]
+    cbz x9,.Lsolar_normalised
+ldr x9,[sp,#1032]
+ldr x10,[sp,#1056]
+ldr x11,[sp,#1048]
+ldr d2,[x24,#480]
+    mov x12,#0
+.Lsolar_sum_column:
+    cmp x12,x19
+    b.hs .Lsolar_normalised
+    fmov d3,#1.0
+    ldr d0,[x10,x12,lsl #3]
+    fcmp d0,#0.0
+    b.le .Lsolar_store_scale
+    fmov d0,xzr
+    mov x13,#0
+    mov x14,x12
+.Lsolar_sum_g:
+    cmp x13,#112
+    b.hs .Lsolar_divide
+    ldr d1,[x9,x14,lsl #3]
+    fadd d0,d0,d1
+    add x14,x14,x19
+    add x13,x13,#1
+    b .Lsolar_sum_g
+.Lsolar_divide:
+    fdiv d3,d2,d0
+.Lsolar_store_scale:
+    str d3,[x11,x12,lsl #3]
+    add x12,x12,#1
+    b .Lsolar_sum_column
+.Lsolar_normalised:
+ldr x9,[sp,#1016]
+ldr x10,[sp,#1024]
+ldr x11,[sp,#520]
+    ldr x12,[sp,#528]
+    ldr w13,[x23,#620]
+    ldr x14,[x23,#10800]
+    ldr d2,[x23,#584]
+    mov x15,#0
+.Lsw_g:
+    cmp x15,#112
+    b.hs .Lsw_done
+    mov x16,x15
+    cmp w13,#3
+    b.ne .Lsw_index
+    ldrsw x16,[x14,x15,lsl #2]
+    sub x16,x16,#1
+.Lsw_index:
+    mul x16,x16,x20
+    mul x16,x16,x19
+    mov x17,#0
+.Lsw_layer:
+    cmp x17,x20
+    b.hs .Lsw_incoming
+    madd x0,x17,x19,x16
+    sub x1,x20,x17
+    sub x1,x1,#1
+    mov x2,#0
+.Lsw_column:
+    cmp x2,x19
+    b.hs .Lsw_next_layer
+    add x3,x0,x2
+    ldr d0,[x9,x3,lsl #3]
+    ldr x4,[x10,x3,lsl #3]
+    fmax d0,d2,d0
+    madd x3,x2,x20,x1
+    mov x5,#112
+    madd x3,x3,x5,x15
+    str d0,[x11,x3,lsl #3]
+    str x4,[x12,x3,lsl #3]
+    add x2,x2,#1
+    b .Lsw_column
+.Lsw_next_layer:
+    add x17,x17,#1
+    b .Lsw_layer
+.Lsw_incoming:
+    ldr x0,[sp,#560]
+    cbz x0,.Lsw_next_g
+ldr x1,[sp,#1032]
+ldr x2,[sp,#1048]
+mov x3,x15
+    cmp w13,#3
+    b.ne .Lsw_solar_index
+    ldrsw x3,[x14,x15,lsl #2]
+    sub x3,x3,#1
+.Lsw_solar_index:
+    mul x3,x3,x19
+    mov x4,#0
+.Lsw_solar_column:
+    cmp x4,x19
+    b.hs .Lsw_next_g
+    add x5,x3,x4
+    ldr d0,[x1,x5,lsl #3]
+    ldr d1,[x2,x4,lsl #3]
+    fmul d0,d1,d0
+    mov x5,#112
+    madd x5,x4,x5,x15
+    str d0,[x0,x5,lsl #3]
+    add x4,x4,#1
+    b .Lsw_solar_column
+.Lsw_next_g:
+    add x15,x15,#1
+    b .Lsw_g
+.Lsw_done:
+    ldr x0,[sp,#1328]
+    bl free
+    b .Lreturn
+.Lallocation_failed:
+    bl abort
+.Lreturn:
+    ldr x18,[sp,#1400]
+ldp x19,x20,[sp,#352]
+ldp x21,x22,[sp,#368]
+ldp x23,x24,[sp,#384]
+ldp x25,x26,[sp,#400]
+ldp x27,x28,[sp,#416]
+ldp x29,x30,[sp,#432]
+add sp,sp,#2048
+    ret
+.size md2asm_gas_optics,.-md2asm_gas_optics
+.size ORIGINAL_SYMBOL,.-ORIGINAL_SYMBOL
+.section .note.GNU-stack,"",%progbits
