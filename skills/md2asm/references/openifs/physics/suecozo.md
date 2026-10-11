@@ -24,6 +24,16 @@ Before direct emission, 32 protected original calls pass 1,056,256 complete reco
 
 The native numerical corpus also passes 32 protected calls, 1,056,256 complete record bytes and 2,432 independent relations with zero differing bytes. The final parent adds x18 preservation without changing any numerical instruction, reusing that unchanged arithmetic proof. Six focused live pairs then pass 198,048 complete record bytes and 456 independent 180-digit relations, with a fixed nonzero x18 check, matching fresh numerical flags, preserved errno and profiling enabled. Ten invalid machine-state or buffer cases reject before changing any of 330,080 shared record bytes. Machine inspection confirms separate arithmetic and the declared direct sine and cosine dependency.
 
-Actual forecast acceptance and performance measurements remain pending. The seasonal forcing check does not establish independent physical correctness of a complete weather forecast.
+Performance measurements remain pending. The seasonal forcing check does not establish independent physical correctness of a complete weather forecast.
 
 The accumulated-angle extension passes 20 protected source calls followed by 20 native calls. Each route covers 660,160 complete record bytes and 1,520 independent 180-digit relations with zero differing bytes. It includes both signs, several full turns, the declared range edges and their inner neighbours. Seven focused live pairs pass 231,056 complete record bytes and 532 independent relations, including the fixed nonzero x18 check and enabled profiling. Both direct and paired routes reject the first value beyond the new upper bound before changing 66,016 shared record bytes. The independent verifier reduces its decimal angle before evaluating a series. The direct solver retains the supplied FP64 phase, every original numerical instruction and the unchanged sine and cosine proofs.
+
+## Actual Forecast Acceptance
+
+The combined coarse forecast in exclusive allocation 7240564 on nid010555 passes these positive actual calls with zero differing bytes. Each byte scope describes the complete owners compared by that routine.
+
+| Original routine | Actual calls | Compared bytes | Byte scope |
+| --- | ---: | ---: | --- |
+| suecozo | 26 | 858,208 | Complete ozone coefficients and unchanged record bytes |
+
+All ten saved files also match across 618,140 bytes. The accepted critical physics and interface checks are reused. These checks cover the declared routine domains and saved files. Whole-forecast physical verification, whole-process byte identity and comparative timing remain open in the [coverage record](../../../../../src/openifs/README.md).
