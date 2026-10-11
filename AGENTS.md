@@ -36,7 +36,13 @@ Preserve equation IDs and increase the formulation revision when its mathematics
 
 Keep comparison implementations and evaluation drivers separate from the direct solver, ensuring that no driver supplies an omitted numerical stage. Every implementation must obey its declared Arm ABI and instruction set while handling supported shapes, boundary cells, and vector remainders. Describe the observable generation route without claiming knowledge of an LLM's internal representations.
 
-Complete an autonomous forecast before final performance tuning. Its assembly executable must own initialisation, the time loop, every forecast calculation, state updates and output, with no OpenIFS Fortran calls or numerical fallback. Keep the original Fortran forecast separate as a verification reference. Completing the audited routine list alone does not prove that this executable exists. Once the autonomous forecast passes independent physical checks and exact saved-output agreement, profile and aggressively optimise its complete runtime within the frozen arithmetic and output contract.
+## Work sequence
+
+Finish all remaining audited weather routines and their required checks first. Then complete these phases in order, one at a time, finishing each phase before starting the next.
+
+1. Build a complete autonomous forecast from direct assembly. Its executable must own initialisation, the time loop, every forecast calculation, state updates and output, with no OpenIFS Fortran calls or numerical fallback. Keep the original Fortran forecast separate as a verification reference. Require independent physical checks and exact saved-output agreement before starting performance optimisation.
+2. Dedicate one full day, meaning 24 hours, to aggressive optimisation of the verified autonomous forecast on a quiet exclusive node. Preserve the frozen arithmetic and every output bit. Improve md2asm with concise, general, positive lessons and guidance, keeping measurements and detailed tuning records locally.
+3. Make filenames and document titles clear and readable. Prefer descriptive names with more than one word, joined by underscores, and use abbreviations only when they are commonly accepted. Preserve conventional entry-point names such as AGENTS.md, README.md and SKILL.md. Keep original routine names in assembly interfaces and traceability records, and update affected links, source headers, contracts and local build paths together.
 
 ## Arithmetic and output agreement
 
@@ -59,8 +65,6 @@ Maximise measured performance within the frozen numerical contract by matching t
 Optimise generated assembly as far as the declared target and numerical contract permit, using measured results to select vector instructions, register reuse, instruction scheduling, addressing modes, and cache access patterns. Use supported Arm SIMD or SVE features, minimise redundant work and spills, and measure unrolling, fusion, and tiling while preserving boundary correctness.
 
 Apply the md2asm skill's roofline analysis to identify the attainable compute and memory bounds, including division and square-root throughput under the numerical contract, then use measured bottlenecks to reduce the gap. Report the measured fraction of the relevant bound and its assumptions rather than claiming global optimality.
-
-After the complete forecast runs in assembly, maximise its measured speed. Profile whole time steps, prioritise the largest costs and tune vector instructions, register reuse, memory access and instruction scheduling within the frozen numerical contract. Retain improvements only when repeated quiet-node measurements support them, preserve every verified output bit and put all reusable positive optimisation lessons in md2asm.
 
 - For Python, use reusable NumPy buffers or compiled numerical loops, with a strong compiled baseline and no interpreted loops in the timed kernel.
 - For Fortran, use explicit kinds and interfaces, contiguous arrays, and suitable loop order, enabling strong optimisation for the actual CPU and inspecting vectorisation reports.
