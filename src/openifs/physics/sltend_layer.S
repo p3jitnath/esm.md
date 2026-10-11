@@ -17,7 +17,7 @@
     str \reg,[x19,#(8*(\index-8))]
 .endif
 .endm
-.macro SLL_VIEW input,offset,child,rank,third=0,interface=0
+.macro SLL_VIEW input,offset,child,rank,third=0,interface=0,empty_extra=0
     SLL_INPUT x0,\input
     ldr x9,=\offset
     add x0,x0,x9
@@ -33,6 +33,7 @@
 .if \interface
     add x4,x4,#1
 .endif
+    mov x5,#\empty_extra
     bl .Lsll_descriptor
     SLL_ARG x0,\child
 .endm
@@ -166,7 +167,7 @@ md2asm_sltend_layer:
     SLL_VIEW 6,384,43,2
     SLL_VIEW 6,472,44,2
     SLL_VIEW 6,1000,45,3,5
-    SLL_VIEW 11,9816,48,3,-2
+    SLL_VIEW 11,9816,48,3,-2,0,1
     ldp x0,x1,[x19,#352]
     ldp x2,x3,[x19,#368]
     ldp x4,x5,[x19,#384]
@@ -221,8 +222,19 @@ md2asm_sltend_layer:
     b.vs .Lsll_bad
     adds x12,x12,#1
     b.vs .Lsll_bad
+    cbz x5,.Lsll_strict_second
+    cbnz x2,.Lsll_strict_second
+    cmp x12,x4
+    b.eq .Lsll_empty_second
+    cmp x12,#1
+    b.ne .Lsll_bad
+.Lsll_empty_second:
+    mov x4,x12
+    b .Lsll_second_ready
+.Lsll_strict_second:
     cmp x12,x4
     b.ne .Lsll_bad
+.Lsll_second_ready:
     cmp x1,#2
     b.eq .Lsll_pointer
     ldr x9,[x0,#88]
@@ -251,10 +263,19 @@ md2asm_sltend_layer:
     adds x10,x0,x10
     b.cs .Lsll_bad
 .Lsll_desc_return:
+    cbz x5,.Lsll_desc_return_value
+    cbnz x2,.Lsll_desc_return_value
+    adrp x0,.Lsll_empty_extra_word
+    add x0,x0,:lo12:.Lsll_empty_extra_word
+.Lsll_desc_return_value:
     ret
 .size .Lsll_descriptor,.-.Lsll_descriptor
 .Lsll_bad:
     brk #0x2af
     b .Lsll_bad
 .ltorg
+.section .rodata
+.p2align 3
+.Lsll_empty_extra_word:
+    .quad 0
 .section .note.GNU-stack,"",%progbits
