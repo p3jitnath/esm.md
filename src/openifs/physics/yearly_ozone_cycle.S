@@ -31,7 +31,7 @@ md2asm_yearly_ozone_cycle:
 .Lozone_disjoint:
     ldr x9,[x0]
     and x9,x9,#0x7fffffffffffffff
-    ldr x10,=0x4020000000000000
+    ldr x10,=0x4130000000000000
     cmp x9,x10
     b.hi .Lozone_bad
     sub sp,sp,#112

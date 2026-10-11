@@ -4,7 +4,7 @@ Revision 1.
 
 Ozone changes during the year. This model represents the total ozone column and the pressure where ozone concentration is greatest. Both quantities have units Pa. Their smooth spatial patterns use a short list of sine and cosine coefficients.
 
-Let $`\theta`$ be the time of year in radians, with one year represented by $`2\pi`$. Each spatial coefficient uses a mean value and two seasonal waves.
+Let $`\theta`$ be the time of year in radians, with one seasonal turn represented by $`2\pi`$. The supplied phase can include several complete turns. Each spatial coefficient uses a mean value and two seasonal waves.
 
 ```math
 f(\theta)=A_0+2\left[A_1\cos\theta+A_2\sin\theta+A_3\cos(2\theta)+A_4\sin(2\theta)\right].
