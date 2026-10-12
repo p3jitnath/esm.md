@@ -10,7 +10,7 @@ FP64 is the 64-bit floating-point format. Require the floating-point control reg
 
 ## Frozen arithmetic
 
-Let $`R(a)`$ round a value once to FP64. Let $`S(a,b,c)=R(ab+c)`$ round the exact product and sum once. Ordinary products, sums and differences each retain their own $`R`$ step. Only the original math primitive's internal single-rounding steps use the already accepted integer child `md2asm_round_product_sum_candidate`. There are no fused floating-point instructions, approximate operations or reduced precision. This separate primitive boundary preserves the weather solver's ordinary rounding rules.
+Let $`R(a)`$ round a value once to FP64. Let $`S(a,b,c)=R(ab+c)`$ round the exact product and sum once. Ordinary products, sums and differences each retain their own $`R`$ step. Only the original math primitive's internal single-rounding steps use the already accepted integer child `md2asm_round_product_sum_direct`. There are no fused floating-point instructions, approximate operations or reduced precision. This separate primitive boundary preserves the weather solver's ordinary rounding rules.
 
 The original coefficient bits and all 440 words of the 110-row table match the installed library. Each row stores a sine value $`s_n`$, its small correction $`e_s`$, a cosine value $`c_n`$ and its correction $`e_c`$. The row centre is $`n/128`$ radians. The original constants $`h`$ and $`\ell`$ are the high and low parts of $`\pi/2`$. All literal bits remain in the assembly and retained source archive.
 
@@ -70,3 +70,7 @@ The largest observed errors are 0.508923 ULP for sine and 0.508538 ULP for cosin
 The LLM emitted the AArch64 instructions directly from the physical definition, frozen rounding equations and literal coefficients, then used an assembler and linker. Compiler-generated assembly and intermediate representations do not supply the implementation. The matching source is GNU libc commit `36f2487f13e3540be9ee0fb51876b1da72176d3f`, retrieved through normal GitHub SSH into a separate local sparse checkout.
 
 The algorithm and literal coefficients derive from the IBM Accurate Math Library in GNU libc, copyright 2001–2023 Free Software Foundation, Inc. This component uses the [GNU Lesser General Public License, version 2.1 or later](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) and comes without warranty. Original source, licence notices, hashes, complete rounding records, failures and actual build commands remain in `.runtime/openifs/original_sin_cos_7240564/`.
+
+## Complete Direct Arithmetic Child
+
+The [integer rounding contract](rounded_product_sum.md) defines the complete direct assembly child. Its one-rounding result is an explicit atomic math-helper operation and must not contract primary weather expressions. The direct integer child binding passes all 64664 retained sine and cosine results over 517312 bytes, with zero differing result bytes, status or errno. The original independent projection proof and immediate helper interface checks are reused.

@@ -6,7 +6,7 @@ The [physical input](../../../../../formulations/openifs/support/inverse_sine_an
 
 ## Rounded Calculation
 
-Write $`R(v)`$ for rounding a real value $`v`$ to FP64 with ties to even, and $`S(a,b,c)=R(ab+c)`$ for an original internal single-rounding step. Each ordinary operation below has its own $`R`$. The accepted integer helper `md2asm_round_product_sum_candidate` computes $`S`$ without a fused floating-point instruction. These steps are inside the mathematical primitive, preserving the caller's separate rounding points.
+Write $`R(v)`$ for rounding a real value $`v`$ to FP64 with ties to even, and $`S(a,b,c)=R(ab+c)`$ for an original internal single-rounding step. Each ordinary operation below has its own $`R`$. The accepted integer helper `md2asm_round_product_sum_direct` computes $`S`$ without a fused floating-point instruction. These steps are inside the mathematical primitive, preserving the caller's separate rounding points.
 
 The coefficients, split half-circle constants $`h`$ and $`\ell`$, table $`T`$, inverse-root table and power-of-two table are the unchanged words in the [inverse-cosine contract](acos_original_rounding.md). The assembly includes that already qualified direct source to share its literal data. Let $`H`$ be the high 32 bits of $`\lvert x\rvert`$. Bit operations select the table interval without rounding the input.
 
@@ -58,3 +58,7 @@ Require zero differing return bytes, fresh FPSR and errno on the frozen input co
 Before emission, 9,650 original calls pass the complete ordered graph and 40,623 independent relations using 160-digit angle geometry. The corpus includes all nine source branches and their threshold neighbours. The largest sampled error is 0.503021 units in the last place, within the one-unit limit. The unchanged literal identities and integer-rounding child proof are reused from inverse cosine.
 
 The direct routine passes the same 9,650 calls and 77,200 complete result bytes with zero differences in output, fresh FPSR or errno. Thirty-six immediate ABI calls compare 288 bytes and preserve every required register. Thirty-two sticky-status cases and eight unsupported-input checks pass. Three calls from another working directory compare 24 bytes with the child loaded through its absolute runtime search path. The 24 static child-call sites contain no hardware fused or approximate floating-point instructions. The source, controls, failed initial endpoint case and accepted records remain local under `.runtime/openifs/original_asin_7240564/`. No weather forecast count or performance comparison is added by this dependency.
+
+## Complete Direct Arithmetic Child
+
+The [integer rounding contract](rounded_product_sum.md) defines the complete direct assembly child. Its one-rounding result is an explicit atomic math-helper operation and must not contract primary weather expressions. The direct integer child binding passes the retained 9650 original inverse-sine results over 77200 bytes, with unchanged status and errno. The original independent angle proof and immediate helper interface checks are reused.

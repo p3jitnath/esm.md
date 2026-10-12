@@ -139,7 +139,7 @@ md2asm_asin_original_rounding:
     ldr d0,[x23,#8]
     fmov d1,d8
     fmov d2,d10
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d10,d0
     add x9,x24,#2
     ldr d11,[x23,x9,lsl #3]

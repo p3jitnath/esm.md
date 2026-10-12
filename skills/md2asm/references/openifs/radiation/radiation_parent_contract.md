@@ -1,0 +1,37 @@
+# Complete Radiation Parent Contract
+
+This direct assembly replaces the original `RADPAR` routine from `arpifs/phys_radi/radpar.F90`. The scientific input is [Radiation Preparation](../../../../../formulations/openifs/radiation/radiation_preparation.md). The direct body is [radiation_parent.S](../../../../../src/openifs/radiation/radiation_parent.S), which is handwritten AArch64 assembly. The assembler and linker build the numerical body. A comparison driver supplies no numerical stage.
+
+The retained local type probe gives the exact member offsets in the complete 4,275,088-byte `MODEL` object. The interface has 68 arguments in original order. The first eight addresses use registers x0 through x7. The other 60 addresses use the incoming stack. The stack stays aligned to 16 bytes. The body preserves x18, x19 through x29 and the low 64 bits of v8 through v15.
+
+All scalar integer arguments and logical elements occupy four bytes. Real fields use IEEE binary64 values, with eight bytes per element. Each two-dimensional field stores its first dimension contiguously. The parent pitch is `KLON`. The `PALCOEFF` argument is an 88-byte GNU rank-two array descriptor. Its element size, extents and positive strides define the complete input owner. Slices passed to children retain the parent pitch, including the two shortwave output sections.
+
+The qualified parent accepts one to 2,048 columns, three to 512 vertical levels and one to 32 soil or snow levels. The accepted complete surface child qualifies nine or ten tiles, two or six shortwave bands and two to 16 longwave bands. The allocated shortwave output has at least the selected band count and at most 32 bands. The active column interval has a first index from one through `KLON` and a last index from zero through `KLON`. A last index below the first index is a contained empty interval. The child proofs define the physical bounds on temperatures, pressure, category indices and other consumed inputs.
+
+The immutable captured `YDEPHY` owner confirms `LEDCLD=1`, `LEPCLD=1` and `LERADS=1` for the existing forecast. The complete prognostic-cloud route and the no-cloud route are implemented. A selected legacy cloud route is rejected before output writes. No caller setting is changed to select a supported route. Diagnostic controls are retained. The captured forecast radiation settings have `NRADPFR=0`, so the extra cloud diagnostic is inactive. The protected checks also cover its enabled route. No forecast control is changed.
+
+The ordered work starts by clearing the passive ocean and leaf-area scratch fields. At the initial step, it sets cloud top and base to one, accumulated rain to zero and roughness to the climatological field. It converts land terrain and roughness by separate divisions by gravitational acceleration. It copies canopy water, runs the complete surface-tile boundary calculation and its source-ordered partition checks, and calculates the integer cloud-top and cloud-base indices.
+
+With surface radiation enabled, the body multiplies each wind component by itself, adds the products and takes an exact square root. It extracts the date, rounds the elapsed seconds with the original nearest-integer rule, calculates the day increment and remaining seconds, runs the accepted calendar update and performs the optional accepted sea-ice copy. It then calls the complete surface-radiation assembly and copies the input reflectivity to every extra shortwave band. With surface radiation disabled, it copies the prescribed reflectivity and emissivity and stores the prescribed cloud-nucleus concentrations.
+
+The body then runs the accepted saturation calculation with flag two. The selected prognostic-cloud route runs the complete accepted cloud diagnostic child. It passes `PGEMU` for both coordinates, as the original parent does. The no-cloud route clears the returned cloud fields. All source-ordered arithmetic and selected branches are present. The body releases only its own scratch storage after the calculations.
+
+The direct numerical children are `md2asm_surface_tile_boundary`, `md2asm_surfrad`, `md2asm_updcal`, `md2asm_icestatenemo`, `md2asm_satur_7240564` and `md2asm_cldpp`. Their accepted interface, physical and arithmetic results are reused. No numerical OpenIFS Fortran routine is a native dependency. The retained OpenIFS globals provide frozen input constants and date fields during this replacement phase. This parent candidate alone is not an autonomous forecast executable.
+
+All input owners, the complete `MODEL` and the surface parameter object remain unchanged. Arguments 48 through 67 are complete output owners. Their comparison includes inactive columns, extra bands and all unchanged words, including the cloud field that the prognostic child leaves untouched. The accepted output limit is zero differing bytes, with no masking, rounding or value normalisation. The caller's error number is preserved.
+
+The floating-point control register must be zero. The numerical route uses round-to-nearest with ties to even, gradual underflow and preserved signed zeros. It uses separate multiplication and addition, exact division and exact square root. Fused operations, reassociation, approximate instructions and reduced precision are forbidden. The comparison gate starts each implementation with a fresh status register and compares the returned status. A profiling hook may add only the separately documented inexact bit in the source shadow. The caller receives its incoming flags combined with the native returned flags.
+
+The original-first protected check covers initial and later steps, cropped and contained empty intervals, enabled and disabled surface radiation, cloud diagnostics and optional sea-ice dispatch. Independent surface-energy, cloud-probability and 120-digit saturation relations are reused or evaluated on the staged fields. Protected owners end at both sides of inaccessible pages. The final direct check also verifies saved registers, the complete read-only inputs, the caller's error number and fresh floating-point status.
+
+The small live wrapper runs the original parent on cloned complete output owners, then runs the direct parent on the caller's actual owners. It compares every output byte and verifies admissibility, physical energy bounds, copied extra bands, initial-state relations and inactive columns. It records actual native calls separately from source shadows. Normal-forecast admission still requires a positive combined live report with unchanged forecast controls. This preparation record makes no timing or routine-count claim.
+
+## Actual Forecast Acceptance
+
+The combined coarse forecast uses exclusive allocation 7259755 on nid010824. These actual assembly calls have zero differing bytes. A compared array contains the complete storage supplied by its caller. Private child counts exclude original comparison calls.
+
+| Original routine | Actual calls | Compared bytes | Scope |
+| --- | ---: | ---: | --- |
+| radpar | 2,150 | 48,916,800 | Complete returned parent arrays |
+
+All ten saved files match across 618,140 bytes. Accepted critical physics and interface checks are reused. Independent physics for the whole forecast, whole-process byte agreement, autonomous execution and comparative timing remain open in the [coverage record](../../../../../src/openifs/README.md).

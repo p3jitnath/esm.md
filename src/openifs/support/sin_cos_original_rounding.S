@@ -113,7 +113,7 @@ md2asm_cos_original_rounding:
     ldr d1, [x9, :lo12:.Langle_hpinv]
     adrp x9, .Langle_toint
     ldr d2, [x9, :lo12:.Langle_toint]
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d14, d0
     fmov x9, d14
     and w20, w9, #3
@@ -127,21 +127,21 @@ md2asm_cos_original_rounding:
     adrp x9, .Langle_mp1
     ldr d1, [x9, :lo12:.Langle_mp1]
     fmov d2, d8
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d12, d0
     fmov d0, d11
     fneg d0, d0
     adrp x9, .Langle_mp2
     ldr d1, [x9, :lo12:.Langle_mp2]
     fmov d2, d12
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d12, d0
     fmov d0, d11
     fneg d0, d0
     adrp x9, .Langle_pp3
     ldr d1, [x9, :lo12:.Langle_pp3]
     fmov d2, d12
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d13, d0
     fsub d14, d12, d13
     fmov d0, d11
@@ -149,14 +149,14 @@ md2asm_cos_original_rounding:
     adrp x9, .Langle_pp3
     ldr d1, [x9, :lo12:.Langle_pp3]
     fmov d2, d14
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d14, d0
     fmov d0, d11
     fneg d0, d0
     adrp x9, .Langle_pp4
     ldr d1, [x9, :lo12:.Langle_pp4]
     fmov d2, d13
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d9, d0
     fsub d15, d13, d9
     fmov d0, d11
@@ -164,7 +164,7 @@ md2asm_cos_original_rounding:
     adrp x9, .Langle_pp4
     ldr d1, [x9, :lo12:.Langle_pp4]
     fmov d2, d15
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     fadd d10, d14, d15
     tbnz w20, #0, .Langle_cosine_core
@@ -198,12 +198,12 @@ md2asm_cos_original_rounding:
     ldr d1, [x9, :lo12:.Langle_sn5]
     adrp x9, .Langle_sn3
     ldr d2, [x9, :lo12:.Langle_sn3]
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     fmov d0, d14
     fmov d1, d15
     fmov d2, d10
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d12, d0
     fadd d12, d9, d12
     fmov d0, d11
@@ -211,35 +211,35 @@ md2asm_cos_original_rounding:
     ldr d1, [x9, :lo12:.Langle_cs6]
     adrp x9, .Langle_cs4
     ldr d2, [x9, :lo12:.Langle_cs4]
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     fmov d0, d11
     fmov d1, d15
     adrp x9, .Langle_cs2
     ldr d2, [x9, :lo12:.Langle_cs2]
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     fmul d13, d11, d15
     fmov d0, d9
     fmov d1, d10
     fmov d2, d13
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d13, d0
     fmov d0, d12
     ldr d1, [x19, #24]
     ldr d2, [x19, #8]
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     fmov d0, d13
     fneg d0, d0
     ldr d1, [x19, #0]
     fmov d2, d15
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     ldr d0, [x19, #16]
     fmov d1, d12
     fmov d2, d15
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     ldr d16, [x19]
     fadd d0, d16, d15
@@ -257,25 +257,25 @@ md2asm_cos_original_rounding:
     ldr d1, [x9, :lo12:.Langle_s5]
     adrp x9, .Langle_s4
     ldr d2, [x9, :lo12:.Langle_s4]
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     fmov d0, d11
     fmov d1, d15
     adrp x9, .Langle_s3
     ldr d2, [x9, :lo12:.Langle_s3]
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     fmov d0, d11
     fmov d1, d15
     adrp x9, .Langle_s2
     ldr d2, [x9, :lo12:.Langle_s2]
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     fmov d0, d11
     fmov d1, d15
     adrp x9, .Langle_s1
     ldr d2, [x9, :lo12:.Langle_s1]
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     fmov d16, #0.5
     fmul d14, d10, d16
@@ -283,12 +283,12 @@ md2asm_cos_original_rounding:
     fmov d1, d9
     fmov d2, d14
     fneg d2, d2
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d14, d0
     fmov d0, d11
     fmov d1, d14
     fmov d2, d10
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d14, d0
     fadd d0, d9, d14
     b .Langle_sign
@@ -317,44 +317,44 @@ md2asm_cos_original_rounding:
     ldr d1, [x9, :lo12:.Langle_sn5]
     adrp x9, .Langle_sn3
     ldr d2, [x9, :lo12:.Langle_sn3]
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     fmov d0, d14
     fmov d1, d15
     fmov d2, d9
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d12, d0
     fmov d0, d11
     adrp x9, .Langle_cs6
     ldr d1, [x9, :lo12:.Langle_cs6]
     adrp x9, .Langle_cs4
     ldr d2, [x9, :lo12:.Langle_cs4]
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     fmov d0, d11
     fmov d1, d15
     adrp x9, .Langle_cs2
     ldr d2, [x9, :lo12:.Langle_cs2]
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     fmul d13, d11, d15
     fmov d0, d12
     fneg d0, d0
     ldr d1, [x19, #8]
     ldr d2, [x19, #24]
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     fmov d0, d13
     fneg d0, d0
     ldr d1, [x19, #16]
     fmov d2, d15
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     fmov d0, d12
     fneg d0, d0
     ldr d1, [x19, #0]
     fmov d2, d15
-    bl md2asm_round_product_sum_candidate
+    bl md2asm_round_product_sum_direct
     fmov d15, d0
     ldr d16, [x19, #16]
     fadd d0, d16, d15
