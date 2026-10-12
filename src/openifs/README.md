@@ -8,22 +8,21 @@ A routine body is one function or subroutine that performs a calculation. These 
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 243 | 468 |
-| Local calculations | 356 | 238 | 118 |
-| Weather calculations | 255 | 236 | 19 |
+| Main forecast phase | 711 | 244 | 467 |
+| Local calculations | 356 | 239 | 117 |
+| Weather calculations | 255 | 237 | 18 |
 
-There are 244 accepted assembly bodies overall. VERDER is outside the main forecast count. The ordered 19-routine weather queue and completed checks remain local. The latest checkpoint accepts complete wind preparation for parcel trajectories. The previous checkpoint accepts complete grid-point calculations, latitude wave analysis, inverse latitude reconstruction and the inner radiation calculation.
+There are 245 accepted assembly bodies overall. VERDER is outside the main forecast count. The ordered 18-routine weather queue and completed checks remain local. The latest checkpoint accepts the complete inverse spectral transform, which prepares wind and derivative coefficients and reconstructs latitude fields. Earlier checkpoints accept parcel-trajectory wind, complete grid-point calculations, latitude wave analysis, inverse latitude reconstruction and the inner radiation calculation.
 
 ## Verification
 
-Each accepted routine passes independent critical physics and exact-output checks within its declared input range. The latest checkpoint passes the complete wind body and the existing surface calculation with zero differing bytes. Every compared array byte agrees, and all ten saved files match across 618,140 bytes. The earlier twenty-four-body and corrected fourteen-body native groups also pass their saved-file gate. Unchanged physical, mathematical and interface checks are reused. The run uses exclusive allocation 7259755 on nid010824, one process, one thread, CPU 16 and local memory binding.
+Each accepted routine passes independent critical physics and exact-output checks within its declared input range. The latest checkpoint accepts the complete inverse spectral transform with zero differing bytes in every compared caller buffer. All ten saved files match across 618,140 bytes. Unchanged child physics, arithmetic and interface proofs are reused. The run uses exclusive allocation 7358525 on nid010681, one process, one thread, CPU 16 and local memory binding.
 
 | Latest routine | Complete calls | Compared buffer bytes | Differing bytes |
 | --- | ---: | ---: | ---: |
-| Parcel trajectory wind | 2,150 | 23,201,050,000 | 0 |
-| Surface weather calculation | 2,150 | 73,065,600 | 0 |
+| Inverse spectral transform | 1,144 | 3,074,651,888 | 0 |
 
-The wind comparison includes all input and returned buffers. The surface total covers returned buffers. Its pressure calculation preserves the original multiplication order.
+The transform total includes all input and returned buffers, with 1,660,659,440 immutable bytes. Its actual profiling calls preserve the complete numerical status. The [transform contract](../../skills/md2asm/references/openifs/dynamics/inverse_spectral_transform.md) records the complete field map, child equations, supported shapes and raw ABI checks.
 
 The continuity routine assigns positive zero to unused output slots that the original source left unset, while preserving every defined calculation. Its byte comparisons use a separate corrected Fortran reference, without changing any defined values in the saved files. The [continuity contract](../../skills/md2asm/references/openifs/dynamics/vertical_continuity.md) states this representation and its bounds.
 
