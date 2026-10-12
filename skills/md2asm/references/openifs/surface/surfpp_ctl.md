@@ -1,6 +1,6 @@
 # SURFPP_CTL Solver Contract
 
-Revision 1. This contract maps the [surface weather formulation](../../../../../formulations/openifs/surface/surface_weather_elements.md) to [direct AArch64 assembly](../../../../../src/openifs/surface/surfpp_ctl.S). The original complete routine is `surfpp_ctl_mod::surfpp_ctl` in `surf/module/surfpp_ctl_mod.F90`.
+Revision 2. This contract maps the [surface weather formulation](../../../../../formulations/openifs/surface/surface_weather_elements.md) to [direct AArch64 assembly](../../../../../src/openifs/surface/surfpp_ctl.S). The original complete routine is `surfpp_ctl_mod::surfpp_ctl` in `surf/module/surfpp_ctl_mod.F90`.
 
 ## Method and Domain
 
@@ -61,13 +61,17 @@ The body preserves `x18`, `x19`–`x29` and the required low 64 bits of `v8`–`
 
 FPCR must be zero, which selects round-to-nearest with ties to even and gradual underflow. Every primary multiply, add, divide and square root remains separately rounded FP64 in source order. The forest-snow term retains the ordered product `fraction * sublimation_heat * snow_evaporation`. Signed zeros are preserved.
 
+For the dewpoint calculation, $`T_2`$ is temperature at 2 m in K, $`q_a`$ is the lowest-level specific humidity in kg/kg and $`\chi`$ is the supplied humidity correction. First round $`R_d T_2`$ to FP64. Then multiply that rounded value by the rounded factor $`1+\chi\max(q_\mathrm{min},q_a)`$ before the pressure division. Here $`q_\mathrm{min}`$ is the fixed numerical humidity floor $`100\,2^{-52}`$ in kg/kg. This keeps the complete water-pressure and dewpoint calculation in the original order.
+
 Scalar EXP and LOG use the accepted strict math route. The original-compatible [ATAN primitive](../support/atan_original_rounding.md) and [POWER primitive](../power_math.md) retain the original external function results without fused floating-point instructions. Their accepted numerical and ABI proofs are reused.
 
 Independent checks use the tile heat and water sums, snow splitting, tile diagnostics, skin-rate balance, stress-derived gust relation, and high-precision surface profile and dewpoint relations. The unstable profile correction has an independent integral and derivative check. Stable profile corrections retain their own original empirical relation and do not claim the different stable flux-gradient identity. The rounding budget remains $`4096\,2^{-53}`$ times the independent relation magnitudes.
 
 Original parent physics passed 13 cases, 2,813,624 complete returned bytes and 389,022 parent, profile and boundary relations. The main native corpus passed 26 protected placements with 5,627,248 compared bytes. Four focused forest-snow ordering cases then passed 139,968 compared bytes and 36,324 relations. Three immediate ABI cases passed 76,248 bytes, and five unsupported shape cases rejected before changing outputs.
 
-Four profiling-enabled paired calls passed 14,304 complete compared bytes and 1,857 driver relations. These include ocean skin, optional diagnostics, an empty selected range and shared read-only wind views. A mutable input/output alias was rejected before writes. The live report counts complete parent returns and genuine private VOSKIN calls; a focused counter check recorded two VOSKIN calls and excluded original shadow calls and the empty selected range. SPPCFL and SPPGUST are private children outside the queued weather count. Full forecast acceptance remains pending the combined gate.
+Four profiling-enabled paired calls passed 14,304 complete compared bytes and 1,857 driver relations. These include ocean skin, optional diagnostics, an empty selected range and shared read-only wind views. A mutable input/output alias was rejected before writes. The live report counts complete parent returns and genuine private VOSKIN calls; a focused counter check recorded two VOSKIN calls and excluded original shadow calls and the empty selected range. SPPCFL and SPPGUST are private children outside the queued weather count. Full forecast acceptance is recorded below.
+
+A later genuine cold-column packet qualifies this pressure order across all 33,984 returned bytes and 13,072 immutable bytes with zero differences. The protected native and live paired replays retain every alias and descriptor, pass 120 independent dewpoint relations at the same rounding budget, and preserve FPCR 0, FPSR 16 and errno 34. The native register and stack check also passes. Earlier unchanged parent and child proofs remain valid. The complete revised forecast gate is recorded below.
 
 Local source versions, binary controls, input corpus, commands and compact acceptance records are retained under `.runtime/openifs/surface_postprocessing_7240564/`. No comparative timing or measured speedup is claimed here.
 
@@ -80,3 +84,5 @@ The combined coarse forecast in exclusive allocation 7240564 on nid010555 passes
 | surfpp_ctl_mod::surfpp_ctl | 2,150 | 73,065,600 | Complete returned routine owners |
 
 All ten saved files also match across 618,140 bytes. The accepted critical physics and interface checks are reused. These checks cover the declared routine domains and saved files. Whole-forecast physical verification, whole-process byte identity and comparative timing remain open in the [coverage record](../../../../../src/openifs/README.md).
+
+The revised wind forecast in exclusive allocation 7259755 also passes 2,150 complete surface calls and 73,065,600 returned bytes with zero differences. All ten saved files match its separately reviewed source forecast across 618,140 bytes.

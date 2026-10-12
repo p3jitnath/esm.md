@@ -1234,6 +1234,7 @@ b.le .Lcolumn
 ldr x9,[x19]
 ldr w20,[x9]
 sub w20,w20,#1
+// Round RD times PT2 first, then multiply by the humidity factor.
 .Ldewpoint:
 ldr x9,[x19,#40]
 ldr x10,[x9]
@@ -1253,9 +1254,9 @@ ldr x10,[x9]
 ldr x11,[x9,#40]
 mul x11,x11,x20
 ldr d1,[x10,x11,lsl #3]
-fmul d0,d1,d0
 ldr x9,[x19,#152]
-ldr d1,[x9,#32]
+ldr d2,[x9,#32]
+fmul d1,d2,d1
 fmul d0,d1,d0
 ldr d1,[x19,#272]
 fdiv d0,d1,d0

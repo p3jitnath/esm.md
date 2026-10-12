@@ -8,26 +8,28 @@ A routine body is one function or subroutine that performs a calculation. These 
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 242 | 469 |
-| Local calculations | 356 | 237 | 119 |
-| Weather calculations | 255 | 235 | 20 |
+| Main forecast phase | 711 | 243 | 468 |
+| Local calculations | 356 | 238 | 118 |
+| Weather calculations | 255 | 236 | 19 |
 
-There are 243 accepted assembly bodies overall. VERDER is outside the main forecast count. The ordered 20-routine weather queue and completed checks remain local. The latest checkpoint accepts complete grid-point calculations, latitude wave analysis, inverse latitude reconstruction and the inner radiation calculation. Two of these bodies add to the main count only.
+There are 244 accepted assembly bodies overall. VERDER is outside the main forecast count. The ordered 19-routine weather queue and completed checks remain local. The latest checkpoint accepts complete wind preparation for parcel trajectories. The previous checkpoint accepts complete grid-point calculations, latitude wave analysis, inverse latitude reconstruction and the inner radiation calculation.
 
 ## Verification
 
-Each accepted routine passes independent critical physics and exact-output checks within its declared input range. The latest checkpoint passes all four complete bodies with zero differing returned bytes. Every compared array byte agrees, and all ten saved files match across 618,140 bytes. The earlier twenty-four-body and corrected fourteen-body native groups also pass their saved-file gate. Unchanged physical, mathematical and interface checks are reused. The run uses exclusive allocation 7259755 on nid010824, one process, one thread, CPU 16 and local memory binding.
+Each accepted routine passes independent critical physics and exact-output checks within its declared input range. The latest checkpoint passes the complete wind body and the existing surface calculation with zero differing bytes. Every compared array byte agrees, and all ten saved files match across 618,140 bytes. The earlier twenty-four-body and corrected fourteen-body native groups also pass their saved-file gate. Unchanged physical, mathematical and interface checks are reused. The run uses exclusive allocation 7259755 on nid010824, one process, one thread, CPU 16 and local memory binding.
 
-| Latest routine | Complete calls | Returned owner bytes | Differing bytes |
+| Latest routine | Complete calls | Compared buffer bytes | Differing bytes |
 | --- | ---: | ---: | ---: |
-| Forecast grid calculations | 2,150 | 712,458,400 | 0 |
-| Radiation column physics | 6,400 | 424,755,200 | 0 |
-| Legendre wave analysis | 1,342 | 22,387,200 | 0 |
-| Inverse Legendre reconstruction | 1,144 | 38,905,856 | 0 |
+| Parcel trajectory wind | 2,150 | 23,201,050,000 | 0 |
+| Surface weather calculation | 2,150 | 73,065,600 | 0 |
+
+The wind comparison includes all input and returned buffers. The surface total covers returned buffers. Its pressure calculation preserves the original multiplication order.
 
 The continuity routine assigns positive zero to unused output slots that the original source left unset, while preserving every defined calculation. Its byte comparisons use a separate corrected Fortran reference, without changing any defined values in the saved files. The [continuity contract](../../skills/md2asm/references/openifs/dynamics/vertical_continuity.md) states this representation and its bounds.
 
 The [spectral update](../../skills/md2asm/references/openifs/dynamics/spectral_semi_implicit_update.md), [latitude analysis](../../skills/md2asm/references/openifs/dynamics/legendre_wave_analysis.md) and [inverse reconstruction](../../skills/md2asm/references/openifs/dynamics/inverse_legendre_reconstruction.md) contracts use separately rounded matrix products. Their independently checked Fortran reference replaces the earlier fused vendor route for this comparison. The earlier source and saved files remain local. Their saved bytes differ, and the new direct forecast agrees exactly with the revised reference.
+
+The [wind contract](../../skills/md2asm/references/openifs/trajectories/trajectory_wind_preparation.md) uses a separately verified hyperbolic tangent. This function shapes the vertical prediction weight. Its revised Fortran reference and the direct forecast produce identical saved files. The previous tangent reference and its different outputs remain local.
 
 A separate observer checks the configured humidity floor in 2,150 matched CALLPAR returns and finite ordered rates over 972,800 active cells. It adds zero routines. Complete forecast-state bounds and full-column water and heat balance remain open.
 

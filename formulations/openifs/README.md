@@ -6,6 +6,7 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 
 | Forecast part | Basic formulation | Assembly coverage |
 | --- | --- | --- |
+| Parcel trajectories | [Wind preparation](trajectories/wind_for_parcel_trajectories.md) | Complete selected LAVENT prediction and Cartesian wind preparation |
 | Atmospheric motion | [Motion and heat](dynamics/atmospheric_motion.md) | Complete time filters, linear terms, bounded transport and selected spectral stages, other stages pending |
 | Surface pressure | [Logarithm and derivatives](dynamics/surface_pressure.md) | Complete GP_SPV routine |
 | Vertical pressure | [Hybrid pressure](dynamics/hybrid_pressure.md) | Complete GPHPRE routine |
@@ -32,4 +33,4 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 
 These basic balances do not yet cover every configured physical process. Source-derived closure relations, which specify rates and coefficients, and complete numerical contracts are still needed before assembly generation.
 
-243 public assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../src/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
+244 public assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../src/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
