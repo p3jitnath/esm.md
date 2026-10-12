@@ -8,19 +8,24 @@ A routine body is one function or subroutine that performs a calculation. These 
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 231 | 480 |
-| Local calculations | 356 | 228 | 128 |
-| Weather calculations | 255 | 226 | 29 |
+| Main forecast phase | 711 | 235 | 476 |
+| Local calculations | 356 | 232 | 124 |
+| Weather calculations | 255 | 230 | 25 |
 
-There are 232 accepted assembly bodies overall. VERDER is outside the main forecast count. The ordered 29-routine weather queue and completed checks remain local. The latest checkpoint accepts complete spectral horizontal diffusion. Two earlier supporting transport bodies add to the main count only.
+There are 236 accepted assembly bodies overall. VERDER is outside the main forecast count. The ordered 25-routine weather queue and completed checks remain local. The latest checkpoint accepts complete aerosol and ozone preparation, direct Fourier analysis, vertical continuity and conditional longwave layer transport. Two earlier supporting transport bodies add to the main count only.
 
 ## Verification
 
-Each accepted routine passes independent critical physics and exact-output checks within its declared input range. The latest checkpoint passes the complete horizontal-diffusion stage with zero differing returned bytes. Every compared array byte agrees, and all ten saved files match across 618,140 bytes. The earlier twenty-four-body and corrected fourteen-body native groups also pass their saved-file gate. Unchanged physical, mathematical and interface checks are reused. The run uses exclusive allocation 7259755 on nid010824, one process, one thread, CPU16 and local memory binding.
+Each accepted routine passes independent critical physics and exact-output checks within its declared input range. The latest checkpoint passes all four complete stages with zero differing returned bytes. Every compared array byte agrees, and all ten saved files match across 618,140 bytes. The earlier twenty-four-body and corrected fourteen-body native groups also pass their saved-file gate. Unchanged physical, mathematical and interface checks are reused. The run uses exclusive allocation 7259755 on nid010824, one process, one thread, CPU16 and local memory binding.
 
 | Latest routine | Complete calls | Returned owner bytes | Differing bytes |
 | --- | ---: | ---: | ---: |
-| Spectral horizontal diffusion | 25 | 5,871,800 | 0 |
+| Aerosol and ozone preparation | 6,400 | 147,865,600 | 0 |
+| Direct Fourier analysis | 1,952 | 1,396,310,016 | 0 |
+| Vertical continuity | 2,150 | 41,280,000 | 0 |
+| Longwave layer transport | 292,394 | 1,309,925,120 | 0 |
+
+The continuity routine assigns positive zero to unused output slots that the original source left unset, while preserving every defined calculation. Its byte comparisons use a separate corrected Fortran reference, and the saved-file comparison uses the unchanged original forecast. The [continuity contract](../../skills/md2asm/references/openifs/dynamics/vertical_continuity.md) states this representation and its bounds.
 
 A separate observer checks the configured humidity floor in 2,150 matched CALLPAR returns and finite ordered rates over 972,800 active cells. It adds zero routines. Complete forecast-state bounds and full-column water and heat balance remain open.
 
