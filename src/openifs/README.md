@@ -8,15 +8,15 @@ A routine body is one function or subroutine that performs a calculation. These 
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 222 | 489 |
-| Local calculations | 356 | 219 | 137 |
-| Weather calculations | 255 | 217 | 38 |
+| Main forecast phase | 711 | 223 | 488 |
+| Local calculations | 356 | 220 | 136 |
+| Weather calculations | 255 | 218 | 37 |
 
-There are 223 accepted assembly bodies overall. VERDER is outside the main forecast count. The ordered 38-routine weather queue and completed checks remain local. The latest batch accepts six weather bodies for cloud adjustment, radiation preparation, departure points and transported fields. Two supporting transport bodies add to the main count only.
+There are 224 accepted assembly bodies overall. VERDER is outside the main forecast count. The ordered 37-routine weather queue and completed checks remain local. The latest checkpoint accepts complete surface carbon flux. Two earlier supporting transport bodies add to the main count only.
 
 ## Verification
 
-Each accepted routine passes independent critical physics and exact-output checks within its declared input range. The latest batch adds eight complete bodies with positive actual calls. Every compared array byte agrees, and all ten saved files match across 618,140 bytes. The earlier twenty-four-body and corrected fourteen-body native groups also pass their saved-file gate. Unchanged physical, mathematical and interface checks are reused. The run uses exclusive allocation 7259755 on nid010824, one process, one thread, CPU16 and local memory binding.
+Each accepted routine passes independent critical physics and exact-output checks within its declared input range. The latest checkpoint passes 2,150 complete surface-carbon calls and 9,494,400 returned bytes with zero differences. Every compared array byte agrees, and all ten saved files match across 618,140 bytes. The earlier twenty-four-body and corrected fourteen-body native groups also pass their saved-file gate. Unchanged physical, mathematical and interface checks are reused. The run uses exclusive allocation 7259755 on nid010824, one process, one thread, CPU16 and local memory binding.
 
 A separate observer checks the configured humidity floor in 2,150 matched CALLPAR returns and finite ordered rates over 972,800 active cells. It adds zero routines. Complete forecast-state bounds and full-column water and heat balance remain open.
 

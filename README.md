@@ -30,7 +30,7 @@ The published tree contains Markdown and assembly. Build instructions and the lo
 
 ## OpenIFS development
 
-The openifs-md branch extends this workflow to OpenIFS 48.1.1. 223 complete assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons in a coarse global forecast.
+The openifs-md branch extends this workflow to OpenIFS 48.1.1. 224 complete assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons in a coarse global forecast.
 
 | Check | Coverage | Differing bytes |
 | --- | --- | ---: |
@@ -41,4 +41,4 @@ The openifs-md branch extends this workflow to OpenIFS 48.1.1. 223 complete asse
 
 The latest verified forecast starts on 15 October 2004 and advances 24 hours on 2,048 grid points with 19 atmospheric levels. Other stages remain in Fortran. Complete assembly coverage, independent whole-forecast physics and external-library arithmetic checks remain unfinished. Whole-forecast speed has not been measured. The [OpenIFS verification note](src/openifs/README.md) gives the latest evidence and the limits of complete-storage comparisons.
 
-The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. The [routine work list](src/openifs/README.md) records **38 remaining weather or forcing routines** in this T21 main phase. It also separates the broader 137 local-calculation and 489 total-body counts, with their original names and source paths.
+The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. The [routine work list](src/openifs/README.md) records **37 remaining weather or forcing routines** in this T21 main phase. It also separates the broader 136 local-calculation and 488 total-body counts, with their original names and source paths.
