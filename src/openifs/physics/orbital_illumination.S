@@ -1,0 +1,153 @@
+/* Direct orbital equations from skills/md2asm/references/openifs/physics/orbital_illumination.md revision 1.
+ * d0 holds time in seconds. x0 owns three FP64 output values in 24 bytes.
+ * Outputs are Sun-Earth distance, declination and clock correction.
+ * Separate FP64 operations retain the original expression order.
+ * Private math entries bind only to qualified direct assembly children.
+ */
+.text
+.p2align 4
+.global md2asm_orbital_illumination
+.type md2asm_orbital_illumination,%function
+md2asm_orbital_illumination:
+    mrs x9,fpcr
+    cbnz x9,.Lorbit_reject
+    cbz x0,.Lorbit_reject
+    tst x0,#7
+    b.ne .Lorbit_reject
+    adds x9,x0,#24
+    b.cs .Lorbit_reject
+    fcmp d0,#0.0
+    b.lt .Lorbit_reject
+    b.vs .Lorbit_reject
+    adrp x9,.Lorbit_limit
+    ldr d1,[x9,:lo12:.Lorbit_limit]
+    fcmp d0,d1
+    b.gt .Lorbit_reject
+    sub sp,sp,#128
+    stp x19,x20,[sp,#0]
+    stp x21,x30,[sp,#16]
+    stp x18,x29,[sp,#32]
+    stp d8,d9,[sp,#48]
+    stp d10,d11,[sp,#64]
+    stp d12,d13,[sp,#80]
+    stp d14,d15,[sp,#96]
+    mov x29,sp
+    mov x19,x0
+    adrp x20,.Lorbit_constants
+    add x20,x20,:lo12:.Lorbit_constants
+    ldr d1,[x20,#0]
+    ldr d2,[x20,#8]
+    fmul d1,d1,d2
+    fdiv d8,d0,d1
+    ldr d0,[x20,#16]
+    fmul d0,d0,d8
+    ldr d1,[x20,#24]
+    fadd d9,d1,d0
+    ldr d0,[x20,#32]
+    fmul d0,d0,d8
+    ldr d1,[x20,#40]
+    fadd d10,d1,d0
+    ldr d0,[x20,#16]
+    fmul d0,d0,d8
+    ldr d1,[x20,#48]
+    fadd d11,d1,d0
+    fmov d0,d9
+    bl md2asm_sin_original_rounding
+    fmov d12,d0
+    fmov d0,d9
+    bl md2asm_cos_original_rounding
+    fmov d13,d0
+    ldr d0,[x20,#56]
+    fmul d0,d0,d12
+    ldr d1,[x20,#64]
+    fsub d0,d1,d0
+    ldr d1,[x20,#72]
+    fmul d1,d1,d13
+    fadd d0,d0,d1
+    ldr d1,[x20,#80]
+    fmul d0,d1,d0
+    str d0,[x19,#0]
+    ldr d0,[x20,#88]
+    fmul d0,d0,d8
+    ldr d1,[x20,#96]
+    fadd d14,d1,d0
+    ldr d0,[x20,#104]
+    fmul d0,d0,d12
+    fsub d14,d14,d0
+    ldr d0,[x20,#112]
+    fmul d0,d0,d13
+    fsub d14,d14,d0
+    fmov d0,#2.0
+    fmul d0,d0,d9
+    bl md2asm_sin_original_rounding
+    ldr d1,[x20,#120]
+    fmul d0,d1,d0
+    fsub d14,d14,d0
+    fmov d0,#2.0
+    fmul d0,d0,d9
+    bl md2asm_cos_original_rounding
+    ldr d1,[x20,#128]
+    fmul d0,d1,d0
+    fadd d14,d14,d0
+    ldr d0,[x20,#136]
+    bl md2asm_sin_original_rounding
+    fmov d15,d0
+    fmov d0,d14
+    bl md2asm_sin_original_rounding
+    fmul d0,d15,d0
+    bl md2asm_asin_original_rounding
+    str d0,[x19,#8]
+    fmov d0,#2.0
+    fmul d0,d0,d11
+    bl md2asm_sin_original_rounding
+    ldr d1,[x20,#144]
+    fmul d15,d1,d0
+    fmov d0,d10
+    bl md2asm_sin_original_rounding
+    fmov d14,d0
+    ldr d1,[x20,#152]
+    fmul d0,d1,d0
+    fsub d15,d15,d0
+    fmov d0,#2.0
+    fmul d0,d0,d11
+    bl md2asm_cos_original_rounding
+    ldr d1,[x20,#160]
+    fmul d1,d1,d14
+    fmul d1,d1,d0
+    fadd d15,d15,d1
+    fmov d0,#4.0
+    fmul d0,d0,d11
+    bl md2asm_sin_original_rounding
+    ldr d1,[x20,#168]
+    fmul d0,d1,d0
+    fsub d15,d15,d0
+    fmov d0,#2.0
+    fmul d0,d0,d10
+    bl md2asm_sin_original_rounding
+    ldr d1,[x20,#176]
+    fmul d0,d1,d0
+    fsub d15,d15,d0
+    str d15,[x19,#16]
+    ldp x19,x20,[sp,#0]
+    ldp x21,x30,[sp,#16]
+    ldp x18,x29,[sp,#32]
+    ldp d8,d9,[sp,#48]
+    ldp d10,d11,[sp,#64]
+    ldp d12,d13,[sp,#80]
+    ldp d14,d15,[sp,#96]
+    add sp,sp,#128
+    ret
+.Lorbit_reject:
+    bl abort
+    brk #0
+.size md2asm_orbital_illumination,.-md2asm_orbital_illumination
+.section .rodata
+.p2align 3
+.Lorbit_constants:
+    .double 86400.0,365.25,6.283076,1.7535,6.283020,6.240075
+    .double 4.8951,0.0163,1.0001,0.0037,149597870000.0
+    .double 6.283320,4.8952,0.0075,0.0326,0.0003,0.0002,0.409093
+    .double 591.8,459.4,39.5,12.7,4.8
+.Lorbit_limit:
+    .double 315576000.0
+.section .note.GNU-stack,"",%progbits
