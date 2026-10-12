@@ -40,4 +40,3 @@ md2asm_laitriqm3d_complete_status_7259755:
  b md2asm_laitriqm3d
 .size md2asm_laitriqm3d_complete_status_7259755,.-md2asm_laitriqm3d_complete_status_7259755
 .section .note.GNU-stack,"",%progbits
-

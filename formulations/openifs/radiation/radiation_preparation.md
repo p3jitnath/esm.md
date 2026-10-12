@@ -19,4 +19,3 @@ The physical energy bounds use reflectivity $`a`$ and emissivity $`e`$.
 Temperature is in kelvin and pressure is in pascals. The saturation calculation gives the equilibrium water-vapour mass fraction. The cloud calculation prepares cloud probabilities and copies the selected liquid-water and ice fields into the radiation input. Those copies are diagnostic fields and do not form a new water-mass update.
 
 The initial state, surface categories, cloud settings, date and physical constants come from the retained coarse-forecast inputs. The selected cloud route uses the prognostic cloud fields. The parent calls the existing surface, calendar, saturation and cloud calculations. Its numerical contract records their complete ordered work and output storage.
-
