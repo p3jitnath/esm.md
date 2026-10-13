@@ -8,6 +8,7 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 | --- | --- | --- |
 | Parcel trajectories | [Wind preparation](trajectories/wind_for_parcel_trajectories.md) | Complete selected LAVENT prediction and Cartesian wind preparation |
 | Inverse spectral transform | [Latitude fields from waves](dynamics/inverse_spectral_transform.md) | Complete selected LTINV preparation and reconstruction |
+| Interpolation boundaries | [Extra work layers](dynamics/interpolation_boundary_values.md) | Complete selected LAVABO boundary stores |
 | Atmospheric motion | [Motion and heat](dynamics/atmospheric_motion.md) | Complete time filters, linear terms, bounded transport and selected spectral stages, other stages pending |
 | Surface pressure | [Logarithm and derivatives](dynamics/surface_pressure.md) | Complete GP_SPV routine |
 | Vertical pressure | [Hybrid pressure](dynamics/hybrid_pressure.md) | Complete GPHPRE routine |
@@ -25,8 +26,9 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 | Clouds and precipitation | [Water and phase changes](physics/clouds.md) | Pending |
 | Convection | [Plume transport](physics/convection.md) | Complete plume initialisation, saturation adjustment, downdraft initiation, heat, moisture and wind transport, other stages pending |
 | Turbulent mixing | [Vertical transport](physics/vertical_mixing.md) | Complete diffusion increments and implicit wind diffusion, other transport stages pending |
-| Radiation | [Radiation balance](physics/radiation.md) | Complete liquid and Fu ice optics, cloud delta scaling, shortwave and longwave adding, thermal emission and selected two-stream children, remaining transfer stages pending |
+| Radiation | [Radiation balance](physics/radiation.md) and [field preparation](radiation/radiation_field_preparation.md) | Complete liquid and Fu ice optics, cloud delta scaling, shortwave and longwave adding, thermal emission and selected two-stream children, complete selected RADIATION_SCHEME field preparation, remaining driver stages pending |
 | Shortwave Band 21 | [Absorption and scattering](physics/shortwave_band21.md) | Complete SRTM_TAUMOL21 within its verified contract |
+| Plant carbon uptake | [Leaf carbon balance](surface/carbon_uptake_by_plant_leaves.md) | Complete selected C3/C4 FARQUHAR within its positive-capacity contract |
 | Soil, snow, lakes and surface exchange | [Skin balance and tiles](surface/surface_exchange.md) | Complete soil-water recovery, diffusion and correction, snow layer, heat, albedo and water updates, and lake radiation, other stages pending |
 | Column ozone | [Ozone mass](physics/column_ozone.md) | Complete GPTCO3 integral, also used for signed moisture rates |
 | Atmospheric composition | [Tracer balance](physics/atmospheric_composition.md) | Complete monthly gas and ozone interpolation and gas/solar forcing, chemical rates pending |
@@ -34,4 +36,4 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 
 These basic balances do not yet cover every configured physical process. Source-derived closure relations, which specify rates and coefficients, and complete numerical contracts are still needed before assembly generation.
 
-245 public assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../src/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
+248 original routine bodies with assembly replacements pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../src/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.

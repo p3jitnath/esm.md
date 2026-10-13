@@ -30,15 +30,15 @@ The published tree contains Markdown and assembly. Build instructions and the lo
 
 ## OpenIFS development
 
-The openifs-md branch extends this workflow to OpenIFS 48.1.1. 245 complete assembly bodies pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons in a coarse global forecast.
+The openifs-md branch extends this workflow to OpenIFS 48.1.1. 248 original routine bodies with assembly replacements pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons in a coarse global forecast.
 
 | Check | Coverage | Differing bytes |
 | --- | --- | ---: |
-| Prior complete routine streams | 50 pairs across 7,595,504,008 bytes | 0 |
-| Complete Band 21 same-input pairs | 6,400 calls across 361,958,400 returned bytes | 0 |
-| Latest weather replacements | Complete inverse spectral transform with 1,144 actual calls | 0 |
+| Radiation-field preparation | 6,400 complete calls | 0 |
+| Plant photosynthesis | 6,450 complete C3/C4 calls | 0 |
+| Interpolation boundaries | 2,150 complete calls | 0 |
 | Saved forecast files | 10 files across 618,140 bytes | 0 |
 
 The latest verified forecast starts on 15 October 2004 and advances 24 hours on 2,048 grid points with 19 atmospheric levels. Other stages remain in Fortran. Complete assembly coverage, independent whole-forecast physics and external-library arithmetic checks remain unfinished. Whole-forecast speed has not been measured. The [OpenIFS verification note](src/openifs/README.md) gives the latest evidence and the limits of complete-storage comparisons.
 
-The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. The [routine work list](src/openifs/README.md) records **18 remaining weather or forcing routines** in this T21 main phase. It also separates the broader 117 local-calculation and 467 total-body counts. The ordered original routine names and source paths remain in the local records.
+The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. The [routine work list](src/openifs/README.md) records **16 remaining weather or forcing routines** in this T21 main phase. It also separates the broader 115 local-calculation and 464 total-body counts. The ordered original routine names and source paths remain in the local records.
