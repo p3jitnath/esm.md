@@ -20,13 +20,13 @@ Each accepted routine passes independent critical physics and exact-output check
 
 | Routine | Complete comparisons | Compared buffer bytes | Differing bytes |
 | --- | ---: | ---: | ---: |
-| CPG | 2 full/partial pairs | 467,086,472 | 0 |
+| CPG | 4 full/partial pairs | 933,933,328 | 0 |
 | CPG_DRV | 3 reset cases | 775,302,519 | 0 |
 | SPCM | 25 calls | 117,642,025 | 0 |
 | FOURIER_IN | 192 pairs | 306,441,984 | 0 |
 | FOURIER_OUT | 160 pairs | 252,005,504 | 0 |
 
-The [grid-point contract](../../skills/md2asm/references/openifs/dynamics/complete_grid_point_update.md) and [block-driver contract](../../skills/md2asm/references/openifs/dynamics/grid_point_block_driver.md) define the accepted stages and interfaces. The verifier uses the actual smaller allocations for inactive diagnostic outputs and checks their complete bytes. Repeated CPG inputs with an already-checked row extent and control tuple use the separate reference in this verification run. The direct block-driver checks cover the initial reset and both sides of its periodic reset rule.
+The [grid-point contract](../../skills/md2asm/references/openifs/dynamics/complete_grid_point_update.md) and [block-driver contract](../../skills/md2asm/references/openifs/dynamics/grid_point_block_driver.md) define the accepted stages and interfaces. The verifier uses the actual smaller allocations for inactive diagnostic outputs and checks their complete bytes. It preserves the raw addresses of legacy arrays with no source consumer, while retaining their real backing storage. Repeated CPG inputs with an already-checked row extent and control tuple use the separate reference in this verification run. The direct block-driver checks cover the initial reset and both sides of its periodic reset rule.
 
 The [spectral driver contract](../../skills/md2asm/references/openifs/dynamics/spectral_calculation_driver.md) records all seven direct stages, exact numerical status and preserved registers. Four protected copy cases check 155,848 independent index relations and preserve inactive data. The existing physical and buffer-bound proofs of unchanged children are reused.
 
