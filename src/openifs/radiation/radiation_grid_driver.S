@@ -2,8 +2,9 @@
  * See formulations/openifs/radiation/radiation_grid_driver.md and
  * skills/md2asm/references/openifs/radiation/radiation_grid_driver.md.
  * The qualified R5 numerical instructions and external calls are unchanged.
- * All numerical stages and final state stores belong to this assembly and
- * its accepted assembly children. The two stage hooks only observe values.
+ * This parent owns preparation, packing and final state stores. Physical
+ * children use accepted assembly. The frozen C power helper supplies fourth
+ * roots. The two stage hooks only observe values.
  * radintg_ is the original 59-address interface. The public alias below
  * shares the qualified primary entry without adding instructions.
  */

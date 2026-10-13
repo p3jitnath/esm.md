@@ -1,6 +1,6 @@
 # Radiation Grid Driver Contract
 
-Revision 1 freezes the selected `RADINTG` interface and ordered mathematics from the original `arpifs/phys_radi/radintg.F90`. The [physical input](../../../../../formulations/openifs/radiation/radiation_grid_driver.md) defines equations P01–P04. The direct parent and its numerical children are assembly. Independent parent checks, genuine live source comparisons and exact forecast files pass within the scope below.
+Revision 1 freezes the selected `RADINTG` interface and ordered mathematics from the original `arpifs/phys_radi/radintg.F90`. The [physical input](../../../../../formulations/openifs/radiation/radiation_grid_driver.md) defines equations P01–P04. The direct parent and its physical calculation children are assembly. Its frozen power helper is compiled C and remains a declared dependency of this mixed forecast. Independent parent checks, genuine live source comparisons and exact forecast files pass within the scope below.
 
 ## Selected inputs and arithmetic
 
@@ -10,7 +10,7 @@ FP64 stores each real value in 64 bits. Require floating-point control register 
 
 For P01, first add two to the captured curvature coefficient and multiply by that coefficient. Above the strict `1e-10` threshold, square the supplied cosine, add the curvature term, take the square root, subtract the cosine and divide the coefficient by the result. Equality takes the floor branch. For P02, form the two weighted products in their original order, add them, form the denominator, round its reciprocal and multiply the numerator by that reciprocal. The top temperature uses the original extrapolation and the bottom temperature copies skin temperature.
 
-Pack skin temperature by a rounded square followed by another rounded square. Recover its fourth root through the accepted original-rounding `POWER` assembly route. Replacing it by two square roots changes the arithmetic. Clamp the first six albedo bands, cloud fraction and water inputs without modifying their supplied forecast owners. Preserve the original humidity limits and particle-concentration limits from the physical input.
+Pack skin temperature by a rounded square followed by another rounded square. Recover its fourth root through the accepted original-rounding `POWER` helper. Replacing it by two square roots changes the arithmetic. Clamp the first six albedo bands, cloud fraction and water inputs without modifying their supplied forecast owners. Preserve the original humidity limits and particle-concentration limits from the physical input.
 
 Packing uses 78 ordered `INDRAD` operations, 295 input fields, 125 output fields and 933 total fields. Disabled fields keep `NUNDEFLD=-99999` and remain unread. Group columns by exactly equal sine latitude before aerosol, ozone and greenhouse preparation. `NGHGRAD=21` selects all supplied gas profiles and replaces ozone by profile ozone times layer pressure depth. Retain all twelve supplied MACC aerosol mass fields, the fifth legacy-aerosol replacement and earlier assignments that are later overwritten.
 
@@ -25,9 +25,9 @@ For P03 and P04, preserve the original ordered six-band sums and all separately 
 | `md2asm_grid_greenhouse_profiles` | [RADGHG](../../../../../src/openifs/physics/radghg.S), greenhouse profiles, with its accepted entry renamed locally |
 | `md2asm_grid_gas_layer` | [Gas layer interpolation](../../../../../src/openifs/physics/interp_gas.S), called by the greenhouse child with its accepted entry renamed locally |
 | `md2asm_radiation_field_preparation` | [Radiation field preparation](radiation_field_preparation.md), complete accepted atmospheric transport |
-| `md2asm_pow_original_rounding_candidate` | Accepted original-rounding power assembly, used for the fourth root |
+| `md2asm_pow_original_rounding_candidate` | Frozen original-rounding C mathematical helper, used for the fourth root |
 
-Unchanged child science and exact-output proofs are reused. Each numerical child uses its accepted assembly body, including the eleven-address `RADOZC` interface.
+Unchanged child science and exact-output proofs are reused. The physical calculation children use their accepted assembly bodies, including the eleven-address `RADOZC` interface. The power library uses the retained `original_power_candidate.c` and `round_product_sum.c` sources. Its independent power checks and exact bits, status and error-code comparisons remain local. A complete autonomous assembly forecast must replace this mathematical dependency with direct assembly.
 
 Allocation and byte movement use `calloc`, `memcpy`, `memset` and `free`. Logging uses `puts`, `gstats_` and the original DrHook interface. These calls supply no numerical calculation. The read-only hook `md2asm_grid_stage_observe_r5` observes packed fields before transport and before output updates; the local verifier provides it and preserves raw floating-point status. Verification tools and source controls remain under the ignored `.runtime/` directory.
 
