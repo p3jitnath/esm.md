@@ -8,21 +8,25 @@ A routine body is one function or subroutine that performs a calculation. These 
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 252 | 459 |
-| Local calculations | 356 | 242 | 114 |
-| Weather calculations | 255 | 239 | 16 |
+| Main forecast phase | 711 | 254 | 457 |
+| Local calculations | 356 | 243 | 113 |
+| Weather calculations | 255 | 240 | 15 |
 
-There are 253 accepted original routine bodies with assembly replacements overall. VERDER is outside the main forecast count. The ordered 16-routine weather queue and completed checks remain local. The latest checkpoint accepts the spectral driver and its two field-copy routines. They add three main-phase bodies, including one local calculation, while the weather count stays unchanged. The two Fourier transfer routines remain accepted. Earlier radiation-field preparation, C3/C4 leaf photosynthesis, interpolation-boundary and transform proofs remain valid.
+There are 255 accepted original routine bodies with assembly replacements overall. VERDER is outside the main forecast count. The ordered 15-routine weather queue and completed checks remain local. The latest checkpoint accepts the grid-point calculation CPG and its block driver CPG_DRV. CPG adds one weather calculation. CPG_DRV adds one support body outside the weather group. Accepted spectral, Fourier, radiation, photosynthesis and interpolation proofs remain valid.
 
 ## Verification
 
-Each accepted routine passes independent critical physics and exact-output checks within its declared input range. The latest checkpoint compares all 48 spectral owners, including complete geometry tables, field descriptors and unused words. All ten saved files match across 618,140 bytes. Unchanged child physics, arithmetic and interface proofs are reused. The run uses exclusive allocation 7358525 on nid010681, one process, one thread, CPU 16 and local memory binding.
+Each accepted routine passes independent critical physics and exact-output checks within its declared input range. The latest checkpoint checks CPG at full and partial row extents, and CPG_DRV at the initial, positive and step-twenty reset cases. It compares complete returned buffers, read-only allocations, numerical status and preserved registers. All ten saved files match across 618,140 bytes. Unchanged child physics and arithmetic proofs are reused. The run uses exclusive allocation 7358525 on nid010681, one process, one thread, CPU 16 and local memory binding.
 
-| Latest routine | Complete calls | Compared buffer bytes | Differing bytes |
+| Routine | Complete comparisons | Compared buffer bytes | Differing bytes |
 | --- | ---: | ---: | ---: |
+| CPG | 2 full/partial pairs | 467,086,472 | 0 |
+| CPG_DRV | 3 reset cases | 775,302,519 | 0 |
 | SPCM | 25 calls | 117,642,025 | 0 |
 | FOURIER_IN | 192 pairs | 306,441,984 | 0 |
 | FOURIER_OUT | 160 pairs | 252,005,504 | 0 |
+
+The [grid-point contract](../../skills/md2asm/references/openifs/dynamics/complete_grid_point_update.md) and [block-driver contract](../../skills/md2asm/references/openifs/dynamics/grid_point_block_driver.md) define the accepted stages and interfaces. The verifier uses the actual smaller allocations for inactive diagnostic outputs and checks their complete bytes. Repeated CPG inputs with an already-checked row extent and control tuple use the separate reference in this verification run. The direct block-driver checks cover the initial reset and both sides of its periodic reset rule.
 
 The [spectral driver contract](../../skills/md2asm/references/openifs/dynamics/spectral_calculation_driver.md) records all seven direct stages, exact numerical status and preserved registers. Four protected copy cases check 155,848 independent index relations and preserve inactive data. The existing physical and buffer-bound proofs of unchanged children are reused.
 

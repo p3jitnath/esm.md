@@ -30,7 +30,7 @@ The published tree contains Markdown and assembly. Build instructions and the lo
 
 ## OpenIFS development
 
-The openifs-md branch extends this workflow to OpenIFS 48.1.1. 253 original routine bodies with assembly replacements pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons in a coarse global forecast.
+The openifs-md branch extends this workflow to OpenIFS 48.1.1. 255 original routine bodies with assembly replacements pass independent small checks within their declared input ranges. Their checked forecast-call cases also pass exact byte comparisons in a coarse global forecast.
 
 | Check | Coverage | Differing bytes |
 | --- | --- | ---: |
