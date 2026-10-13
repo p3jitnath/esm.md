@@ -1,0 +1,443 @@
+// Physics formulations/openifs/dynamics/fourier_buffer_packing.md.
+// Contract skills/md2asm/references/openifs/dynamics/fourier_buffer_packing.md.
+// Original routines FOURIER_IN_MOD::FOURIER_IN and FOURIER_OUT_MOD::FOURIER_OUT.
+// Copies retain FP64 bit patterns, including signed zero, without FP arithmetic.
+// Three ordinary addresses, no hidden lengths. Preserve x18 and x19-x29.
+.arch armv8-a
+.equ D_NPROCM,240
+.equ D_MSTABF,1696
+.equ D_NSTAGT0B,1264
+.equ D_NSTAGT1B,1328
+.equ D_NPNTGTB0,1392
+.equ D_NPTRLS,1200
+.equ D_NSTAGTF,1000
+.equ G_NMEN,64
+.text
+.p2align 4
+.global md2asm_fourier_in_7358525
+.type md2asm_fourier_in_7358525,%function
+md2asm_fourier_in_7358525:
+ sub sp,sp,#256
+ stp x18,x30,[sp,#0]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ mov x19,x0
+ cbz x19,.Lpack_bad
+ cbz x1,.Lpack_bad
+ cbz x2,.Lpack_bad
+ ldr w20,[x1]
+ ldr w21,[x2]
+ cmp w20,#1
+ b.lt .Lpack_bad
+ cmp w20,#136
+ b.gt .Lpack_bad
+ cmp w21,#1
+ b.lt .Lpack_bad
+ cmp w21,#32
+ b.gt .Lpack_bad
+ ldr x9,[x19]
+ cbz x9,.Lpack_bad
+ tst x9,#7
+ b.ne .Lpack_bad
+ ldr x9,[x19,#16]
+ cmp x9,#8
+ b.ne .Lpack_bad
+ ldrb w9,[x19,#28]
+ cmp w9,#2
+ b.ne .Lpack_bad
+ ldr x9,[x19,#32]
+ cmp x9,#8
+ b.ne .Lpack_bad
+ ldr x9,[x19,#40]
+ cmp x9,#1
+ b.ne .Lpack_bad
+ ldr x9,[x19,#48]
+ cmp x9,#1
+ b.ne .Lpack_bad
+ ldr x9,[x19,#56]
+ cmp x9,x20
+ b.lt .Lpack_bad
+ ldr x9,[x19,#64]
+ cmp x9,x20
+ b.lt .Lpack_bad
+ ldr x9,[x19,#72]
+ cmp x9,#1
+ b.ne .Lpack_bad
+ adrp x9,:got:__tpm_distr_MOD_d
+ ldr x9,[x9,:got_lo12:__tpm_distr_MOD_d]
+ ldr x22,[x9]
+ cbz x22,.Lpack_bad
+ adrp x9,:got:__tpm_geometry_MOD_g
+ ldr x9,[x9,:got_lo12:__tpm_geometry_MOD_g]
+ ldr x23,[x9]
+ cbz x23,.Lpack_bad
+ adrp x9,:got:__tpm_distr_MOD_mysetw
+ ldr x9,[x9,:got_lo12:__tpm_distr_MOD_mysetw]
+ ldr w9,[x9]
+ cmp w9,#1
+ b.ne .Lpack_bad
+ add x0,x22,#D_NPTRLS
+ mov x1,#1
+ bl .Lpack_int1
+ add w1,w0,w21
+ sub w1,w1,#1
+ add x0,x23,#G_NMEN
+ sxtw x1,w1
+ bl .Lpack_int1
+ mov w24,w0
+ cmp w24,#0
+ b.lt .Lpack_bad
+ cmp w24,#21
+ b.gt .Lpack_bad
+ add x0,x22,#D_NSTAGTF
+ mov x1,x21
+ bl .Lpack_int1
+ sxtw x0,w0
+ str x0,[sp,#112]
+ adrp x26,:got:__tpm_trans_MOD_foubuf
+ ldr x26,[x26,:got_lo12:__tpm_trans_MOD_foubuf]
+ ldr x9,[x26,#16]
+ cmp x9,#8
+ b.ne .Lpack_bad
+ ldrb w9,[x26,#28]
+ cmp w9,#1
+ b.ne .Lpack_bad
+ ldr x9,[x26,#32]
+ cmp x9,#8
+ b.ne .Lpack_bad
+ ldr x9,[x26,#40]
+ cmp x9,#1
+ b.ne .Lpack_bad
+ ldr x9,[x26,#48]
+ cmp x9,#1
+ b.ne .Lpack_bad
+ ldr x27,[x26,#56]
+ cmp x27,#1
+ b.lt .Lpack_bad
+ ldr x9,[x26,#8]
+ ldr x26,[x26]
+ cbz x26,.Lpack_bad
+ tst x26,#7
+ b.ne .Lpack_bad
+ add x26,x26,x9,lsl #3
+ mov w25,#0
+.Lpack_in_mode:
+ add x0,x22,#D_NPROCM
+ mov x1,x25
+ bl .Lpack_int1
+ sxtw x1,w0
+ add x0,x22,#D_MSTABF
+ bl .Lpack_int1
+ sxtw x1,w0
+ add x0,x22,#D_NSTAGT0B
+ bl .Lpack_int1
+ sxtw x0,w0
+ str x0,[sp,#120]
+ add x0,x22,#D_NPNTGTB0
+ mov x1,x25
+ mov x2,x21
+ bl .Lpack_int2
+ ldr x9,[sp,#120]
+ add x9,x9,w0,sxtw
+ lsl x10,x20,#1
+ mul x9,x9,x10
+ cmp x9,#0
+ b.lt .Lpack_bad
+ add x10,x9,x20,lsl #1
+ cmp x10,x27
+ b.gt .Lpack_bad
+ add x28,x26,x9,lsl #3
+ ldr x9,[sp,#112]
+ add x9,x9,x25,lsl #1
+ add x9,x9,#1
+ ldr x10,[x19,#80]
+ add x11,x9,#1
+ cmp x9,#1
+ b.lt .Lpack_bad
+ cmp x11,x10
+ b.gt .Lpack_bad
+ ldr x10,[x19,#64]
+ ldr x11,[x19,#8]
+ madd x11,x9,x10,x11
+ add x11,x11,#1
+ ldr x12,[x19]
+ add x3,x12,x11,lsl #3
+ add x4,x3,x10,lsl #3
+ mov x5,#0
+.Lpack_in_field:
+ ldr x9,[x28,#8]
+ ldr x10,[x28,#16]
+ str x9,[x3],#8
+ str x10,[x4],#8
+ add x28,x28,#16
+ add x5,x5,#1
+ cmp x5,x20
+ b.lt .Lpack_in_field
+ add w25,w25,#1
+ cmp w25,w24
+ b.le .Lpack_in_mode
+ adrp x9,.Lpack_counts
+ add x9,x9,:lo12:.Lpack_counts
+ ldr x10,[x9,#0]
+ add x10,x10,#1
+ str x10,[x9,#0]
+ ldp x18,x30,[sp,#0]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ add sp,sp,#256
+ ret
+.size md2asm_fourier_in_7358525,.-md2asm_fourier_in_7358525
+.global md2asm_fourier_out_7358525
+.type md2asm_fourier_out_7358525,%function
+md2asm_fourier_out_7358525:
+ sub sp,sp,#256
+ stp x18,x30,[sp,#0]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ mov x19,x0
+ cbz x19,.Lpack_bad
+ cbz x1,.Lpack_bad
+ cbz x2,.Lpack_bad
+ ldr w20,[x1]
+ ldr w21,[x2]
+ cmp w20,#1
+ b.lt .Lpack_bad
+ cmp w20,#136
+ b.gt .Lpack_bad
+ cmp w21,#1
+ b.lt .Lpack_bad
+ cmp w21,#32
+ b.gt .Lpack_bad
+ ldr x9,[x19]
+ cbz x9,.Lpack_bad
+ tst x9,#7
+ b.ne .Lpack_bad
+ ldr x9,[x19,#16]
+ cmp x9,#8
+ b.ne .Lpack_bad
+ ldrb w9,[x19,#28]
+ cmp w9,#2
+ b.ne .Lpack_bad
+ ldr x9,[x19,#32]
+ cmp x9,#8
+ b.ne .Lpack_bad
+ ldr x9,[x19,#40]
+ cmp x9,#1
+ b.ne .Lpack_bad
+ ldr x9,[x19,#48]
+ cmp x9,#1
+ b.ne .Lpack_bad
+ ldr x9,[x19,#56]
+ cmp x9,x20
+ b.lt .Lpack_bad
+ ldr x9,[x19,#64]
+ cmp x9,x20
+ b.lt .Lpack_bad
+ ldr x9,[x19,#72]
+ cmp x9,#1
+ b.ne .Lpack_bad
+ adrp x9,:got:__tpm_distr_MOD_d
+ ldr x9,[x9,:got_lo12:__tpm_distr_MOD_d]
+ ldr x22,[x9]
+ cbz x22,.Lpack_bad
+ adrp x9,:got:__tpm_geometry_MOD_g
+ ldr x9,[x9,:got_lo12:__tpm_geometry_MOD_g]
+ ldr x23,[x9]
+ cbz x23,.Lpack_bad
+ adrp x9,:got:__tpm_distr_MOD_mysetw
+ ldr x9,[x9,:got_lo12:__tpm_distr_MOD_mysetw]
+ ldr w9,[x9]
+ cmp w9,#1
+ b.ne .Lpack_bad
+ add x0,x22,#D_NPTRLS
+ mov x1,#1
+ bl .Lpack_int1
+ add w1,w0,w21
+ sub w1,w1,#1
+ add x0,x23,#G_NMEN
+ sxtw x1,w1
+ bl .Lpack_int1
+ mov w24,w0
+ cmp w24,#0
+ b.lt .Lpack_bad
+ cmp w24,#21
+ b.gt .Lpack_bad
+ add x0,x22,#D_NSTAGTF
+ mov x1,x21
+ bl .Lpack_int1
+ sxtw x0,w0
+ str x0,[sp,#112]
+ adrp x26,:got:__tpm_trans_MOD_foubuf_in
+ ldr x26,[x26,:got_lo12:__tpm_trans_MOD_foubuf_in]
+ ldr x9,[x26,#16]
+ cmp x9,#8
+ b.ne .Lpack_bad
+ ldrb w9,[x26,#28]
+ cmp w9,#1
+ b.ne .Lpack_bad
+ ldr x9,[x26,#32]
+ cmp x9,#8
+ b.ne .Lpack_bad
+ ldr x9,[x26,#40]
+ cmp x9,#1
+ b.ne .Lpack_bad
+ ldr x9,[x26,#48]
+ cmp x9,#1
+ b.ne .Lpack_bad
+ ldr x27,[x26,#56]
+ cmp x27,#1
+ b.lt .Lpack_bad
+ ldr x9,[x26,#8]
+ ldr x26,[x26]
+ cbz x26,.Lpack_bad
+ tst x26,#7
+ b.ne .Lpack_bad
+ add x26,x26,x9,lsl #3
+ mov w25,#0
+.Lpack_out_mode:
+ add x0,x22,#D_NPROCM
+ mov x1,x25
+ bl .Lpack_int1
+ sxtw x1,w0
+ add x0,x22,#D_MSTABF
+ bl .Lpack_int1
+ sxtw x1,w0
+ add x0,x22,#D_NSTAGT1B
+ bl .Lpack_int1
+ sxtw x0,w0
+ str x0,[sp,#120]
+ add x0,x22,#D_NPNTGTB0
+ mov x1,x25
+ mov x2,x21
+ bl .Lpack_int2
+ ldr x9,[sp,#120]
+ add x9,x9,w0,sxtw
+ lsl x10,x20,#1
+ mul x9,x9,x10
+ cmp x9,#0
+ b.lt .Lpack_bad
+ add x10,x9,x20,lsl #1
+ cmp x10,x27
+ b.gt .Lpack_bad
+ add x28,x26,x9,lsl #3
+ ldr x9,[sp,#112]
+ add x9,x9,x25,lsl #1
+ add x9,x9,#1
+ ldr x10,[x19,#80]
+ add x11,x9,#1
+ cmp x9,#1
+ b.lt .Lpack_bad
+ cmp x11,x10
+ b.gt .Lpack_bad
+ ldr x10,[x19,#64]
+ ldr x11,[x19,#8]
+ madd x11,x9,x10,x11
+ add x11,x11,#1
+ ldr x12,[x19]
+ add x3,x12,x11,lsl #3
+ add x4,x3,x10,lsl #3
+ mov x5,#0
+.Lpack_out_field:
+ ldr x9,[x3],#8
+ ldr x10,[x4],#8
+ str x9,[x28,#8]
+ str x10,[x28,#16]
+ add x28,x28,#16
+ add x5,x5,#1
+ cmp x5,x20
+ b.lt .Lpack_out_field
+ add w25,w25,#1
+ cmp w25,w24
+ b.le .Lpack_out_mode
+ adrp x9,.Lpack_counts
+ add x9,x9,:lo12:.Lpack_counts
+ ldr x10,[x9,#8]
+ add x10,x10,#1
+ str x10,[x9,#8]
+ ldp x18,x30,[sp,#0]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ add sp,sp,#256
+ ret
+.size md2asm_fourier_out_7358525,.-md2asm_fourier_out_7358525
+// Read exactly one source integer cell. x1 and x2 are original subscripts.
+// These helpers use only temporary registers and check each consumed index.
+.Lpack_int1:
+ ldr x9,[x0]
+ cbz x9,.Lpack_bad
+ ldr x10,[x0,#16]
+ cmp x10,#4
+ b.ne .Lpack_bad
+ ldrb w10,[x0,#28]
+ cmp w10,#1
+ b.ne .Lpack_bad
+ ldr x10,[x0,#48]
+ cmp x1,x10
+ b.lt .Lpack_bad
+ ldr x10,[x0,#56]
+ cmp x1,x10
+ b.gt .Lpack_bad
+ ldr x10,[x0,#8]
+ ldr x11,[x0,#40]
+ madd x10,x1,x11,x10
+ ldr w0,[x9,x10,lsl #2]
+ ret
+.Lpack_int2:
+ ldr x9,[x0]
+ cbz x9,.Lpack_bad
+ ldr x10,[x0,#16]
+ cmp x10,#4
+ b.ne .Lpack_bad
+ ldrb w10,[x0,#28]
+ cmp w10,#2
+ b.ne .Lpack_bad
+ ldr x10,[x0,#48]
+ cmp x1,x10
+ b.lt .Lpack_bad
+ ldr x10,[x0,#56]
+ cmp x1,x10
+ b.gt .Lpack_bad
+ ldr x10,[x0,#72]
+ cmp x2,x10
+ b.lt .Lpack_bad
+ ldr x10,[x0,#80]
+ cmp x2,x10
+ b.gt .Lpack_bad
+ ldr x10,[x0,#8]
+ ldr x11,[x0,#40]
+ madd x10,x1,x11,x10
+ ldr x11,[x0,#64]
+ madd x10,x2,x11,x10
+ ldr w0,[x9,x10,lsl #2]
+ ret
+.Lpack_bad:
+ bl abort
+ brk #0
+.global md2asm_fourier_packing_count_get
+.type md2asm_fourier_packing_count_get,%function
+md2asm_fourier_packing_count_get:
+ cmp w0,#2
+ b.hs .Lpack_count_zero
+ adrp x9,.Lpack_counts
+ add x9,x9,:lo12:.Lpack_counts
+ ldr x0,[x9,x0,lsl #3]
+ ret
+.Lpack_count_zero:
+ mov x0,#0
+ ret
+.data
+.p2align 3
+.Lpack_counts: .quad 0,0
+.section .note.GNU-stack,"",%progbits

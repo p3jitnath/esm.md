@@ -8,23 +8,22 @@ A routine body is one function or subroutine that performs a calculation. These 
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 247 | 464 |
+| Main forecast phase | 711 | 249 | 462 |
 | Local calculations | 356 | 241 | 115 |
 | Weather calculations | 255 | 239 | 16 |
 
-There are 248 accepted original routine bodies with assembly replacements overall. VERDER is outside the main forecast count. The ordered 16-routine weather queue and completed checks remain local. The latest checkpoint accepts complete radiation-field preparation, C3/C4 leaf photosynthesis and interpolation boundaries. The boundary routine adds one main-phase body and no weather body. Earlier inverse-transform, trajectory, latitude-analysis and inner-radiation proofs remain valid.
+There are 250 accepted original routine bodies with assembly replacements overall. VERDER is outside the main forecast count. The ordered 16-routine weather queue and completed checks remain local. The latest checkpoint accepts two Fourier coefficient-transfer routines. They add two main-phase storage bodies and no weather calculation. Earlier radiation-field preparation, C3/C4 leaf photosynthesis, interpolation-boundary and transform proofs remain valid.
 
 ## Verification
 
-Each accepted routine passes independent critical physics and exact-output checks within its declared input range. The latest checkpoint compares every declared input and returned buffer of three complete replacements. All ten saved files match across 618,140 bytes. Unchanged child physics, arithmetic and interface proofs are reused. The run uses exclusive allocation 7358525 on nid010681, one process, one thread, CPU 16 and local memory binding.
+Each accepted routine passes independent critical physics and exact-output checks within its declared input range. The latest checkpoint compares complete local and shared Fourier buffers, descriptors, metadata and unused words for two transfer bodies. All ten saved files match across 618,140 bytes. Unchanged child physics, arithmetic and interface proofs are reused. The run uses exclusive allocation 7358525 on nid010681, one process, one thread, CPU 16 and local memory binding.
 
 | Latest routine | Complete calls | Compared buffer bytes | Differing bytes |
 | --- | ---: | ---: | ---: |
-| Radiation-field preparation | 6,400 | 33,449,395,200 | 0 |
-| Plant photosynthesis | 6,450 | 77,271,000 | 0 |
-| Interpolation boundaries | 2,150 | 11,130,739,200 | 0 |
+| FOURIER_IN | 192 pairs | 306,441,984 | 0 |
+| FOURIER_OUT | 160 pairs | 252,005,504 | 0 |
 
-The totals include all declared buffer views, with repeated bytes where views overlap. Actual profiling calls retain the original control and preserve numerical status. The [radiation contract](../../skills/md2asm/references/openifs/radiation/radiation_field_preparation.md), [photosynthesis contract](../../skills/md2asm/references/openifs/surface/plant_photosynthesis.md) and [boundary contract](../../skills/md2asm/references/openifs/dynamics/interpolation_boundary_values.md) define complete fields, ordered calculations, supported inputs and ABI requirements. The application binary interface, or ABI, states how arguments and registers pass between routines.
+The transfer gate checks the first actual field-count and latitude tuple for each routine, including both latitude ends. It passes 581,504 independent word-copy relations, with zero raw-status or saved-register failures. Repeated calls with an already-checked tuple use the original reference in this verification run. The [packing contract](../../skills/md2asm/references/openifs/dynamics/fourier_buffer_packing.md) defines the complete buffers, supported inputs and assembly interface. The application binary interface, or ABI, states how arguments and registers pass between routines.
 
 The continuity routine assigns positive zero to unused output slots that the original source left unset, while preserving every defined calculation. Its byte comparisons use a separate corrected Fortran reference, without changing any defined values in the saved files. The [continuity contract](../../skills/md2asm/references/openifs/dynamics/vertical_continuity.md) states this representation and its bounds.
 
