@@ -8,20 +8,23 @@ A routine body is one function or subroutine that performs a calculation. These 
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 249 | 462 |
-| Local calculations | 356 | 241 | 115 |
+| Main forecast phase | 711 | 252 | 459 |
+| Local calculations | 356 | 242 | 114 |
 | Weather calculations | 255 | 239 | 16 |
 
-There are 250 accepted original routine bodies with assembly replacements overall. VERDER is outside the main forecast count. The ordered 16-routine weather queue and completed checks remain local. The latest checkpoint accepts two Fourier coefficient-transfer routines. They add two main-phase storage bodies and no weather calculation. Earlier radiation-field preparation, C3/C4 leaf photosynthesis, interpolation-boundary and transform proofs remain valid.
+There are 253 accepted original routine bodies with assembly replacements overall. VERDER is outside the main forecast count. The ordered 16-routine weather queue and completed checks remain local. The latest checkpoint accepts the spectral driver and its two field-copy routines. They add three main-phase bodies, including one local calculation, while the weather count stays unchanged. The two Fourier transfer routines remain accepted. Earlier radiation-field preparation, C3/C4 leaf photosynthesis, interpolation-boundary and transform proofs remain valid.
 
 ## Verification
 
-Each accepted routine passes independent critical physics and exact-output checks within its declared input range. The latest checkpoint compares complete local and shared Fourier buffers, descriptors, metadata and unused words for two transfer bodies. All ten saved files match across 618,140 bytes. Unchanged child physics, arithmetic and interface proofs are reused. The run uses exclusive allocation 7358525 on nid010681, one process, one thread, CPU 16 and local memory binding.
+Each accepted routine passes independent critical physics and exact-output checks within its declared input range. The latest checkpoint compares all 48 spectral owners, including complete geometry tables, field descriptors and unused words. All ten saved files match across 618,140 bytes. Unchanged child physics, arithmetic and interface proofs are reused. The run uses exclusive allocation 7358525 on nid010681, one process, one thread, CPU 16 and local memory binding.
 
 | Latest routine | Complete calls | Compared buffer bytes | Differing bytes |
 | --- | ---: | ---: | ---: |
+| SPCM | 25 calls | 117,642,025 | 0 |
 | FOURIER_IN | 192 pairs | 306,441,984 | 0 |
 | FOURIER_OUT | 160 pairs | 252,005,504 | 0 |
+
+The [spectral driver contract](../../skills/md2asm/references/openifs/dynamics/spectral_calculation_driver.md) records all seven direct stages, exact numerical status and preserved registers. Four protected copy cases check 155,848 independent index relations and preserve inactive data. The existing physical and buffer-bound proofs of unchanged children are reused.
 
 The transfer gate checks the first actual field-count and latitude tuple for each routine, including both latitude ends. It passes 581,504 independent word-copy relations, with zero raw-status or saved-register failures. Repeated calls with an already-checked tuple use the original reference in this verification run. The [packing contract](../../skills/md2asm/references/openifs/dynamics/fourier_buffer_packing.md) defines the complete buffers, supported inputs and assembly interface. The application binary interface, or ABI, states how arguments and registers pass between routines.
 

@@ -8,6 +8,7 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 | --- | --- | --- |
 | Parcel trajectories | [Wind preparation](trajectories/wind_for_parcel_trajectories.md) | Complete selected LAVENT prediction and Cartesian wind preparation |
 | Inverse spectral transform | [Latitude fields from waves](dynamics/inverse_spectral_transform.md) | Complete selected LTINV preparation and reconstruction |
+| Spectral forecast step | [Global wave fields](dynamics/spectral_calculation_driver.md) | Complete selected SPCM, TRMTOS and TRSTOM |
 | Fourier buffer transfer | [Coefficient identity](dynamics/fourier_buffer_packing.md) | Complete selected FOURIER_IN and FOURIER_OUT copies |
 | Interpolation boundaries | [Extra work layers](dynamics/interpolation_boundary_values.md) | Complete selected LAVABO boundary stores |
 | Atmospheric motion | [Motion and heat](dynamics/atmospheric_motion.md) | Complete time filters, linear terms, bounded transport and selected spectral stages, other stages pending |
@@ -37,4 +38,4 @@ The notes contain the physical idea and basic equations. The md2asm contracts co
 
 These basic balances do not yet cover every configured physical process. Source-derived closure relations, which specify rates and coefficients, and complete numerical contracts are still needed before assembly generation.
 
-250 original routine bodies with assembly replacements pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../src/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
+253 original routine bodies with assembly replacements pass independent small checks within their declared input ranges. Their observed calls also pass exact byte comparisons inside the coarse forecast. The [verification record](../../src/openifs/README.md) states the exact coverage. The remaining numerical stages and whole-forecast independent physics checks are still needed.
