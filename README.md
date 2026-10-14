@@ -44,3 +44,7 @@ The openifs-md branch extends this workflow to OpenIFS 48.1.1. 256 original rout
 The latest verified forecast starts on 15 October 2004 and advances 24 hours on 2,048 grid points with 19 atmospheric levels. Other stages remain in Fortran. Complete assembly coverage, independent whole-forecast physics and external-library arithmetic checks remain unfinished. Whole-forecast speed has not been measured. The [OpenIFS verification note](src/openifs/README.md) gives the latest evidence and the limits of complete-storage comparisons.
 
 The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. The [routine work list](src/openifs/README.md) records **14 remaining weather or forcing routines** in this T21 main phase. It also separates the broader 112 local-calculation and 456 total-body counts. The ordered original routine names and source paths remain in the local records.
+
+## Notes
+
+In a tested ice-formation call, the OpenIFS lake update stores an average water temperature of 277.13 K, while its limited temperature profile can represent at most 276.334 K. The profile describes how water temperature changes with depth. We retain the original OpenIFS equations and update rules, and report this known limitation separately from exact assembly byte agreement. Independent whole-forecast physics remains unverified.
