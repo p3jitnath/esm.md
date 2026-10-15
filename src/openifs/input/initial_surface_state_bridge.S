@@ -1,6 +1,5 @@
 /* Selected nine-argument SUGRIDG bridge to direct assembly input.
- * Contract: skills/md2asm/references/openifs/input/initial_surface_state_bridge.md
- * The temporary typed context boundary reads only metadata.
+ * The direct assembly context readers copy only live metadata.
  * No original SUGRIDG, MODGRINML or Fortran numerical call is made.
  */
 .arch armv8.2-a
@@ -66,7 +65,7 @@ sugridg_:
  add x4,sp,#464
  add x5,sp,#2800
  add x6,sp,#256
- bl md2asm_surface_initial_context_
+ bl md2asm_surface_initial_context_direct_
  ldr x9,[sp,#464]
  cbnz x9,.Lcontext_failed
  // Translate the live sixteen-character Fortran path to a C string.

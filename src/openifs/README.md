@@ -4,15 +4,15 @@ These direct assembly routines calculate atmospheric motion, heating, radiation 
 
 ## Coverage
 
-The table describes the audited coarse T21 global forecast. Its groups overlap and must not be added. The latest checkpoint adds selected input, grid setup and physics dimension methods to the accepted weather calculations.
+The table describes the audited coarse T21 global forecast. Its groups overlap and must not be added. The latest checkpoint adds selected input, grid setup and physics storage methods to the accepted weather calculations.
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 276 | 435 |
+| Main forecast phase | 711 | 279 | 432 |
 | Local calculations | 356 | 262 | 94 |
 | Weather calculations | 255 | 255 | 0 |
 
-There are 287 accepted original bodies overall, including VERDER outside the main forecast phase. Seven field-registry methods from the original template source are recorded separately from this inventory. Completing the weather list does not cover every model branch, setup routine or external dependency.
+There are 290 accepted original bodies overall, including VERDER outside the main forecast phase. Seven field-registry methods from the original template source are recorded separately from this inventory. Completing the weather list does not cover every model branch, setup routine or external dependency.
 
 ## Verification
 
@@ -57,8 +57,10 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 | Surface decoding, selection and conversion | 140 records, with 52 selected fields in original order | [Surface loading](../../skills/md2asm/references/openifs/input/initial_surface_state_loading.md) |
 | Surface placement | Five complete owners containing 2,146,560 bytes | [Surface placement](../../skills/md2asm/references/openifs/input/initial_surface_state_placement.md) |
 | Physics grid dimensions | Complete 192-byte records and 25 initialization / 2,150 update calls | [Grid dimensions](../../skills/md2asm/references/openifs/support/physics_grid_dimensions.md) |
+| Physics state storage | 200 initializations, 200 finalizations and 25 mask calls | [State storage](../../skills/md2asm/references/openifs/support/physics_state_storage.md) |
+| Physics state block views | 17,200 calls with complete final-owner and saved-file agreement | [Block binding](../../skills/md2asm/references/openifs/support/physics_state_block_binding.md) |
 
-The latest complete forecast uses the direct surface and upper-air loading routes. It also uses seven direct field-registry methods and direct serial Laplacian, Gaussian-latitude and spherical-grid setup. These routes pass the complete final-state and saved-file gate above. The [assembly surface startup stage](../../skills/md2asm/references/openifs/input/initial_surface_state_startup.md) now owns the earlier defaults across all allocated rows, with every one of 7,149,696 bytes in ten captured owners checked. Temporary typed getters still supply metadata to the input bridges.
+The latest complete forecast uses the direct surface and upper-air loading routes. It also uses seven direct field-registry methods and direct serial Laplacian, Gaussian-latitude and spherical-grid setup. These routes pass the complete final-state and saved-file gate above. The [assembly surface startup stage](../../skills/md2asm/references/openifs/input/initial_surface_state_startup.md) now owns the earlier defaults across all allocated rows, with every one of 7,149,696 bytes in ten captured owners checked. The [surface metadata readers](../../skills/md2asm/references/openifs/input/initial_surface_metadata.md) and [upper-air metadata reader](../../skills/md2asm/references/openifs/input/upper_air_initial_metadata.md) now read existing initialized objects directly in assembly. Constructing those original objects remains separate work.
 
 The [latitude geometry constructor](../../skills/md2asm/references/openifs/setup/latitude_geometry_setup.md) also passes this forecast. The [spectral packing fit](../../skills/md2asm/references/openifs/output/spectral_packing_fit.md) runs 120 times with 5,280 direct logarithm calls and exact saved files. Original Fortran file writers and complete model construction remain unfinished.
 

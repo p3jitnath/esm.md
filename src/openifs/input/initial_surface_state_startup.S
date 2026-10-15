@@ -1,5 +1,4 @@
 /* Selected ten-pointer SUGRIDF route, revision 1.
- * Contract: skills/md2asm/references/openifs/input/initial_surface_state_startup.md
  * Metadata getters read live types, default constants and branch controls only.
  * Direct assembly owns all allocated-row defaults and complete surface loading.
  * Console norms and timing instrumentation are outside this forecast route.
@@ -66,7 +65,7 @@ sugridf_:
  ldp x0,x1,[sp,#160]
  ldr x2,[sp,#176]
  add x3,sp,#240
- bl md2asm_surface_startup_context_
+ bl md2asm_surface_startup_context_direct_
  ldr x9,[sp,#240]
  cbnz x9,.Lcontext_failed
  mov x0,#0x8640
@@ -80,7 +79,7 @@ sugridf_:
  mov x9,#0x8600
  movk x9,#1,lsl#16
  add x4,x21,x9
- bl md2asm_surface_default_metadata_
+ bl md2asm_surface_default_metadata_direct_
  mov x9,#0x8600
  movk x9,#1,lsl#16
  add x22,x21,x9

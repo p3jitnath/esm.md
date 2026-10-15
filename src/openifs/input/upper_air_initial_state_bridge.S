@@ -1,6 +1,5 @@
-/* Native six-argument SUGRIDUG input bridge.
- * Contract: skills/md2asm/references/openifs/input/upper_air_initial_state_bridge.md
- * Typed metadata getter and one read-only state query remain explicit.
+/* Native six-argument SUGRIDUG verification bridge.
+ * Read-only direct metadata uses the frozen original GNU12 data layout.
  * The accepted direct loader owns all file reading and state placement.
  * Closing console-only startup norms are omitted, with no field mutation.
  */
@@ -56,7 +55,7 @@ sugridug_:
  ldp x1,x2,[sp,#160]
  ldr x3,[sp,#176]
  add x4,sp,#256
- bl md2asm_upper_air_initial_context_
+ bl md2asm_upper_air_initial_context_direct_
  ldr x9,[sp,#256]
  cbnz x9,.Lcontext_failed
  adrp x9,:got:__yomoph0_MOD_cfnigg

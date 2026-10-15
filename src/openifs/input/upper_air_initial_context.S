@@ -1,0 +1,175 @@
+/* Read-only original GNU12 upper-air metadata. No calls or FP operations. */
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_upper_air_initial_context_direct_
+.type md2asm_upper_air_initial_context_direct_,%function
+md2asm_upper_air_initial_context_direct_:
+ sub sp,sp,#128
+ mov x5,x4
+ mov x6,#32
+.Lzero_output:
+ stp xzr,xzr,[x5],#16
+ subs x6,x6,#1
+ b.ne .Lzero_output
+ mov x5,#1
+ str x5,[x4]
+ ldrsw x5,[x0,#5144]
+ ldrsw x6,[x0,#5224]
+ ldrsw x7,[x0,#7376]
+ stp x5,x6,[x4,#8]
+ str x7,[x4,#24]
+ ldrsw x8,[x3,#48]
+ ldrsw x9,[x3]
+ stp x8,x9,[x4,#32]
+ cmp x5,#24
+ b.ne .Ldone
+ cmp x6,#19
+ b.ne .Ldone
+ cmp x7,#2048
+ b.ne .Ldone
+ cmp x8,#8
+ b.ne .Ldone
+ sub x10,x9,#1
+ mov x11,#2162
+ cmp x10,x11
+ b.hi .Ldone
+ ldr x5,[x1]
+ cbz x5,.Ldone
+ ldr x6,[x1,#16]
+ cmp x6,#8
+ b.ne .Ldone
+ ldrb w6,[x1,#28]
+ cmp w6,#4
+ b.ne .Ldone
+ ldr x6,[x1,#40]
+ mov x7,#1
+ cmp x6,x7
+ b.ne .Ldone
+ ldp x6,x7,[x1,#48]
+ cmp x6,#1
+ b.ne .Ldone
+ cmp x7,#24
+ b.ne .Ldone
+ ldr x6,[x1,#64]
+ mov x7,#24
+ cmp x6,x7
+ b.ne .Ldone
+ ldp x6,x7,[x1,#72]
+ cmp x6,#1
+ b.ne .Ldone
+ cmp x7,#19
+ b.ne .Ldone
+ ldr x6,[x1,#88]
+ mov x7,#456
+ cmp x6,x7
+ b.ne .Ldone
+ ldp x6,x7,[x1,#96]
+ cmp x6,#1
+ b.ne .Ldone
+ cmp x7,#8
+ b.ne .Ldone
+ ldr x6,[x1,#112]
+ mov x7,#3648
+ cmp x6,x7
+ b.ne .Ldone
+ ldp x6,x7,[x1,#120]
+ cmp x6,#1
+ b.ne .Ldone
+ cmp x7,#86
+ b.ne .Ldone
+ str x5,[x4,#48]
+ mov x6,#19456
+ movk x6,#38,lsl#16
+ str x6,[x4,#56]
+ ldr w5,[x2,#4]
+ adrp x6,:got:__yoetldiag_MOD_ltl4drep
+ ldr x6,[x6,:got_lo12:__yoetldiag_MOD_ltl4drep]
+ ldr w6,[x6]
+ and w5,w5,w6
+ sxtw x5,w5
+ str x5,[x4,#160]
+ adrp x6,:got:__algorithm_state_mod_MOD___vtab_algorithm_state_mod_Algorithm_state_type
+ ldr x6,[x6,:got_lo12:__algorithm_state_mod_MOD___vtab_algorithm_state_mod_Algorithm_state_type]
+ ldrsw x6,[x6,#-44]
+ str x6,[x4,#168]
+ orr x5,x5,x6
+ cbnz x5,.Ldone
+ mov x5,sp
+ mov x6,#8
+.Lzero_work:
+ stp xzr,xzr,[x5],#16
+ subs x6,x6,#1
+ b.ne .Lzero_work
+ add x9,x3,#3848
+ ldrsw x10,[x3]
+ mov x11,#0
+.Lfield:
+ ldr w5,[x9,#52]
+ cbz w5,.Lnext
+ ldrsw x12,[x9,#168]
+ sub x13,x12,#1
+ cmp x13,#7
+ b.hi .Ldone
+ mov x8,sp
+ ldr x5,[x8,x13,lsl#3]
+ cbnz x5,.Ldone
+ ldr w5,[x9,#36]
+ cmp w5,#1
+ b.ne .Lclear
+ ldr w5,[x9,#44]
+ cbz w5,.Ltrajectory
+ cmp x11,#4
+ b.hs .Ldone
+ ldrsw x5,[x9,#16]
+ add x6,sp,#64
+ str x5,[x6,x11,lsl#3]
+ add x6,sp,#96
+ str x12,[x6,x11,lsl#3]
+ add x11,x11,#1
+ mov x5,#1
+ b .Laction
+.Ltrajectory:
+ ldr w5,[x9,#108]
+ cbz w5,.Ldone
+.Lclear:
+ mov x5,#2
+.Laction:
+ str x5,[x8,x13,lsl#3]
+.Lnext:
+ add x9,x9,#368
+ subs x10,x10,#1
+ b.ne .Lfield
+ cmp x11,#4
+ b.ne .Ldone
+ adrp x6,.Lexpected
+ add x6,x6,:lo12:.Lexpected
+ mov x5,sp
+ mov x7,#16
+.Lcompare:
+ ldr x8,[x5],#8
+ ldr x9,[x6],#8
+ cmp x8,x9
+ b.ne .Ldone
+ subs x7,x7,#1
+ b.ne .Lcompare
+ mov x5,sp
+ add x6,x4,#64
+ mov x7,#6
+.Lcopy:
+ ldp x8,x9,[x5],#16
+ stp x8,x9,[x6],#16
+ subs x7,x7,#1
+ b.ne .Lcopy
+ str xzr,[x4]
+.Ldone:
+ add sp,sp,#128
+ ret
+.size md2asm_upper_air_initial_context_direct_,.-md2asm_upper_air_initial_context_direct_
+.section .rodata
+.p2align 3
+.Lexpected:
+ .quad 1,1,1,2,2,1,2,2
+ .quad 133,246,247,248
+ .quad 1,2,3,6
+.section .note.GNU-stack,"",%progbits
