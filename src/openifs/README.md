@@ -4,15 +4,15 @@ These direct assembly routines calculate atmospheric motion, heating, radiation 
 
 ## Coverage
 
-The table describes the audited coarse T21 global forecast. Its groups overlap and must not be added. The checkpoint combines the remaining 14 weather routines with four separately verified supporting bodies. It covers cloud physics, turbulence, surface and lake calculations, and their forecast callers.
+The table describes the audited coarse T21 global forecast. Its groups overlap and must not be added. The latest checkpoint adds selected input, grid setup and physics dimension methods to the accepted weather calculations.
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 273 | 438 |
+| Main forecast phase | 711 | 275 | 436 |
 | Local calculations | 356 | 261 | 95 |
 | Weather calculations | 255 | 255 | 0 |
 
-There are 274 accepted original bodies overall, including VERDER outside the main forecast phase. Completing the weather list does not cover every model branch, setup routine or external dependency.
+There are 284 accepted original bodies overall, including VERDER outside the main forecast phase. Seven field-registry methods from the original template source are recorded separately from this inventory. Completing the weather list does not cover every model branch, setup routine or external dependency.
 
 ## Verification
 
@@ -24,7 +24,7 @@ The joint checkpoint uses one direct forecast time loop and 25 direct time updat
 | Saved forecast files | 10 files, 618,140 bytes | 0 |
 | Numerical status and step controls | 56 status bytes and 8 control bytes | 0 |
 
-A buffer owner is a complete retained array or record in model memory. The final-state gate compares its numerical bytes and checks the recorded array layout. It applies the existing rules for address metadata without changing numerical values. The source archive fixes unused input tails of 768 bytes in the sea-ice albedo table and 64 bytes in the solar-fraction table. Their initialized physical parts, containing 576 and 48 bytes, must already agree before those tails are loaded ahead of the first native calculation. All 1,344 albedo bytes and 112 solar-fraction bytes remain in the final comparison. The status gate checks floating-point controls, exception flags and the system error value. The assembly also preserves the registers required by its application binary interface, or ABI. The original source's documented use of register x18 remains a separate source limit.
+A buffer owner is a complete retained array or record in model memory. The final-state gate compares its numerical bytes and checks the recorded array layout. It applies the existing rules for address metadata without changing numerical values. The source archive fixes unused incoming storage before the first calculation. Both sea-ice albedo tables retain their 576 initialized bytes and bind their 768 unused bytes. The solar-fraction table retains 48 initialized bytes and binds 64 unused bytes. Each of the two terrain tables retains 16,384 initialized bytes and binds its 128-byte final-block tail. Source allocation and consumer bounds establish that these tails are unused. Complete before and after packets are retained, and every final byte remains compared. The status gate checks floating-point controls, exception flags and the system error value. The assembly also preserves the registers required by its application binary interface, or ABI. The original source's documented use of register x18 remains a separate source limit.
 
 Two complete recorded call sets also pass exact replay. The cloud calculation matches all 2,150 calls across 561,408,000 complete buffer bytes. The lake calculation matches all 2,150 calls across 17,105,400 bytes. These checks include actual numerical status and the final partial block. They cover the original source calls through step 24 and retain raw unused storage. The [cloud contract](../../skills/md2asm/references/openifs/cloud_microphysics_contract.md) and [lake contract](../../skills/md2asm/references/openifs/surface/lake_temperature_profile.md) state their arithmetic and scientific limits.
 
@@ -44,21 +44,21 @@ The [numerical contracts](../../skills/md2asm/references/openifs/) define the su
 
 In a tested ice-formation call, the original lake update stores an average water temperature of 277.13 K, while its limited temperature profile can represent at most 276.334 K. The profile describes temperature changes with depth. The original lake equations remain unchanged. Complete forecast water and heat balances, whole-process byte identity and comparative forecast speed remain unverified.
 
-The executable still uses OpenIFS Fortran for input, setup, metadata and retained reference forwards. The [direct power routine](../../skills/md2asm/references/openifs/support/power_original_rounding.md) now replaces the frozen C power helper and passes this same complete forecast gate. Other declared numerical and runtime boundaries remain. It is not an autonomous assembly forecast. Autonomous input loading, initialisation, complete calculation ownership and output remain a separate phase.
+The executable still uses OpenIFS Fortran for model startup, remaining setup, typed metadata and retained reference forwards. The [direct power routine](../../skills/md2asm/references/openifs/support/power_original_rounding.md) now replaces the frozen C power helper and passes this same complete forecast gate. Other declared numerical and runtime boundaries remain. It is not an autonomous assembly forecast. Autonomous input loading, initialisation, complete calculation ownership and output remain a separate phase.
 
-A separate [assembly input reader](../../skills/md2asm/references/openifs/input/initial_spectral_field_reader.md) loads the real spectral initial-condition file through the ecCodes C file-format library. All 78 decoded records match the reference across 315,744 value bytes and 1,872 label bytes. Critical error, buffer and register checks pass.
+## Input And Setup Components
 
-The [assembly placement stage](../../skills/md2asm/references/openifs/input/spectral_initial_state_placement.md) copies the 59 source-selected records into the original upper-air and surface layouts. Its 238,832 output bytes match a separate Fortran reference. A standalone assembly command owns both decoding and placement, with no OpenIFS or Fortran dependency. Model-object construction, remaining input fields and complete forecast initialisation remain separate work.
+The assembly readers use the declared C ecCodes file-format library. A record contains one decoded field and its identifying labels. Separate controls check each stage, including malformed input, buffer bounds, final partial blocks and the Arm ABI. The original input files supply every decoded value.
 
-The [upper-air input reader](../../skills/md2asm/references/openifs/input/initial_upper_air_field_reader.md) decodes humidity and three cloud fields through the same assembly body. All 76 records match the reference across 1,245,184 value bytes and 1,824 label bytes. Its error and ABI checks pass, and its standalone command uses no OpenIFS or Fortran. Full model setup remains separate work.
+| Accepted component | Complete comparison scope | Contract |
+| --- | --- | --- |
+| Spectral decoding and placement | 78 decoded records and 238,832 placed bytes | [Spectral placement](../../skills/md2asm/references/openifs/input/spectral_initial_state_placement.md) |
+| Upper-air decoding and placement | 76 records and 2,509,824 model bytes, including padding | [Upper-air loading](../../skills/md2asm/references/openifs/input/upper_air_initial_state_loading.md) |
+| Surface decoding, selection and conversion | 140 records, with 52 selected fields in original order | [Surface loading](../../skills/md2asm/references/openifs/input/initial_surface_state_loading.md) |
+| Surface placement | Five complete owners containing 2,146,560 bytes | [Surface placement](../../skills/md2asm/references/openifs/input/initial_surface_state_placement.md) |
+| Physics grid dimensions | Complete 192-byte records and 25 initialization / 2,150 update calls | [Grid dimensions](../../skills/md2asm/references/openifs/support/physics_grid_dimensions.md) |
 
-The [upper-air placement](../../skills/md2asm/references/openifs/input/upper_air_initial_state_placement.md) copies those fields into the original eight-field model buffer. All 2,509,824 bytes match the independent reference, including 9,728 preserved padding bytes. Its critical buffer and ABI checks pass. An actual original-startup replay confirms the same complete bytes and supplies the frozen positive-zero starting buffer for this input case. The [combined assembly loader](../../skills/md2asm/references/openifs/input/upper_air_initial_state_loading.md) now owns both file decoding and this placement through one call, with complete original-state, error-path and ABI checks. Full model construction remains separate work.
-
-The [surface input reader](../../skills/md2asm/references/openifs/input/initial_surface_field_reader.md) retains all 140 records, including all twelve months of six seasonal fields. Its 2,293,760 value bytes and 5,600 date-bearing metadata bytes match the separate codec reference. Focused file, buffer and ABI checks pass. Physical conversions and complete model initialisation remain separate assembly work.
-
-The [surface selection stage](../../skills/md2asm/references/openifs/input/initial_surface_field_selection.md) copies the 47 surface fields and five layered snow fields in the original requested order. All 1,179,648 output bytes match both the separate source reference and the actual original input to the conversion stage. Critical buffer, metadata and ABI checks pass. The following physical conversions and full model setup remain separate work.
-
-The [surface placement stage](../../skills/md2asm/references/openifs/input/initial_surface_state_placement.md) copies those selected fields into five complete model arrays. All 2,146,560 owner bytes match an independent whole-slice reference, including 966,912 unchanged bytes. Critical buffer, final-block and ABI checks pass. Earlier surface defaults and complete model construction remain separate work.
+The latest complete forecast uses the direct surface and upper-air loading routes. It also uses seven direct field-registry methods and direct serial Laplacian, Gaussian-latitude and spherical-grid setup. These routes pass the complete final-state and saved-file gate above. Surface defaults still run in the original earlier startup stage. Temporary typed getters still supply metadata to the input bridges. Complete model construction and assembly-owned file output remain unfinished.
 
 ## Local records
 

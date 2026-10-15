@@ -1,4 +1,7 @@
-/* Complete direct GP_MODEL selected route.
+// Contract: skills/md2asm/references/openifs/setup/field_registry.md.
+/* Complete direct GP_MODEL selected route with direct field registry.
+ * Local contract: skills/md2asm/references/openifs/setup/field_registry.md.
+ * All other selected GP instructions retain the admitted raw-array caller.
  * Physics formulations/openifs/dynamics/complete_forecast_grid_driver.md.
  * Contract skills/md2asm/references/openifs/dynamics/complete_forecast_grid_driver.md.
  * Eleven ordinary addresses and one GNU hidden character length. */
@@ -494,63 +497,15 @@ md2asm_gp_model_lagged_raw_caller_r8_7388001:
  add x9,x20,x16
  ldr x9,[x9]
  cbnz x9,.Lregistry_done
- movz x16,#4968
- movk x16,#8,lsl #16
- add x9,x20,x16
- str x19,[x9]
- mov w10,#24
- str w10,[x9,#8]
- mov w10,#86
- str w10,[x9,#12]
- str x9,[x29,#3360]
- adrp x10,:got:__field_registry_mod_MOD___vtab_field_registry_mod_Field_registry
- ldr x10,[x10,:got_lo12:__field_registry_mod_MOD___vtab_field_registry_mod_Field_registry]
- str x10,[x29,#3368]
- add x0,x29,#3360
- movz x16,#4984
- movk x16,#8,lsl #16
- add x1,x20,x16
- mov x2,x19
- bl __field_registry_mod_MOD_field_registry_register_geometry
- add x0,x29,#3360
- movz x16,#4984
- movk x16,#8,lsl #16
- add x1,x20,x16
- add x2,x20,#1856
- bl __field_registry_mod_MOD_field_registry_register_gmv_fields
- add x0,x29,#3360
- movz x16,#4984
- movk x16,#8,lsl #16
- add x1,x20,x16
- add x2,x20,#3416
- movz x16,#4504
- add x3,x20,x16
- ldr x3,[x3]
- bl __field_registry_mod_MOD_field_registry_register_gfl_fields
- add x0,x29,#3360
- movz x16,#4992
- movk x16,#8,lsl #16
- add x1,x20,x16
- movz x16,#4512
- add x2,x20,x16
- bl __field_registry_mod_MOD_field_registry_register_surface_fields
- add x0,x29,#3360
- movz x16,#4984
- movk x16,#8,lsl #16
- add x1,x20,x16
- ldr x1,[x1]
- movz x16,#25728
- add x2,x20,x16
- bl __field_registry_mod_MOD_field_registry_register_ec_phys_fields
- add x0,x29,#3360
- movz x16,#4984
- movk x16,#8,lsl #16
- add x1,x20,x16
- ldr x1,[x1]
- movz x16,#33624
- movk x16,#24,lsl #16
- add x2,x21,x16
- bl __field_registry_mod_MOD_field_registry_register_physics_radiation_fields
+ // Construct metadata after the original next-time allocations and zeroing.
+ // The direct caller owns all seven methods and needs no Fortran vtable.
+ mov x0,x19
+ mov x1,x20
+ mov x2,x21
+ add x3,x29,#3360
+ bl md2asm_prepare_field_registry
+ ldr w9,[x29,#3360]
+ cbnz w9,.Lreject
  adrp x16,.Lcounts
  add x16,x16,:lo12:.Lcounts
  ldr x17,[x16,#56]
