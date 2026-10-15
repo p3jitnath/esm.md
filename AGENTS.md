@@ -58,7 +58,7 @@ Reject a mismatch before timing and report its first stage, step, field, cell, a
 
 Run all development, file work, simulations and benchmarks through `srun` in an owned, verified exclusive allocation on a quiet compute node. Use the [Slurm allocation rules](https://slurm.schedmd.com/salloc.html). Check node exclusivity and load before timing, stop disturbed measurements, and record the job ID, node, affinity, memory placement, and observed load. Keep compilation and model inference outside timed work, and exclude login nodes and unallocated nodes from benchmarking.
 
-During an active allocation, check the allocation and forecast status at intervals of at most five minutes. Use a four-minute target to allow time for each check.
+During an active allocation, check the allocation and forecast status at ten-minute intervals, following the latest user preference. Check sooner when a failure or checkpoint completion needs action.
 
 Maximise measured performance within the frozen numerical contract by matching the method, precision, layout, workload, and CPU features across implementations. Profile complete time steps and inspect machine instructions before changing memory access, arithmetic, or allocation patterns.
 
