@@ -1,21 +1,27 @@
 /*
- * Initial spectral and upper-air field readers, revision 2.
+ * Initial spectral, upper-air and surface field readers, revision 3.
  *
- * Two six-argument entries share one private direct assembly decoder.
+ * Three six-argument entries share one private direct assembly decoder.
  * Contracts: skills/md2asm/references/openifs/input/initial_spectral_field_reader.md
- * and skills/md2asm/references/openifs/input/initial_upper_air_field_reader.md.
+ * skills/md2asm/references/openifs/input/initial_upper_air_field_reader.md and
+ * skills/md2asm/references/openifs/input/initial_surface_field_reader.md.
  *
  * int entry(path, values, values_bytes, metadata, metadata_bytes, messages_read)
  * Arguments x0..x5 have the same order as the original spectral reader.
  * Trusted read-only schema headers define record count, uniform value count,
  * values extent and metadata extent. Each following row holds paramId/level.
  * Public entries select a fixed schema before entering the shared body.
- * FP64 means 64-bit floating-point values. Metadata has three signed 64-bit
- * integers per record, and the completed-record counter is unsigned 64-bit.
+ * Surface rows also freeze dataDate/dataTime and the 64 by 32 Gaussian grid.
+ * FP64 means 64-bit floating-point values. Spectral and upper-air metadata
+ * have three signed 64-bit integers per record, while surface metadata has
+ * five. The completed-record counter is unsigned 64-bit.
  * Output pointers are eight-byte aligned and their fixed extents are disjoint.
- * The caller supplies a readable NUL-terminated path and mapped buffers.
+ * The caller supplies a readable zero-byte-terminated path and mapped buffers.
  * Spectral extents are 315744/1872/8 bytes for 78 records of 506 values.
  * Upper-air extents are 1245184/1824/8 bytes for 76 records of 2048 values.
+ * Surface extents are 2293760/5600/8 bytes for 140 records of 2048 values.
+ * Surface metadata adds date and time after parameter, level and count.
+ * The surface codec retains the original missingValue setting of -9999.
  *
  * Return 0 for success, 1 for an invalid argument or a nonzero floating-point control register, 2 for open
  * failure, 3 for codec/read/delete failure, 4 for schema/count mismatch,
@@ -24,7 +30,7 @@
  * The count is initialised after fopen consumes the path. Cleanup preserves
  * an earlier error. Each held handle and opened file is released once.
  *
- * The 192-byte frame is 16-byte aligned. Preserve x18..x30 and all required
+ * The 224-byte frame is 16-byte aligned. Preserve x18..x30 and all required
  * vector low halves through ordinary C child calls. FPCR is the floating-point
  * control register and FPSR records floating-point status. Both and errno
  * are restored on return. No forecast arithmetic or Fortran call is used.
@@ -46,9 +52,16 @@ md2asm_read_initial_upper_air_fields:
     add x6, x6, :lo12:.Lupper_air_schema
     b .Lread_initial_records
 .size md2asm_read_initial_upper_air_fields, .-md2asm_read_initial_upper_air_fields
+.global md2asm_read_initial_surface_fields
+.type md2asm_read_initial_surface_fields, %function
+md2asm_read_initial_surface_fields:
+    adrp x6, .Lsurface_schema
+    add x6, x6, :lo12:.Lsurface_schema
+    b .Lread_initial_records
+.size md2asm_read_initial_surface_fields, .-md2asm_read_initial_surface_fields
 .type .Lread_initial_records, %function
 .Lread_initial_records:
-    stp x29, x30, [sp, #-192]!
+    stp x29, x30, [sp, #-224]!
     mov x29, sp
     stp x19, x20, [sp, #16]
     stp x21, x22, [sp, #32]
@@ -152,14 +165,80 @@ md2asm_read_initial_upper_air_fields:
     ldr x10, [x27, #8]
     cmp x9, x10
     b.ne .Lscope_failure
-    add x9, x27, #32
-    add x9, x9, x25, lsl #4
+    add x9, x27, #48
+    add x9, x9, x25, lsl #5
     ldp x10, x11, [x9]
     ldp x12, x13, [sp, #128]
     cmp x10, x12
     b.ne .Lscope_failure
     cmp x11, x13
     b.ne .Lscope_failure
+    ldr x9, [x27, #32]
+    cmp x9, #5
+    b.ne .Lidentity_ready
+    mov x0, x24
+    adrp x1, .Ldate_key
+    add x1, x1, :lo12:.Ldate_key
+    add x2, sp, #176
+    bl codes_get_long
+    cbnz w0, .Lcodec_failure
+    mov x0, x24
+    adrp x1, .Ltime_key
+    add x1, x1, :lo12:.Ltime_key
+    add x2, sp, #184
+    bl codes_get_long
+    cbnz w0, .Lcodec_failure
+    add x9, x27, #48
+    add x9, x9, x25, lsl #5
+    ldp x10, x11, [x9, #16]
+    ldp x12, x13, [sp, #176]
+    cmp x10, x12
+    b.ne .Lscope_failure
+    cmp x11, x13
+    b.ne .Lscope_failure
+    mov x0, x24
+    adrp x1, .LNi_key
+    add x1, x1, :lo12:.LNi_key
+    add x2, sp, #192
+    bl codes_get_long
+    cbnz w0, .Lcodec_failure
+    ldr x9, [sp, #192]
+    cmp x9, #64
+    b.ne .Lscope_failure
+    mov x0, x24
+    adrp x1, .LNj_key
+    add x1, x1, :lo12:.LNj_key
+    add x2, sp, #192
+    bl codes_get_long
+    cbnz w0, .Lcodec_failure
+    ldr x9, [sp, #192]
+    cmp x9, #32
+    b.ne .Lscope_failure
+    mov x0, x24
+    adrp x1, .LN_key
+    add x1, x1, :lo12:.LN_key
+    add x2, sp, #192
+    bl codes_get_long
+    cbnz w0, .Lcodec_failure
+    ldr x9, [sp, #192]
+    cmp x9, #16
+    b.ne .Lscope_failure
+    mov x0, x24
+    adrp x1, .Lscan_key
+    add x1, x1, :lo12:.Lscan_key
+    add x2, sp, #192
+    bl codes_get_long
+    cbnz w0, .Lcodec_failure
+    ldr x9, [sp, #192]
+    cmp x9, #0
+    b.ne .Lscope_failure
+    mov x0, x24
+    adrp x1, .Lmissing_key
+    add x1, x1, :lo12:.Lmissing_key
+    mov x2, #-9999
+    bl codes_set_long
+    cbnz w0, .Lcodec_failure
+.Lidentity_ready:
     mov x0, x24
     adrp x1, .Lvalues_key
     add x1, x1, :lo12:.Lvalues_key
@@ -179,10 +258,17 @@ md2asm_read_initial_upper_air_fields:
     stp x9, x10, [x21]
     ldr x9, [x27, #8]
     str x9, [x21, #16]
+    ldr x10, [x27, #32]
+    cmp x10, #5
+    b.ne .Lmetadata_stored
+    ldp x10, x11, [sp, #176]
+    stp x10, x11, [x21, #24]
+.Lmetadata_stored:
     add x25, x25, #1
     str x25, [x22]
     add x20, x20, x9, lsl #3
-    add x21, x21, #24
+    ldr x10, [x27, #32]
+    add x21, x21, x10, lsl #3
     b .Lnext_message
 .Lend_of_file:
     mov x0, x23
@@ -233,7 +319,7 @@ md2asm_read_initial_upper_air_fields:
     ldp x23, x24, [sp, #48]
     ldp x25, x26, [sp, #64]
     ldp x27, x28, [sp, #80]
-    ldp x29, x30, [sp], #192
+    ldp x29, x30, [sp], #224
     ret
 .size .Lread_initial_records, .-.Lread_initial_records
 .section .rodata
@@ -246,36 +332,151 @@ md2asm_read_initial_upper_air_fields:
     .asciz "level"
 .Lvalues_key:
     .asciz "values"
+.Ldate_key:
+    .asciz "dataDate"
+.Ltime_key:
+    .asciz "dataTime"
+.LNi_key:
+    .asciz "Ni"
+.LNj_key:
+    .asciz "Nj"
+.LN_key:
+    .asciz "N"
+.Lscan_key:
+    .asciz "scanningMode"
+.Lmissing_key:
+    .asciz "missingValue"
 .p2align 3
 .Lspectral_schema:
-    .xword 78, 506, 315744, 1872
-    .xword 152, 1
+    .xword 78, 506, 315744, 1872, 3, 0
+    .xword 152, 1, 0, 0
     .set .Llevel, 1
     .rept 19
-    .xword 138, .Llevel
-    .xword 155, .Llevel
-    .xword 130, .Llevel
+    .xword 138, .Llevel, 0, 0
+    .xword 155, .Llevel, 0, 0
+    .xword 130, .Llevel, 0, 0
     .set .Llevel, .Llevel+1
     .endr
-    .xword 129, 0
+    .xword 129, 0, 0, 0
     .set .Llevel, 1
     .rept 19
-    .xword 133, .Llevel
+    .xword 133, .Llevel, 0, 0
     .set .Llevel, .Llevel+1
     .endr
 .p2align 3
 .Lupper_air_schema:
-    .xword 76, 2048, 1245184, 1824
+    .xword 76, 2048, 1245184, 1824, 3, 0
     .set .Llevel, 1
     .rept 19
-    .xword 133, .Llevel
+    .xword 133, .Llevel, 0, 0
     .set .Llevel, .Llevel+1
     .endr
     .set .Llevel, 1
     .rept 19
-    .xword 246, .Llevel
-    .xword 247, .Llevel
-    .xword 248, .Llevel
+    .xword 246, .Llevel, 0, 0
+    .xword 247, .Llevel, 0, 0
+    .xword 248, .Llevel, 0, 0
     .set .Llevel, .Llevel+1
     .endr
+.p2align 3
+.Lsurface_schema:
+    .xword 140, 2048, 2293760, 5600, 5, 16
+    .set .Llevel, 1
+    .rept 5
+    .xword 32, .Llevel, 20041015, 1200
+    .set .Llevel, .Llevel+1
+    .endr
+    .set .Llevel, 1
+    .rept 5
+    .xword 238, .Llevel, 20041015, 0
+    .set .Llevel, .Llevel+1
+    .endr
+    .set .Llevel, 1
+    .rept 5
+    .xword 33, .Llevel, 20041015, 0
+    .set .Llevel, .Llevel+1
+    .endr
+    .xword 139, 0, 20041015, 1200
+    .xword 170, 7, 20041015, 1200
+    .xword 183, 28, 20041015, 1200
+    .xword 236, 100, 20041015, 1200
+    .xword 39, 0, 20041015, 1200
+    .xword 40, 7, 20041015, 1200
+    .xword 41, 28, 20041015, 1200
+    .xword 42, 100, 20041015, 1200
+    .xword 198, 0, 20041015, 1200
+    .xword 235, 0, 20041015, 1200
+    .xword 31, 0, 20041015, 1200
+    .xword 34, 0, 20041015, 1200
+    .xword 35, 0, 20041015, 1200
+    .xword 36, 7, 20041015, 1200
+    .xword 37, 28, 20041015, 1200
+    .xword 38, 100, 20041015, 1200
+    .xword 148, 0, 20041015, 1200
+    .xword 172, 0, 20041015, 1200
+    .xword 173, 0, 20041015, 1200
+    .xword 174, 0, 20041015, 1200
+    .xword 160, 0, 20041015, 1200
+    .xword 161, 0, 20041015, 1200
+    .xword 162, 0, 20041015, 1200
+    .xword 163, 0, 20041015, 1200
+    .xword 234, 0, 20041015, 1200
+    .xword 28, 0, 20041015, 1200
+    .xword 27, 0, 20041015, 1200
+    .xword 30, 0, 20041015, 1200
+    .xword 29, 0, 20041015, 1200
+    .xword 74, 0, 19960101, 0
+    .set .Lmonth, 1
+    .rept 12
+    .xword 18, 0, 99990015+100*.Lmonth, 0
+    .set .Lmonth, .Lmonth+1
+    .endr
+    .set .Lmonth, 1
+    .rept 12
+    .xword 17, 0, 99990015+100*.Lmonth, 0
+    .set .Lmonth, .Lmonth+1
+    .endr
+    .set .Lmonth, 1
+    .rept 12
+    .xword 16, 0, 99990015+100*.Lmonth, 0
+    .set .Lmonth, .Lmonth+1
+    .endr
+    .set .Lmonth, 1
+    .rept 12
+    .xword 15, 0, 99990015+100*.Lmonth, 0
+    .set .Lmonth, .Lmonth+1
+    .endr
+    .xword 43, 0, 19950101, 0
+    .set .Lmonth, 1
+    .rept 12
+    .xword 66, 0, 99990015+100*.Lmonth, 0
+    .set .Lmonth, .Lmonth+1
+    .endr
+    .set .Lmonth, 1
+    .rept 12
+    .xword 67, 0, 99990015+100*.Lmonth, 0
+    .set .Lmonth, .Lmonth+1
+    .endr
+    .xword 228007, 0, 99990115, 0
+    .xword 26, 0, 20140331, 0
+    .xword 228011, 0, 20041015, 0
+    .xword 228012, 0, 20041015, 0
+    .xword 228008, 0, 20041015, 0
+    .xword 228009, 0, 20041015, 0
+    .xword 228013, 0, 20041015, 0
+    .xword 228014, 0, 20041015, 0
+    .xword 228010, 0, 20041015, 0
+    .set .Llevel, 1
+    .rept 5
+    .xword 228141, .Llevel, 20041015, 0
+    .set .Llevel, .Llevel+1
+    .endr
+    .set .Llevel, 1
+    .rept 5
+    .xword 228038, .Llevel, 20041015, 0
+    .set .Llevel, .Llevel+1
+    .endr
+    .xword 200199, 0, 99990615, 0
+    .xword 129172, 0, 20110131, 0
+    .xword 200026, 0, 99990615, 0
 .section .note.GNU-stack,"",%progbits
