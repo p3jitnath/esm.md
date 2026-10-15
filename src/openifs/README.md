@@ -50,6 +50,8 @@ A separate [assembly input reader](../../skills/md2asm/references/openifs/input/
 
 The [assembly placement stage](../../skills/md2asm/references/openifs/input/spectral_initial_state_placement.md) copies the 59 source-selected records into the original upper-air and surface layouts. Its 238,832 output bytes match a separate Fortran reference. A standalone assembly command owns both decoding and placement, with no OpenIFS or Fortran dependency. Model-object construction, remaining input fields and complete forecast initialisation remain separate work.
 
+The [upper-air input reader](../../skills/md2asm/references/openifs/input/initial_upper_air_field_reader.md) decodes humidity and three cloud fields through the same assembly body. All 76 records match the reference across 1,245,184 value bytes and 1,824 label bytes. Its error and ABI checks pass, and its standalone command uses no OpenIFS or Fortran. The surface and monthly inputs, grid-state placement and full model setup remain separate work.
+
 ## Local records
 
 The exact ordered routine list, original source paths, build commands, critical checks and raw comparison records remain under ignored `.agents/` and `.runtime/` directories. The source audit covers 5,238 built Fortran bodies, including setup, input/output, support and disabled features. This total is not the number of weather routines that remain.
