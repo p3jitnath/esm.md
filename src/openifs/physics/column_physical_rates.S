@@ -1,0 +1,2661 @@
+// Complete selected physics caller. Source mathematics and direct children only.
+.text
+.p2align 4
+.macro CALL target
+str x18,[sp,#3024]
+bl \target
+ldr x18,[sp,#3024]
+.endm
+.global md2asm_complete_physics_diagnostic_bins_r1_7388001
+.type md2asm_complete_physics_diagnostic_bins_r1_7388001,%function
+md2asm_complete_physics_diagnostic_bins_r1_7388001:
+mov x16,sp
+sub sp,sp,#8192
+str x29,[sp,#800]
+str x30,[sp,#808]
+mov x29,sp
+ str x19,[sp,#816]
+ str x20,[sp,#824]
+ str x21,[sp,#832]
+ str x22,[sp,#840]
+ str x23,[sp,#848]
+ str x24,[sp,#856]
+ str x25,[sp,#864]
+ str x26,[sp,#872]
+ str x27,[sp,#880]
+ str x28,[sp,#888]
+ add x19,sp,#1024
+ str x0,[x19,#0]
+ str x1,[x19,#8]
+ str x2,[x19,#16]
+ str x3,[x19,#24]
+ str x4,[x19,#32]
+ str x5,[x19,#40]
+ str x6,[x19,#48]
+ str x7,[x19,#56]
+ ldr x9,[x16,#0]
+ str x9,[x19,#64]
+ ldr x9,[x16,#8]
+ str x9,[x19,#72]
+ ldr x9,[x16,#16]
+ str x9,[x19,#80]
+ ldr x9,[x16,#24]
+ str x9,[x19,#88]
+ ldr x9,[x16,#32]
+ str x9,[x19,#96]
+ ldr x9,[x16,#40]
+ str x9,[x19,#104]
+ ldr x9,[x16,#48]
+ str x9,[x19,#112]
+ ldr x9,[x16,#56]
+ str x9,[x19,#120]
+ ldr x9,[x16,#64]
+ str x9,[x19,#128]
+ ldr x9,[x16,#72]
+ str x9,[x19,#136]
+ ldr x9,[x16,#80]
+ str x9,[x19,#144]
+ ldr x9,[x16,#88]
+ str x9,[x19,#152]
+ ldr x9,[x16,#96]
+ str x9,[x19,#160]
+ ldr x9,[x16,#104]
+ str x9,[x19,#168]
+ ldr x9,[x16,#112]
+ str x9,[x19,#176]
+ ldr x9,[x16,#120]
+ str x9,[x19,#184]
+ ldr x9,[x16,#128]
+ str x9,[x19,#192]
+ ldr x9,[x16,#136]
+ str x9,[x19,#200]
+ ldr x9,[x16,#144]
+ str x9,[x19,#208]
+ ldr x9,[x16,#152]
+ str x9,[x19,#216]
+ ldr x9,[x16,#160]
+ str x9,[x19,#224]
+ ldr x9,[x16,#168]
+ str x9,[x19,#232]
+ ldr x9,[x16,#176]
+ str x9,[x19,#240]
+ ldr x9,[x16,#184]
+ str x9,[x19,#248]
+ ldr x9,[x16,#192]
+ str x9,[x19,#256]
+ ldr x9,[x16,#200]
+ str x9,[x19,#264]
+ ldr x9,[x16,#208]
+ str x9,[x19,#272]
+ ldr x9,[x16,#216]
+ str x9,[x19,#280]
+ ldr x9,[x16,#224]
+ str x9,[x19,#288]
+ ldr x9,[x16,#232]
+ str x9,[x19,#296]
+ ldr x9,[x16,#240]
+ str x9,[x19,#304]
+ ldr x9,[x16,#248]
+ str x9,[x19,#312]
+ ldr x9,[x16,#256]
+ str x9,[x19,#320]
+ ldr x9,[x16,#264]
+ str x9,[x19,#328]
+ ldr x9,[x16,#272]
+ str x9,[x19,#336]
+ ldr x9,[x16,#280]
+ str x9,[x19,#344]
+ ldr x9,[x16,#288]
+ str x9,[x19,#352]
+ ldr x9,[x16,#296]
+ str x9,[x19,#360]
+ ldr x9,[x16,#304]
+ str x9,[x19,#368]
+ ldr x9,[x16,#312]
+ str x9,[x19,#376]
+ ldr x9,[x16,#320]
+ str x9,[x19,#384]
+ ldr x9,[x16,#328]
+ str x9,[x19,#392]
+ ldr x9,[x16,#336]
+ str x9,[x19,#400]
+ ldr x9,[x16,#344]
+ str x9,[x19,#408]
+ ldr x9,[x16,#352]
+ str x9,[x19,#416]
+ ldr x9,[x16,#360]
+ str x9,[x19,#424]
+ ldr x9,[x16,#368]
+ str x9,[x19,#432]
+ ldr x9,[x16,#376]
+ str x9,[x19,#440]
+// Retain incoming borrowed-view representation before temporary pressure setup.
+ ldr x9,[x19,#160]
+ ldr x10,[x9,#536]
+ str x10,[sp,#6800]
+ ldr x10,[x9,#544]
+ str x10,[sp,#6808]
+ ldr x10,[x9,#552]
+ str x10,[sp,#6816]
+ ldr x10,[x9,#560]
+ str x10,[sp,#6824]
+ ldr x10,[x9,#568]
+ str x10,[sp,#6832]
+ ldr x10,[x9,#576]
+ str x10,[sp,#6840]
+ ldr x10,[x9,#584]
+ str x10,[sp,#6848]
+ ldr x10,[x9,#592]
+ str x10,[sp,#6856]
+ ldr x10,[x9,#600]
+ str x10,[sp,#6864]
+ ldr x10,[x9,#608]
+ str x10,[sp,#6872]
+ ldr x10,[x9,#616]
+ str x10,[sp,#6880]
+ ldr x10,[x9,#800]
+ str x10,[sp,#6888]
+ ldr x10,[x9,#808]
+ str x10,[sp,#6896]
+ ldr x10,[x9,#816]
+ str x10,[sp,#6904]
+ ldr x10,[x9,#824]
+ str x10,[sp,#6912]
+ ldr x10,[x9,#832]
+ str x10,[sp,#6920]
+ ldr x10,[x9,#840]
+ str x10,[sp,#6928]
+ ldr x10,[x9,#848]
+ str x10,[sp,#6936]
+ ldr x10,[x9,#856]
+ str x10,[sp,#6944]
+ ldr x10,[x9,#864]
+ str x10,[sp,#6952]
+ ldr x10,[x9,#872]
+ str x10,[sp,#6960]
+ ldr x10,[x9,#880]
+ str x10,[sp,#6968]
+ mrs x9,fpcr
+ cbnz x9,.Lec_reject
+ ldr x9,[x19,#440]
+ cmp x9,#1
+ b.ne .Lec_reject
+ ldr x21,[x19,#48]
+ ldr w9,[x21,#12]
+ cmp w9,#24
+ b.ne .Lec_reject
+ ldr w9,[x21,#48]
+ cmp w9,#19
+ b.ne .Lec_reject
+ ldr x9,[x19,#32]
+ movz x16,#56820
+ movk x16,#23,lsl #16
+ add x9,x9,x16
+ ldr w9,[x9]
+ cbnz w9,.Lec_reject
+ ldr x9,[x19,#32]
+ mov x16,#312
+ add x9,x9,x16
+ ldr w9,[x9]
+ cbnz w9,.Lec_reject
+ ldr x9,[x19,#32]
+ movz x16,#5180
+ movk x16,#24,lsl #16
+ add x9,x9,x16
+ ldr w9,[x9]
+ cbnz w9,.Lec_reject
+ ldr x9,[x19,#32]
+ movz x16,#5184
+ movk x16,#24,lsl #16
+ add x9,x9,x16
+ ldr w9,[x9]
+ cbnz w9,.Lec_reject
+ ldr x9,[x19,#32]
+ movz x16,#15888
+ movk x16,#24,lsl #16
+ add x9,x9,x16
+ ldr w9,[x9]
+ cbnz w9,.Lec_reject
+ ldr x9,[x19,#32]
+ movz x16,#11768
+ movk x16,#65,lsl #16
+ add x9,x9,x16
+ ldr w9,[x9]
+ cbnz w9,.Lec_reject
+ ldr x9,[x19,#32]
+ movz x16,#56828
+ movk x16,#23,lsl #16
+ add x9,x9,x16
+ ldr w9,[x9]
+ cmp w9,#1
+ b.ne .Lec_reject
+ adrp x9,:got:__yomsmos_MOD_lesmos_active
+ ldr x9,[x9,:got_lo12:__yomsmos_MOD_lesmos_active]
+ ldr w9,[x9]
+ cbnz w9,.Lec_reject
+ adrp x9,:got:__yomsmos_MOD_lesmap_active
+ ldr x9,[x9,:got_lo12:__yomsmos_MOD_lesmap_active]
+ ldr w9,[x9]
+ cbnz w9,.Lec_reject
+ adrp x9,:got:__yomsmos_MOD_lesmos_sekf
+ ldr x9,[x9,:got_lo12:__yomsmos_MOD_lesmos_sekf]
+ ldr w9,[x9]
+ cbnz w9,.Lec_reject
+ adrp x9,:got:__yomct0_MOD_nfrco
+ ldr x9,[x9,:got_lo12:__yomct0_MOD_nfrco]
+ ldr w9,[x9]
+ cbnz w9,.Lec_reject
+ adrp x9,:got:__yomct3_MOD_nstep
+ ldr x9,[x9,:got_lo12:__yomct3_MOD_nstep]
+ ldr w9,[x9]
+ cmp w9,#25
+ b.hi .Lec_reject
+ str w9,[sp,#3056]
+ adrp x9,:got:__yomhook_MOD_lhook
+ ldr x9,[x9,:got_lo12:__yomhook_MOD_lhook]
+ ldr w9,[x9]
+ cbz w9,9f
+ adr x0,.Lec_name
+ adr x1,.Lec_phase0
+ add x2,sp,#3000
+ mov x3,#7
+ CALL __yomhook_MOD_dr_hook_default8
+9:
+ ldr w9,[sp,#3056]
+ cmp w9,#0
+ cset w10,le
+ str w10,[sp,#3200]
+ ldr x9,[x19,#32]
+ movz x16,#5452
+ movk x16,#24,lsl #16
+ add x9,x9,x16
+ ldr w9,[x9]
+ str w9,[sp,#3204]
+ ldr x9,[x19,#32]
+ movz x16,#5456
+ movk x16,#24,lsl #16
+ add x9,x9,x16
+ ldr w9,[x9]
+ str w9,[sp,#3212]
+ ldr x9,[x19,#32]
+ movz x16,#48808
+ movk x16,#20,lsl #16
+ add x9,x9,x16
+ ldr d0,[x9]
+ fcvtzs w11,d0
+ mov w12,#3600
+ cmp w11,w12
+ csel w11,w11,w12,ge
+ mov w12,#21600
+ sdiv w12,w12,w11
+ cbz w12,.Lec_reject
+ scvtf d1,w11
+ ldr w9,[sp,#3056]
+ scvtf d2,w9
+ fmul d2,d2,d0
+ fdiv d2,d2,d1
+ fcvtzs w10,d2
+ sdiv w13,w10,w12
+ msub w10,w13,w12,w10
+ add w10,w10,#1
+ sub w9,w9,#1
+ scvtf d2,w9
+ fmul d2,d2,d0
+ fdiv d2,d2,d1
+ fcvtzs w9,d2
+ sdiv w13,w9,w12
+ msub w9,w13,w12,w9
+ add w9,w9,#1
+ cmp w9,w10
+ cset w9,ne
+ str w9,[sp,#3208]
+ adrp x9,:got:__intdyn_mod_MOD_yytxyb
+ ldr x9,[x9,:got_lo12:__intdyn_mod_MOD_yytxyb]
+ str x9,[sp,#3064]
+ ldrsw x10,[x9,#28]
+ cmp x10,#1
+ b.lt .Lec_reject
+ cmp x10,#1024
+ b.gt .Lec_reject
+ mov x11,#3648
+ mul x10,x10,x11
+ str x10,[sp,#3072]
+ lsl x0,x10,#1
+ mov x11,#7680
+ add x0,x0,x11
+ CALL malloc
+ cbz x0,.Lec_reject
+ str x0,[sp,#3040]
+ str x0,[sp,#3080]
+ ldr x10,[sp,#3072]
+ add x0,x0,x10
+ str x0,[sp,#3088]
+ add x0,x0,x10
+ str x0,[sp,#3096]
+ add x0,x0,#3648
+ str x0,[sp,#3104]
+ add x0,x0,#3648
+ str x0,[sp,#3112]
+ add x0,x0,#192
+ str x0,[sp,#3120]
+ ldr x0,[x19,#24]
+ str x0,[sp,#1536]
+ ldr x0,[x19,#32]
+ movz x16,#5024
+ movk x16,#24,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#1544]
+ ldr x0,[x19,#32]
+ mov x16,#192
+ add x0,x0,x16
+ str x0,[sp,#1552]
+ ldr x0,[x19,#48]
+ str x0,[sp,#1560]
+ ldr x0,[x19,#160]
+ str x0,[sp,#1568]
+ ldr x0,[x19,#224]
+ str x0,[sp,#1576]
+ ldr x0,[x19,#216]
+ str x0,[sp,#1584]
+ ldr x0,[x19,#168]
+ str x0,[sp,#1592]
+ ldr x0,[x19,#192]
+ str x0,[sp,#1600]
+ ldr x0,[x19,#208]
+ str x0,[sp,#1608]
+ ldr x9,[sp,#1600]
+ str x9,[sp,#0]
+ ldr x9,[sp,#1608]
+ str x9,[sp,#8]
+ ldr x0,[sp,#1536]
+ ldr x1,[sp,#1544]
+ ldr x2,[sp,#1552]
+ ldr x3,[sp,#1560]
+ ldr x4,[sp,#1568]
+ ldr x5,[sp,#1576]
+ ldr x6,[sp,#1584]
+ ldr x7,[sp,#1592]
+ CALL md2asm_physics_arrays_initialise_7358525
+ ldr x0,[x19,#160]
+ mov x16,#536
+ add x0,x0,x16
+ ldr x1,[sp,#3080]
+ ldr x9,[sp,#3064]
+ ldrsw x9,[x9]
+ sub x9,x9,#1
+ mov x10,#3648
+ madd x1,x9,x10,x1
+ bl .Lec_rank2_descriptor
+ ldr x0,[x19,#160]
+ mov x16,#800
+ add x0,x0,x16
+ ldr x1,[sp,#3088]
+ ldr x9,[sp,#3064]
+ ldrsw x9,[x9]
+ sub x9,x9,#1
+ mov x10,#3648
+ madd x1,x9,x10,x1
+ bl .Lec_rank2_descriptor
+ ldr x9,[x19,#40]
+ ldrb w9,[x9]
+ mov w1,#0
+ cmp w9,#65
+ b.eq 1f
+ cmp w9,#66
+ b.ne 2f
+1:
+ mov w1,#1
+2:
+ ldr x0,[x19,#168]
+ CALL md2asm_physics_surface_time_copy_7358525
+ adrp x9,:got:__yomct0_MOD_n6bins
+ ldr x9,[x9,:got_lo12:__yomct0_MOD_n6bins]
+ ldrsw x9,[x9]
+ cmp x9,#0
+ b.lt .Lec_reject
+ cmp x9,#32
+ b.gt .Lec_reject
+ str x9,[sp,#3136]
+ ldr x9,[x19,#24]
+ mov x16,#12944
+ add x9,x9,x16
+ str x9,[sp,#3144]
+ mov x25,#1
+ mov x24,#1
+ mov x26,#1
+.Lec_ymx2t6_plane:
+ ldr w9,[sp,#3200]
+ cbz w9,.Lec_ymx2t6_later
+ mov x25,#1
+ b .Lec_ymx2t6_initial_check
+.Lec_ymx2t6_later:
+ ldr w9,[sp,#3208]
+ cbz w9,.Lec_ymx2t6_plane_done
+ ldr x25,[sp,#3136]
+ b .Lec_ymx2t6_rotation_check
+.Lec_ymx2t6_initial_check:
+ ldr x9,[sp,#3136]
+ cmp x25,x9
+ b.gt .Lec_ymx2t6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ mov x28,#0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ymx2t6_init_end
+.Lec_ymx2t6_init_loop:
+ str x28,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ymx2t6_init_loop
+.Lec_ymx2t6_init_end:
+ add x25,x25,#1
+ b .Lec_ymx2t6_initial_check
+.Lec_ymx2t6_rotation_check:
+ cmp x25,#2
+ b.lt .Lec_ymx2t6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ sub x20,x25,#1
+ ldr x0,[sp,#3144]
+ mov x1,x20
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x28,x0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ymx2t6_rotate_end
+.Lec_ymx2t6_rotate_loop:
+ ldr x9,[x28,x22,lsl #3]
+ str x9,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ymx2t6_rotate_loop
+.Lec_ymx2t6_rotate_end:
+ sub x25,x25,#1
+ b .Lec_ymx2t6_rotation_check
+.Lec_ymx2t6_plane_done:
+ add x24,x24,#1
+ cmp x24,x26
+ b.le .Lec_ymx2t6_plane
+ ldr x9,[x19,#24]
+ mov x16,#13008
+ add x9,x9,x16
+ str x9,[sp,#3144]
+ mov x25,#1
+ mov x24,#1
+ mov x26,#1
+.Lec_ymn2t6_plane:
+ ldr w9,[sp,#3200]
+ cbz w9,.Lec_ymn2t6_later
+ mov x25,#1
+ b .Lec_ymn2t6_initial_check
+.Lec_ymn2t6_later:
+ ldr w9,[sp,#3208]
+ cbz w9,.Lec_ymn2t6_plane_done
+ ldr x25,[sp,#3136]
+ b .Lec_ymn2t6_rotation_check
+.Lec_ymn2t6_initial_check:
+ ldr x9,[sp,#3136]
+ cmp x25,x9
+ b.gt .Lec_ymn2t6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ adr x9,.Lec_999
+ ldr x28,[x9]
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ymn2t6_init_end
+.Lec_ymn2t6_init_loop:
+ str x28,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ymn2t6_init_loop
+.Lec_ymn2t6_init_end:
+ add x25,x25,#1
+ b .Lec_ymn2t6_initial_check
+.Lec_ymn2t6_rotation_check:
+ cmp x25,#2
+ b.lt .Lec_ymn2t6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ sub x20,x25,#1
+ ldr x0,[sp,#3144]
+ mov x1,x20
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x28,x0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ymn2t6_rotate_end
+.Lec_ymn2t6_rotate_loop:
+ ldr x9,[x28,x22,lsl #3]
+ str x9,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ymn2t6_rotate_loop
+.Lec_ymn2t6_rotate_end:
+ sub x25,x25,#1
+ b .Lec_ymn2t6_rotation_check
+.Lec_ymn2t6_plane_done:
+ add x24,x24,#1
+ cmp x24,x26
+ b.le .Lec_ymn2t6_plane
+ ldr x9,[x19,#24]
+ mov x16,#13800
+ add x9,x9,x16
+ str x9,[sp,#3144]
+ mov x25,#1
+ mov x24,#1
+ mov x26,#1
+.Lec_y10fg6_plane:
+ ldr w9,[sp,#3200]
+ cbz w9,.Lec_y10fg6_later
+ mov x25,#1
+ b .Lec_y10fg6_initial_check
+.Lec_y10fg6_later:
+ ldr w9,[sp,#3208]
+ cbz w9,.Lec_y10fg6_plane_done
+ ldr x25,[sp,#3136]
+ b .Lec_y10fg6_rotation_check
+.Lec_y10fg6_initial_check:
+ ldr x9,[sp,#3136]
+ cmp x25,x9
+ b.gt .Lec_y10fg6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ mov x28,#0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_y10fg6_init_end
+.Lec_y10fg6_init_loop:
+ str x28,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_y10fg6_init_loop
+.Lec_y10fg6_init_end:
+ add x25,x25,#1
+ b .Lec_y10fg6_initial_check
+.Lec_y10fg6_rotation_check:
+ cmp x25,#2
+ b.lt .Lec_y10fg6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ sub x20,x25,#1
+ ldr x0,[sp,#3144]
+ mov x1,x20
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x28,x0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_y10fg6_rotate_end
+.Lec_y10fg6_rotate_loop:
+ ldr x9,[x28,x22,lsl #3]
+ str x9,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_y10fg6_rotate_loop
+.Lec_y10fg6_rotate_end:
+ sub x25,x25,#1
+ b .Lec_y10fg6_rotation_check
+.Lec_y10fg6_plane_done:
+ add x24,x24,#1
+ cmp x24,x26
+ b.le .Lec_y10fg6_plane
+ ldr x9,[x19,#24]
+ mov x16,#13200
+ add x9,x9,x16
+ str x9,[sp,#3144]
+ mov x25,#1
+ mov x24,#1
+ mov x26,#1
+.Lec_ymxtpr6_plane:
+ ldr w9,[sp,#3200]
+ cbz w9,.Lec_ymxtpr6_later
+ mov x25,#1
+ b .Lec_ymxtpr6_initial_check
+.Lec_ymxtpr6_later:
+ ldr w9,[sp,#3208]
+ cbz w9,.Lec_ymxtpr6_plane_done
+ ldr x25,[sp,#3136]
+ b .Lec_ymxtpr6_rotation_check
+.Lec_ymxtpr6_initial_check:
+ ldr x9,[sp,#3136]
+ cmp x25,x9
+ b.gt .Lec_ymxtpr6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ mov x28,#0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ymxtpr6_init_end
+.Lec_ymxtpr6_init_loop:
+ str x28,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ymxtpr6_init_loop
+.Lec_ymxtpr6_init_end:
+ add x25,x25,#1
+ b .Lec_ymxtpr6_initial_check
+.Lec_ymxtpr6_rotation_check:
+ cmp x25,#2
+ b.lt .Lec_ymxtpr6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ sub x20,x25,#1
+ ldr x0,[sp,#3144]
+ mov x1,x20
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x28,x0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ymxtpr6_rotate_end
+.Lec_ymxtpr6_rotate_loop:
+ ldr x9,[x28,x22,lsl #3]
+ str x9,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ymxtpr6_rotate_loop
+.Lec_ymxtpr6_rotate_end:
+ sub x25,x25,#1
+ b .Lec_ymxtpr6_rotation_check
+.Lec_ymxtpr6_plane_done:
+ add x24,x24,#1
+ cmp x24,x26
+ b.le .Lec_ymxtpr6_plane
+ ldr x9,[x19,#24]
+ mov x16,#13264
+ add x9,x9,x16
+ str x9,[sp,#3144]
+ mov x25,#1
+ mov x24,#1
+ mov x26,#1
+.Lec_ymntpr6_plane:
+ ldr w9,[sp,#3200]
+ cbz w9,.Lec_ymntpr6_later
+ mov x25,#1
+ b .Lec_ymntpr6_initial_check
+.Lec_ymntpr6_later:
+ ldr w9,[sp,#3208]
+ cbz w9,.Lec_ymntpr6_plane_done
+ ldr x25,[sp,#3136]
+ b .Lec_ymntpr6_rotation_check
+.Lec_ymntpr6_initial_check:
+ ldr x9,[sp,#3136]
+ cmp x25,x9
+ b.gt .Lec_ymntpr6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ adr x9,.Lec_999
+ ldr x28,[x9]
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ymntpr6_init_end
+.Lec_ymntpr6_init_loop:
+ str x28,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ymntpr6_init_loop
+.Lec_ymntpr6_init_end:
+ add x25,x25,#1
+ b .Lec_ymntpr6_initial_check
+.Lec_ymntpr6_rotation_check:
+ cmp x25,#2
+ b.lt .Lec_ymntpr6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ sub x20,x25,#1
+ ldr x0,[sp,#3144]
+ mov x1,x20
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x28,x0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ymntpr6_rotate_end
+.Lec_ymntpr6_rotate_loop:
+ ldr x9,[x28,x22,lsl #3]
+ str x9,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ymntpr6_rotate_loop
+.Lec_ymntpr6_rotate_end:
+ sub x25,x25,#1
+ b .Lec_ymntpr6_rotation_check
+.Lec_ymntpr6_plane_done:
+ add x24,x24,#1
+ cmp x24,x26
+ b.le .Lec_ymntpr6_plane
+ ldr x9,[x19,#24]
+ mov x16,#13608
+ add x9,x9,x16
+ str x9,[sp,#3144]
+ mov x25,#1
+ mov x24,#1
+ mov x26,#1
+.Lec_ymxcap6_plane:
+ ldr w9,[sp,#3200]
+ cbz w9,.Lec_ymxcap6_later
+ mov x25,#1
+ b .Lec_ymxcap6_initial_check
+.Lec_ymxcap6_later:
+ ldr w9,[sp,#3208]
+ cbz w9,.Lec_ymxcap6_plane_done
+ ldr x25,[sp,#3136]
+ b .Lec_ymxcap6_rotation_check
+.Lec_ymxcap6_initial_check:
+ ldr x9,[sp,#3136]
+ cmp x25,x9
+ b.gt .Lec_ymxcap6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ mov x28,#0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ymxcap6_init_end
+.Lec_ymxcap6_init_loop:
+ str x28,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ymxcap6_init_loop
+.Lec_ymxcap6_init_end:
+ add x25,x25,#1
+ b .Lec_ymxcap6_initial_check
+.Lec_ymxcap6_rotation_check:
+ cmp x25,#2
+ b.lt .Lec_ymxcap6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ sub x20,x25,#1
+ ldr x0,[sp,#3144]
+ mov x1,x20
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x28,x0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ymxcap6_rotate_end
+.Lec_ymxcap6_rotate_loop:
+ ldr x9,[x28,x22,lsl #3]
+ str x9,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ymxcap6_rotate_loop
+.Lec_ymxcap6_rotate_end:
+ sub x25,x25,#1
+ b .Lec_ymxcap6_rotation_check
+.Lec_ymxcap6_plane_done:
+ add x24,x24,#1
+ cmp x24,x26
+ b.le .Lec_ymxcap6_plane
+ ldr x9,[x19,#24]
+ mov x16,#13672
+ add x9,x9,x16
+ str x9,[sp,#3144]
+ mov x25,#1
+ mov x24,#1
+ mov x26,#1
+.Lec_ymxcaps6_plane:
+ ldr w9,[sp,#3200]
+ cbz w9,.Lec_ymxcaps6_later
+ mov x25,#1
+ b .Lec_ymxcaps6_initial_check
+.Lec_ymxcaps6_later:
+ ldr w9,[sp,#3208]
+ cbz w9,.Lec_ymxcaps6_plane_done
+ ldr x25,[sp,#3136]
+ b .Lec_ymxcaps6_rotation_check
+.Lec_ymxcaps6_initial_check:
+ ldr x9,[sp,#3136]
+ cmp x25,x9
+ b.gt .Lec_ymxcaps6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ mov x28,#0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ymxcaps6_init_end
+.Lec_ymxcaps6_init_loop:
+ str x28,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ymxcaps6_init_loop
+.Lec_ymxcaps6_init_end:
+ add x25,x25,#1
+ b .Lec_ymxcaps6_initial_check
+.Lec_ymxcaps6_rotation_check:
+ cmp x25,#2
+ b.lt .Lec_ymxcaps6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ sub x20,x25,#1
+ ldr x0,[sp,#3144]
+ mov x1,x20
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x28,x0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ymxcaps6_rotate_end
+.Lec_ymxcaps6_rotate_loop:
+ ldr x9,[x28,x22,lsl #3]
+ str x9,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ymxcaps6_rotate_loop
+.Lec_ymxcaps6_rotate_end:
+ sub x25,x25,#1
+ b .Lec_ymxcaps6_rotation_check
+.Lec_ymxcaps6_plane_done:
+ add x24,x24,#1
+ cmp x24,x26
+ b.le .Lec_ymxcaps6_plane
+ ldr x9,[x19,#24]
+ mov x16,#14568
+ add x9,x9,x16
+ str x9,[sp,#3144]
+ mov x25,#1
+ mov x24,#1
+ mov x26,#1
+.Lec_ylitota6_plane:
+ ldr w9,[sp,#3200]
+ cbz w9,.Lec_ylitota6_later
+ mov x25,#1
+ b .Lec_ylitota6_initial_check
+.Lec_ylitota6_later:
+ ldr w9,[sp,#3208]
+ cbz w9,.Lec_ylitota6_plane_done
+ ldr x25,[sp,#3136]
+ b .Lec_ylitota6_rotation_check
+.Lec_ylitota6_initial_check:
+ ldr x9,[sp,#3136]
+ cmp x25,x9
+ b.gt .Lec_ylitota6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ mov x28,#0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ylitota6_init_end
+.Lec_ylitota6_init_loop:
+ str x28,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ylitota6_init_loop
+.Lec_ylitota6_init_end:
+ add x25,x25,#1
+ b .Lec_ylitota6_initial_check
+.Lec_ylitota6_rotation_check:
+ cmp x25,#2
+ b.lt .Lec_ylitota6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ sub x20,x25,#1
+ ldr x0,[sp,#3144]
+ mov x1,x20
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x28,x0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ylitota6_rotate_end
+.Lec_ylitota6_rotate_loop:
+ ldr x9,[x28,x22,lsl #3]
+ str x9,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ylitota6_rotate_loop
+.Lec_ylitota6_rotate_end:
+ sub x25,x25,#1
+ b .Lec_ylitota6_rotation_check
+.Lec_ylitota6_plane_done:
+ add x24,x24,#1
+ cmp x24,x26
+ b.le .Lec_ylitota6_plane
+ ldr x9,[x19,#24]
+ mov x16,#14632
+ add x9,x9,x16
+ str x9,[sp,#3144]
+ mov x25,#1
+ mov x24,#1
+ mov x26,#1
+.Lec_ylicga6_plane:
+ ldr w9,[sp,#3200]
+ cbz w9,.Lec_ylicga6_later
+ mov x25,#1
+ b .Lec_ylicga6_initial_check
+.Lec_ylicga6_later:
+ ldr w9,[sp,#3208]
+ cbz w9,.Lec_ylicga6_plane_done
+ ldr x25,[sp,#3136]
+ b .Lec_ylicga6_rotation_check
+.Lec_ylicga6_initial_check:
+ ldr x9,[sp,#3136]
+ cmp x25,x9
+ b.gt .Lec_ylicga6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ mov x28,#0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ylicga6_init_end
+.Lec_ylicga6_init_loop:
+ str x28,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ylicga6_init_loop
+.Lec_ylicga6_init_end:
+ add x25,x25,#1
+ b .Lec_ylicga6_initial_check
+.Lec_ylicga6_rotation_check:
+ cmp x25,#2
+ b.lt .Lec_ylicga6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ sub x20,x25,#1
+ ldr x0,[sp,#3144]
+ mov x1,x20
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x28,x0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ylicga6_rotate_end
+.Lec_ylicga6_rotate_loop:
+ ldr x9,[x28,x22,lsl #3]
+ str x9,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ylicga6_rotate_loop
+.Lec_ylicga6_rotate_end:
+ sub x25,x25,#1
+ b .Lec_ylicga6_rotation_check
+.Lec_ylicga6_plane_done:
+ add x24,x24,#1
+ cmp x24,x26
+ b.le .Lec_ylicga6_plane
+ ldr x9,[x19,#24]
+ mov x16,#14768
+ add x9,x9,x16
+ str x9,[sp,#3144]
+ mov x25,#1
+ ldr x24,[x9,#72]
+ ldr x26,[x9,#80]
+.Lec_yptypeocc6_plane:
+ ldr w9,[sp,#3200]
+ cbz w9,.Lec_yptypeocc6_later
+ mov x25,#1
+ b .Lec_yptypeocc6_initial_check
+.Lec_yptypeocc6_later:
+ ldr w9,[sp,#3208]
+ cbz w9,.Lec_yptypeocc6_plane_done
+ ldr x25,[sp,#3136]
+ b .Lec_yptypeocc6_rotation_check
+.Lec_yptypeocc6_initial_check:
+ ldr x9,[sp,#3136]
+ cmp x25,x9
+ b.gt .Lec_yptypeocc6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ mov x28,#0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_yptypeocc6_init_end
+.Lec_yptypeocc6_init_loop:
+ str x28,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_yptypeocc6_init_loop
+.Lec_yptypeocc6_init_end:
+ add x25,x25,#1
+ b .Lec_yptypeocc6_initial_check
+.Lec_yptypeocc6_rotation_check:
+ cmp x25,#2
+ b.lt .Lec_yptypeocc6_plane_done
+ ldr x0,[sp,#3144]
+ mov x1,x25
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x27,x0
+ sub x20,x25,#1
+ ldr x0,[sp,#3144]
+ mov x1,x20
+ mov x2,x24
+ bl .Lec_indexed_field
+ ldrsw x1,[x0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x2,#0
+ bl .Lec_first
+ mov x28,x0
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_yptypeocc6_rotate_end
+.Lec_yptypeocc6_rotate_loop:
+ ldr x9,[x28,x22,lsl #3]
+ str x9,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_yptypeocc6_rotate_loop
+.Lec_yptypeocc6_rotate_end:
+ sub x25,x25,#1
+ b .Lec_yptypeocc6_rotation_check
+.Lec_yptypeocc6_plane_done:
+ add x24,x24,#1
+ cmp x24,x26
+ b.le .Lec_yptypeocc6_plane
+ adrp x9,:got:__yomvar_MOD_lecv
+ ldr x9,[x9,:got_lo12:__yomvar_MOD_lecv]
+ ldr w9,[x9]
+ cbz w9,.Lec_bias_done
+ adrp x9,:got:__yomjbecphysecv_MOD_lbfasecv
+ ldr x9,[x9,:got_lo12:__yomjbecphysecv_MOD_lbfasecv]
+ ldr w9,[x9]
+ cbz w9,.Lec_bias_done
+ ldr x9,[x19,#24]
+ mov x16,#9200
+ add x9,x9,x16
+ ldr x9,[x9]
+ ldrsw x20,[x9,#0]
+ ldr x0,[x19,#168]
+ mov x16,#8728
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x24,[sp,#1536]
+ ldr x25,[x19,#176]
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_YCGPP_end
+.Lec_YCGPP_loop:
+ ldr d0,[x25,x22,lsl #3]
+ fmov d1,xzr
+ fcmp d0,d1
+ fcsel d0,d0,d1,ge
+ str d0,[x24,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_YCGPP_loop
+.Lec_YCGPP_end:
+ ldr x9,[x19,#24]
+ mov x16,#9208
+ add x9,x9,x16
+ ldr x9,[x9]
+ ldrsw x20,[x9,#0]
+ ldr x0,[x19,#168]
+ mov x16,#8728
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x24,[sp,#1536]
+ ldr x25,[x19,#184]
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_YCREC_end
+.Lec_YCREC_loop:
+ ldr d0,[x25,x22,lsl #3]
+ fmov d1,xzr
+ fcmp d0,d1
+ fcsel d0,d0,d1,ge
+ str d0,[x24,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_YCREC_loop
+.Lec_YCREC_end:
+.Lec_bias_done:
+ ldr x9,[x19,#24]
+ mov x16,#13144
+ add x9,x9,x16
+ ldr x9,[x9]
+ ldrsw x20,[x9,#0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1544]
+ ldr x0,[sp,#3112]
+ str x0,[sp,#1536]
+ ldr x24,[sp,#1536]
+ ldr x25,[sp,#1544]
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_YIGPP_end
+.Lec_YIGPP_loop:
+ ldr x9,[x25,x22,lsl #3]
+ str x9,[x24,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_YIGPP_loop
+.Lec_YIGPP_end:
+ ldr x9,[x19,#24]
+ mov x16,#13152
+ add x9,x9,x16
+ ldr x9,[x9]
+ ldrsw x20,[x9,#0]
+ ldr x0,[x19,#168]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1544]
+ ldr x0,[sp,#3120]
+ str x0,[sp,#1536]
+ ldr x24,[sp,#1536]
+ ldr x25,[sp,#1544]
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_YIREC_end
+.Lec_YIREC_loop:
+ ldr x9,[x25,x22,lsl #3]
+ str x9,[x24,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_YIREC_loop
+.Lec_YIREC_end:
+ ldr x0,[x19,#160]
+ mov x16,#360
+ add x0,x0,x16
+ mov x1,#19
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x24,[sp,#1536]
+ ldr x0,[x19,#80]
+ mov x16,#320
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1544]
+ ldr x25,[sp,#1544]
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ps9_end
+.Lec_ps9_loop:
+ ldr d0,[x25,x22,lsl #3]
+ CALL exp
+ str d0,[x24,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ps9_loop
+.Lec_ps9_end:
+ ldr x0,[x19,#48]
+ mov x16,#12
+ add x0,x0,x16
+ str x0,[sp,#1536]
+ ldr x0,[x19,#48]
+ mov x16,#48
+ add x0,x0,x16
+ str x0,[sp,#1544]
+ ldr x0,[x19,#48]
+ str x0,[sp,#1552]
+ ldr x0,[x19,#48]
+ mov x16,#4
+ add x0,x0,x16
+ str x0,[sp,#1560]
+ ldr x0,[x19,#0]
+ mov x16,#3240
+ add x0,x0,x16
+ str x0,[sp,#1568]
+ ldr x0,[x0]
+ str x0,[sp,#1568]
+ ldr x0,[x19,#0]
+ mov x16,#3264
+ add x0,x0,x16
+ str x0,[sp,#1576]
+ ldr x0,[x0]
+ str x0,[sp,#1576]
+ ldr x0,[x19,#160]
+ mov x16,#360
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1584]
+ ldr x0,[sp,#3080]
+ str x0,[sp,#1592]
+ ldr x0,[x19,#160]
+ mov x16,#448
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1600]
+ ldr x9,[sp,#1600]
+ str x9,[sp,#0]
+ ldr x0,[sp,#1536]
+ ldr x1,[sp,#1544]
+ ldr x2,[sp,#1552]
+ ldr x3,[sp,#1560]
+ ldr x4,[sp,#1568]
+ ldr x5,[sp,#1576]
+ ldr x6,[sp,#1584]
+ ldr x7,[sp,#1592]
+ CALL md2asm_ec_pressure_7358525
+ ldr x0,[x19,#48]
+ mov x16,#12
+ add x0,x0,x16
+ str x0,[sp,#1536]
+ ldr x0,[x19,#48]
+ str x0,[sp,#1544]
+ ldr x0,[x19,#48]
+ mov x16,#4
+ add x0,x0,x16
+ str x0,[sp,#1552]
+ ldr x0,[x19,#48]
+ mov x16,#48
+ add x0,x0,x16
+ str x0,[sp,#1560]
+ mov x0,#0
+ str x0,[sp,#1568]
+ mov x0,#0
+ str x0,[sp,#1576]
+ mov x0,#0
+ str x0,[sp,#1584]
+ mov x0,#0
+ str x0,[sp,#1592]
+ mov x0,#0
+ str x0,[sp,#1600]
+ mov x0,#0
+ str x0,[sp,#1608]
+ mov x0,#0
+ str x0,[sp,#1616]
+ mov x0,#0
+ str x0,[sp,#1632]
+ mov x0,#0
+ str x0,[sp,#1656]
+ ldr x0,[sp,#3104]
+ str x0,[sp,#1624]
+ ldr x0,[x19,#128]
+ str x0,[sp,#1640]
+ adr x0,.Lec_mode9
+ str x0,[sp,#1648]
+ ldr x9,[sp,#1600]
+ str x9,[sp,#0]
+ ldr x9,[sp,#1608]
+ str x9,[sp,#8]
+ ldr x9,[sp,#1616]
+ str x9,[sp,#16]
+ ldr x9,[sp,#1624]
+ str x9,[sp,#24]
+ ldr x9,[sp,#1632]
+ str x9,[sp,#32]
+ ldr x9,[sp,#1640]
+ str x9,[sp,#40]
+ ldr x9,[sp,#1648]
+ str x9,[sp,#48]
+ ldr x9,[sp,#1656]
+ str x9,[sp,#56]
+ ldr x0,[sp,#1536]
+ ldr x1,[sp,#1544]
+ ldr x2,[sp,#1552]
+ ldr x3,[sp,#1560]
+ ldr x4,[sp,#1568]
+ ldr x5,[sp,#1576]
+ ldr x6,[sp,#1584]
+ ldr x7,[sp,#1592]
+ CALL md2asm_ec_mixture_7358525
+ ldr x0,[x19,#160]
+ mov x16,#8
+ add x0,x0,x16
+ mov x1,#19
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x0,[x19,#160]
+ mov x16,#1552
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1544]
+ ldr x24,[sp,#1536]
+ ldr x25,[sp,#1544]
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_surface_phi_end
+.Lec_surface_phi_loop:
+ ldr x9,[x25,x22,lsl #3]
+ str x9,[x24,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_surface_phi_loop
+.Lec_surface_phi_end:
+ ldr x0,[x19,#48]
+ mov x16,#12
+ add x0,x0,x16
+ str x0,[sp,#1536]
+ ldr x0,[x19,#48]
+ str x0,[sp,#1544]
+ ldr x0,[x19,#48]
+ mov x16,#4
+ add x0,x0,x16
+ str x0,[sp,#1552]
+ ldr x0,[x19,#48]
+ mov x16,#48
+ add x0,x0,x16
+ str x0,[sp,#1560]
+ ldr x0,[x19,#160]
+ mov x16,#8
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1568]
+ ldr x0,[x19,#160]
+ mov x16,#96
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1576]
+ ldr x0,[x19,#72]
+ mov x16,#416
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1584]
+ ldr x0,[sp,#3104]
+ str x0,[sp,#1592]
+ ldr x0,[sp,#3080]
+ str x0,[sp,#1600]
+ ldr x9,[sp,#3064]
+ ldrsw x9,[x9,#8]
+ sub x9,x9,#1
+ mov x10,#3648
+ madd x0,x9,x10,x0
+ str x0,[sp,#1600]
+ ldr x0,[sp,#3080]
+ str x0,[sp,#1608]
+ ldr x9,[sp,#3064]
+ ldrsw x9,[x9,#12]
+ sub x9,x9,#1
+ mov x10,#3648
+ madd x0,x9,x10,x0
+ str x0,[sp,#1608]
+ ldr x0,[x19,#0]
+ mov x16,#8
+ add x0,x0,x16
+ str x0,[sp,#1616]
+ ldr x9,[sp,#1600]
+ str x9,[sp,#0]
+ ldr x9,[sp,#1608]
+ str x9,[sp,#8]
+ ldr x9,[sp,#1616]
+ str x9,[sp,#16]
+ ldr x0,[sp,#1536]
+ ldr x1,[sp,#1544]
+ ldr x2,[sp,#1552]
+ ldr x3,[sp,#1560]
+ ldr x4,[sp,#1568]
+ ldr x5,[sp,#1576]
+ ldr x6,[sp,#1584]
+ ldr x7,[sp,#1592]
+ CALL md2asm_ec_geopotential_7358525
+ ldr x0,[x19,#160]
+ mov x16,#8
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x24,[sp,#1536]
+ ldr x0,[x19,#160]
+ mov x16,#96
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x25,[sp,#1536]
+ ldr x0,[x19,#160]
+ mov x16,#184
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x26,[sp,#1536]
+ ldr x0,[x19,#160]
+ mov x16,#272
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x27,[sp,#1536]
+ mov x28,#0
+.Lec_geometry_level:
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_geometry_end
+.Lec_geometry_loop:
+ add x9,x22,#456
+ ldr d0,[x24,x9,lsl #3]
+ add x10,x28,x22
+ add x11,x10,#24
+ ldr d1,[x25,x10,lsl #3]
+ fsub d1,d1,d0
+ str d1,[x26,x10,lsl #3]
+ ldr d1,[x24,x11,lsl #3]
+ fsub d1,d1,d0
+ str d1,[x27,x11,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_geometry_loop
+.Lec_geometry_end:
+ add x28,x28,#24
+ cmp x28,#456
+ b.lt .Lec_geometry_level
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_geometry_top_end
+.Lec_geometry_top_loop:
+ add x9,x22,#456
+ ldr d0,[x24,x9,lsl #3]
+ ldr d1,[x24,x22,lsl #3]
+ fsub d1,d1,d0
+ str d1,[x27,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_geometry_top_loop
+.Lec_geometry_top_end:
+ ldr x0,[x19,#32]
+ movz x16,#35864
+ movk x16,#24,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#1536]
+ ldr x0,[x19,#32]
+ movz x16,#36816
+ movk x16,#62,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#1544]
+ ldr x0,[x19,#32]
+ movz x16,#48608
+ movk x16,#20,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#1552]
+ ldr x0,[x19,#48]
+ str x0,[sp,#1560]
+ ldr x0,[x19,#48]
+ mov x16,#4
+ add x0,x0,x16
+ str x0,[sp,#1568]
+ ldr x0,[x19,#48]
+ mov x16,#12
+ add x0,x0,x16
+ str x0,[sp,#1576]
+ ldr x0,[x19,#160]
+ mov x16,#1488
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1584]
+ ldr x0,[x19,#160]
+ mov x16,#976
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1592]
+ adr x0,.Lec_false
+ str x0,[sp,#1600]
+ ldr x0,[x19,#160]
+ mov x16,#1296
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1608]
+ ldr x9,[sp,#1600]
+ str x9,[sp,#0]
+ ldr x9,[sp,#1608]
+ str x9,[sp,#8]
+ ldr x0,[sp,#1536]
+ ldr x1,[sp,#1544]
+ ldr x2,[sp,#1552]
+ ldr x3,[sp,#1560]
+ ldr x4,[sp,#1568]
+ ldr x5,[sp,#1576]
+ ldr x6,[sp,#1584]
+ ldr x7,[sp,#1592]
+ CALL md2asm_ec_solar_7358525
+ ldr x0,[x19,#32]
+ movz x16,#35864
+ movk x16,#24,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#1536]
+ ldr x0,[x19,#32]
+ movz x16,#36816
+ movk x16,#62,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#1544]
+ ldr x0,[x19,#32]
+ movz x16,#48608
+ movk x16,#20,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#1552]
+ ldr x0,[x19,#48]
+ str x0,[sp,#1560]
+ ldr x0,[x19,#48]
+ mov x16,#4
+ add x0,x0,x16
+ str x0,[sp,#1568]
+ ldr x0,[x19,#48]
+ mov x16,#12
+ add x0,x0,x16
+ str x0,[sp,#1576]
+ ldr x0,[x19,#160]
+ mov x16,#1488
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1584]
+ ldr x0,[x19,#160]
+ mov x16,#976
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1592]
+ adr x0,.Lec_true
+ str x0,[sp,#1600]
+ ldr x0,[x19,#160]
+ mov x16,#1360
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1608]
+ ldr x9,[sp,#1600]
+ str x9,[sp,#0]
+ ldr x9,[sp,#1608]
+ str x9,[sp,#8]
+ ldr x0,[sp,#1536]
+ ldr x1,[sp,#1544]
+ ldr x2,[sp,#1552]
+ ldr x3,[sp,#1560]
+ ldr x4,[sp,#1568]
+ ldr x5,[sp,#1576]
+ ldr x6,[sp,#1584]
+ ldr x7,[sp,#1592]
+ CALL md2asm_ec_solar_7358525
+ ldr x0,[x19,#160]
+ mov x16,#1488
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x24,[sp,#1536]
+ ldr x0,[x19,#160]
+ mov x16,#976
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x25,[sp,#1536]
+ ldr x0,[x19,#160]
+ mov x16,#1424
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x26,[sp,#1536]
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_chemistry_sun_end
+.Lec_chemistry_sun_loop:
+ ldr d16,[x24,x22,lsl #3]
+ fmul d17,d16,d16
+ fmov d18,#1.0
+ fsub d17,d18,d17
+ fsqrt d17,d17
+ str d16,[sp,#3232]
+ str d17,[sp,#3240]
+ ldr d0,[x25,x22,lsl #3]
+ CALL cos
+ str d0,[sp,#3248]
+ ldr d0,[x25,x22,lsl #3]
+ CALL sin
+ str d0,[sp,#3256]
+ ldr x9,[x19,#32]
+ movz x16,#48720
+ movk x16,#20,lsl #16
+ add x9,x9,x16
+ ldr d0,[x9]
+ str d0,[sp,#3264]
+ ldr x9,[x19,#32]
+ movz x16,#48712
+ movk x16,#20,lsl #16
+ add x9,x9,x16
+ ldr d0,[x9]
+ str d0,[sp,#3272]
+ ldr x9,[x19,#32]
+ movz x16,#48728
+ movk x16,#20,lsl #16
+ add x9,x9,x16
+ ldr d0,[x9]
+ str d0,[sp,#3280]
+ ldr x9,[x19,#32]
+ movz x16,#48736
+ movk x16,#20,lsl #16
+ add x9,x9,x16
+ ldr d0,[x9]
+ str d0,[sp,#3288]
+ ldr d16,[sp,#3264]
+ ldr d17,[sp,#3232]
+ fmul d16,d16,d17
+ ldr d17,[sp,#3272]
+ ldr d18,[sp,#3280]
+ fmul d17,d17,d18
+ ldr d18,[sp,#3240]
+ fmul d17,d17,d18
+ ldr d18,[sp,#3248]
+ fmul d17,d17,d18
+ fsub d16,d16,d17
+ ldr d17,[sp,#3272]
+ ldr d18,[sp,#3288]
+ fmul d17,d17,d18
+ ldr d18,[sp,#3240]
+ fmul d17,d17,d18
+ ldr d18,[sp,#3256]
+ fmul d17,d17,d18
+ fadd d16,d16,d17
+ str d16,[x26,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_chemistry_sun_loop
+.Lec_chemistry_sun_end:
+ ldr x0,[x19,#160]
+ mov x16,#624
+ add x0,x0,x16
+ mov x1,#19
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x24,[sp,#1536]
+ ldr x0,[x19,#80]
+ mov x16,#192
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1544]
+ ldr x25,[sp,#1544]
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_ps1_end
+.Lec_ps1_loop:
+ ldr d0,[x25,x22,lsl #3]
+ CALL exp
+ str d0,[x24,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_ps1_loop
+.Lec_ps1_end:
+ ldr x0,[x19,#48]
+ mov x16,#12
+ add x0,x0,x16
+ str x0,[sp,#1536]
+ ldr x0,[x19,#48]
+ mov x16,#48
+ add x0,x0,x16
+ str x0,[sp,#1544]
+ ldr x0,[x19,#48]
+ str x0,[sp,#1552]
+ ldr x0,[x19,#48]
+ mov x16,#4
+ add x0,x0,x16
+ str x0,[sp,#1560]
+ ldr x0,[x19,#0]
+ mov x16,#3240
+ add x0,x0,x16
+ str x0,[sp,#1568]
+ ldr x0,[x0]
+ str x0,[sp,#1568]
+ ldr x0,[x19,#0]
+ mov x16,#3264
+ add x0,x0,x16
+ str x0,[sp,#1576]
+ ldr x0,[x0]
+ str x0,[sp,#1576]
+ ldr x0,[x19,#160]
+ mov x16,#624
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1584]
+ ldr x0,[sp,#3088]
+ str x0,[sp,#1592]
+ ldr x0,[x19,#160]
+ mov x16,#712
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1600]
+ ldr x9,[sp,#1600]
+ str x9,[sp,#0]
+ ldr x0,[sp,#1536]
+ ldr x1,[sp,#1544]
+ ldr x2,[sp,#1552]
+ ldr x3,[sp,#1560]
+ ldr x4,[sp,#1568]
+ ldr x5,[sp,#1576]
+ ldr x6,[sp,#1584]
+ ldr x7,[sp,#1592]
+ CALL md2asm_ec_pressure_7358525
+ ldr x0,[x19,#88]
+ mov x16,#240
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x24,[sp,#1536]
+ ldr x0,[x19,#104]
+ mov x16,#240
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x25,[sp,#1536]
+ ldr x0,[x19,#96]
+ mov x16,#240
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x26,[sp,#1536]
+ ldr x27,[sp,#3096]
+ mov x28,#0
+ ldr x9,[x19,#32]
+ movz x16,#13616
+ movk x16,#12,lsl #16
+ add x9,x9,x16
+ ldr x9,[x9]
+ ldr w9,[x9,#64]
+ str w9,[sp,#3300]
+ ldr x9,[x19,#32]
+ movz x16,#13608
+ movk x16,#12,lsl #16
+ add x9,x9,x16
+ ldr x9,[x9]
+ ldr w9,[x9,#64]
+ str w9,[sp,#3304]
+.Lec_water_level:
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_water_end
+.Lec_water_loop:
+ add x9,x28,x22
+ ldr d0,[x24,x9,lsl #3]
+ ldr w10,[sp,#3300]
+ ldr w11,[sp,#3304]
+ and w10,w10,w11
+ cbz w10,1f
+ ldr d1,[x25,x9,lsl #3]
+ fadd d0,d0,d1
+ ldr d1,[x26,x9,lsl #3]
+ fadd d0,d0,d1
+1:
+ fmov d1,#-1.0
+ fmul d0,d1,d0
+ str d0,[x27,x9,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_water_loop
+.Lec_water_end:
+ add x28,x28,#24
+ cmp x28,#456
+ b.lt .Lec_water_level
+ ldr x0,[x19,#0]
+ str x0,[sp,#1536]
+ ldr x0,[x19,#8]
+ str x0,[sp,#1544]
+ ldr x0,[x19,#24]
+ str x0,[sp,#1552]
+ ldr x0,[x19,#32]
+ str x0,[sp,#1560]
+ ldr x0,[x19,#48]
+ str x0,[sp,#1568]
+ ldr x0,[x19,#160]
+ str x0,[sp,#1576]
+ ldr x0,[x19,#192]
+ str x0,[sp,#1584]
+ ldr x0,[x19,#208]
+ str x0,[sp,#1592]
+ ldr x0,[x19,#216]
+ str x0,[sp,#1600]
+ ldr x0,[x19,#168]
+ str x0,[sp,#1608]
+ ldr x0,[x19,#176]
+ str x0,[sp,#1616]
+ ldr x0,[x19,#184]
+ str x0,[sp,#1624]
+ ldr x0,[sp,#3112]
+ str x0,[sp,#1632]
+ ldr x0,[sp,#3120]
+ str x0,[sp,#1640]
+ ldr x0,[x19,#224]
+ str x0,[sp,#1648]
+ ldr x0,[x19,#232]
+ str x0,[sp,#1656]
+ ldr x0,[x19,#240]
+ str x0,[sp,#1664]
+ ldr x0,[x19,#248]
+ str x0,[sp,#1672]
+ ldr x0,[x19,#256]
+ str x0,[sp,#1680]
+ ldr x0,[x19,#128]
+ str x0,[sp,#1688]
+ ldr x0,[x19,#200]
+ str x0,[sp,#1696]
+ ldr x0,[x19,#264]
+ str x0,[sp,#1704]
+ ldr x0,[x19,#120]
+ str x0,[sp,#1712]
+ ldr x0,[x19,#152]
+ str x0,[sp,#1720]
+ ldr x0,[x19,#272]
+ str x0,[sp,#1728]
+ ldr x0,[x19,#136]
+ str x0,[sp,#1736]
+ ldr x0,[x19,#368]
+ str x0,[sp,#1744]
+ ldr x0,[x19,#376]
+ str x0,[sp,#1752]
+ ldr x0,[x19,#384]
+ str x0,[sp,#1760]
+ ldr x0,[x19,#392]
+ str x0,[sp,#1768]
+ ldr x0,[x19,#400]
+ str x0,[sp,#1776]
+ ldr x0,[x19,#408]
+ str x0,[sp,#1784]
+ ldr x0,[x19,#416]
+ str x0,[sp,#1792]
+ ldr x0,[x19,#424]
+ str x0,[sp,#1800]
+ ldr x0,[x19,#432]
+ str x0,[sp,#1808]
+ ldr x9,[sp,#1600]
+ str x9,[sp,#0]
+ ldr x9,[sp,#1608]
+ str x9,[sp,#8]
+ ldr x9,[sp,#1616]
+ str x9,[sp,#16]
+ ldr x9,[sp,#1624]
+ str x9,[sp,#24]
+ ldr x9,[sp,#1632]
+ str x9,[sp,#32]
+ ldr x9,[sp,#1640]
+ str x9,[sp,#40]
+ ldr x9,[sp,#1648]
+ str x9,[sp,#48]
+ ldr x9,[sp,#1656]
+ str x9,[sp,#56]
+ ldr x9,[sp,#1664]
+ str x9,[sp,#64]
+ ldr x9,[sp,#1672]
+ str x9,[sp,#72]
+ ldr x9,[sp,#1680]
+ str x9,[sp,#80]
+ ldr x9,[sp,#1688]
+ str x9,[sp,#88]
+ ldr x9,[sp,#1696]
+ str x9,[sp,#96]
+ ldr x9,[sp,#1704]
+ str x9,[sp,#104]
+ ldr x9,[sp,#1712]
+ str x9,[sp,#112]
+ ldr x9,[sp,#1720]
+ str x9,[sp,#120]
+ ldr x9,[sp,#1728]
+ str x9,[sp,#128]
+ ldr x9,[sp,#1736]
+ str x9,[sp,#136]
+ ldr x9,[sp,#1744]
+ str x9,[sp,#144]
+ ldr x9,[sp,#1752]
+ str x9,[sp,#152]
+ ldr x9,[sp,#1760]
+ str x9,[sp,#160]
+ ldr x9,[sp,#1768]
+ str x9,[sp,#168]
+ ldr x9,[sp,#1776]
+ str x9,[sp,#176]
+ ldr x9,[sp,#1784]
+ str x9,[sp,#184]
+ ldr x9,[sp,#1792]
+ str x9,[sp,#192]
+ ldr x9,[sp,#1800]
+ str x9,[sp,#200]
+ ldr x9,[sp,#1808]
+ str x9,[sp,#208]
+ ldr x0,[sp,#1536]
+ ldr x1,[sp,#1544]
+ ldr x2,[sp,#1552]
+ ldr x3,[sp,#1560]
+ ldr x4,[sp,#1568]
+ ldr x5,[sp,#1576]
+ ldr x6,[sp,#1584]
+ ldr x7,[sp,#1592]
+ CALL md2asm_complete_physics_parameterisations_r4_7358525
+ ldr x9,[x19,#144]
+ mov x10,#456
+.Lec_conv_zero:
+ str xzr,[x9],#8
+ subs x10,x10,#1
+ b.ne .Lec_conv_zero
+ ldr x0,[x19,#216]
+ mov x16,#2744
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x24,[sp,#1536]
+ ldr x0,[x19,#216]
+ mov x16,#2832
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x25,[sp,#1536]
+ ldr x0,[x19,#216]
+ mov x16,#2360
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1536]
+ ldr x26,[sp,#1536]
+ ldr x27,[x19,#144]
+ mov x28,#0
+.Lec_conv_level:
+ ldrsw x22,[x21]
+ sub x22,x22,#1
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.ge .Lec_conv_end
+.Lec_conv_loop:
+ ldr w9,[x26,x22,lsl #2]
+ cmp w9,#1
+ b.ne .Lec_conv_next
+ add x10,x28,x22
+ ldr d0,[x24,x10,lsl #3]
+ ldr d1,[x25,x10,lsl #3]
+ fmov d2,xzr
+ fmov d3,xzr
+ cmp x28,#432
+ b.eq 1f
+ add x11,x10,#24
+ ldr d2,[x24,x11,lsl #3]
+ ldr d3,[x25,x11,lsl #3]
+1:
+ fsub d0,d0,d2
+ fsub d1,d1,d3
+ ldr x9,[x19,#32]
+ movz x16,#8640
+ movk x16,#24,lsl #16
+ add x9,x9,x16
+ ldr d2,[x9]
+ fmul d1,d1,d2
+ fadd d0,d0,d1
+ adrp x9,:got:__yomcst_MOD_rg
+ ldr x9,[x9,:got_lo12:__yomcst_MOD_rg]
+ ldr d1,[x9]
+ fneg d1,d1
+ fmul d0,d1,d0
+ ldr x9,[sp,#3064]
+ ldrsw x9,[x9,#4]
+ sub x9,x9,#1
+ mov x11,#3648
+ ldr x12,[sp,#3080]
+ madd x9,x9,x11,x12
+ ldr d1,[x9,x10,lsl #3]
+ fmul d0,d0,d1
+ ldr x9,[x19,#32]
+ movz x16,#8632
+ movk x16,#24,lsl #16
+ add x9,x9,x16
+ ldr d1,[x9]
+ fmul d0,d0,d1
+ str d0,[x27,x10,lsl #3]
+.Lec_conv_next:
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lec_conv_loop
+.Lec_conv_end:
+ add x28,x28,#24
+ cmp x28,#456
+ b.lt .Lec_conv_level
+ ldr x24,[x19,#296]
+ ldr x9,[x19,#0]
+ mov x16,#7376
+ add x9,x9,x16
+ ldrsw x25,[x9]
+ adrp x9,:got:__yomsmos_MOD_npol_max
+ ldr x9,[x9,:got_lo12:__yomsmos_MOD_npol_max]
+ ldrsw x9,[x9]
+ mul x25,x25,x9
+ adrp x9,:got:__yomsmos_MOD_nang_max
+ ldr x9,[x9,:got_lo12:__yomsmos_MOD_nang_max]
+ ldrsw x9,[x9]
+ mul x25,x25,x9
+ adrp x9,:got:__yomancs_MOD_rmdi
+ ldr x9,[x9,:got_lo12:__yomancs_MOD_rmdi]
+ ldr x10,[x9]
+ cbz x25,.Lec_PSMOS_TB_BUF_done
+.Lec_PSMOS_TB_BUF_fill:
+ str x10,[x24],#8
+ subs x25,x25,#1
+ b.ne .Lec_PSMOS_TB_BUF_fill
+.Lec_PSMOS_TB_BUF_done:
+ ldr x24,[x19,#344]
+ ldr x9,[x19,#0]
+ mov x16,#7376
+ add x9,x9,x16
+ ldrsw x25,[x9]
+ adrp x9,:got:__yomsmos_MOD_npol_max
+ ldr x9,[x9,:got_lo12:__yomsmos_MOD_npol_max]
+ ldrsw x9,[x9]
+ mul x25,x25,x9
+ adrp x9,:got:__yomancs_MOD_rmdi
+ ldr x9,[x9,:got_lo12:__yomancs_MOD_rmdi]
+ ldr x10,[x9]
+ cbz x25,.Lec_PSMAP_TB_BUF_done
+.Lec_PSMAP_TB_BUF_fill:
+ str x10,[x24],#8
+ subs x25,x25,#1
+ b.ne .Lec_PSMAP_TB_BUF_fill
+.Lec_PSMAP_TB_BUF_done:
+ ldr x0,[x19,#0]
+ str x0,[sp,#1536]
+ ldr x0,[x19,#24]
+ str x0,[sp,#1544]
+ ldr x0,[x19,#32]
+ str x0,[sp,#1552]
+ ldr x0,[x19,#48]
+ str x0,[sp,#1560]
+ add x0,sp,#3200
+ str x0,[sp,#1568]
+ add x0,sp,#3204
+ str x0,[sp,#1576]
+ add x0,sp,#3208
+ str x0,[sp,#1584]
+ add x0,sp,#3212
+ str x0,[sp,#1592]
+ ldr x0,[x19,#56]
+ mov x16,#416
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1600]
+ ldr x0,[x19,#64]
+ mov x16,#416
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1608]
+ ldr x0,[x19,#72]
+ mov x16,#416
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Lec_first
+ str x0,[sp,#1616]
+ ldr x0,[x19,#128]
+ str x0,[sp,#1624]
+ ldr x0,[sp,#3096]
+ str x0,[sp,#1632]
+ ldr x0,[x19,#160]
+ str x0,[sp,#1640]
+ ldr x0,[x19,#192]
+ str x0,[sp,#1648]
+ ldr x0,[x19,#168]
+ str x0,[sp,#1656]
+ ldr x0,[x19,#208]
+ str x0,[sp,#1664]
+ ldr x0,[x19,#216]
+ str x0,[sp,#1672]
+ ldr x0,[x19,#224]
+ str x0,[sp,#1680]
+ ldr x9,[sp,#1600]
+ str x9,[sp,#0]
+ ldr x9,[sp,#1608]
+ str x9,[sp,#8]
+ ldr x9,[sp,#1616]
+ str x9,[sp,#16]
+ ldr x9,[sp,#1624]
+ str x9,[sp,#24]
+ ldr x9,[sp,#1632]
+ str x9,[sp,#32]
+ ldr x9,[sp,#1640]
+ str x9,[sp,#40]
+ ldr x9,[sp,#1648]
+ str x9,[sp,#48]
+ ldr x9,[sp,#1656]
+ str x9,[sp,#56]
+ ldr x9,[sp,#1664]
+ str x9,[sp,#64]
+ ldr x9,[sp,#1672]
+ str x9,[sp,#72]
+ ldr x9,[sp,#1680]
+ str x9,[sp,#80]
+ ldr x0,[sp,#1536]
+ ldr x1,[sp,#1544]
+ ldr x2,[sp,#1552]
+ ldr x3,[sp,#1560]
+ ldr x4,[sp,#1568]
+ ldr x5,[sp,#1576]
+ ldr x6,[sp,#1584]
+ ldr x7,[sp,#1592]
+ CALL md2asm_post_physics_layer_cape_r4_7358525
+ ldr x0,[x19,#168]
+ mov w1,#2
+ CALL md2asm_physics_surface_time_copy_7358525
+ ldr x0,[x19,#48]
+ str x0,[sp,#1536]
+ ldr x0,[x19,#160]
+ str x0,[sp,#1544]
+ ldr x0,[x19,#224]
+ str x0,[sp,#1552]
+ ldr x0,[x19,#216]
+ str x0,[sp,#1560]
+ ldr x0,[x19,#168]
+ str x0,[sp,#1568]
+ ldr x0,[x19,#192]
+ str x0,[sp,#1576]
+ ldr x0,[x19,#208]
+ str x0,[sp,#1584]
+ ldr x0,[sp,#1536]
+ ldr x1,[sp,#1544]
+ ldr x2,[sp,#1552]
+ ldr x3,[sp,#1560]
+ ldr x4,[sp,#1568]
+ ldr x5,[sp,#1576]
+ ldr x6,[sp,#1584]
+ CALL md2asm_physics_arrays_finish_7358525
+ ldr x0,[sp,#3040]
+ CALL free
+ adrp x9,:got:__yomhook_MOD_lhook
+ ldr x9,[x9,:got_lo12:__yomhook_MOD_lhook]
+ ldr w9,[x9]
+ cbz w9,9f
+ adr x0,.Lec_name
+ adr x1,.Lec_phase1
+ add x2,sp,#3000
+ mov x3,#7
+ CALL __yomhook_MOD_dr_hook_default8
+9:
+// Return opaque incoming descriptor bytes after every numerical consumer.
+ ldr x9,[x19,#160]
+ ldr x10,[sp,#6800]
+ str x10,[x9,#536]
+ ldr x10,[sp,#6808]
+ str x10,[x9,#544]
+ ldr x10,[sp,#6816]
+ str x10,[x9,#552]
+ ldr x10,[sp,#6824]
+ str x10,[x9,#560]
+ ldr x10,[sp,#6832]
+ str x10,[x9,#568]
+ ldr x10,[sp,#6840]
+ str x10,[x9,#576]
+ ldr x10,[sp,#6848]
+ str x10,[x9,#584]
+ ldr x10,[sp,#6856]
+ str x10,[x9,#592]
+ ldr x10,[sp,#6864]
+ str x10,[x9,#600]
+ ldr x10,[sp,#6872]
+ str x10,[x9,#608]
+ ldr x10,[sp,#6880]
+ str x10,[x9,#616]
+ ldr x10,[sp,#6888]
+ str x10,[x9,#800]
+ ldr x10,[sp,#6896]
+ str x10,[x9,#808]
+ ldr x10,[sp,#6904]
+ str x10,[x9,#816]
+ ldr x10,[sp,#6912]
+ str x10,[x9,#824]
+ ldr x10,[sp,#6920]
+ str x10,[x9,#832]
+ ldr x10,[sp,#6928]
+ str x10,[x9,#840]
+ ldr x10,[sp,#6936]
+ str x10,[x9,#848]
+ ldr x10,[sp,#6944]
+ str x10,[x9,#856]
+ ldr x10,[sp,#6952]
+ str x10,[x9,#864]
+ ldr x10,[sp,#6960]
+ str x10,[x9,#872]
+ ldr x10,[sp,#6968]
+ str x10,[x9,#880]
+ ldr x19,[sp,#816]
+ ldr x20,[sp,#824]
+ ldr x21,[sp,#832]
+ ldr x22,[sp,#840]
+ ldr x23,[sp,#848]
+ ldr x24,[sp,#856]
+ ldr x25,[sp,#864]
+ ldr x26,[sp,#872]
+ ldr x27,[sp,#880]
+ ldr x28,[sp,#888]
+ ldr x29,[sp,#800]
+ ldr x30,[sp,#808]
+ add sp,sp,#8192
+ ret
+.size md2asm_complete_physics_diagnostic_bins_r1_7388001,.-md2asm_complete_physics_diagnostic_bins_r1_7388001
+// Select a metadata field: x1 is the first-axis bin, x2 the second-axis occurrence.
+// The existing source loops bound both indices. Only x0 and x8 through x12 change.
+.Lec_indexed_field:
+ldr x8,[x0]
+cbnz x8,1f
+mov x0,#0
+ret
+1:
+ldr x9,[x0,#8]
+ldrb w10,[x0,#28]
+ldr x11,[x0,#40]
+madd x9,x1,x11,x9
+cmp w10,#1
+b.eq .Lec_indexed_field_done
+ldr x11,[x0,#64]
+madd x9,x2,x11,x9
+.Lec_indexed_field_done:
+ldr x11,[x0,#32]
+madd x0,x9,x11,x8
+ret
+.global md2asm_complete_physics_cape_r5_7358525
+.type md2asm_complete_physics_cape_r5_7358525,%function
+.set md2asm_complete_physics_cape_r5_7358525,md2asm_complete_physics_diagnostic_bins_r1_7388001
+.Lec_first:
+ldr x8,[x0]
+cbnz x8,1f
+mov x0,#0
+ret
+1:
+ldr x9,[x0,#8]
+ldrb w10,[x0,#28]
+ldr x11,[x0,#40]
+ldr x12,[x0,#48]
+madd x9,x11,x12,x9
+cmp w10,#1
+b.eq .Lec_first_done
+ldr x11,[x0,#64]
+ldr x12,[x0,#72]
+cmp x1,#0
+csel x12,x12,x1,eq
+madd x9,x11,x12,x9
+cmp w10,#2
+b.eq .Lec_first_done
+ldr x11,[x0,#88]
+ldr x12,[x0,#96]
+cmp x2,#0
+csel x12,x12,x2,eq
+madd x9,x11,x12,x9
+cmp w10,#3
+b.eq .Lec_first_done
+ldr x11,[x0,#112]
+ldr x12,[x0,#120]
+madd x9,x11,x12,x9
+.Lec_first_done:
+ldr x11,[x0,#32]
+madd x0,x9,x11,x8
+ret
+// GNU rank-two FP64 slice descriptor; shape24x19, dense columns.
+.Lec_rank2_descriptor:
+str x1,[x0]
+mov x9,#-25
+str x9,[x0,#8]
+mov x9,#8
+str x9,[x0,#16]
+movz x9,#0
+movk x9,#0x302,lsl #32
+str x9,[x0,#24]
+mov x9,#8
+str x9,[x0,#32]
+mov x9,#1
+str x9,[x0,#40]
+str x9,[x0,#48]
+mov x9,#24
+str x9,[x0,#56]
+str x9,[x0,#64]
+mov x9,#1
+str x9,[x0,#72]
+mov x9,#19
+str x9,[x0,#80]
+ret
+.Lec_reject:
+CALL abort
+brk #0
+.section .rodata
+.p2align 3
+.Lec_999:.double 999.0
+.Lec_mode9:.word 9
+.Lec_false:.word 0
+.Lec_true:.word 1
+.Lec_phase0:.word 0
+.Lec_phase1:.word 1
+.Lec_name:.ascii "EC_PHYS"
+.section .note.GNU-stack,"",%progbits

@@ -1,0 +1,11 @@
+# Post-physics field layer interface
+
+POSTPHY_LAYER, from `arpifs/phys_ec/postphy_layer.F90`, selects the actual field planes passed to the post-physics calculation. Its entries are `md2asm_post_physics_layer_source_descriptor_r2_7388001` and the same-address compatibility name `md2asm_post_physics_layer_cape_r4_7358525`. It calls the unchanged direct `md2asm_post_physics_driver_cape_r4` child.
+
+The application binary interface has 19 ordinary addresses and no hidden character length. The first eight addresses use x0–x7; the rest use consecutive eight-byte caller-stack slots. The frame has 32,768 bytes and 16-byte alignment. Preserve x18, the Arm callee-saved registers and the original floating-point status rules. Required real storage is eight-byte aligned FP64.
+
+A GNU descriptor stores the data pointer at byte 0, element offset at byte 8 and element span at byte 32. For axis d starting at zero, stride and lower-bound words are at bytes 40+24d and 48+24d. The first-cell element offset is the descriptor offset plus the sum of each selected index times its stride. Multiply that offset by the element span to obtain a byte offset from the data pointer. Whole-axis arguments use the recorded lower bound; a selected time plane uses its source MP1 index. Retain rank, leading strides and the complete backing bounds.
+
+The source-typed correction covers 274 expressions: 55 of rank 1, 196 of rank 2 and 23 of rank 3. It changes only 896 integer descriptor-load offsets. Every other instruction, child argument order, branch, store and floating-point operation is unchanged. The occurrence table uses axis strides at bytes 40 and 64 for indices (1,JPT). PSD_VD keeps the row lower bound at byte 48 and selects its column through stride byte 64.
+
+Fourteen focused address cases include the actual soil temperature, water and liquid-water planes, plus rank and stride edge cases. They pass complete first-cell and buffer bounds. Independent review confirms the source expressions and unchanged numerical stream. The retained parent proof and passing joint final-state, immediate-status, ABI and saved-file gate cover this selected descriptor correction. The overlay adds no separate routine credit.

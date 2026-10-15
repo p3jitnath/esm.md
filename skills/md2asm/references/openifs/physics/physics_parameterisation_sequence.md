@@ -1,0 +1,25 @@
+# Physical Process Sequence Contract
+
+Binding revision 5 retains the frozen CALLPAR mathematics from OpenIFS 48.1.1, original source `arpifs/phys_ec/callpar.F90`. Its [formulation](../../../../../formulations/openifs/physics/physics_parameterisation_sequence.md) groups existing physical equations. The retained parent comparisons and passing joint final-state and saved-file gate admit the selected route.
+
+## Method And Selected Scope
+
+Keep 24 allocated columns and 19 levels, with an inclusive active interval. Radiation, vertical diffusion, convection, cloud microphysics, both selected wave-drag models, surface changes and methane oxidation are enabled. Lake physics is active; coupled-ocean, extra chemistry and aerosol tracers, stochastic alternatives and linear physics are inactive. The retained physics interval TSPHY is 3,600 seconds and the wave-drag interval GTPHYGWWMS is 7,200 seconds. Source-derived guards reject unsupported controls before caller writes.
+
+Retain the full original calculation order. Initialise local work and copy the state, then prepare surface boundaries, snow, surface radiation, saturation and radiation-cloud fields. Apply radiative fluxes, aerosol preparation, mountain-wave drag, turbulence, convection, convective-energy diagnostics, saturation adjustment, cloud microphysics and the second wave-drag stage. Form cloud and interpolated-wind diagnostics, methane rates and visibility, then update the surface and selected slow tendencies. Apply the humidity floor, update the caller fields and release local work. Every state copy, process increment and intermediate rounding stays at its original position in this sequence. Copy snow mass and density through the caller's declared number of snow levels.
+
+The current primary entry is `md2asm_complete_physics_parameterisations_r4_7358525`. It binds the qualified sea-derivative child and the complete lake-profile revision 3 child through their unique direct entries. All numerical stages are direct assembly; declared source metadata, profiling and canonical elementary-math services remain runtime dependencies. The original source controls are separate verification references. This caller does not establish autonomous execution.
+
+## Interface And Complete Bytes
+
+The application binary interface, or ABI, defines arguments and register duties. CALLPAR retains 35 ordinary addresses, with x0 through x7 holding the first eight and 27 consecutive eight-byte incoming stack slots holding the remainder. There is no hidden character length. Geometry, field variables, surface, Model, dimensions, auxiliary, radiation and flux records lead the original argument sequence. Four column vectors, the remaining work records, tracer arrays, prior state and all tendency records retain their original types and order.
+
+Required real buffers are eight-byte-aligned, little-endian FP64 arrays with columns first. Full-level planes have a pitch of 24 columns and 19 levels. Tracer and tendency plane counts come from the frozen Model. Array descriptors record addresses, bounds and strides; each consumed view must lie inside its complete allocated buffer or object. Preserve complete readonly owners, aliases, inactive fields and unused words, including original whole-array writes to inactive rows where the source requires them.
+
+The frame has 16,384 bytes with 16-byte alignment. Preserve x18, x19 through x29, the return address and required low halves of v8 through v15. Each external-call boundary protects x18. Require FPCR zero, round-to-nearest with ties to even, gradual underflow and signed zeros. Preserve separately rounded FP64 operations, source integer conversions and remainder rules. Fused operations, contraction, reassociation and approximate arithmetic are forbidden. Capture FPSR and errno immediately at return.
+
+## Acceptance Checks And Build
+
+The retained science receipt covers 20 science and complete-owner groups for the selected route, with separate independent checks for the changed convective-energy child. It includes cloud water balance, sea and lake corrections, pressure, phase and snow conversion, CAPE and wind, diagnostics and stored aliases, while reusing unchanged child proofs. The configured verifier has 28 CALLPAR child-stage kinds. Retained full and partial parent comparisons, owner checks, raw status and ABI combine with positive stage completion and the passing joint final-state and saved-file gate to admit the selected CALLPAR route.
+
+Assemble the self-contained source with `gcc -c -fPIC -march=armv8.2-a+simd src/openifs/physics/physics_parameterisation_sequence.S -o physics_parameterisation_sequence.o`, then link the retained unique direct child graph and declared runtime services. Publication checks machine text, constants and relocation meanings against the retained object. No numerical check, model run or timing is repeated for this package.

@@ -600,6 +600,9 @@ ORIGINAL_SYMBOL:
     add x9,x9,#1
     cmp x9,#27
     b.lt .Ldistance
+    // The canonical GNU SVE tail also square-roots the unmodified final inactive feature lane.
+    // NCL=27 and the frozen16-byte SVE vector leave one such lane in each classification.
+    fsqrt d1,d4
     ret
 .p2align 3
 .Ldepth15:

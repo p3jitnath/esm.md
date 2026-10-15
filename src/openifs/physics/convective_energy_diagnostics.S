@@ -1,0 +1,1065 @@
+.equ CE_CAPE,0
+.equ CE_CIN,1
+.equ CE_THMIX,2
+.equ CE_QMIX,3
+.equ CE_PMIX,4
+.equ CE_PLCL,5
+.equ CE_EXN,6
+.equ CE_THETAD,7
+.equ CE_THV,8
+.equ CE_ZDZ,9
+.equ CE_TU,10
+.equ CE_QS,11
+.equ CE_PAPMASK,12
+.equ CE_TMIX,13
+.equ CE_THVMIX,14
+.equ CE_THETEU,15
+.equ CE_CIN2,16
+.equ CE_PMIXA,17
+.equ CE_ZMASK,18
+.equ CE_DEPMASK,19
+.equ CE_JDEP,20
+
+
+// Direct CUANCAPE2 from formulations/openifs/physics/convective_energy_diagnostics.md.
+// ABI and ordered arithmetic: skills/md2asm/references/openifs/physics/convective_energy_diagnostics.md.
+// Original source: arpifs/phys_ec/cuancape2.F90.
+.text
+.p2align 4
+.macro ARG reg,index
+ ldr \reg,[x19,#(\index*8)]
+.endm
+.macro IN reg,index
+ ARG x9,\index
+ ldr \reg,[x9,x20,lsl #3]
+.endm
+.macro OUT reg,index
+ ARG x9,\index
+ str \reg,[x9,x20,lsl #3]
+.endm
+.macro IN2 reg,index,col=x21
+ ARG x9,\index
+ madd x10,\col,x22,x20
+ ldr \reg,[x9,x10,lsl #3]
+.endm
+.macro OUT2 reg,index,col=x21
+ ARG x9,\index
+ madd x10,\col,x22,x20
+ str \reg,[x9,x10,lsl #3]
+.endm
+.macro L reg,id
+ ldr x9,[sp,#(3072+\id*8)]
+ ldr \reg,[x9,x20,lsl #3]
+.endm
+.macro LS reg,id
+ ldr x9,[sp,#(3072+\id*8)]
+ str \reg,[x9,x20,lsl #3]
+.endm
+.macro L2 reg,id,col=x21
+ ldr x9,[sp,#(3072+\id*8)]
+ madd x10,\col,x22,x20
+ ldr \reg,[x9,x10,lsl #3]
+.endm
+.macro LS2 reg,id,col=x21
+ ldr x9,[sp,#(3072+\id*8)]
+ madd x10,\col,x22,x20
+ str \reg,[x9,x10,lsl #3]
+.endm
+.macro LI reg,id
+ ldr x9,[sp,#(3072+\id*8)]
+ ldr \reg,[x9,x20,lsl #2]
+.endm
+.macro LIS reg,id
+ ldr x9,[sp,#(3072+\id*8)]
+ str \reg,[x9,x20,lsl #2]
+.endm
+.macro LI2 reg,id,col=x21
+ ldr x9,[sp,#(3072+\id*8)]
+ madd x10,\col,x22,x20
+ ldr \reg,[x9,x10,lsl #2]
+.endm
+.macro LIS2 reg,id,col=x21
+ ldr x9,[sp,#(3072+\id*8)]
+ madd x10,\col,x22,x20
+ str \reg,[x9,x10,lsl #2]
+.endm
+.macro CONST reg,name
+ adr x9,.Lce_\name
+ ldr \reg,[x9]
+.endm
+.macro GLOBAL reg,module,name
+ adrp x9,:got:__\module\()_MOD_\name
+ ldr x9,[x9,:got_lo12:__\module\()_MOD_\name]
+ ldr \reg,[x9]
+.endm
+.macro CALL name
+ str x18,[sp,#2016]
+ bl \name
+ ldr x18,[sp,#2016]
+.endm
+.macro ROWS label
+ mov x20,x23
+\label:
+.endm
+.macro NEXT label
+ add x20,x20,#1
+ cmp x20,x24
+ b.lt \label
+.endm
+// Revision 2 preserves the subfreezing temperature sign across CONST scratch.
+.global md2asm_convective_energy_diagnostics_phase_r2_7358525
+.type md2asm_convective_energy_diagnostics_phase_r2_7358525,%function
+.global md2asm_convective_energy_diagnostics_7358525
+.type md2asm_convective_energy_diagnostics_7358525,%function
+md2asm_convective_energy_diagnostics_phase_r2_7358525:
+md2asm_convective_energy_diagnostics_7358525:
+ mov x16,sp
+ sub sp,sp,#1,lsl #12
+ add x17,sp,#1024
+ stp x19,x20,[x17]
+ stp x21,x22,[x17,#16]
+ stp x23,x24,[x17,#32]
+ stp x25,x26,[x17,#48]
+ stp x27,x28,[x17,#64]
+ stp x29,x30,[x17,#80]
+ stp d8,d9,[x17,#96]
+ stp d10,d11,[x17,#112]
+ stp d12,d13,[x17,#128]
+ stp d14,d15,[x17,#144]
+ str x18,[x17,#160]
+ add x19,sp,#1280
+ stp x0,x1,[x19]
+ stp x2,x3,[x19,#16]
+ stp x4,x5,[x19,#32]
+ stp x6,x7,[x19,#48]
+ mov x10,#8
+.Lce_arguments:
+ ldr x9,[x16],#8
+ str x9,[x19,x10,lsl #3]
+ add x10,x10,#1
+ cmp x10,#13
+ b.lt .Lce_arguments
+ mrs x9,fpcr
+ cbnz x9,.Lce_reject
+ ARG x25,0
+ ARG x9,1
+ ldr w9,[x9,#4]
+ cbnz w9,.Lce_reject
+ ARG x9,4
+ ldr w22,[x9]
+ cmp w22,#1
+ b.lt .Lce_reject
+ cmp w22,#4096
+ b.gt .Lce_reject
+ ARG x9,5
+ ldr w28,[x9]
+ cmp w28,#4
+ b.lt .Lce_reject
+ cmp w28,#512
+ b.gt .Lce_reject
+ ARG x9,2
+ ldrsw x23,[x9]
+ sub x23,x23,#1
+ cmp x23,#0
+ b.lt .Lce_reject
+ ARG x9,3
+ ldrsw x24,[x9]
+ cmp x24,x22
+ b.gt .Lce_reject
+ cmp x24,x23
+ b.le .Lce_reject
+ ldr w9,[x25,#308]
+ cmp w9,#3
+ b.lt .Lce_reject
+ cmp w9,w28
+ b.ge .Lce_reject
+ str w9,[sp,#1448]
+ ldr w9,[x25,#312]
+ cmp w9,#1
+ b.lt .Lce_reject
+ ldr w10,[sp,#1448]
+ cmp w9,w10
+ b.ge .Lce_reject
+ str w9,[sp,#1452]
+ ldr w9,[x25,#320]
+ ldr w10,[sp,#1452]
+ cmp w9,w10
+ b.lt .Lce_reject
+ cmp w9,w28
+ b.ge .Lce_reject
+ str w9,[sp,#1456]
+ adrp x9,:got:__yomhook_MOD_lhook
+ ldr x9,[x9,:got_lo12:__yomhook_MOD_lhook]
+ ldr w9,[x9]
+ cmp w9,#1
+ b.hi .Lce_reject
+ str w9,[sp,#1496]
+ cbz w9,.Lce_entry_hook_done
+ adr x0,.Lce_hook_name
+ add x1,sp,#1500
+ str wzr,[x1]
+ add x2,sp,#1504
+ mov x3,#8
+ CALL __yomhook_MOD_dr_hook_default8
+.Lce_entry_hook_done:
+ mov x0,#100
+ mul x0,x28,x0
+ add x0,x0,#60
+ mul x0,x0,x22
+ add x0,x0,#336
+ CALL malloc
+ cbz x0,.Lce_reject
+ str x0,[sp,#1512]
+ mov x11,x0
+ str x11,[sp,#3072] // CAPE
+ mul x12,x22,x28
+ add x11,x11,x12,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3080] // CIN
+ mul x12,x22,x28
+ add x11,x11,x12,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3088] // THMIX
+ mul x12,x22,x28
+ add x11,x11,x12,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3096] // QMIX
+ mul x12,x22,x28
+ add x11,x11,x12,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3104] // PMIX
+ mul x12,x22,x28
+ add x11,x11,x12,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3112] // PLCL
+ mul x12,x22,x28
+ add x11,x11,x12,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3120] // EXN
+ mul x12,x22,x28
+ add x11,x11,x12,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3128] // THETAD
+ mul x12,x22,x28
+ add x11,x11,x12,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3136] // THV
+ mul x12,x22,x28
+ add x11,x11,x12,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3144] // ZDZ
+ mul x12,x22,x28
+ add x11,x11,x12,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3152] // TU
+ mul x12,x22,x28
+ add x11,x11,x12,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3160] // QS
+ mul x12,x22,x28
+ add x11,x11,x12,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3168] // PAPMASK
+ mul x12,x22,x28
+ add x11,x11,x12,lsl #2
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3176] // TMIX
+ add x11,x11,x22,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3184] // THVMIX
+ add x11,x11,x22,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3192] // THETEU
+ add x11,x11,x22,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3200] // CIN2
+ add x11,x11,x22,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3208] // PMIXA
+ add x11,x11,x22,lsl #3
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3216] // ZMASK
+ add x11,x11,x22,lsl #2
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3224] // DEPMASK
+ add x11,x11,x22,lsl #2
+ add x11,x11,#15
+ and x11,x11,#-16
+ str x11,[sp,#3232] // JDEP
+ mov x12,#3
+ mul x12,x12,x22
+ add x11,x11,x12,lsl #2
+ add x11,x11,#15
+ and x11,x11,#-16
+
+ CONST d0,one
+ GLOBAL d1,yomcst,rkappa
+ fdiv d8,d0,d1
+ GLOBAL d1,yomcst,restt
+ GLOBAL d2,yomcst,rd
+ fmul d1,d1,d2
+ GLOBAL d2,yomcst,rv
+ fdiv d1,d1,d2
+ fdiv d9,d0,d1
+ ldr d10,[x25,#240]
+ ROWS .Lce_initial_row
+ fmov d0,xzr
+ mov x21,#0
+ OUT2 d0,10
+ OUT2 d10,11
+ mov x21,#1
+ OUT2 d0,10
+ OUT2 d10,11
+ mov x21,#2
+ OUT2 d0,10
+ OUT2 d10,11
+ mov x21,#3
+ OUT2 d0,10
+ OUT d0,12
+ sub x21,x28,#1
+ GLOBAL d0,yomcst,ratm
+ IN2 d1,6
+ fdiv d0,d0,d1
+ GLOBAL d1,yomcst,rkappa
+ CALL md2asm_pow_original_rounding_candidate
+ LS2 d0,CE_EXN
+ NEXT .Lce_initial_row
+ sub x21,x28,#2
+ ldrsw x26,[sp,#1452]
+ sub x26,x26,#1
+.Lce_environment_level:
+ ROWS .Lce_environment_row
+ IN2 d0,6
+ CONST d1,pressure_eighty
+ fcmp d0,d1
+ cset w11,gt
+ LIS2 w11,CE_PAPMASK
+ cbz w11,.Lce_environment_next
+ CONST d1,one
+ fdiv d11,d1,d0
+ IN2 d0,8
+ bl .Lce_mixed_saturation
+ fmul d0,d0,d11
+ CONST d1,saturation_floor
+ fmax d0,d1,d0
+ GLOBAL d1,yomcst,retv
+ fmul d1,d1,d0
+ CONST d2,one
+ fsub d1,d2,d1
+ fdiv d12,d0,d1
+ LS2 d12,CE_QS
+ GLOBAL d0,yomcst,ratm
+ fmul d0,d0,d11
+ GLOBAL d1,yomcst,rkappa
+ CALL md2asm_pow_original_rounding_candidate
+ LS2 d0,CE_EXN
+ IN2 d1,8
+ fmul d13,d1,d0
+ IN2 d0,8
+ fmov d1,d12
+ fmov d2,d13
+ bl .Lce_equivalent_potential
+ CONST d1,one
+ fdiv d0,d1,d0
+ LS2 d0,CE_THETAD
+ IN2 d0,9
+ GLOBAL d1,yomcst,retv
+ fmul d0,d1,d0
+ CONST d1,one
+ fadd d0,d1,d0
+ fmul d0,d13,d0
+ fdiv d0,d1,d0
+ LS2 d0,CE_THV
+.Lce_environment_next:
+ NEXT .Lce_environment_row
+ sub x21,x21,#1
+ cmp x21,x26
+ b.ge .Lce_environment_level
+ ldrsw x21,[sp,#1452]
+ sub x21,x21,#1
+ sub x26,x28,#1
+.Lce_hydrostatic_level:
+ ROWS .Lce_hydrostatic_row
+ CONST d0,one
+ IN2 d1,6
+ fdiv d0,d0,d1
+ add x27,x21,#1
+ IN2 d1,7,x27
+ IN2 d2,7
+ fsub d1,d1,d2
+ fmul d0,d1,d0
+ GLOBAL d1,yomcst,rd
+ fmul d0,d0,d1
+ IN2 d1,8
+ fmul d0,d0,d1
+ IN2 d1,9
+ GLOBAL d2,yomcst,retv
+ fmul d1,d2,d1
+ CONST d2,one
+ fadd d1,d2,d1
+ fmul d0,d0,d1
+ LS2 d0,CE_ZDZ
+ NEXT .Lce_hydrostatic_row
+ add x21,x21,#1
+ cmp x21,x26
+ b.lt .Lce_hydrostatic_level
+
+ sub x27,x28,#2
+ ldrsw x26,[sp,#1448]
+ sub x26,x26,#1
+.Lce_departure_level:
+ ROWS .Lce_departure_row
+ fmov d0,xzr
+ LS2 d0,CE_CAPE,x27
+ LS2 d0,CE_CIN,x27
+ mov x21,x28
+ IN2 d0,7
+ sub x21,x27,#1
+ IN2 d1,7
+ fsub d0,d0,d1
+ CONST d1,pressure_sixty
+ fcmp d0,d1
+ b.ge .Lce_single_departure
+ fmov d0,xzr
+ LS d0,CE_TMIX
+ LS2 d0,CE_THMIX,x27
+ LS2 d0,CE_QMIX,x27
+ LS2 d0,CE_PMIX,x27
+ add x21,x27,#1
+.Lce_near_ground_layer:
+ L2 d0,CE_PMIX,x27
+ CONST d1,pressure_thirty
+ fcmp d0,d1
+ b.gt .Lce_near_ground_next
+ add x11,x21,#1
+ IN2 d1,7,x11
+ IN2 d2,7
+ fsub d1,d1,d2
+ fadd d0,d0,d1
+ LS2 d0,CE_PMIX,x27
+ IN2 d0,8
+ fmul d0,d0,d1
+ L2 d2,CE_EXN
+ fmul d0,d0,d2
+ L2 d2,CE_THMIX,x27
+ fadd d0,d2,d0
+ LS2 d0,CE_THMIX,x27
+ IN2 d0,9
+ fmul d0,d0,d1
+ L2 d2,CE_QMIX,x27
+ fadd d0,d2,d0
+ LS2 d0,CE_QMIX,x27
+.Lce_near_ground_next:
+ sub x21,x21,#1
+ sub x11,x27,#1
+ cmp x21,x11
+ b.ge .Lce_near_ground_layer
+ CONST d0,one
+ L2 d1,CE_PMIX,x27
+ fdiv d11,d0,d1
+ L2 d0,CE_QMIX,x27
+ fmul d0,d0,d11
+ LS2 d0,CE_QMIX,x27
+ add x21,x27,#2
+ IN2 d0,7
+ CONST d2,half
+ fmul d1,d2,d1
+ fsub d0,d0,d1
+ LS2 d0,CE_PMIX,x27
+ L2 d0,CE_THMIX,x27
+ fmul d0,d0,d11
+ LS2 d0,CE_THMIX,x27
+ L2 d0,CE_PMIX,x27
+ GLOBAL d1,yomcst,ratm
+ fdiv d0,d0,d1
+ GLOBAL d1,yomcst,rkappa
+ CALL md2asm_pow_original_rounding_candidate
+ L2 d1,CE_THMIX,x27
+ fmul d0,d1,d0
+ LS d0,CE_TMIX
+ b .Lce_departure_prepared
+.Lce_single_departure:
+ IN2 d0,9,x27
+ LS2 d0,CE_QMIX,x27
+ IN2 d0,6,x27
+ LS2 d0,CE_PMIX,x27
+ IN2 d0,8,x27
+ LS d0,CE_TMIX
+ GLOBAL d0,yomcst,ratm
+ L2 d1,CE_PMIX,x27
+ fdiv d0,d0,d1
+ GLOBAL d1,yomcst,rkappa
+ CALL md2asm_pow_original_rounding_candidate
+ IN2 d1,8,x27
+ fmul d0,d1,d0
+ LS2 d0,CE_THMIX,x27
+.Lce_departure_prepared:
+ L d0,CE_TMIX
+ L2 d1,CE_QMIX,x27
+ L2 d2,CE_THMIX,x27
+ bl .Lce_equivalent_potential
+ LS d0,CE_THETEU
+ L2 d0,CE_QMIX,x27
+ GLOBAL d1,yomcst,retv
+ fmul d0,d1,d0
+ CONST d1,one
+ fadd d0,d1,d0
+ L2 d1,CE_THMIX,x27
+ fmul d0,d1,d0
+ LS d0,CE_THVMIX
+ mov x21,x28
+ IN2 d0,7
+ IN2 d1,7,x27
+ fsub d0,d0,d1
+ CONST d1,pressure_departure_depth
+ fcmp d0,d1
+ cset w11,lt
+ LIS w11,CE_ZMASK
+ L d0,CE_TMIX
+ L2 d1,CE_QMIX,x27
+ L2 d2,CE_PMIX,x27
+ L2 d3,CE_THMIX,x27
+ bl .Lce_condensation_pressure
+ LS2 d0,CE_PLCL,x27
+ NEXT .Lce_departure_row
+ mov x21,x27
+ ldrsw x11,[sp,#1452]
+ sub x11,x11,#1
+ str x11,[sp,#1536]
+.Lce_approximate_ascent_level:
+ ROWS .Lce_approximate_ascent_row
+ LI2 w11,CE_PAPMASK
+ cbz w11,.Lce_approximate_next
+ LI w11,CE_ZMASK
+ cbz w11,.Lce_approximate_next
+ L d0,CE_THETEU
+ L2 d1,CE_THETAD
+ fmul d0,d0,d1
+ CONST d1,one
+ fsub d0,d0,d1
+ // Retain the source virtual-parcel comparison, though it is not consumed.
+ L d2,CE_THVMIX
+ L2 d3,CE_THV
+ fmul d2,d2,d3
+ fsub d2,d2,d1
+ L2 d3,CE_ZDZ
+ IN2 d1,6
+ L2 d2,CE_PLCL,x27
+ fcmp d1,d2
+ b.gt .Lce_approximate_next
+ b.vs .Lce_approximate_next
+ fcmp d0,#0.0
+ b.le .Lce_approximate_next
+ fmul d0,d0,d3
+ L2 d1,CE_CAPE,x27
+ fadd d0,d1,d0
+ LS2 d0,CE_CAPE,x27
+.Lce_approximate_next:
+ NEXT .Lce_approximate_ascent_row
+ sub x21,x21,#1
+ ldr x11,[sp,#1536]
+ cmp x21,x11
+ b.ge .Lce_approximate_ascent_level
+ sub x27,x27,#1
+ cmp x27,x26
+ b.ge .Lce_departure_level
+ // Original JDEP(:,0) covers the entire local plane.
+ sub w11,w28,#1
+ mov x20,#0
+ mov x21,#0
+.Lce_default_departure_row:
+ LIS2 w11,CE_JDEP
+ add x20,x20,#1
+ cmp x20,x22
+ b.lt .Lce_default_departure_row
+ sub x21,x28,#2
+ ldrsw x26,[sp,#1448]
+ sub x26,x26,#1
+.Lce_maximum_level:
+ ROWS .Lce_maximum_row
+ L2 d0,CE_CAPE
+ mov x27,#0
+ IN2 d1,10,x27
+ fcmp d0,d1
+ b.le .Lce_maximum_next
+ OUT2 d0,10,x27
+ add w11,w21,#1
+ LIS2 w11,CE_JDEP,x27
+.Lce_maximum_next:
+ NEXT .Lce_maximum_row
+ sub x21,x21,#1
+ cmp x21,x26
+ b.ge .Lce_maximum_level
+ ROWS .Lce_departure_pressure_row
+ mov x27,#0
+ LI2 w21,CE_JDEP,x27
+ sub x21,x21,#1
+ IN2 d0,6
+ OUT d0,12
+ NEXT .Lce_departure_pressure_row
+ // Prepare the complete source 50 and100 hPa mixed layers.
+ sub x21,x28,#1
+ ROWS .Lce_mixed_initial_row
+ add x27,x21,#1
+ IN2 d0,7,x27
+ IN2 d1,7
+ fsub d11,d0,d1
+ mov x27,#0
+ LS2 d11,CE_PMIX,x27
+ LS d11,CE_PMIXA
+ IN2 d0,8
+ fmul d0,d0,d11
+ L2 d1,CE_EXN
+ fmul d0,d0,d1
+ LS2 d0,CE_THMIX,x27
+ IN2 d0,9
+ fmul d0,d0,d11
+ LS2 d0,CE_QMIX,x27
+ NEXT .Lce_mixed_initial_row
+ ROWS .Lce_mixed_second_row
+ mov x21,#0
+ mov x27,#1
+ L2 d0,CE_PMIX
+ LS2 d0,CE_PMIX,x27
+ L2 d0,CE_THMIX
+ LS2 d0,CE_THMIX,x27
+ L2 d0,CE_QMIX
+ LS2 d0,CE_QMIX,x27
+ NEXT .Lce_mixed_second_row
+ sub x21,x28,#2
+ ldrsw x26,[sp,#1456]
+ sub x26,x26,#1
+.Lce_mixed_accumulate_level:
+ ROWS .Lce_mixed_accumulate_row
+ add x27,x21,#1
+ IN2 d0,7,x27
+ IN2 d1,7
+ fsub d11,d0,d1
+ L d12,CE_PMIXA
+ fadd d12,d12,d11
+ LS d12,CE_PMIXA
+ CONST d0,pressure_fifty
+ fcmp d12,d0
+ b.gt .Lce_mixed_second_accumulate
+ mov x27,#0
+ bl .Lce_accumulate_mixed_layer
+.Lce_mixed_second_accumulate:
+ CONST d0,pressure_hundred
+ fcmp d12,d0
+ b.gt .Lce_mixed_accumulate_next
+ mov x27,#1
+ bl .Lce_accumulate_mixed_layer
+.Lce_mixed_accumulate_next:
+ NEXT .Lce_mixed_accumulate_row
+ sub x21,x21,#1
+ cmp x21,x26
+ b.ge .Lce_mixed_accumulate_level
+ mov x27,#0
+.Lce_mixed_normalise_slot:
+ ROWS .Lce_mixed_normalise_row
+ CONST d0,one
+ L2 d1,CE_PMIX,x27
+ fdiv d11,d0,d1
+ L2 d0,CE_THMIX,x27
+ fmul d0,d0,d11
+ LS2 d0,CE_THMIX,x27
+ L2 d0,CE_QMIX,x27
+ fmul d0,d0,d11
+ LS2 d0,CE_QMIX,x27
+ NEXT .Lce_mixed_normalise_row
+ add x27,x27,#1
+ cmp x27,#2
+ b.lt .Lce_mixed_normalise_slot
+ mov x27,#0
+.Lce_mixed_condensation_slot:
+ ROWS .Lce_mixed_condensation_row
+ mov x21,x28
+ IN2 d0,7
+ L2 d1,CE_PMIX,x27
+ CONST d2,half
+ fmul d1,d2,d1
+ fsub d0,d0,d1
+ LS2 d0,CE_PMIX,x27
+ GLOBAL d1,yomcst,ratm
+ fdiv d0,d0,d1
+ GLOBAL d1,yomcst,rkappa
+ CALL md2asm_pow_original_rounding_candidate
+ L2 d1,CE_THMIX,x27
+ fmul d0,d1,d0
+ LS d0,CE_TMIX
+ L2 d1,CE_QMIX,x27
+ L2 d2,CE_PMIX,x27
+ L2 d3,CE_THMIX,x27
+ bl .Lce_condensation_pressure
+ LS2 d0,CE_PLCL,x27
+ add x26,x27,#1
+ mov w11,w26
+ LIS2 w11,CE_JDEP,x26
+ NEXT .Lce_mixed_condensation_row
+ add x27,x27,#1
+ cmp x27,#2
+ b.lt .Lce_mixed_condensation_slot
+
+ mov x26,#0
+.Lce_recomputed_parcel:
+ sub x21,x28,#2
+ ROWS .Lce_recomputed_initial_row
+ fmov d0,xzr
+ LS d0,CE_CIN2
+ LI2 w27,CE_JDEP,x26
+ sub x27,x27,#1
+ L2 d0,CE_THMIX,x27
+ L2 d1,CE_EXN
+ fdiv d0,d0,d1
+ LS2 d0,CE_TU
+ L2 d0,CE_QMIX,x27
+ LS2 d0,CE_QS
+ fmov d0,xzr
+ LS2 d0,CE_CAPE,x27
+ NEXT .Lce_recomputed_initial_row
+ sub x21,x28,#3
+ ldrsw x11,[sp,#1452]
+ sub x11,x11,#1
+ str x11,[sp,#1536]
+ cmp x21,x11
+ b.lt .Lce_recomputed_ascent_done
+.Lce_recomputed_ascent_level:
+ ROWS .Lce_recomputed_mask_row
+ LI2 w27,CE_JDEP,x26
+ sub x27,x27,#1
+ LI2 w11,CE_PAPMASK
+ cbz w11,.Lce_recomputed_mask_false
+ IN2 d0,6
+ L2 d1,CE_PLCL,x27
+ fcmp d0,d1
+ cset w11,le
+ b .Lce_recomputed_mask_store
+.Lce_recomputed_mask_false:
+ mov w11,#0
+.Lce_recomputed_mask_store:
+ LIS w11,CE_ZMASK
+ NEXT .Lce_recomputed_mask_row
+ ROWS .Lce_dry_lift_row
+ LI2 w11,CE_PAPMASK
+ cbz w11,.Lce_dry_lift_next
+ add x27,x21,#1
+ L2 d0,CE_TU,x27
+ L2 d1,CE_EXN,x27
+ fmul d0,d0,d1
+ L2 d1,CE_EXN
+ fdiv d0,d0,d1
+ LS2 d0,CE_TU
+ L2 d0,CE_QS,x27
+ LS2 d0,CE_QS
+.Lce_dry_lift_next:
+ NEXT .Lce_dry_lift_row
+ // Preserve all twelve formal child addresses, including omitted optional null.
+ ARG x0,1
+ ARG x1,2
+ ARG x2,3
+ ARG x3,4
+ ARG x4,5
+ add w9,w21,#1
+ str w9,[sp,#1444]
+ add x5,sp,#1444
+ ARG x6,6
+ mul x9,x21,x22
+ add x6,x6,x9,lsl #3
+ ldr x7,[sp,#(3072+CE_TU*8)]
+ ldr x9,[sp,#(3072+CE_QS*8)]
+ str x9,[sp]
+ ldr x9,[sp,#(3072+CE_ZMASK*8)]
+ str x9,[sp,#8]
+ mov w9,#1
+ str w9,[sp,#1440]
+ add x9,sp,#1440
+ str x9,[sp,#16]
+ str xzr,[sp,#24]
+ CALL md2asm_cuadjtq
+ ROWS .Lce_buoyancy_row
+ LI2 w27,CE_JDEP,x26
+ sub x27,x27,#1
+ LI2 w11,CE_PAPMASK
+ cbz w11,.Lce_departure_mask_false
+ IN2 d0,6
+ L2 d1,CE_PMIX,x27
+ fcmp d0,d1
+ cset w11,le
+ b .Lce_departure_mask_store
+.Lce_departure_mask_false:
+ mov w11,#0
+.Lce_departure_mask_store:
+ LIS w11,CE_DEPMASK
+ cbz w11,.Lce_buoyancy_next
+ L2 d0,CE_TU
+ L2 d1,CE_EXN
+ fmul d11,d0,d1
+ L2 d0,CE_QS
+ GLOBAL d1,yomcst,retv
+ fmul d0,d1,d0
+ CONST d1,one
+ fadd d0,d1,d0
+ fmul d11,d11,d0
+ L2 d0,CE_THV
+ fmul d11,d11,d0
+ fsub d11,d11,d1
+ IN2 d0,6
+ L2 d1,CE_PLCL,x27
+ fcmp d0,d1
+ b.gt .Lce_inhibition
+ b.vs .Lce_inhibition
+ fmov d0,xzr
+ fmax d0,d0,d11
+ L2 d1,CE_ZDZ
+ fmul d0,d0,d1
+ L2 d1,CE_CAPE,x27
+ fadd d0,d1,d0
+ LS2 d0,CE_CAPE,x27
+.Lce_inhibition:
+ fcmp d11,#0.0
+ b.ge .Lce_buoyancy_next
+ b.vs .Lce_buoyancy_next
+ L2 d0,CE_CAPE,x27
+ CONST d1,small_energy
+ fcmp d0,d1
+ b.ge .Lce_buoyancy_next
+ b.vs .Lce_buoyancy_next
+ L2 d0,CE_ZDZ
+ fmul d0,d11,d0
+ L d1,CE_CIN2
+ fadd d0,d1,d0
+ LS d0,CE_CIN2
+.Lce_buoyancy_next:
+ NEXT .Lce_buoyancy_row
+ sub x21,x21,#1
+ ldr x11,[sp,#1536]
+ cmp x21,x11
+ b.ge .Lce_recomputed_ascent_level
+.Lce_recomputed_ascent_done:
+ ROWS .Lce_recomputed_output_row
+ LI2 w27,CE_JDEP,x26
+ sub x27,x27,#1
+ L d0,CE_CIN2
+ fmax d0,d10,d0
+ fneg d0,d0
+ OUT2 d0,11,x26
+ L2 d0,CE_CAPE,x27
+ add x11,x26,#1
+ OUT2 d0,10,x11
+ NEXT .Lce_recomputed_output_row
+ add x26,x26,#1
+ cmp x26,#3
+ b.lt .Lce_recomputed_parcel
+ ldr x0,[sp,#1512]
+ CALL free
+ ldr w9,[sp,#1496]
+ cbz w9,.Lce_exit_hook_done
+ adr x0,.Lce_hook_name
+ add x1,sp,#1500
+ mov w9,#1
+ str w9,[x1]
+ add x2,sp,#1504
+ mov x3,#8
+ CALL __yomhook_MOD_dr_hook_default8
+.Lce_exit_hook_done:
+ add x17,sp,#1024
+ ldp x19,x20,[x17]
+ ldp x21,x22,[x17,#16]
+ ldp x23,x24,[x17,#32]
+ ldp x25,x26,[x17,#48]
+ ldp x27,x28,[x17,#64]
+ ldp x29,x30,[x17,#80]
+ ldp d8,d9,[x17,#96]
+ ldp d10,d11,[x17,#112]
+ ldp d12,d13,[x17,#128]
+ ldp d14,d15,[x17,#144]
+ ldr x18,[x17,#160]
+ add sp,sp,#1,lsl #12
+ ret
+.Lce_reject:
+ brk #0x53a
+.size md2asm_convective_energy_diagnostics_phase_r2_7358525,.-md2asm_convective_energy_diagnostics_phase_r2_7358525
+.size md2asm_convective_energy_diagnostics_7358525,.-md2asm_convective_energy_diagnostics_7358525
+// Accumulate one source pressure-thickness layer into a selected mixed slot.
+.Lce_accumulate_mixed_layer:
+ L2 d0,CE_PMIX,x27
+ fadd d0,d0,d11
+ LS2 d0,CE_PMIX,x27
+ IN2 d0,8
+ fmul d0,d0,d11
+ L2 d1,CE_EXN
+ fmul d0,d0,d1
+ L2 d1,CE_THMIX,x27
+ fadd d0,d1,d0
+ LS2 d0,CE_THMIX,x27
+ IN2 d0,9
+ fmul d0,d0,d11
+ L2 d1,CE_QMIX,x27
+ fadd d0,d1,d0
+ LS2 d0,CE_QMIX,x27
+ ret
+// The original abrupt phase latent heat divided by dry-air heat capacity.
+.Lce_latent_cp:
+ GLOBAL d1,yomcst,rtt
+ fsub d1,d0,d1
+ fmov x11,d1
+ CONST d2,one
+ fmov d3,xzr
+ tst x11,#0x8000000000000000
+ fcsel d2,d3,d2,ne
+ GLOBAL d0,yoethf,ralvdcp
+ fmul d0,d2,d0
+ CONST d1,one
+ fsub d1,d1,d2
+ GLOBAL d2,yoethf,ralsdcp
+ fmul d1,d1,d2
+ fadd d0,d0,d1
+ ret
+// Equivalent potential temperature. d0=T, d1=q, d2=theta.
+.Lce_equivalent_potential:
+ str x30,[sp,#1872]
+ str d0,[sp,#1880]
+ str d1,[sp,#1888]
+ str d2,[sp,#1896]
+ bl .Lce_latent_cp
+ ldr d1,[sp,#1888]
+ fmul d0,d0,d1
+ ldr d1,[sp,#1880]
+ fdiv d0,d0,d1
+ CALL exp
+ ldr d1,[sp,#1896]
+ fmul d0,d1,d0
+ ldr x30,[sp,#1872]
+ ret
+// Mixed saturation pressure uses the smooth ice/liquid alpha and two EXP calls.
+.Lce_mixed_saturation:
+ str x30,[sp,#1840]
+ str d0,[sp,#1848]
+ GLOBAL d1,yoethf,rtwat
+ fmin d0,d1,d0
+ GLOBAL d1,yoethf,rtice
+ fmax d0,d1,d0
+ fsub d0,d0,d1
+ GLOBAL d1,yoethf,rtwat_rtice_r
+ fmul d0,d0,d1
+ fmul d0,d0,d0
+ CONST d1,one
+ fmin d0,d1,d0
+ str d0,[sp,#1864]
+ ldr d0,[sp,#1848]
+ GLOBAL d1,yomcst,rtt
+ fsub d0,d0,d1
+ GLOBAL d1,yoethf,r3les
+ fmul d0,d1,d0
+ ldr d1,[sp,#1848]
+ GLOBAL d2,yoethf,r4les
+ fsub d1,d1,d2
+ fdiv d0,d0,d1
+ CALL exp
+ str d0,[sp,#1856]
+ ldr d0,[sp,#1848]
+ GLOBAL d1,yomcst,rtt
+ fsub d0,d0,d1
+ GLOBAL d1,yoethf,r3ies
+ fmul d0,d1,d0
+ ldr d1,[sp,#1848]
+ GLOBAL d2,yoethf,r4ies
+ fsub d1,d1,d2
+ fdiv d0,d0,d1
+ CALL exp
+ ldr d1,[sp,#1864]
+ CONST d2,one
+ fsub d2,d2,d1
+ fmul d0,d2,d0
+ ldr d2,[sp,#1856]
+ fmul d1,d1,d2
+ fadd d0,d1,d0
+ GLOBAL d1,yoethf,r2es
+ fmul d0,d1,d0
+ ldr x30,[sp,#1840]
+ ret
+// Lifting condensation pressure. d0=T, d1=q, d2=p, d3=theta.
+.Lce_condensation_pressure:
+ str x30,[sp,#1904]
+ str d0,[sp,#1912]
+ str d1,[sp,#1920]
+ str d2,[sp,#1928]
+ str d3,[sp,#1936]
+ CONST d0,dewpoint_floor
+ fmax d0,d0,d1
+ fmul d0,d0,d2
+ fmul d0,d0,d9
+ CALL log
+ GLOBAL d1,yoethf,r4les
+ fmul d1,d1,d0
+ GLOBAL d2,yoethf,r3les
+ GLOBAL d3,yomcst,rtt
+ fmul d3,d2,d3
+ fsub d1,d1,d3
+ fsub d0,d0,d2
+ fdiv d0,d1,d0
+ str d0,[sp,#1944]
+ GLOBAL d1,yomcst,rtt
+ fsub d2,d0,d1
+ CONST d3,lcl_second
+ fmul d2,d3,d2
+ CONST d3,lcl_first
+ fadd d2,d3,d2
+ ldr d3,[sp,#1912]
+ fsub d1,d3,d1
+ CONST d4,lcl_third
+ fmul d1,d4,d1
+ fsub d2,d2,d1
+ fsub d3,d3,d0
+ fmul d2,d2,d3
+ fsub d0,d0,d2
+ ldr d1,[sp,#1912]
+ fmin d0,d0,d1
+ CONST d1,condensation_minimum
+ fmax d0,d1,d0
+ ldr d1,[sp,#1936]
+ fdiv d0,d0,d1
+ fmov d1,d8
+ CALL md2asm_pow_original_rounding_candidate
+ GLOBAL d1,yomcst,ratm
+ fmul d0,d1,d0
+ ldr x30,[sp,#1904]
+ ret
+.section .rodata
+.p2align 3
+.Lce_one: .double 1.0
+.Lce_half: .double 0.5
+.Lce_pressure_eighty: .double 8000.0
+.Lce_pressure_sixty: .double 6000.0
+.Lce_pressure_thirty: .double 3000.0
+.Lce_pressure_departure_depth: .double 35000.0
+.Lce_pressure_fifty: .double 5000.0
+.Lce_pressure_hundred: .double 10000.0
+.Lce_saturation_floor: .double 0.00000001
+.Lce_dewpoint_floor: .double 0.0001
+.Lce_lcl_first: .double 0.212
+.Lce_lcl_second: .double 0.001571
+.Lce_lcl_third: .double 0.000436
+.Lce_condensation_minimum: .double 160.0
+.Lce_small_energy: .double 20.0
+.Lce_hook_name: .ascii "CUANCAPE2"
+.section .note.GNU-stack,"",%progbits

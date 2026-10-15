@@ -1,0 +1,702 @@
+// Climatological aerosol visibility layer, original CLIMAER_LAYER.
+// Eight ordinary addresses: surface metadata, model metadata, dimensions,
+// pressure fields, initial air state, temporary air state, surface fields,
+// and local aerosol fields. The selected shape is 24 columns and 19 levels.
+// Preserve the original ordered FP64 operations and gradual underflow.
+// The contract lists unchanged aerosol, saturation and visibility children.
+// R41 live temperature, mass, humidity, extinction and visibility are exact.
+// Complete parent and saved-file acceptance remains pending.
+// CLIMAER_LAYER half-pressure index correction, private R3.
+// The half-pressure view starts at level 0. Source JK uses one more row than air JK.
+// Only the two half-pressure loads change; all ordered FP64 arithmetic is retained.
+.text
+.p2align 4
+.macro CALL target
+ str x18,[sp,#1184]
+ bl \target
+ ldr x18,[sp,#1184]
+.endm
+.global md2asm_aerosol_visibility_layer_state_r2_7358525
+.type md2asm_aerosol_visibility_layer_state_r2_7358525,%function
+.set md2asm_aerosol_visibility_layer_state_r2_7358525,md2asm_aerosol_visibility_layer_half_pressure_r3_7358525
+.global md2asm_climatological_aerosol_visibility_layer
+.type md2asm_climatological_aerosol_visibility_layer,%function
+.set md2asm_climatological_aerosol_visibility_layer,md2asm_aerosol_visibility_layer_half_pressure_r3_7358525
+.global md2asm_aerosol_visibility_layer_half_pressure_r3_7358525
+.type md2asm_aerosol_visibility_layer_half_pressure_r3_7358525,%function
+md2asm_aerosol_visibility_layer_half_pressure_r3_7358525:
+ mov x16,sp
+ sub sp,sp,#2048
+ stp x29,x30,[sp,#320]
+ mov x29,sp
+ stp x19,x20,[sp,#336]
+ stp x21,x22,[sp,#352]
+ stp x23,x24,[sp,#368]
+ stp x25,x26,[sp,#384]
+ stp x27,x28,[sp,#400]
+ add x19,sp,#576
+ str x0,[x19,#0]
+ str x1,[x19,#8]
+ str x2,[x19,#16]
+ str x3,[x19,#24]
+ str x4,[x19,#32]
+ str x5,[x19,#40]
+ str x6,[x19,#48]
+ str x7,[x19,#56]
+ mrs x9,fpcr
+ cbnz x9,.Llayer_reject
+ adrp x9,:got:__yomhook_MOD_lhook
+ ldr x9,[x9,:got_lo12:__yomhook_MOD_lhook]
+ ldr w9,[x9]
+ cbz w9,9f
+ adr x0,.Lclimaer_layer_name
+ adr x1,.Llayer_phase0
+ add x2,sp,#1160
+ mov x3,#13
+ CALL __yomhook_MOD_dr_hook_default8
+9:
+ ldr x9,[x19,#8]
+ movz x16,#5064
+ movk x16,#24,lsl #16
+ ldr w10,[x9,x16]
+ cmp w10,#1
+ b.ne .Llayer_reject
+ movz x16,#36376
+ movk x16,#24,lsl #16
+ ldr w10,[x9,x16]
+ cmp w10,#0
+ b.ne .Llayer_reject
+ movz x16,#36044
+ movk x16,#24,lsl #16
+ ldr w10,[x9,x16]
+ cmp w10,#1
+ b.ne .Llayer_reject
+ movz x16,#36268
+ movk x16,#24,lsl #16
+ ldr w10,[x9,x16]
+ cmp w10,#0
+ b.ne .Llayer_reject
+ movz x16,#36288
+ movk x16,#24,lsl #16
+ ldr w10,[x9,x16]
+ cmp w10,#1
+ b.ne .Llayer_reject
+ movz x16,#36284
+ movk x16,#24,lsl #16
+ ldr w10,[x9,x16]
+ cmp w10,#0
+ b.ne .Llayer_reject
+ ldr x9,[x19,#16]
+ ldr w25,[x9,#12]
+ ldr w24,[x9,#48]
+ cmp w25,#24
+ b.ne .Llayer_reject
+ cmp w24,#19
+ b.ne .Llayer_reject
+ ldr w26,[x9]
+ sub w26,w26,#1
+ ldr w27,[x9,#4]
+ sub w27,w27,#1
+ movz x0,#13952
+ movk x0,#1,lsl #16
+ CALL malloc
+ cbz x0,.Llayer_reject
+ mov x28,x0
+ ldr x0,[x19,#24]
+ mov x16,#624
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#832]
+ str x0,[sp,#1280]
+ ldr x0,[x19,#24]
+ mov x16,#712
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#832]
+ str x0,[sp,#1288]
+ ldr x0,[x19,#40]
+ mov x16,#208
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#832]
+ str x0,[sp,#1304]
+ ldr x0,[x19,#40]
+ mov x16,#384
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#832]
+ str x0,[sp,#1312]
+ ldr x0,[x19,#40]
+ mov x16,#472
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#832]
+ str x0,[sp,#1320]
+ ldr x0,[x19,#40]
+ mov x16,#1000
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#1
+ bl .Llayer_first
+ str x0,[sp,#832]
+ str x0,[sp,#1328]
+ ldr x0,[x19,#40]
+ mov x16,#1000
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#2
+ bl .Llayer_first
+ str x0,[sp,#832]
+ str x0,[sp,#1336]
+ ldr x0,[x19,#40]
+ mov x16,#1000
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#3
+ bl .Llayer_first
+ str x0,[sp,#832]
+ str x0,[sp,#1344]
+ ldr x0,[x19,#40]
+ mov x16,#1000
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#4
+ bl .Llayer_first
+ str x0,[sp,#832]
+ str x0,[sp,#1352]
+ ldr x9,[x19,#0]
+ ldr x9,[x9,#6808]
+ ldrsw x20,[x9,#8]
+ ldr x0,[x19,#48]
+ mov x16,#8464
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#832]
+ str x0,[sp,#1296]
+ mov w21,#2
+.Lclimate_temperature_level:
+ mov w20,w26
+.Lclimate_temperature_column:
+ sub w22,w21,#1
+ madd w22,w22,w25,w20
+ sub w23,w22,w25
+ ldr x9,[sp,#1304]
+ ldr d0,[x9,w23,uxtw #3]
+ ldr d1,[x9,w22,uxtw #3]
+ ldr x9,[sp,#1288]
+ ldr d2,[x9,w23,uxtw #3]
+ ldr d3,[x9,w22,uxtw #3]
+ ldr x9,[sp,#1280]
+ add w10,w22,w25
+ ldr d4,[x9,w10,uxtw #3]
+ fmul d0,d0,d2
+ fsub d5,d3,d4
+ fmul d0,d0,d5
+ fmul d1,d1,d3
+ fsub d5,d4,d2
+ fmul d1,d1,d5
+ fadd d0,d0,d1
+ fsub d1,d3,d2
+ fmul d1,d4,d1
+ fmov d2,#1.0
+ fdiv d1,d2,d1
+ fmul d0,d0,d1
+ str d0,[x28,w22,uxtw #3]
+ add w20,w20,#1
+ cmp w20,w27
+ b.le .Lclimate_temperature_column
+ add w21,w21,#1
+ cmp w21,w24
+ b.le .Lclimate_temperature_level
+ mov w20,w26
+.Lclimate_temperature_boundaries:
+ ldr x9,[sp,#1304]
+ ldr d0,[x9,w20,uxtw #3]
+ add w22,w20,w25
+ ldr d1,[x28,w22,uxtw #3]
+ fsub d1,d0,d1
+ ldr x9,[sp,#1288]
+ ldr d2,[x9,w20,uxtw #3]
+ fmul d1,d2,d1
+ ldr x9,[sp,#1280]
+ add w10,w22,w25
+ ldr d3,[x9,w10,uxtw #3]
+ fsub d2,d2,d3
+ fdiv d1,d1,d2
+ fsub d0,d0,d1
+ str d0,[x28,w20,uxtw #3]
+ ldr x9,[sp,#1296]
+ ldr d0,[x9,w20,uxtw #3]
+ madd w22,w24,w25,w20
+ str d0,[x28,w22,uxtw #3]
+ add w20,w20,#1
+ cmp w20,w27
+ b.le .Lclimate_temperature_boundaries
+ ldr x0,[x19,#8]
+ movz x16,#49600
+ movk x16,#24,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#832]
+ ldr x0,[x19,#8]
+ movz x16,#35864
+ movk x16,#24,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#840]
+ ldr x0,[x19,#8]
+ movz x16,#48608
+ movk x16,#20,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#848]
+ ldr x0,[x19,#16]
+ str x0,[sp,#856]
+ ldr x0,[x19,#16]
+ mov x16,#4
+ add x0,x0,x16
+ str x0,[sp,#864]
+ ldr x0,[x19,#16]
+ mov x16,#12
+ add x0,x0,x16
+ str x0,[sp,#872]
+ ldr x0,[x19,#16]
+ mov x16,#48
+ add x0,x0,x16
+ str x0,[sp,#880]
+ ldr x0,[sp,#1280]
+ str x0,[sp,#888]
+ ldr x0,[x19,#24]
+ mov x16,#976
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#896]
+ ldr x0,[x19,#24]
+ mov x16,#1488
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#904]
+ ldr x0,[x19,#24]
+ mov x16,#1168
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#912]
+ ldr x0,[x19,#24]
+ mov x16,#1232
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#920]
+ mov x16,#0
+ add x0,x28,x16
+ str x0,[sp,#928]
+ mov x16,#3840
+ add x0,x28,x16
+ str x0,[sp,#936]
+ mov x16,#25728
+ add x0,x28,x16
+ str x0,[sp,#944]
+ movz x16,#3968
+ movk x16,#1,lsl #16
+ add x0,x28,x16
+ str x0,[sp,#952]
+ ldr x0,[x19,#56]
+ mov x16,#4376
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#960]
+ ldr x0,[x19,#0]
+ mov x16,#14240
+ add x0,x0,x16
+ mov x1,#1
+ mov x2,#0
+ bl .Llayer_first
+ ldrsw x20,[x0]
+ ldr x0,[x19,#48]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#968]
+ ldr x9,[x19,#0]
+ ldr x9,[x9,#14424]
+ ldrsw x20,[x9,#0]
+ ldr x0,[x19,#48]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#976]
+ ldr x9,[x19,#0]
+ ldr x9,[x9,#14432]
+ ldrsw x20,[x9,#0]
+ ldr x0,[x19,#48]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#984]
+ ldr x9,[x19,#0]
+ ldr x9,[x9,#14440]
+ ldrsw x20,[x9,#0]
+ ldr x0,[x19,#48]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#992]
+ ldr x9,[x19,#0]
+ ldr x9,[x9,#14448]
+ ldrsw x20,[x9,#0]
+ ldr x0,[x19,#48]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#1000]
+ ldr x9,[x19,#0]
+ ldr x9,[x9,#14456]
+ ldrsw x20,[x9,#0]
+ ldr x0,[x19,#48]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#1008]
+ ldr x9,[sp,#896]
+ str x9,[sp,#0]
+ ldr x9,[sp,#904]
+ str x9,[sp,#8]
+ ldr x9,[sp,#912]
+ str x9,[sp,#16]
+ ldr x9,[sp,#920]
+ str x9,[sp,#24]
+ ldr x9,[sp,#928]
+ str x9,[sp,#32]
+ ldr x9,[sp,#936]
+ str x9,[sp,#40]
+ ldr x9,[sp,#944]
+ str x9,[sp,#48]
+ ldr x9,[sp,#952]
+ str x9,[sp,#56]
+ ldr x9,[sp,#960]
+ str x9,[sp,#64]
+ ldr x9,[sp,#968]
+ str x9,[sp,#72]
+ ldr x9,[sp,#976]
+ str x9,[sp,#80]
+ ldr x9,[sp,#984]
+ str x9,[sp,#88]
+ ldr x9,[sp,#992]
+ str x9,[sp,#96]
+ ldr x9,[sp,#1000]
+ str x9,[sp,#104]
+ ldr x9,[sp,#1008]
+ str x9,[sp,#112]
+ ldr x0,[sp,#832]
+ ldr x1,[sp,#840]
+ ldr x2,[sp,#848]
+ ldr x3,[sp,#856]
+ ldr x4,[sp,#864]
+ ldr x5,[sp,#872]
+ ldr x6,[sp,#880]
+ ldr x7,[sp,#888]
+ CALL md2asm_aerosol_visibility_climatology_7358525
+ ldr x0,[x19,#16]
+ str x0,[sp,#832]
+ ldr x0,[x19,#16]
+ mov x16,#4
+ add x0,x0,x16
+ str x0,[sp,#840]
+ ldr x0,[x19,#16]
+ mov x16,#12
+ add x0,x0,x16
+ str x0,[sp,#848]
+ ldr x0,[x19,#16]
+ mov x16,#48
+ add x0,x0,x16
+ str x0,[sp,#856]
+ ldr x0,[x19,#16]
+ mov x16,#48
+ add x0,x0,x16
+ str x0,[sp,#864]
+ ldr x0,[x19,#8]
+ movz x16,#15436
+ movk x16,#24,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#872]
+ ldr x0,[sp,#1288]
+ str x0,[sp,#880]
+ ldr x0,[sp,#1304]
+ str x0,[sp,#888]
+ movz x16,#7616
+ movk x16,#1,lsl #16
+ add x0,x28,x16
+ str x0,[sp,#896]
+ mov w9,#2
+ str w9,[sp,#1152]
+ add x0,sp,#1152
+ str x0,[sp,#904]
+ ldr x9,[sp,#896]
+ str x9,[sp,#0]
+ ldr x9,[sp,#904]
+ str x9,[sp,#8]
+ ldr x0,[sp,#832]
+ ldr x1,[sp,#840]
+ ldr x2,[sp,#848]
+ ldr x3,[sp,#856]
+ ldr x4,[sp,#864]
+ ldr x5,[sp,#872]
+ ldr x6,[sp,#880]
+ ldr x7,[sp,#888]
+ CALL md2asm_climate_saturation_7358525
+ adrp x9,:got:__yomcst_MOD_rg
+ ldr x9,[x9,:got_lo12:__yomcst_MOD_rg]
+ ldr x10,[x9]
+ str x10,[sp,#1384]
+ mov w20,w26
+.Lclimate_humidity:
+ sub w22,w24,#1
+ madd w22,w22,w25,w20
+ ldr x9,[sp,#1312]
+ ldr d0,[x9,w22,uxtw #3]
+ movz x16,#7616
+ movk x16,#1,lsl #16
+ add x9,x28,x16
+ ldr d1,[x9,w22,uxtw #3]
+ fdiv d0,d0,d1
+ movz x16,#11264
+ movk x16,#1,lsl #16
+ add x9,x28,x16
+ str d0,[x9,w20,uxtw #3]
+ ldr x9,[sp,#1288]
+ ldr d0,[x9,w22,uxtw #3]
+ sub w23,w22,w25
+ ldr d1,[x9,w23,uxtw #3]
+ fsub d0,d0,d1
+ ldr d1,[sp,#1384]
+ fdiv d0,d1,d0
+ movz x16,#11456
+ movk x16,#1,lsl #16
+ add x9,x28,x16
+ str d0,[x9,w20,uxtw #3]
+ add w20,w20,#1
+ cmp w20,w27
+ b.le .Lclimate_humidity
+ mov w21,#0
+.Lclimate_species:
+ mov w20,w26
+.Lclimate_mixing_ratio:
+ mov w9,#456
+ mul w22,w21,w9
+ mov w9,#432
+ add w22,w22,w9
+ add w22,w22,w20
+ mov x16,#25728
+ add x9,x28,x16
+ ldr d0,[x9,w22,uxtw #3]
+ ldr d1,.Lclimate_thousand
+ fmul d0,d1,d0
+ movz x16,#11456
+ movk x16,#1,lsl #16
+ add x9,x28,x16
+ ldr d1,[x9,w20,uxtw #3]
+ fmul d0,d0,d1
+ madd w22,w21,w25,w20
+ movz x16,#11648
+ movk x16,#1,lsl #16
+ add x9,x28,x16
+ str d0,[x9,w22,uxtw #3]
+ add w20,w20,#1
+ cmp w20,w27
+ b.le .Lclimate_mixing_ratio
+ add w21,w21,#1
+ cmp w21,#12
+ b.lt .Lclimate_species
+ ldr x0,[x19,#16]
+ mov x16,#12
+ add x0,x0,x16
+ str x0,[sp,#832]
+ ldr x0,[x19,#16]
+ str x0,[sp,#840]
+ ldr x0,[x19,#16]
+ mov x16,#4
+ add x0,x0,x16
+ str x0,[sp,#848]
+ ldr x0,[x19,#8]
+ movz x16,#36864
+ movk x16,#62,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#856]
+ mov w9,#10
+ str w9,[sp,#1152]
+ add x0,sp,#1152
+ str x0,[sp,#864]
+ movz x16,#11648
+ movk x16,#1,lsl #16
+ add x0,x28,x16
+ str x0,[sp,#872]
+ movz x16,#11264
+ movk x16,#1,lsl #16
+ add x0,x28,x16
+ str x0,[sp,#880]
+ ldr x0,[x19,#56]
+ mov x16,#4376
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#888]
+ ldr x0,[sp,#832]
+ ldr x1,[sp,#840]
+ ldr x2,[sp,#848]
+ ldr x3,[sp,#856]
+ ldr x4,[sp,#864]
+ ldr x5,[sp,#872]
+ ldr x6,[sp,#880]
+ ldr x7,[sp,#888]
+ CALL md2asm_shortwave_aerosol_extinction_7358525
+ ldr x0,[x19,#16]
+ str x0,[sp,#832]
+ ldr x0,[x19,#16]
+ mov x16,#4
+ add x0,x0,x16
+ str x0,[sp,#840]
+ ldr x0,[x19,#16]
+ mov x16,#12
+ add x0,x0,x16
+ str x0,[sp,#848]
+ ldr x0,[x19,#16]
+ mov x16,#48
+ add x0,x0,x16
+ str x0,[sp,#856]
+ ldr x0,[x19,#56]
+ mov x16,#4376
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#864]
+ ldr x0,[sp,#1320]
+ str x0,[sp,#872]
+ ldr x0,[sp,#1328]
+ str x0,[sp,#880]
+ ldr x0,[sp,#1336]
+ str x0,[sp,#888]
+ ldr x0,[sp,#1344]
+ str x0,[sp,#896]
+ ldr x0,[sp,#1352]
+ str x0,[sp,#904]
+ ldr x0,[sp,#1288]
+ str x0,[sp,#912]
+ ldr x0,[sp,#1304]
+ str x0,[sp,#920]
+ ldr x0,[x19,#56]
+ mov x16,#4504
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#928]
+ ldr x9,[sp,#896]
+ str x9,[sp,#0]
+ ldr x9,[sp,#904]
+ str x9,[sp,#8]
+ ldr x9,[sp,#912]
+ str x9,[sp,#16]
+ ldr x9,[sp,#920]
+ str x9,[sp,#24]
+ ldr x9,[sp,#928]
+ str x9,[sp,#32]
+ ldr x0,[sp,#832]
+ ldr x1,[sp,#840]
+ ldr x2,[sp,#848]
+ ldr x3,[sp,#856]
+ ldr x4,[sp,#864]
+ ldr x5,[sp,#872]
+ ldr x6,[sp,#880]
+ ldr x7,[sp,#888]
+ CALL md2asm_cloud_aerosol_visibility_7358525
+ mov x0,x28
+ CALL free
+ adrp x9,:got:__yomhook_MOD_lhook
+ ldr x9,[x9,:got_lo12:__yomhook_MOD_lhook]
+ ldr w9,[x9]
+ cbz w9,9f
+ adr x0,.Lclimaer_layer_name
+ adr x1,.Llayer_phase1
+ add x2,sp,#1160
+ mov x3,#13
+ CALL __yomhook_MOD_dr_hook_default8
+9:
+ ldp x19,x20,[sp,#336]
+ ldp x21,x22,[sp,#352]
+ ldp x23,x24,[sp,#368]
+ ldp x25,x26,[sp,#384]
+ ldp x27,x28,[sp,#400]
+ ldp x29,x30,[sp,#320]
+ add sp,sp,#2048
+ ret
+.size md2asm_aerosol_visibility_layer_half_pressure_r3_7358525,.-md2asm_aerosol_visibility_layer_half_pressure_r3_7358525
+// First element of a GNU dense view, with optional second/third source subscript.
+.Llayer_first:
+ldr x8,[x0]
+cbz x8,.Llayer_reject
+ldr x9,[x0,#8]
+ldrb w10,[x0,#28]
+ldr x11,[x0,#40]
+ldr x12,[x0,#48]
+madd x9,x11,x12,x9
+cmp w10,#1
+b.eq .Llayer_first_done
+ldr x11,[x0,#64]
+ldr x12,[x0,#72]
+cmp x1,#0
+csel x12,x12,x1,eq
+madd x9,x11,x12,x9
+cmp w10,#2
+b.eq .Llayer_first_done
+ldr x11,[x0,#88]
+ldr x12,[x0,#96]
+cmp x2,#0
+csel x12,x12,x2,eq
+madd x9,x11,x12,x9
+.Llayer_first_done:
+ldr x11,[x0,#32]
+madd x0,x9,x11,x8
+ret
+.Llayer_reject:
+CALL abort
+brk #0
+ .section .rodata
+.p2align 3
+.Lclimate_thousand: .double 1000.0
+.p2align 2
+.Llayer_phase0: .word 0
+.Llayer_phase1: .word 1
+.Lclimaer_layer_name: .ascii "CLIMAER_LAYER"
+.section .note.GNU-stack,"",%progbits

@@ -1,52 +1,51 @@
-# OpenIFS assembly
+# OpenIFS Assembly
 
-Direct assembly routines are grouped into dynamics, physics and surface changes. Dynamics supplies pressure, air properties and atmospheric motion. Physics routines apply heating and other supplied rates. Surface routines update soil, snow, lake and tile states. Each routine must pass its critical physical checks and exact forecast-call comparisons within its declared input range before it is accepted.
+These direct assembly routines calculate atmospheric motion, heating, radiation and surface changes. They are grouped by physical theme. A routine body means one original function or subroutine. Each accepted body has independent critical checks and exact comparisons within its declared input range.
 
 ## Coverage
 
-A routine body is one function or subroutine that performs a calculation. These counts cover the audited T21 coarse global forecast phase. The groups overlap, so their counts must not be added. They do not cover every model branch or external dependency.
+The table describes the audited coarse T21 global forecast. Its groups overlap and must not be added. The checkpoint combines the remaining 14 weather routines with four separately verified supporting bodies. It covers cloud physics, turbulence, surface and lake calculations, and their forecast callers.
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 255 | 456 |
-| Local calculations | 356 | 244 | 112 |
-| Weather calculations | 255 | 241 | 14 |
+| Main forecast phase | 711 | 273 | 438 |
+| Local calculations | 356 | 261 | 95 |
+| Weather calculations | 255 | 255 | 0 |
 
-There are 256 accepted original routine bodies with assembly replacements overall. VERDER is outside the main forecast count. The ordered 14-routine weather queue and completed checks remain local. The latest checkpoint accepts the radiation grid driver RADINTG, which adds one body to each scope. Accepted grid-point, spectral, Fourier, radiation, photosynthesis and interpolation proofs remain valid.
+There are 274 accepted original bodies overall, including VERDER outside the main forecast phase. Completing the weather list does not cover every model branch, setup routine or external dependency.
 
 ## Verification
 
-Each accepted routine passes independent critical physics and exact-output checks within its declared input range. The latest checkpoint checks RADINTG in 25 complete forecast calls, with exact returned and read-only buffers, numerical status and native preserved registers. Three focused cases also check sunlight thresholds, night conditions and absorbing or reflecting surfaces. All ten saved files match across 618,140 bytes. Unchanged child physics and arithmetic proofs are reused. The run uses exclusive allocation 7358525 on nid010681, one process, one thread, CPU 32 and local memory binding.
+The joint checkpoint uses one direct forecast time loop and 25 direct time updates. Its private update path writes each scheduled output once. Separate source and assembly forecasts start from the same binary inputs. Existing checks of unchanged children and completed numerical source-first/native stage pairs are reused. The 25 native update calls show completion; this gate does not compare raw state after every step.
 
-| Routine | Complete comparisons | Compared buffer bytes | Differing bytes |
-| --- | ---: | ---: | ---: |
-| RADINTG | 25 calls | 329,519,200 | 0 |
-| CPG | 4 full/partial pairs | 933,933,328 | 0 |
-| CPG_DRV | 3 reset cases | 775,302,519 | 0 |
-| SPCM | 25 calls | 117,642,025 | 0 |
-| FOURIER_IN | 192 pairs | 306,441,984 | 0 |
-| FOURIER_OUT | 160 pairs | 252,005,504 | 0 |
+| Compared output | Complete scope | Differing bytes |
+| --- | ---: | ---: |
+| Final state | 685 buffer owners, 27,486,113 bytes | 0 |
+| Saved forecast files | 10 files, 618,140 bytes | 0 |
+| Numerical status and step controls | 56 status bytes and 8 control bytes | 0 |
 
-The [radiation grid contract](../../skills/md2asm/references/openifs/radiation/radiation_grid_driver.md) defines the complete direct parent, its assembly physics children, its frozen C power helper and 14,899,200 independent physical relations. The original reference keeps its original inner radiation stages. An older cold replay differs slightly from its archived return in both the original and direct implementations. That setup limit remains local. Acceptance uses fresh complete live pairs under one runtime setup and the exact saved files.
+A buffer owner is a complete retained array or record in model memory. The final-state gate compares its numerical bytes and checks the recorded array layout. It applies the existing rules for address metadata without changing numerical values. The source archive fixes the unused 768-byte tail of an albedo table. Before the first native calculation, that tail is loaded as input. Its initialized 576-byte physical part already agrees. All 1,344 bytes remain in the final comparison. The status gate checks floating-point controls, exception flags and the system error value. The assembly also preserves the registers required by its application binary interface, or ABI. The original source's documented use of register x18 remains a separate source limit.
 
-The [grid-point contract](../../skills/md2asm/references/openifs/dynamics/complete_grid_point_update.md) and [block-driver contract](../../skills/md2asm/references/openifs/dynamics/grid_point_block_driver.md) define the accepted stages and interfaces. The verifier uses the actual smaller allocations for inactive diagnostic outputs and checks their complete bytes. It preserves the raw addresses of legacy arrays with no source consumer, while retaining their real backing storage. Repeated CPG inputs with an already-checked row extent and control tuple use the separate reference in this verification run. The direct block-driver checks cover the initial reset and both sides of its periodic reset rule.
+Two complete recorded call sets also pass exact replay. The cloud calculation matches all 2,150 calls across 561,408,000 complete buffer bytes. The lake calculation matches all 2,150 calls across 17,105,400 bytes. These checks include actual numerical status and the final partial block. They cover the original source calls through step 24 and retain raw unused storage. The [cloud contract](../../skills/md2asm/references/openifs/cloud_microphysics_contract.md) and [lake contract](../../skills/md2asm/references/openifs/surface/lake_temperature_profile.md) state their arithmetic and scientific limits.
 
-The [spectral driver contract](../../skills/md2asm/references/openifs/dynamics/spectral_calculation_driver.md) records all seven direct stages, exact numerical status and preserved registers. Four protected copy cases check 155,848 independent index relations and preserve inactive data. The existing physical and buffer-bound proofs of unchanged children are reused.
+## Reference and limits
 
-The transfer gate checks the first actual field-count and latitude tuple for each routine, including both latitude ends. It passes 581,504 independent word-copy relations, with zero raw-status or saved-register failures. Repeated calls with an already-checked tuple use the original reference in this verification run. The [packing contract](../../skills/md2asm/references/openifs/dynamics/fourier_buffer_packing.md) defines the complete buffers, supported inputs and assembly interface. The application binary interface, or ABI, states how arguments and registers pass between routines.
+The comparison uses a reviewed OpenIFS 48.1.1 reference with frozen inputs and arithmetic. Earlier reference versions and their different outputs remain local. Its essential qualifications are retained below.
 
-The continuity routine assigns positive zero to unused output slots that the original source left unset, while preserving every defined calculation. Its byte comparisons use a separate corrected Fortran reference, without changing any defined values in the saved files. The [continuity contract](../../skills/md2asm/references/openifs/dynamics/vertical_continuity.md) states this representation and its bounds.
+| Reference area | Frozen qualification |
+| --- | --- |
+| Continuity | Assign positive zero to unused output slots while preserving every defined calculation. |
+| Spectral and latitude transforms | Use independently checked matrix products with separate rounding after multiplication and addition. |
+| Trajectory wind weights | Use the separately verified hyperbolic tangent function. |
+| C4 leaf photosynthesis | Use physically valid equation roots and retain small carbon uptake in the canopy sum. |
+| Radiation | Use fresh complete call pairs under the same runtime setup. An older cold replay has a recorded setup limit. |
 
-The [spectral update](../../skills/md2asm/references/openifs/dynamics/spectral_semi_implicit_update.md), [latitude analysis](../../skills/md2asm/references/openifs/dynamics/legendre_wave_analysis.md) and [inverse reconstruction](../../skills/md2asm/references/openifs/dynamics/inverse_legendre_reconstruction.md) contracts use separately rounded matrix products. Their independently checked Fortran reference replaces the earlier fused vendor route for this comparison. The earlier source and saved files remain local. Their saved bytes differ, and the new direct forecast agrees exactly with the revised reference.
+The [numerical contracts](../../skills/md2asm/references/openifs/) define the supported branches, buffers, arithmetic and independent checks. A separate observer checks the humidity floor and finite ordered rates. Exact agreement can reproduce a shared scientific defect, so it does not establish independent physics of the whole forecast.
 
-The [wind contract](../../skills/md2asm/references/openifs/trajectories/trajectory_wind_preparation.md) uses a separately verified hyperbolic tangent. This function shapes the vertical prediction weight. Its revised Fortran reference and the direct forecast produce identical saved files. The previous tangent reference and its different outputs remain local.
+In a tested ice-formation call, the original lake update stores an average water temperature of 277.13 K, while its limited temperature profile can represent at most 276.334 K. The profile describes temperature changes with depth. The original lake equations remain unchanged. Complete forecast water and heat balances, whole-process byte identity and comparative forecast speed remain unverified.
 
-The complete C4 leaf source reference chooses physically valid roots and retains small gross carbon uptake through the canopy sum. It is checked independently against both carbon-limitation equations. The earlier C4 source and its qualification failures remain local. The direct body matches the corrected source in every observed leaf call and saved forecast file.
-
-A separate observer checks the configured humidity floor in 2,150 matched CALLPAR returns and finite ordered rates over 972,800 active cells. It adds zero routines. Complete forecast-state bounds and full-column water and heat balance remain open.
-
-The comparisons cover declared routine inputs and saved files. Whole-process byte identity, independent physics of the whole forecast and comparative forecast speed remain unproved. Historical full-storage mismatches are preserved in the local records. Individual numerical contracts define supported inputs, arithmetic, interfaces and scientific limits.
+The executable still uses OpenIFS Fortran for input, setup, metadata and retained reference forwards. It also depends on local numerical helpers, including the frozen C power helper. It is not an autonomous assembly forecast. Autonomous input loading, initialisation, complete calculation ownership and output remain a separate phase.
 
 ## Local records
 
-OpenIFS 48.1.1 supplies the original model source. The complete source audit, build record, physical checks, routine comparison notes and saved-file evidence are retained locally under `.agents/` and `.runtime/`. The source audit counts 5,238 built Fortran routine bodies, including setup, input/output, support and disabled-feature placeholders. That total is not a count of weather calculations that all need assembly.
+The exact ordered routine list, original source paths, build commands, critical checks and raw comparison records remain under ignored `.agents/` and `.runtime/` directories. The source audit covers 5,238 built Fortran bodies, including setup, input/output, support and disabled features. This total is not the number of weather routines that remain.
