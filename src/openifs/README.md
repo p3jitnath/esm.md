@@ -56,6 +56,8 @@ The [upper-air placement](../../skills/md2asm/references/openifs/input/upper_air
 
 The [surface input reader](../../skills/md2asm/references/openifs/input/initial_surface_field_reader.md) retains all 140 records, including all twelve months of six seasonal fields. Its 2,293,760 value bytes and 5,600 date-bearing metadata bytes match the separate codec reference. Focused file, buffer and ABI checks pass. Physical conversions and complete model initialisation remain separate assembly work.
 
+The [surface selection stage](../../skills/md2asm/references/openifs/input/initial_surface_field_selection.md) copies the 47 surface fields and five layered snow fields in the original requested order. All 1,179,648 output bytes match both the separate source reference and the actual original input to the conversion stage. Critical buffer, metadata and ABI checks pass. The following physical conversions and full model setup remain separate work.
+
 ## Local records
 
 The exact ordered routine list, original source paths, build commands, critical checks and raw comparison records remain under ignored `.agents/` and `.runtime/` directories. The source audit covers 5,238 built Fortran bodies, including setup, input/output, support and disabled features. This total is not the number of weather routines that remain.
