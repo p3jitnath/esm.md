@@ -4,15 +4,15 @@ These direct assembly routines calculate atmospheric motion, heating, radiation 
 
 ## Coverage
 
-The table describes the audited coarse T21 global forecast. Its groups overlap and must not be added. The latest checkpoint adds selected input, grid setup and physics storage methods to the accepted weather calculations.
+The table describes the audited coarse T21 global forecast. Its groups overlap and must not be added. The latest checkpoint adds complete GRIB file writers, spherical geometry and physics work-record methods to the accepted weather calculations.
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 279 | 432 |
-| Local calculations | 356 | 262 | 94 |
+| Main forecast phase | 711 | 314 | 397 |
+| Local calculations | 356 | 263 | 93 |
 | Weather calculations | 255 | 255 | 0 |
 
-There are 290 accepted original bodies overall, including VERDER outside the main forecast phase. Seven field-registry methods from the original template source are recorded separately from this inventory. Completing the weather list does not cover every model branch, setup routine or external dependency.
+There are 326 accepted original bodies overall, including VERDER outside the main forecast phase. Seven field-registry methods from the original template source are recorded separately from this inventory. Completing the weather list does not cover every model branch, setup routine or external dependency.
 
 ## Verification
 
@@ -24,7 +24,7 @@ The joint checkpoint uses one direct forecast time loop and 25 direct time updat
 | Saved forecast files | 10 files, 618,140 bytes | 0 |
 | Numerical status and step controls | 56 status bytes and 8 control bytes | 0 |
 
-A buffer owner is a complete retained array or record in model memory. The final-state gate compares its numerical bytes and checks the recorded array layout. It applies the existing rules for address metadata without changing numerical values. The source archive fixes unused incoming storage before the first calculation. Both sea-ice albedo tables retain their 576 initialized bytes and bind their 768 unused bytes. The solar-fraction table retains 48 initialized bytes and binds 64 unused bytes. Each of the two terrain tables retains 16,384 initialized bytes and binds its 128-byte final-block tail. Source allocation and consumer bounds establish that these tails are unused. Complete before and after packets are retained, and every final byte remains compared. The status gate checks floating-point controls, exception flags and the system error value. The assembly also preserves the registers required by its application binary interface, or ABI. The original source's documented use of register x18 remains a separate source limit.
+A buffer owner is a complete retained array or record in model memory. The final-state gate compares its numerical bytes and checks the recorded array layout. It applies the existing rules for address metadata without changing numerical values. The source archive fixes unused incoming storage before the first calculation. Both sea-ice albedo tables retain their 576 initialized bytes and bind their 768 unused bytes. The solar-fraction table retains 48 initialized bytes and binds 64 unused bytes. Each of the two terrain tables retains 16,384 initialized bytes and binds its 128-byte final-block tail. Four spherical-geometry tables each retain 16,384 initialized bytes and bind a 128-byte final-block tail. Source allocation and consumer bounds establish that these tails are unused. Complete before and after packets are retained, and every final byte remains compared. The status gate checks floating-point controls, exception flags and the system error value. The assembly also preserves the registers required by its application binary interface, or ABI. The original source's documented use of register x18 remains a separate source limit.
 
 Two complete recorded call sets also pass exact replay. The cloud calculation matches all 2,150 calls across 561,408,000 complete buffer bytes. The lake calculation matches all 2,150 calls across 17,105,400 bytes. These checks include actual numerical status and the final partial block. They cover the original source calls through step 24 and retain raw unused storage. The [cloud contract](../../skills/md2asm/references/openifs/cloud_microphysics_contract.md) and [lake contract](../../skills/md2asm/references/openifs/surface/lake_temperature_profile.md) state their arithmetic and scientific limits.
 
@@ -59,10 +59,13 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 | Physics grid dimensions | Complete 192-byte records and 25 initialization / 2,150 update calls | [Grid dimensions](../../skills/md2asm/references/openifs/support/physics_grid_dimensions.md) |
 | Physics state storage | 200 initializations, 200 finalizations and 25 mask calls | [State storage](../../skills/md2asm/references/openifs/support/physics_state_storage.md) |
 | Physics state block views | 17,200 calls with complete final-owner and saved-file agreement | [Block binding](../../skills/md2asm/references/openifs/support/physics_state_block_binding.md) |
+| Field-variable arrays | 2,150 clone, update and reset calls with exact final states | [Private arrays](../../skills/md2asm/references/openifs/support/field_variable_arrays.md) |
+| Physics work records | Each of three record types has 25 initializations, 2,150 view updates and 25 releases | [Auxiliary](../../skills/md2asm/references/openifs/support/auxiliary_physics_work_records.md), [radiation](../../skills/md2asm/references/openifs/support/radiation_physics_work_records.md), [surface](../../skills/md2asm/references/openifs/support/surface_physics_work_records.md) |
+| Complete spherical geometry | One selected SUGEM2 setup and exact complete final owners | [Spherical geometry](../../skills/md2asm/references/openifs/setup/spherical_geometry_setup.md) |
 
 The latest complete forecast uses the direct surface and upper-air loading routes. It also uses seven direct field-registry methods and direct serial Laplacian, Gaussian-latitude and spherical-grid setup. These routes pass the complete final-state and saved-file gate above. The [assembly surface startup stage](../../skills/md2asm/references/openifs/input/initial_surface_state_startup.md) now owns the earlier defaults across all allocated rows, with every one of 7,149,696 bytes in ten captured owners checked. The [surface metadata readers](../../skills/md2asm/references/openifs/input/initial_surface_metadata.md) and [upper-air metadata reader](../../skills/md2asm/references/openifs/input/upper_air_initial_metadata.md) now read existing initialized objects directly in assembly. Constructing those original objects remains separate work.
 
-The [latitude geometry constructor](../../skills/md2asm/references/openifs/setup/latitude_geometry_setup.md) also passes this forecast. The [spectral packing fit](../../skills/md2asm/references/openifs/output/spectral_packing_fit.md) runs 120 times with 5,280 direct logarithm calls and exact saved files. Original Fortran file writers and complete model construction remain unfinished.
+The [latitude geometry constructor](../../skills/md2asm/references/openifs/setup/latitude_geometry_setup.md) also passes this forecast. The [spectral packing fit](../../skills/md2asm/references/openifs/output/spectral_packing_fit.md) runs 120 times with 5,280 direct logarithm calls and exact saved files. The [direct GRIB writers](../../skills/md2asm/references/openifs/output/grib_field_writers.md) now write all 220 records and 618,140 bytes through assembly and the declared ecCodes format library. Their selected flush path also uses assembly. Complete model construction and other enclosing storage services remain unfinished.
 
 ## Local records
 
