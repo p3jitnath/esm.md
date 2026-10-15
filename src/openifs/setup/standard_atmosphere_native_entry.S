@@ -1,6 +1,5 @@
-// Solver contract skills/md2asm/references/openifs/setup/standard_atmosphere_native_entry.md.
-/* Native SUSTA entry, selected empty NAMSTA route, local revision1.
- * Contract: skills/md2asm/references/openifs/setup/standard_atmosphere_native_entry.md in this directory.
+/* Native SUSTA entry, selected empty NAMSTA route, local revision2.
+ * Contract: skills/md2asm/references/openifs/setup/standard_atmosphere_native_entry.md.
  * Original GNU ABI x0 Geometry. No original callable/constructor/vtable.
  * Live scalar/reference module-data addresses are explicit compatibility.
  */
@@ -26,8 +25,6 @@ susta_:
  str x9,[sp,#88]
  bl __errno_location
  mov x24,x0
- ldr w9,[x24]
- str w9,[sp,#96]
  movz x0,#1
  movk x0,#4,lsl#16
  bl malloc
@@ -107,8 +104,8 @@ susta_:
  ldr d0,[x9,w2,uxtw#3]
  str d0,[sp,#240]
  /* File services do not enter the numerical status of the construction. */
- ldr w9,[sp,#96]
- str w9,[x24]
+ /* Match the immediate successful source configuration-read error state. */
+ str wzr,[x24]
  ldr x9,[sp,#80]
  msr fpcr,x9
  ldr x9,[sp,#88]

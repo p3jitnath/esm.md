@@ -30,7 +30,7 @@ The published tree contains Markdown and assembly. Build instructions and the lo
 
 ## OpenIFS development
 
-The openifs-md branch extends this workflow to OpenIFS 48.1.1. Assembly replaces 354 original routine bodies within their selected input and calculation scopes, and seven field-registry methods that store array addresses and dimensions. Their small checks cover independent physical relations within declared input ranges, with known source limits recorded below. The checked forecast-call cases pass exact byte comparisons in a coarse global forecast.
+The openifs-md branch extends this workflow to OpenIFS 48.1.1. Assembly replaces 373 original routine bodies within their selected input and calculation scopes, and seven field-registry methods that store array addresses and dimensions. Their small checks cover independent physical relations within declared input ranges, with known source limits recorded below. The checked forecast-call cases pass exact byte comparisons in a coarse global forecast.
 
 | Check | Coverage | Differing bytes |
 | --- | --- | ---: |
@@ -42,9 +42,9 @@ The openifs-md branch extends this workflow to OpenIFS 48.1.1. Assembly replaces
 | Complete final state | 685 buffers across 27,486,113 bytes | 0 |
 | Saved forecast files | 10 files across 618,140 bytes | 0 |
 
-The latest verified forecast starts on 15 October 2004 and advances 24 hours on 2,048 grid points with 19 atmospheric levels. Assembly now owns the selected surface and upper-air file-loading routes, field registration, surface defaults, several grid setup stages, physics dimension updates, state and work-record storage, field block views, complete physics-call storage, standard-atmosphere setup, the scalar exponential and GRIB file writing. The selected input routes now read their metadata in assembly. Model startup, other setup and storage services, and retained reference forwards still use Fortran. Complete assembly coverage, independent whole-forecast physics and external-library arithmetic checks remain unfinished. Whole-forecast speed has not been measured. The [OpenIFS verification note](src/openifs/README.md) gives the latest evidence and the limits of complete-storage comparisons.
+The latest verified forecast starts on 15 October 2004 and advances 24 hours on 2,048 grid points with 19 atmospheric levels. Assembly now owns the selected surface and upper-air file-loading routes, field registration, surface defaults, several grid setup stages, physics dimension updates, state and work-record storage, field block views, complete physics-call storage, standard-atmosphere setup, the scalar exponential, selected output request preparation and GRIB file writing. The selected input routes now read their metadata in assembly. Model startup, other setup and storage services, and retained reference forwards still use Fortran. Complete assembly coverage, independent whole-forecast physics and external-library arithmetic checks remain unfinished. Whole-forecast speed has not been measured. The [OpenIFS verification note](src/openifs/README.md) gives the latest evidence and the limits of complete-storage comparisons.
 
-The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. All **255 audited weather and forcing routines** in this T21 main phase have accepted assembly replacements. The overlapping broader lists still have 93 local calculations and 371 main-forecast bodies remaining. The ordered original routine names and source paths remain in the local records.
+The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. All **255 audited weather and forcing routines** in this T21 main phase have accepted assembly replacements. The overlapping broader lists still have 91 local calculations and 358 main-forecast bodies remaining. The ordered original routine names and source paths remain in the local records.
 
 ## Notes
 
