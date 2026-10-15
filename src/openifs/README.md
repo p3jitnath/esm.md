@@ -46,6 +46,8 @@ In a tested ice-formation call, the original lake update stores an average water
 
 The executable still uses OpenIFS Fortran for input, setup, metadata and retained reference forwards. It also depends on local numerical helpers, including the frozen C power helper. It is not an autonomous assembly forecast. Autonomous input loading, initialisation, complete calculation ownership and output remain a separate phase.
 
+A separate [assembly input reader](../../skills/md2asm/references/openifs/input/initial_spectral_field_reader.md) loads the real spectral initial-condition file through the ecCodes C file-format library. All 78 decoded records match the reference across 315,744 value bytes and 1,872 label bytes. Critical error, buffer and register checks pass. Its standalone command has no OpenIFS or Fortran dependency. This reader is not yet connected to the forecast; model-array placement and complete initialisation remain separate work.
+
 ## Local records
 
 The exact ordered routine list, original source paths, build commands, critical checks and raw comparison records remain under ignored `.agents/` and `.runtime/` directories. The source audit covers 5,238 built Fortran bodies, including setup, input/output, support and disabled features. This total is not the number of weather routines that remain.
