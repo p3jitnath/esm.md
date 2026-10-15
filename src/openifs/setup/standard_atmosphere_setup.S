@@ -1,0 +1,295 @@
+// Solver contract skills/md2asm/references/openifs/setup/standard_atmosphere_setup.md.
+/* Standard atmosphere construction, local revision 1.
+ * Contract: skills/md2asm/references/openifs/setup/standard_atmosphere_setup.md in this directory.
+ * x0 Geometry17096, x1 physical56, w2 ECMWF0/1, x3 references576,
+ * x4 extrapolation int32. w0 zero/input2/allocation3.
+ * Six fresh owner descriptors at3272; no original callable metadata.
+ */
+.arch armv8.2-a
+.text
+.p2align 4
+.macro sta_rank_one descriptor, first
+ add x0,x23,#\descriptor
+ ldr x9,[x0]
+ cbz x9,.Lsta_input_failure
+ ldr x9,[x0,#16]
+ cmp x9,#8
+ b.ne .Lsta_input_failure
+ ldr w9,[x0,#28]
+ mov w10,#0x301
+ cmp w9,w10
+ b.ne .Lsta_input_failure
+ ldr x9,[x0,#32]
+ cmp x9,#8
+ b.ne .Lsta_input_failure
+ ldr x9,[x0,#40]
+ cmp x9,#1
+ b.ne .Lsta_input_failure
+ ldr x9,[x0,#48]
+ cmp x9,#\first
+ b.gt .Lsta_input_failure
+ ldr x9,[x0,#56]
+ cmp x9,x22
+ b.lt .Lsta_input_failure
+.endm
+.global md2asm_initialize_standard_atmosphere
+.type md2asm_initialize_standard_atmosphere,%function
+md2asm_initialize_standard_atmosphere:
+ mrs x9,fpcr
+ cbnz x9,.Lsta_reject
+ cmp w2,#1
+ b.hi .Lsta_reject
+ cbz x0,.Lsta_reject
+ cbz x1,.Lsta_reject
+ cbz x3,.Lsta_reject
+ cbz x4,.Lsta_reject
+ orr x9,x0,x1
+ orr x9,x9,x3
+ tst x9,#7
+ b.ne .Lsta_reject
+ tst x4,#3
+ b.ne .Lsta_reject
+ /* Save the caller inputs before using saved registers in descriptor checks. */
+ sub sp,sp,#288
+ stp x29,x30,[sp,#16]
+ stp x19,x20,[sp,#32]
+ stp x21,x22,[sp,#48]
+ stp x23,x24,[sp,#64]
+ stp x25,x26,[sp,#80]
+ stp x27,x28,[sp,#96]
+ str x18,[sp,#112]
+ mov x29,sp
+ mov x19,x0
+ mov x20,x1
+ mov x21,x3
+ mov x26,x4
+ str w2,[sp,#224]
+ movz x9,#5224
+ ldr w22,[x19,x9]
+ sub w9,w22,#1
+ cmp w9,#255
+ b.hi .Lsta_input_failure
+ movz x9,#3240
+ ldr x23,[x19,x9]
+ cbz x23,.Lsta_input_failure
+ movz x9,#3264
+ ldr x24,[x19,x9]
+ cbz x24,.Lsta_input_failure
+ movz x9,#3272
+ add x25,x19,x9
+ mov x9,#0
+.Lsta_null_owners:
+ ldr x10,[x25,x9]
+ cbnz x10,.Lsta_input_failure
+ add x9,x9,#64
+ cmp x9,#384
+ b.lo .Lsta_null_owners
+ /* Floating constants are checked by integer encodings before mutation. */
+ adrp x11,.Lsta_ranges
+ add x11,x11,:lo12:.Lsta_ranges
+ mov x9,#0
+.Lsta_physical_ranges:
+ ldr x10,[x20,x9,lsl#3]
+ ldp x12,x13,[x11],#16
+ cmp x10,x12
+ b.lo .Lsta_input_failure
+ cmp x10,x13
+ b.hi .Lsta_input_failure
+ add x9,x9,#1
+ cmp x9,#7
+ b.lo .Lsta_physical_ranges
+ /* Descriptor macro failures return through the saved-register exit. */
+ sta_rank_one 128,0
+ sta_rank_one 64,0
+ ldr w9,[x24,#52]
+ cmp w9,#1
+ b.hi .Lsta_input_failure
+ cbz w9,.Lsta_conventional
+ sta_rank_one 256,1
+ sta_rank_one 320,1
+ sta_rank_one 384,1
+ sta_rank_one 448,1
+ b .Lsta_preflight_done
+.Lsta_conventional:
+ ldr w9,[x24,#4]
+ cbnz w9,.Lsta_input_failure
+ sta_rank_one 192,1
+ sta_rank_one 448,1
+.Lsta_preflight_done:
+ bl __errno_location
+ str x0,[sp,#120]
+ ldr w9,[x0]
+ str w9,[sp,#128]
+ mov x27,#0
+.Lsta_allocate:
+ mov x0,x22
+ cbnz x27,.Lsta_alloc_size
+ add x0,x0,#1
+.Lsta_alloc_size:
+ lsl x0,x0,#3
+ bl malloc
+ cbz x0,.Lsta_allocation_failure
+ add x9,x25,x27,lsl#6
+ str x0,[x9]
+ mov x10,#-1
+ mov x11,#1
+ cbnz x27,.Lsta_alloc_bounds
+ mov x10,#0
+ mov x11,#0
+.Lsta_alloc_bounds:
+ str x10,[x9,#8]
+ mov x10,#8
+ str x10,[x9,#16]
+ str xzr,[x9,#24]
+ mov w12,#0x301
+ str w12,[x9,#28]
+ str x10,[x9,#32]
+ mov x10,#1
+ stp x10,x11,[x9,#40]
+ str x22,[x9,#56]
+ add x27,x27,#1
+ cmp x27,#6
+ b.lo .Lsta_allocate
+ mov x0,x21
+ mov x1,x20
+ ldr w2,[sp,#224]
+ bl md2asm_initialize_standard_atmosphere_layers
+ cbnz w0,.Lsta_child_failure
+ /* GPHPRE explicit constants and source-owned integer field map. */
+ ldr d0,[x20,#40]
+ ldr d1,[x20,#8]
+ stp d0,d1,[sp,#144]
+ ldr d0,[x20,#48]
+ str d0,[sp,#160]
+ adrp x9,.Lsta_field_map
+ add x9,x9,:lo12:.Lsta_field_map
+ ldp q0,q1,[x9]
+ add x10,sp,#168
+ stp q0,q1,[x10]
+ mov w9,#1
+ str w9,[sp,#208]
+ str w22,[sp,#212]
+ str w9,[sp,#216]
+ str w9,[sp,#220]
+ ldr x6,[x25]
+ ldr d0,[x20,#24]
+ str d0,[x6,x22,lsl#3]
+ ldr x9,[x25,#64]
+ str x9,[sp]
+ add x9,sp,#144
+ str x9,[sp,#8]
+ add x0,sp,#208
+ add x1,sp,#212
+ add x2,sp,#216
+ add x3,sp,#220
+ mov x4,x23
+ mov x5,x24
+ mov x7,#0
+ bl md2asm_standard_atmosphere_pressure
+ ldr x0,[x25,#192]
+ ldr x1,[x25,#128]
+ ldr x2,[x25,#64]
+ mov x3,x21
+ mov x4,x20
+ mov x5,x22
+ bl md2asm_standard_atmosphere_profile
+ cbnz w0,.Lsta_child_failure
+ mov x27,#0
+.Lsta_height_density:
+ ldr x9,[x25,#128]
+ ldr d0,[x9,x27,lsl#3]
+ ldr d1,[x20]
+ fdiv d0,d0,d1
+ ldr x9,[x25,#320]
+ str d0,[x9,x27,lsl#3]
+ ldr x9,[x25,#64]
+ ldr d0,[x9,x27,lsl#3]
+ ldr d1,[x20,#8]
+ fdiv d0,d0,d1
+ ldr x9,[x25,#192]
+ ldr d1,[x9,x27,lsl#3]
+ fdiv d0,d0,d1
+ ldr x9,[x25,#256]
+ str d0,[x9,x27,lsl#3]
+ add x27,x27,#1
+ cmp x27,x22
+ b.lo .Lsta_height_density
+ ldr d2,[x20,#32]
+ adrp x9,.Lsta_big_distance
+ ldr d3,[x9,:lo12:.Lsta_big_distance]
+ mov w28,w22
+ mov x27,x22
+.Lsta_extrapolation:
+ sub x27,x27,#1
+ ldr x9,[x25,#320]
+ ldr d0,[x9,x27,lsl#3]
+ fsub d0,d0,d2
+ fabs d0,d0
+ fcmp d0,d3
+ b.ge .Lsta_keep_extrapolation
+ add w28,w27,#1
+.Lsta_keep_extrapolation:
+ fmin d3,d3,d0
+ cbnz x27,.Lsta_extrapolation
+ str w28,[x26]
+ add x0,x21,#288
+ mov x1,x21
+ ldr x2,[x25,#64]
+ mov x3,x20
+ mov x4,x22
+ bl md2asm_adjust_postprocessing_atmosphere
+ cbnz w0,.Lsta_child_failure
+ mov w0,#0
+ b .Lsta_restore_errno
+.Lsta_child_failure:
+ mov w28,#2
+ b .Lsta_cleanup
+.Lsta_allocation_failure:
+ mov w28,#3
+.Lsta_cleanup:
+ mov x27,#0
+.Lsta_free:
+ add x9,x25,x27,lsl#6
+ ldr x0,[x9]
+ bl free
+ add x9,x25,x27,lsl#6
+ str xzr,[x9]
+ add x27,x27,#1
+ cmp x27,#6
+ b.lo .Lsta_free
+ mov w0,w28
+.Lsta_restore_errno:
+ ldr x9,[sp,#120]
+ ldr w10,[sp,#128]
+ str w10,[x9]
+ b .Lsta_return
+.Lsta_input_failure:
+ mov w0,#2
+.Lsta_return:
+ ldr x18,[sp,#112]
+ ldp x27,x28,[sp,#96]
+ ldp x25,x26,[sp,#80]
+ ldp x23,x24,[sp,#64]
+ ldp x21,x22,[sp,#48]
+ ldp x19,x20,[sp,#32]
+ ldp x29,x30,[sp,#16]
+ add sp,sp,#288
+ ret
+.Lsta_reject:
+ mov w0,#2
+ ret
+.size md2asm_initialize_standard_atmosphere,.-md2asm_initialize_standard_atmosphere
+.section .rodata
+.p2align 3
+.Lsta_ranges:
+ .double 9.0,10.0
+ .double 270.0,310.0
+ .double 0.5,2.0
+ .double 90000.0,110000.0
+ .double 0.0,100000.0
+ .double 0.001,1.0
+ .double 650.0,800.0
+.Lsta_field_map:
+ .word 1,2,3,4,5,6,7,7
+.Lsta_big_distance: .double 1.0e12
+.section .note.GNU-stack,"",%progbits

@@ -4,15 +4,15 @@ These direct assembly routines calculate atmospheric motion, heating, radiation 
 
 ## Coverage
 
-The table describes the audited coarse T21 global forecast. Its groups overlap and must not be added. The latest checkpoint adds complete GRIB file writers, spherical geometry and physics work-record methods to the accepted weather calculations.
+The table describes the audited coarse T21 global forecast. Its groups overlap and must not be added. The latest checkpoint adds complete physics-call storage, standard-atmosphere setup, the scalar exponential and selected output metadata to the accepted weather calculations.
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 314 | 397 |
+| Main forecast phase | 711 | 340 | 371 |
 | Local calculations | 356 | 263 | 93 |
 | Weather calculations | 255 | 255 | 0 |
 
-There are 326 accepted original bodies overall, including VERDER outside the main forecast phase. Seven field-registry methods from the original template source are recorded separately from this inventory. Completing the weather list does not cover every model branch, setup routine or external dependency.
+There are 354 accepted original bodies overall, including VERDER outside the main forecast phase. Seven field-registry methods from the original template source are recorded separately from this inventory. Completing the weather list does not cover every model branch, setup routine or external dependency.
 
 ## Verification
 
@@ -48,7 +48,7 @@ The executable still uses OpenIFS Fortran for model startup, remaining setup, ty
 
 ## Input And Setup Components
 
-The assembly readers use the declared C ecCodes file-format library. A record contains one decoded field and its identifying labels. Separate controls check each stage, including malformed input, buffer bounds, final partial blocks and the Arm ABI. The original input files supply every decoded value.
+The assembly readers use the declared C ecCodes file-format library. A record contains one decoded field and its identifying labels. Separate controls check each stage, including malformed input, buffer bounds, final partial blocks and the Arm ABI. The original input files supply every decoded value. Storage-child counts follow the checked, fixed call sequence inside the enclosing context. This run directly observes 25 context constructions and releases, with 2,150 balanced block calls.
 
 | Accepted component | Complete comparison scope | Contract |
 | --- | --- | --- |
@@ -62,10 +62,15 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 | Field-variable arrays | 2,150 clone, update and reset calls with exact final states | [Private arrays](../../skills/md2asm/references/openifs/support/field_variable_arrays.md) |
 | Physics work records | Each of three record types has 25 initializations, 2,150 view updates and 25 releases | [Auxiliary](../../skills/md2asm/references/openifs/support/auxiliary_physics_work_records.md), [radiation](../../skills/md2asm/references/openifs/support/radiation_physics_work_records.md), [surface](../../skills/md2asm/references/openifs/support/surface_physics_work_records.md) |
 | Complete spherical geometry | One selected SUGEM2 setup and exact complete final owners | [Spherical geometry](../../skills/md2asm/references/openifs/setup/spherical_geometry_setup.md) |
+| Complete physics-call context | 25 constructions and releases, 2,150 blocks and 4,300 tendency tables | [Construction](../../skills/md2asm/references/openifs/support/physics_context_construction.md), [block services](../../skills/md2asm/references/openifs/support/physics_context_block_services.md), [address services](../../skills/md2asm/references/openifs/support/physics_context_address_services.md) |
+| Additional physics work records | 20 forecast-used methods and the selected perturbation views | [Work records](../../skills/md2asm/references/openifs/support/additional_physics_work_records.md), [perturbation views](../../skills/md2asm/references/openifs/support/physics_perturbation_views.md) |
+| Local maps and standard atmosphere | One SUGEM3 and one complete selected SUSTA call | [Local maps](../../skills/md2asm/references/openifs/setup/local_geometry_maps.md), [standard atmosphere](../../skills/md2asm/references/openifs/setup/standard_atmosphere_native_entry.md) |
+| Scalar exponential | Exact complete forecast outputs through the direct original-name interface | [Exponential](../../skills/md2asm/references/openifs/support/scalar_exponential.md), [interface](../../skills/md2asm/references/openifs/support/exponential_native_binding.md) |
+| Selected output metadata | All eight new routes execute, with 35 balanced request allocations and releases | [Read-only views](../../skills/md2asm/references/openifs/output/output_request_views.md), [release](../../skills/md2asm/references/openifs/output/output_request_release.md), [allocation](../../skills/md2asm/references/openifs/output/output_request_allocation.md), [auxiliary data](../../skills/md2asm/references/openifs/output/output_auxiliary_metadata.md) |
 
 The latest complete forecast uses the direct surface and upper-air loading routes. It also uses seven direct field-registry methods and direct serial Laplacian, Gaussian-latitude and spherical-grid setup. These routes pass the complete final-state and saved-file gate above. The [assembly surface startup stage](../../skills/md2asm/references/openifs/input/initial_surface_state_startup.md) now owns the earlier defaults across all allocated rows, with every one of 7,149,696 bytes in ten captured owners checked. The [surface metadata readers](../../skills/md2asm/references/openifs/input/initial_surface_metadata.md) and [upper-air metadata reader](../../skills/md2asm/references/openifs/input/upper_air_initial_metadata.md) now read existing initialized objects directly in assembly. Constructing those original objects remains separate work.
 
-The [latitude geometry constructor](../../skills/md2asm/references/openifs/setup/latitude_geometry_setup.md) also passes this forecast. The [spectral packing fit](../../skills/md2asm/references/openifs/output/spectral_packing_fit.md) runs 120 times with 5,280 direct logarithm calls and exact saved files. The [direct GRIB writers](../../skills/md2asm/references/openifs/output/grib_field_writers.md) now write all 220 records and 618,140 bytes through assembly and the declared ecCodes format library. Their selected flush path also uses assembly. Complete model construction and other enclosing storage services remain unfinished.
+The [latitude geometry constructor](../../skills/md2asm/references/openifs/setup/latitude_geometry_setup.md) also passes this forecast. The [spectral packing fit](../../skills/md2asm/references/openifs/output/spectral_packing_fit.md) runs 120 times with 5,280 direct logarithm calls and exact saved files. The [direct GRIB writers](../../skills/md2asm/references/openifs/output/grib_field_writers.md) now write all 220 records and 618,140 bytes through assembly and the declared ecCodes format library. Their selected flush path also uses assembly. The complete physics-call context now creates, binds and releases its own storage through assembly. Standard-atmosphere setup and the selected output metadata also pass. Complete model-object construction and the remaining output request and header preparation still need assembly.
 
 ## Local records
 

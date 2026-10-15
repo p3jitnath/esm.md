@@ -1,0 +1,1416 @@
+// Solver contract skills/md2asm/references/openifs/support/additional_physics_work_records.md.
+// Source-scoped fixed work-record tables. See skills/md2asm/references/openifs/support/additional_physics_work_records.md.
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_flux_type_init
+.type md2asm_flux_type_init,%function
+md2asm_flux_type_init:
+ adrp x4,.Lflux_type_schema
+ add x4,x4,:lo12:.Lflux_type_schema
+ b .Lrecords_init
+.size md2asm_flux_type_init,.-md2asm_flux_type_init
+.global md2asm_flux_type_update_view
+.type md2asm_flux_type_update_view,%function
+md2asm_flux_type_update_view:
+ adrp x2,.Lflux_type_schema
+ add x2,x2,:lo12:.Lflux_type_schema
+ b .Lrecords_update_view
+.size md2asm_flux_type_update_view,.-md2asm_flux_type_update_view
+.global md2asm_flux_type_final
+.type md2asm_flux_type_final,%function
+md2asm_flux_type_final:
+ adrp x1,.Lflux_type_schema
+ add x1,x1,:lo12:.Lflux_type_schema
+ b .Lrecords_final
+.size md2asm_flux_type_final,.-md2asm_flux_type_final
+.global __ecphys_flux_type_mod_MOD_flux_type_init
+.type __ecphys_flux_type_mod_MOD_flux_type_init,%function
+__ecphys_flux_type_mod_MOD_flux_type_init:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#0]
+ add x10,x10,#1
+ str x10,[x9,#0]
+ ldr x0,[x0]
+ stp x29,x30,[sp,#-64]!
+ mov x29,sp
+ stp x18,x19,[sp,#16]
+ ldr x1,[x1]
+ mov x19,x6
+ ldr w9,[x2]
+ str w9,[sp,#32]
+ ldr w9,[x3]
+ str w9,[sp,#36]
+ ldr w9,[x4]
+ str w9,[sp,#40]
+ ldr w9,[x5]
+ str w9,[sp,#44]
+ add x2,sp,#32
+ cbz x19,.Lflux_type_persist_default
+ ldr w3,[x19]
+ b .Lflux_type_persist_ready
+.Lflux_type_persist_default:
+ mov w3,#0
+.Lflux_type_persist_ready:
+ bl md2asm_flux_type_init
+ cbnz w0,.Lflux_type_abort
+ ldp x18,x19,[sp,#16]
+ ldp x29,x30,[sp],#64
+ ret
+.Lflux_type_abort:
+ bl abort
+.size __ecphys_flux_type_mod_MOD_flux_type_init,.-__ecphys_flux_type_mod_MOD_flux_type_init
+.global __ecphys_flux_type_mod_MOD_flux_type_update_view
+.type __ecphys_flux_type_mod_MOD_flux_type_update_view,%function
+__ecphys_flux_type_mod_MOD_flux_type_update_view:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#8]
+ add x10,x10,#1
+ str x10,[x9,#8]
+ ldr x0,[x0]
+ ldr w1,[x1]
+ b md2asm_flux_type_update_view
+.size __ecphys_flux_type_mod_MOD_flux_type_update_view,.-__ecphys_flux_type_mod_MOD_flux_type_update_view
+.global __ecphys_flux_type_mod_MOD_flux_type_final
+.type __ecphys_flux_type_mod_MOD_flux_type_final,%function
+__ecphys_flux_type_mod_MOD_flux_type_final:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#16]
+ add x10,x10,#1
+ str x10,[x9,#16]
+ ldr x0,[x0]
+ b md2asm_flux_type_final
+.size __ecphys_flux_type_mod_MOD_flux_type_final,.-__ecphys_flux_type_mod_MOD_flux_type_final
+.section .rodata
+.p2align 3
+.Lflux_type_schema:
+ .word 57,.Lflux_type_views-.Lflux_type_schema,.Lflux_type_final-.Lflux_type_schema,0
+ .word 4608,2,3,-1,-1,-1,-1
+ .word 4616,2,3,-1,-1,-1,-1
+ .word 4640,2,3,-1,-1,-1,-1
+ .word 4648,2,3,-1,-1,-1,-1
+ .word 4656,2,3,-1,-1,-1,-1
+ .word 4624,2,3,-1,-1,-1,-1
+ .word 4632,2,3,-1,-1,-1,-1
+ .word 4664,2,3,-1,-1,-1,-1
+ .word 4672,2,3,-1,-1,-1,-1
+ .word 4680,2,3,-1,-1,-1,-1
+ .word 4696,2,3,-1,-1,-1,-1
+ .word 4704,2,3,-1,-1,-1,-1
+ .word 4688,2,3,-1,-1,-1,-1
+ .word 4712,2,3,-1,-1,-1,-1
+ .word 4720,2,3,-1,-1,-1,-1
+ .word 4728,2,3,-1,-1,-1,-1
+ .word 4736,2,3,-1,-1,-1,-1
+ .word 4744,2,3,-1,-1,-1,-1
+ .word 4752,3,3,-3,-1,-1,-1
+ .word 4760,3,3,-3,-1,-1,-1
+ .word 4768,3,3,0,-2,-1,-1
+ .word 4776,3,3,0,-2,-1,-1
+ .word 4784,3,3,0,-2,-1,-1
+ .word 4808,3,3,0,-2,-1,-1
+ .word 4816,3,3,0,-2,-1,-1
+ .word 4856,3,3,0,-2,-1,-1
+ .word 4864,3,3,0,-2,-1,-1
+ .word 4872,3,3,0,-2,-1,-1
+ .word 4880,3,3,0,-2,-1,-1
+ .word 4888,3,3,0,-2,-1,-1
+ .word 4896,3,3,0,-2,-1,-1
+ .word 4904,3,3,0,-2,-1,-1
+ .word 4912,3,3,0,-2,-1,-1
+ .word 4920,3,3,0,-2,-1,-1
+ .word 4928,3,3,0,-2,-1,-1
+ .word 4936,3,3,0,-2,-1,-1
+ .word 4944,3,3,0,-2,-1,-1
+ .word 4952,3,3,0,-2,-1,-1
+ .word 4960,3,3,0,-2,-1,-1
+ .word 4968,3,3,0,-2,-1,-1
+ .word 4976,3,3,0,-2,-1,-1
+ .word 4800,3,3,0,-2,-1,-1
+ .word 4792,3,3,0,-2,-1,-1
+ .word 4984,3,3,0,-2,-1,-1
+ .word 4992,3,3,0,-2,-1,-1
+ .word 5000,3,3,0,-2,-1,-1
+ .word 5008,3,3,0,-2,-1,-1
+ .word 4824,3,3,0,-2,-1,-1
+ .word 4832,3,3,0,-2,-1,-1
+ .word 5016,3,3,0,-2,-1,-1
+ .word 5024,3,3,0,-2,-1,-1
+ .word 4840,3,3,0,-2,-1,-1
+ .word 4848,3,3,0,-2,-1,-1
+ .word 5032,3,3,0,-2,-1,-1
+ .word 5040,3,3,0,-2,-1,-1
+ .word 5048,3,3,4,-1,-1,-1
+ .word 5056,4,3,8,-1,12,-1
+.Lflux_type_views:
+ .word 3256,4608,2,3,0
+ .word 3320,4616,2,3,0
+ .word 3512,4640,2,3,0
+ .word 3576,4648,2,3,0
+ .word 3640,4656,2,3,0
+ .word 3384,4624,2,3,0
+ .word 3448,4632,2,3,0
+ .word 3704,4664,2,3,0
+ .word 3768,4672,2,3,0
+ .word 3832,4680,2,3,0
+ .word 3960,4696,2,3,0
+ .word 4024,4704,2,3,0
+ .word 3896,4688,2,3,0
+ .word 4088,4712,2,3,0
+ .word 4152,4720,2,3,0
+ .word 4216,4728,2,3,0
+ .word 4280,4736,2,3,0
+ .word 4344,4744,2,3,0
+ .word 0,4752,3,3,1
+ .word 88,4760,3,3,1
+ .word 176,4768,3,3,1
+ .word 264,4776,3,3,1
+ .word 352,4784,3,3,1
+ .word 616,4808,3,3,1
+ .word 704,4816,3,3,1
+ .word 1144,4856,3,3,1
+ .word 1232,4864,3,3,1
+ .word 1320,4872,3,3,1
+ .word 1408,4880,3,3,1
+ .word 1496,4888,3,3,1
+ .word 1584,4896,3,3,1
+ .word 1672,4904,3,3,1
+ .word 1760,4912,3,3,1
+ .word 1848,4920,3,3,1
+ .word 1936,4928,3,3,1
+ .word 2024,4936,3,3,1
+ .word 2112,4944,3,3,1
+ .word 2200,4952,3,3,1
+ .word 2288,4960,3,3,1
+ .word 2376,4968,3,3,1
+ .word 2464,4976,3,3,1
+ .word 528,4800,3,3,1
+ .word 440,4792,3,3,1
+ .word 2552,4984,3,3,1
+ .word 2640,4992,3,3,1
+ .word 2728,5000,3,3,1
+ .word 2816,5008,3,3,1
+ .word 792,4824,3,3,1
+ .word 880,4832,3,3,1
+ .word 2904,5016,3,3,1
+ .word 2992,5024,3,3,1
+ .word 968,4840,3,3,1
+ .word 1056,4848,3,3,1
+ .word 3080,5032,3,3,1
+ .word 3168,5040,3,3,1
+ .word 4496,5056,4,3,0
+ .word 4408,5048,3,3,0
+.Lflux_type_final:
+ .word 4608,2
+ .word 4616,2
+ .word 4640,2
+ .word 4648,2
+ .word 4656,2
+ .word 4624,2
+ .word 4632,2
+ .word 4664,2
+ .word 4672,2
+ .word 4680,2
+ .word 4696,2
+ .word 4704,2
+ .word 4688,2
+ .word 4712,2
+ .word 4720,2
+ .word 4728,2
+ .word 4736,2
+ .word 4744,2
+ .word 4752,3
+ .word 4760,3
+ .word 4768,3
+ .word 4776,3
+ .word 4784,3
+ .word 4808,3
+ .word 4816,3
+ .word 4856,3
+ .word 4864,3
+ .word 4872,3
+ .word 4880,3
+ .word 4888,3
+ .word 4896,3
+ .word 4904,3
+ .word 4912,3
+ .word 4920,3
+ .word 4928,3
+ .word 4936,3
+ .word 4944,3
+ .word 4952,3
+ .word 4960,3
+ .word 4968,3
+ .word 4976,3
+ .word 4800,3
+ .word 4792,3
+ .word 4984,3
+ .word 4992,3
+ .word 5000,3
+ .word 5008,3
+ .word 4824,3
+ .word 4832,3
+ .word 5016,3
+ .word 5024,3
+ .word 4840,3
+ .word 4848,3
+ .word 5032,3
+ .word 5040,3
+ .word 5048,3
+ .word 5056,4
+.text
+.p2align 4
+.global md2asm_aux_diag_type_init
+.type md2asm_aux_diag_type_init,%function
+md2asm_aux_diag_type_init:
+ adrp x4,.Laux_diag_type_schema
+ add x4,x4,:lo12:.Laux_diag_type_schema
+ b .Lrecords_init
+.size md2asm_aux_diag_type_init,.-md2asm_aux_diag_type_init
+.global md2asm_aux_diag_type_update_view
+.type md2asm_aux_diag_type_update_view,%function
+md2asm_aux_diag_type_update_view:
+ adrp x2,.Laux_diag_type_schema
+ add x2,x2,:lo12:.Laux_diag_type_schema
+ b .Lrecords_update_view
+.size md2asm_aux_diag_type_update_view,.-md2asm_aux_diag_type_update_view
+.global md2asm_aux_diag_type_final
+.type md2asm_aux_diag_type_final,%function
+md2asm_aux_diag_type_final:
+ adrp x1,.Laux_diag_type_schema
+ add x1,x1,:lo12:.Laux_diag_type_schema
+ b .Lrecords_final
+.size md2asm_aux_diag_type_final,.-md2asm_aux_diag_type_final
+.global __ecphys_aux_diag_type_mod_MOD_aux_diag_type_init
+.type __ecphys_aux_diag_type_mod_MOD_aux_diag_type_init,%function
+__ecphys_aux_diag_type_mod_MOD_aux_diag_type_init:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#24]
+ add x10,x10,#1
+ str x10,[x9,#24]
+ ldr x0,[x0]
+ stp x29,x30,[sp,#-64]!
+ mov x29,sp
+ stp x18,x19,[sp,#16]
+ ldr x1,[x1]
+ mov x19,x3
+ ldr w9,[x2]
+ str w9,[sp,#32]
+ add x2,sp,#32
+ cbz x19,.Laux_diag_type_persist_default
+ ldr w3,[x19]
+ b .Laux_diag_type_persist_ready
+.Laux_diag_type_persist_default:
+ mov w3,#0
+.Laux_diag_type_persist_ready:
+ bl md2asm_aux_diag_type_init
+ cbnz w0,.Laux_diag_type_abort
+ ldp x18,x19,[sp,#16]
+ ldp x29,x30,[sp],#64
+ ret
+.Laux_diag_type_abort:
+ bl abort
+.size __ecphys_aux_diag_type_mod_MOD_aux_diag_type_init,.-__ecphys_aux_diag_type_mod_MOD_aux_diag_type_init
+.global __ecphys_aux_diag_type_mod_MOD_aux_diag_type_update_view
+.type __ecphys_aux_diag_type_mod_MOD_aux_diag_type_update_view,%function
+__ecphys_aux_diag_type_mod_MOD_aux_diag_type_update_view:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#32]
+ add x10,x10,#1
+ str x10,[x9,#32]
+ ldr x0,[x0]
+ ldr w1,[x1]
+ b md2asm_aux_diag_type_update_view
+.size __ecphys_aux_diag_type_mod_MOD_aux_diag_type_update_view,.-__ecphys_aux_diag_type_mod_MOD_aux_diag_type_update_view
+.global __ecphys_aux_diag_type_mod_MOD_aux_diag_type_final
+.type __ecphys_aux_diag_type_mod_MOD_aux_diag_type_final,%function
+__ecphys_aux_diag_type_mod_MOD_aux_diag_type_final:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#40]
+ add x10,x10,#1
+ str x10,[x9,#40]
+ ldr x0,[x0]
+ b md2asm_aux_diag_type_final
+.size __ecphys_aux_diag_type_mod_MOD_aux_diag_type_final,.-__ecphys_aux_diag_type_mod_MOD_aux_diag_type_final
+.section .rodata
+.p2align 3
+.Laux_diag_type_schema:
+ .word 49,.Laux_diag_type_views-.Laux_diag_type_schema,.Laux_diag_type_final-.Laux_diag_type_schema,0
+ .word 3712,2,3,-1,-1,-1,-1
+ .word 3720,2,3,-1,-1,-1,-1
+ .word 3728,2,3,-1,-1,-1,-1
+ .word 3736,2,3,-1,-1,-1,-1
+ .word 3744,2,3,-1,-1,-1,-1
+ .word 3752,2,3,-1,-1,-1,-1
+ .word 3760,2,3,-1,-1,-1,-1
+ .word 3880,2,3,-1,-1,-1,-1
+ .word 3768,2,3,-1,-1,-1,-1
+ .word 3776,2,3,-1,-1,-1,-1
+ .word 3784,2,3,-1,-1,-1,-1
+ .word 3792,2,3,-1,-1,-1,-1
+ .word 3800,2,3,-1,-1,-1,-1
+ .word 3808,2,3,-1,-1,-1,-1
+ .word 3816,2,3,-1,-1,-1,-1
+ .word 3824,2,3,-1,-1,-1,-1
+ .word 3832,2,3,-1,-1,-1,-1
+ .word 3888,3,3,-3,-1,-1,-1
+ .word 3896,3,3,-3,-1,-1,-1
+ .word 4016,3,3,-5,-1,-1,-1
+ .word 4024,3,3,-4,-1,-1,-1
+ .word 3904,3,3,0,-1,-1,-1
+ .word 3912,3,3,0,-1,-1,-1
+ .word 3920,3,3,0,-1,-1,-1
+ .word 3928,3,3,0,-1,-1,-1
+ .word 3936,3,3,0,-1,-1,-1
+ .word 3944,3,3,0,-1,-1,-1
+ .word 4000,3,3,0,-1,-1,-1
+ .word 4008,3,3,0,-1,-1,-1
+ .word 3952,3,3,0,-1,-1,-1
+ .word 3960,3,3,0,-1,-1,-1
+ .word 3968,3,3,0,-1,-1,-1
+ .word 3976,3,3,0,-1,-1,-1
+ .word 4032,4,3,0,-1,-5,-1
+ .word 4040,4,3,0,-1,-3,-1
+ .word 4048,4,3,0,-1,-3,-1
+ .word 3984,3,3,0,-1,-1,-1
+ .word 3992,3,3,0,-1,-1,-1
+ .word 3840,2,3,-1,-1,-1,-1
+ .word 3848,2,3,-1,-1,-1,-1
+ .word 3856,2,3,-1,-1,-1,-1
+ .word 3864,2,3,-1,-1,-1,-1
+ .word 3872,2,3,-1,-1,-1,-1
+ .word 4056,2,1,-1,-1,-1,-1
+ .word 4064,2,1,-1,-1,-1,-1
+ .word 4072,2,1,-1,-1,-1,-1
+ .word 4080,2,1,-1,-1,-1,-1
+ .word 4088,2,1,-1,-1,-1,-1
+ .word 4096,2,1,-1,-1,-1,-1
+.Laux_diag_type_views:
+ .word 0,3712,2,3,0
+ .word 64,4016,3,3,0
+ .word 152,3720,2,3,0
+ .word 216,3728,2,3,0
+ .word 280,3736,2,3,0
+ .word 344,3744,2,3,0
+ .word 408,3752,2,3,0
+ .word 472,3760,2,3,0
+ .word 536,3880,2,3,0
+ .word 600,3768,2,3,0
+ .word 664,4024,3,3,0
+ .word 752,3776,2,3,0
+ .word 816,3784,2,3,0
+ .word 880,3792,2,3,0
+ .word 944,3800,2,3,0
+ .word 1008,3808,2,3,0
+ .word 1072,3816,2,3,0
+ .word 1136,3824,2,3,0
+ .word 1200,3832,2,3,0
+ .word 1264,3888,3,3,0
+ .word 1352,3896,3,3,0
+ .word 1440,3904,3,3,0
+ .word 1528,3912,3,3,0
+ .word 1616,3920,3,3,0
+ .word 1704,3928,3,3,0
+ .word 1792,3936,3,3,0
+ .word 1880,3944,3,3,0
+ .word 1968,4000,3,3,0
+ .word 2056,4008,3,3,0
+ .word 2272,3952,3,3,0
+ .word 2744,3960,3,3,0
+ .word 2832,3968,3,3,0
+ .word 2920,3976,3,3,0
+ .word 3008,4032,4,3,0
+ .word 3296,4040,4,3,0
+ .word 3408,4048,4,3,0
+ .word 3120,3984,3,3,0
+ .word 3208,3992,3,3,0
+ .word 3520,3840,2,3,0
+ .word 3584,3848,2,3,0
+ .word 3648,3856,2,3,0
+ .word 2144,3864,2,3,0
+ .word 2208,3872,2,3,0
+ .word 2360,4056,2,1,0
+ .word 2424,4064,2,1,0
+ .word 2488,4072,2,1,0
+ .word 2552,4080,2,1,0
+ .word 2616,4088,2,1,0
+ .word 2680,4096,2,1,0
+.Laux_diag_type_final:
+ .word 3712,2
+ .word 4016,3
+ .word 3720,2
+ .word 3728,2
+ .word 3736,2
+ .word 3744,2
+ .word 3752,2
+ .word 3760,2
+ .word 3880,2
+ .word 3768,2
+ .word 4024,3
+ .word 3776,2
+ .word 3784,2
+ .word 3792,2
+ .word 3800,2
+ .word 3808,2
+ .word 3816,2
+ .word 3824,2
+ .word 3832,2
+ .word 3888,3
+ .word 3896,3
+ .word 3904,3
+ .word 3912,3
+ .word 3920,3
+ .word 3928,3
+ .word 3936,3
+ .word 3944,3
+ .word 4000,3
+ .word 4008,3
+ .word 3952,3
+ .word 3960,3
+ .word 3968,3
+ .word 3976,3
+ .word 4032,4
+ .word 4040,4
+ .word 4048,4
+ .word 3984,3
+ .word 3992,3
+ .word 3840,2
+ .word 3848,2
+ .word 3856,2
+ .word 3864,2
+ .word 3872,2
+ .word 4056,2
+ .word 4064,2
+ .word 4072,2
+ .word 4080,2
+ .word 4088,2
+ .word 4096,2
+.text
+.p2align 4
+.global md2asm_ddh_surf_type_init
+.type md2asm_ddh_surf_type_init,%function
+md2asm_ddh_surf_type_init:
+ adrp x4,.Lddh_surf_type_schema
+ add x4,x4,:lo12:.Lddh_surf_type_schema
+ b .Lrecords_init
+.size md2asm_ddh_surf_type_init,.-md2asm_ddh_surf_type_init
+.global md2asm_ddh_surf_type_update_view
+.type md2asm_ddh_surf_type_update_view,%function
+md2asm_ddh_surf_type_update_view:
+ adrp x2,.Lddh_surf_type_schema
+ add x2,x2,:lo12:.Lddh_surf_type_schema
+ b .Lrecords_update_view
+.size md2asm_ddh_surf_type_update_view,.-md2asm_ddh_surf_type_update_view
+.global md2asm_ddh_surf_type_final
+.type md2asm_ddh_surf_type_final,%function
+md2asm_ddh_surf_type_final:
+ adrp x1,.Lddh_surf_type_schema
+ add x1,x1,:lo12:.Lddh_surf_type_schema
+ b .Lrecords_final
+.size md2asm_ddh_surf_type_final,.-md2asm_ddh_surf_type_final
+.global __ecphys_surface_type_mod_MOD_ddh_surf_type_init
+.type __ecphys_surface_type_mod_MOD_ddh_surf_type_init,%function
+__ecphys_surface_type_mod_MOD_ddh_surf_type_init:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#48]
+ add x10,x10,#1
+ str x10,[x9,#48]
+ ldr x0,[x0]
+ stp x29,x30,[sp,#-64]!
+ mov x29,sp
+ stp x18,x19,[sp,#16]
+ ldr x1,[x1]
+ mov x19,x3
+ cbz x19,.Lddh_surf_type_persist_default
+ ldr w3,[x19]
+ b .Lddh_surf_type_persist_ready
+.Lddh_surf_type_persist_default:
+ mov w3,#0
+.Lddh_surf_type_persist_ready:
+ bl md2asm_ddh_surf_type_init
+ cbnz w0,.Lddh_surf_type_abort
+ ldp x18,x19,[sp,#16]
+ ldp x29,x30,[sp],#64
+ ret
+.Lddh_surf_type_abort:
+ bl abort
+.size __ecphys_surface_type_mod_MOD_ddh_surf_type_init,.-__ecphys_surface_type_mod_MOD_ddh_surf_type_init
+.global __ecphys_surface_type_mod_MOD_ddh_surf_type_update_view
+.type __ecphys_surface_type_mod_MOD_ddh_surf_type_update_view,%function
+__ecphys_surface_type_mod_MOD_ddh_surf_type_update_view:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#56]
+ add x10,x10,#1
+ str x10,[x9,#56]
+ ldr x0,[x0]
+ ldr w1,[x1]
+ b md2asm_ddh_surf_type_update_view
+.size __ecphys_surface_type_mod_MOD_ddh_surf_type_update_view,.-__ecphys_surface_type_mod_MOD_ddh_surf_type_update_view
+.global __ecphys_surface_type_mod_MOD_ddh_surf_type_final
+.type __ecphys_surface_type_mod_MOD_ddh_surf_type_final,%function
+__ecphys_surface_type_mod_MOD_ddh_surf_type_final:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#64]
+ add x10,x10,#1
+ str x10,[x9,#64]
+ ldr x0,[x0]
+ b md2asm_ddh_surf_type_final
+.size __ecphys_surface_type_mod_MOD_ddh_surf_type_final,.-__ecphys_surface_type_mod_MOD_ddh_surf_type_final
+.section .rodata
+.p2align 3
+.Lddh_surf_type_schema:
+ .word 7,.Lddh_surf_type_views-.Lddh_surf_type_schema,.Lddh_surf_type_final-.Lddh_surf_type_schema,1
+ .word 864,4,3,24,-1,68,72
+ .word 872,4,3,64,-1,76,80
+ .word 880,4,3,20,-1,84,88
+ .word 888,4,3,56,-1,92,96
+ .word 896,4,3,64,-1,100,104
+ .word 856,3,3,108,112,-1,-1
+ .word 904,4,3,20,-1,116,120
+.Lddh_surf_type_views:
+ .word 0,864,4,3,0
+ .word 112,872,4,3,0
+ .word 224,880,4,3,0
+ .word 336,888,4,3,0
+ .word 448,896,4,3,0
+ .word 560,856,3,3,0
+ .word 648,904,4,3,0
+.Lddh_surf_type_final:
+ .word 864,4
+ .word 872,4
+ .word 880,4
+ .word 888,4
+ .word 896,4
+ .word 856,3
+ .word 904,4
+.text
+.p2align 4
+.global md2asm_aux_diag_local_type_init
+.type md2asm_aux_diag_local_type_init,%function
+md2asm_aux_diag_local_type_init:
+ adrp x4,.Laux_diag_local_type_schema
+ add x4,x4,:lo12:.Laux_diag_local_type_schema
+ b .Lrecords_init
+.size md2asm_aux_diag_local_type_init,.-md2asm_aux_diag_local_type_init
+.global md2asm_aux_diag_local_type_update_view
+.type md2asm_aux_diag_local_type_update_view,%function
+md2asm_aux_diag_local_type_update_view:
+ adrp x2,.Laux_diag_local_type_schema
+ add x2,x2,:lo12:.Laux_diag_local_type_schema
+ b .Lrecords_update_view
+.size md2asm_aux_diag_local_type_update_view,.-md2asm_aux_diag_local_type_update_view
+.global md2asm_aux_diag_local_type_final
+.type md2asm_aux_diag_local_type_final,%function
+md2asm_aux_diag_local_type_final:
+ adrp x1,.Laux_diag_local_type_schema
+ add x1,x1,:lo12:.Laux_diag_local_type_schema
+ b .Lrecords_final
+.size md2asm_aux_diag_local_type_final,.-md2asm_aux_diag_local_type_final
+.global __ecphys_aux_diag_type_mod_MOD_aux_diag_local_type_init
+.type __ecphys_aux_diag_type_mod_MOD_aux_diag_local_type_init,%function
+__ecphys_aux_diag_type_mod_MOD_aux_diag_local_type_init:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#72]
+ add x10,x10,#1
+ str x10,[x9,#72]
+ ldr x0,[x0]
+ stp x29,x30,[sp,#-64]!
+ mov x29,sp
+ stp x18,x19,[sp,#16]
+ ldr x1,[x1]
+ mov x19,x3
+ ldr w9,[x2]
+ str w9,[sp,#32]
+ add x2,sp,#32
+ cbz x19,.Laux_diag_local_type_persist_default
+ ldr w3,[x19]
+ b .Laux_diag_local_type_persist_ready
+.Laux_diag_local_type_persist_default:
+ mov w3,#0
+.Laux_diag_local_type_persist_ready:
+ bl md2asm_aux_diag_local_type_init
+ cbnz w0,.Laux_diag_local_type_abort
+ ldp x18,x19,[sp,#16]
+ ldp x29,x30,[sp],#64
+ ret
+.Laux_diag_local_type_abort:
+ bl abort
+.size __ecphys_aux_diag_type_mod_MOD_aux_diag_local_type_init,.-__ecphys_aux_diag_type_mod_MOD_aux_diag_local_type_init
+.global __ecphys_aux_diag_type_mod_MOD_aux_diag_local_type_update_view
+.type __ecphys_aux_diag_type_mod_MOD_aux_diag_local_type_update_view,%function
+__ecphys_aux_diag_type_mod_MOD_aux_diag_local_type_update_view:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#80]
+ add x10,x10,#1
+ str x10,[x9,#80]
+ ldr x0,[x0]
+ ldr w1,[x1]
+ b md2asm_aux_diag_local_type_update_view
+.size __ecphys_aux_diag_type_mod_MOD_aux_diag_local_type_update_view,.-__ecphys_aux_diag_type_mod_MOD_aux_diag_local_type_update_view
+.global __ecphys_aux_diag_type_mod_MOD_aux_diag_local_type_final
+.type __ecphys_aux_diag_type_mod_MOD_aux_diag_local_type_final,%function
+__ecphys_aux_diag_type_mod_MOD_aux_diag_local_type_final:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#88]
+ add x10,x10,#1
+ str x10,[x9,#88]
+ ldr x0,[x0]
+ b md2asm_aux_diag_local_type_final
+.size __ecphys_aux_diag_type_mod_MOD_aux_diag_local_type_final,.-__ecphys_aux_diag_type_mod_MOD_aux_diag_local_type_final
+.section .rodata
+.p2align 3
+.Laux_diag_local_type_schema:
+ .word 27,.Laux_diag_local_type_views-.Laux_diag_local_type_schema,.Laux_diag_local_type_final-.Laux_diag_local_type_schema,0
+ .word 2120,2,3,-1,-1,-1,-1
+ .word 2128,2,3,-1,-1,-1,-1
+ .word 2136,2,3,-1,-1,-1,-1
+ .word 2152,2,3,-1,-1,-1,-1
+ .word 2160,2,3,-1,-1,-1,-1
+ .word 2168,2,3,-1,-1,-1,-1
+ .word 2176,2,3,-1,-1,-1,-1
+ .word 2144,2,3,-1,-1,-1,-1
+ .word 2184,3,3,0,-2,-1,-1
+ .word 2208,3,3,0,-1,-1,-1
+ .word 2216,3,3,0,-1,-1,-1
+ .word 2224,3,3,0,-1,-1,-1
+ .word 2232,3,3,0,-1,-1,-1
+ .word 2240,3,3,0,-1,-1,-1
+ .word 2248,3,3,0,-1,-1,-1
+ .word 2256,3,3,0,-1,-1,-1
+ .word 2264,3,3,0,-1,-1,-1
+ .word 2272,3,3,0,-1,-1,-1
+ .word 2280,3,3,0,-1,-1,-1
+ .word 2296,3,3,0,-1,-1,-1
+ .word 2288,3,3,0,-1,-1,-1
+ .word 2304,3,3,0,-1,-1,-1
+ .word 2192,3,3,-3,-1,-1,-1
+ .word 2200,3,3,-3,-1,-1,-1
+ .word 2312,2,1,-1,-1,-1,-1
+ .word 2320,2,1,-1,-1,-1,-1
+ .word 2328,2,1,-1,-1,-1,-1
+.Laux_diag_local_type_views:
+ .word 8,2120,2,3,0
+ .word 72,2128,2,3,0
+ .word 136,2136,2,3,0
+ .word 456,2152,2,3,0
+ .word 520,2160,2,3,0
+ .word 584,2168,2,3,0
+ .word 648,2176,2,3,0
+ .word 200,2144,2,3,0
+ .word 712,2184,3,3,1
+ .word 976,2208,3,3,0
+ .word 1064,2216,3,3,0
+ .word 1152,2224,3,3,0
+ .word 1240,2232,3,3,0
+ .word 1328,2240,3,3,0
+ .word 1416,2248,3,3,0
+ .word 1504,2256,3,3,0
+ .word 1592,2264,3,3,0
+ .word 1680,2272,3,3,0
+ .word 1768,2280,3,3,0
+ .word 1944,2296,3,3,0
+ .word 1856,2288,3,3,0
+ .word 2032,2304,3,3,0
+ .word 800,2192,3,3,1
+ .word 888,2200,3,3,1
+ .word 264,2312,2,1,0
+ .word 328,2320,2,1,0
+ .word 392,2328,2,1,0
+.Laux_diag_local_type_final:
+ .word 2120,2
+ .word 2128,2
+ .word 2136,2
+ .word 2152,2
+ .word 2160,2
+ .word 2168,2
+ .word 2176,2
+ .word 2144,2
+ .word 2184,3
+ .word 2208,3
+ .word 2216,3
+ .word 2224,3
+ .word 2232,3
+ .word 2240,3
+ .word 2248,3
+ .word 2256,3
+ .word 2264,3
+ .word 2272,3
+ .word 2280,3
+ .word 2296,3
+ .word 2288,3
+ .word 2304,3
+ .word 2192,3
+ .word 2200,3
+ .word 2312,2
+ .word 2320,2
+ .word 2328,2
+.text
+.p2align 4
+.global md2asm_surf_and_more_local_type_init
+.type md2asm_surf_and_more_local_type_init,%function
+md2asm_surf_and_more_local_type_init:
+ adrp x4,.Lsurf_and_more_local_type_schema
+ add x4,x4,:lo12:.Lsurf_and_more_local_type_schema
+ b .Lrecords_init
+.size md2asm_surf_and_more_local_type_init,.-md2asm_surf_and_more_local_type_init
+.global md2asm_surf_and_more_local_type_update_view
+.type md2asm_surf_and_more_local_type_update_view,%function
+md2asm_surf_and_more_local_type_update_view:
+ adrp x2,.Lsurf_and_more_local_type_schema
+ add x2,x2,:lo12:.Lsurf_and_more_local_type_schema
+ b .Lrecords_update_view
+.size md2asm_surf_and_more_local_type_update_view,.-md2asm_surf_and_more_local_type_update_view
+.global md2asm_surf_and_more_local_type_final
+.type md2asm_surf_and_more_local_type_final,%function
+md2asm_surf_and_more_local_type_final:
+ adrp x1,.Lsurf_and_more_local_type_schema
+ add x1,x1,:lo12:.Lsurf_and_more_local_type_schema
+ b .Lrecords_final
+.size md2asm_surf_and_more_local_type_final,.-md2asm_surf_and_more_local_type_final
+.global __ecphys_surface_type_mod_MOD_surf_and_more_local_type_init
+.type __ecphys_surface_type_mod_MOD_surf_and_more_local_type_init,%function
+__ecphys_surface_type_mod_MOD_surf_and_more_local_type_init:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#96]
+ add x10,x10,#1
+ str x10,[x9,#96]
+ ldr x0,[x0]
+ stp x29,x30,[sp,#-64]!
+ mov x29,sp
+ stp x18,x19,[sp,#16]
+ ldr x1,[x1]
+ mov x19,x6
+ ldr w9,[x2]
+ str w9,[sp,#32]
+ ldr w9,[x3]
+ str w9,[sp,#36]
+ ldr w9,[x4]
+ str w9,[sp,#40]
+ ldr w9,[x5]
+ str w9,[sp,#44]
+ add x2,sp,#32
+ cbz x19,.Lsurf_and_more_local_type_persist_default
+ ldr w3,[x19]
+ b .Lsurf_and_more_local_type_persist_ready
+.Lsurf_and_more_local_type_persist_default:
+ mov w3,#0
+.Lsurf_and_more_local_type_persist_ready:
+ bl md2asm_surf_and_more_local_type_init
+ cbnz w0,.Lsurf_and_more_local_type_abort
+ ldp x18,x19,[sp,#16]
+ ldp x29,x30,[sp],#64
+ ret
+.Lsurf_and_more_local_type_abort:
+ bl abort
+.size __ecphys_surface_type_mod_MOD_surf_and_more_local_type_init,.-__ecphys_surface_type_mod_MOD_surf_and_more_local_type_init
+.global __ecphys_surface_type_mod_MOD_surf_and_more_local_type_update_view
+.type __ecphys_surface_type_mod_MOD_surf_and_more_local_type_update_view,%function
+__ecphys_surface_type_mod_MOD_surf_and_more_local_type_update_view:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#104]
+ add x10,x10,#1
+ str x10,[x9,#104]
+ ldr x0,[x0]
+ ldr w1,[x1]
+ b md2asm_surf_and_more_local_type_update_view
+.size __ecphys_surface_type_mod_MOD_surf_and_more_local_type_update_view,.-__ecphys_surface_type_mod_MOD_surf_and_more_local_type_update_view
+.global __ecphys_surface_type_mod_MOD_surf_and_more_local_type_final
+.type __ecphys_surface_type_mod_MOD_surf_and_more_local_type_final,%function
+__ecphys_surface_type_mod_MOD_surf_and_more_local_type_final:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#112]
+ add x10,x10,#1
+ str x10,[x9,#112]
+ ldr x0,[x0]
+ b md2asm_surf_and_more_local_type_final
+.size __ecphys_surface_type_mod_MOD_surf_and_more_local_type_final,.-__ecphys_surface_type_mod_MOD_surf_and_more_local_type_final
+.section .rodata
+.p2align 3
+.Lsurf_and_more_local_type_schema:
+ .word 20,.Lsurf_and_more_local_type_views-.Lsurf_and_more_local_type_schema,.Lsurf_and_more_local_type_final-.Lsurf_and_more_local_type_schema,0
+ .word 1912,2,3,-1,-1,-1,-1
+ .word 1920,2,3,-1,-1,-1,-1
+ .word 2000,3,3,0,-1,-1,-1
+ .word 2008,3,3,0,-1,-1,-1
+ .word 1928,2,3,-1,-1,-1,-1
+ .word 1936,2,3,-1,-1,-1,-1
+ .word 1984,2,3,-1,-1,-1,-1
+ .word 2016,3,3,12,-1,-1,-1
+ .word 1992,2,3,-1,-1,-1,-1
+ .word 1952,2,3,-1,-1,-1,-1
+ .word 1960,2,3,-1,-1,-1,-1
+ .word 2024,3,3,4,-1,-1,-1
+ .word 2032,3,3,4,-1,-1,-1
+ .word 2040,3,3,4,-1,-1,-1
+ .word 2048,3,3,4,-1,-1,-1
+ .word 2056,3,3,8,-1,-1,-1
+ .word 2064,3,3,8,-1,-1,-1
+ .word 2072,3,3,-3,-1,-1,-1
+ .word 2080,3,3,-3,-1,-1,-1
+ .word 2088,4,3,-3,-1,-8,-2
+.Lsurf_and_more_local_type_views:
+ .word 0,1912,2,3,0
+ .word 64,1920,2,3,0
+ .word 192,2000,3,3,0
+ .word 280,2008,3,3,0
+ .word 128,1928,2,3,0
+ .word 368,1936,2,3,0
+ .word 752,1984,2,3,0
+ .word 944,2016,3,3,0
+ .word 1032,1992,2,3,0
+ .word 496,1952,2,3,0
+ .word 560,1960,2,3,0
+ .word 1096,2024,3,3,0
+ .word 1184,2032,3,3,0
+ .word 1272,2040,3,3,0
+ .word 1360,2048,3,3,0
+ .word 1448,2056,3,3,0
+ .word 1536,2064,3,3,0
+ .word 1624,2072,3,3,0
+ .word 1712,2080,3,3,0
+ .word 1800,2088,4,3,0
+.Lsurf_and_more_local_type_final:
+ .word 1912,2
+ .word 1920,2
+ .word 2000,3
+ .word 2008,3
+ .word 1928,2
+ .word 1936,2
+ .word 1984,2
+ .word 2016,3
+ .word 1992,2
+ .word 1952,2
+ .word 1960,2
+ .word 2024,3
+ .word 2032,3
+ .word 2040,3
+ .word 2048,3
+ .word 2056,3
+ .word 2064,3
+ .word 2072,3
+ .word 2080,3
+ .word 2088,4
+.text
+.p2align 4
+.global md2asm_keys_local_type_init
+.type md2asm_keys_local_type_init,%function
+md2asm_keys_local_type_init:
+ adrp x4,.Lkeys_local_type_schema
+ add x4,x4,:lo12:.Lkeys_local_type_schema
+ b .Lrecords_init
+.size md2asm_keys_local_type_init,.-md2asm_keys_local_type_init
+.global md2asm_keys_local_type_update_view
+.type md2asm_keys_local_type_update_view,%function
+md2asm_keys_local_type_update_view:
+ adrp x2,.Lkeys_local_type_schema
+ add x2,x2,:lo12:.Lkeys_local_type_schema
+ b .Lrecords_update_view
+.size md2asm_keys_local_type_update_view,.-md2asm_keys_local_type_update_view
+.global md2asm_keys_local_type_final
+.type md2asm_keys_local_type_final,%function
+md2asm_keys_local_type_final:
+ adrp x1,.Lkeys_local_type_schema
+ add x1,x1,:lo12:.Lkeys_local_type_schema
+ b .Lrecords_final
+.size md2asm_keys_local_type_final,.-md2asm_keys_local_type_final
+.global __ecphys_aux_type_mod_MOD_keys_local_type_init
+.type __ecphys_aux_type_mod_MOD_keys_local_type_init,%function
+__ecphys_aux_type_mod_MOD_keys_local_type_init:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#120]
+ add x10,x10,#1
+ str x10,[x9,#120]
+ ldr x0,[x0]
+ stp x29,x30,[sp,#-64]!
+ mov x29,sp
+ stp x18,x19,[sp,#16]
+ ldr x1,[x1]
+ mov x19,x2
+ add x2,sp,#32
+ cbz x19,.Lkeys_local_type_persist_default
+ ldr w3,[x19]
+ b .Lkeys_local_type_persist_ready
+.Lkeys_local_type_persist_default:
+ mov w3,#0
+.Lkeys_local_type_persist_ready:
+ bl md2asm_keys_local_type_init
+ cbnz w0,.Lkeys_local_type_abort
+ ldp x18,x19,[sp,#16]
+ ldp x29,x30,[sp],#64
+ ret
+.Lkeys_local_type_abort:
+ bl abort
+.size __ecphys_aux_type_mod_MOD_keys_local_type_init,.-__ecphys_aux_type_mod_MOD_keys_local_type_init
+.global __ecphys_aux_type_mod_MOD_keys_local_type_update_view
+.type __ecphys_aux_type_mod_MOD_keys_local_type_update_view,%function
+__ecphys_aux_type_mod_MOD_keys_local_type_update_view:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#128]
+ add x10,x10,#1
+ str x10,[x9,#128]
+ ldr x0,[x0]
+ ldr w1,[x1]
+ b md2asm_keys_local_type_update_view
+.size __ecphys_aux_type_mod_MOD_keys_local_type_update_view,.-__ecphys_aux_type_mod_MOD_keys_local_type_update_view
+.global __ecphys_aux_type_mod_MOD_keys_local_type_final
+.type __ecphys_aux_type_mod_MOD_keys_local_type_final,%function
+__ecphys_aux_type_mod_MOD_keys_local_type_final:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#136]
+ add x10,x10,#1
+ str x10,[x9,#136]
+ ldr x0,[x0]
+ b md2asm_keys_local_type_final
+.size __ecphys_aux_type_mod_MOD_keys_local_type_final,.-__ecphys_aux_type_mod_MOD_keys_local_type_final
+.section .rodata
+.p2align 3
+.Lkeys_local_type_schema:
+ .word 9,.Lkeys_local_type_views-.Lkeys_local_type_schema,.Lkeys_local_type_final-.Lkeys_local_type_schema,0
+ .word 592,2,2,-1,-1,-1,-1
+ .word 600,2,2,-1,-1,-1,-1
+ .word 608,2,2,-1,-1,-1,-1
+ .word 616,2,2,-1,-1,-1,-1
+ .word 624,2,2,-1,-1,-1,-1
+ .word 632,2,2,-1,-1,-1,-1
+ .word 656,2,2,-1,-1,-1,-1
+ .word 640,2,2,-1,-1,-1,-1
+ .word 648,2,2,-1,-1,-1,-1
+.Lkeys_local_type_views:
+ .word 0,592,2,2,0
+ .word 64,600,2,2,0
+ .word 128,608,2,2,0
+ .word 192,616,2,2,0
+ .word 256,624,2,2,0
+ .word 320,632,2,2,0
+ .word 384,656,2,2,0
+ .word 448,640,2,2,0
+ .word 512,648,2,2,0
+.Lkeys_local_type_final:
+ .word 592,2
+ .word 600,2
+ .word 608,2
+ .word 616,2
+ .word 624,2
+ .word 632,2
+ .word 656,2
+ .word 640,2
+ .word 648,2
+.text
+.p2align 4
+.global md2asm_perturb_local_type_init
+.type md2asm_perturb_local_type_init,%function
+md2asm_perturb_local_type_init:
+ adrp x4,.Lperturb_local_type_schema
+ add x4,x4,:lo12:.Lperturb_local_type_schema
+ b .Lrecords_init
+.size md2asm_perturb_local_type_init,.-md2asm_perturb_local_type_init
+.global md2asm_perturb_local_type_update_view
+.type md2asm_perturb_local_type_update_view,%function
+md2asm_perturb_local_type_update_view:
+ adrp x2,.Lperturb_local_type_schema
+ add x2,x2,:lo12:.Lperturb_local_type_schema
+ b .Lrecords_update_view
+.size md2asm_perturb_local_type_update_view,.-md2asm_perturb_local_type_update_view
+.global md2asm_perturb_local_type_final
+.type md2asm_perturb_local_type_final,%function
+md2asm_perturb_local_type_final:
+ adrp x1,.Lperturb_local_type_schema
+ add x1,x1,:lo12:.Lperturb_local_type_schema
+ b .Lrecords_final
+.size md2asm_perturb_local_type_final,.-md2asm_perturb_local_type_final
+.global __ecphys_perturb_type_mod_MOD_perturb_local_type_init
+.type __ecphys_perturb_type_mod_MOD_perturb_local_type_init,%function
+__ecphys_perturb_type_mod_MOD_perturb_local_type_init:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#144]
+ add x10,x10,#1
+ str x10,[x9,#144]
+ ldr x0,[x0]
+ stp x29,x30,[sp,#-64]!
+ mov x29,sp
+ stp x18,x19,[sp,#16]
+ ldr x1,[x1]
+ mov x19,x3
+ ldr w9,[x2]
+ str w9,[sp,#32]
+ add x2,sp,#32
+ cbz x19,.Lperturb_local_type_persist_default
+ ldr w3,[x19]
+ b .Lperturb_local_type_persist_ready
+.Lperturb_local_type_persist_default:
+ mov w3,#0
+.Lperturb_local_type_persist_ready:
+ bl md2asm_perturb_local_type_init
+ cbnz w0,.Lperturb_local_type_abort
+ ldp x18,x19,[sp,#16]
+ ldp x29,x30,[sp],#64
+ ret
+.Lperturb_local_type_abort:
+ bl abort
+.size __ecphys_perturb_type_mod_MOD_perturb_local_type_init,.-__ecphys_perturb_type_mod_MOD_perturb_local_type_init
+.global __ecphys_perturb_type_mod_MOD_perturb_local_type_update_view
+.type __ecphys_perturb_type_mod_MOD_perturb_local_type_update_view,%function
+__ecphys_perturb_type_mod_MOD_perturb_local_type_update_view:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#152]
+ add x10,x10,#1
+ str x10,[x9,#152]
+ ldr x0,[x0]
+ ldr w1,[x1]
+ b md2asm_perturb_local_type_update_view
+.size __ecphys_perturb_type_mod_MOD_perturb_local_type_update_view,.-__ecphys_perturb_type_mod_MOD_perturb_local_type_update_view
+.global __ecphys_perturb_type_mod_MOD_perturb_local_type_final
+.type __ecphys_perturb_type_mod_MOD_perturb_local_type_final,%function
+__ecphys_perturb_type_mod_MOD_perturb_local_type_final:
+ adrp x9,md2asm_additional_work_record_native_counters
+ add x9,x9,:lo12:md2asm_additional_work_record_native_counters
+ ldr x10,[x9,#160]
+ add x10,x10,#1
+ str x10,[x9,#160]
+ ldr x0,[x0]
+ b md2asm_perturb_local_type_final
+.size __ecphys_perturb_type_mod_MOD_perturb_local_type_final,.-__ecphys_perturb_type_mod_MOD_perturb_local_type_final
+.section .rodata
+.p2align 3
+.Lperturb_local_type_schema:
+ .word 4,.Lperturb_local_type_views-.Lperturb_local_type_schema,.Lperturb_local_type_final-.Lperturb_local_type_schema,0
+ .word 304,2,3,-1,-1,-1,-1
+ .word 320,3,3,0,-1,-1,-1
+ .word 312,2,3,-1,-1,-1,-1
+ .word 328,3,3,0,-1,-1,-1
+.Lperturb_local_type_views:
+ .word 0,304,2,3,0
+ .word 64,320,3,3,0
+ .word 152,312,2,3,0
+ .word 216,328,3,3,2
+.Lperturb_local_type_final:
+ .word 304,2
+ .word 320,3
+ .word 312,2
+ .word 328,3
+.text
+.p2align 4
+.Lrecords_init:
+ sub sp,sp,#192
+ stp x29,x30,[sp]
+ mov x29,sp
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mrs x9,fpcr
+ str x9,[sp,#104]
+ mrs x9,fpsr
+ str x9,[sp,#112]
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ mov w24,w3
+ mov x28,x4
+ ldr w9,[x28,#12]
+ cmp w9,#0
+ csel w24,wzr,w24,ne
+ ldr w23,[x28]
+ add x22,x28,#16
+ mov w10,w23
+ mov x11,x22
+.Lrecords_null_owned:
+ ldr w9,[x11],#28
+ str xzr,[x19,w9,uxtw]
+ subs w10,w10,#1
+ b.ne .Lrecords_null_owned
+ bl __errno_location
+ str x0,[sp,#120]
+ ldr w9,[x0]
+ str w9,[sp,#128]
+.Lrecords_create:
+ ldp w9,w25,[x22]
+ ldr w26,[x22,#8]
+ mov x0,#72
+ madd x0,x25,x0,xzr
+ add x0,x0,#112
+ bl malloc
+ cbz x0,.Lrecords_init_failed
+ mov x27,x0
+ ldr w9,[x20,#5144]
+ ldr w10,[x20,#5160]
+ mov w11,#1
+ cmp w24,#0
+ csel w10,w10,w11,ne
+ str w9,[sp,#160]
+ str w10,[sp,#176]
+ cmp w25,#2
+ b.eq .Lrecords_rank2_shape
+ mov x0,x21
+ ldp w1,w2,[x22,#12]
+ bl .Lrecords_extent
+ str w0,[sp,#164]
+ cmp w25,#3
+ b.eq .Lrecords_rank3_shape
+ mov x0,x21
+ ldp w1,w2,[x22,#20]
+ bl .Lrecords_extent
+ str w0,[sp,#168]
+ ldr w9,[sp,#176]
+ str w9,[sp,#172]
+ b .Lrecords_shape_ready
+.Lrecords_rank3_shape:
+ ldr w9,[sp,#176]
+ str w9,[sp,#168]
+ b .Lrecords_shape_ready
+.Lrecords_rank2_shape:
+ ldr w9,[sp,#176]
+ str w9,[sp,#164]
+.Lrecords_shape_ready:
+ mov x0,x27
+ add x1,sp,#160
+ mov w2,w25
+ eor w3,w24,#1
+ cmp w26,#1
+ b.eq .Lrecords_allocate_integer
+ cmp w26,#2
+ b.eq .Lrecords_allocate_logical
+ bl md2asm_registry_allocate_field
+ b .Lrecords_allocated
+.Lrecords_allocate_integer:
+ bl md2asm_allocate_integer_work_field
+ b .Lrecords_allocated
+.Lrecords_allocate_logical:
+ bl md2asm_allocate_logical_work_field
+.Lrecords_allocated:
+ cbnz w0,.Lrecords_data_failed
+ ldr w9,[x22]
+ str x27,[x19,w9,uxtw]
+ add x22,x22,#28
+ subs w23,w23,#1
+ b.ne .Lrecords_create
+ mov w27,#0
+ b .Lrecords_init_return
+.Lrecords_data_failed:
+ mov x0,x27
+ bl free
+.Lrecords_init_failed:
+ mov x0,x19
+ mov x1,x28
+ bl .Lrecords_final
+ mov w27,#1
+.Lrecords_init_return:
+ mov w0,w27
+ ldr x9,[sp,#120]
+ ldr w10,[sp,#128]
+ str w10,[x9]
+ ldr x9,[sp,#104]
+ msr fpcr,x9
+ ldr x9,[sp,#112]
+ msr fpsr,x9
+ ldr x18,[sp,#96]
+ ldp x27,x28,[sp,#80]
+ ldp x25,x26,[sp,#64]
+ ldp x23,x24,[sp,#48]
+ ldp x21,x22,[sp,#32]
+ ldp x19,x20,[sp,#16]
+ ldp x29,x30,[sp]
+ add sp,sp,#192
+ ret
+.Lrecords_extent:
+ tbnz w1,#31,.Lrecords_literal_a
+ ldr w9,[x0,w1,uxtw]
+ b .Lrecords_extent_b
+.Lrecords_literal_a:
+ mvn w9,w1
+.Lrecords_extent_b:
+ tbnz w2,#31,.Lrecords_literal_b
+ ldr w10,[x0,w2,uxtw]
+ b .Lrecords_extent_add
+.Lrecords_literal_b:
+ mvn w10,w2
+.Lrecords_extent_add:
+ add w0,w9,w10
+ ret
+.Lrecords_update_view:
+ sub sp,sp,#192
+ stp x29,x30,[sp]
+ mov x29,sp
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mrs x9,fpcr
+ str x9,[sp,#104]
+ mrs x9,fpsr
+ str x9,[sp,#112]
+ mov x19,x0
+ mov w20,w1
+ ldr w22,[x2]
+ ldr w9,[x2,#4]
+ add x21,x2,w9,uxtw
+ bl __errno_location
+ str x0,[sp,#120]
+ ldr w9,[x0]
+ str w9,[sp,#128]
+.Lrecords_view:
+ ldp w23,w9,[x21]
+ ldp w24,w25,[x21,#8]
+ ldr w26,[x21,#16]
+ add x0,x19,w23,uxtw
+ ldr x1,[x19,w9,uxtw]
+ mov w2,w20
+ cmp w25,#1
+ b.eq .Lrecords_view_integer
+ cmp w25,#2
+ b.eq .Lrecords_view_logical
+ cmp w24,#2
+ b.eq .Lrecords_view2
+ cmp w24,#3
+ b.eq .Lrecords_view3
+ bl md2asm_physics_field_view_4d
+ b .Lrecords_view_ready
+.Lrecords_view3:
+ bl md2asm_physics_field_view_3d
+ b .Lrecords_view_ready
+.Lrecords_view2:
+ bl md2asm_physics_field_view_2d
+ b .Lrecords_view_ready
+.Lrecords_view_integer:
+ bl md2asm_integer_work_field_view_2d
+ b .Lrecords_view_ready
+.Lrecords_view_logical:
+ bl md2asm_logical_work_field_view_2d
+.Lrecords_view_ready:
+ tbz w26,#0,.Lrecords_zero_check
+ add x9,x19,w23,uxtw
+ ldr x10,[x9,#64]
+ ldr x11,[x9,#8]
+ add x11,x11,x10
+ str x11,[x9,#8]
+ str xzr,[x9,#72]
+ ldr x10,[x9,#80]
+ sub x10,x10,#1
+ str x10,[x9,#80]
+.Lrecords_zero_check:
+ tbz w26,#1,.Lrecords_view_next
+ add x9,x19,w23,uxtw
+ ldr x10,[x9]
+ ldr x11,[x9,#16]
+ sub w12,w24,#1
+ add x13,x9,#40
+.Lrecords_zero_extent:
+ ldp x14,x15,[x13,#8]
+ sub x15,x15,x14
+ add x15,x15,#1
+ mul x11,x11,x15
+ add x13,x13,#24
+ subs w12,w12,#1
+ b.ne .Lrecords_zero_extent
+ cbz x11,.Lrecords_view_next
+.Lrecords_zero_bytes:
+ str xzr,[x10],#8
+ subs x11,x11,#8
+ b.ne .Lrecords_zero_bytes
+.Lrecords_view_next:
+ add x21,x21,#20
+ subs w22,w22,#1
+ b.ne .Lrecords_view
+ ldr x9,[sp,#120]
+ ldr w10,[sp,#128]
+ str w10,[x9]
+ ldr x9,[sp,#104]
+ msr fpcr,x9
+ ldr x9,[sp,#112]
+ msr fpsr,x9
+ ldr x18,[sp,#96]
+ ldp x27,x28,[sp,#80]
+ ldp x25,x26,[sp,#64]
+ ldp x23,x24,[sp,#48]
+ ldp x21,x22,[sp,#32]
+ ldp x19,x20,[sp,#16]
+ ldp x29,x30,[sp]
+ add sp,sp,#192
+ ret
+.Lrecords_final:
+ sub sp,sp,#192
+ stp x29,x30,[sp]
+ mov x29,sp
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mrs x9,fpcr
+ str x9,[sp,#104]
+ mrs x9,fpsr
+ str x9,[sp,#112]
+ mov x19,x0
+ ldr w21,[x1]
+ ldr w9,[x1,#8]
+ add x20,x1,w9,uxtw
+ bl __errno_location
+ str x0,[sp,#120]
+ ldr w9,[x0]
+ str w9,[sp,#128]
+.Lrecords_delete:
+ ldp w22,w23,[x20]
+ ldr x24,[x19,w22,uxtw]
+ cbz x24,.Lrecords_delete_next
+ mov x9,#48
+ madd x9,x23,x9,x24
+ ldr x0,[x9,#56]
+ cbz x0,.Lrecords_delete_meta
+ bl free
+.Lrecords_delete_meta:
+ mov x0,x24
+ bl free
+ str xzr,[x19,w22,uxtw]
+.Lrecords_delete_next:
+ add x20,x20,#8
+ subs w21,w21,#1
+ b.ne .Lrecords_delete
+ ldr x9,[sp,#120]
+ ldr w10,[sp,#128]
+ str w10,[x9]
+ ldr x9,[sp,#104]
+ msr fpcr,x9
+ ldr x9,[sp,#112]
+ msr fpsr,x9
+ ldr x18,[sp,#96]
+ ldp x27,x28,[sp,#80]
+ ldp x25,x26,[sp,#64]
+ ldp x23,x24,[sp,#48]
+ ldp x21,x22,[sp,#32]
+ ldp x19,x20,[sp,#16]
+ ldp x29,x30,[sp]
+ add sp,sp,#192
+ ret
+.bss
+.p2align 3
+.global md2asm_additional_work_record_native_counters
+.type md2asm_additional_work_record_native_counters,%object
+md2asm_additional_work_record_native_counters:
+ .zero 168
+.size md2asm_additional_work_record_native_counters,168
+.section .note.GNU-stack,"",%progbits
