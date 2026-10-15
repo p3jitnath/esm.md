@@ -8,11 +8,11 @@ The table describes the audited coarse T21 global forecast. Its groups overlap a
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
-| Main forecast phase | 711 | 275 | 436 |
-| Local calculations | 356 | 261 | 95 |
+| Main forecast phase | 711 | 276 | 435 |
+| Local calculations | 356 | 262 | 94 |
 | Weather calculations | 255 | 255 | 0 |
 
-There are 284 accepted original bodies overall, including VERDER outside the main forecast phase. Seven field-registry methods from the original template source are recorded separately from this inventory. Completing the weather list does not cover every model branch, setup routine or external dependency.
+There are 287 accepted original bodies overall, including VERDER outside the main forecast phase. Seven field-registry methods from the original template source are recorded separately from this inventory. Completing the weather list does not cover every model branch, setup routine or external dependency.
 
 ## Verification
 
@@ -58,7 +58,9 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 | Surface placement | Five complete owners containing 2,146,560 bytes | [Surface placement](../../skills/md2asm/references/openifs/input/initial_surface_state_placement.md) |
 | Physics grid dimensions | Complete 192-byte records and 25 initialization / 2,150 update calls | [Grid dimensions](../../skills/md2asm/references/openifs/support/physics_grid_dimensions.md) |
 
-The latest complete forecast uses the direct surface and upper-air loading routes. It also uses seven direct field-registry methods and direct serial Laplacian, Gaussian-latitude and spherical-grid setup. These routes pass the complete final-state and saved-file gate above. Surface defaults still run in the original earlier startup stage. Temporary typed getters still supply metadata to the input bridges. Complete model construction and assembly-owned file output remain unfinished.
+The latest complete forecast uses the direct surface and upper-air loading routes. It also uses seven direct field-registry methods and direct serial Laplacian, Gaussian-latitude and spherical-grid setup. These routes pass the complete final-state and saved-file gate above. The [assembly surface startup stage](../../skills/md2asm/references/openifs/input/initial_surface_state_startup.md) now owns the earlier defaults across all allocated rows, with every one of 7,149,696 bytes in ten captured owners checked. Temporary typed getters still supply metadata to the input bridges.
+
+The [latitude geometry constructor](../../skills/md2asm/references/openifs/setup/latitude_geometry_setup.md) also passes this forecast. The [spectral packing fit](../../skills/md2asm/references/openifs/output/spectral_packing_fit.md) runs 120 times with 5,280 direct logarithm calls and exact saved files. Original Fortran file writers and complete model construction remain unfinished.
 
 ## Local records
 

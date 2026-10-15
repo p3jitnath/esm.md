@@ -28,7 +28,7 @@ Return 0 for success, 1 for invalid basic pointers, capacities, alignment or flo
 
 FP64 is a 64-bit floating-point number. FPCR controls floating-point execution and must be zero. Preserve FPCR, `errno`, `x18`, saved integer registers and the required halves of saved vector registers. The 176-byte stack frame remains aligned to 16 bytes. Protect FPSR, the arithmetic status register, around allocation and release, retaining every flag from the direct physical conversion. No arithmetic is fused, approximated or reordered.
 
-The controller and all four numerical and storage stages are direct assembly. Its other calls are ordinary memory allocation and file services plus the ecCodes C file-format interface. A temporary native SUGRIDG bridge still reads typed original metadata through local Fortran getters. Those getters supply only constants, bounds, owner addresses and field identifiers. They perform no forecast calculation. Complete model construction, earlier defaults, startup diagnostic statistics and an autonomous executable remain separate work.
+The controller and all four numerical and storage stages are direct assembly. Its other calls are ordinary memory allocation and file services plus the ecCodes C file-format interface. A temporary native SUGRIDG bridge still reads typed original metadata through local Fortran getters. Those getters supply only constants, bounds, owner addresses and field identifiers. They perform no forecast calculation. The earlier defaults are now owned by the [surface startup stage](initial_surface_state_startup.md). Complete model construction, startup diagnostic statistics and an autonomous executable remain separate work.
 
 ## Current Evidence
 
