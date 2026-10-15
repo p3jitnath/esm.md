@@ -50,8 +50,10 @@ k_q=l, \quad k_l=19+3l, \quad k_i=20+3l, \quad k_c=21+3l.
 
 For an active row, the input word is $`2048k+p`$. The four copies write 1,245,184 bytes. The zero assignments cover every stored row of slots 4, 5, 7 and 8, including their final padding, and write 1,254,912 bytes. The 9,728 padding bytes in copied fields remain exactly as supplied by the caller.
 
-SUSC2C allocates GFL without assigning its values. ZERO_YOMGFL can clear this allocation, but its only named caller is the separate module procedure FIELDS_MOD:FIELDS_ZEROS. No call to that procedure is present in the selected setup and control route. The inherited FIELDS_BASE zero method is a different procedure. This helper therefore accepts and preserves an explicit complete incoming buffer. It does not assume its padding is zero. Full forecast setup must still supply a frozen complete starting buffer.
+SUSC2C allocates GFL without assigning its values. ZERO_YOMGFL can clear this allocation, but its only named caller is the separate module procedure FIELDS_MOD:FIELDS_ZEROS. No call to that procedure is present in the selected setup and control route. The inherited FIELDS_BASE zero method is a different procedure. This helper therefore accepts and preserves an explicit complete incoming buffer. It does not assume its padding is zero. An actual original-startup capture now supplies the frozen starting buffer for this selected setup. Its complete 2,509,824 bytes, including the 9,728 preserved padding bytes, are positive zero. This observation defines this input case and does not claim that legacy allocation always clears memory.
 
 ## Acceptance
 
 The independent metadata-driven Fortran reference and direct assembly agree across all 2,509,824 bytes. Twelve critical cases pass, covering original data, distinct bit patterns, preserved padding, buffer bounds, metadata, shared inputs and rejection before output changes. Three seeded native ABI cases pass, and floating-point controls, status and errno remain unchanged. This isolated helper does not establish a complete autonomous forecast. Existing weather-routine counts remain unchanged.
+
+A replay from that complete original starting buffer also matches the actual SUGRIDUG output across all 2,509,824 bytes. The unchanged helper reuses its accepted critical, status and ABI evidence. Full model construction remains separate work.
