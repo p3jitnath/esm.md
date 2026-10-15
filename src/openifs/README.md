@@ -58,6 +58,8 @@ The [surface input reader](../../skills/md2asm/references/openifs/input/initial_
 
 The [surface selection stage](../../skills/md2asm/references/openifs/input/initial_surface_field_selection.md) copies the 47 surface fields and five layered snow fields in the original requested order. All 1,179,648 output bytes match both the separate source reference and the actual original input to the conversion stage. Critical buffer, metadata and ABI checks pass. The following physical conversions and full model setup remain separate work.
 
+The [surface placement stage](../../skills/md2asm/references/openifs/input/initial_surface_state_placement.md) copies those selected fields into five complete model arrays. All 2,146,560 owner bytes match an independent whole-slice reference, including 966,912 unchanged bytes. Critical buffer, final-block and ABI checks pass. Earlier surface defaults and complete model construction remain separate work.
+
 ## Local records
 
 The exact ordered routine list, original source paths, build commands, critical checks and raw comparison records remain under ignored `.agents/` and `.runtime/` directories. The source audit covers 5,238 built Fortran bodies, including setup, input/output, support and disabled features. This total is not the number of weather routines that remain.
