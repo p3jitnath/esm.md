@@ -1,0 +1,372 @@
+/* Contract: skills/md2asm/references/openifs/setup/vertical_coordinate_setup.md. */
+/* Selected source-ordered SUVV1 vertical-coordinate construction.
+ * x0 Geometry17096B, x1 file A[0:19], x2 file B[0:19], x3 five outputs:
+ * DVALH[201],DVBH[201],VVP00,VP00,TOPPRES; all FP64, disjoint and aligned.
+ * w0=0 ready,1 allocation failure after cleanup,2 unsupported before mutation.
+ * All 27 numerical owners are fresh; no source-unwritten payload is filled.
+ */
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_initialize_vertical_coordinate_setup
+.type md2asm_initialize_vertical_coordinate_setup,%function
+md2asm_initialize_vertical_coordinate_setup:
+ cbz x0,.Lvertical_reject
+ cbz x1,.Lvertical_reject
+ cbz x2,.Lvertical_reject
+ cbz x3,.Lvertical_reject
+ orr x9,x0,x1
+ orr x9,x9,x2
+ orr x9,x9,x3
+ tst x9,#7
+ b.ne .Lvertical_reject
+ mrs x9,fpcr
+ cbnz x9,.Lvertical_reject
+ add x9,x0,#8
+ ldr x10,[x0]
+ cmp x10,x9
+ b.ne .Lvertical_reject
+ ldr w9,[x0,#8]
+ cbnz w9,.Lvertical_reject
+ add x9,x0,#3024
+ ldr x10,[x0,#3264]
+ cmp x10,x9
+ b.ne .Lvertical_reject
+ adr x9,.Lvertical_controls
+ mov x10,#0
+.Lvertical_control_check:
+ ldp w11,w12,[x9],#8
+ ldr w13,[x0,w11,uxtw]
+ cmp w13,w12
+ b.ne .Lvertical_reject
+ add x10,x10,#1
+ cmp x10,#8
+ b.lo .Lvertical_control_check
+ adr x9,.Lvertical_main_owners
+ mov x10,#0
+.Lvertical_fresh_main:
+ ldr w11,[x9],#32
+ ldr x12,[x0,w11,uxtw]
+ cbnz x12,.Lvertical_reject
+ add x10,x10,#1
+ cmp x10,#19
+ b.lo .Lvertical_fresh_main
+ add x9,x0,#3,lsl#12
+ add x9,x9,#2536
+ mov x10,#0
+.Lvertical_fresh_io:
+ ldr x11,[x9,x10]
+ cbnz x11,.Lvertical_reject
+ add x10,x10,#64
+ cmp x10,#512
+ b.lo .Lvertical_fresh_io
+ mov x9,#0
+.Lvertical_output_addresses:
+ ldr x10,[x3,x9,lsl#3]
+ cbz x10,.Lvertical_reject
+ tst x10,#7
+ b.ne .Lvertical_reject
+ add x9,x9,#1
+ cmp x9,#5
+ b.lo .Lvertical_output_addresses
+ mov x9,#0
+.Lvertical_input_finite:
+ ldr x10,[x1,x9,lsl#3]
+ ubfx x10,x10,#52,#11
+ cmp x10,#2047
+ b.eq .Lvertical_reject
+ ldr x10,[x2,x9,lsl#3]
+ ubfx x10,x10,#52,#11
+ cmp x10,#2047
+ b.eq .Lvertical_reject
+ add x9,x9,#1
+ cmp x9,#20
+ b.lo .Lvertical_input_finite
+ ldr d0,.Lvertical_epsilon
+ ldr d1,[x1,#152]
+ fabs d1,d1
+ fcmp d1,d0
+ b.gt .Lvertical_reject
+ ldr d1,[x2]
+ fabs d1,d1
+ fcmp d1,d0
+ b.gt .Lvertical_reject
+ ldr d1,[x2,#152]
+ fmov d2,#1.0
+ fsub d1,d1,d2
+ fabs d1,d1
+ fcmp d1,d0
+ b.gt .Lvertical_reject
+ sub sp,sp,#448
+ stp x29,x30,[sp]
+ mov x29,sp
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x18,[sp,#80]
+ mrs x9,fpsr
+ str x9,[sp,#96]
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ mov x22,x3
+ bl __errno_location
+ mov x27,x0
+ ldr w9,[x27]
+ str w9,[sp,#104]
+ adr x23,.Lvertical_main_owners
+ mov x24,#0
+.Lvertical_allocate:
+ cmp x24,#13
+ b.ne .Lvertical_extent
+ mov w9,#17
+ str w9,[x19,#3068]
+.Lvertical_extent:
+ ldr w9,[x23]
+ add x25,x19,w9,uxtw
+ ldp x10,x11,[x23,#8]
+ sub x26,x11,x10
+ add x26,x26,#1
+ ldr x12,[x23,#24]
+ cmp x12,#0
+ mov x13,#1
+ csel x12,x12,x13,ne
+ mul x0,x26,x12
+ lsl x0,x0,#3
+ bl malloc
+ cbz x0,.Lvertical_failed
+ str x0,[x25]
+ ldr x10,[x23,#8]
+ ldr x11,[x23,#16]
+ ldr x12,[x23,#24]
+ neg x13,x10
+ cbz x12,.Lvertical_descriptor_offset
+ sub x13,x13,x26
+.Lvertical_descriptor_offset:
+ str x13,[x25,#8]
+ mov x13,#8
+ str x13,[x25,#16]
+ str xzr,[x25,#24]
+ mov w14,#0x301
+ cmp x12,#0
+ cinc w14,w14,ne
+ str w14,[x25,#28]
+ str x13,[x25,#32]
+ mov x13,#1
+ str x13,[x25,#40]
+ str x10,[x25,#48]
+ str x11,[x25,#56]
+ cbz x12,.Lvertical_allocated
+ str x26,[x25,#64]
+ str x13,[x25,#72]
+ str x12,[x25,#80]
+.Lvertical_allocated:
+ add x23,x23,#32
+ add x24,x24,#1
+ cmp x24,#19
+ b.lo .Lvertical_allocate
+ add x9,x19,#16
+ str x9,[x19,#3240]
+ add x9,x19,#528
+ str x9,[x19,#3248]
+ add x9,x19,#848
+ str x9,[x19,#3256]
+ /* Source zeroes private arrays, computes defaults, then selects file input. */
+ mov x9,#0
+.Lvertical_zero_private:
+ add x10,sp,#112
+ str xzr,[x10,x9,lsl#3]
+ add x10,sp,#272
+ str xzr,[x10,x9,lsl#3]
+ add x9,x9,#1
+ cmp x9,#20
+ b.lo .Lvertical_zero_private
+ ldr x9,[sp,#96]
+ msr fpsr,x9
+ mov w0,#1
+ mov w1,#19
+ add x2,sp,#112
+ add x3,sp,#272
+ ldr x4,[x22,#16]
+ bl md2asm_initialize_default_hybrid_coefficients
+ cbnz w0,.Lvertical_failed
+ ldp x4,x5,[x22]
+ mov x9,#0
+.Lvertical_copy_defaults:
+ add x10,sp,#112
+ ldr x11,[x10,x9,lsl#3]
+ str x11,[x4,x9,lsl#3]
+ add x10,sp,#272
+ ldr x11,[x10,x9,lsl#3]
+ str x11,[x5,x9,lsl#3]
+ add x9,x9,#1
+ cmp x9,#20
+ b.lo .Lvertical_copy_defaults
+ ldr x9,[x22,#16]
+ ldr x10,[x9]
+ ldr x9,[x22,#24]
+ str x10,[x9]
+ ldr x9,[x22,#32]
+ ldr x10,.Lvertical_top_pressure
+ str x10,[x9]
+ mov x9,#0
+.Lvertical_select_file:
+ ldr x10,[x20,x9,lsl#3]
+ str x10,[x4,x9,lsl#3]
+ ldr x10,[x21,x9,lsl#3]
+ str x10,[x5,x9,lsl#3]
+ add x9,x9,#1
+ cmp x9,#20
+ b.lo .Lvertical_select_file
+ /* Preserve source comparison arithmetic after the exact file override. */
+ ldr d0,.Lvertical_epsilon
+ mov x9,#0
+.Lvertical_source_checks_a:
+ ldr d1,[x4,x9,lsl#3]
+ ldr d2,[x20,x9,lsl#3]
+ fsub d1,d1,d2
+ fabs d1,d1
+ fcmp d1,d0
+ add x9,x9,#1
+ cmp x9,#20
+ b.lo .Lvertical_source_checks_a
+ mov x9,#0
+.Lvertical_source_checks_b:
+ ldr d1,[x5,x9,lsl#3]
+ ldr d2,[x21,x9,lsl#3]
+ fsub d1,d1,d2
+ fabs d1,d1
+ fcmp d1,d0
+ add x9,x9,#1
+ cmp x9,#20
+ b.lo .Lvertical_source_checks_b
+ ldr d1,[x4,#152]
+ fabs d1,d1
+ fcmp d1,d0
+ ldr d1,[x5]
+ fabs d1,d1
+ fcmp d1,d0
+ ldr d1,[x5,#152]
+ fmov d2,#1.0
+ fsub d1,d1,d2
+ fabs d1,d1
+ fcmp d1,d0
+ ldr x6,[x19,#144]
+ ldr x7,[x19,#16]
+ ldr x8,[x19,#80]
+ ldr x9,[x22,#24]
+ ldr d0,[x9]
+ mov x9,#0
+.Lvertical_main_interfaces:
+ ldr d1,[x4,x9,lsl#3]
+ str d1,[x6,x9,lsl#3]
+ fdiv d1,d1,d0
+ str d1,[x7,x9,lsl#3]
+ ldr d1,[x5,x9,lsl#3]
+ str d1,[x8,x9,lsl#3]
+ add x9,x9,#1
+ cmp x9,#20
+ b.lo .Lvertical_main_interfaces
+ /* I/O coordinate owners follow every main allocation and conversion. */
+ mov x9,#0
+.Lvertical_io_private:
+ ldr x10,[x4,x9,lsl#3]
+ add x11,sp,#112
+ str x10,[x11,x9,lsl#3]
+ ldr x10,[x5,x9,lsl#3]
+ add x11,sp,#272
+ str x10,[x11,x9,lsl#3]
+ add x9,x9,#1
+ cmp x9,#20
+ b.lo .Lvertical_io_private
+ add x0,x19,#3,lsl#12
+ add x0,x0,#2536
+ mov w1,#19
+ add x2,sp,#112
+ add x3,sp,#272
+ bl md2asm_initialize_hybrid_coordinate_owners
+ cbnz w0,.Lvertical_failed
+ mov w0,#0
+ b .Lvertical_return
+.Lvertical_failed:
+ mov x0,x19
+ bl md2asm_release_vertical_coordinate_setup
+ mov w0,#1
+.Lvertical_return:
+ ldr w9,[sp,#104]
+ str w9,[x27]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x18,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#448
+ ret
+.Lvertical_reject:
+ mov w0,#2
+ ret
+.size md2asm_initialize_vertical_coordinate_setup,.-md2asm_initialize_vertical_coordinate_setup
+.p2align 4
+.global md2asm_release_vertical_coordinate_setup
+.type md2asm_release_vertical_coordinate_setup,%function
+md2asm_release_vertical_coordinate_setup:
+ sub sp,sp,#48
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x18,[sp,#32]
+ mov x29,sp
+ mov x19,x0
+ adr x20,.Lvertical_main_owners
+ mov x21,#0
+.Lvertical_release_main:
+ ldr w9,[x20]
+ ldr x0,[x19,w9,uxtw]
+ cbz x0,.Lvertical_release_next
+ bl free
+ ldr w9,[x20]
+ str xzr,[x19,w9,uxtw]
+.Lvertical_release_next:
+ add x20,x20,#32
+ add x21,x21,#1
+ cmp x21,#19
+ b.lo .Lvertical_release_main
+ add x0,x19,#3,lsl#12
+ add x0,x0,#2536
+ bl md2asm_release_hybrid_coordinate_owners
+ ldp x19,x20,[sp,#16]
+ ldp x21,x18,[sp,#32]
+ ldp x29,x30,[sp]
+ add sp,sp,#48
+ ret
+.size md2asm_release_vertical_coordinate_setup,.-md2asm_release_vertical_coordinate_setup
+.p2align 3
+.Lvertical_controls:
+ .word 5224,19,5252,19,3052,3,3056,4
+ .word 3060,3,3064,3,3076,1,3180,0
+.Lvertical_epsilon: .quad 0x3d19000000000000
+.Lvertical_top_pressure: .double 0.1
+/* Geometry descriptor byte offset, first lower/upper bound, second upper.
+ * A zero second upper selects a rank-one descriptor. */
+.Lvertical_main_owners:
+ .quad 16,0,19,0
+ .quad 144,0,19,0
+ .quad 80,0,19,0
+ .quad 208,1,19,0
+ .quad 464,1,19,0
+ .quad 528,0,19,0
+ .quad 656,0,20,0
+ .quad 592,0,19,0
+ .quad 720,0,20,0
+ .quad 272,1,19,0
+ .quad 336,1,19,0
+ .quad 400,1,19,0
+ .quad 784,1,19,0
+ .quad 848,1,17,0
+ .quad 1352,1,19,21
+ .quad 1440,1,19,21
+ .quad 1528,1,19,21
+ .quad 1616,1,19,21
+ .quad 1088,1,20,21
+.section .note.GNU-stack,"",%progbits

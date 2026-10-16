@@ -46,13 +46,15 @@ In a tested ice-formation call, the original lake update stores an average water
 
 The executable still uses OpenIFS Fortran for model startup, remaining setup, typed metadata and retained reference forwards. The [direct power routine](../../skills/md2asm/references/openifs/support/power_original_rounding.md) now replaces the frozen C power helper and passes this same complete forecast gate. Other declared numerical and runtime boundaries remain. It is not an autonomous assembly forecast. Autonomous input loading, initialisation, complete calculation ownership and output remain a separate phase.
 
+The separate [standalone initial-input executable](../../skills/md2asm/references/openifs/input/standalone_initial_bootstrap.md) starts at its own assembly entry, constructs its own selected vertical and spectral owners, reads the original GRIB files and writes both complete spectral owners. All 238,832 bytes match the separate reference. Its production link contains only assembly and the declared Linux, libc and ecCodes services. It uses no OpenIFS harness, original module data or Fortran runtime. This input checkpoint does not run the full forecast and adds no original-body credit.
+
 ## Input And Setup Components
 
 The assembly readers use the declared C ecCodes file-format library. A record contains one decoded field and its identifying labels. Separate controls check each stage, including malformed input, buffer bounds, final partial blocks and the Arm ABI. The original input files supply every decoded value. Storage-child counts follow the checked, fixed call sequence inside the enclosing context. This run directly observes 25 context constructions and releases, with 2,150 balanced block calls.
 
 | Accepted component | Complete comparison scope | Contract |
 | --- | --- | --- |
-| Spectral decoding and placement | 78 decoded records and 238,832 placed bytes | [Spectral placement](../../skills/md2asm/references/openifs/input/spectral_initial_state_placement.md) |
+| Standalone spectral input and owned storage | 78 decoded records and 238,832 output bytes | [Standalone input](../../skills/md2asm/references/openifs/input/standalone_initial_bootstrap.md), [spectral storage](../../skills/md2asm/references/openifs/setup/spectral_field_storage.md), [vertical storage](../../skills/md2asm/references/openifs/setup/vertical_startup_context.md) |
 | Upper-air decoding and placement | 76 records and 2,509,824 model bytes, including padding | [Upper-air loading](../../skills/md2asm/references/openifs/input/upper_air_initial_state_loading.md) |
 | Surface decoding, selection and conversion | 140 records, with 52 selected fields in original order | [Surface loading](../../skills/md2asm/references/openifs/input/initial_surface_state_loading.md) |
 | Surface placement | Five complete owners containing 2,146,560 bytes | [Surface placement](../../skills/md2asm/references/openifs/input/initial_surface_state_placement.md) |
