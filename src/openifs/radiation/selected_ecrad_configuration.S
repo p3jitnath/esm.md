@@ -1,0 +1,986 @@
+/* Contract: skills/md2asm/references/openifs/radiation/ecrad_configuration.md.
+ * x0 seven address/capacity pairs; x1/x2 live text; x3/x4 resolved directory;
+ * x5 two owned composition flags. Return0 success,1 allocation,2 refusal.
+ * Public ecRad services are external. All OpenIFS setting/call order is owned.
+ */
+#include "ecrad_configuration_layout.inc.S"
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_initialize_selected_ecrad
+.type md2asm_initialize_selected_ecrad,%function
+md2asm_initialize_selected_ecrad:
+ cbz x0,.Lecrad_bad_leaf
+ tst x0,#7
+ b.ne .Lecrad_bad_leaf
+ adds x9,x0,#112
+ b.cs .Lecrad_bad_leaf
+ cbz x1,.Lecrad_bad_leaf
+ cbz x2,.Lecrad_bad_leaf
+ cmp x2,#64,lsl#12
+ b.hi .Lecrad_bad_leaf
+ adds x9,x1,x2
+ b.cs .Lecrad_bad_leaf
+ cbz x3,.Lecrad_bad_leaf
+ cbz x4,.Lecrad_bad_leaf
+ cmp x4,#511
+ b.hi .Lecrad_bad_leaf
+ adds x9,x3,x4
+ b.cs .Lecrad_bad_leaf
+ cbz x5,.Lecrad_bad_leaf
+ tst x5,#7
+ b.ne .Lecrad_bad_leaf
+ adds x9,x5,#8
+ b.cs .Lecrad_bad_leaf
+ ldr x9,[x5]
+ cbnz x9,.Lecrad_bad_leaf
+ mrs x9,fpcr
+ cbnz x9,.Lecrad_bad_leaf
+ sub sp,sp,#6,lsl#12
+ stp x29,x30,[sp,#64]
+ stp x19,x20,[sp,#80]
+ stp x21,x22,[sp,#96]
+ stp x23,x24,[sp,#112]
+ stp x25,x26,[sp,#128]
+ stp x27,x28,[sp,#144]
+ str x18,[sp,#160]
+ mov x29,sp
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ mov x22,x3
+ mov x23,x4
+ mov x24,x5
+ adrp x10,.Lrecord_bytes
+ add x10,x10,:lo12:.Lrecord_bytes
+ mov x11,#0
+.Lecrad_check_records:
+ lsl x12,x11,#4
+ add x12,x19,x12
+ ldp x13,x14,[x12]
+ cbz x13,.Lecrad_bad
+ tst x13,#7
+ b.ne .Lecrad_bad
+ ldr x15,[x10,x11,lsl#3]
+ cmp x14,x15
+ b.lo .Lecrad_bad
+ adds x16,x13,x15
+ b.cs .Lecrad_bad
+ add x11,x11,#1
+ cmp x11,#7
+ b.lo .Lecrad_check_records
+ ldr x13,[x19,#0]
+ ldr x14,=22472
+ add x14,x13,x14
+ ldr x15,[x19,#16]
+ ldr x16,=2040
+ add x16,x15,x16
+ cmp x13,x16
+ b.hs .Lecrad_overlap_0_1
+ cmp x15,x14
+ b.lo .Lecrad_bad
+.Lecrad_overlap_0_1:
+ ldr x15,[x19,#32]
+ ldr x16,=448
+ add x16,x15,x16
+ cmp x13,x16
+ b.hs .Lecrad_overlap_0_2
+ cmp x15,x14
+ b.lo .Lecrad_bad
+.Lecrad_overlap_0_2:
+ ldr x15,[x19,#48]
+ ldr x16,=392
+ add x16,x15,x16
+ cmp x13,x16
+ b.hs .Lecrad_overlap_0_3
+ cmp x15,x14
+ b.lo .Lecrad_bad
+.Lecrad_overlap_0_3:
+ ldr x15,[x19,#64]
+ ldr x16,=176080
+ add x16,x15,x16
+ cmp x13,x16
+ b.hs .Lecrad_overlap_0_4
+ cmp x15,x14
+ b.lo .Lecrad_bad
+.Lecrad_overlap_0_4:
+ ldr x15,[x19,#80]
+ ldr x16,=1229352
+ add x16,x15,x16
+ cmp x13,x16
+ b.hs .Lecrad_overlap_0_5
+ cmp x15,x14
+ b.lo .Lecrad_bad
+.Lecrad_overlap_0_5:
+ ldr x15,[x19,#96]
+ ldr x16,=4059736
+ add x16,x15,x16
+ cmp x13,x16
+ b.hs .Lecrad_overlap_0_6
+ cmp x15,x14
+ b.lo .Lecrad_bad
+.Lecrad_overlap_0_6:
+ add x16,x19,#112
+ cmp x13,x16
+ b.hs .Lecrad_control_0_0
+ cmp x19,x14
+ b.lo .Lecrad_bad
+.Lecrad_control_0_0:
+ add x16,x20,x21
+ cmp x13,x16
+ b.hs .Lecrad_control_0_1
+ cmp x20,x14
+ b.lo .Lecrad_bad
+.Lecrad_control_0_1:
+ add x16,x22,x23
+ cmp x13,x16
+ b.hs .Lecrad_control_0_2
+ cmp x22,x14
+ b.lo .Lecrad_bad
+.Lecrad_control_0_2:
+ add x16,x24,#8
+ cmp x13,x16
+ b.hs .Lecrad_control_0_3
+ cmp x24,x14
+ b.lo .Lecrad_bad
+.Lecrad_control_0_3:
+ ldr x13,[x19,#64]
+ ldr x14,=176080
+ add x14,x13,x14
+ ldr x15,[x19,#0]
+ ldr x16,=22472
+ add x16,x15,x16
+ cmp x13,x16
+ b.hs .Lecrad_overlap_4_0
+ cmp x15,x14
+ b.lo .Lecrad_bad
+.Lecrad_overlap_4_0:
+ ldr x15,[x19,#16]
+ ldr x16,=2040
+ add x16,x15,x16
+ cmp x13,x16
+ b.hs .Lecrad_overlap_4_1
+ cmp x15,x14
+ b.lo .Lecrad_bad
+.Lecrad_overlap_4_1:
+ ldr x15,[x19,#32]
+ ldr x16,=448
+ add x16,x15,x16
+ cmp x13,x16
+ b.hs .Lecrad_overlap_4_2
+ cmp x15,x14
+ b.lo .Lecrad_bad
+.Lecrad_overlap_4_2:
+ ldr x15,[x19,#48]
+ ldr x16,=392
+ add x16,x15,x16
+ cmp x13,x16
+ b.hs .Lecrad_overlap_4_3
+ cmp x15,x14
+ b.lo .Lecrad_bad
+.Lecrad_overlap_4_3:
+ ldr x15,[x19,#80]
+ ldr x16,=1229352
+ add x16,x15,x16
+ cmp x13,x16
+ b.hs .Lecrad_overlap_4_5
+ cmp x15,x14
+ b.lo .Lecrad_bad
+.Lecrad_overlap_4_5:
+ ldr x15,[x19,#96]
+ ldr x16,=4059736
+ add x16,x15,x16
+ cmp x13,x16
+ b.hs .Lecrad_overlap_4_6
+ cmp x15,x14
+ b.lo .Lecrad_bad
+.Lecrad_overlap_4_6:
+ add x16,x19,#112
+ cmp x13,x16
+ b.hs .Lecrad_control_4_0
+ cmp x19,x14
+ b.lo .Lecrad_bad
+.Lecrad_control_4_0:
+ add x16,x20,x21
+ cmp x13,x16
+ b.hs .Lecrad_control_4_1
+ cmp x20,x14
+ b.lo .Lecrad_bad
+.Lecrad_control_4_1:
+ add x16,x22,x23
+ cmp x13,x16
+ b.hs .Lecrad_control_4_2
+ cmp x22,x14
+ b.lo .Lecrad_bad
+.Lecrad_control_4_2:
+ add x16,x24,#8
+ cmp x13,x16
+ b.hs .Lecrad_control_4_3
+ cmp x24,x14
+ b.lo .Lecrad_bad
+.Lecrad_control_4_3:
+ mov x9,#0
+.Lecrad_directory:
+ ldrb w10,[x22,x9]
+ cbz w10,.Lecrad_bad
+ add x9,x9,#1
+ cmp x9,x23
+ b.lo .Lecrad_directory
+ cmp w10,#32
+ b.eq .Lecrad_bad
+ ldr x25,[x19]
+ ldr x26,[x19,#16]
+ ldr x27,[x19,#32]
+ mov x9,#10048
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#10112
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#10176
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#10240
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#10304
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#10368
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#10432
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#10520
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#10608
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#10672
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#10736
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#10800
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#10864
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#10928
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#10992
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#11056
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#11128
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#11216
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#11304
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#11392
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#11480
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#11544
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#11608
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#11672
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#11736
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#11824
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#11912
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#12000
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#12088
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#12176
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#12264
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#12376
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#12488
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#12600
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#12712
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#12824
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#12936
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#13024
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#13112
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#13200
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#13288
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#13400
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#13512
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#13624
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#13736
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ mov x9,#17864
+ add x9,x25,x9
+ ldr x10,[x9]
+ cbnz x10,.Lecrad_bad
+ ldr w9,[x26,#180]
+ cmp w9,#1
+ b.ne .Lecrad_bad
+ ldr w9,[x26,#96]
+ cmp w9,#4
+ b.ne .Lecrad_bad
+ ldr w9,[x26,#92]
+ cmp w9,#3
+ b.ne .Lecrad_bad
+ ldr w9,[x26,#320]
+ cmp w9,#1
+ b.ne .Lecrad_bad
+ ldr w9,[x26,#324]
+ cmp w9,#0
+ b.ne .Lecrad_bad
+ ldr w9,[x26,#328]
+ cmp w9,#0
+ b.ne .Lecrad_bad
+ ldr w9,[x26,#336]
+ cmp w9,#0
+ b.ne .Lecrad_bad
+ ldr w9,[x26,#352]
+ cmp w9,#3
+ b.ne .Lecrad_bad
+ ldr w9,[x26,#76]
+ cmp w9,#1
+ b.ne .Lecrad_bad
+ ldr w9,[x26,#384]
+ cmp w9,#1
+ b.hi .Lecrad_bad
+ ldr w9,[x26,#488]
+ cmp w9,#1
+ b.hi .Lecrad_bad
+ ldr w9,[x26,#492]
+ cmp w9,#1
+ b.hi .Lecrad_bad
+ ldr w9,[x27,#376]
+ cmp w9,#1
+ b.ne .Lecrad_bad
+ ldr w9,[x27,#380]
+ cmp w9,#0
+ b.ne .Lecrad_bad
+ ldr x9,[x19,#48]
+ ldr w10,[x9,#164]
+ cmp w10,#0
+ b.ne .Lecrad_bad
+ ldr w10,[x9,#168]
+ cmp w10,#0
+ b.ne .Lecrad_bad
+ ldr w10,[x9,#212]
+ cmp w10,#0
+ b.ne .Lecrad_bad
+ ldr w10,[x9,#228]
+ cmp w10,#1
+ b.ne .Lecrad_bad
+ add x0,x26,#1912
+ mov x1,#2
+ mov x2,#8
+ bl md2asm_ecrad_input_vector
+ cbz x0,.Lecrad_bad
+ str x0,[sp,#176]
+ ldr x9,[x19,#0]
+ ldr x10,=22472
+ add x10,x9,x10
+ add x11,x0,#16
+ cmp x0,x10
+ b.hs .Lecrad_planck_1912_0
+ cmp x9,x11
+ b.lo .Lecrad_bad
+.Lecrad_planck_1912_0:
+ ldr x9,[x19,#64]
+ ldr x10,=176080
+ add x10,x9,x10
+ add x11,x0,#16
+ cmp x0,x10
+ b.hs .Lecrad_planck_1912_4
+ cmp x9,x11
+ b.lo .Lecrad_bad
+.Lecrad_planck_1912_4:
+ add x0,x26,#1976
+ mov x1,#3
+ mov x2,#4
+ bl md2asm_ecrad_input_vector
+ cbz x0,.Lecrad_bad
+ str x0,[sp,#184]
+ ldr x9,[x19,#0]
+ ldr x10,=22472
+ add x10,x9,x10
+ add x11,x0,#12
+ cmp x0,x10
+ b.hs .Lecrad_planck_1976_0
+ cmp x9,x11
+ b.lo .Lecrad_bad
+.Lecrad_planck_1976_0:
+ ldr x9,[x19,#64]
+ ldr x10,=176080
+ add x10,x9,x10
+ add x11,x0,#12
+ cmp x0,x10
+ b.hs .Lecrad_planck_1976_4
+ cmp x9,x11
+ b.lo .Lecrad_bad
+.Lecrad_planck_1976_4:
+ mov x0,x20
+ mov x1,x21
+ adrp x2,.Lradiation_group
+ add x2,x2,:lo12:.Lradiation_group
+ mov x3,#9
+ bl md2asm_require_optional_empty_radiation_group
+ cbnz w0,.Lecrad_bad
+ add x28,sp,#1024
+ mov x9,#0
+.Lecrad_private_copy:
+ ldr x10,[x25,x9]
+ str x10,[x28,x9]
+ add x9,x9,#8
+ mov x11,#22472
+ cmp x9,x11
+ b.lo .Lecrad_private_copy
+ mov x0,x28
+ mov x1,#22472
+ bl md2asm_initialize_ecrad_configuration_defaults
+ cbnz w0,.Lecrad_bad
+ mov w9,#1
+ str w9,[x28,#7968]
+ mov w9,#1
+ str w9,[x28,#7972]
+ add x9,x28,#4
+ mov x10,#0
+ mov w11,#32
+.Lecrad_pad_dir:
+ strb w11,[x9,x10]
+ add x10,x10,#1
+ cmp x10,#511
+ b.lo .Lecrad_pad_dir
+ mov x10,#0
+.Lecrad_copy_dir:
+ ldrb w11,[x22,x10]
+ strb w11,[x9,x10]
+ add x10,x10,#1
+ cmp x10,x23
+ b.lo .Lecrad_copy_dir
+ ldr w9,[x26,#488]
+ str w9,[x28,#7952]
+ ldr w9,[x26,#492]
+ str w9,[x28,#7976]
+ mov w9,#1
+ str w9,[x28,#7948]
+ mov w9,#0
+ str w9,[x28,#7960]
+ mov w9,#2
+ str w9,[x28,#696]
+ mov w9,#2
+ str w9,[x28,#700]
+ ldr w9,[x26,#384]
+ str w9,[x28,#7964]
+ mov w9,#0
+ str w9,[x28,#628]
+ mov w9,#1
+ str w9,[x28,#6908]
+ mov w9,#12
+ str w9,[x28,#6912]
+ mov x9,#6916
+ add x9,x28,x9
+ mov x10,#0
+.Lecrad_zero_map:
+ str wzr,[x9,x10]
+ add x10,x10,#4
+ cmp x10,#1024
+ b.lo .Lecrad_zero_map
+ adrp x10,.Laerosol_map
+ add x10,x10,:lo12:.Laerosol_map
+ mov x11,#0
+.Lecrad_copy_map:
+ ldr w12,[x10,x11]
+ str w12,[x9,x11]
+ add x11,x11,#4
+ cmp x11,#48
+ b.lo .Lecrad_copy_map
+ mov x9,#9022
+ add x9,x28,x9
+ adrp x10,.Laerosol_file
+ add x10,x10,:lo12:.Laerosol_file
+ mov x11,#0
+.Lecrad_aerosol_file:
+ ldrb w12,[x10,x11]
+ strb w12,[x9,x11]
+ add x11,x11,#1
+ cmp x11,#511
+ b.lo .Lecrad_aerosol_file
+ mov w9,#0
+ str w9,[x28,#6864]
+ mov w9,#2
+ str w9,[x28,#624]
+ mov w9,#2
+ str w9,[x28,#620]
+ ldr x9,=0x407f400000000000
+ str x9,[x28,#6888]
+ mov w9,#1
+ str w9,[x28,#608]
+ mov w9,#0
+ str w9,[x28,#612]
+ mov w9,#1
+ str w9,[x28,#536]
+ str x28,[sp,#256]
+ adrp x9,:got:__radiation_config_MOD___vtab_radiation_config_Config_type
+ ldr x9,[x9,:got_lo12:__radiation_config_MOD___vtab_radiation_config_Config_type]
+ str x9,[sp,#264]
+ add x0,sp,#256
+ adrp x1,.Lsix
+ add x1,x1,:lo12:.Lsix
+ adrp x2,.Lsw_bounds
+ add x2,x2,:lo12:.Lsw_bounds
+ adrp x3,.Lsix_indices
+ add x3,x3,:lo12:.Lsix_indices
+ adrp x4,.Ltrue
+ add x4,x4,:lo12:.Ltrue
+ bl __radiation_config_MOD_define_sw_albedo_intervals
+ add x0,sp,#256
+ adrp x1,.Lthree
+ add x1,x1,:lo12:.Lthree
+ ldr x2,[sp,#176]
+ ldr x3,[sp,#184]
+ adrp x4,.Ltrue
+ add x4,x4,:lo12:.Ltrue
+ bl __radiation_config_MOD_define_lw_emiss_intervals
+ add x0,sp,#256
+ bl __radiation_config_MOD_consolidate_config
+ mov x0,x28
+ mov x1,#22472
+ ldp x2,x3,[x19,#80]
+ ldp x4,x5,[x19,#96]
+ bl md2asm_setup_ecrad_gas_band_maps
+ cbnz w0,.Lecrad_alloc_fail
+ mov x9,#20020
+ add x9,x28,x9
+ mov w10,#140
+ str w10,[x9]
+ mov x9,#20024
+ add x9,x28,x9
+ mov w10,#16
+ str w10,[x9]
+ add x0,sp,#256
+ adrp x1,.Ltrue
+ add x1,x1,:lo12:.Ltrue
+ add x2,x28,#708
+ add x3,x28,#720
+ mov x4,#4800
+ add x4,x28,x4
+ mov x5,#10048
+ add x5,x28,x5
+ mov x6,#10112
+ add x6,x28,x6
+ mov x7,#10304
+ add x7,x28,x7
+ mov x9,#10432
+ add x9,x28,x9
+ str x9,[sp]
+ bl __radiation_config_MOD_consolidate_intervals
+ add x0,sp,#256
+ adrp x1,.Lfalse
+ add x1,x1,:lo12:.Lfalse
+ add x2,x28,#712
+ add x3,x28,#2760
+ mov x4,#5824
+ add x4,x28,x4
+ mov x5,#10176
+ add x5,x28,x5
+ mov x6,#10240
+ add x6,x28,x6
+ mov x7,#10368
+ add x7,x28,x7
+ mov x9,#10520
+ add x9,x28,x9
+ str x9,[sp]
+ bl __radiation_config_MOD_consolidate_intervals
+ mov x0,x28
+ bl __radiation_cloud_optics_MOD_setup_cloud_optics
+ mov x0,x28
+ bl __radiation_aerosol_optics_MOD_setup_aerosol_optics
+ mov x9,#17840
+ add x9,x28,x9
+ str x9,[sp,#272]
+ adrp x9,:got:__radiation_pdf_sampler_MOD___vtab_radiation_pdf_sampler_Pdf_sampler_type
+ ldr x9,[x9,:got_lo12:__radiation_pdf_sampler_MOD___vtab_radiation_pdf_sampler_Pdf_sampler_type]
+ str x9,[sp,#280]
+ add x0,sp,#272
+ mov x1,#19485
+ add x1,x28,x1
+ mov x2,#7968
+ add x2,x28,x2
+ mov x3,#511
+ bl __radiation_pdf_sampler_MOD_setup_pdf_sampler
+ mov x9,#20044
+ add x9,x28,x9
+ str x9,[sp,#320]
+ mov x9,#-1
+ str x9,[sp,#328]
+ mov x9,#4
+ str x9,[sp,#336]
+ str wzr,[sp,#344]
+ mov w10,#257
+ str w10,[sp,#348]
+ str x9,[sp,#352]
+ mov x9,#1
+ str x9,[sp,#360]
+ str x9,[sp,#368]
+ mov x9,#100
+ str x9,[sp,#376]
+ mov x9,#20448
+ add x9,x28,x9
+ str x9,[sp,#384]
+ mov x9,#-1
+ str x9,[sp,#392]
+ mov x9,#8
+ str x9,[sp,#400]
+ str wzr,[sp,#408]
+ mov w10,#769
+ str w10,[sp,#412]
+ str x9,[sp,#416]
+ mov x9,#1
+ str x9,[sp,#424]
+ str x9,[sp,#432]
+ mov x9,#100
+ str x9,[sp,#440]
+ add x0,sp,#256
+ adrp x1,.Luv_lo
+ add x1,x1,:lo12:.Luv_lo
+ adrp x2,.Luv_hi
+ add x2,x2,:lo12:.Luv_hi
+ mov x3,#20040
+ add x3,x28,x3
+ add x4,sp,#320
+ add x5,sp,#384
+ adrp x6,.Luv_name
+ add x6,x6,:lo12:.Luv_name
+ mov x7,#11
+ bl __radiation_config_MOD_get_sw_weights
+ mov x9,#21252
+ add x9,x28,x9
+ str x9,[sp,#320]
+ mov x9,#-1
+ str x9,[sp,#328]
+ mov x9,#4
+ str x9,[sp,#336]
+ str wzr,[sp,#344]
+ mov w10,#257
+ str w10,[sp,#348]
+ str x9,[sp,#352]
+ mov x9,#1
+ str x9,[sp,#360]
+ str x9,[sp,#368]
+ mov x9,#100
+ str x9,[sp,#376]
+ mov x9,#21656
+ add x9,x28,x9
+ str x9,[sp,#384]
+ mov x9,#-1
+ str x9,[sp,#392]
+ mov x9,#8
+ str x9,[sp,#400]
+ str wzr,[sp,#408]
+ mov w10,#769
+ str w10,[sp,#412]
+ str x9,[sp,#416]
+ mov x9,#1
+ str x9,[sp,#424]
+ str x9,[sp,#432]
+ mov x9,#100
+ str x9,[sp,#440]
+ add x0,sp,#256
+ adrp x1,.Lpar_lo
+ add x1,x1,:lo12:.Lpar_lo
+ adrp x2,.Lpar_hi
+ add x2,x2,:lo12:.Lpar_hi
+ mov x3,#21248
+ add x3,x28,x3
+ add x4,sp,#320
+ add x5,sp,#384
+ adrp x6,.Lpar_name
+ add x6,x6,:lo12:.Lpar_name
+ mov x7,#40
+ bl __radiation_config_MOD_get_sw_weights
+ mov x0,x28
+ adrp x1,.Ltrop_type
+ add x1,x1,:lo12:.Ltrop_type
+ adrp x2,.Lten
+ add x2,x2,:lo12:.Lten
+ bl __radiation_aerosol_optics_MOD_dry_aerosol_sw_mass_extinction
+ mov x9,#22456
+ add x9,x28,x9
+ str d0,[x9]
+ mov x0,x28
+ adrp x1,.Lstrat_type
+ add x1,x1,:lo12:.Lstrat_type
+ adrp x2,.Lten
+ add x2,x2,:lo12:.Lten
+ bl __radiation_aerosol_optics_MOD_dry_aerosol_sw_mass_extinction
+ mov x9,#22464
+ add x9,x28,x9
+ str d0,[x9]
+ /* Selected NAERO zero leaves LAERRAD false: source mono branch is inactive. */
+ mov x9,#0
+.Lecrad_commit:
+ ldr x10,[x28,x9]
+ str x10,[x25,x9]
+ add x9,x9,#8
+ mov x11,#22472
+ cmp x9,x11
+ b.lo .Lecrad_commit
+ mov w0,#0
+ b .Lecrad_return
+.Lecrad_alloc_fail:
+ mov w25,w0
+ b .Lecrad_free_private
+.Lecrad_child_fail:
+ mov w25,#2
+.Lecrad_free_private:
+ mov x0,x28
+ mov x1,#22472
+ bl md2asm_release_selected_ecrad
+ mov w0,w25
+ b .Lecrad_return
+.Lecrad_bad:
+ mov w0,#2
+.Lecrad_return:
+ ldr x18,[sp,#160]
+ ldp x19,x20,[sp,#80]
+ ldp x21,x22,[sp,#96]
+ ldp x23,x24,[sp,#112]
+ ldp x25,x26,[sp,#128]
+ ldp x27,x28,[sp,#144]
+ ldp x29,x30,[sp,#64]
+ add sp,sp,#6,lsl#12
+ ret
+.Lecrad_bad_leaf:
+ mov w0,#2
+ ret
+.size md2asm_initialize_selected_ecrad,.-md2asm_initialize_selected_ecrad
+.ltorg
+.p2align 4
+.type md2asm_ecrad_input_vector,%function
+md2asm_ecrad_input_vector:
+ ldr x9,[x0]
+ cbz x9,.Lecrad_vec_bad
+ sub x10,x2,#1
+ tst x9,x10
+ b.ne .Lecrad_vec_bad
+ ldr x10,[x0,#8]
+ cmn x10,#1
+ b.ne .Lecrad_vec_bad
+ ldr x10,[x0,#16]
+ cmp x10,x2
+ b.ne .Lecrad_vec_bad
+ ldr w10,[x0,#24]
+ cbnz w10,.Lecrad_vec_bad
+ ldr w10,[x0,#28]
+ cmp x2,#8
+ mov w11,#0x101
+ mov w12,#0x301
+ csel w11,w12,w11,eq
+ cmp w10,w11
+ b.ne .Lecrad_vec_bad
+ ldr x10,[x0,#32]
+ cmp x10,x2
+ b.ne .Lecrad_vec_bad
+ ldp x10,x11,[x0,#40]
+ cmp x10,#1
+ b.ne .Lecrad_vec_bad
+ cmp x11,#1
+ b.ne .Lecrad_vec_bad
+ ldr x10,[x0,#56]
+ cmp x10,x1
+ b.ne .Lecrad_vec_bad
+ mul x10,x1,x2
+ adds x10,x9,x10
+ b.cs .Lecrad_vec_bad
+ mov x0,x9
+ ret
+.Lecrad_vec_bad:
+ mov x0,#0
+ ret
+.size md2asm_ecrad_input_vector,.-md2asm_ecrad_input_vector
+.p2align 4
+.global md2asm_release_selected_ecrad
+.type md2asm_release_selected_ecrad,%function
+md2asm_release_selected_ecrad:
+ cbz x0,.Lecrad_release_bad
+ tst x0,#7
+ b.ne .Lecrad_release_bad
+ mov x9,#22472
+ cmp x1,x9
+ b.lo .Lecrad_release_bad
+ adds x9,x0,x9
+ b.cs .Lecrad_release_bad
+ stp x29,x30,[sp,#-64]!
+ stp x19,x20,[sp,#16]
+ stp x21,x18,[sp,#32]
+ mov x19,x0
+ adrp x20,.Lrelease_offsets
+ add x20,x20,:lo12:.Lrelease_offsets
+ mov x21,#44
+.Lecrad_release_loop:
+ ldr w9,[x20],#4
+ ldr x0,[x19,x9]
+ cbz x0,.Lecrad_release_next
+ str xzr,[x19,x9]
+ bl free
+.Lecrad_release_next:
+ subs x21,x21,#1
+ b.ne .Lecrad_release_loop
+ mov w0,#0
+ ldp x19,x20,[sp,#16]
+ ldp x21,x18,[sp,#32]
+ ldp x29,x30,[sp],#64
+ ret
+.Lecrad_release_bad:
+ mov w0,#2
+ ret
+.size md2asm_release_selected_ecrad,.-md2asm_release_selected_ecrad
+.section .rodata
+.p2align 3
+.Lrecord_bytes:
+ .quad 22472,2040,448,392,176080,1229352,4059736
+.Lrelease_offsets:
+ .word 10048,10112,10176,10240,10304,10368,10432,10520,10608,10672,10736,10800,10864,10928,11128,11216,11304,11392,11480,11544,11608,11672,11736,11824,11912,12000,12088,12176,12264,12376,12488,12600,12712,12824,12936,13024,13112,13200,13288,13400,13512,13624,13736,17864
+.Lradiation_group:
+ .ascii "RADIATION"
+.p2align 3
+.Lsix:
+ .word 6
+.Lthree:
+ .word 3
+.Lten:
+ .word 10
+.Ltrue:
+ .word 1
+.Lfalse:
+ .word 0
+.Ltrop_type:
+ .word 8
+.Lstrat_type:
+ .word 12
+.Laerosol_map:
+ .word -1,-2,-3,7,8,9,-4,13,15,15,-6,18
+.Lsix_indices:
+ .word 1,2,3,4,5,6
+.p2align 3
+.Lsw_bounds:
+ .double 0.25e-6,0.44e-6,0.69e-6,1.19e-6,2.38e-6
+.Laerosol_file:
+ .ascii "aerosol_ifs_rrtm_48R1_v2.nc"
+ .fill 484,1,32
+.p2align 3
+.Luv_lo:
+ .double 2e-07
+.Luv_hi:
+ .double 4.415e-07
+.Luv_name:
+ .ascii "ultraviolet"
+.p2align 3
+.Lpar_lo:
+ .double 4e-07
+.Lpar_hi:
+ .double 7e-07
+.Lpar_name:
+ .ascii "photosynthetically active radiation, PAR"
+.p2align 3
+.section .note.GNU-stack,"",%progbits
