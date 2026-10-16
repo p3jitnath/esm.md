@@ -1,5 +1,7 @@
 # Final-address selected FIELDS initial state
 
+The current entry extends this stage with [live cloud setup and nine working owners](owned_working_initial_state.md). The unchanged field and input checks below remain part of that entry.
+
 This checkpoint extends the qualified R7 MODEL entry. One stable calloc-owned FIELDS record has 529,288 bytes. Its MODEL is the existing live 4,275,088-byte allocation and Geometry remains the existing separate live vertical context. Construct each pointer-bearing record directly in its final FIELDS slot: GMV at byte 1,856 with 1,560 bytes, TGFL at byte 3,416 with 1,096 bytes, TSURF at byte 4,512 with 18,224 bytes and SPECTRAL at byte 22,736 with 2,992 bytes. No completed pointer-bearing temporary record is copied into FIELDS.
 
 The outer storage producer accepts the live MODEL and an initially null output-pointer word. Its source declaration defaults, exact STATE_MODEL and YRGFL.YGFL pointer slots come from the source and genuine typed query supplied by the root worker. It leaves VARS in its declared false state and GEOM null because the selected CNT0 manual startup has not called their later producers. The inactive generic FIELDS_CREATE route is not a production stage. Reserved field containers, diagnostic flux, physics-field and registry areas retain their explicit fresh zero allocation preimage and remain unfinished.

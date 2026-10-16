@@ -1,5 +1,5 @@
-/* Contract: skills/md2asm/references/openifs/input/owned_fields_initial_state.md. */
-/* Standalone selected T21 complete initial-state composition, revision 8.
+/* Contract: skills/md2asm/references/openifs/input/owned_working_initial_state.md. */
+/* Standalone selected T21 complete initial-state composition, revision 9.
  * Own entry, configuration, contexts, loading, output and release are assembly.
  * External services are libc, ecCodes and the qualified FIAT/ectrans interfaces.
  * This input checkpoint does not run a forecast. */
@@ -404,6 +404,25 @@ main:
  bl md2asm_initialize_surface_exchange_parameters
  add w23,w0,#50
  cbnz w0,.Lmain_cleanup
+ /* SUPHMF source order: complete SUPHY1, then SUPHY2. */
+ adr x9,.Lphysics_time_inputs
+ ldr x10,[x20,#16]
+ str x10,[x9]
+ ldr x10,[x20,#80]
+ str x10,[x9,#16]
+ ldr w10,[x20,#5224]
+ str w10,[x9,#32]
+ mov w10,#1
+ str w10,[x9,#36]
+ adrp x0,.Lnamelist_text
+ add x0,x0,:lo12:.Lnamelist_text
+ mov x1,x27
+ owned_model_address x2,4150008
+ mov x3,#160
+ mov x4,x9
+ bl md2asm_initialize_physics_time_controls
+ add w23,w0,#54
+ cbnz w0,.Lmain_cleanup
  owned_model_address x0,1581376
  mov x1,#16
  bl md2asm_initialize_condensation_parameters
@@ -492,6 +511,22 @@ main:
  str x11,[x10,#144]
  ldr x11,[x9,#16]
  str x11,[x10,#160]
+ /* SUPHEC's prognostic cloud setup consumes the live TPHY2 interval. */
+ adr x9,.Lprognostic_cloud_inputs
+ mov x10,#3336
+ ldr x10,[x20,x10]
+ str x10,[x9]
+ owned_model_address x10,4150016
+ str x10,[x9,#48]
+ adrp x0,.Lnamelist_text
+ add x0,x0,:lo12:.Lnamelist_text
+ mov x1,x27
+ owned_model_address x2,1578600
+ mov x3,#2776
+ mov x4,x9
+ bl md2asm_initialize_prognostic_cloud_parameters
+ add w23,w0,#78
+ cbnz w0,.Lmain_cleanup
  adrp x0,.Lphysics_status_final
  add x0,x0,:lo12:.Lphysics_status_final
  bl .Lcapture_physics_status
@@ -505,6 +540,24 @@ main:
  add x4,x4,:lo12:.Lspectral_dummy
  bl md2asm_initialize_serial_spectral_field
  add w23,w0,#112
+ cbnz w0,.Lmain_cleanup
+ /* Source physics working storage precedes the main GMV/GFL owners. */
+ adr x9,.Lphysics_field_shape
+ ldr w10,[x20,#5144]
+ str w10,[x9]
+ ldr w10,[x20,#5224]
+ str w10,[x9,#4]
+ ldr w10,[x20,#5160]
+ str w10,[x9,#8]
+ owned_model_address x10,1577368
+ ldr w10,[x10,#28]
+ str w10,[x9,#12]
+ owned_fields_address x0,25728
+ mov x1,#704
+ mov x2,x9
+ adr x3,__yoe_phys_mwave_MOD_n_phys_mwave
+ bl md2asm_initialize_ecmwf_physics_fields
+ add w23,w0,#118
  cbnz w0,.Lmain_cleanup
  adr x9,.Lgmv_inputs
  str x20,[x9]
@@ -579,6 +632,24 @@ main:
  bl md2asm_load_initial_upper_air_state
  add w23,w0,#148
  cbnz w0,.Lmain_cleanup
+ /* Explicit first-working-call storage boundary from GP_MODEL. */
+ adr x9,.Lnext_time_shape
+ ldr w10,[x20,#5144]
+ str w10,[x9]
+ ldr w10,[x20,#5224]
+ str w10,[x9,#4]
+ ldr w10,[x20,#5160]
+ str w10,[x9,#8]
+ owned_model_address x10,256
+ ldr w10,[x10]
+ str w10,[x9,#12]
+ owned_fields_address x0,0
+ movz x1,#(529288 & 65535)
+ movk x1,#(529288 >> 16),lsl#16
+ mov x2,x9
+ bl md2asm_prepare_next_time_fields
+ add w23,w0,#152
+ cbnz w0,.Lmain_cleanup
  ldr x0,[x19,#40]
  ldr x1,[x21,#88]
  mov x2,#0x8550
@@ -625,6 +696,13 @@ main:
  cbnz w0,.Lmain_cleanup
  mov w23,wzr
 .Lmain_cleanup:
+ adrp x9,.Lfields_owner
+ ldr x0,[x9,:lo12:.Lfields_owner]
+ cbz x0,.Lmain_release_surface
+ bl md2asm_release_next_time_fields
+ owned_fields_address x0,25728
+ bl md2asm_release_ecmwf_physics_fields
+.Lmain_release_surface:
  cbz x28,.Lmain_release_upper_air
  owned_fields_address x0,4512
  bl md2asm_release_selected_surface_state
@@ -1324,6 +1402,24 @@ md2asm_owned_initial_metadata_auxiliary:
  cbnz w0,.Lsetup_close
  subs w23,w23,#1
  b.ne .Lfields_stream_owner
+ adr x1,.Lworking_extension_header
+ mov x2,#24
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x1,__yoe_phys_mwave_MOD_n_phys_mwave
+ mov x2,#4
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x22,.Lworking_owner_offsets
+ mov w23,#9
+.Lworking_stream_owner:
+ ldr w25,[x22],#4
+ add x0,x24,x25
+ mov x1,x25
+ bl .Lfields_write_owner
+ cbnz w0,.Lsetup_close
+ subs w23,w23,#1
+ b.ne .Lworking_stream_owner
 .Lsetup_close:
  mov w28,w0
  mov x0,x19
@@ -1687,4 +1783,25 @@ __yomlouis_MOD_yrlouis: .zero 8
 .Lfields_extension_header: .ascii "R8FIELD1"
  .quad 529288,24,22,0,0
 .Lgmv_inputs: .quad 0,17096,0,448,0,176,0,1096,0,456
+.section .note.GNU-stack,"",%progbits
+
+.section .rodata
+.p2align 3
+.Lworking_extension_header: .ascii "R9WORK01"
+ .quad 4,9
+.Lworking_owner_offsets: .word 25728,25840,25952,26064,26176,26296,2104,2240,3552
+.section .data
+.p2align 3
+.Lphysics_time_inputs: .quad 0,160,0,160
+ .word 19,1
+.Lprognostic_cloud_inputs:
+ .quad 0,152,.Lphysical_constants,520,md2asm_owned_dynamical_namespace,16,0,8
+.bss
+.p2align 3
+.Lphysics_field_shape: .zero 16
+.Lnext_time_shape: .zero 16
+.global __yoe_phys_mwave_MOD_n_phys_mwave
+.type __yoe_phys_mwave_MOD_n_phys_mwave,%object
+__yoe_phys_mwave_MOD_n_phys_mwave: .zero 4
+.size __yoe_phys_mwave_MOD_n_phys_mwave,4
 .section .note.GNU-stack,"",%progbits
