@@ -1,0 +1,251 @@
+/* Source literals and typed offsets for selected convection setup. */
+.section .rodata
+.p2align 3
+.equ CM_ENTRORG,0
+.equ CM_ENTSHALP,8
+.equ CM_ENTSTPC1,16
+.equ CM_ENTSTPC2,24
+.equ CM_ENTSTPC3,32
+.equ CM_ENTRDD,40
+.equ CM_DETRPEN,48
+.equ CM_RMFCFL,56
+.equ CM_RMFLIA,64
+.equ CM_RMFSOLUV,72
+.equ CM_RMFSOLTQ,80
+.equ CM_RMFSOLCT,88
+.equ CM_RMFSOLRHS,96
+.equ CM_RMFADVW,104
+.equ CM_RMFADVWDD,112
+.equ CM_RMFCMIN,120
+.equ CM_RMFDEPS,128
+.equ CM_RDEPTHS,136
+.equ CM_RPRCON,144
+.equ CM_RTAUA,152
+.equ CM_RCAPDCYCL,160
+.equ CM_RCAPQADV,168
+.equ CM_RMINCAPE,176
+.equ CM_RCPECONS,184
+.equ CM_RCVRFACTOR,192
+.equ CM_RCUCOV,200
+.equ CM_RTAUMEL,208
+.equ CM_RHEBC,216
+.equ CM_RUVPER,224
+.equ CM_RBASE0,232
+.equ CM_RMINCIN,240
+.equ CM_LMFPEN,248
+.equ CM_LMFSCV,252
+.equ CM_LMFMID,256
+.equ CM_LMFDD,260
+.equ CM_LMFDUDV,264
+.equ CM_LMFDSNOW,268
+.equ CM_LMFWETB,272
+.equ CM_LMFGLAC,276
+.equ CM_LSCVLIQ,280
+.equ CM_LMFENTHCONS,284
+.equ CM_LMFUVDIS,288
+.equ CM_LMFSMOOTH,292
+.equ CM_LMFWSTAR,296
+.equ CM_LMFCUCA,300
+.equ CM_LMFPROFP,304
+.equ CM_NJKT1,308
+.equ CM_NJKT2,312
+.equ CM_NJKT3,316
+.equ CM_NJKT4,320
+.equ CM_NJKT5,324
+.equ CM_NJKT6,328
+.equ CM_NJKT7,332
+.equ CM_NJKT8,336
+.p2align 3
+.LCM_literal_rows:
+ .word 8,8
+ .quad 0x4000000000000000 /* ENTSHALP */
+ .word 16,8
+ .quad 0x3fe999999999999a /* ENTSTPC1 */
+ .word 24,8
+ .quad 0x3f2a36e2eb1c432d /* ENTSTPC2 */
+ .word 32,8
+ .quad 0x4008000000000000 /* ENTSTPC3 */
+ .word 120,8
+ .quad 0x3e45798ee2308c3a /* RMFCMIN */
+ .word 128,8
+ .quad 0x3fd3333333333333 /* RMFDEPS */
+ .word 136,8
+ .quad 0x40d3880000000000 /* RDEPTHS */
+ .word 200,8
+ .quad 0x3fa999999999999a /* RCUCOV */
+ .word 216,8
+ .quad 0x3fed70a3d70a3d71 /* RHEBC */
+ .word 152,8
+ .quad 0x3ff0000000000000 /* RTAUA */
+ .word 248,4
+ .quad 0x0000000000000001 /* LMFPEN */
+ .word 252,4
+ .quad 0x0000000000000001 /* LMFSCV */
+ .word 256,4
+ .quad 0x0000000000000001 /* LMFMID */
+ .word 260,4
+ .quad 0x0000000000000001 /* LMFDD */
+ .word 264,4
+ .quad 0x0000000000000001 /* LMFDUDV */
+ .word 268,4
+ .quad 0x0000000000000001 /* LMFDSNOW */
+ .word 272,4
+ .quad 0x0000000000000001 /* LMFWETB */
+ .word 276,4
+ .quad 0x0000000000000001 /* LMFGLAC */
+ .word 280,4
+ .quad 0x0000000000000001 /* LSCVLIQ */
+ .word 288,4
+ .quad 0x0000000000000001 /* LMFUVDIS */
+ .word 284,4
+ .quad 0x0000000000000000 /* LMFENTHCONS */
+ .word 300,4
+ .quad 0x0000000000000000 /* LMFCUCA */
+ .word 304,4
+ .quad 0x0000000000000000 /* LMFPROFP */
+ .word 72,8
+ .quad 0x3ff0000000000000 /* RMFSOLUV */
+ .word 80,8
+ .quad 0x3ff0000000000000 /* RMFSOLTQ */
+ .word 88,8
+ .quad 0x3ff0000000000000 /* RMFSOLCT */
+ .word 96,8
+ .quad 0x0000000000000000 /* RMFSOLRHS */
+ .word 104,8
+ .quad 0x0000000000000000 /* RMFADVW */
+ .word 112,8
+ .quad 0x0000000000000000 /* RMFADVWDD */
+ .word 292,4
+ .quad 0x0000000000000000 /* LMFSMOOTH */
+ .word 296,4
+ .quad 0x0000000000000000 /* LMFWSTAR */
+ .word 160,8
+ .quad 0x4000000000000000 /* RCAPDCYCL */
+ .word 168,8
+ .quad 0x3fe999999999999a /* RCAPQADV */
+ .word 176,8
+ .quad 0x3fa999999999999a /* RMINCAPE */
+ .word 224,8
+ .quad 0x3fd3333333333333 /* RUVPER */
+ .word 232,8
+ .quad 0x40d86a0000000000 /* RBASE0 */
+ .word 240,8
+ .quad 0xc08f400000000000 /* RMINCIN */
+ .word -1,0
+ .quad 0
+.LCM_pressure_rows:
+ .double 35000.0
+ .word 308,0 /* NJKT1 */
+ .double 6000.0
+ .word 312,0 /* NJKT2 */
+ .double 95000.0
+ .word 316,0 /* NJKT3 */
+ .double 85000.0
+ .word 320,0 /* NJKT4 */
+ .double 50000.0
+ .word 324,0 /* NJKT5 */
+ .double 70000.0
+ .word 328,0 /* NJKT6 */
+ .double 10000.0
+ .word 332,0 /* NJKT7 */
+ .double 100.0
+ .word 336,0 /* NJKT8 */
+.equ CL_ENTRORG2,0
+.equ CL_DETRPEN2,8
+.equ CL_ENTSHALP2,16
+.equ CL_ENTSTPC12,24
+.equ CL_ENTSTPC22,32
+.equ CL_ENTSTPC32,40
+.equ CL_ENTRDD2,48
+.equ CL_RMFCMIN2,56
+.equ CL_RMFDEPS2,64
+.equ CL_RDEPTHS2,72
+.equ CL_RPRCON2,80
+.equ CL_RTAU2,88
+.equ CL_RCPECONS2,96
+.equ CL_RCUCOV2,104
+.equ CL_RTAUMEL2,112
+.equ CL_RUVPER2,120
+.equ CL_RMFSOLCT2,128
+.equ CL_RMFSOLTQ2,136
+.equ CL_RMFSOLUV2,144
+.equ CL_RMFSOLRHS2,152
+.equ CL_RMFCFL2,160
+.equ CL_RMFLIA2,168
+.equ CL_RCAPDCYCL2,176
+.equ CL_RTAU02,184
+.equ CL_LMFMID2,192
+.equ CL_LMFDD2,196
+.equ CL_LMFDUDV2,200
+.equ CL_LMFUVDIS2,204
+.equ CL_LMFWETB2,208
+.equ CL_LMFGLAC2,212
+.equ CL_NJKT12,216
+.equ CL_NJKT22,220
+.equ CL_NJKT32,224
+.equ CL_NJKT52,228
+.equ CL_NJKT62,232
+.p2align 3
+.LCL_literal_rows:
+ .word 24,8
+ .quad 0x3fe999999999999a /* ENTSTPC12 */
+ .word 32,8
+ .quad 0x3f2a36e2eb1c432d /* ENTSTPC22 */
+ .word 40,8
+ .quad 0x4008000000000000 /* ENTSTPC32 */
+ .word 16,8
+ .quad 0x4000000000000000 /* ENTSHALP2 */
+ .word 56,8
+ .quad 0x3e45798ee2308c3a /* RMFCMIN2 */
+ .word 64,8
+ .quad 0x3fd3333333333333 /* RMFDEPS2 */
+ .word 72,8
+ .quad 0x40d3880000000000 /* RDEPTHS2 */
+ .word 104,8
+ .quad 0x3fa999999999999a /* RCUCOV2 */
+ .word 112,8
+ .quad 0x40c7340000000000 /* RTAUMEL2 */
+ .word 192,4
+ .quad 0x0000000000000001 /* LMFMID2 */
+ .word 196,4
+ .quad 0x0000000000000001 /* LMFDD2 */
+ .word 200,4
+ .quad 0x0000000000000001 /* LMFDUDV2 */
+ .word 204,4
+ .quad 0x0000000000000000 /* LMFUVDIS2 */
+ .word 208,4
+ .quad 0x0000000000000001 /* LMFWETB2 */
+ .word 212,4
+ .quad 0x0000000000000001 /* LMFGLAC2 */
+ .word 120,8
+ .quad 0x3fd3333333333333 /* RUVPER2 */
+ .word 144,8
+ .quad 0x3ff0000000000000 /* RMFSOLUV2 */
+ .word 136,8
+ .quad 0x3ff0000000000000 /* RMFSOLTQ2 */
+ .word 128,8
+ .quad 0x3ff0000000000000 /* RMFSOLCT2 */
+ .word 152,8
+ .quad 0x0000000000000000 /* RMFSOLRHS2 */
+ .word 176,8
+ .quad 0x4000000000000000 /* RCAPDCYCL2 */
+ .word 168,8
+ .quad 0x4000000000000000 /* RMFLIA2 */
+ .word 160,8
+ .quad 0x3ff0000000000000 /* RMFCFL2 */
+ .word -1,0
+ .quad 0
+.LCL_pressure_rows:
+ .double 35000.0
+ .word 216,0 /* NJKT12 */
+ .double 6000.0
+ .word 220,0 /* NJKT22 */
+ .double 95000.0
+ .word 224,0 /* NJKT32 */
+ .double 50000.0
+ .word 228,0 /* NJKT52 */
+ .double 70000.0
+ .word 232,0 /* NJKT62 */
+.Lconvection_math:
+ .double 0.75e-4,1.75e-3,3.0e-4,1.4e-3,5.44e-4,5.09e-3
+ .double 2.0,18000.0,0.66,38.0,1.0,0.33
