@@ -74,7 +74,6 @@ md2asm_apply_selected_physics_namelist:
  mov w11,#0
 .Lnaephy_group_match:
  ldrb w12,[x19,x11]
- orr w12,w12,#32
  ldrb w13,[x10,x11]
  cmp w12,w13
  b.ne .Lnaephy_skip_line
@@ -341,7 +340,7 @@ md2asm_apply_selected_physics_namelist:
  mov w1,#1
  ret
 .section .rodata
-.Lnaephy_group: .ascii "naephy"
+.Lnaephy_group: .ascii "NAEPHY"
 .Lnaephy_true_text: .ascii "true"
 .Lnaephy_false_text: .ascii "false"
 .p2align 4

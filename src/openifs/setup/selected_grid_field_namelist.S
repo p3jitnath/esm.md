@@ -69,7 +69,6 @@ md2asm_apply_selected_grid_field_namelist:
  mov w11,#0
 .Lnamgfl_group_match:
  ldrb w12,[x19,x11]
- orr w12,w12,#32
  ldrb w13,[x10,x11]
  cmp w12,w13
  b.ne .Lnamgfl_skip_line
@@ -339,7 +338,7 @@ md2asm_apply_selected_grid_field_namelist:
  mov w1,#1
  ret
 .section .rodata
-.Lnamgfl_group: .ascii "namgfl"
+.Lnamgfl_group: .ascii "NAMGFL"
 .Lnamgfl_true_text: .ascii "true"
 .Lnamgfl_false_text: .ascii "false"
 .p2align 4
