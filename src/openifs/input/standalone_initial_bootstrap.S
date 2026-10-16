@@ -1,5 +1,5 @@
-/* Contract: skills/md2asm/references/openifs/input/owned_virtual_temperature_initial_state.md. */
-/* Standalone selected T21 complete initial-state composition, revision 12.
+/* Contract: skills/md2asm/references/openifs/input/owned_diagnostic_initial_state.md. */
+/* Standalone selected T21 complete initial-state composition, revision 13.
  * Own entry, configuration, contexts, loading, output and release are assembly.
  * External services are libc, ecCodes and the qualified FIAT/ectrans interfaces.
  * This input checkpoint does not run a forecast. */
@@ -571,6 +571,44 @@ main:
  bl md2asm_initialize_grid_motion_fields
  add w23,w0,#116
  cbnz w0,.Lmain_cleanup
+ /* Own diagnostic records before SUINIF can inspect their read switches. */
+ adr x9,.Ldiagnostic_flux_records
+ owned_fields_address x10,35304
+ str x10,[x9]
+ owned_fields_address x10,197576
+ str x10,[x9,#16]
+ owned_fields_address x10,528320
+ str x10,[x9,#32]
+ adr x10,.Ldiagnostic_flux_controls
+ ldr w11,[x20,#5144]
+ str w11,[x10]
+ ldr w11,[x20,#5160]
+ str w11,[x10,#4]
+ adrp x11,__yomct0_MOD_lecmwf
+ ldr w11,[x11,:lo12:__yomct0_MOD_lecmwf]
+ str w11,[x10,#8]
+ adrp x11,__yomct0_MOD_nfpos
+ ldr w11,[x11,:lo12:__yomct0_MOD_nfpos]
+ str w11,[x10,#12]
+ owned_model_address x11,4143760
+ ldr w12,[x11,#12]
+ str w12,[x10,#16]
+ ldr w12,[x11,#368]
+ ldr w13,[x11,#372]
+ stp w12,w13,[x10,#20]
+ adrp x11,__yomct0_MOD_nconf
+ ldr w11,[x11,:lo12:__yomct0_MOD_nconf]
+ str w11,[x10,#28]
+ adrp x0,.Lnamelist_text
+ add x0,x0,:lo12:.Lnamelist_text
+ mov x1,x27
+ mov x2,x9
+ mov x3,x10
+ bl md2asm_initialize_selected_flux_configuration
+ add w23,w0,#151
+ cbnz w0,.Lmain_cleanup
+ adr x0,.Ldiagnostic_flux_status
+ bl .Lcapture_physics_status
  ldr x0,[x19,#8]
  mov x1,x20
  mov x2,x22
@@ -638,6 +676,36 @@ main:
  add w23,w0,#150
  cbnz w0,.Lmain_cleanup
  adr x0,.Linitial_virtual_temperature_status
+ bl .Lcapture_physics_status
+ /* Compute the initial diagnostics from the completed live spectral state. */
+ adr x4,.Ldiagnostic_norm_controls
+ adrp x9,__yomct0_MOD_nsppr
+ ldr w9,[x9,:lo12:__yomct0_MOD_nsppr]
+ str w9,[x4]
+ adrp x9,__yomct0_MOD_lelam
+ ldr w9,[x9,:lo12:__yomct0_MOD_lelam]
+ str w9,[x4,#4]
+ adrp x9,__yomct0_MOD_lrefgen
+ ldr w9,[x9,:lo12:__yomct0_MOD_lrefgen]
+ str w9,[x4,#8]
+ adrp x9,__yomct0_MOD_lrefout
+ ldr w9,[x9,:lo12:__yomct0_MOD_lrefout]
+ str w9,[x4,#12]
+ mov w9,#1
+ str w9,[x4,#16]
+ str wzr,[x4,#20]
+ mov x0,x20
+ owned_model_address x1,8
+ owned_model_address x2,1564136
+ owned_fields_address x3,22736
+ adrp x5,md2asm_owned_spectral_norm_state
+ add x5,x5,:lo12:md2asm_owned_spectral_norm_state
+ adrp x6,.Ldiagnostic_norm_results
+ add x6,x6,:lo12:.Ldiagnostic_norm_results
+ bl md2asm_compute_selected_spectral_norms
+ add w23,w0,#153
+ cbnz w0,.Lmain_cleanup
+ adr x0,.Ldiagnostic_norm_status
  bl .Lcapture_physics_status
  /* Explicit first-working-call storage boundary from GP_MODEL. */
  adr x9,.Lnext_time_shape
@@ -738,6 +806,9 @@ main:
  adrp x9,.Lfields_owner
  ldr x0,[x9,:lo12:.Lfields_owner]
  cbz x0,.Lmain_release_surface
+ adr x0,.Ldiagnostic_flux_records
+ bl md2asm_release_selected_flux_configuration
+ owned_fields_address x0,0
  bl md2asm_release_selected_field_containers
  owned_fields_address x0,0
  bl md2asm_release_next_time_fields
@@ -1508,6 +1579,32 @@ md2asm_owned_initial_metadata_auxiliary:
  adr x1,.Linitial_virtual_temperature_status
  mov x2,#24
  bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x1,.Ldiagnostic_extension_header
+ mov x2,#56
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x1,.Ldiagnostic_flux_controls
+ mov x2,#32
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x1,.Ldiagnostic_norm_controls
+ mov x2,#24
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adrp x1,.Ldiagnostic_norm_results
+ add x1,x1,:lo12:.Ldiagnostic_norm_results
+ mov x2,#20928
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adrp x1,md2asm_owned_spectral_norm_state
+ add x1,x1,:lo12:md2asm_owned_spectral_norm_state
+ mov x2,#24
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x1,.Ldiagnostic_flux_status
+ mov x2,#48
+ bl .Lstate_write_bytes
 .Lsetup_close:
  mov w28,w0
  mov x0,x19
@@ -1929,4 +2026,20 @@ __yoe_phys_mwave_MOD_n_phys_mwave: .zero 4
 .bss
 .p2align 3
 .Linitial_virtual_temperature_status:.skip 24
+.section .note.GNU-stack,"",%progbits
+
+.section .rodata
+.p2align 3
+.Ldiagnostic_extension_header:.ascii "R13DIAG1"
+.xword 32,24,20928,24,24,24
+.section .data
+.p2align 3
+.Ldiagnostic_flux_records:.xword 0,162272,0,330728,0,936
+.bss
+.p2align 3
+.Ldiagnostic_flux_controls:.skip 32
+.Ldiagnostic_norm_controls:.skip 24
+.Ldiagnostic_norm_results:.skip 20928
+.Ldiagnostic_flux_status:.skip 24
+.Ldiagnostic_norm_status:.skip 24
 .section .note.GNU-stack,"",%progbits
