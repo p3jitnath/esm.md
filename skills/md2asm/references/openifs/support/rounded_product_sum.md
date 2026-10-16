@@ -1,6 +1,6 @@
 # Exact Integer Rounding Inside An Atomic Math Helper
 
-Revision 1. The unique scalar entry is `md2asm_round_product_sum_direct(double a, double b, double c)`. Its mathematical result is one round-to-nearest, ties-to-even FP64 conversion of the exact value $`ab+c`$. This has fused-result semantics inside the already qualified original math-helper contract. It must not replace the weather solver's separately rounded multiplication and addition. The inputs must be finite and FPCR must be zero. A rounded overflow returns the correctly signed infinity and the original status flags.
+Revision 2. The unique scalar entry is `md2asm_round_product_sum_direct(double a, double b, double c)`. Its mathematical result is one round-to-nearest, ties-to-even FP64 conversion of the exact value $`ab+c`$. This has fused-result semantics inside the already qualified original math-helper contract. It must not replace the weather solver's separately rounded multiplication and addition. The inputs must be finite and FPCR must be zero. A rounded overflow returns the correctly signed infinity and the original status flags.
 
 ## Exact Integer Calculation
 
@@ -9,6 +9,8 @@ An FP64 word has a sign, an eleven-bit exponent field $`e`$ and a fifty-two-bit 
 ```math
 ab+c=(-1)^{s_a+s_b}M_aM_b2^{E_a+E_b}+(-1)^{s_c}M_c2^{E_c}.
 ```
+
+First try the [compact exact path](compact_product_sum.md), which stores each exact magnitude in two 64-bit integer words when proved operand bounds permit it. Otherwise use the unchanged general calculation below.
 
 Use the common exact scale $`2^{-2148}`$. Insert the 106-bit product and the 53-bit addend into separate unsigned arrays of 67 words, with 64 bits per word. The representation has 4,288 bits and covers the accepted complete finite-input domain. The lowest product exponent is -2148, and the largest product and sum require fewer than 4,197 bits. Each insertion writes only the addressed word and, for a nonzero within-word shift, its next word. Their complete ranges stay inside the 67-word arrays.
 
@@ -20,10 +22,10 @@ Add the inexact flag to FPSR when any discarded bit is nonzero. For a tiny inexa
 
 ## Interface And Actual Checks
 
-The Arm application binary interface receives $`a`$, $`b`$ and $`c`$ in d0, d1 and d2, and returns the FP64 word in d0. The private 1,712-byte frame holds three complete 67-word arrays and saved registers, with 16-byte stack alignment. Preserve x18, x19 through x29, d8 through d15, the stack pointer, FPCR and errno. There are no caller-owned buffers and no external numerical calls. The assembly uses integer products, shifts, exact carry and borrow operations, integer word comparisons and bit copies. It updates FPSR only by adding the declared exception bits.
+The Arm application binary interface receives $`a`$, $`b`$ and $`c`$ in d0, d1 and d2, and returns the FP64 word in d0. The compact child needs no frame. Its wrapper saves the return address in 16 bytes and removes that frame before entering the general path. The general 1,712-byte frame holds three complete 67-word arrays and saved registers, with 16-byte stack alignment. Preserve x18, x19 through x29, d8 through d15, the stack pointer, FPCR and errno. There are no caller-owned buffers. Its only numerical call is to the private compact assembly child. The assembly uses integer products, shifts, exact carry and borrow operations, integer word comparisons and bit copies. It updates FPSR only by adding the declared exception bits.
 
-The new direct body passes all 6,846 retained deterministic finite cases against the accepted C verification control and the original atomic primitive, with zero differing result bytes, status values or errno values. This covers 54,768 returned bytes. The previous independent exact-rational proof is reused. Nine immediate three-input ABI calls and eighteen inherited-status cases pass. Five non-finite or unsupported-FPCR cases reject before calculation. The C helper is retained solely as a verification control, and the direct calculation has no C numerical dependency.
+The original general body passes all 6,846 retained deterministic finite cases against the accepted C verification control and the original atomic primitive, with zero differing result bytes, status values or errno values. This covers 54,768 returned bytes. The previous independent exact-rational proof is reused. Nine immediate three-input ABI calls and eighteen inherited-status cases pass. Five non-finite or unsupported-FPCR cases reject before calculation. The C helper is retained solely as a verification control, and the direct calculation has no C numerical dependency.
 
-The LLM wrote these instructions directly from the already accepted integer equations and domain proof. No compiler-generated assembly or intermediate representation supplied the body. The local stack and instruction details were recorded with the emitted direct body. This critical result qualifies the original atomic math rounding route, without accepting a weather caller, changing a primary physics arithmetic rule or establishing an autonomous forecast.
+The LLM wrote these instructions directly from the already accepted integer equations and domain proof. No compiler-generated assembly or intermediate representation supplied the body. The local stack and instruction details were recorded with the emitted direct body. These retained checks qualify the original atomic math rounding route. Revision 2 adds the compact path with the critical and complete-forecast checks stated in its linked contract, preserving the same mathematical result and status.
 
 The [basic input](../../../../../formulations/openifs/support/rounded_product_sum.md) and [direct source](../../../../../src/openifs/support/rounded_product_sum.S) publish one shared scalar body. Link it once for every mathematical helper that uses this accepted internal operation.

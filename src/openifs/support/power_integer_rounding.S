@@ -1,7 +1,8 @@
 // Exact RN(a*b+c) at the frozen POWER single-rounding source locations.
 // Contract: skills/md2asm/references/openifs/support/power_original_rounding.md.
 // ABI: d0,d1,d2 operands; d0 result; finite inputs; FPCR=0.
-// Two 67-word arrays use scale 2^-2148 inside a 1728-byte stack frame.
+// Generic arrays use scale 2^-2148 inside the unchanged 1728-byte frame.
+// The compact leaf call uses a separate 16-byte saved-LR frame.
 // Preserve x18, x19-x29 and d8-d15, with sixteen-byte stack alignment.
 .arch armv8-a
 .text
@@ -9,6 +10,19 @@
 .global md2asm_round_product_sum_candidate
 .type md2asm_round_product_sum_candidate,%function
 md2asm_round_product_sum_candidate:
+ // Try the exact compact representation before reserving the generic arrays.
+ stp x29,x30,[sp,#-16]!
+ bl md2asm_try_compact_product_sum
+ ldp x29,x30,[sp],#16
+ cbnz w0,.Lcandidate_generic_product_sum
+ // A compact success belongs to the original fast operand class.
+ adrp x6,:got:md2asm_product_sum_fast_calls
+ ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+ ldr x7,[x6]
+ add x7,x7,#1
+ str x7,[x6]
+ ret
+.Lcandidate_generic_product_sum:
  sub sp,sp,#1728
  add x17,sp,#1616
  stp x19,x20,[x17,#0]
