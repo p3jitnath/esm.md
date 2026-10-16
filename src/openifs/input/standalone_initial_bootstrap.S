@@ -1,5 +1,5 @@
-/* Contract: skills/md2asm/references/openifs/input/owned_attached_initial_state.md. */
-/* Standalone selected T21 complete initial-state composition, revision 10.
+/* Contract: skills/md2asm/references/openifs/input/owned_complete_physics_initial_state.md. */
+/* Standalone selected T21 complete initial-state composition, revision 11.
  * Own entry, configuration, contexts, loading, output and release are assembly.
  * External services are libc, ecCodes and the qualified FIAT/ectrans interfaces.
  * This input checkpoint does not run a forecast. */
@@ -391,38 +391,33 @@ main:
  adrp x9,.Lnamespace_status
  add x9,x9,:lo12:.Lnamespace_status
  str w10,[x9,#16]
- /* Available SUPHY families retain their source-relative call order. */
+ /* Complete source-ordered SUPHMF over the final live MODEL records. */
+ adrp x9,.Lforecast_controls
+ add x9,x9,:lo12:.Lforecast_controls
+ adr x10,.Lmf_parent_controls
+ mov x11,#39520
+ ldr w11,[x9,x11]
+ str w11,[x10]
+ mov x11,#51076
+ ldr w11,[x9,x11]
+ str w11,[x10,#4]
+ mov x11,#35624
+ ldr w11,[x9,x11]
+ str w11,[x10,#8]
  adrp x0,.Lnamelist_text
  add x0,x0,:lo12:.Lnamelist_text
  mov x1,x27
- adrp x2,.Lphysical_constants
- add x2,x2,:lo12:.Lphysical_constants
- owned_model_address x3,4148312
- owned_model_address x4,4202320
- mov x5,#1696
- mov x6,#15864
- bl md2asm_initialize_surface_exchange_parameters
+ mov x2,x20
+ owned_model_address x3,0
+ adrp x4,.Lphysical_constants
+ add x4,x4,:lo12:.Lphysical_constants
+ adr x5,.Lmf_namespace_pairs
+ mov x6,x10
+ bl md2asm_initialize_meteo_france_physics
  add w23,w0,#50
  cbnz w0,.Lmain_cleanup
- /* SUPHMF source order: complete SUPHY1, then SUPHY2. */
- adr x9,.Lphysics_time_inputs
- ldr x10,[x20,#16]
- str x10,[x9]
- ldr x10,[x20,#80]
- str x10,[x9,#16]
- ldr w10,[x20,#5224]
- str w10,[x9,#32]
- mov w10,#1
- str w10,[x9,#36]
- adrp x0,.Lnamelist_text
- add x0,x0,:lo12:.Lnamelist_text
- mov x1,x27
- owned_model_address x2,4150008
- mov x3,#160
- mov x4,x9
- bl md2asm_initialize_physics_time_controls
- add w23,w0,#54
- cbnz w0,.Lmain_cleanup
+ adr x0,.Lmf_parent_status
+ bl .Lcapture_physics_status
  owned_model_address x0,1581376
  mov x1,#16
  bl md2asm_initialize_condensation_parameters
@@ -1472,6 +1467,27 @@ md2asm_owned_initial_metadata_auxiliary:
  cbnz w0,.Lsetup_close
  subs w23,w23,#1
  b.ne .Lattachment_stream_owner
+ adr x1,.Lmf_extension_header
+ mov x2,#40
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adrp x1,md2asm_owned_convective_energy_controls
+ add x1,x1,:lo12:md2asm_owned_convective_energy_controls
+ mov x2,#32
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adrp x1,md2asm_owned_land_surface_reference_parameters
+ add x1,x1,:lo12:md2asm_owned_land_surface_reference_parameters
+ mov x2,#272
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x1,.Lmf_parent_status
+ mov x2,#24
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x1,.Lmf_parent_controls
+ mov x2,#12
+ bl .Lstate_write_bytes
 .Lsetup_close:
  mov w28,w0
  mov x0,x19
@@ -1867,3 +1883,19 @@ __yoe_phys_mwave_MOD_n_phys_mwave: .zero 4
 .p2align 3
 .Lattachment_controls:.skip 8
 .Lattachment_status:.skip 24
+
+.section .rodata
+.p2align 3
+.Lmf_extension_header:.ascii "R11MF001"
+.xword 32,272,24,12
+.Lmf_namespace_pairs:
+.xword md2asm_owned_convective_energy_controls,32
+.xword md2asm_owned_land_surface_reference_parameters,272
+.bss
+.p2align 3
+.Lmf_parent_controls:.skip 12
+.p2align 3
+.Lmf_parent_status:.skip 24
+.section .note.GNU-stack,"",%progbits
+
+#include "forecast_control_aliases.inc.S"
