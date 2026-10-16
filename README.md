@@ -50,6 +50,8 @@ The [basic formulations](formulations/openifs/README.md) explain the physical ba
 
 ## Notes
 
+The original urban setup stores `RSBCONS=5.67e+08`, although its comment describes the Stefan–Boltzmann constant. This source value is preserved. Urban flux is disabled in the tested forecast, and this coefficient is excluded from the independent physical validation.
+
 In a tested ice-formation call, the OpenIFS lake update stores an average water temperature of 277.13 K, while its limited temperature profile can represent at most 276.334 K. The profile describes how water temperature changes with depth. We retain the original OpenIFS equations and update rules, and report this known limitation separately from exact assembly byte agreement. Independent whole-forecast physics remains unverified.
 
 For the complete-storage comparison, both forecasts use the same incoming bytes in unused parts of the sea-ice albedo, solar-fraction, terrain and spherical-geometry tables. Their initialized physical values must already agree before only the source-unused input tails are loaded, ahead of the first calculation. Every returned byte remains in the comparison. The [direct power routine](skills/md2asm/references/openifs/support/power_original_rounding.md) passes this complete forecast gate without the original C power helper.
