@@ -1,7 +1,7 @@
-/* Contract: skills/md2asm/references/openifs/input/owned_diagnostic_initial_state.md. */
-/* Standalone selected T21 complete initial-state composition, revision 13.
+/* Contract: skills/md2asm/references/openifs/input/owned_trajectory_initial_state.md. */
+/* Standalone selected T21 initial-state composition, revision 14.
  * Own entry, configuration, contexts, loading, output and release are assembly.
- * External services are libc, ecCodes and the qualified FIAT/ectrans interfaces.
+ * External file, transform, scalar-math and runtime services are declared.
  * This input checkpoint does not run a forecast. */
 .arch armv8.2-a
 .text
@@ -571,6 +571,40 @@ main:
  bl md2asm_initialize_grid_motion_fields
  add w23,w0,#116
  cbnz w0,.Lmain_cleanup
+ /* Produce initialization controls and live trajectory storage before input. */
+ adrp x0,.Lnamelist_text
+ add x0,x0,:lo12:.Lnamelist_text
+ mov x1,x27
+ adrp x2,md2asm_owned_initialization_controls
+ add x2,x2,:lo12:md2asm_owned_initialization_controls
+ mov x3,#24
+ adrp x4,__yomct0_MOD_nconf
+ add x4,x4,:lo12:__yomct0_MOD_nconf
+ bl md2asm_initialize_selected_initialization_controls
+ add w23,w0,#157
+ cbnz w0,.Lmain_cleanup
+ adr x0,.Linitialization_control_status
+ bl .Lcapture_physics_status
+ adr x2,.Ltrajectory_controls
+ owned_model_address x9,1359328
+ ldp w10,w11,[x9]
+ stp w10,w11,[x2]
+ ldr w10,[x20,#5160]
+ str w10,[x2,#8]
+ adrp x9,__yomini_MOD_ldfi
+ ldr w10,[x9,:lo12:__yomini_MOD_ldfi]
+ str w10,[x2,#12]
+ adrp x9,__yomvar_MOD_ljcdfi
+ ldr w10,[x9,:lo12:__yomvar_MOD_ljcdfi]
+ str w10,[x2,#16]
+ adrp x0,md2asm_owned_empty_trajectory_state
+ add x0,x0,:lo12:md2asm_owned_empty_trajectory_state
+ mov x1,#192
+ bl md2asm_create_empty_trajectory_state
+ add w23,w0,#159
+ cbnz w0,.Lmain_cleanup
+ adr x0,.Linitial_trajectory_status
+ bl .Lcapture_physics_status
  /* Own diagnostic records before SUINIF can inspect their read switches. */
  adr x9,.Ldiagnostic_flux_records
  owned_fields_address x10,35304
@@ -803,6 +837,10 @@ main:
  cbnz w0,.Lmain_cleanup
  mov w23,wzr
 .Lmain_cleanup:
+ adrp x0,md2asm_owned_empty_trajectory_state
+ add x0,x0,:lo12:md2asm_owned_empty_trajectory_state
+ mov x1,#192
+ bl md2asm_release_empty_trajectory_state
  adrp x9,.Lfields_owner
  ldr x0,[x9,:lo12:.Lfields_owner]
  cbz x0,.Lmain_release_surface
@@ -1605,6 +1643,28 @@ md2asm_owned_initial_metadata_auxiliary:
  adr x1,.Ldiagnostic_flux_status
  mov x2,#48
  bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x1,.Ltrajectory_extension_header
+ mov x2,#48
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adrp x1,md2asm_owned_initialization_controls
+ add x1,x1,:lo12:md2asm_owned_initialization_controls
+ mov x2,#24
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x1,.Ltrajectory_controls
+ mov x2,#20
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adrp x1,md2asm_owned_empty_trajectory_state
+ add x1,x1,:lo12:md2asm_owned_empty_trajectory_state
+ mov x2,#192
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x1,.Linitialization_control_status
+ mov x2,#48
+ bl .Lstate_write_bytes
 .Lsetup_close:
  mov w28,w0
  mov x0,x19
@@ -2042,4 +2102,16 @@ __yoe_phys_mwave_MOD_n_phys_mwave: .zero 4
 .Ldiagnostic_norm_results:.skip 20928
 .Ldiagnostic_flux_status:.skip 24
 .Ldiagnostic_norm_status:.skip 24
+.section .note.GNU-stack,"",%progbits
+
+.section .rodata
+.p2align 3
+.Ltrajectory_extension_header:.ascii "R14TRAJ1"
+.xword 24,20,192,24,24
+.bss
+.p2align 3
+.Ltrajectory_controls:.skip 20
+.p2align 3
+.Linitialization_control_status:.skip 24
+.Linitial_trajectory_status:.skip 24
 .section .note.GNU-stack,"",%progbits
