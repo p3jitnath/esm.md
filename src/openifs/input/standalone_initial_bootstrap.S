@@ -1,5 +1,5 @@
-/* Contract: skills/md2asm/references/openifs/input/owned_working_initial_state.md. */
-/* Standalone selected T21 complete initial-state composition, revision 9.
+/* Contract: skills/md2asm/references/openifs/input/owned_attached_initial_state.md. */
+/* Standalone selected T21 complete initial-state composition, revision 10.
  * Own entry, configuration, contexts, loading, output and release are assembly.
  * External services are libc, ecCodes and the qualified FIAT/ectrans interfaces.
  * This input checkpoint does not run a forecast. */
@@ -650,6 +650,38 @@ main:
  bl md2asm_prepare_next_time_fields
  add w23,w0,#152
  cbnz w0,.Lmain_cleanup
+ /* Construct the selected field containers over the completed live state. */
+ adr x0,.Lattachment_controls
+ add x0,x0,#4
+ bl md2asm_require_default_field_namespace
+ add w23,w0,#154
+ cbnz w0,.Lmain_cleanup
+ adrp x9,.Lforecast_controls
+ add x9,x9,:lo12:.Lforecast_controls
+ mov x10,#51076
+ ldr w10,[x9,x10]
+ adr x9,.Lattachment_controls
+ str w10,[x9]
+#ifdef VERIFY_CONTAINER_PREIMAGE
+ bl md2asm_attachment_preimage_begin
+#endif
+ owned_fields_address x0,0
+ movz x1,#(529288 & 65535)
+ movk x1,#(529288 >> 16),lsl #16
+ mov x2,x20
+ owned_model_address x3,0
+ adrp x4,.Lphysical_constants
+ add x4,x4,:lo12:.Lphysical_constants
+ adr x5,.Lattachment_controls
+ bl md2asm_attach_selected_field_containers
+ mov w24,w0
+#ifdef VERIFY_CONTAINER_PREIMAGE
+ bl md2asm_attachment_preimage_end
+#endif
+ add w23,w24,#156
+ cbnz w24,.Lmain_cleanup
+ adr x0,.Lattachment_status
+ bl .Lcapture_physics_status
  ldr x0,[x19,#40]
  ldr x1,[x21,#88]
  mov x2,#0x8550
@@ -699,6 +731,8 @@ main:
  adrp x9,.Lfields_owner
  ldr x0,[x9,:lo12:.Lfields_owner]
  cbz x0,.Lmain_release_surface
+ bl md2asm_release_selected_field_containers
+ owned_fields_address x0,0
  bl md2asm_release_next_time_fields
  owned_fields_address x0,25728
  bl md2asm_release_ecmwf_physics_fields
@@ -1420,6 +1454,24 @@ md2asm_owned_initial_metadata_auxiliary:
  cbnz w0,.Lsetup_close
  subs w23,w23,#1
  b.ne .Lworking_stream_owner
+ adr x1,.Lattachment_extension_header
+ mov x2,#32
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x1,.Lattachment_status
+ mov x2,#24
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x22,.Lattachment_owner_offsets
+ mov w23,#63
+.Lattachment_stream_owner:
+ ldr w25,[x22],#4
+ add x0,x24,x25
+ mov x1,x25
+ bl .Lfields_write_owner
+ cbnz w0,.Lsetup_close
+ subs w23,w23,#1
+ b.ne .Lattachment_stream_owner
 .Lsetup_close:
  mov w28,w0
  mov x0,x19
@@ -1805,3 +1857,13 @@ __yomlouis_MOD_yrlouis: .zero 8
 __yoe_phys_mwave_MOD_n_phys_mwave: .zero 4
 .size __yoe_phys_mwave_MOD_n_phys_mwave,4
 .section .note.GNU-stack,"",%progbits
+
+.section .rodata
+.p2align 3
+.Lattachment_extension_header:.ascii "R10CONT1"
+.xword 63,3,24
+.Lattachment_owner_offsets:.word 29568,29680,29744,29408,28208,29120,28408,29864,28272,29248,29184,28600,29048,28472,28536,28664,28728,28792,28856,28920,28984,27816,27928,27992,27656,26456,27368,26656,28112,26520,27496,27432,26848,27296,26720,26784,26912,26976,27040,27104,27168,27232,31320,31432,31496,31160,29960,30872,30160,31616,30024,31000,30936,30352,30800,30224,30288,30416,30480,30544,30608,30672,30736
+.bss
+.p2align 3
+.Lattachment_controls:.skip 8
+.Lattachment_status:.skip 24

@@ -1,5 +1,7 @@
 # Owned physics and next-time working state
 
+The current entry adds [three attached field containers](owned_attached_initial_state.md). The unchanged numerical and input checks below remain part of that entry.
+
 This checkpoint extends the qualified R8 standalone input entry without adding a forecast. MODEL and FIELDS keep their existing stable owned addresses, and Geometry remains in the live vertical context. The four real files remain the only production state inputs. Construct the new records and arrays in their final destinations, using qualified direct children and their explicit live scalar or owner views. Do not copy a pointer-bearing record or read a verification packet in production.
 
 The genuine typed MODEL_SET map places TPHY2 at MODEL+4150008. The existing typed MODEL map places TECLDP at MODEL+1578600 with 2,776 bytes. After the live SUPHY1 stage and before prognostic cloud setup, call the complete selected SUPHY2 utility on final TPHY2. Its 40-byte read-only input table borrows VALH20 from Geometry descriptor 16 and VBH20 from descriptor 80, with 160-byte extents, NFLEVG19 and LECMWF1. The text is the existing live fort.4 namespace. Its complete 160-byte result includes the actual source-produced TSPHY at byte 8.

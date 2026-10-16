@@ -1,0 +1,230 @@
+/* Final-address T1/T0/T9 attachment over complete owned state.
+ * Contract: skills/md2asm/references/openifs/setup/field_container_attachment.md
+ * x0 FIELDS529288,x1 capacity,x2 Geometry-context20400,x3 MODEL4275088,
+ * x4 constants520,x5 {NUNDEFLD,dynamic_name_count0}. Return0/1/2.
+ */
+.text
+.p2align 4
+.macro ADDREC dest,base,off
+ movz \dest,#(\off & 65535)
+ movk \dest,#((\off >> 16) & 65535),lsl #16
+ add \dest,\base,\dest
+.endm
+.global md2asm_attach_selected_field_containers
+.type md2asm_attach_selected_field_containers,%function
+md2asm_attach_selected_field_containers:
+ cbz x0,.Lattachment_reject
+ cbz x2,.Lattachment_reject
+ cbz x3,.Lattachment_reject
+ cbz x4,.Lattachment_reject
+ cbz x5,.Lattachment_reject
+ orr x9,x0,x2
+ orr x9,x9,x3
+ orr x9,x9,x4
+ tst x9,#7
+ b.ne .Lattachment_reject
+ tst x5,#3
+ b.ne .Lattachment_reject
+ movz x9,#0x1388
+ movk x9,#8,lsl #16
+ cmp x1,x9
+ b.lo .Lattachment_reject
+ ldr w9,[x5,#4]
+ cbnz w9,.Lattachment_reject
+ ldr x9,[x0,#1840]
+ cmp x9,x3
+ b.ne .Lattachment_reject
+ ldr x9,[x0,#1848]
+ cbnz x9,.Lattachment_reject
+ add x9,x3,#192
+ ldr x10,[x0,#4504]
+ cmp x9,x10
+ b.ne .Lattachment_reject
+ ADDREC x9,x3,1564136
+ ldr w10,[x9,#20]
+ cmp w10,#1
+ b.ne .Lattachment_reject
+ ldr w10,[x9,#24]
+ cmp w10,#1
+ b.ne .Lattachment_reject
+ ldr w10,[x9,#336]
+ cbnz w10,.Lattachment_reject
+ ADDREC x9,x3,1577888
+ ldr w10,[x9]
+ cmp w10,#1
+ b.ne .Lattachment_reject
+ ADDREC x9,x3,4143760
+ ldr w10,[x9,#12]
+ cbnz w10,.Lattachment_reject
+ ADDREC x9,x0,28184
+ ldr w9,[x9]
+ cbnz w9,.Lattachment_reject
+ ADDREC x9,x0,26432
+ ldr w9,[x9]
+ cbnz w9,.Lattachment_reject
+ ADDREC x9,x0,29936
+ ldr w9,[x9]
+ cbnz w9,.Lattachment_reject
+ sub sp,sp,#336
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mov x19,x0
+ mov x20,x2
+ mov x21,x3
+ mov x22,x4
+ mov x23,x5
+ bl __errno_location
+ str x0,[sp,#104]
+ ldr w9,[x0]
+ str w9,[sp,#112]
+ add x9,x19,#1856
+ str x9,[sp,#128]
+ add x9,x19,#3416
+ str x9,[sp,#144]
+ add x9,x21,#192
+ str x9,[sp,#160]
+ ADDREC x9,x19,4512
+ str x9,[sp,#176]
+ add x9,sp,#208
+ str x9,[sp,#192]
+ adrp x9,.Lattachment_capacities
+ add x9,x9,:lo12:.Lattachment_capacities
+ add x10,sp,#136
+ mov w11,#5
+.Lattachment_capacities_copy:
+ ldr x12,[x9],#8
+ str x12,[x10],#16
+ subs w11,w11,#1
+ b.ne .Lattachment_capacities_copy
+ ldr x9,[x22,#192]
+ ldr x10,[x22,#208]
+ stp x9,x10,[sp,#208]
+ ldr x9,[x22,#344]
+ ldr x10,[x22,#352]
+ stp x9,x10,[sp,#224]
+ ldr w9,[x20,#5224]
+ str w9,[sp,#240]
+ add w9,w9,#1
+ str w9,[sp,#244]
+ ADDREC x9,x19,4512
+ ldr w10,[x9,#5888]
+ str w10,[sp,#248]
+ ldr w10,[x9,#6176]
+ str w10,[sp,#252]
+ ldr w10,[x9,#7344]
+ str w10,[sp,#256]
+ add x9,x21,#192
+ ldp w10,w11,[x9,#208]
+ str w10,[sp,#260]
+ str w11,[sp,#264]
+ ldp w10,w11,[x9,#216]
+ str w10,[sp,#268]
+ str w11,[sp,#272]
+ ldp w10,w11,[x9,#232]
+ str w10,[sp,#276]
+ str w11,[sp,#280]
+ ldr w10,[x9,#88]
+ ldr w11,[x9,#96]
+ str w10,[sp,#304]
+ str w11,[sp,#308]
+ ldr w10,[x23]
+ str w10,[sp,#312]
+ str wzr,[sp,#316]
+ ldr w9,[x20,#7376]
+ str w9,[sp,#288]
+ ldr w9,[x20,#5144]
+ str w9,[sp,#292]
+ mov w9,#3
+ str w9,[sp,#296]
+ str wzr,[sp,#300]
+ ADDREC x0,x19,28184
+ mov x1,#1752
+ add x2,sp,#128
+ add x3,sp,#240
+ add x4,sp,#288
+ bl md2asm_create_attached_field_container
+ cbnz w0,.Lattachment_fail
+ mov w9,#2
+ str w9,[sp,#296]
+ mov w9,#1
+ str w9,[sp,#300]
+ ADDREC x0,x19,26432
+ mov x1,#1752
+ add x2,sp,#128
+ add x3,sp,#240
+ add x4,sp,#288
+ bl md2asm_create_attached_field_container
+ cbnz w0,.Lattachment_fail
+ mov w9,#1
+ str w9,[sp,#296]
+ ADDREC x0,x19,29936
+ mov x1,#1752
+ add x2,sp,#128
+ add x3,sp,#240
+ add x4,sp,#288
+ bl md2asm_create_attached_field_container
+ cbnz w0,.Lattachment_fail
+ ADDREC x9,x19,26432
+ str x9,[x19,#1848]
+ mov w28,#0
+ b .Lattachment_return
+.Lattachment_fail:
+ mov w28,w0
+ mov x0,x19
+ bl md2asm_release_selected_field_containers
+.Lattachment_return:
+ ldr x9,[sp,#104]
+ ldr w10,[sp,#112]
+ str w10,[x9]
+ ldr x18,[sp,#96]
+ mov w0,w28
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#336
+ ret
+.Lattachment_reject:
+ mov w0,#2
+ ret
+.size md2asm_attach_selected_field_containers,.-md2asm_attach_selected_field_containers
+.global md2asm_release_selected_field_containers
+.type md2asm_release_selected_field_containers,%function
+md2asm_release_selected_field_containers:
+ cbz x0,.Lattachment_reject
+ tst x0,#7
+ b.ne .Lattachment_reject
+ stp x19,x20,[sp,#-64]!
+ stp x21,x30,[sp,#16]
+ str x18,[sp,#32]
+ mov x19,x0
+ bl __errno_location
+ mov x20,x0
+ ldr w21,[x0]
+ str xzr,[x19,#1848]
+ ADDREC x0,x19,28184
+ bl md2asm_release_attached_field_container
+ cbnz w0,.Lattachment_release_end
+ ADDREC x0,x19,26432
+ bl md2asm_release_attached_field_container
+ cbnz w0,.Lattachment_release_end
+ ADDREC x0,x19,29936
+ bl md2asm_release_attached_field_container
+.Lattachment_release_end:
+ str w21,[x20]
+ ldr x18,[sp,#32]
+ ldp x21,x30,[sp,#16]
+ ldp x19,x20,[sp],#64
+ ret
+.size md2asm_release_selected_field_containers,.-md2asm_release_selected_field_containers
+.section .rodata
+.p2align 3
+.Lattachment_capacities:.xword 1560,1096,1359136,18224,32
+.section .note.GNU-stack,"",%progbits
