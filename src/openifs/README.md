@@ -70,7 +70,7 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 
 | Accepted component | Complete comparison scope | Contract |
 | --- | --- | --- |
-| Standalone spectral and upper-air input with owned storage | 154 decoded records, 2,748,656 initial-state bytes and the complete grid-field configuration | [Standalone input](../../skills/md2asm/references/openifs/input/standalone_initial_bootstrap.md), [spectral storage](../../skills/md2asm/references/openifs/setup/spectral_field_storage.md), [vertical storage](../../skills/md2asm/references/openifs/setup/vertical_startup_context.md) |
+| Standalone complete selected initial state | 13,499,880 compared bytes across input fields, GFL, dynamics, vertical and surface state | [Standalone input](../../skills/md2asm/references/openifs/input/standalone_initial_bootstrap.md), [spectral storage](../../skills/md2asm/references/openifs/setup/spectral_field_storage.md), [vertical storage](../../skills/md2asm/references/openifs/setup/vertical_startup_context.md) |
 | Owned grid-point and surface allocations | Four tracer owners and 34 surface owners, with exact complete-record checks | [Grid-point storage](../../skills/md2asm/references/openifs/setup/grid_point_field_storage.md), [surface storage](../../skills/md2asm/references/openifs/setup/surface_field_storage.md) |
 | Owned surface group initialization | Complete group and field records, including inactive zero-layer groups | [Group initialization](../../skills/md2asm/references/openifs/setup/surface_group_initialization.md) |
 | Owned surface field registration | All 32 optional-input combinations and complete trajectory records | [Field registration](../../skills/md2asm/references/openifs/setup/surface_field_registration.md) |
