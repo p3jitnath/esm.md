@@ -1,0 +1,13 @@
+# Interpolation Record Defaults
+
+The SL_STRUCT record stores the interpolation buffer layout for moving air parcels. The EINT_MOD source declares its initial values. This assembly builds the selected fresh record from those declarations before SUSLB, SUSC2B and SLCSET use it. It does not calculate a halo width or allocate a buffer.
+
+The application binary interface is `int md2asm_initialize_interpolation_record_defaults(void *model, uint64_t capacity)`. Register x0 supplies the live MODEL address, aligned to eight bytes. Register x1 supplies at least 4,275,088 mapped bytes. MODEL byte 1,573,768 starts the complete 1,800-byte SL_STRUCT record. The selected incoming record must be fresh zero storage. The routine checks that complete preimage before it writes any field and rejects a short, unaligned, wrapped or already populated input with return value 2. Success returns 0.
+
+The routine writes three named nonzero declarations. CVER contains the two characters XX. NUNUSEDHALO contains integer 999999. DISTUNUSEDHALO contains FP64 value 999999.0. All declared zero scalar values and unallocated array bases retain their verified zero input representation. Unspecified padding and descriptor tails also retain that incoming representation. No complete constructor blob is copied into the production record. All other MODEL bytes remain unchanged.
+
+This leaf uses only x0, x9 through x13 and processor condition flags. It leaves the stack pointer, return address, x18, all callee-saved registers and floating-point registers unchanged. It contains no floating-point instructions, external calls, dynamic allocations or imported original data.
+
+The genuine comparison uses INTENT(OUT) initialization compiled from the unchanged original EINT_MOD.SL_STRUCT declaration. GNU Fortran builds an automatic temporary and leaves some padding and unassociated descriptor tails unwritten. A verification-only adapter establishes a zero preimage for that exact 1,800-byte temporary before the source body starts. The source then creates its own named defaults and copies its complete result normally. No returned source or native byte is repaired.
+
+The complete 4,275,088-byte MODEL comparison has zero differing bytes, including the whole 1,800-byte record. Source and native preserve raw FPCR 0, FPSR 16 and errno 777. The native ABI mask is 0. Four critical cases reject stale content, an associated owner, short capacity or bad alignment without changing MODEL. The copied actual owned MODEL is a verification fixture only. Neither implementation follows any captured pointer outside the fresh zero SL record. Production receives the actual live owned MODEL. The later autonomous forecast remains a separate acceptance boundary.
