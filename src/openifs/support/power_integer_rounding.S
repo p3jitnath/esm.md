@@ -112,11 +112,16 @@ md2asm_round_product_sum_candidate:
  add x19,sp,#0
  add x20,sp,#536
  mov x6,x19
- mov w7,#134
+ movi v3.16b,#0
+ mov w7,#16
 .Lclear:
- str xzr,[x6],#8
+ stp q3,q3,[x6,#0]
+ stp q3,q3,[x6,#32]
+ add x6,x6,#64
  subs w7,w7,#1
  b.ne .Lclear
+ stp q3,q3,[x6],#32
+ str q3,[x6],#16
  // Insert the product's two words and the addend's significand.
  add w0,w24,#2148
  uxtw x0,w0

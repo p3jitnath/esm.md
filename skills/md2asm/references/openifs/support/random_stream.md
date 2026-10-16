@@ -1,14 +1,30 @@
 # OpenIFS random stream
 
-Revision 1.1 freezes the complete numerical bodies of `random_numbers_mix::uniform_distribution` and `random_numbers_mix::initialize_random_numbers` from OpenIFS 48.1.1, in `algor/module/random_numbers_mix.F90`. The [physical input](../../../../../formulations/openifs/support/random_stream.md) defines the lagged integer sequence and its conversion to a sample. These routines support cloud sampling and do not advance the atmospheric equations.
+Implementation revision 1.2 preserves the complete numerical bodies of `random_numbers_mix::uniform_distribution` and `random_numbers_mix::initialize_random_numbers` from OpenIFS 48.1.1, in `algor/module/random_numbers_mix.F90`. The [physical input](../../../../../formulations/openifs/support/random_stream.md) defines the lagged integer sequence and its conversion to a sample. These routines support cloud sampling and do not advance the atmospheric equations.
 
 ## State and ordered calculations
 
 The stream retains 607 unsigned 30-bit integers, the number already consumed from the current batch and a marker that identifies initialized storage. Integer additions use the low 32 bits, then a bit mask retains the low 30 bits. The two operands sum to at most $`2^{31}-2`$, so valid states do not overflow a signed 32-bit sum. Each refill evaluates equation P01 for a complete batch of 607 samples. Values already present but not consumed are returned before another refill.
 
-Conversion first converts each nonnegative integer exactly to FP64, the 64-bit floating-point format, then multiplies by the stored FP64 value $`2^{-30}`$. Both operations are exact on this domain. Use FPCR zero, which selects rounding to nearest with ties to even, gradual underflow and preserved signed zeros. Do not use fused arithmetic, approximate operations or reduced precision.
+Conversion first converts each nonnegative integer exactly to FP64, the 64-bit floating-point format, then multiplies by the stored FP64 value $`2^{-30}`$. Both operations are exact on this domain. Use zero in FPCR, the floating-point control register. This selects rounding to nearest with ties to even, gradual underflow and preserved signed zeros. Do not use fused arithmetic, approximate operations or reduced precision.
+
+An exclusive OR, written XOR, sets an output bit to one when the corresponding input bits differ.
 
 For initialization, XOR the seed's 32-bit pattern with 123459876, interpret that result as a signed 32-bit integer and take its absolute value before replacing zero by 123459876. The target retains the bit pattern 0x80000000 when that result is the smallest signed integer, whose positive magnitude cannot fit signed 32-bit storage. The shift register then treats every stored pattern as 32 bits. Negative seeds occur in the actual weather caller and follow this same original route. A 32-bit shift register advances by shifting left one bit, discarding its old highest bit and, when that bit was one, XORing the result with 175. Advance it 64 times. Set the first 606 integers to zero, set integer 2 to twice the low 29 register bits and set integer 607 to the register's high three bits. For bit positions 1 through 29, advance the register for integers 3 through 606 and set that bit in the integer when the discarded register bit was one. Set bit zero of integer 502. Store used count 607, marker 12345678 and scale $`2^{-30}`$, then consume and discard 999 samples through the complete uniform body. The returned used count is 392. Initialization preserves the four padding bytes in the stream.
+
+## Equivalent grouped initialization
+
+The direct initializer evaluates four consecutive shift-register transitions together. This is the same integer recurrence and sample sequence. Let `r` be the current unsigned 32-bit register, and let `T` be the following 16-entry table. `r >> 28` selects its highest four bits, giving an index from zero through 15. The left shift discards bits above position 31.
+
+```text
+next_r = ((r << 4) & 0xffffffff) XOR T[r >> 28]
+T = [0, 175, 350, 497, 700, 531, 994, 845,
+     1400, 1495, 1062, 1161, 1988, 1899, 1690, 1589]
+```
+
+The feedback value 175 affects only low register bits during these four transitions. The four discarded bits are therefore the old bits 31, 30, 29 and 28, in that order. The table combines their four feedback contributions by XOR. Sixteen grouped transitions perform the original 64 initial advances. For every bit position from one through 29, 151 groups then fill exactly the original 604 interior integers.
+
+The assembly uses four 32-bit vector lanes, which are separate integer positions in one Arm Advanced SIMD register. Each lane starts with the same old register and shifts left by zero, one, two or three positions. An arithmetic right shift by 31 copies its sign bit across that lane, giving either zero or all ones. Masking by the current bit-position value selects the four output bits. The assembly combines each selected bit with its integer by OR, which sets an output bit when either input bit is one. This sets exactly the original four output bits. The lane order matches increasing memory addresses. The initialization then sets the same count, marker and scale and calls its complete assembly uniform child to consume and discard all 999 samples.
 
 ## ABI and bounds
 
@@ -16,9 +32,13 @@ The application binary interface, ABI, defines how the caller passes arguments a
 
 The stream occupies 2448 writable bytes aligned to eight bytes. Its used count is a four-byte integer at byte 0, its marker is at byte 4, its 607 four-byte integers start at byte 8, four untouched padding bytes start at byte 2436 and its eight-byte scale starts at byte 2440. Valid input has used count from zero through 607, marker 12345678, 30-bit integers and scale $`2^{-30}`$. The output array and stream are disjoint. Every selected output element is eight writable bytes aligned to eight bytes. A zero-length array needs no accessible output element and leaves the stream unchanged. Descriptor bounds and their resulting byte offsets must fit signed 64-bit addressing, and the element count must fit a nonnegative signed 32-bit integer.
 
-The initialization entry receives the address of a four-byte seed in `x0` and the stream address in `x1`. The seed is from $`-2^{31}`$ through $`2^{31}-1`$ and remains unchanged. The seed and stream are disjoint. The initialization frame owns 999 discarded FP64 samples. The complete assembly retains its warm-up inside the direct solver, so no driver supplies a missing stage.
+The initialization entry receives the address of a four-byte seed in `x0` and the stream address in `x1`. The seed is from $`-2^{31}`$ through $`2^{31}-1`$ and remains unchanged. The seed and stream are disjoint. The initialization frame is 8016 bytes, keeps the stack aligned to 16 bytes and owns all 999 discarded FP64 samples. The complete assembly retains its warm-up inside the direct solver, so no driver supplies a missing stage.
+
+The grouped initializer clears exactly state bytes 8 through 2431 with 151 stores of 16 zero bytes and one final store of eight zero bytes. It sets integer 607 separately at bytes 2432 through 2435. Its four-lane loop reads and writes only bytes 16 through 2431. Its table has exactly 16 readable four-byte entries. Ordinary AArch64 vector loads and stores support the declared eight-byte state alignment; no 16-byte state alignment or extra accessible state bytes are required. The four padding bytes remain untouched.
 
 Both entries preserve `x19` through `x29`, the low 64 bits of `v8` through `v15`, the 16-byte-aligned incoming stack pointer and FPCR. They do not use `x18`. Profiling hooks and the original abort for an uninitialized stream are outside the valid numerical input domain. Initialization's original profiling hook is retained by the original side of the paired forecast observer.
+
+The changed seed and clear blocks use only integer arithmetic, vector integer shifts and bit operations. They use caller-saved registers, leave `x18` and `v8` through `v15` unused, and make no external call. The unchanged uniform child still runs inside initialization. Valid calls preserve FPSR, the floating-point status register, and `errno`, the library error indicator, as well as FPCR. The stream conversion remains exact, so it adds no floating-point exception flag.
 
 ## Independent checks and canonical bytes
 
@@ -26,8 +46,14 @@ An independent integer verifier uses a queue of 607 states and generates each ne
 
 Critical cases cover the smallest and largest signed seeds, the observed forecast seed -275, seed XOR cancellation and the minimum XOR word, initialization, empty arrays, retained samples, exact refill boundaries, multiple refills, positive and negative strides, 30-bit extrema and call partitioning. Guard pages and poisoned gaps check output bounds and untouched storage. Every sample must lie in $`[0,1)`$ and be an exact multiple of $`2^{-30}`$. The immediate assembly ABI observer checks saved integer and FP64 registers and FPCR on each native call.
 
-Canonical critical bytes concatenate the complete 2448-byte stream and the complete bounded output span, including untouched stride gaps, in little-endian order. The seed and descriptor remain unchanged. Accept only zero differing bytes against the original and the independent integer verifier. The combined forecast observer compared the complete stream and every logical output element on each actual call. Its ten saved forecast files passed exact comparison, so both entries are accepted forecast replacements. Statistical independence of cloud realizations and whole-forecast scientific verification remain outside these two bodies.
+The grouped transition is linear under XOR: combining two input words by XOR also combines their results by XOR. Its complete 32-bit transition and discarded-bit order are checked with zero and all 32 basis words, where each basis word has exactly one bit set. The 2026-10-16 changed-path gate also checked 540 grouped-initializer calls against the accepted scalar assembly and the independent integer verifier. These cases combine 15 seeds, two protected placements, eight-byte and 16-byte state alignment, and nine inherited FPSR patterns. They preserve all 2448 stream bytes, the neighbouring bytes, the seed, saved registers, FPCR, FPSR and `errno` values zero, 33 and 34, with zero differences. The unchanged uniform consumer retains its earlier empty-array, stride, refill, partition and original-result checks.
+
+The grouped source was written directly in AArch64 assembly from this integer recurrence and assembled with GNU GCC's assembler driver for Armv8.2-A with Advanced SIMD. No compiler-generated numerical assembly or high-level numerical child supplies its state expansion, clear or warm-up. The shortwave and longwave private entries compile this same source with distinct entry and uniform-child names. Local source hashes, exact build commands, table proof and independent source review identify the checked artifacts.
+
+Canonical critical bytes concatenate the complete 2448-byte stream and the complete bounded output span, including untouched stride gaps, in little-endian order. The seed and descriptor remain unchanged. Accept only zero differing bytes against the original and the independent integer verifier. Statistical independence of cloud realizations and whole-forecast scientific verification remain outside these two bodies.
 
 ## Accepted forecast calls
 
-The 2026-10-10 combined forecast passed 57,242,556 uniform calls and 93,100 initializer calls, including the observed negative seeds. It compared 1,039,017,360 output bytes and 140,357,685,888 complete-stream bytes with zero differences, and all ten saved forecast files match over 618,140 bytes. The run used exclusive job 7240564 on nid010555, CPU 16 with local memory binding. Statistical independence, whole-forecast physics and comparative speed remain outside this result.
+The earlier scalar initializer and unchanged uniform consumer passed the 2026-10-10 combined forecast with 57,242,556 uniform calls and 93,100 initializer calls, including the observed negative seeds. It compared 1,039,017,360 output bytes and 140,357,685,888 complete-stream bytes with zero differences, and all ten saved forecast files match over 618,140 bytes. The run used exclusive job 7240564 on nid010555, CPU 16 with local memory binding. Statistical independence, whole-forecast physics and comparative speed remain outside this result.
+
+The grouped initializer also passes the selected [autonomous forecast](../input/standalone_weather_forecast.md). The final comparison matches all 27,486,113 bytes in 685 owned buffers and all ten saved files, containing 618,140 bytes. This is a final-state and file comparison, separate from the earlier per-call stream observations. The declared process-boundary and physical-validation limits remain unchanged.

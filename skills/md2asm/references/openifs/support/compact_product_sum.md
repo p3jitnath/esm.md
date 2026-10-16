@@ -1,6 +1,6 @@
 # Compact Exact Product And Sum
 
-Revision 1. This is a compact path for the [accepted atomic product and sum](rounded_product_sum.md). An atomic operation has one declared rounding point. It computes the exact real value $`ab+c`$, then rounds once to FP64, the eight-byte floating-point format, using round-to-nearest with ties to even. The weather solver retains its declared intermediate rounding points.
+Revision 2. This is a compact path for the [accepted atomic product and sum](rounded_product_sum.md). An atomic operation has one declared rounding point. It computes the exact real value $`ab+c`$, then rounds once to FP64, the eight-byte floating-point format, using round-to-nearest with ties to even. The weather solver retains its declared intermediate rounding points.
 
 ## Exact Integer Calculation
 
@@ -25,7 +25,7 @@ Let $`h`$ be the index of the highest bit equal to one in the exact nonzero magn
 
 Keep 53 significant bits, shifting left when the exact result uses fewer. Otherwise, the guard bit is the first discarded bit, and the sticky value records whether any lower discarded bit is nonzero. Increase the retained integer when guard is one and either sticky is nonzero or the retained integer is odd. A significand carry increases the exponent. An exponent above 1023 returns the correctly signed infinity with overflow and inexact status.
 
-The floating-point status register, FPSR, records numerical exceptions. Discarded nonzero bits add inexact, bit value 16. Overflow adds overflow and inexact, combined value 20. OR only these required bits into FPSR, preserving every inherited bit. Exact results leave FPSR unchanged.
+The floating-point status register, FPSR, records numerical exceptions. Discarded nonzero bits add inexact, bit value 16. Overflow adds overflow and inexact, combined value 20. Read FPSR and write its exact bitwise union with the required bits only when at least one required bit is absent. If all required bits are already set, return without writing the register. This preserves every inherited bit, including when only one of the two overflow-related bits is already set. Exact results and fallback leave FPSR unchanged.
 
 ## Assembly Interface
 
@@ -40,8 +40,10 @@ The application binary interface, or ABI, defines arguments and preserved regist
 | x18 through x30, v8 through v15, SP and FPCR | Preserved registers and stack pointer |
 | errno | Preserved library error indicator |
 
-The helper calls no function, creates no frame and reads no caller buffer. Both paths use authored integer assembly. Wrappers preserve their existing domain checks and remove their 16-byte return-address frame before the unchanged general body. Compact success increments the original fast counter once; other calls retain their original classification.
+The helper calls no function, creates no frame and reads no caller buffer. Both paths use authored integer assembly. Wrappers preserve their existing domain checks and remove their 16-byte return-address frame before the general arithmetic. Their bounded zero stores clear exactly 1,608 bytes in the [direct wrapper](rounded_product_sum.md) or 1,072 bytes in the [power child](power_original_rounding.md), using caller-saved `v3`; their general frames remain 1,712 and 1,728 bytes. The compact leaf does not use `v3`. The power child's compact success increments its original fast counter once; other calls retain their original classification.
 
 ## Accepted Component Checks
 
 Each mathematical-helper route passes 6,846 retained cases and 102 new boundary cases against independent exact-rational arithmetic and the retained original atomic control. Result bits, numerical status, FPCR and errno match. Register preservation, inherited flags, signed zeros, alignment limits, word-crossing shifts, cancellation, rounding ties and overflow pass. The 222 register checks, 1,110 inherited-status checks and 20 domain refusals pass. The changed [autonomous forecast](../input/standalone_weather_forecast.md) also matches all 27,486,113 compared state bytes and all 618,140 saved-file bytes. The [README](../../../../../README.md) reports matched complete-process performance. The known process-boundary and physical-validation limits remain unchanged.
+
+The changed status predicate also passes 111 interface cases with all 128 combinations of the seven defined incoming FPSR bits on both helper routes. All 28,416 result and status comparisons and 222 register checks pass, with zero changes to FPCR or errno. The combined autonomous forecast retains complete-state and saved-file agreement.

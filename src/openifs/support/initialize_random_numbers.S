@@ -27,43 +27,46 @@ INITIALIZE_SYMBOL:
     cmp w0,#0
     csel w0,w0,w7,ne
     mov w8,#175                /* Polynomial feedback after the shift. */
-    mov w4,#64
+    adr x10,.Lseed_feedback_four
+    mov w4,#16
 .Lseed_warmup:
-    lsr w2,w0,#31
-    lsl w0,w0,#1
-    cbz w2,.Lseed_shifted
-    eor w0,w0,w8
-.Lseed_shifted:
+    lsr w2,w0,#28
+    ldr w2,[x10,w2,uxtw #2]
+    eor w0,w2,w0,lsl #4
     subs w4,w4,#1
     b.ne .Lseed_warmup
-
     add x5,x3,#8
-    mov w4,#606
+    mov w4,#151
 .Lclear_state:
-    str wzr,[x5],#4
+    stp xzr,xzr,[x5],#16
     subs w4,w4,#1
     b.ne .Lclear_state
+    str xzr,[x5]               /* Last two of exactly 606 words. */
     and w2,w0,#0x1fffffff
     lsl w2,w2,#1
     str w2,[x3,#12]            /* Canonical integer 2. */
     lsr w2,w0,#29
     str w2,[x3,#2432]          /* Canonical integer 607. */
 
+    adr x11,.Lseed_lane_shifts
+    ldr q2,[x11]
     mov w4,#1
     mov w9,#2
 .Lseed_bit:
     add x5,x3,#16              /* Integer 3. */
-    mov w6,#604
+    mov w6,#151
+    dup v1.4s,w9
 .Lseed_integer:
-    lsr w2,w0,#31
-    lsl w0,w0,#1
-    cbz w2,.Lseed_no_bit
-    eor w0,w0,w8
-    ldr w2,[x5]
-    orr w2,w2,w9
-    str w2,[x5]
-.Lseed_no_bit:
-    add x5,x5,#4
+    dup v0.4s,w0
+    ushl v0.4s,v0.4s,v2.4s
+    sshr v0.4s,v0.4s,#31       /* Four consecutive outgoing bits become masks. */
+    and v0.16b,v0.16b,v1.16b
+    ldr q3,[x5]
+    orr v3.16b,v3.16b,v0.16b
+    str q3,[x5],#16
+    lsr w2,w0,#28
+    ldr w2,[x10,w2,uxtw #2]
+    eor w0,w2,w0,lsl #4        /* Exact four-step polynomial transition. */
     subs w6,w6,#1
     b.ne .Lseed_integer
     lsl w9,w9,#1
@@ -92,4 +95,9 @@ INITIALIZE_SYMBOL:
     add sp,sp,x9
     ret
 .size INITIALIZE_SYMBOL,.-INITIALIZE_SYMBOL
+.p2align 4
+.Lseed_lane_shifts:
+    .word 0,1,2,3
+.Lseed_feedback_four:
+    .word 0,175,350,497,700,531,994,845,1400,1495,1062,1161,1988,1899,1690,1589
 .section .note.GNU-stack,"",%progbits

@@ -208,6 +208,8 @@ md2asm_try_compact_product_sum:
     mov w6, #20
 .Lcompact_add_status:
     mrs x1, fpsr
+    bic x2, x6, x1
+    cbz x2, .Lcompact_success_bits
     orr x1, x1, x6
     msr fpsr, x1
 .Lcompact_success_bits:

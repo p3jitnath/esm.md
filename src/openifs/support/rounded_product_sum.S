@@ -84,11 +84,15 @@ md2asm_round_product_sum_direct:
     add x20, x19, #536
     add x21, x20, #536
     mov x0, x19
-    mov x1, #201
+    movi v3.16b, #0
+    mov x1, #25
 .Lproduct_clear_arrays:
-    str xzr, [x0], #8
+    stp q3, q3, [x0, #0]
+    stp q3, q3, [x0, #32]
+    add x0, x0, #64
     sub x1, x1, #1
     cbnz x1, .Lproduct_clear_arrays
+    str d3, [x0], #8
     mov x0, x19
     mov x1, x27
     add x2, x24, #2148
