@@ -1,0 +1,811 @@
+/* Complete selected serial SLCSET. Contract: skills/md2asm/references/openifs/dynamics/serial_interpolation_buffer_setup.md.
+ * x0 Geometry, x1 capacity, x2 MODEL, x3 capacity, x4 controls32, x5 capacity.
+ * Integer map payloads use live typed Geometry views. No original callables. */
+.text
+.p2align 4
+.macro SLADDR reg,base
+ movz x17,#(1573768&65535)
+ movk x17,#(1573768>>16),lsl#16
+ add \reg,\base,x17
+.endm
+.macro DCHK off,value
+ ldr w9,[x19,#\off]
+ cmp w9,#\value
+ b.ne .Lrefuse
+.endm
+.macro CPDIM goff,soff
+ ldr w9,[x19,#\goff]
+ str w9,[x21,#\soff]
+.endm
+.global md2asm_initialize_serial_interpolation_buffer
+.type md2asm_initialize_serial_interpolation_buffer,%function
+md2asm_initialize_serial_interpolation_buffer:
+ cbz x0,.Lbad_early
+ cbz x2,.Lbad_early
+ cbz x4,.Lbad_early
+ tst x0,#7
+ b.ne .Lbad_early
+ tst x2,#7
+ b.ne .Lbad_early
+ tst x4,#3
+ b.ne .Lbad_early
+ mov x9,#17096
+ cmp x1,x9
+ b.lo .Lbad_early
+ adds x10,x0,x9
+ b.cs .Lbad_early
+ mov x9,#(4275088&65535)
+ movk x9,#(4275088>>16),lsl#16
+ cmp x3,x9
+ b.lo .Lbad_early
+ adds x10,x2,x9
+ b.cs .Lbad_early
+ cmp x5,#32
+ b.lo .Lbad_early
+ adds x10,x4,#32
+ b.cs .Lbad_early
+ ldp w9,w10,[x4]
+ cmp w9,#1
+ b.ne .Lbad_early
+ cmp w10,#1
+ b.ne .Lbad_early
+ ldp w9,w10,[x4,#8]
+ cmp w9,#1
+ b.ne .Lbad_early
+ cbnz w10,.Lbad_early
+ ldp w9,w10,[x4,#16]
+ cmp w9,#1
+ b.ne .Lbad_early
+ cbnz w10,.Lbad_early
+ ldp w9,w10,[x4,#24]
+ orr w9,w9,w10
+ cbnz w9,.Lbad_early
+ sub sp,sp,#2304
+ stp x18,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x29,[sp,#96]
+ mov x19,x0
+ SLADDR x20,x2
+ add x21,sp,#256
+ str xzr,[sp,#2080]
+ ldrh w9,[x20]
+ mov w10,#0x4c53
+ cmp w9,w10
+ b.ne .Lrefuse
+ ldr w9,[x20,#1024]
+ cbnz w9,.Lrefuse
+ ldr w22,[x19,#4872]
+ sub w9,w22,#4
+ cmp w9,#252
+ b.hi .Lrefuse
+ tst w22,#1
+ b.ne .Lrefuse
+ ldr w23,[x19,#4936]
+ sub w9,w23,#2
+ cmp w9,#1022
+ b.hi .Lrefuse
+ tst w23,#1
+ b.ne .Lrefuse
+ ldr w24,[x20,#1364]
+ cbz w24,.Lrefuse
+ lsr w9,w22,#1
+ cmp w24,w9
+ b.hi .Lrefuse
+ DCHK 4888,-1
+ DCHK 4892,1
+ DCHK 4884,2
+ DCHK 4940,3
+ DCHK 4944,2
+ DCHK 4956,1
+ DCHK 7232,0
+ DCHK 7244,0
+ DCHK 7236,1
+ ldr w9,[x19,#7240]
+ cmp w9,w22
+ b.ne .Lrefuse
+ ldr w9,[x19,#4908]
+ cmp w9,w22
+ b.ne .Lrefuse
+ ldr w9,[x19,#4904]
+ add w10,w22,#2
+ cmp w9,w10
+ b.ne .Lrefuse
+ ldr w9,[x19,#4948]
+ add w10,w23,#3
+ cmp w9,w10
+ b.ne .Lrefuse
+ /* Each fresh output descriptor base must be null. */
+ adr x9,.Lowner_offsets
+ mov w10,#10
+.Lcheck_owner:
+ ldr w11,[x9],#4
+ ldr x12,[x20,x11]
+ cbnz x12,.Lrefuse
+ subs w10,w10,#1
+ b.ne .Lcheck_owner
+ /* Typed input descriptors: contiguous integer rank1 or rank2. */
+ adr x27,.Linput_descriptors
+ mov w28,#6
+.Lcheck_descriptor:
+ ldp w9,w10,[x27],#8
+ add x9,x19,x9
+ ldr x11,[x9]
+ cbz x11,.Lrefuse
+ tst x11,#3
+ b.ne .Lrefuse
+ ldr x11,[x9,#16]
+ cmp x11,#4
+ b.ne .Lrefuse
+ ldrb w11,[x9,#28]
+ cmp w11,w10
+ b.ne .Lrefuse
+ ldr x11,[x9,#40]
+ cmp x11,#1
+ b.ne .Lrefuse
+ ldr x11,[x9,#48]
+ cmp w28,#3
+ b.le .Lcheck_region_bound
+ cmp x11,#-1
+ b.ne .Lrefuse
+ ldr x11,[x9,#56]
+ add w12,w22,#2
+ cmp x11,x12
+ b.ne .Lrefuse
+ cmp w10,#2
+ b.ne .Ldescriptor_done
+ ldr x11,[x9,#64]
+ add w12,w22,#4
+ cmp x11,x12
+ b.ne .Lrefuse
+ ldp x11,x12,[x9,#72]
+ cmp x11,#1
+ b.ne .Lrefuse
+ cmp x12,#1
+ b.ne .Lrefuse
+ b .Ldescriptor_done
+.Lcheck_region_bound:
+ cmp x11,#1
+ b.ne .Lrefuse
+ ldr x11,[x9,#56]
+ cmp x11,#1
+ b.ne .Lrefuse
+.Ldescriptor_done:
+ subs w28,w28,#1
+ b.ne .Lcheck_descriptor
+ /* Validate selected full serial longitude rows and their exact total. */
+ ldr x9,[x19,#7640]
+ ldr x10,[x19,#6088]
+ ldr x11,[x19,#6176]
+ add w12,w22,#4
+ mov w13,#0
+ mov w14,#0
+.Lcheck_row:
+ ldr w15,[x9,w13,uxtw#2]
+ cbz w15,.Lrefuse
+ cmp w15,w23
+ b.hi .Lrefuse
+ tst w15,#1
+ b.ne .Lrefuse
+ cmp w13,#2
+ b.lo .Lrow_no_total
+ add w17,w22,#2
+ cmp w13,w17
+ b.hs .Lrow_no_total
+ ldr w16,[x10,w13,uxtw#2]
+ cmp w16,#1
+ b.ne .Lrefuse
+ ldr w16,[x11,w13,uxtw#2]
+ cmp w16,w15
+ b.ne .Lrefuse
+ add w14,w14,w16
+.Lrow_no_total:
+ add w13,w13,#1
+ cmp w13,w12
+ b.lo .Lcheck_row
+ ldr w9,[x19,#7376]
+ cmp w9,w14
+ b.ne .Lrefuse
+ ldr x9,[x19,#6456]
+ ldr w9,[x9]
+ cmp w9,#1
+ b.ne .Lrefuse
+ ldr x9,[x19,#6520]
+ ldr w9,[x9]
+ cmp w9,w22
+ b.ne .Lrefuse
+ /* Preserve every source-unwritten record byte. */
+ mov x9,x20
+ mov x10,x21
+ mov x11,#1800
+ bl .Lcopy
+ CPDIM 4872,1648
+ CPDIM 4936,1652
+ CPDIM 4888,1656
+ CPDIM 4904,1660
+ CPDIM 4892,1664
+ CPDIM 4908,1668
+ CPDIM 7376,1680
+ CPDIM 4932,1684
+ CPDIM 4956,1688
+ CPDIM 4960,1692
+ CPDIM 4920,1696
+ CPDIM 4924,1700
+ CPDIM 4940,1704
+ CPDIM 4948,1708
+ CPDIM 7244,1716
+ CPDIM 7232,1720
+ CPDIM 7236,1724
+ CPDIM 7240,1728
+ /* The source does not assign SL.NDGSUR here. */
+ mov w9,#1
+ sub w9,w9,w24
+ mov w10,#-1
+ cmp w9,w10
+ csel w9,w9,w10,ge
+ str w9,[x21,#1672]
+ add w9,w22,w24
+ add w10,w22,#2
+ cmp w9,w10
+ csel w9,w9,w10,le
+ str w9,[x21,#1676]
+ mov w9,#1
+ str w9,[x21,#4]
+ str w24,[x21,#1348]
+ str w24,[x21,#1352]
+ str w24,[x21,#1356]
+ str w24,[x21,#1360]
+ mov w9,#1
+ sub w25,w9,w24
+ add w26,w22,w24
+ sub w26,w26,w25
+ add w26,w26,#1
+ str w25,[sp,#2160]
+ str w26,[sp,#2164]
+ /* Scratch contains source ZLSA,ZLFA and IMAP with bounded exact extents. */
+ uxtw x0,w22
+ lsl x0,x0,#5
+ bl malloc
+ cbz x0,.Lallocation_failure
+ str x0,[sp,#2080]
+ str x0,[sp,#2088]
+ add x9,x0,x22,lsl#3
+ str x9,[sp,#2096]
+ add x9,x9,x22,lsl#3
+ str x9,[sp,#2104]
+ add x0,x21,#1736
+ mov x1,#-1
+ add w2,w22,#2
+ bl .Lalloc1
+ cbnz w0,.Lallocation_failure
+ ldr x9,[x19,#7640]
+ ldr x10,[x21,#1736]
+ add w11,w22,#4
+ uxtw x11,w11
+ lsl x11,x11,#2
+ bl .Lcopy
+ add x0,x21,#8
+ sxtw x1,w25
+ add w2,w22,w24
+ sxtw x2,w2
+ bl .Lalloc1
+ cbnz w0,.Lallocation_failure
+ add x0,x21,#72
+ sxtw x1,w25
+ add w2,w22,w24
+ sxtw x2,w2
+ bl .Lalloc1
+ cbnz w0,.Lallocation_failure
+ add x0,x21,#136
+ sxtw x1,w25
+ add w2,w22,w24
+ sxtw x2,w2
+ bl .Lalloc1
+ cbnz w0,.Lallocation_failure
+ mov w11,#(0xc4653601&65535)
+ movk w11,#(0xc4653601>>16),lsl#16
+ ldr x9,[x21,#8]
+ ldr x10,[x21,#72]
+ ldr x12,[x21,#136]
+ mov w13,w26
+.Linitial_rows:
+ str w11,[x9],#4
+ str w11,[x10],#4
+ str w11,[x12],#4
+ subs w13,w13,#1
+ b.ne .Linitial_rows
+ /* Source ZLSA and ZLFA. */
+ mov w28,#1
+.Lfractions:
+ ldr x9,[x19,#6088]
+ ldr x10,[x19,#6176]
+ ldr x11,[x19,#7640]
+ add w12,w28,#1
+ ldr w13,[x9,w12,uxtw#2]
+ ldr w14,[x10,w12,uxtw#2]
+ ldr w15,[x11,w12,uxtw#2]
+ sub w13,w13,#1
+ add w14,w13,w14
+ sub w14,w14,#1
+ scvtf d0,w13
+ scvtf d1,w15
+ fdiv d0,d0,d1
+ scvtf d2,w14
+ fdiv d2,d2,d1
+ sub w12,w28,#1
+ ldr x9,[sp,#2088]
+ str d0,[x9,w12,uxtw#3]
+ ldr x9,[sp,#2096]
+ str d2,[x9,w12,uxtw#3]
+ add w28,w28,#1
+ cmp w28,w22
+ b.le .Lfractions
+ /* Source latitude bounds and ordered longitude coverage arithmetic. */
+ mov w9,#1
+ sub w9,w9,w24
+ mov w10,#-1
+ cmp w9,w10
+ csel w28,w9,w10,ge
+ str w28,[sp,#2116]
+ add w9,w22,w24
+ add w10,w22,#2
+ cmp w9,w10
+ csel w9,w9,w10,le
+ str w9,[sp,#2120]
+ mov w27,#0
+ str wzr,[sp,#2112]
+.Llatitude:
+ sub w9,w28,w24
+ cmp w9,#1
+ mov w10,#1
+ csel w9,w9,w10,ge
+ add w10,w28,w24
+ cmp w10,w22
+ csel w10,w10,w22,le
+ fmov d0,#1.0
+ fmov d1,xzr
+ ldr x11,[sp,#2088]
+ ldr x12,[sp,#2096]
+.Lfraction_limits:
+ sub w13,w9,#1
+ ldr d2,[x11,w13,uxtw#3]
+ ldr d3,[x12,w13,uxtw#3]
+ fmin d0,d0,d2
+ fmax d1,d1,d3
+ add w9,w9,#1
+ cmp w9,w10
+ b.le .Lfraction_limits
+ sub w9,w28,#2
+ mov w10,#-1
+ cmp w9,w10
+ csel w9,w9,w10,ge
+ add w10,w28,#2
+ add w11,w22,#2
+ cmp w10,w11
+ csel w10,w10,w11,le
+ fmov d2,xzr
+ fmov d3,xzr
+ fmov d4,xzr
+ fmov d16,#1.0
+ fmov d17,#0.5
+ sub w11,w24,#1
+ scvtf d18,w11
+ ldr x12,[x19,#7640]
+.Lneighbor:
+ add w13,w9,#1
+ ldr w14,[x12,w13,uxtw#2]
+ scvtf d5,w14
+ fdiv d6,d16,d5
+ fmax d2,d2,d6
+ fdiv d7,d18,d5
+ fmax d3,d3,d7
+ fdiv d7,d18,d5
+ fmax d4,d4,d7
+ add w9,w9,#1
+ cmp w9,w10
+ b.le .Lneighbor
+ fadd d3,d3,d2
+ fadd d4,d4,d2
+ add w13,w28,#1
+ ldr w14,[x12,w13,uxtw#2]
+ scvtf d5,w14
+ fmul d3,d3,d5
+ fadd d3,d3,d17
+ fmul d4,d4,d5
+ fadd d4,d4,d17
+ fdiv d3,d3,d5
+ fdiv d4,d4,d5
+ fsub d0,d0,d3
+ fadd d1,d1,d4
+ fmul d0,d0,d5
+ fmul d1,d1,d5
+ fmov d6,#1.0
+ fsub d0,d0,d6
+ fmov d6,#2.0
+ fadd d1,d1,d6
+ fcvtms w15,d0
+ fcvtps w16,d1
+ cmp w28,#1
+ b.lt .Lrotate
+ cmp w28,w22
+ b.le .Lrotated
+.Lrotate:
+ lsr w9,w14,#1
+ cmp w15,w9
+ b.le .Lrotate_positive
+ sub w15,w15,w9
+ sub w16,w16,w9
+ b .Lrotated
+.Lrotate_positive:
+ add w15,w15,w9
+ add w16,w16,w9
+.Lrotated:
+ sub w9,w16,w15
+ add w9,w9,#1
+ cmp w9,w14
+ b.ge .Lwhole_latitude
+ cmp w28,w24
+ b.le .Lwhole_latitude
+ sub w10,w22,w24
+ add w10,w10,#1
+ cmp w28,w10
+ b.ge .Lwhole_latitude
+ mov w10,w15
+ mov w11,w9
+ mov w12,w27
+ add w27,w27,w9
+ b .Lstore_latitude
+.Lwhole_latitude:
+ mov w10,#1
+ mov w11,w14
+ add w12,w27,#1
+ add w27,w27,w14
+ add w27,w27,#3
+.Lstore_latitude:
+ sub w9,w28,w25
+ ldr x13,[x21,#8]
+ str w10,[x13,w9,uxtw#2]
+ ldr x13,[x21,#72]
+ str w11,[x13,w9,uxtw#2]
+ ldr x13,[x21,#136]
+ str w12,[x13,w9,uxtw#2]
+ cmp w28,#1
+ b.lt .Lnext_latitude
+ cmp w28,w22
+ b.gt .Lnext_latitude
+ ldr w9,[sp,#2112]
+ ldr x13,[sp,#2104]
+ add x13,x13,x9,lsl#4
+ stp w28,w10,[x13]
+ stp w11,w12,[x13,#8]
+ add w9,w9,#1
+ str w9,[sp,#2112]
+.Lnext_latitude:
+ add w28,w28,#1
+ ldr w9,[sp,#2120]
+ cmp w28,w9
+ b.le .Llatitude
+ add x0,x21,#1368
+ mov x1,#1
+ mov x2,#4
+ mov x3,#1
+ ldr w4,[sp,#2112]
+ bl .Lalloc2
+ cbnz w0,.Lallocation_failure
+ ldr x9,[sp,#2104]
+ ldr x10,[x21,#1368]
+ ldr w11,[sp,#2112]
+ uxtw x11,w11
+ lsl x11,x11,#4
+ bl .Lcopy
+ add x0,x21,#1456
+ mov x1,#1
+ ldr w2,[x21,#1680]
+ bl .Lalloc1
+ cbnz w0,.Lallocation_failure
+ /* Complete source core-map recurrence. */
+ mov w22,#1
+ ldr x9,[x19,#6176]
+ ldr w23,[x9,#8]
+ mov w24,#0
+ mov w28,#1
+.Lcore_point:
+ cbnz w23,.Lcore_row_ready
+.Lnext_core_row:
+ add w22,w22,#1
+ ldr x9,[x19,#6176]
+ add w10,w22,#1
+ ldr w23,[x9,w10,uxtw#2]
+ cmp w23,#0
+ b.le .Lnext_core_row
+ add w24,w24,#3
+.Lcore_row_ready:
+ sub w23,w23,#1
+ sub w10,w22,w25
+ ldr x9,[x21,#136]
+ ldr w24,[x9,w10,uxtw#2]
+ ldr x9,[x19,#6176]
+ add w11,w22,#1
+ ldr w12,[x9,w11,uxtw#2]
+ add w24,w24,w12
+ sub w24,w24,w23
+ sub w24,w24,#1
+ ldr x9,[x19,#6088]
+ ldr w12,[x9,w11,uxtw#2]
+ add w24,w24,w12
+ ldr x9,[x21,#8]
+ ldr w12,[x9,w10,uxtw#2]
+ sub w24,w24,w12
+ sub w24,w24,w28
+ add w12,w24,#1
+ add w12,w12,w28
+ ldr x9,[x21,#1456]
+ sub w10,w28,#1
+ str w12,[x9,w10,uxtw#2]
+ add w28,w28,#1
+ ldr w9,[x21,#1680]
+ cmp w28,w9
+ b.le .Lcore_point
+ ldr w22,[x21,#1648]
+ ldr w23,[x21,#1652]
+ ldr w24,[x21,#1364]
+ add x0,x21,#328
+ mov w1,#1
+ sub w1,w1,w23
+ sxtw x1,w1
+ lsl w2,w23,#1
+ mov w3,#1
+ sub w3,w3,w24
+ sxtw x3,w3
+ add w4,w22,w24
+ bl .Lalloc2
+ cbnz w0,.Lallocation_failure
+ /* Complete signed MOD longitude extension, retaining unwritten halo rows. */
+ ldr w28,[sp,#2116]
+.Lextension_row:
+ add w9,w28,#1
+ ldr x10,[x19,#7640]
+ ldr w10,[x10,w9,uxtw#2]
+ sub w9,w28,w25
+ ldr x11,[x21,#8]
+ ldr w11,[x11,w9,uxtw#2]
+ ldr x12,[x21,#72]
+ ldr w12,[x12,w9,uxtw#2]
+ mov w13,#1
+ sub w13,w13,w23
+ mov w14,w13
+ mov w15,w9
+ add w9,w23,w23,lsl#1
+ mul w15,w15,w9
+ ldr x16,[x21,#328]
+ add x16,x16,x15,lsl#2
+.Lextension_longitude:
+ mov w9,w14
+ cmp w28,#1
+ b.lt .Lextension_mirror
+ cmp w28,w22
+ b.le .Lextension_unmirrored
+.Lextension_mirror:
+ add w9,w9,w10,lsr#1
+.Lextension_unmirrored:
+ sub w9,w9,w11
+ add w9,w9,w10
+ sdiv w15,w9,w10
+ msub w9,w15,w10,w9
+ add w9,w9,#1
+ cmp w11,#1
+ b.ne .Lextension_store
+ cmp w12,w10
+ b.ne .Lextension_store
+ cmp w9,w10
+ csel w9,wzr,w9,eq
+.Lextension_store:
+ str w9,[x16],#4
+ add w14,w14,#1
+ lsl w9,w23,#1
+ cmp w14,w9
+ b.le .Lextension_longitude
+ add w28,w28,#1
+ ldr w9,[sp,#2120]
+ cmp w28,w9
+ b.le .Lextension_row
+ str w27,[x21,#1020]
+ sub w9,w27,#1
+ lsr w9,w9,#10
+ add w9,w9,#1
+ lsl w9,w9,#10
+ add w9,w9,#29
+ str w9,[x21,#1016]
+ add w26,w9,#4
+ add x0,x21,#1056
+ mov x1,#1
+ uxtw x2,w26
+ bl .Lalloc1
+ cbnz w0,.Lallocation_failure
+ add x0,x21,#1120
+ mov x1,#1
+ uxtw x2,w26
+ bl .Lalloc1
+ cbnz w0,.Lallocation_failure
+ add x0,x21,#1272
+ mov x1,#1
+ uxtw x2,w26
+ bl .Lalloc1
+ cbnz w0,.Lallocation_failure
+ ldr x9,[x21,#1056]
+ ldr x10,[x21,#1120]
+ ldr x11,[x21,#1272]
+ mov w12,w26
+.Lzero_masks:
+ str wzr,[x9],#4
+ str wzr,[x10],#4
+ str wzr,[x11],#4
+ subs w12,w12,#1
+ b.ne .Lzero_masks
+ str wzr,[x21,#1336]
+ str wzr,[x21,#1340]
+ str wzr,[x21,#1344]
+ mov x9,x21
+ mov x10,x20
+ mov x11,#1800
+ bl .Lcopy
+ ldr x0,[sp,#2080]
+ bl free
+ mov w0,#0
+ b .Ldone
+.Lallocation_failure:
+ adr x22,.Lowner_offsets
+ mov w23,#10
+.Lrollback_owner:
+ ldr w9,[x22],#4
+ ldr x0,[x21,x9]
+ cbz x0,.Lrollback_next
+ bl free
+.Lrollback_next:
+ subs w23,w23,#1
+ b.ne .Lrollback_owner
+ ldr x0,[sp,#2080]
+ cbz x0,.Lallocation_return
+ bl free
+.Lallocation_return:
+ mov w0,#1
+ b .Ldone
+.Lrefuse:
+ mov w0,#2
+.Ldone:
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldr x29,[sp,#96]
+ ldp x18,x30,[sp]
+ add sp,sp,#2304
+ ret
+.Lbad_early:
+ mov w0,#2
+ ret
+.size md2asm_initialize_serial_interpolation_buffer,.-md2asm_initialize_serial_interpolation_buffer
+/* Allocate and construct the GNU typed integer descriptor from explicit bounds. */
+.Lalloc1:
+ stp x0,x1,[sp,#-48]!
+ stp x2,x30,[sp,#16]
+ sub x0,x2,x1
+ add x0,x0,#1
+ lsl x0,x0,#2
+ bl malloc
+ cbz x0,.Lalloc1_bad
+ ldp x9,x10,[sp]
+ ldr x11,[sp,#16]
+ str x0,[x9]
+ neg x12,x10
+ str x12,[x9,#8]
+ mov x12,#4
+ str x12,[x9,#16]
+ str wzr,[x9,#24]
+ mov w12,#0x101
+ strh w12,[x9,#28]
+ strh wzr,[x9,#30]
+ mov x12,#4
+ str x12,[x9,#32]
+ mov x12,#1
+ str x12,[x9,#40]
+ stp x10,x11,[x9,#48]
+ mov w0,#0
+ b .Lalloc1_done
+.Lalloc1_bad:
+ mov w0,#1
+.Lalloc1_done:
+ ldr x30,[sp,#24]
+ add sp,sp,#48
+ ret
+.Lalloc2:
+ stp x0,x1,[sp,#-64]!
+ stp x2,x3,[sp,#16]
+ stp x4,x30,[sp,#32]
+ sub x9,x2,x1
+ add x9,x9,#1
+ sub x10,x4,x3
+ add x10,x10,#1
+ mul x0,x9,x10
+ lsl x0,x0,#2
+ bl malloc
+ cbz x0,.Lalloc2_bad
+ ldp x9,x10,[sp]
+ ldp x11,x12,[sp,#16]
+ ldr x13,[sp,#32]
+ str x0,[x9]
+ sub x14,x11,x10
+ add x14,x14,#1
+ mul x15,x14,x12
+ neg x15,x15
+ sub x15,x15,x10
+ str x15,[x9,#8]
+ mov x15,#4
+ str x15,[x9,#16]
+ str wzr,[x9,#24]
+ mov w15,#0x102
+ strh w15,[x9,#28]
+ strh wzr,[x9,#30]
+ mov x15,#4
+ str x15,[x9,#32]
+ mov x15,#1
+ str x15,[x9,#40]
+ stp x10,x11,[x9,#48]
+ str x14,[x9,#64]
+ stp x12,x13,[x9,#72]
+ mov w0,#0
+ b .Lalloc2_done
+.Lalloc2_bad:
+ mov w0,#1
+.Lalloc2_done:
+ ldr x30,[sp,#40]
+ add sp,sp,#64
+ ret
+.Lcopy:
+ ldr w12,[x9],#4
+ str w12,[x10],#4
+ subs x11,x11,#4
+ b.ne .Lcopy
+ ret
+.p2align 4
+.global md2asm_release_serial_interpolation_buffer
+.type md2asm_release_serial_interpolation_buffer,%function
+md2asm_release_serial_interpolation_buffer:
+ cbz x0,.Lbad_early
+ tst x0,#7
+ b.ne .Lbad_early
+ mov x9,#(4275088&65535)
+ movk x9,#(4275088>>16),lsl#16
+ cmp x1,x9
+ b.lo .Lbad_early
+ stp x18,x30,[sp,#-48]!
+ stp x19,x20,[sp,#16]
+ str x21,[sp,#32]
+ SLADDR x19,x0
+ adr x20,.Lowner_offsets
+ mov w21,#10
+.Lrelease_owner:
+ ldr w9,[x20],#4
+ ldr x0,[x19,x9]
+ cbz x0,.Lrelease_next
+ str xzr,[x19,x9]
+ bl free
+.Lrelease_next:
+ subs w21,w21,#1
+ b.ne .Lrelease_owner
+ mov w0,#0
+ ldp x19,x20,[sp,#16]
+ ldr x21,[sp,#32]
+ ldp x18,x30,[sp],#48
+ ret
+.size md2asm_release_serial_interpolation_buffer,.-md2asm_release_serial_interpolation_buffer
+.p2align 3
+.Lowner_offsets:
+ .word 1736,8,72,136,1368,1456,328,1056,1120,1272
+.Linput_descriptors:
+ .word 7640,1,6088,2,6176,2,6264,1,6456,1,6520,1
+.section .note.GNU-stack,"",%progbits
