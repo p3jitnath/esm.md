@@ -1,0 +1,548 @@
+/* Source build for the qualified private forecast graph.
+ * Contract: skills/md2asm/references/openifs/dynamics/private_forecast_graph_sources.md.
+ * Preserve the original interface, ordered arithmetic, and caller-owned storage. */
+// Exact selected primitive layer interfaces. The retained qualified interface is unchanged.
+.text
+.p2align 4
+.macro CALL target
+ str x18,[sp,#1184]
+ bl \target
+ ldr x18,[sp,#1184]
+.endm
+.global md2asm_cloud_radiation_layer_state_r2_7358525
+.type md2asm_cloud_radiation_layer_state_r2_7358525,%function
+md2asm_cloud_radiation_layer_state_r2_7358525:
+ mov x16,sp
+ sub sp,sp,#2048
+ stp x29,x30,[sp,#320]
+ mov x29,sp
+ stp x19,x20,[sp,#336]
+ stp x21,x22,[sp,#352]
+ stp x23,x24,[sp,#368]
+ stp x25,x26,[sp,#384]
+ stp x27,x28,[sp,#400]
+ add x19,sp,#576
+ str x0,[x19,#0]
+ str x1,[x19,#8]
+ str x2,[x19,#16]
+ str x3,[x19,#24]
+ str x4,[x19,#32]
+ str x5,[x19,#40]
+ str x6,[x19,#48]
+ mrs x9,fpcr
+ cbnz x9,.Llayer_reject
+ adrp x9,:got:__yomhook_MOD_lhook
+ ldr x9,[x9,:got_lo12:__yomhook_MOD_lhook]
+ ldr w9,[x9]
+ cbz w9,9f
+ adr x0,.Lcldprg_layer_name
+ adr x1,.Llayer_phase0
+ add x2,sp,#1160
+ mov x3,#12
+ CALL __yomhook_MOD_dr_hook_default8
+9:
+ ldr x0,[x19,#8]
+ movz x16,#36864
+ movk x16,#62,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#832]
+ ldr x0,[x19,#8]
+ movz x16,#35864
+ movk x16,#24,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#840]
+ ldr x0,[x19,#8]
+ movz x16,#21392
+ movk x16,#28,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#848]
+ ldr x0,[x19,#8]
+ movz x16,#5472
+ movk x16,#24,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#856]
+ ldr x0,[x19,#8]
+ movz x16,#48608
+ movk x16,#20,lsl #16
+ add x0,x0,x16
+ str x0,[sp,#864]
+ ldr x0,[x19,#16]
+ str x0,[sp,#872]
+ ldr x0,[x19,#16]
+ mov x16,#4
+ add x0,x0,x16
+ str x0,[sp,#880]
+ ldr x0,[x19,#16]
+ mov x16,#12
+ add x0,x0,x16
+ str x0,[sp,#888]
+ ldr x0,[x19,#16]
+ mov x16,#48
+ add x0,x0,x16
+ str x0,[sp,#896]
+ ldr x0,[x19,#24]
+ mov x16,#624
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#904]
+ ldr x0,[x19,#24]
+ mov x16,#712
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#912]
+ ldr x0,[x19,#32]
+ mov x16,#472
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#920]
+ ldr x0,[x19,#32]
+ mov x16,#1000
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#1
+ bl .Llayer_first
+ str x0,[sp,#928]
+ ldr x0,[x19,#32]
+ mov x16,#1000
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#2
+ bl .Llayer_first
+ str x0,[sp,#936]
+ ldr x0,[x19,#32]
+ mov x16,#208
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#944]
+ ldr x0,[x19,#24]
+ mov x16,#1040
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#952]
+ ldr x0,[x19,#24]
+ mov x16,#976
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#960]
+ mov w9,#1
+ str w9,[sp,#1152]
+ add x0,sp,#1152
+ str x0,[sp,#968]
+ ldr x9,[x19,#0]
+ ldr x9,[x9,#12872]
+ ldrsw x20,[x9,#0]
+ ldr x0,[x19,#40]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#976]
+ ldr x9,[x19,#0]
+ ldr x9,[x9,#12896]
+ ldrsw x20,[x9,#0]
+ ldr x0,[x19,#40]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#984]
+ ldr x9,[x19,#0]
+ ldr x9,[x9,#12880]
+ ldrsw x20,[x9,#0]
+ ldr x0,[x19,#40]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#992]
+ ldr x9,[x19,#0]
+ ldr x9,[x9,#12888]
+ ldrsw x20,[x9,#0]
+ ldr x0,[x19,#40]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#1000]
+ ldr x9,[x19,#0]
+ ldr x9,[x9,#12760]
+ ldrsw x20,[x9,#0]
+ ldr x0,[x19,#40]
+ mov x16,#8992
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#1008]
+ ldr x0,[x19,#48]
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#1016]
+ ldr x0,[x19,#48]
+ mov x16,#88
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#1024]
+ ldr x0,[x19,#48]
+ mov x16,#176
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#1032]
+ ldr x9,[sp,#896]
+ str x9,[sp,#0]
+ ldr x9,[sp,#904]
+ str x9,[sp,#8]
+ ldr x9,[sp,#912]
+ str x9,[sp,#16]
+ ldr x9,[sp,#920]
+ str x9,[sp,#24]
+ ldr x9,[sp,#928]
+ str x9,[sp,#32]
+ ldr x9,[sp,#936]
+ str x9,[sp,#40]
+ ldr x9,[sp,#944]
+ str x9,[sp,#48]
+ ldr x9,[sp,#952]
+ str x9,[sp,#56]
+ ldr x9,[sp,#960]
+ str x9,[sp,#64]
+ ldr x9,[sp,#968]
+ str x9,[sp,#72]
+ ldr x9,[sp,#976]
+ str x9,[sp,#80]
+ ldr x9,[sp,#984]
+ str x9,[sp,#88]
+ ldr x9,[sp,#992]
+ str x9,[sp,#96]
+ ldr x9,[sp,#1000]
+ str x9,[sp,#104]
+ ldr x9,[sp,#1008]
+ str x9,[sp,#112]
+ ldr x9,[sp,#1016]
+ str x9,[sp,#120]
+ ldr x9,[sp,#1024]
+ str x9,[sp,#128]
+ ldr x9,[sp,#1032]
+ str x9,[sp,#136]
+ ldr x0,[sp,#832]
+ ldr x1,[sp,#840]
+ ldr x2,[sp,#848]
+ ldr x3,[sp,#856]
+ ldr x4,[sp,#864]
+ ldr x5,[sp,#872]
+ ldr x6,[sp,#880]
+ ldr x7,[sp,#888]
+ CALL md2asm_cldpp
+ adrp x9,:got:__yomhook_MOD_lhook
+ ldr x9,[x9,:got_lo12:__yomhook_MOD_lhook]
+ ldr w9,[x9]
+ cbz w9,9f
+ adr x0,.Lcldprg_layer_name
+ adr x1,.Llayer_phase1
+ add x2,sp,#1160
+ mov x3,#12
+ CALL __yomhook_MOD_dr_hook_default8
+9:
+ ldp x19,x20,[sp,#336]
+ ldp x21,x22,[sp,#352]
+ ldp x23,x24,[sp,#368]
+ ldp x25,x26,[sp,#384]
+ ldp x27,x28,[sp,#400]
+ ldp x29,x30,[sp,#320]
+ add sp,sp,#2048
+ ret
+.size md2asm_cloud_radiation_layer_state_r2_7358525,.-md2asm_cloud_radiation_layer_state_r2_7358525
+.global md2asm_visibility_layer_state_r2_7358525
+.type md2asm_visibility_layer_state_r2_7358525,%function
+md2asm_visibility_layer_state_r2_7358525:
+ mov x16,sp
+ sub sp,sp,#2048
+ stp x29,x30,[sp,#320]
+ mov x29,sp
+ stp x19,x20,[sp,#336]
+ stp x21,x22,[sp,#352]
+ stp x23,x24,[sp,#368]
+ stp x25,x26,[sp,#384]
+ stp x27,x28,[sp,#400]
+ add x19,sp,#576
+ str x0,[x19,#0]
+ str x1,[x19,#8]
+ str x2,[x19,#16]
+ str x3,[x19,#24]
+ str x4,[x19,#32]
+ str x5,[x19,#40]
+ str x6,[x19,#48]
+ str x7,[x19,#56]
+ ldr x9,[x16,#0]
+ str x9,[x19,#64]
+ mrs x9,fpcr
+ cbnz x9,.Llayer_reject
+ adrp x9,:got:__yomhook_MOD_lhook
+ ldr x9,[x9,:got_lo12:__yomhook_MOD_lhook]
+ ldr w9,[x9]
+ cbz w9,9f
+ adr x0,.Lradvis_layer_name
+ adr x1,.Llayer_phase0
+ add x2,sp,#1160
+ mov x3,#12
+ CALL __yomhook_MOD_dr_hook_default8
+9:
+ ldr x9,[x19,#16]
+ ldr w9,[x9,#112]
+ cbnz w9,.Llayer_reject
+ ldr x21,[x19,#32]
+ ldrsw x22,[x21]
+ ldrsw x23,[x21,#4]
+ cmp x22,x23
+ b.gt .Lvis_copy_done
+ ldr x0,[x19,#56]
+ mov x16,#4504
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#832]
+ ldr x0,[x19,#64]
+ mov x16,#600
+ add x0,x0,x16
+ mov x1,#0
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#840]
+ ldr x24,[sp,#832]
+ ldr x25,[sp,#840]
+ sub x22,x22,#1
+.Lvis_copy_column:
+ ldr x9,[x24,x22,lsl #3]
+ str x9,[x25,x22,lsl #3]
+ add x22,x22,#1
+ cmp x22,x23
+ b.lt .Lvis_copy_column
+.Lvis_copy_done:
+ adrp x9,:got:__yomhook_MOD_lhook
+ ldr x9,[x9,:got_lo12:__yomhook_MOD_lhook]
+ ldr w9,[x9]
+ cbz w9,9f
+ adr x0,.Lradvis_layer_name
+ adr x1,.Llayer_phase1
+ add x2,sp,#1160
+ mov x3,#12
+ CALL __yomhook_MOD_dr_hook_default8
+9:
+ ldp x19,x20,[sp,#336]
+ ldp x21,x22,[sp,#352]
+ ldp x23,x24,[sp,#368]
+ ldp x25,x26,[sp,#384]
+ ldp x27,x28,[sp,#400]
+ ldp x29,x30,[sp,#320]
+ add sp,sp,#2048
+ ret
+.size md2asm_visibility_layer_state_r2_7358525,.-md2asm_visibility_layer_state_r2_7358525
+.global md2asm_uncoupled_ocean_fields_state_r2_7358525
+.type md2asm_uncoupled_ocean_fields_state_r2_7358525,%function
+md2asm_uncoupled_ocean_fields_state_r2_7358525:
+ mov x16,sp
+ sub sp,sp,#2048
+ stp x29,x30,[sp,#320]
+ mov x29,sp
+ stp x19,x20,[sp,#336]
+ stp x21,x22,[sp,#352]
+ stp x23,x24,[sp,#368]
+ stp x25,x26,[sp,#384]
+ stp x27,x28,[sp,#400]
+ add x19,sp,#576
+ str x0,[x19,#0]
+ str x1,[x19,#8]
+ str x2,[x19,#16]
+ str x3,[x19,#24]
+ str x4,[x19,#32]
+ str x5,[x19,#40]
+ mrs x9,fpcr
+ cbnz x9,.Llayer_reject
+ adrp x9,:got:__yomhook_MOD_lhook
+ ldr x9,[x9,:got_lo12:__yomhook_MOD_lhook]
+ ldr w9,[x9]
+ cbz w9,9f
+ adr x0,.Lnemoaddflds_name
+ adr x1,.Llayer_phase0
+ add x2,sp,#1160
+ mov x3,#11
+ CALL __yomhook_MOD_dr_hook_default8
+9:
+ ldr x9,[x19,#0]
+ ldr w9,[x9,#6796]
+ cbnz w9,.Llayer_reject
+ adrp x9,:got:__yomhook_MOD_lhook
+ ldr x9,[x9,:got_lo12:__yomhook_MOD_lhook]
+ ldr w9,[x9]
+ cbz w9,9f
+ adr x0,.Lnemoaddflds_name
+ adr x1,.Llayer_phase1
+ add x2,sp,#1160
+ mov x3,#11
+ CALL __yomhook_MOD_dr_hook_default8
+9:
+ ldp x19,x20,[sp,#336]
+ ldp x21,x22,[sp,#352]
+ ldp x23,x24,[sp,#368]
+ ldp x25,x26,[sp,#384]
+ ldp x27,x28,[sp,#400]
+ ldp x29,x30,[sp,#320]
+ add sp,sp,#2048
+ ret
+.size md2asm_uncoupled_ocean_fields_state_r2_7358525,.-md2asm_uncoupled_ocean_fields_state_r2_7358525
+.global md2asm_surface_ocean_layer_state_r2_7358525
+.type md2asm_surface_ocean_layer_state_r2_7358525,%function
+md2asm_surface_ocean_layer_state_r2_7358525:
+ mov x16,sp
+ sub sp,sp,#2048
+ stp x29,x30,[sp,#320]
+ mov x29,sp
+ stp x19,x20,[sp,#336]
+ stp x21,x22,[sp,#352]
+ stp x23,x24,[sp,#368]
+ stp x25,x26,[sp,#384]
+ stp x27,x28,[sp,#400]
+ add x19,sp,#576
+ str x0,[x19,#0]
+ str x1,[x19,#8]
+ str x2,[x19,#16]
+ str x3,[x19,#24]
+ str x4,[x19,#32]
+ mrs x9,fpcr
+ cbnz x9,.Llayer_reject
+ adrp x9,:got:__yomhook_MOD_lhook
+ ldr x9,[x9,:got_lo12:__yomhook_MOD_lhook]
+ ldr w9,[x9]
+ cbz w9,9f
+ adr x0,.Lnemoaddflds_layer_name
+ adr x1,.Llayer_phase0
+ add x2,sp,#1160
+ mov x3,#17
+ CALL __yomhook_MOD_dr_hook_default8
+9:
+ ldr x0,[x19,#8]
+ str x0,[sp,#832]
+ ldr x0,[x19,#16]
+ mov x16,#28
+ add x0,x0,x16
+ str x0,[sp,#840]
+ ldr x0,[x19,#16]
+ str x0,[sp,#848]
+ ldr x0,[x19,#16]
+ mov x16,#4
+ add x0,x0,x16
+ str x0,[sp,#856]
+ ldr x9,[x19,#0]
+ ldr x9,[x9,#9048]
+ ldrsw x20,[x9,#0]
+ ldr x0,[x19,#32]
+ mov x16,#8728
+ add x0,x0,x16
+ mov x1,x20
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#864]
+ ldr x0,[x19,#32]
+ mov x16,#10592
+ add x0,x0,x16
+ mov x1,#1
+ mov x2,#0
+ bl .Llayer_first
+ str x0,[sp,#872]
+ ldr x9,[x19,#16]
+ ldrsw x9,[x9]
+ sub x9,x9,#1
+ lsl x9,x9,#3
+ ldr x0,[sp,#864]
+ add x0,x0,x9
+ str x0,[sp,#864]
+ ldr x0,[sp,#872]
+ add x0,x0,x9
+ str x0,[sp,#872]
+ ldr x0,[sp,#832]
+ ldr x1,[sp,#840]
+ ldr x2,[sp,#848]
+ ldr x3,[sp,#856]
+ ldr x4,[sp,#864]
+ ldr x5,[sp,#872]
+ CALL md2asm_uncoupled_ocean_fields_state_r2_7358525
+ adrp x9,:got:__yomhook_MOD_lhook
+ ldr x9,[x9,:got_lo12:__yomhook_MOD_lhook]
+ ldr w9,[x9]
+ cbz w9,9f
+ adr x0,.Lnemoaddflds_layer_name
+ adr x1,.Llayer_phase1
+ add x2,sp,#1160
+ mov x3,#17
+ CALL __yomhook_MOD_dr_hook_default8
+9:
+ ldp x19,x20,[sp,#336]
+ ldp x21,x22,[sp,#352]
+ ldp x23,x24,[sp,#368]
+ ldp x25,x26,[sp,#384]
+ ldp x27,x28,[sp,#400]
+ ldp x29,x30,[sp,#320]
+ add sp,sp,#2048
+ ret
+.size md2asm_surface_ocean_layer_state_r2_7358525,.-md2asm_surface_ocean_layer_state_r2_7358525
+// First element of a GNU dense view, with optional second/third source subscript.
+.Llayer_first:
+ldr x8,[x0]
+cbz x8,.Llayer_reject
+ldr x9,[x0,#8]
+ldrb w10,[x0,#28]
+ldr x11,[x0,#40]
+ldr x12,[x0,#48]
+madd x9,x11,x12,x9
+cmp w10,#1
+b.eq .Llayer_first_done
+ldr x11,[x0,#64]
+ldr x12,[x0,#72]
+cmp x1,#0
+csel x12,x12,x1,eq
+madd x9,x11,x12,x9
+cmp w10,#2
+b.eq .Llayer_first_done
+ldr x11,[x0,#88]
+ldr x12,[x0,#96]
+cmp x2,#0
+csel x12,x12,x2,eq
+madd x9,x11,x12,x9
+.Llayer_first_done:
+ldr x11,[x0,#32]
+madd x0,x9,x11,x8
+ret
+.Llayer_reject:
+CALL abort
+brk #0
+.section .rodata
+.p2align 2
+.Llayer_phase0: .word 0
+.Llayer_phase1: .word 1
+.Lcldprg_layer_name: .ascii "CLDPRG_LAYER"
+.Lradvis_layer_name: .ascii "RADVIS_LAYER"
+.Lnemoaddflds_name: .ascii "NEMOADDFLDS"
+.Lnemoaddflds_layer_name: .ascii "NEMOADDFLDS_LAYER"
+.section .note.GNU-stack,"",%progbits

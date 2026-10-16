@@ -1,0 +1,52 @@
+# Private forecast graph source build
+
+This source set builds the 34 members previously retained in `libproduction-private-graph.a`. These functions already belonged to the qualified selected forecast graph. This checkpoint changes their source location and build route. It does not add a numerical method or establish that a new complete autonomous forecast has passed. The final joined forecast remains a separate acceptance step.
+
+An application binary interface (ABI) defines how a caller passes arguments and which registers a function must preserve. These functions retain their original raw address interfaces. The first eight ordinary addresses use registers `x0` through `x7`; later addresses use the incoming stack in source order. The stack stays aligned to 16 bytes. Real arrays use eight-byte FP64 words and eight-byte alignment; integer and logical values use four-byte words and four-byte alignment. GNU array descriptors retain their source rank, bounds, strides, and element size. Callers must keep all complete field and configuration owners live through each call. The selected profile has 24 horizontal points per block and 19 full vertical levels; wider limits remain exactly those checked by each retained source body.
+
+Each function preserves its established Arm register obligations, including `x18` around external calls. It preserves the frozen floating-point control and ordered arithmetic, including separate rounding steps and signed zeros. This publication performs no arithmetic change. Array views, time-level copies, pressure interpolation, transport storage, transform controllers, layer adapters, and norm buffers use the same owned caller state as the retained graph. Existing counters and context words remain separate writable objects with the same sizes and zero-initialized storage. They do not replace a numerical calculation.
+
+The pressure-formation wrapper reuses the public `gphpre.S` body through one preprocessor name mapping. The other 33 bodies have no exact match in the retained compiled public-source index or in a normalized review of all current public assembly sources. Three source include files contain the same declared field offsets as the retained graph. Their new names do not change emitted bytes.
+
+Four pressure-interpolation helper symbols are local to their object, as in the production archive. Two explicit `CALL26` relocation directives retain the original call instructions and symbol-plus-displacement expressions while applying that local visibility. They do not add a call or change its destination. The five pressure interfaces and all other public and private entry addresses remain at the same offsets within their objects.
+
+| Source | Retained interface |
+|---|---|
+| [tracer_mass_correction_driver.S](../../../../../src/openifs/transport/tracer_mass_correction_driver.S) | `md2asm_trmfixers_address_r2_7358525`; 16 addresses. |
+| [surface_time_state_copy.S](../../../../../src/openifs/surface/surface_time_state_copy.S) | `md2asm_physics_surface_time_copy_7358525`; original source argument order and descriptor bounds. |
+| [shortwave_aerosol_extinction.S](../../../../../src/openifs/radiation/shortwave_aerosol_extinction.S) | `md2asm_shortwave_aerosol_extinction_7358525`; original source argument order and descriptor bounds. |
+| [cloud_aerosol_visibility.S](../../../../../src/openifs/physics/cloud_aerosol_visibility.S) | `md2asm_cloud_aerosol_visibility_7358525`; original source argument order and descriptor bounds. |
+| [physics_work_arrays.S](../../../../../src/openifs/physics/physics_work_arrays.S) | `md2asm_physics_arrays_finish_7358525`, `md2asm_physics_arrays_initialise_7358525`; original source argument order and descriptor bounds. |
+| [physical_parameter_layer_views.S](../../../../../src/openifs/physics/physical_parameter_layer_views.S) | `md2asm_cloud_microphysics_layer_state_r2_7358525`, `md2asm_convection_layer_state_r2_7358525`, `md2asm_mountain_wave_layer_state_r2_7358525`, `md2asm_radiative_flux_layer_state_r2_7358525`; original source argument order and descriptor bounds. |
+| [primitive_physics_layer_views.S](../../../../../src/openifs/physics/primitive_physics_layer_views.S) | `md2asm_cloud_radiation_layer_state_r2_7358525`, `md2asm_surface_ocean_layer_state_r2_7358525`, `md2asm_visibility_layer_state_r2_7358525`; original source argument order and descriptor bounds. |
+| [surface_time_layer.S](../../../../../src/openifs/physics/surface_time_layer.S) | `md2asm_surface_time_layer_lake_profile_r3_7358525`; original source argument order and descriptor bounds. |
+| [aerosol_visibility_climatology.S](../../../../../src/openifs/physics/aerosol_visibility_climatology.S) | `md2asm_aerosol_visibility_climatology_7358525`; original source argument order and descriptor bounds. |
+| [radiation_driver_caller.S](../../../../../src/openifs/radiation/radiation_driver_caller.S) | `md2asm_radiation_driver_caller`; original source argument order and descriptor bounds. |
+| [pressure_interpolation_helpers.S](../../../../../src/openifs/fullpos/pressure_interpolation_helpers.S) | `md2asm_ppflev_7358525`, `md2asm_ppinit_7358525`, `md2asm_ppsta_7358525`; five original pressure-coordinate interfaces; helper symbols remain local. |
+| [surface_temperature_extrapolation.S](../../../../../src/openifs/physics/surface_temperature_extrapolation.S) | `md2asm_surface_temperature_extrapolation_7358525`; original source argument order and descriptor bounds. |
+| [post_physics_driver.S](../../../../../src/openifs/physics/post_physics_driver.S) | `md2asm_post_physics_driver_cape_r4_7358525`; original source argument order and descriptor bounds. |
+| [tropopause_level.S](../../../../../src/openifs/physics/tropopause_level.S) | `md2asm_tropopause_level_7358525`; 9 addresses. |
+| [height_wind_interpolation.S](../../../../../src/openifs/physics/height_wind_interpolation.S) | `md2asm_height_wind_interpolation_7358525`; 10 addresses. |
+| [model_humidity_output.S](../../../../../src/openifs/fullpos/model_humidity_output.S) | `md2asm_ppq_7358525`; 17 addresses. |
+| [semi_lagrangian_work_storage.S](../../../../../src/openifs/transport/semi_lagrangian_work_storage.S) | `md2asm_call_sl_heap2_7358525`; 20 addresses. |
+| [selected_pressure_formation.S](../../../../../src/openifs/fullpos/selected_pressure_formation.S) | `md2asm_output_gphpre_7358525`; original source argument order and descriptor bounds. |
+| [grid_point_end_caller.S](../../../../../src/openifs/dynamics/grid_point_end_caller.S) | `md2asm_cpg_end_7358525`; original source argument order and descriptor bounds. |
+| [grid_point_dynamics_caller.S](../../../../../src/openifs/dynamics/grid_point_dynamics_caller.S) | `md2asm_cpg_dyn_7358525`; 46 addresses. |
+| [grid_point_diagnostic_caller.S](../../../../../src/openifs/dynamics/grid_point_diagnostic_caller.S) | `md2asm_cpg_dia_7358525`; original source argument order and descriptor bounds. |
+| [inverse_fourier_controller.S](../../../../../src/openifs/spectral_transforms/inverse_fourier_controller.S) | `md2asm_ftinv_ctl_7358525`; original source argument order and descriptor bounds. |
+| [direct_fourier_controller.S](../../../../../src/openifs/spectral_transforms/direct_fourier_controller.S) | `md2asm_ftdir_ctl_7358525`; original source argument order and descriptor bounds. |
+| [output_spectral_norm_controller.S](../../../../../src/openifs/fullpos/output_spectral_norm_controller.S) | `md2asm_fpspnorms_7358525`; original source argument order and descriptor bounds. |
+| [output_grid_norm_controller.S](../../../../../src/openifs/fullpos/output_grid_norm_controller.S) | `md2asm_fpgpnorm_7358525`; original source argument order and descriptor bounds. |
+| [tracer_mass_correction.S](../../../../../src/openifs/transport/tracer_mass_correction.S) | `md2asm_qmfixer_address_r2_7358525`; 15 addresses. |
+| [surface_time_update_adapter.S](../../../../../src/openifs/surface/surface_time_update_adapter.S) | `md2asm_surface_time_adapter_lake_partial_profile_r3_7358525`; 171 addresses, adapted to the 163-address child. |
+| [radiation_diagnostic_fluxes.S](../../../../../src/openifs/radiation/radiation_diagnostic_fluxes.S) | `md2asm_radiation_diagnostic_fluxes`; original source argument order and descriptor bounds. |
+| [semi_lagrangian_transport_driver.S](../../../../../src/openifs/transport/semi_lagrangian_transport_driver.S) | `md2asm_call_sl_7358525`; 23 addresses. |
+| [grid_transform_copies.S](../../../../../src/openifs/spectral_transforms/grid_transform_copies.S) | `md2asm_trgtol_7358525`, `md2asm_trltog_7358525`; 11 addresses. |
+| [inverse_fourier_row.S](../../../../../src/openifs/spectral_transforms/inverse_fourier_row.S) | `md2asm_ftinv_7358525`; descriptor88, INTEGER4 count, INTEGER4 latitude. |
+| [legendre_transform_controllers.S](../../../../../src/openifs/spectral_transforms/legendre_transform_controllers.S) | `md2asm_ltdir_ctl_7358525`, `md2asm_ltinv_ctl_7358525`; original source argument order and descriptor bounds. |
+| [semi_lagrangian_grid_update.S](../../../../../src/openifs/dynamics/semi_lagrangian_grid_update.S) | `md2asm_lacdyn_7358525`; 36 addresses. |
+| [output_spectral_norm_arithmetic.S](../../../../../src/openifs/fullpos/output_spectral_norm_arithmetic.S) | `md2asm_output_spectral_norm_matrix_7358525`; Geometry, rank-two descriptor, metric, level count, output matrix. |
+
+Every one of the 34 assembled objects has byte-identical complete allocated instruction, constant, writable-data and zero-storage sections compared with its corresponding member extracted from the retained production archive. All relocation expressions and global symbol addresses, types, and sizes also match. The comparison covers 99,050 allocated bytes. Thus the accepted child source, physical, bounds, provider and ABI evidence is reused without another numerical run. Static identity is the acceptance condition for this source-location checkpoint; it does not replace the final forecast comparison.
+
+The local packet retains the original source hashes, qualified object correspondence, complete build commands, allocated-section comparison and publication map. No root executable or map was written. No executable was linked or run in this checkpoint. Production must build these assembly files with their source include paths; it must not load a saved numerical record, an original OpenIFS implementation, or a verification wrapper. Root owns the later complete link and forecast.

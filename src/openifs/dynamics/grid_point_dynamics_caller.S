@@ -1,0 +1,258 @@
+/* Source build for the qualified private forecast graph.
+ * Contract: skills/md2asm/references/openifs/dynamics/private_forecast_graph_sources.md.
+ * Preserve the original interface, ordered arithmetic, and caller-owned storage. */
+/* Direct grid-point dynamics caller, frozen revision 1.
+ * Physics formulations/openifs/dynamics/grid_point_dynamics_caller.md.
+ * Contract skills/md2asm/references/openifs/dynamics/grid_point_dynamics_caller.md.
+ * 46 addresses. The complete private LACDYN owns every selected calculation. */
+.arch armv8.2-a+simd
+.text
+.p2align 4
+.global md2asm_cpg_dyn_7358525
+.global cpg_dyn_
+.set cpg_dyn_,md2asm_cpg_dyn_7358525
+.type md2asm_cpg_dyn_7358525,%function
+md2asm_cpg_dyn_7358525:
+ mov x17,sp
+ sub sp,sp,#1040
+ stp x18,x19,[sp,#224]
+ stp x20,x21,[sp,#240]
+ stp x22,x23,[sp,#256]
+ stp x24,x25,[sp,#272]
+ stp x26,x27,[sp,#288]
+ stp x28,x29,[sp,#304]
+ str x30,[sp,#320]
+ mov x29,sp
+ str x0,[sp,#352]
+ str x1,[sp,#360]
+ str x2,[sp,#368]
+ str x3,[sp,#376]
+ str x4,[sp,#384]
+ str x5,[sp,#392]
+ str x6,[sp,#400]
+ str x7,[sp,#408]
+ ldr x9,[x17,#0]
+ str x9,[sp,#416]
+ ldr x9,[x17,#8]
+ str x9,[sp,#424]
+ ldr x9,[x17,#16]
+ str x9,[sp,#432]
+ ldr x9,[x17,#24]
+ str x9,[sp,#440]
+ ldr x9,[x17,#32]
+ str x9,[sp,#448]
+ ldr x9,[x17,#40]
+ str x9,[sp,#456]
+ ldr x9,[x17,#48]
+ str x9,[sp,#464]
+ ldr x9,[x17,#56]
+ str x9,[sp,#472]
+ ldr x9,[x17,#64]
+ str x9,[sp,#480]
+ ldr x9,[x17,#72]
+ str x9,[sp,#488]
+ ldr x9,[x17,#80]
+ str x9,[sp,#496]
+ ldr x9,[x17,#88]
+ str x9,[sp,#504]
+ ldr x9,[x17,#96]
+ str x9,[sp,#512]
+ ldr x9,[x17,#104]
+ str x9,[sp,#520]
+ ldr x9,[x17,#112]
+ str x9,[sp,#528]
+ ldr x9,[x17,#120]
+ str x9,[sp,#536]
+ ldr x9,[x17,#128]
+ str x9,[sp,#544]
+ ldr x9,[x17,#136]
+ str x9,[sp,#552]
+ ldr x9,[x17,#144]
+ str x9,[sp,#560]
+ ldr x9,[x17,#152]
+ str x9,[sp,#568]
+ ldr x9,[x17,#160]
+ str x9,[sp,#576]
+ ldr x9,[x17,#168]
+ str x9,[sp,#584]
+ ldr x9,[x17,#176]
+ str x9,[sp,#592]
+ ldr x9,[x17,#184]
+ str x9,[sp,#600]
+ ldr x9,[x17,#192]
+ str x9,[sp,#608]
+ ldr x9,[x17,#200]
+ str x9,[sp,#616]
+ ldr x9,[x17,#208]
+ str x9,[sp,#624]
+ ldr x9,[x17,#216]
+ str x9,[sp,#632]
+ ldr x9,[x17,#224]
+ str x9,[sp,#640]
+ ldr x9,[x17,#232]
+ str x9,[sp,#648]
+ ldr x9,[x17,#240]
+ str x9,[sp,#656]
+ ldr x9,[x17,#248]
+ str x9,[sp,#664]
+ ldr x9,[x17,#256]
+ str x9,[sp,#672]
+ ldr x9,[x17,#264]
+ str x9,[sp,#680]
+ ldr x9,[x17,#272]
+ str x9,[sp,#688]
+ ldr x9,[x17,#280]
+ str x9,[sp,#696]
+ ldr x9,[x17,#288]
+ str x9,[sp,#704]
+ ldr x9,[x17,#296]
+ str x9,[sp,#712]
+ mrs x9,fpcr
+ cbnz x9,.Lreject
+ ldr x9,[sp,#368]
+ movz x10,#56832
+ movk x10,#23,lsl #16
+ ldr w10,[x9,x10]
+ cmp w10,#1
+ b.ne .Lreject
+ movz x10,#5024
+ movk x10,#24,lsl #16
+ ldr w10,[x9,x10]
+ cmp w10,#1
+ b.ne .Lreject
+ movz x10,#15004
+ movk x10,#63,lsl #16
+ ldr w10,[x9,x10]
+ cmp w10,#0
+ b.ne .Lreject
+ movz x10,#15856
+ movk x10,#24,lsl #16
+ ldr w10,[x9,x10]
+ cmp w10,#0
+ b.ne .Lreject
+ adrp x9,:got:__yomtraj_MOD_ltrajsave
+ ldr x9,[x9,:got_lo12:__yomtraj_MOD_ltrajsave]
+ ldr w9,[x9]
+ cbnz w9,.Lreject
+ adrp x9,:got:__yomtraj_MOD_ltrajslag
+ ldr x9,[x9,:got_lo12:__yomtraj_MOD_ltrajslag]
+ ldr w9,[x9]
+ cbnz w9,.Lreject
+ adrp x9,:got:__yomhook_MOD_lhook
+ ldr x9,[x9,:got_lo12:__yomhook_MOD_lhook]
+ ldr w9,[x9]
+ str w9,[sp,#720]
+ cbz w9,.Lentry_done
+ adrp x0,.Lname
+ add x0,x0,:lo12:.Lname
+ str wzr,[sp,#724]
+ add x1,sp,#724
+ add x2,sp,#728
+ mov x3,#7
+ bl __yomhook_MOD_dr_hook_default8
+.Lentry_done:
+ ldr x0,[sp,#352]
+ ldr x1,[sp,#360]
+ ldr x2,[sp,#368]
+ ldr x3,[sp,#376]
+ ldr x4,[sp,#384]
+ ldr x5,[sp,#392]
+ ldr x6,[sp,#400]
+ ldr x7,[sp,#408]
+ ldr x9,[sp,#416]
+ str x9,[sp,#0]
+ ldr x9,[sp,#424]
+ str x9,[sp,#8]
+ ldr x9,[sp,#432]
+ str x9,[sp,#16]
+ ldr x9,[sp,#440]
+ str x9,[sp,#24]
+ ldr x9,[sp,#480]
+ str x9,[sp,#32]
+ ldr x9,[sp,#592]
+ str x9,[sp,#40]
+ ldr x9,[sp,#584]
+ str x9,[sp,#48]
+ ldr x9,[sp,#448]
+ str x9,[sp,#56]
+ ldr x9,[sp,#456]
+ str x9,[sp,#64]
+ ldr x9,[sp,#496]
+ str x9,[sp,#72]
+ ldr x9,[sp,#464]
+ str x9,[sp,#80]
+ ldr x9,[sp,#536]
+ str x9,[sp,#88]
+ ldr x9,[sp,#544]
+ str x9,[sp,#96]
+ ldr x9,[sp,#552]
+ str x9,[sp,#104]
+ ldr x9,[sp,#560]
+ str x9,[sp,#112]
+ ldr x9,[sp,#568]
+ str x9,[sp,#120]
+ ldr x9,[sp,#576]
+ str x9,[sp,#128]
+ ldr x9,[sp,#600]
+ str x9,[sp,#136]
+ ldr x9,[sp,#608]
+ str x9,[sp,#144]
+ ldr x9,[sp,#632]
+ str x9,[sp,#152]
+ ldr x9,[sp,#640]
+ str x9,[sp,#160]
+ ldr x9,[sp,#648]
+ str x9,[sp,#168]
+ ldr x9,[sp,#656]
+ str x9,[sp,#176]
+ ldr x9,[sp,#664]
+ str x9,[sp,#184]
+ ldr x9,[sp,#672]
+ str x9,[sp,#192]
+ ldr x9,[sp,#624]
+ str x9,[sp,#200]
+ ldr x9,[sp,#688]
+ str x9,[sp,#208]
+ ldr x9,[sp,#696]
+ str x9,[sp,#216]
+ bl md2asm_lacdyn_7358525
+ adrp x9,.Lcalls
+ add x9,x9,:lo12:.Lcalls
+ ldr x10,[x9]
+ add x10,x10,#1
+ str x10,[x9]
+ ldr w9,[sp,#720]
+ cbz w9,.Lreturn
+ adrp x0,.Lname
+ add x0,x0,:lo12:.Lname
+ mov w9,#1
+ str w9,[sp,#724]
+ add x1,sp,#724
+ add x2,sp,#728
+ mov x3,#7
+ bl __yomhook_MOD_dr_hook_default8
+.Lreturn:
+ ldp x18,x19,[sp,#224]
+ ldp x20,x21,[sp,#240]
+ ldp x22,x23,[sp,#256]
+ ldp x24,x25,[sp,#272]
+ ldp x26,x27,[sp,#288]
+ ldp x28,x29,[sp,#304]
+ ldr x30,[sp,#320]
+ add sp,sp,#1040
+ ret
+.Lreject:
+ bl abort
+ brk #0
+.size md2asm_cpg_dyn_7358525,.-md2asm_cpg_dyn_7358525
+.global md2asm_cpg_dyn_count_get
+md2asm_cpg_dyn_count_get:
+ adrp x9,.Lcalls
+ ldr x0,[x9,:lo12:.Lcalls]
+ ret
+.section .rodata
+.Lname: .ascii "CPG_DYN"
+.bss
+.p2align 3
+.Lcalls: .zero 8
+.section .note.GNU-stack,"",%progbits

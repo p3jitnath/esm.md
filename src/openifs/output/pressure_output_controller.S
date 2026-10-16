@@ -1,0 +1,269 @@
+/* WRPLFP.
+ * Contract: skills/md2asm/references/openifs/dynamics/retained_forecast_callers.md.
+ * Original by-address interfaces and frozen child order are retained. */
+.text
+.p2align 4
+.macro CALL name
+ str x18,[sp,#512]
+ bl \name
+ ldr x18,[sp,#512]
+.endm
+.macro ARRAYVAL reg,base,offset,index,shift
+ add x9,\base,#\offset
+ ldr x10,[x9,#8]
+ ldr x11,[x9,#40]
+ ldr x12,[x9,#48]
+ add x12,x12,\index
+ madd x10,x12,x11,x10
+ ldr x9,[x9]
+ add x9,x9,x10,lsl #\shift
+ ldr \reg,[x9]
+.endm
+.macro GLOBAL reg,name
+ adrp x9,:got:\name
+ ldr x9,[x9,:got_lo12:\name]
+ ldr \reg,[x9]
+.endm
+
+.global md2asm_wrplfp_7358525
+.type md2asm_wrplfp_7358525,%function
+md2asm_wrplfp_7358525:
+ mov x16,sp
+ sub sp,sp,#2048
+ stp x0,x1,[sp,#128]
+ stp x2,x3,[sp,#144]
+ stp x4,x5,[sp,#160]
+ stp x6,x7,[sp,#176]
+ ldr x9,[x16,#0]
+ str x9,[sp,#192]
+ ldr x9,[x16,#8]
+ str x9,[sp,#200]
+ ldr x9,[x16,#16]
+ str x9,[sp,#208]
+ ldr x9,[x16,#24]
+ str x9,[sp,#216]
+ ldr x9,[x16,#32]
+ str x9,[sp,#224]
+ ldr x9,[x16,#40]
+ str x9,[sp,#232]
+ stp x19,x20,[sp,#384]
+ stp x21,x22,[sp,#400]
+ stp x23,x24,[sp,#416]
+ stp x25,x26,[sp,#432]
+ stp x27,x28,[sp,#448]
+ stp x29,x30,[sp,#464]
+ mrs x9,fpcr
+ cbnz x9,.Lreject
+ ldr x9,[sp,#232]
+ cmp x9,#1
+ b.ne .Lreject
+ GLOBAL w9,__yommp0_MOD_nproc
+ cmp w9,#1
+ b.ne .Lreject
+ GLOBAL w9,__yommp0_MOD_mysetv
+ cmp w9,#1
+ b.ne .Lreject
+ adrp x9,:got:__yomio_serv_MOD_io_serv_c001
+ ldr x9,[x9,:got_lo12:__yomio_serv_MOD_io_serv_c001]
+ ldr w9,[x9,#112]
+ cbnz w9,.Lreject
+ GLOBAL w9,__yomhook_MOD_lhook
+ cbz w9,.Lh0
+ adr x0,.Lname
+ mov w9,#0
+ str w9,[sp,#520]
+ add x1,sp,#520
+ add x2,sp,#528
+ mov x3,#6
+ CALL __yomhook_MOD_dr_hook_default8
+.Lh0:
+ ldr x9,[sp,#216]
+ ldrb w9,[x9]
+ cmp w9,#112
+ b.ne .Lreject
+ ldr x19,[sp,#128]
+ ldr w20,[x19]
+ cmp w20,#39
+ b.hi .Lreject
+ cbz w20,.Lgrid
+ ldr x9,[sp,#152]
+ ldr w21,[x9]
+ cmp w21,#1
+ b.lt .Lreject
+ cmp w21,#506
+ b.gt .Lreject
+ ldr x9,[sp,#208]
+ cbz x9,.Lreject
+ ldr x10,[x9,#80]
+ ldr x11,[x9,#72]
+ sub x10,x10,x11
+ add x10,x10,#1
+ cmp x10,x21
+ b.ne .Lreject
+ mul x0,x20,x21
+ lsl x0,x0,#3
+ CALL malloc
+ cbz x0,.Lreject
+ str x0,[sp,#576]
+ mov x2,x0
+ mov x0,x19
+ ldr x1,[sp,#208]
+ add x3,sp,#1024
+ mov x4,x21
+ mov x5,#1
+ CALL md2asm_pack_spectral_output_7358525
+ str w0,[sp,#552]
+ cmp w0,w20
+ b.ne .Lreject
+ add x22,sp,#640
+ ldr x9,[sp,#576]
+ str x9,[x22]
+ add x9,x21,#1
+ neg x9,x9
+ str x9,[x22,#8]
+ mov x9,#8
+ str x9,[x22,#16]
+ str wzr,[x22,#24]
+ mov w9,#2
+ strb w9,[x22,#28]
+ mov w9,#3
+ strb w9,[x22,#29]
+ strh wzr,[x22,#30]
+ mov x9,#8
+ str x9,[x22,#32]
+ mov x9,#1
+ str x9,[x22,#40]
+ str x9,[x22,#48]
+ str x21,[x22,#56]
+ str x21,[x22,#64]
+ str x9,[x22,#72]
+ str x20,[x22,#80]
+ ldr x0,[sp,#184]
+ mov x9,#4872
+ add x0,x0,x9
+ mov x1,x22
+ add x2,sp,#552
+ add x3,sp,#1024
+ ldr x4,[sp,#216]
+ ldr x5,[sp,#144]
+ ldr x6,[sp,#192]
+ ldr x7,[sp,#224]
+ mov x9,#1
+ str x9,[sp]
+ mov x9,#256
+ str x9,[sp,#8]
+ CALL wroutspgb_
+ ldr x0,[sp,#576]
+ CALL free
+.Lgrid:
+ ldr x19,[sp,#136]
+ ldr w20,[x19]
+ cmp w20,#39
+ b.hi .Lreject
+ cbz w20,.Lcomplete
+ ldr x9,[sp,#168]
+ ldr w21,[x9]
+ cmp w21,#1
+ b.lt .Lreject
+ cmp w21,#2048
+ b.gt .Lreject
+ ldr x9,[sp,#176]
+ ldr w22,[x9]
+ cmp w22,#1
+ b.lt .Lreject
+ cmp w22,#24
+ b.gt .Lreject
+ ldr x9,[sp,#200]
+ cbz x9,.Lreject
+ ldr x10,[x9,#56]
+ ldr x11,[x9,#48]
+ sub x10,x10,x11
+ add x10,x10,#1
+ cmp x10,x22
+ b.lt .Lreject
+ ldr x10,[x9,#80]
+ ldr x11,[x9,#72]
+ sub x10,x10,x11
+ add x10,x10,#1
+ cmp x10,x20
+ b.lt .Lreject
+ add x10,x21,x22
+ sub x10,x10,#1
+ udiv x10,x10,x22
+ ldr x11,[x9,#104]
+ ldr x12,[x9,#96]
+ sub x11,x11,x12
+ add x11,x11,#1
+ cmp x11,x10
+ b.lt .Lreject
+ mul x0,x20,x21
+ lsl x0,x0,#3
+ CALL malloc
+ cbz x0,.Lreject
+ str x0,[sp,#584]
+ mov x2,x0
+ mov x0,x19
+ ldr x1,[sp,#200]
+ add x3,sp,#1024
+ mov x4,x21
+ mov x5,x22
+ mov x6,#1
+ CALL md2asm_pack_grid_output_7358525
+ str w0,[sp,#560]
+ cbz w0,.Lgridfree
+ ldr x0,[sp,#584]
+ ldr x1,[sp,#168]
+ add x2,sp,#560
+ add x3,sp,#1024
+ ldr x4,[sp,#216]
+ GLOBAL w9,__yommp0_MOD_lsplitout
+ adr x5,.Lappend
+ cbz w9,.Lmodeok
+ adr x5,.Lwrite
+.Lmodeok:
+ ldr x6,[sp,#144]
+ ldr x7,[sp,#192]
+ add x7,x7,#768
+ ldr x9,[sp,#224]
+ str x9,[sp]
+ mov x9,#1
+ str x9,[sp,#8]
+ str x9,[sp,#16]
+ mov x9,#256
+ str x9,[sp,#24]
+ CALL wroutgpgb_
+.Lgridfree:
+ ldr x0,[sp,#584]
+ CALL free
+.Lcomplete:
+ GLOBAL w9,__yomhook_MOD_lhook
+ cbz w9,.Lh1
+ adr x0,.Lname
+ mov w9,#1
+ str w9,[sp,#520]
+ add x1,sp,#520
+ add x2,sp,#528
+ mov x3,#6
+ CALL __yomhook_MOD_dr_hook_default8
+.Lh1:
+ ldp x19,x20,[sp,#384]
+ ldp x21,x22,[sp,#400]
+ ldp x23,x24,[sp,#416]
+ ldp x25,x26,[sp,#432]
+ ldp x27,x28,[sp,#448]
+ ldp x29,x30,[sp,#464]
+ add sp,sp,#2048
+ ret
+.Lreject:
+ CALL abort
+.size md2asm_wrplfp_7358525,.-md2asm_wrplfp_7358525
+.section .rodata
+.Lname:
+.ascii "WRPLFP"
+.Llevel:
+.ascii "m"
+.Lappend:
+.ascii "a"
+.Lwrite:
+.ascii "w"
+.section .note.GNU-stack,"",%progbits
