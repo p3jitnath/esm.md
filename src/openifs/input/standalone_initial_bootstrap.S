@@ -1,5 +1,5 @@
-/* Contract: skills/md2asm/references/openifs/input/owned_model_initial_state.md. */
-/* Standalone selected T21 complete initial-state composition, revision 7.
+/* Contract: skills/md2asm/references/openifs/input/owned_fields_initial_state.md. */
+/* Standalone selected T21 complete initial-state composition, revision 8.
  * Own entry, configuration, contexts, loading, output and release are assembly.
  * External services are libc, ecCodes and the qualified FIAT/ectrans interfaces.
  * This input checkpoint does not run a forecast. */
@@ -9,6 +9,14 @@
 .macro owned_model_address dst,offset
  adrp \dst,.Lmodel_owner
  ldr \dst,[\dst,:lo12:.Lmodel_owner]
+ movz x17,#(\offset & 65535)
+ movk x17,#(\offset >> 16),lsl#16
+ add \dst,\dst,x17
+.endm
+
+.macro owned_fields_address dst,offset
+ adrp \dst,.Lfields_owner
+ ldr \dst,[\dst,:lo12:.Lfields_owner]
  movz x17,#(\offset & 65535)
  movk x17,#(\offset >> 16),lsl#16
  add \dst,\dst,x17
@@ -109,6 +117,12 @@ main:
  add w23,w0,#100
  cbnz w0,.Lmain_cleanup
  bl .Lbind_final_record_tables
+ owned_model_address x0,0
+ adrp x1,.Lfields_owner
+ add x1,x1,:lo12:.Lfields_owner
+ bl md2asm_create_initial_fields_storage
+ add w23,w0,#104
+ cbnz w0,.Lmain_cleanup
  /* Define only the geometry controls consumed by this input stage. */
  mov w9,#1
  str w9,[x20,#5168]
@@ -117,18 +131,6 @@ main:
  str w9,[x20,#5200]
  mov w9,#19
  str w9,[x20,#5228]
- /* Construct the complete selected spectral allocation graph. */
- mov w0,#19
- mov w1,#21
- adrp x2,.Lfield_codes
- add x2,x2,:lo12:.Lfield_codes
- adrp x3,.Lspectral_owner
- add x3,x3,:lo12:.Lspectral_owner
- bl md2asm_create_serial_spectral_field
- add w23,w0,#112
- cbnz w0,.Lmain_cleanup
- adrp x9,.Lspectral_owner
- ldr x21,[x9,:lo12:.Lspectral_owner]
  /* Own selected configuration, including the GNU integer descriptor. */
  owned_model_address x22,8
  mov w9,#1
@@ -493,6 +495,34 @@ main:
  adrp x0,.Lphysics_status_final
  add x0,x0,:lo12:.Lphysics_status_final
  bl .Lcapture_physics_status
+ /* Source storage order: SPECTRAL, GMV, then surface and TGFL below. */
+ owned_fields_address x21,22736
+ mov x0,x21
+ mov w1,#19
+ mov w2,#21
+ adr x3,.Lfield_codes
+ adrp x4,.Lspectral_dummy
+ add x4,x4,:lo12:.Lspectral_dummy
+ bl md2asm_initialize_serial_spectral_field
+ add w23,w0,#112
+ cbnz w0,.Lmain_cleanup
+ adr x9,.Lgmv_inputs
+ str x20,[x9]
+ owned_model_address x10,1577888
+ str x10,[x9,#16]
+ owned_model_address x10,16
+ str x10,[x9,#32]
+ owned_model_address x10,4143760
+ str x10,[x9,#48]
+ owned_model_address x10,1564136
+ str x10,[x9,#64]
+ owned_fields_address x0,1856
+ mov x1,#1560
+ mov x2,x9
+ adr x3,.Lgmv_controls
+ bl md2asm_initialize_grid_motion_fields
+ add w23,w0,#116
+ cbnz w0,.Lmain_cleanup
  ldr x0,[x19,#8]
  mov x1,x20
  mov x2,x22
@@ -502,23 +532,12 @@ main:
  bl md2asm_load_spectral_initial_state
  add w23,w0,#128
  cbnz w0,.Lmain_cleanup
- /* The owned field namespace is associated now; later producers finish maps. */
- ldr x0,[x19,#24]
- add x1,x22,#184
- adrp x2,.Lupper_air_owner
- add x2,x2,:lo12:.Lupper_air_owner
- bl md2asm_create_loaded_upper_air_state
- add w23,w0,#144
- cbnz w0,.Lmain_cleanup
- adrp x9,.Lupper_air_owner
- ldr x26,[x9,:lo12:.Lupper_air_owner]
  /* Own the complete surface graph before opening any output. */
  ldr x0,[x19,#16]
  adrp x1,.Lphysical_constants
  add x1,x1,:lo12:.Lphysical_constants
  owned_model_address x2,1577888
- adrp x3,.Lsurface_record
- add x3,x3,:lo12:.Lsurface_record
+ owned_fields_address x3,4512
  adrp x4,.Lsurface_trajectory
  add x4,x4,:lo12:.Lsurface_trajectory
  owned_model_address x5,4155544
@@ -526,6 +545,40 @@ main:
  add w23,w0,#240
  cbnz w0,.Lmain_cleanup
  mov w28,#1
+ owned_fields_address x26,3416
+ mov x0,x26
+ adr x1,.Lgridpoint_controls
+ owned_model_address x2,192
+ bl md2asm_initialize_gridpoint_field
+ add w23,w0,#144
+ cbnz w0,.Lmain_cleanup
+ /* Reuse exactly the admitted incoming padding before file placement. */
+ ldr x10,[x26]
+ adr x9,.Lupper_padding_offsets
+ mov w11,#4
+.Lentry_padding_field:
+ ldr w12,[x9],#4
+ add x13,x10,x12
+ mov w14,#19
+.Lentry_padding_level:
+ mov x15,x13
+ mov w16,#8
+.Lentry_padding_words:
+ stp xzr,xzr,[x15],#16
+ subs w16,w16,#1
+ b.ne .Lentry_padding_words
+ add x13,x13,#192
+ subs w14,w14,#1
+ b.ne .Lentry_padding_level
+ subs w11,w11,#1
+ b.ne .Lentry_padding_field
+ ldr x0,[x19,#24]
+ ldr x1,[x26]
+ mov x2,#0x4c00
+ movk x2,#0x26,lsl#16
+ bl md2asm_load_initial_upper_air_state
+ add w23,w0,#148
+ cbnz w0,.Lmain_cleanup
  ldr x0,[x19,#40]
  ldr x1,[x21,#88]
  mov x2,#0x8550
@@ -573,17 +626,25 @@ main:
  mov w23,wzr
 .Lmain_cleanup:
  cbz x28,.Lmain_release_upper_air
- adrp x0,.Lsurface_record
- add x0,x0,:lo12:.Lsurface_record
+ owned_fields_address x0,4512
  bl md2asm_release_selected_surface_state
 .Lmain_release_upper_air:
  cbz x26,.Lmain_release_spectral
  mov x0,x26
- bl md2asm_release_gridpoint_field_context
+ bl md2asm_release_gridpoint_field
 .Lmain_release_spectral:
- cbz x21,.Lmain_release_vertical
+ adrp x9,.Lfields_owner
+ ldr x9,[x9,:lo12:.Lfields_owner]
+ cbz x9,.Lmain_release_vertical
+ owned_fields_address x0,1856
+ bl md2asm_release_grid_motion_fields
+ cbz x21,.Lmain_release_fields
  mov x0,x21
- bl md2asm_release_serial_spectral_field_context
+ bl md2asm_release_serial_spectral_field
+.Lmain_release_fields:
+ adrp x0,.Lfields_owner
+ add x0,x0,:lo12:.Lfields_owner
+ bl md2asm_release_initial_fields_storage
 .Lmain_release_vertical:
  adrp x9,.Lmodel_owner
  ldr x9,[x9,:lo12:.Lmodel_owner]
@@ -768,8 +829,7 @@ main:
  tbnz x0,#63,.Lstate_open_failed
  mov x19,x0
  cbz w21,.Lstate_vertical
- adrp x1,.Lsurface_record
- add x1,x1,:lo12:.Lsurface_record
+ owned_fields_address x1,4512
  adrp x2,.Lsurface_trajectory
  add x2,x2,:lo12:.Lsurface_trajectory
  owned_model_address x3,4155544
@@ -992,8 +1052,14 @@ md2asm_owned_initial_field_codes:
 .p2align 3
 .Lheaders: .zero 5232
 .Lvertical_owner: .zero 8
-.Lspectral_owner: .zero 8
-.Lupper_air_owner: .zero 8
+.global md2asm_owned_initial_spectral_dummy
+md2asm_owned_initial_spectral_dummy:
+.Lspectral_dummy: .zero 24
+.global md2asm_owned_initial_fields_owner
+.type md2asm_owned_initial_fields_owner,%object
+md2asm_owned_initial_fields_owner:
+.Lfields_owner: .zero 8
+.size md2asm_owned_initial_fields_owner,8
 .Lloaded_orography: .zero 8
 .global md2asm_owned_initial_metadata_auxiliary
 md2asm_owned_initial_metadata_auxiliary:
@@ -1014,7 +1080,6 @@ md2asm_owned_initial_metadata_auxiliary:
 .Lforecast_controls: .zero 51512
 .Lgeometry_owner: .zero 8
 .Lcloud_pressure: .zero 624
-.Lsurface_record: .zero 18224
 .Lsurface_trajectory: .zero 408
 .Lnamelist_text: .zero 262145
 
@@ -1230,6 +1295,35 @@ md2asm_owned_initial_metadata_auxiliary:
  adr x1,.Lconvection_thermal
  mov x2,#24
  bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x1,.Lfields_extension_header
+ owned_fields_address x24,0
+ str x24,[x1,#32]
+ owned_model_address x9,0
+ str x9,[x1,#40]
+ mov x2,#48
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ mov x1,x24
+ movz x2,#(529288 & 65535)
+ movk x2,#(529288 >> 16),lsl#16
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adrp x1,.Lspectral_dummy
+ add x1,x1,:lo12:.Lspectral_dummy
+ mov x2,#24
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x22,.Lfields_owner_offsets
+ mov w23,#22
+.Lfields_stream_owner:
+ ldr w25,[x22],#4
+ add x0,x24,x25
+ mov x1,x25
+ bl .Lfields_write_owner
+ cbnz w0,.Lsetup_close
+ subs w23,w23,#1
+ b.ne .Lfields_stream_owner
 .Lsetup_close:
  mov w28,w0
  mov x0,x19
@@ -1277,6 +1371,39 @@ md2asm_owned_initial_metadata_auxiliary:
  ldp x1,x2,[sp,#24]
  bl .Lstate_write_bytes
 .Lsetup_owner_return:
+ ldp x29,x30,[sp]
+ add sp,sp,#64
+ ret
+/* x0 true contiguous owned descriptor, x1 stable source-role tag, x19 fd. */
+.Lfields_write_owner:
+ sub sp,sp,#64
+ stp x29,x30,[sp]
+ mov x29,sp
+ str x1,[sp,#16]
+ ldr x9,[x0]
+ str x9,[sp,#24]
+ ldr x10,[x0,#16]
+ ldrb w11,[x0,#28]
+ add x12,x0,#48
+.Lfields_owner_extent:
+ ldp x13,x14,[x12],#24
+ sub x14,x14,x13
+ add x14,x14,#1
+ mul x10,x10,x14
+ subs w11,w11,#1
+ b.ne .Lfields_owner_extent
+ /* GNU allocated-empty arrays reserve one true byte. */
+ mov x11,#1
+ cmp x10,#1
+ csel x10,x10,x11,hs
+ str x10,[sp,#32]
+ add x1,sp,#16
+ mov x2,#24
+ bl .Lstate_write_bytes
+ cbnz w0,.Lfields_owner_return
+ ldp x1,x2,[sp,#24]
+ bl .Lstate_write_bytes
+.Lfields_owner_return:
  ldp x29,x30,[sp]
  add sp,sp,#64
  ret
@@ -1525,4 +1652,39 @@ __yomphy2_MOD_yrphy2: .zero 8
 __yomlouis_MOD_yrlouis: .zero 8
 .size __yomlouis_MOD_yrlouis,8
 
+.section .note.GNU-stack,"",%progbits
+
+.section .rodata
+.p2align 3
+.Lgridpoint_controls: .word 24,19,86,8,2,0,0
+.Lgmv_controls: .word 1,1,0,-99999999,0,0
+.Lupper_padding_offsets: .word 2480704,2484352,2488000,2498944
+.Lfields_owner_offsets:
+ .word 23936
+ .word 23528
+ .word 23872
+ .word 23680
+ .word 23744
+ .word 23808
+ .word 24000
+ .word 23144
+ .word 23208
+ .word 23464
+ .word 23592
+ .word 23080
+ .word 24064
+ .word 22824
+ .word 22736
+ .word 22936
+ .word 3416
+ .word 3688
+ .word 3824
+ .word 3960
+ .word 1856
+ .word 1992
+.section .data
+.p2align 3
+.Lfields_extension_header: .ascii "R8FIELD1"
+ .quad 529288,24,22,0,0
+.Lgmv_inputs: .quad 0,17096,0,448,0,176,0,1096,0,456
 .section .note.GNU-stack,"",%progbits

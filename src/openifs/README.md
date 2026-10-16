@@ -46,7 +46,7 @@ In a tested ice-formation call, the original lake update stores an average water
 
 The executable still uses OpenIFS Fortran for model startup, remaining setup, typed metadata and retained reference forwards. The [direct power routine](../../skills/md2asm/references/openifs/support/power_original_rounding.md) now replaces the frozen C power helper and passes this same complete forecast gate. Other declared numerical and runtime boundaries remain. It is not an autonomous assembly forecast. Autonomous input loading, initialisation, complete calculation ownership and output remain a separate phase.
 
-The separate [standalone initial-state executable](../../skills/md2asm/references/openifs/input/owned_model_initial_state.md) reads original GRIB files and live configuration text through assembly. It constructs selected records directly at their final addresses inside a stable owned MODEL, with complete Geometry, field dimensions, convection and thermal parameters. Its complete 4,275,088-byte MODEL and gathered source records pass the declared component comparisons. Permitted format, transform, FIAT and runtime services remain explicit. No original OpenIFS library or harness is present. Final field construction and remaining setup still precede a full autonomous forecast.
+The separate [standalone initial-state executable](../../skills/md2asm/references/openifs/input/owned_fields_initial_state.md) reads original GRIB files and live configuration text through assembly. It constructs selected records directly at their final addresses inside owned MODEL and FIELDS allocations. Complete MODEL, FIELDS and all 22 spectral, grid-point and grid-motion owners pass the declared component comparisons. Surface and Geometry checks also pass. Permitted format, transform, FIAT and runtime services remain explicit, with no original OpenIFS library or harness. Further setup and working-state construction remain before a full autonomous forecast.
 
 ## Remaining OpenIFS Autonomy Work
 
@@ -70,7 +70,7 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 
 | Accepted component | Complete comparison scope | Contract |
 | --- | --- | --- |
-| Standalone complete selected initial state | Final-address MODEL records, complete Geometry, live controls, field dimensions and connected physics parameters match their source gates | [Owned model state](../../skills/md2asm/references/openifs/input/owned_model_initial_state.md) |
+| Standalone complete selected initial state | Final-address MODEL and FIELDS records, Geometry, 22 field owners and connected physics parameters match their source gates | [Owned initial fields](../../skills/md2asm/references/openifs/input/owned_fields_initial_state.md) |
 | Owned grid-point and surface allocations | Four tracer owners and 34 surface owners, with exact complete-record checks | [Grid-point storage](../../skills/md2asm/references/openifs/setup/grid_point_field_storage.md), [surface storage](../../skills/md2asm/references/openifs/setup/surface_field_storage.md) |
 | Owned surface group initialization | Complete group and field records, including inactive zero-layer groups | [Group initialization](../../skills/md2asm/references/openifs/setup/surface_group_initialization.md) |
 | Owned surface field registration | All 32 optional-input combinations and complete trajectory records | [Field registration](../../skills/md2asm/references/openifs/setup/surface_field_registration.md) |
