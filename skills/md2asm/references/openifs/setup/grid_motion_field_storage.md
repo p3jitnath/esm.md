@@ -1,0 +1,44 @@
+# Grid Motion Field Storage
+
+This component owns selected SETUP_GMV from `arpifs/module/gmv_subs_mod.F90`, including its six integer-map stages. GMV stores wind, temperature and temporary fields on the model grid. A map contains one-based field positions rather than machine addresses. T0 identifies current values, T9 identifies previous and working values, T1 identifies next values, PH9 supplies the physics view and GP describes a local calculation buffer. T5 repeats the T0 map for later trajectory use. The assembly preserves the original hydrostatic two-time-level route, where vertical pressure change balances weight and two stored times support the update.
+
+The parent ABI is `int md2asm_initialize_grid_motion_fields(record, capacity, inputs, controls)`, using x0 through x3. The output is a fresh zero, eight-byte-aligned TGMV record of 1,560 bytes. Its capacity is at least 1,560. The 80-byte aligned input table contains five address/capacity pairs in this order. All complete ranges must be mapped, nonwrapping and disjoint from the output. Read-only inputs may overlap each other. Six int32 controls have four-byte alignment. FPCR must be zero. Return zero means success, one means allocation failure after release of acquired owners, and two means an unsupported input before output mutation. After allocation failure, defined map and descriptor metadata can remain, but no live owner remains.
+
+| Input record | Complete bytes | Producer |
+| --- | ---: | --- |
+| Geometry | 17,096 | Complete owned Geometry setup |
+| TEPHY | 448 | Owned physics configuration |
+| TDIMF | 176 | Owned field-dimension setup |
+| TPHY | 1,096 | Owned physics configuration |
+| TDYNA | 456 | Owned dynamics controls |
+
+The controls are NCONF one, LECMWF true, LRSHW false, NUNDEFLD minus 99,999,999, LDTENC false and NPRINTLEV zero. NUNDEFLD marks an absent field. Geometry supplies NPROMA at byte 5,144, NFLEVG at 5,224 and NGPBLKS at 5,160. These are rows per block, vertical levels and number of blocks. Supported counts are respectively 1–64, 1–64 and 1–128. The selected case uses 24, 19 and 86. TDIMF supplies NFTHER one at zero, and canonical logical LADER at 164 and LUVDER at 168. LADER requests horizontal derivatives, while LUVDER requests wind derivatives. Both supported values are zero or one.
+
+TDYNA must have LTWOTL and LGRADSP true, with LNHEE, LNHQE, LNHDYN, LNHX, LNHXDER, LGWADV, LRDBBC, LNHQE_SIHYD, LNESC, LSLINLC2, LSLINL, LRUBC and LPC_FULL false. The selected source also has LALLOPR false and LHOOK disabled. Human diagnostic printing and profiling are outside this storage utility. These source-selected controls disable nonhydrostatic, rigid-boundary, separate-linear-term and predictor-correction branches. Every consumed offset comes from the genuine typed source query. The parent validates these flags before stores or allocation. TEPHY and TPHY remain complete read-only records. Their optional physics branches do not add fields when LPC_FULL is false. Other branches are outside this interface.
+
+The raw child `md2asm_initialize_grid_motion_index_maps(record, dimensions, dynamics, controls)` uses x0 through x3 and requires its parent to establish these bounds and controls. It has no frame or external call. It constructs all 141 named int32 values at bytes 992–1555. Source-unwritten padding at 1556–1559 remains unchanged. T0 and T5 follow the source increments and derivative conditions. T9 adds nine multilevel working positions and no single-level position. T1 contains three multilevel fields and one single-level field, with vorticity and divergence positions equal to its first and second wind positions. PH9 takes the current T0 wind, temperature and pressure positions. GP contains three active local fields and uses position one for the three absent nonhydrostatic fields.
+
+The parent adds the T0 and T9 counts, then allocates GMV followed by GMVS. GMV has shape `(rows, levels, multilevel fields, blocks)`, and GMVS has shape `(rows, single-level fields, blocks)`. They use FP64 elements, each eight bytes, in the original Fortran cell order. Wind and temperature planes use the physical units defined by their original fields, including m/s and K. Integer map values have no physical unit. Every acquired payload byte remains as returned by malloc because SETUP_GMV does not initialise these arrays.
+
+| TGMV member | Descriptor offset | Descriptor bytes | State after construction |
+| --- | ---: | ---: | --- |
+| GMV | 0 | 136 | Owned rank-four allocation |
+| GMVS | 136 | 112 | Owned rank-three allocation |
+| GMVT1 | 248 | 136 | Unallocated, later FIELDS stage |
+| GMVT1S | 384 | 112 | Unallocated, later FIELDS stage |
+| GMV5 | 496 | 136 | Unallocated trajectory storage |
+| GMV5S | 632 | 112 | Unallocated trajectory storage |
+| GMV_DEPART | 744 | 136 | Unallocated departure storage |
+| GMVS_DEPART | 880 | 112 | Unallocated departure storage |
+
+A GNU array descriptor records its base address, element width, rank, lower and upper bounds, strides and offset. Both owned arrays have lower bounds one and source-compatible complete descriptor words. NDIMGMV and NDIMGMVS occupy bytes 992 and 996. The fresh-zero record policy supplies only incoming storage. Every named map value is produced before a consumer uses it. It does not replace source-defined defaults that a consumer needs earlier.
+
+The separate leaf `int md2asm_zero_grid_motion_fields(record)` follows genuine ZERO_YOMGMV and sets only the logical GMV and GMVS elements to positive zero. It requires a valid live selected record and preserves every descriptor and other record byte. The separate `int md2asm_release_grid_motion_fields(record)` follows the two GMV statements in DEALXMO. It frees GMV then GMVS and clears only their owner-address words. Other descriptor bytes remain unchanged. The caller retains the record and inputs. Release also accepts the partially acquired record left by this constructor and creates no new owner.
+
+The parent uses a 128-byte aligned frame. Its index child and internal descriptor writer use no frame. Release uses 48 bytes, and zeroing is a leaf. All entries preserve x18, x19–x29, the required low halves of v8–v15, SP alignment, FPCR, FPSR and errno. The assembly uses integer instructions for maps, addressing and positive-zero stores. It calls only libc malloc, free and the errno-address service. No original OpenIFS callable, module state, method table, saved state packet or numerical fallback is a production dependency.
+
+One joint gate compares the unchanged genuine strict-build SETUP_GMV object and its original six map children, genuine ZERO_YOMGMV and genuine DEALXMO with an empty TGFL sibling. Four cases cover independent horizontal and wind derivative settings and the actual shape. All 18,720 complete created, zeroed and released record bytes and 11,400,432 payload bytes agree. Only typed allocation addresses are compared through explicit corresponding-owner identities. Every numerical and descriptor value remains compared. Newly acquired verification allocations receive the same preimage before either implementation returns from malloc. Production allocation is unchanged.
+
+The gate checks 112 independent map, count, descriptor-origin and zero-value relations, 512 guard bytes and all read-only inputs. Twenty-four immediate ABI/status calls have zero native masks. Source x18 differences remain explicit in the first case. FPCR, FPSR and errno agree at the observed returns, including initial flags zero and 24. Ten unsupported cases reject without mutation, two forced allocation failures release every acquired owner, and one complete record ends directly before an inaccessible 65,536-byte memory page. No whole forecast or unchanged child numerical suite was run.
+
+A separate assembly main constructs selected upstream scalar inputs, obtains complete TDYNA defaults from the accepted direct producer, and runs create, zero and release in a PATH-only environment. Its executable depends only on libc and the operating-system loader. This example is a component dependency proof, not a complete FIELDS constructor or autonomous forecast. Final FIELDS attachment, next-state arrays, trajectory owners, flux diagnostics and the final forecast comparison remain enclosing work.
