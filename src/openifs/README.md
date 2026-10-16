@@ -70,6 +70,12 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 | Accepted component | Complete comparison scope | Contract |
 | --- | --- | --- |
 | Standalone selected initial state | Final-address MODEL and FIELDS, Geometry, 94 field owners and connected physics parameters match their source gates | [Attached initial state](../../skills/md2asm/references/openifs/input/owned_virtual_temperature_initial_state.md) |
+| Owned selected spectral norms | Qualified wave and mean reductions use explicit owned state and a shared divergence-reporting value | [Spectral norms](../../skills/md2asm/references/openifs/dynamics/selected_spectral_norms.md) |
+| Owned diagnostic flux configuration | Two complete source profiles match all initialized and released TCFU, TXFU and TMCUF bytes, including two empty owners | [Flux configuration](../../skills/md2asm/references/openifs/setup/selected_flux_configuration.md) |
+| Owned selected aerosol parameters | Complete selected SU_AERW and its two active children match 581,388 bytes | [Aerosol parameters](../../skills/md2asm/references/openifs/radiation/selected_aerosol_setup.md) |
+| Owned ECMWF physics tail | Selected wave, linearized-physics and methane setup matches 5,392 complete bytes | [Physics tail](../../skills/md2asm/references/openifs/setup/ecmwf_physics_tail.md) |
+| Owned longwave reference setup | Complete SURDI, SURRTAB, SURRTPK and SURRTRF match 205,200 source bytes | [Longwave setup](../../skills/md2asm/references/openifs/radiation/longwave_reference_setup.md) |
+| Owned spectral radiation tables | Complete SULWN and selected SUSWN match 61,224 created bytes and all released records | [Band tables](../../skills/md2asm/references/openifs/radiation/band_radiation_setup.md) |
 | Owned initial virtual temperature | Complete selected SPECRT matches 2,748,656 field bytes through public ECTRANS transforms and direct mixture arithmetic | [Initial temperature](../../skills/md2asm/references/openifs/input/initial_virtual_temperature_conversion.md) |
 | Owned next-time field storage | Fresh, repeated and mixed owner states match complete source records and arrays, with source-defined zero initialization | [Next-time storage](../../skills/md2asm/references/openifs/setup/next_time_field_storage.md) |
 | Owned ECMWF physics working fields | Three complete source shapes match 4,224 metadata bytes and 3,568,048 zeroed numerical bytes across six owners | [Physics field storage](../../skills/md2asm/references/openifs/setup/ecmwf_physics_field_storage.md) |
