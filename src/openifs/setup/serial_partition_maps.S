@@ -44,7 +44,8 @@ md2asm_initialize_serial_partition_maps:
  cmp w9,#21
  b.ne .Lmap_bad
  ldr w9,[x0,#5176]
- cbnz w9,.Lmap_bad
+ cmp w9,#21
+ b.ne .Lmap_bad
  ldr w9,[x0,#4872]
  cmp w9,#32
  b.ne .Lmap_bad

@@ -291,6 +291,7 @@ md2asm_initialize_local_geometry_maps:
  stp x9,x4,[x0,#40]
  str x5,[x0,#56]
  ret
+#ifndef MD2ASM_RAW_ONLY
 .global sugem3_
 .type sugem3_,%function
 sugem3_:
@@ -320,6 +321,7 @@ md2asm_local_geometry_native_count_get:
  ldr x0,[x9,:lo12:.Lnative_count]
  ret
 .size md2asm_local_geometry_native_count_get,.-md2asm_local_geometry_native_count_get
+#endif
 .section .rodata
 .p2align 2
 .Lowners:
