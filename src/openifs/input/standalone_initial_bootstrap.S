@@ -1,5 +1,5 @@
 /* Contract: skills/md2asm/references/openifs/input/standalone_initial_bootstrap.md. */
-/* Standalone selected T21 initial spectral input, revision 1.
+/* Standalone selected T21 spectral and upper-air input, revision 2.
  * Own entry, configuration, contexts, loading, output and release are assembly.
  * External services are libc process/heap/I/O and ecCodes file decoding.
  * This input checkpoint does not run a forecast. */
@@ -39,8 +39,9 @@ main:
  mov x19,x1
  mov x20,xzr
  mov x21,xzr
+ mov x26,xzr
  mov w23,#64
- cmp w0,#5
+ cmp w0,#7
  b.ne .Lmain_cleanup
  mov w23,#65
  mrs x9,fpcr
@@ -157,21 +158,42 @@ main:
  bl md2asm_load_spectral_initial_state
  add w23,w0,#128
  cbnz w0,.Lmain_cleanup
+ /* The owned field namespace is associated now; later producers finish maps. */
  ldr x0,[x19,#24]
+ add x1,x22,#184
+ adrp x2,.Lupper_air_owner
+ add x2,x2,:lo12:.Lupper_air_owner
+ bl md2asm_create_loaded_upper_air_state
+ add w23,w0,#144
+ cbnz w0,.Lmain_cleanup
+ adrp x9,.Lupper_air_owner
+ ldr x26,[x9,:lo12:.Lupper_air_owner]
+ ldr x0,[x19,#32]
  ldr x1,[x21,#88]
  mov x2,#0x8550
  movk x2,#3,lsl #16
  bl .Lwrite_complete_file
  add w23,w0,#160
  cbnz w0,.Lmain_cleanup
- ldr x0,[x19,#32]
+ ldr x0,[x19,#40]
  ldr x1,[x21]
  mov x2,#8096
  bl .Lwrite_complete_file
  add w23,w0,#176
  cbnz w0,.Lmain_cleanup
+ ldr x0,[x19,#48]
+ ldr x1,[x26]
+ mov x2,#0x4c00
+ movk x2,#0x26,lsl#16
+ bl .Lwrite_complete_file
+ add w23,w0,#192
+ cbnz w0,.Lmain_cleanup
  mov w23,wzr
 .Lmain_cleanup:
+ cbz x26,.Lmain_release_spectral
+ mov x0,x26
+ bl md2asm_release_gridpoint_field_context
+.Lmain_release_spectral:
  cbz x21,.Lmain_release_vertical
  mov x0,x21
  bl md2asm_release_serial_spectral_field_context
@@ -265,6 +287,7 @@ main:
 .Lheaders: .zero 5232
 .Lvertical_owner: .zero 8
 .Lspectral_owner: .zero 8
+.Lupper_air_owner: .zero 8
 .Lloaded_orography: .zero 8
 .Lconfiguration: .zero 1556112
 .section .note.GNU-stack,"",%progbits
