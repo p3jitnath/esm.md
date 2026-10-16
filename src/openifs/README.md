@@ -70,7 +70,7 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 
 | Accepted component | Complete comparison scope | Contract |
 | --- | --- | --- |
-| Standalone complete selected initial state | Exact input, GFL, dynamics, vertical and surface state, plus 21 complete physics records | [Standalone input](../../skills/md2asm/references/openifs/input/standalone_initial_bootstrap.md), [spectral storage](../../skills/md2asm/references/openifs/setup/spectral_field_storage.md), [vertical storage](../../skills/md2asm/references/openifs/setup/vertical_startup_context.md) |
+| Standalone complete selected initial state | Exact original-file loading, complete selected Geometry, live controls, time integration, surface and connected physics state | [Standalone input](../../skills/md2asm/references/openifs/input/standalone_initial_bootstrap.md) |
 | Owned grid-point and surface allocations | Four tracer owners and 34 surface owners, with exact complete-record checks | [Grid-point storage](../../skills/md2asm/references/openifs/setup/grid_point_field_storage.md), [surface storage](../../skills/md2asm/references/openifs/setup/surface_field_storage.md) |
 | Owned surface group initialization | Complete group and field records, including inactive zero-layer groups | [Group initialization](../../skills/md2asm/references/openifs/setup/surface_group_initialization.md) |
 | Owned surface field registration | All 32 optional-input combinations and complete trajectory records | [Field registration](../../skills/md2asm/references/openifs/setup/surface_field_registration.md) |

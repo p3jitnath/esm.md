@@ -1,7 +1,7 @@
 /* Contract: skills/md2asm/references/openifs/input/standalone_initial_bootstrap.md. */
-/* Standalone selected T21 complete initial-state composition, revision 5.
+/* Standalone selected T21 complete initial-state composition, revision 6.
  * Own entry, configuration, contexts, loading, output and release are assembly.
- * External services are libc process/heap/I/O and ecCodes file decoding.
+ * External services are libc, ecCodes and the qualified FIAT/ectrans interfaces.
  * This input checkpoint does not run a forecast. */
 .arch armv8.2-a
 .text
@@ -41,8 +41,9 @@ main:
  mov x21,xzr
  mov x26,xzr
  mov x28,xzr
+ mov x25,xzr
  mov w23,#64
- cmp w0,#12
+ cmp w0,#13
  b.ne .Lmain_cleanup
  mov w23,#65
  mrs x9,fpcr
@@ -151,6 +152,60 @@ main:
  bl md2asm_initialize_physical_constants
  add w23,w0,#208
  cbnz w0,.Lmain_cleanup
+ /* Own the live forecast controls and connected source clock. */
+ adrp x2,.Lforecast_upstream
+ add x2,x2,:lo12:.Lforecast_upstream
+ ldp w9,w10,[x24,#32]
+ stp w9,w10,[x2]
+ str wzr,[x2,#8]
+ mov w9,#1
+ str w9,[x2,#12]
+ adrp x0,.Lnamelist_text
+ add x0,x0,:lo12:.Lnamelist_text
+ mov x1,x27
+ adrp x3,.Lforecast_controls
+ add x3,x3,:lo12:.Lforecast_controls
+ mov x4,#51512
+ bl md2asm_initialize_selected_forecast_controls
+ add w23,w0,#58
+ cbnz w0,.Lmain_cleanup
+ adrp x9,.Lforecast_controls
+ add x9,x9,:lo12:.Lforecast_controls
+ mov x10,#35104
+ ldr w10,[x9,x10]
+ str w10,[x22,#8]
+ mov x10,#51112
+ add x9,x9,x10
+ adrp x10,.Lclock_inputs
+ add x10,x10,:lo12:.Lclock_inputs
+ mov x11,#40
+.Lcopy_live_clock_inputs:
+ ldr x12,[x9],#8
+ str x12,[x10],#8
+ subs x11,x11,#8
+ b.ne .Lcopy_live_clock_inputs
+ adrp x10,.Lclock_state
+ add x10,x10,:lo12:.Lclock_state
+ mov x11,#360
+.Lcopy_live_clock_state:
+ ldr x12,[x9],#8
+ str x12,[x10],#8
+ subs x11,x11,#8
+ b.ne .Lcopy_live_clock_state
+ adrp x0,.Lclock_inputs
+ add x0,x0,:lo12:.Lclock_inputs
+ adrp x1,.Lclock_state
+ add x1,x1,:lo12:.Lclock_state
+ adr x2,.Ltime_integration_controls
+ movz x3,#48600
+ movk x3,#20,lsl#16
+ add x3,x22,x3
+ movz x4,#0xaf68
+ movk x4,#2,lsl#16
+ mov x5,#0
+ bl md2asm_initialize_time_integration_configuration
+ add w23,w0,#60
+ cbnz w0,.Lmain_cleanup
  /* Full vertical mathematics consumes the newly owned constants. */
  adrp x9,.Lphysical_constants
  add x9,x9,:lo12:.Lphysical_constants
@@ -169,6 +224,21 @@ main:
  bl md2asm_initialize_owned_vertical_system
  add w23,w0,#232
  cbnz w0,.Lmain_cleanup
+ /* Complete horizontal and standard-atmosphere state at the live address. */
+ mov x0,x20
+ mov x1,x24
+ adrp x2,.Lphysical_constants
+ add x2,x2,:lo12:.Lphysical_constants
+ adrp x3,.Lnamelist_text
+ add x3,x3,:lo12:.Lnamelist_text
+ mov x4,x27
+ adrp x5,.Lgeometry_owner
+ add x5,x5,:lo12:.Lgeometry_owner
+ bl md2asm_complete_owned_geometry
+ add w23,w0,#62
+ cbnz w0,.Lmain_cleanup
+ adrp x9,.Lgeometry_owner
+ ldr x25,[x9,:lo12:.Lgeometry_owner]
  /* Bind dynamics controls to actual header and vertical producers. */
  adrp x4,.Ldynamics_inputs
  add x4,x4,:lo12:.Ldynamics_inputs
@@ -245,22 +315,6 @@ main:
  ldr w10,[x9,#260]
  cmp w10,#1
  b.ne .Lmain_cleanup
- /* The owned clock receives date/time from the real header and t25 controls. */
- adrp x0,.Lclock_inputs
- add x0,x0,:lo12:.Lclock_inputs
- ldp w9,w10,[x24,#32]
- stp w9,w10,[x0]
- adr x9,.Lclock_fixed_inputs
- ldp x10,x11,[x9]
- stp x10,x11,[x0,#8]
- ldp x10,x11,[x9,#16]
- stp x10,x11,[x0,#24]
- adrp x1,.Lclock_state
- add x1,x1,:lo12:.Lclock_state
- mov x2,#360
- bl md2asm_initialize_model_clock
- add w23,w0,#216
- cbnz w0,.Lmain_cleanup
  adrp x4,.Lfield_controls
  add x4,x4,:lo12:.Lfield_controls
  ldr w9,[x24,#16]
@@ -328,6 +382,49 @@ main:
  mov x3,#72
  bl md2asm_initialize_selected_diffusion_parameters
  add w23,w0,#54
+ cbnz w0,.Lmain_cleanup
+ /* Compute live SUPHEC pressure and eta inputs before the cloud children. */
+ mov x0,x20
+ adrp x1,.Lphysical_constants
+ add x1,x1,:lo12:.Lphysical_constants
+ adrp x2,.Lcloud_pressure
+ add x2,x2,:lo12:.Lcloud_pressure
+ bl md2asm_initialize_cloud_pressure_inputs
+ add w23,w0,#68
+ cbnz w0,.Lmain_cleanup
+ adrp x9,.Lcloud_inputs
+ add x9,x9,:lo12:.Lcloud_inputs
+ adrp x10,.Lcloud_pressure
+ add x10,x10,:lo12:.Lcloud_pressure
+ add x10,x10,#472
+ str x10,[x9]
+ mov x10,#3336
+ ldr x10,[x20,x10]
+ str x10,[x9,#16]
+ ldr x10,[x20,#144]
+ str x10,[x9,#32]
+ ldr x10,[x20,#80]
+ str x10,[x9,#48]
+ adrp x10,.Lphysical_constants
+ add x10,x10,:lo12:.Lphysical_constants
+ str x10,[x9,#64]
+ adrp x10,.Lclock_inputs
+ add x10,x10,:lo12:.Lclock_inputs
+ add x10,x10,#8
+ str x10,[x9,#80]
+ adrp x4,.Lcloud_controls
+ add x4,x4,:lo12:.Lcloud_controls
+ adrp x10,.Lphysics_record
+ ldr w10,[x10,:lo12:.Lphysics_record]
+ str w10,[x4,#4]
+ adrp x0,.Lnamelist_text
+ add x0,x0,:lo12:.Lnamelist_text
+ mov x1,x27
+ adrp x2,.Lcloud_records
+ add x2,x2,:lo12:.Lcloud_records
+ mov x3,x9
+ bl md2asm_initialize_cloud_gravity_wave_parameters
+ add w23,w0,#72
  cbnz w0,.Lmain_cleanup
  adrp x0,.Lphysics_status_final
  add x0,x0,:lo12:.Lphysics_status_final
@@ -408,6 +505,10 @@ main:
  bl .Lwrite_physics_stream
  add w23,w0,#56
  cbnz w0,.Lmain_cleanup
+ ldr x0,[x19,#96]
+ bl .Lwrite_setup_stream
+ add w23,w0,#76
+ cbnz w0,.Lmain_cleanup
  mov w23,wzr
 .Lmain_cleanup:
  cbz x28,.Lmain_release_upper_air
@@ -423,6 +524,15 @@ main:
  mov x0,x21
  bl md2asm_release_serial_spectral_field_context
 .Lmain_release_vertical:
+ adrp x0,.Lcloud_record
+ add x0,x0,:lo12:.Lcloud_record
+ mov x1,#264
+ bl md2asm_release_cloud_parameter_eta
+ cbz x25,.Lmain_release_old_vertical
+ mov x0,x25
+ bl md2asm_release_owned_geometry
+ mov x25,xzr
+.Lmain_release_old_vertical:
  cbz x20,.Lmain_return
  mov x0,x20
  bl md2asm_release_owned_vertical_system
@@ -780,11 +890,6 @@ md2asm_owned_initial_field_codes:
 .p2align 3
 .Lfield_fixed_controls: .word 1,0,1,1
 .p2align 3
-.Lclock_fixed_inputs:
- .xword 0x40ac200000000000
- .ascii "t25     "
- .xword 0
- .xword 0xbff0000000000000
 .p2align 3
 .Lvertical_stream_magic: .ascii "VS28OWN1"
 .Lvertical_stream_owners:
@@ -844,6 +949,14 @@ md2asm_owned_initial_configuration:
 .if (.Lmetadata_end-.Lconfiguration)!=1558112
 .error "metadata envelope size differs"
 .endif
+.p2align 3
+.Lforecast_upstream: .zero 16
+.Lforecast_controls: .zero 51512
+.Lgeometry_owner: .zero 8
+.Lcloud_pressure: .zero 624
+.Lcloud_record: .zero 264
+.Lgravity_wave_record: .zero 96
+.Lnonorographic_wave_record: .zero 168
 .Lsurface_record: .zero 18224
 .Lsurface_trajectory: .zero 408
 .Lsurface_descriptions: .zero 46080
@@ -925,3 +1038,199 @@ md2asm_owned_initial_configuration:
 .Lphysics_status_su0phy: .zero 24
 .Lphysics_status_final: .zero 24
 .section .note.GNU-stack,"",%progbits
+
+/* x0 path, complete new state and current live owners. No numerical update. */
+.text
+.Lwrite_setup_stream:
+ sub sp,sp,#144
+ stp x29,x30,[sp]
+ stp x18,x19,[sp,#16]
+ stp x20,x21,[sp,#32]
+ stp x22,x23,[sp,#48]
+ stp x24,x25,[sp,#64]
+ stp x26,x27,[sp,#80]
+ stp x28,xzr,[sp,#96]
+ mov x29,sp
+ mov x20,x0
+.Lsetup_open:
+ mov x0,#-100
+ mov x1,x20
+ mov x2,#577
+ mov x3,#420
+ mov x8,#56
+ svc #0
+ cmn x0,#4
+ b.eq .Lsetup_open
+ tbnz x0,#63,.Lsetup_open_failed
+ mov x19,x0
+ adrp x9,.Lvertical_owner
+ ldr x20,[x9,:lo12:.Lvertical_owner]
+ adrp x9,.Lgeometry_owner
+ ldr x21,[x9,:lo12:.Lgeometry_owner]
+ adr x1,.Lsetup_magic
+ mov x2,#72
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ mov x1,x20
+ mov x2,#20400
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ mov x1,x21
+ mov x2,#1872
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adrp x1,.Lforecast_controls
+ add x1,x1,:lo12:.Lforecast_controls
+ mov x2,#51512
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adrp x1,.Lcloud_record
+ add x1,x1,:lo12:.Lcloud_record
+ mov x2,#528
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adrp x1,.Lcloud_pressure
+ add x1,x1,:lo12:.Lcloud_pressure
+ mov x2,#624
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adrp x1,.Lconfiguration
+ add x1,x1,:lo12:.Lconfiguration
+ movz x9,#48600
+ movk x9,#20,lsl#16
+ add x1,x1,x9
+ movz x2,#0xaf68
+ movk x2,#2,lsl#16
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x22,.Lsetup_geometry_owners
+ mov x23,#121
+.Lsetup_G_owner:
+ ldr w1,[x22],#4
+ add x0,x20,x1
+ bl .Lsetup_write_owner
+ cbnz w0,.Lsetup_close
+ subs x23,x23,#1
+ b.ne .Lsetup_G_owner
+ adr x22,.Lsetup_stream_offsets
+ mov x23,#5
+.Lsetup_stream_owner:
+ ldr w24,[x22],#4
+ add x0,x21,#8
+ add x0,x0,x24
+ mov x1,#0x100000
+ add x1,x1,x24
+ bl .Lsetup_write_owner
+ cbnz w0,.Lsetup_close
+ subs x23,x23,#1
+ b.ne .Lsetup_stream_owner
+ mov x24,#120
+.Lsetup_transform_owner:
+ add x0,x21,#880
+ add x0,x0,x24
+ mov x1,#0x200000
+ add x1,x1,x24
+ bl .Lsetup_write_owner
+ cbnz w0,.Lsetup_close
+ add x24,x24,#64
+ cmp x24,#184
+ b.ls .Lsetup_transform_owner
+ mov x9,#14024
+ add x0,x20,x9
+ mov x1,#0x300000
+ add x1,x1,x9
+ bl .Lsetup_write_owner
+ cbnz w0,.Lsetup_close
+ mov x9,#14024
+ ldr x24,[x20,x9]
+ mov x25,#0
+.Lsetup_orography_block:
+ mov x26,#0
+.Lsetup_orography_field:
+ add x0,x24,x26,lsl#6
+ mov x1,#0x400000
+ mov x9,#3
+ madd x9,x25,x9,x26
+ add x1,x1,x9
+ bl .Lsetup_write_owner
+ cbnz w0,.Lsetup_close
+ add x26,x26,#1
+ cmp x26,#3
+ b.lo .Lsetup_orography_field
+ add x24,x24,#384
+ add x25,x25,#1
+ cmp x25,#86
+ b.lo .Lsetup_orography_block
+ adrp x0,.Lcloud_record
+ add x0,x0,:lo12:.Lcloud_record
+ mov x1,#0x500000
+ bl .Lsetup_write_owner
+.Lsetup_close:
+ mov w28,w0
+ mov x0,x19
+ mov x8,#57
+ svc #0
+ cmp x0,#0
+ cset w0,ne
+ orr w0,w0,w28
+ b .Lsetup_return
+.Lsetup_open_failed:
+ mov w0,#1
+.Lsetup_return:
+ ldp x18,x19,[sp,#16]
+ ldp x20,x21,[sp,#32]
+ ldp x22,x23,[sp,#48]
+ ldp x24,x25,[sp,#64]
+ ldp x26,x27,[sp,#80]
+ ldr x28,[sp,#96]
+ ldp x29,x30,[sp]
+ add sp,sp,#144
+ ret
+/* x0 true contiguous owned descriptor, x1 stable source-role tag, x19 fd. */
+.Lsetup_write_owner:
+ sub sp,sp,#64
+ stp x29,x30,[sp]
+ mov x29,sp
+ str x1,[sp,#16]
+ ldr x9,[x0]
+ str x9,[sp,#24]
+ ldr x10,[x0,#16]
+ ldrb w11,[x0,#28]
+ add x12,x0,#48
+.Lsetup_owner_extent:
+ ldp x13,x14,[x12],#24
+ sub x14,x14,x13
+ add x14,x14,#1
+ mul x10,x10,x14
+ subs w11,w11,#1
+ b.ne .Lsetup_owner_extent
+ str x10,[sp,#32]
+ add x1,sp,#16
+ mov x2,#24
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_owner_return
+ ldp x1,x2,[sp,#24]
+ bl .Lstate_write_bytes
+.Lsetup_owner_return:
+ ldp x29,x30,[sp]
+ add sp,sp,#64
+ ret
+.section .rodata
+.p2align 3
+.Ltime_integration_controls:
+ .word 1,1,0,0
+.Lsetup_magic:
+ .ascii "SETUPR61"
+ .xword 1,20400,1872,51512,528,624,388,175976
+.Lsetup_geometry_owners:
+ .word 7576,7640,7704,7768,7832,5832,6024,5256,5320,5384,7248,5448,7312,5512,5576,5640,5704,5768,5896,6088,6176,6264,6328,6392,7080,6456,6520,6584,4968,5056,7392,6992,6904,5960,7144,6648,6712,6776,6840,4232,4296,4360,4424,4488,4552,4616,4680,4744,3656,3720,3784,3848,3912,3976,4040,4104,4168,3272,3336,3400,3464,3528,3592,7896,14616,14704,8536,8600,8664,8728,8792,8856,8920,8984,9048,9112,9176,9240,9304,9368,9432,9496,9560,9624,9688,9752,9816,9880,9944,8088,8152,8216,8280,8344,8408,10008,10096,10184,10272,10360,10448,10536,10624,10712,10800,10888,10976,11064,11152,11240,11328,11416,11504,11592,11680,11768,11856,11944,8472,8024,4808
+.Lsetup_stream_offsets:
+ .word 64,144,208,272,336
+.section .data
+.p2align 3
+.Lcloud_records:
+ .xword .Lcloud_record,264,.Lgravity_wave_record,96,.Lnonorographic_wave_record,168
+.Lcloud_inputs:
+ .xword 0,152,0,152,0,160,0,160,0,520,0,8
+.Lcloud_controls:
+ .word 19,0
