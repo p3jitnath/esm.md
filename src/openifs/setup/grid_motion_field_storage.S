@@ -42,8 +42,16 @@ md2asm_initialize_grid_motion_fields:
 .Lgm_control_loop:
  ldr w7,[x3,x6]
  ldr w8,[x5,x6]
+ /* NUNDEFLD is a live NAMCT0 override and must be outside valid indices. */
+ cmp x6,#12
+ b.ne .Lgm_fixed_control
+ cmp w7,#0
+ b.ge .Lgm_bad_leaf
+ b .Lgm_next_control
+.Lgm_fixed_control:
  cmp w7,w8
  b.ne .Lgm_bad_leaf
+.Lgm_next_control:
  add x6,x6,#4
  cmp x6,#24
  b.lo .Lgm_control_loop
