@@ -70,6 +70,7 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 | Accepted component | Complete comparison scope | Contract |
 | --- | --- | --- |
 | Standalone complete selected initial state | Final-address MODEL and FIELDS records, Geometry, 22 field owners and connected physics parameters match their source gates | [Owned initial fields](../../skills/md2asm/references/openifs/input/owned_fields_initial_state.md) |
+| Owned next-time field storage | Fresh, repeated and mixed owner states match complete source records and arrays, with source-defined zero initialization | [Next-time storage](../../skills/md2asm/references/openifs/setup/next_time_field_storage.md) |
 | Owned ECMWF physics working fields | Three complete source shapes match 4,224 metadata bytes and 3,568,048 zeroed numerical bytes across six owners | [Physics field storage](../../skills/md2asm/references/openifs/setup/ecmwf_physics_field_storage.md) |
 | Owned grid-point and surface allocations | Four tracer owners and 34 surface owners, with exact complete-record checks | [Grid-point storage](../../skills/md2asm/references/openifs/setup/grid_point_field_storage.md), [surface storage](../../skills/md2asm/references/openifs/setup/surface_field_storage.md) |
 | Owned surface group initialization | Complete group and field records, including inactive zero-layer groups | [Group initialization](../../skills/md2asm/references/openifs/setup/surface_group_initialization.md) |
