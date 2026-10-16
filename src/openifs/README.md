@@ -55,6 +55,8 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 | Accepted component | Complete comparison scope | Contract |
 | --- | --- | --- |
 | Standalone spectral input and owned storage | 78 decoded records and 238,832 output bytes | [Standalone input](../../skills/md2asm/references/openifs/input/standalone_initial_bootstrap.md), [spectral storage](../../skills/md2asm/references/openifs/setup/spectral_field_storage.md), [vertical storage](../../skills/md2asm/references/openifs/setup/vertical_startup_context.md) |
+| Owned grid-point and surface allocations | Four tracer owners and 34 surface owners, with exact complete-record checks | [Grid-point storage](../../skills/md2asm/references/openifs/setup/grid_point_field_storage.md), [surface storage](../../skills/md2asm/references/openifs/setup/surface_field_storage.md) |
+| Owned clock fields | Six complete source-field cases and independent calendar checks | [Model clock](../../skills/md2asm/references/openifs/setup/model_clock_initialization.md) |
 | Upper-air decoding and placement | 76 records and 2,509,824 model bytes, including padding | [Upper-air loading](../../skills/md2asm/references/openifs/input/upper_air_initial_state_loading.md) |
 | Surface decoding, selection and conversion | 140 records, with 52 selected fields in original order | [Surface loading](../../skills/md2asm/references/openifs/input/initial_surface_state_loading.md) |
 | Surface placement | Five complete owners containing 2,146,560 bytes | [Surface placement](../../skills/md2asm/references/openifs/input/initial_surface_state_placement.md) |
