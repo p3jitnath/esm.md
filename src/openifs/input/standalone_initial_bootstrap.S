@@ -1,10 +1,19 @@
-/* Contract: skills/md2asm/references/openifs/input/standalone_initial_bootstrap.md. */
-/* Standalone selected T21 complete initial-state composition, revision 6.
+/* Contract: skills/md2asm/references/openifs/input/owned_model_initial_state.md. */
+/* Standalone selected T21 complete initial-state composition, revision 7.
  * Own entry, configuration, contexts, loading, output and release are assembly.
  * External services are libc, ecCodes and the qualified FIAT/ectrans interfaces.
  * This input checkpoint does not run a forecast. */
 .arch armv8.2-a
 .text
+
+.macro owned_model_address dst,offset
+ adrp \dst,.Lmodel_owner
+ ldr \dst,[\dst,:lo12:.Lmodel_owner]
+ movz x17,#(\offset & 65535)
+ movk x17,#(\offset >> 16),lsl#16
+ add \dst,\dst,x17
+.endm
+
 .p2align 2
 .global _start
 .type _start,%function
@@ -92,6 +101,14 @@ main:
  cbnz w0,.Lmain_cleanup
  adrp x9,.Lvertical_owner
  ldr x20,[x9,:lo12:.Lvertical_owner]
+ mov x0,x20
+ adr x1,.Lowned_alias_destinations
+ adrp x2,.Lmodel_owner
+ add x2,x2,:lo12:.Lmodel_owner
+ bl md2asm_create_selected_model_storage
+ add w23,w0,#100
+ cbnz w0,.Lmain_cleanup
+ bl .Lbind_final_record_tables
  /* Define only the geometry controls consumed by this input stage. */
  mov w9,#1
  str w9,[x20,#5168]
@@ -113,8 +130,7 @@ main:
  adrp x9,.Lspectral_owner
  ldr x21,[x9,:lo12:.Lspectral_owner]
  /* Own selected configuration, including the GNU integer descriptor. */
- adrp x22,.Lconfiguration
- add x22,x22,:lo12:.Lconfiguration
+ owned_model_address x22,8
  mov w9,#1
  str w9,[x22,#8]
  mov w9,#3
@@ -206,6 +222,15 @@ main:
  bl md2asm_initialize_time_integration_configuration
  add w23,w0,#60
  cbnz w0,.Lmain_cleanup
+ adrp x0,.Lnamelist_text
+ add x0,x0,:lo12:.Lnamelist_text
+ mov x1,x27
+ adrp x2,md2asm_owned_dynamical_namespace
+ add x2,x2,:lo12:md2asm_owned_dynamical_namespace
+ mov x3,#320
+ bl md2asm_initialize_dynamical_configuration
+ add w23,w0,#57
+ cbnz w0,.Lmain_cleanup
  /* Full vertical mathematics consumes the newly owned constants. */
  adrp x9,.Lphysical_constants
  add x9,x9,:lo12:.Lphysical_constants
@@ -259,19 +284,16 @@ main:
  adrp x0,.Lnamelist_text
  add x0,x0,:lo12:.Lnamelist_text
  mov x1,x27
- adrp x2,.Ldynamics_record
- add x2,x2,:lo12:.Ldynamics_record
+ owned_model_address x2,1564136
  mov x3,#456
  bl md2asm_initialize_selected_dynamics_controls
  add w23,w0,#236
  cbnz w0,.Lmain_cleanup
- adrp x9,.Ldynamics_record
- add x9,x9,:lo12:.Ldynamics_record
+ owned_model_address x9,1564136
  ldr w10,[x9,#24]
  adrp x9,.Lphysics_controls
  add x9,x9,:lo12:.Lphysics_controls
- adrp x11,.Lconfiguration
- add x11,x11,:lo12:.Lconfiguration
+ owned_model_address x11,8
  /* Source SUGFL1 default LUVPOUT; the complete namespace remains fresh zero. */
  str wzr,[x11,#372]
  ldr w11,[x11,#372]
@@ -291,6 +313,15 @@ main:
  adrp x0,.Lphysics_status_su0phy
  add x0,x0,:lo12:.Lphysics_status_su0phy
  bl .Lcapture_physics_status
+ /* Source SUDIMF1 consumes the final live records before SUGFL. */
+ adrp x0,.Lnamelist_text
+ add x0,x0,:lo12:.Lnamelist_text
+ mov x1,x27
+ adr x2,.Lfield_dimension_pairs
+ adr x3,.Lfield_dimension_controls
+ bl md2asm_initialize_physics_field_dimensions
+ add w23,w0,#216
+ cbnz w0,.Lmain_cleanup
  /* Bind the namespace's selected count inputs to this actual producer. */
  mov w23,#215
  adrp x9,.Lphysics_counts
@@ -304,8 +335,7 @@ main:
  orr w12,w12,w13
  orr w10,w10,w12
  cbnz w10,.Lmain_cleanup
- adrp x9,.Lphysics_record
- add x9,x9,:lo12:.Lphysics_record
+ owned_model_address x9,1577888
  ldr w10,[x9]
  cmp w10,#1
  b.ne .Lmain_cleanup
@@ -328,8 +358,7 @@ main:
  adr x9,.Lfield_fixed_controls
  ldp x10,x11,[x9]
  stp x10,x11,[x4,#16]
- adrp x9,.Ldynamics_record
- add x9,x9,:lo12:.Ldynamics_record
+ owned_model_address x9,1564136
  ldr w10,[x9,#16]
  str w10,[x4,#16]
  add x0,x22,#184
@@ -342,6 +371,13 @@ main:
  add x5,x5,:lo12:.Lfield_effects
  bl md2asm_initialize_selected_grid_field_configuration
  add w23,w0,#220
+ cbnz w0,.Lmain_cleanup
+ owned_model_address x0,16
+ owned_model_address x1,1564136
+ owned_model_address x2,200
+ adr x3,.Lfield_dimension_controls
+ bl md2asm_initialize_spectral_field_dimensions
+ add w23,w0,#218
  cbnz w0,.Lmain_cleanup
  adrp x9,.Lnamespace_status
  add x9,x9,:lo12:.Lnamespace_status
@@ -359,17 +395,14 @@ main:
  mov x1,x27
  adrp x2,.Lphysical_constants
  add x2,x2,:lo12:.Lphysical_constants
- adrp x3,.Lsurface_physical_parameters
- add x3,x3,:lo12:.Lsurface_physical_parameters
- adrp x4,.Lozone_parameters
- add x4,x4,:lo12:.Lozone_parameters
+ owned_model_address x3,4148312
+ owned_model_address x4,4202320
  mov x5,#1696
  mov x6,#15864
  bl md2asm_initialize_surface_exchange_parameters
  add w23,w0,#50
  cbnz w0,.Lmain_cleanup
- adrp x0,.Lcondensation_parameters
- add x0,x0,:lo12:.Lcondensation_parameters
+ owned_model_address x0,1581376
  mov x1,#16
  bl md2asm_initialize_condensation_parameters
  add w23,w0,#52
@@ -377,11 +410,19 @@ main:
  adrp x0,.Lnamelist_text
  add x0,x0,:lo12:.Lnamelist_text
  mov x1,x27
- adrp x2,.Ldiffusion_parameters
- add x2,x2,:lo12:.Ldiffusion_parameters
+ owned_model_address x2,1577816
  mov x3,#72
  bl md2asm_initialize_selected_diffusion_parameters
  add w23,w0,#54
+ cbnz w0,.Lmain_cleanup
+ adrp x0,.Lthermal_stability_namespace
+ add x0,x0,:lo12:.Lthermal_stability_namespace
+ mov x1,#1920
+ adrp x2,.Lphysical_constants
+ add x2,x2,:lo12:.Lphysical_constants
+ mov x3,#520
+ bl md2asm_initialize_thermal_diffusion_parameters
+ add w23,w0,#55
  cbnz w0,.Lmain_cleanup
  /* Compute live SUPHEC pressure and eta inputs before the cloud children. */
  mov x0,x20
@@ -414,8 +455,8 @@ main:
  str x10,[x9,#80]
  adrp x4,.Lcloud_controls
  add x4,x4,:lo12:.Lcloud_controls
- adrp x10,.Lphysics_record
- ldr w10,[x10,:lo12:.Lphysics_record]
+ owned_model_address x10,1577888
+ ldr w10,[x10]
  str w10,[x4,#4]
  adrp x0,.Lnamelist_text
  add x0,x0,:lo12:.Lnamelist_text
@@ -426,6 +467,29 @@ main:
  bl md2asm_initialize_cloud_gravity_wave_parameters
  add w23,w0,#72
  cbnz w0,.Lmain_cleanup
+ adr x9,.Lconvection_inputs
+ owned_model_address x10,1359528
+ str x10,[x9,#48]
+ mov x10,#3336
+ ldr x10,[x20,x10]
+ str x10,[x9]
+ adrp x0,.Lnamelist_text
+ add x0,x0,:lo12:.Lnamelist_text
+ mov x1,x27
+ adr x2,.Lconvection_records
+ mov x3,x9
+ adr x4,.Lconvection_controls
+ bl md2asm_initialize_convection_parameters
+ add w23,w0,#74
+ cbnz w0,.Lmain_cleanup
+ adrp x9,.Lconvection_thermal
+ add x9,x9,:lo12:.Lconvection_thermal
+ adrp x10,.Lthermal_stability_namespace
+ add x10,x10,:lo12:.Lthermal_stability_namespace
+ ldr x11,[x9,#8]
+ str x11,[x10,#144]
+ ldr x11,[x9,#16]
+ str x11,[x10,#160]
  adrp x0,.Lphysics_status_final
  add x0,x0,:lo12:.Lphysics_status_final
  bl .Lcapture_physics_status
@@ -452,14 +516,12 @@ main:
  ldr x0,[x19,#16]
  adrp x1,.Lphysical_constants
  add x1,x1,:lo12:.Lphysical_constants
- adrp x2,.Lphysics_record
- add x2,x2,:lo12:.Lphysics_record
+ owned_model_address x2,1577888
  adrp x3,.Lsurface_record
  add x3,x3,:lo12:.Lsurface_record
  adrp x4,.Lsurface_trajectory
  add x4,x4,:lo12:.Lsurface_trajectory
- adrp x5,.Lsurface_descriptions
- add x5,x5,:lo12:.Lsurface_descriptions
+ owned_model_address x5,4155544
  bl md2asm_initialize_selected_surface_state
  add w23,w0,#240
  cbnz w0,.Lmain_cleanup
@@ -485,10 +547,9 @@ main:
  add w23,w0,#192
  cbnz w0,.Lmain_cleanup
  ldr x0,[x19,#64]
- mov x1,x22
- mov x2,#0xc660
- movk x2,#0x17,lsl#16
- bl .Lwrite_complete_file
+ adr x1,.Lmetadata_gather
+ mov x2,#5
+ bl .Lwrite_record_payloads
  add w23,w0,#224
  cbnz w0,.Lmain_cleanup
  ldr x0,[x19,#72]
@@ -524,15 +585,22 @@ main:
  mov x0,x21
  bl md2asm_release_serial_spectral_field_context
 .Lmain_release_vertical:
- adrp x0,.Lcloud_record
- add x0,x0,:lo12:.Lcloud_record
+ adrp x9,.Lmodel_owner
+ ldr x9,[x9,:lo12:.Lmodel_owner]
+ cbz x9,.Lmain_release_geometry
+ owned_model_address x0,1578336
  mov x1,#264
  bl md2asm_release_cloud_parameter_eta
+ .Lmain_release_geometry:
  cbz x25,.Lmain_release_old_vertical
  mov x0,x25
  bl md2asm_release_owned_geometry
  mov x25,xzr
 .Lmain_release_old_vertical:
+ adrp x0,.Lmodel_owner
+ add x0,x0,:lo12:.Lmodel_owner
+ adr x1,.Lowned_alias_destinations
+ bl md2asm_release_selected_model_storage
  cbz x20,.Lmain_return
  mov x0,x20
  bl md2asm_release_owned_vertical_system
@@ -704,8 +772,7 @@ main:
  add x1,x1,:lo12:.Lsurface_record
  adrp x2,.Lsurface_trajectory
  add x2,x2,:lo12:.Lsurface_trajectory
- adrp x3,.Lsurface_descriptions
- add x3,x3,:lo12:.Lsurface_descriptions
+ owned_model_address x3,4155544
  bl md2asm_write_selected_surface_state
  b .Lstate_close
 .Lstate_vertical:
@@ -928,10 +995,8 @@ md2asm_owned_initial_field_codes:
 .Lspectral_owner: .zero 8
 .Lupper_air_owner: .zero 8
 .Lloaded_orography: .zero 8
-.global md2asm_owned_initial_configuration
-md2asm_owned_initial_configuration:
-.Lconfiguration: .zero 1556112
-.Lphysics_record: .zero 448
+.global md2asm_owned_initial_metadata_auxiliary
+md2asm_owned_initial_metadata_auxiliary:
 .Lphysics_counts: .zero 24
 .Lphysical_constants: .zero 520
 .Lfield_effects: .zero 8
@@ -939,101 +1004,69 @@ md2asm_owned_initial_configuration:
 .Lclock_state: .zero 360
 .Lclock_inputs: .zero 40
 .Lfield_controls: .zero 32
-.Ldynamics_record: .zero 456
 .Ldynamics_inputs: .zero 32
 .Lvertical_scalars: .zero 16
 .Lvertical_bounds: .zero 16
 .Lvertical_bound_pointers: .zero 16
 .Lphysics_controls: .zero 8
-.Lmetadata_end:
-.if (.Lmetadata_end-.Lconfiguration)!=1558112
-.error "metadata envelope size differs"
-.endif
 .p2align 3
 .Lforecast_upstream: .zero 16
 .Lforecast_controls: .zero 51512
 .Lgeometry_owner: .zero 8
 .Lcloud_pressure: .zero 624
-.Lcloud_record: .zero 264
-.Lgravity_wave_record: .zero 96
-.Lnonorographic_wave_record: .zero 168
 .Lsurface_record: .zero 18224
 .Lsurface_trajectory: .zero 408
-.Lsurface_descriptions: .zero 46080
 .Lnamelist_text: .zero 262145
 
 .section .rodata
 .Lphysics_stream_magic: .ascii "PH21REC1"
 .section .data
 .p2align 3
-/* Complete genuine TMSE declaration defaults, before SU0PHY. */
-.Lraw_tmse:
- .word 0,1,1,3,3
- .ascii "SFX.X   "
- .word 0
- .quad 0x3f847ae147ae147b
 .p2align 3
 .Lcomplete_physics_records:
- .quad .Lraw_physics_0,1096
- .quad .Lraw_tmse,40
- .quad .Lraw_physics_2,368
- .quad .Lraw_physics_3,1024
- .quad .Lraw_physics_4,88
- .quad .Lraw_physics_5,168
- .quad .Lraw_physics_6,100
- .quad .Lraw_physics_7,80
- .quad .Lraw_physics_8,32
- .quad .Lphysics_record,448
- .quad .Lraw_physics_10,2776
- .quad .Lraw_physics_11,8
- .quad .Lraw_physics_12,4
- .quad .Lraw_physics_13,232
- .quad .Lraw_physics_14,120
+ .quad 0,1096
+ .quad 0,40
+ .quad 0,368
+ .quad 0,1024
+ .quad 0,88
+ .quad 0,168
+ .quad 0,100
+ .quad 0,80
+ .quad 0,32
+ .quad 0,448
+ .quad 0,2776
+ .quad 0,8
+ .quad 0,4
+ .quad 0,232
+ .quad 0,120
  .quad .Lraw_physics_15,1024
  .quad .Lraw_physics_16,24
- .quad .Lsurface_physical_parameters,1696
- .quad .Lozone_parameters,15864
- .quad .Lcondensation_parameters,16
- .quad .Ldiffusion_parameters,72
+ .quad 0,1696
+ .quad 0,15864
+ .quad 0,16
+ .quad 0,72
 .bss
 .p2align 3
-.Lraw_physics_0: .zero 1096
 .p2align 3
-.Lraw_physics_2: .zero 368
 .p2align 3
-.Lraw_physics_3: .zero 1024
 .p2align 3
-.Lraw_physics_4: .zero 88
 .p2align 3
-.Lraw_physics_5: .zero 168
 .p2align 3
-.Lraw_physics_6: .zero 100
 .p2align 3
-.Lraw_physics_7: .zero 80
 .p2align 3
-.Lraw_physics_8: .zero 32
 .p2align 3
-.Lraw_physics_10: .zero 2776
 .p2align 3
-.Lraw_physics_11: .zero 8
 .p2align 3
-.Lraw_physics_12: .zero 4
 .p2align 3
-.Lraw_physics_13: .zero 232
 .p2align 3
-.Lraw_physics_14: .zero 120
 .p2align 3
 .Lraw_physics_15: .zero 1024
 .p2align 3
 .Lraw_physics_16: .zero 24
 .p2align 3
-.Lsurface_physical_parameters: .zero 1696
 .p2align 3
-.Lozone_parameters: .zero 15864
 .p2align 3
-.Lcondensation_parameters: .zero 16
 .p2align 3
-.Ldiffusion_parameters: .zero 72
 .p2align 3
 .Lphysics_status_su0phy: .zero 24
 .Lphysics_status_final: .zero 24
@@ -1084,9 +1117,16 @@ md2asm_owned_initial_configuration:
  mov x2,#51512
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adrp x1,.Lcloud_record
- add x1,x1,:lo12:.Lcloud_record
- mov x2,#528
+ owned_model_address x1,1578336
+ mov x2,#264
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ owned_model_address x1,1588032
+ mov x2,#96
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ owned_model_address x1,1588128
+ mov x2,#168
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
  adrp x1,.Lcloud_pressure
@@ -1094,8 +1134,7 @@ md2asm_owned_initial_configuration:
  mov x2,#624
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adrp x1,.Lconfiguration
- add x1,x1,:lo12:.Lconfiguration
+ owned_model_address x1,8
  movz x9,#48600
  movk x9,#20,lsl#16
  add x1,x1,x9
@@ -1161,10 +1200,36 @@ md2asm_owned_initial_configuration:
  add x25,x25,#1
  cmp x25,#86
  b.lo .Lsetup_orography_block
- adrp x0,.Lcloud_record
- add x0,x0,:lo12:.Lcloud_record
+ owned_model_address x0,1578336
  mov x1,#0x500000
  bl .Lsetup_write_owner
+ cbnz w0,.Lsetup_close
+ adr x1,.Lmodel_extension_shape
+ mov x2,#48
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ owned_model_address x1,0
+ movz x2,#(4275088 & 65535)
+ movk x2,#(4275088 >> 16),lsl#16
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x1,.Lowned_alias_slots
+ mov x2,#120
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adrp x1,md2asm_owned_dynamical_namespace
+ add x1,x1,:lo12:md2asm_owned_dynamical_namespace
+ mov x2,#320
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adrp x1,.Lthermal_stability_namespace
+ add x1,x1,:lo12:.Lthermal_stability_namespace
+ mov x2,#1920
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x1,.Lconvection_thermal
+ mov x2,#24
+ bl .Lstate_write_bytes
 .Lsetup_close:
  mov w28,w0
  mov x0,x19
@@ -1229,8 +1294,235 @@ md2asm_owned_initial_configuration:
 .section .data
 .p2align 3
 .Lcloud_records:
- .xword .Lcloud_record,264,.Lgravity_wave_record,96,.Lnonorographic_wave_record,168
+ .xword 0,264,0,96,0,168
 .Lcloud_inputs:
  .xword 0,152,0,152,0,160,0,160,0,520,0,8
 .Lcloud_controls:
  .word 19,0
+
+.text
+.Lbind_final_record_tables:
+ adr x9,.Lcomplete_physics_records
+ owned_model_address x10,4143760
+ str x10,[x9,#0]
+ owned_model_address x10,4219344
+ str x10,[x9,#16]
+ owned_model_address x10,4096584
+ str x10,[x9,#32]
+ owned_model_address x10,4271536
+ str x10,[x9,#48]
+ owned_model_address x10,4218352
+ str x10,[x9,#64]
+ owned_model_address x10,4218184
+ str x10,[x9,#80]
+ owned_model_address x10,1588752
+ str x10,[x9,#96]
+ owned_model_address x10,1588672
+ str x10,[x9,#112]
+ owned_model_address x10,1622432
+ str x10,[x9,#128]
+ owned_model_address x10,1577888
+ str x10,[x9,#144]
+ owned_model_address x10,1578600
+ str x10,[x9,#160]
+ owned_model_address x10,1588852
+ str x10,[x9,#176]
+ owned_model_address x10,1588428
+ str x10,[x9,#192]
+ owned_model_address x10,1588864
+ str x10,[x9,#208]
+ owned_model_address x10,1588296
+ str x10,[x9,#224]
+ owned_model_address x10,4148312
+ str x10,[x9,#272]
+ owned_model_address x10,4202320
+ str x10,[x9,#288]
+ owned_model_address x10,1581376
+ str x10,[x9,#304]
+ owned_model_address x10,1577816
+ str x10,[x9,#320]
+ adr x9,.Lcloud_records
+ owned_model_address x10,1578336
+ str x10,[x9,#0]
+ owned_model_address x10,1588032
+ str x10,[x9,#16]
+ owned_model_address x10,1588128
+ str x10,[x9,#32]
+ adr x9,.Lfield_dimension_pairs
+ owned_model_address x10,16
+ str x10,[x9,#0]
+ owned_model_address x10,1577368
+ str x10,[x9,#16]
+ owned_model_address x10,1564136
+ str x10,[x9,#32]
+ owned_model_address x10,1577888
+ str x10,[x9,#48]
+ owned_model_address x10,4143760
+ str x10,[x9,#64]
+ owned_model_address x10,4218352
+ str x10,[x9,#80]
+ adr x9,.Lconvection_records
+ owned_model_address x10,1581392
+ str x10,[x9,#0]
+ owned_model_address x10,1588432
+ str x10,[x9,#16]
+ owned_model_address x10,1588416
+ str x10,[x9,#32]
+ adr x9,.Lmetadata_gather
+ owned_model_address x10,8
+ str x10,[x9,#0]
+ owned_model_address x10,1577888
+ str x10,[x9,#16]
+ owned_model_address x10,1564136
+ str x10,[x9,#48]
+ ret
+
+.Lwrite_record_payloads:
+ stp x29,x30,[sp,#-64]!
+ stp x18,x19,[sp,#16]
+ stp x20,x21,[sp,#32]
+ stp x22,x23,[sp,#48]
+ mov x29,sp
+ mov x20,x0
+ mov x21,x1
+ mov x22,x2
+.Lpayload_open:
+ mov x0,#-100
+ mov x1,x20
+ mov x2,#577
+ mov x3,#420
+ mov x8,#56
+ svc #0
+ cmn x0,#4
+ b.eq .Lpayload_open
+ tbnz x0,#63,.Lpayload_open_failed
+ mov x19,x0
+.Lpayload_write:
+ ldp x1,x2,[x21],#16
+ bl .Lstate_write_bytes
+ cbnz w0,.Lpayload_close
+ subs x22,x22,#1
+ b.ne .Lpayload_write
+.Lpayload_close:
+ mov w23,w0
+ mov x0,x19
+ mov x8,#57
+ svc #0
+ cmp x0,#0
+ cset w0,ne
+ orr w0,w0,w23
+ b .Lpayload_return
+.Lpayload_open_failed:
+ mov w0,#1
+.Lpayload_return:
+ ldp x18,x19,[sp,#16]
+ ldp x20,x21,[sp,#32]
+ ldp x22,x23,[sp,#48]
+ ldp x29,x30,[sp],#64
+ ret
+
+.section .rodata
+.p2align 3
+.Lowned_alias_destinations:
+ .quad __yomdphy_MOD_yrdphy
+ .quad __yom_ygfl_MOD_ygfl
+ .quad __yoerad_MOD_yrerad
+ .quad __yoeaeratm_MOD_yreaeratm
+ .quad __yoephli_MOD_yrephli
+ .quad __yoeaerlid_MOD_yreaerlid
+ .quad __yoeaersnk_MOD_yreaersnk
+ .quad __yoeaersrc_MOD_yreaersrc
+ .quad __yoeaervol_MOD_yreaervol
+ .quad __yoephy_MOD_yrephy
+ .quad __yomphy_MOD_yrphy
+ .quad __yomphy0_MOD_yrphy0
+ .quad __yomphy1_MOD_yrphy1
+ .quad __yomphy2_MOD_yrphy2
+ .quad __yomlouis_MOD_yrlouis
+.Lfield_dimension_controls: .word 1,1,1,0,0,0,0,0,20,50
+.Lconvection_controls: .word 19,21
+.Lmodel_extension_shape: .ascii "R7MODEL1"
+ .quad 4275088,120,320,1920,24
+.section .data
+.p2align 3
+.Lmetadata_gather:
+ .quad 0,1556112,0,448,.Lphysics_counts,1008,0,456,.Ldynamics_inputs,88
+.Lfield_dimension_pairs:
+ .quad 0,176,0,88,0,456,0,448,0,1096,0,88
+.Lconvection_records:
+ .quad 0,344,0,240,0,12,.Lconvection_thermal,24
+.Lconvection_inputs:
+ .quad 0,152,.Lphysical_constants,520,md2asm_owned_dynamical_namespace,24,0,8
+.bss
+.p2align 3
+.global md2asm_owned_initial_model_owner
+md2asm_owned_initial_model_owner:
+.Lmodel_owner: .zero 8
+.global md2asm_owned_thermal_stability_namespace
+md2asm_owned_thermal_stability_namespace:
+.Lthermal_stability_namespace: .zero 1920
+.Lconvection_thermal: .zero 24
+.p2align 3
+.Lowned_alias_slots:
+.global __yomdphy_MOD_yrdphy
+.type __yomdphy_MOD_yrdphy,%object
+__yomdphy_MOD_yrdphy: .zero 8
+.size __yomdphy_MOD_yrdphy,8
+.global __yom_ygfl_MOD_ygfl
+.type __yom_ygfl_MOD_ygfl,%object
+__yom_ygfl_MOD_ygfl: .zero 8
+.size __yom_ygfl_MOD_ygfl,8
+.global __yoerad_MOD_yrerad
+.type __yoerad_MOD_yrerad,%object
+__yoerad_MOD_yrerad: .zero 8
+.size __yoerad_MOD_yrerad,8
+.global __yoeaeratm_MOD_yreaeratm
+.type __yoeaeratm_MOD_yreaeratm,%object
+__yoeaeratm_MOD_yreaeratm: .zero 8
+.size __yoeaeratm_MOD_yreaeratm,8
+.global __yoephli_MOD_yrephli
+.type __yoephli_MOD_yrephli,%object
+__yoephli_MOD_yrephli: .zero 8
+.size __yoephli_MOD_yrephli,8
+.global __yoeaerlid_MOD_yreaerlid
+.type __yoeaerlid_MOD_yreaerlid,%object
+__yoeaerlid_MOD_yreaerlid: .zero 8
+.size __yoeaerlid_MOD_yreaerlid,8
+.global __yoeaersnk_MOD_yreaersnk
+.type __yoeaersnk_MOD_yreaersnk,%object
+__yoeaersnk_MOD_yreaersnk: .zero 8
+.size __yoeaersnk_MOD_yreaersnk,8
+.global __yoeaersrc_MOD_yreaersrc
+.type __yoeaersrc_MOD_yreaersrc,%object
+__yoeaersrc_MOD_yreaersrc: .zero 8
+.size __yoeaersrc_MOD_yreaersrc,8
+.global __yoeaervol_MOD_yreaervol
+.type __yoeaervol_MOD_yreaervol,%object
+__yoeaervol_MOD_yreaervol: .zero 8
+.size __yoeaervol_MOD_yreaervol,8
+.global __yoephy_MOD_yrephy
+.type __yoephy_MOD_yrephy,%object
+__yoephy_MOD_yrephy: .zero 8
+.size __yoephy_MOD_yrephy,8
+.global __yomphy_MOD_yrphy
+.type __yomphy_MOD_yrphy,%object
+__yomphy_MOD_yrphy: .zero 8
+.size __yomphy_MOD_yrphy,8
+.global __yomphy0_MOD_yrphy0
+.type __yomphy0_MOD_yrphy0,%object
+__yomphy0_MOD_yrphy0: .zero 8
+.size __yomphy0_MOD_yrphy0,8
+.global __yomphy1_MOD_yrphy1
+.type __yomphy1_MOD_yrphy1,%object
+__yomphy1_MOD_yrphy1: .zero 8
+.size __yomphy1_MOD_yrphy1,8
+.global __yomphy2_MOD_yrphy2
+.type __yomphy2_MOD_yrphy2,%object
+__yomphy2_MOD_yrphy2: .zero 8
+.size __yomphy2_MOD_yrphy2,8
+.global __yomlouis_MOD_yrlouis
+.type __yomlouis_MOD_yrlouis,%object
+__yomlouis_MOD_yrlouis: .zero 8
+.size __yomlouis_MOD_yrlouis,8
+
+.section .note.GNU-stack,"",%progbits

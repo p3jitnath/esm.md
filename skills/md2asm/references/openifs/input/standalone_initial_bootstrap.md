@@ -1,5 +1,7 @@
 # Complete Geometry and live-control initial state
 
+This contract records the accepted earlier input stage. The current entry extends it with [final-address owned MODEL records](owned_model_initial_state.md), while reusing the unchanged component formats and checks below.
+
 This checkpoint extends the accepted R5 standalone input entry with the qualified live forecast controls, complete selected Geometry continuation and cloud/gravity-wave parameters. The executable owns the OpenIFS call order, configuration, namespace storage, initial-condition loading, output and cleanup in direct AArch64 assembly. The actual spectral, gridpoint, upper-air and configuration files are the only production state inputs. No OpenIFS executable, harness, module variable, original constructor, virtual table, numerical routine or verification packet supplies a production stage. Permitted ecCodes, FIAT/MPI, ectrans, BLAS/math and their runtime interfaces remain external dependencies.
 
 Keep the first eleven command-line arguments unchanged and append the eighth setup-state output path, so argc is 13 including the executable. The first four arguments are the three input paths and configuration text. The next seven output paths retain the accepted R5 formats and order: spectral three-field bytes, spectral two-field bytes, upper-air bytes, complete metadata, surface state, complete vertical state and complete physics records. The eighth output owns the new setup stream. No forecast or time update occurs in this input checkpoint.

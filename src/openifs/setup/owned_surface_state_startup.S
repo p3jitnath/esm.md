@@ -1,6 +1,6 @@
 /* Owned selected surface state startup, revision 1.
  * x0 path, x1 constants520, x2 TEPHY448, x3 TSURF18224,
- * x4 trajectory408, x5 descriptions46080. All outputs are fresh zero.
+ * x4 trajectory408, x5 descriptions46080. TSURF/trajectory are fresh zero; TPHYDS is zero or declared counts+zero tail.
  * Contract: skills/md2asm/references/openifs/setup/owned_surface_state_startup.md. */
 .arch armv8.2-a
 .macro SS_WORK out,offset
@@ -96,6 +96,23 @@ md2asm_initialize_selected_surface_state:
  cmp w10,w9
  b.ne .Lss_prior_range
  mov x11,x12
+ cmp w9,#5
+ b.ne .Lss_fresh_output
+ ldp x14,x15,[x11]
+ orr x14,x14,x15
+ ldp x15,x16,[x11,#16]
+ orr x14,x14,x15
+ orr x14,x14,x16
+ cbz x14,.Lss_fresh_output
+ adr x0,.Lss_declared_phyds_counts
+ mov w1,#4
+.Lss_declared_phyds:
+ ldr x14,[x11],#8
+ ldr x15,[x0],#8
+ cmp x14,x15
+ b.ne .Lss_reject
+ subs w1,w1,#1
+ b.ne .Lss_declared_phyds
 .Lss_fresh_output:
  ldr x14,[x11],#8
  cbnz x14,.Lss_reject
@@ -459,3 +476,7 @@ md2asm_release_selected_surface_state:
  .word 6272,1152,3,0,228038,5
 
 .section .note.GNU-stack,"",%progbits
+
+.section .rodata
+.p2align 3
+.Lss_declared_phyds_counts: .word 20,50,50,99,99,99,99,99
