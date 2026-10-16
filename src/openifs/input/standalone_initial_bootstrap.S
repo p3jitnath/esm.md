@@ -1899,3 +1899,5 @@ __yoe_phys_mwave_MOD_n_phys_mwave: .zero 4
 .section .note.GNU-stack,"",%progbits
 
 #include "forecast_control_aliases.inc.S"
+
+#include "physical_constant_aliases.inc.S"
