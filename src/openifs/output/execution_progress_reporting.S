@@ -484,8 +484,12 @@ md2asm_opdis_selected:
  mrs x9,fpcr
  cbnz x9,.Lop_bad_leaf
  ldr w9,[x1,#72]
+ mov w10,#-999
+ cmp w9,w10
+ b.eq .Lop_step_supported
  cmp w9,#25
  b.hi .Lop_bad_leaf
+.Lop_step_supported:
  ldr w9,[x1,#76]
  cbnz w9,.Lop_bad_leaf
  ldr x9,[x1,#16]
