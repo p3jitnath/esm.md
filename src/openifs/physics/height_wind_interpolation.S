@@ -163,4 +163,3 @@ md2asm_height_wind_interpolation_7358525:
 .section .rodata
 .Lhv_hook_name: .ascii "VDFVINT"
 .section .note.GNU-stack,"",%progbits
-

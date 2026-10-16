@@ -252,4 +252,3 @@ md2asm_soil_energy_support_7358525:
 .Lse_half: .double 0.5
 .Lse_hook_name: .ascii "SRFENE_MOD:SRFENE"
 .section .note.GNU-stack,"",%progbits
-

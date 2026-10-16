@@ -221,4 +221,3 @@ md2asm_tropopause_level_7358525:
 .Ltr_humidity_first: .double 0.000003
 .Ltr_humidity_below: .double 0.000005
 .section .note.GNU-stack,"",%progbits
-
