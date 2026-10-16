@@ -1,8 +1,9 @@
-/* Contract: skills/md2asm/references/openifs/input/owned_fullpos_initial_state.md. */
-/* Standalone selected T21 initial-state composition, revision 18.
+/* Contract: skills/md2asm/references/openifs/input/standalone_weather_forecast.md. */
+/* Standalone selected T21 forecast composition, revision 19.
  * Own entry, configuration, contexts, loading, output and release are assembly.
  * External file, transform, scalar-math and runtime services are declared.
- * This input checkpoint does not run a forecast. */
+ * The selected forecast is enabled only by MD2ASM_ENABLE_FORECAST.
+ * Initial informational timing output is omitted in this quiet executable. */
 .arch armv8.2-a
 .text
 
@@ -242,6 +243,13 @@ main:
  bl md2asm_initialize_dynamical_configuration
  add w23,w0,#57
  cbnz w0,.Lmain_cleanup
+ /* SUTIM clock observations use the existing owned FIAT clock producer. */
+ adrp x0,md2asm_owned_forecast_timers
+ add x0,x0,:lo12:md2asm_owned_forecast_timers
+ mov x1,#24
+ bl md2asm_initialize_forecast_timers
+ add w23,w0,#202
+ cbnz w0,.Lmain_cleanup
  /* Full vertical mathematics consumes the newly owned constants. */
  adrp x9,.Lphysical_constants
  add x9,x9,:lo12:.Lphysical_constants
@@ -275,6 +283,27 @@ main:
  cbnz w0,.Lmain_cleanup
  adrp x9,.Lgeometry_owner
  ldr x25,[x9,:lo12:.Lgeometry_owner]
+ bl .Lr19_bind_initial_aliases
+ add w23,w0,#188
+ cbnz w0,.Lmain_cleanup
+ /* SUCT1 consumes live input-format and platform controls after their producers. */
+ adrp x4,.Lschedule_upstream
+ add x4,x4,:lo12:.Lschedule_upstream
+ adrp x9,__yomarg_MOD_ngribfile
+ ldr w9,[x9,:lo12:__yomarg_MOD_ngribfile]
+ str w9,[x4]
+ adrp x9,__yomct0_MOD_larpegef
+ ldr w9,[x9,:lo12:__yomct0_MOD_larpegef]
+ str w9,[x4,#4]
+ adrp x0,.Lnamelist_text
+ add x0,x0,:lo12:.Lnamelist_text
+ mov x1,x27
+ adrp x2,md2asm_owned_forecast_schedule_switches
+ add x2,x2,:lo12:md2asm_owned_forecast_schedule_switches
+ mov x3,#64
+ bl md2asm_initialize_forecast_schedule_switches
+ add w23,w0,#212
+ cbnz w0,.Lmain_cleanup
  /* The returned sidecar owns live transform controls and atmosphere tables. */
  add x0,x25,#880
  mov x1,#4
@@ -371,6 +400,9 @@ md2asm_owned_loop_data_ready:
  adrp x0,.Lphysics_status_su0phy
  add x0,x0,:lo12:.Lphysics_status_su0phy
  bl .Lcapture_physics_status
+ bl .Lr19_initialize_inactive_startup
+ add w23,w0,#190
+ cbnz w0,.Lmain_cleanup
  /* Source SUDIMF1 consumes the final live records before SUGFL. */
  adrp x0,.Lnamelist_text
  add x0,x0,:lo12:.Lnamelist_text
@@ -451,6 +483,366 @@ md2asm_owned_loop_data_ready:
  adrp x9,.Lnamespace_status
  add x9,x9,:lo12:.Lnamespace_status
  str w10,[x9,#16]
+ /* Original SL declarations precede all interpolation consumers. */
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_initialize_interpolation_record_defaults
+ add w23,w0,#66
+ cbnz w0,.Lmain_cleanup
+ /* Source SUNDDH controls precede complete SUALDYN_DDH storage. */
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ adrp x2,.Lnamelist_text
+ add x2,x2,:lo12:.Lnamelist_text
+ mov x3,x27
+ bl md2asm_initialize_dynamical_diagnostic_controls
+ add w23,w0,#184
+ cbnz w0,.Lmain_cleanup
+ /* These four controls come from the live owned SUCT0 record. */
+ adrp x9,.Lforecast_controls
+ add x9,x9,:lo12:.Lforecast_controls
+ adrp x12,.Linterpolation_platform
+ add x12,x12,:lo12:.Linterpolation_platform
+ mov x10,#35104
+ ldr w11,[x9,x10]
+ str w11,[x12,#0]
+ mov x10,#39520
+ ldr w11,[x9,x10]
+ str w11,[x12,#4]
+ mov x10,#39504
+ ldr w11,[x9,x10]
+ str w11,[x12,#8]
+ mov x10,#39500
+ ldr w11,[x9,x10]
+ str w11,[x12,#12]
+ /* Source SUDYN defaults precede its interpolation consumers. */
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ adrp x2,.Linterpolation_platform
+ add x2,x2,:lo12:.Linterpolation_platform
+ bl md2asm_initialize_forecast_dynamics_defaults
+ add w23,w0,#214
+ cbnz w0,.Lmain_cleanup
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ adrp x2,.Lnamelist_text
+ add x2,x2,:lo12:.Lnamelist_text
+ mov x3,x27
+ adrp x4,.Linterpolation_platform
+ add x4,x4,:lo12:.Linterpolation_platform
+ bl md2asm_initialize_selected_interpolation_controls
+ add w23,w0,#68
+ cbnz w0,.Lmain_cleanup
+ /* Use live physical constants from their accepted owned namespaces. */
+ adrp x4,.Lspectral_diffusion_constants
+ add x4,x4,:lo12:.Lspectral_diffusion_constants
+ adrp x9,__yomcst_MOD_rhour
+ ldr x10,[x9,:lo12:__yomcst_MOD_rhour]
+ str x10,[x4]
+ adrp x9,__yomvert_MOD_vp00
+ ldr x10,[x9,:lo12:__yomvert_MOD_vp00]
+ str x10,[x4,#8]
+ adrp x9,__yomdyncore_MOD_rplradi
+ ldr x10,[x9,:lo12:__yomdyncore_MOD_rplradi]
+ str x10,[x4,#16]
+ /* Source diffusion controls precede vertical smoothness selection. */
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ adrp x4,.Lspectral_diffusion_constants
+ add x4,x4,:lo12:.Lspectral_diffusion_constants
+ mov x5,#24
+ bl md2asm_initialize_spectral_diffusion_controls
+ add w23,w0,#202
+ cbnz w0,.Lmain_cleanup
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ adrp x2,.Linterpolation_platform
+ add x2,x2,:lo12:.Linterpolation_platform
+ bl md2asm_initialize_coriolis_controls
+ add w23,w0,#198
+ cbnz w0,.Lmain_cleanup
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_initialize_vertical_smoothness_controls
+ add w23,w0,#200
+ cbnz w0,.Lmain_cleanup
+ /* Source SUDYN derives field interpolation selectors before transport. */
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ adrp x2,.Linterpolation_platform
+ add x2,x2,:lo12:.Linterpolation_platform
+ bl md2asm_initialize_field_interpolation_controls
+ add w23,w0,#196
+ cbnz w0,.Lmain_cleanup
+ /* Source SUDYN departure controls use the live interpolation choices. */
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ adrp x2,.Linterpolation_platform
+ add x2,x2,:lo12:.Linterpolation_platform
+ bl md2asm_initialize_departure_point_controls
+ add w23,w0,#188
+ cbnz w0,.Lmain_cleanup
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ mov x9,#5224
+ add x2,x20,x9
+ mov x3,#4
+ bl md2asm_initialize_selected_sl_velocity_controls
+ add w23,w0,#70
+ cbnz w0,.Lmain_cleanup
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_initialize_internal_interpolation_indices
+ add w23,w0,#72
+ cbnz w0,.Lmain_cleanup
+ /* Source SUDYN derives time-uncentering controls before their consumers. */
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ adrp x4,.Linterpolation_platform
+ add x4,x4,:lo12:.Linterpolation_platform
+ bl md2asm_initialize_semi_implicit_uncentering
+ add w23,w0,#246
+ cbnz w0,.Lmain_cleanup
+ /* Source SUDYN, SUALDYN and SUSI own the complete reference atmosphere. */
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ adrp x4,.Linterpolation_platform
+ add x4,x4,:lo12:.Linterpolation_platform
+ adrp x5,__yomcst_MOD_rd
+ add x5,x5,:lo12:__yomcst_MOD_rd
+ adrp x6,__yomct0_MOD_lelam
+ add x6,x6,:lo12:__yomct0_MOD_lelam
+ bl md2asm_initialize_reference_atmosphere_controls
+ add w23,w0,#228
+ cbnz w0,.Lmain_cleanup
+ /* Source SUDYN and SURCORDI own the reference-temperature correction. */
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ adrp x2,.Linterpolation_platform
+ add x2,x2,:lo12:.Linterpolation_platform
+ bl md2asm_initialize_temperature_correction_controls
+ add w23,w0,#238
+ cbnz w0,.Lmain_cleanup
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ bl md2asm_allocate_reference_pressure_coefficients
+ add w23,w0,#230
+ cbnz w0,.Lmain_cleanup
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ bl md2asm_allocate_semi_implicit_mode_storage
+ add w23,w0,#232
+ cbnz w0,.Lmain_cleanup
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ bl md2asm_allocate_reference_temperature_correction
+ add w23,w0,#240
+ cbnz w0,.Lmain_cleanup
+ /* Source SITRAM precedes the semi-implicit mode calculation. */
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ bl md2asm_initialize_acoustic_reference_temperature
+ add w23,w0,#210
+ cbnz w0,.Lmain_cleanup
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ adrp x4,__yomcst_MOD_rd
+ add x4,x4,:lo12:__yomcst_MOD_rd
+ bl md2asm_initialize_reference_pressure_coefficients
+ add w23,w0,#234
+ cbnz w0,.Lmain_cleanup
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ bl md2asm_initialize_semi_implicit_modes
+ add w23,w0,#236
+ cbnz w0,.Lmain_cleanup
+ adrp x9,.Ltemperature_correction_constants
+ add x9,x9,:lo12:.Ltemperature_correction_constants
+ adrp x10,__yomcst_MOD_rd
+ ldr x11,[x10,:lo12:__yomcst_MOD_rd]
+ str x11,[x9,#0]
+ adrp x10,__yomcst_MOD_rg
+ ldr x11,[x10,:lo12:__yomcst_MOD_rg]
+ str x11,[x9,#8]
+ adrp x10,__yomvert_MOD_vp00
+ ldr x11,[x10,:lo12:__yomvert_MOD_vp00]
+ str x11,[x9,#16]
+ adrp x10,__yomsta_MOD_rdtdz1
+ ldr x11,[x10,:lo12:__yomsta_MOD_rdtdz1]
+ str x11,[x9,#24]
+ adrp x10,__yomsta_MOD_rtsur
+ ldr x11,[x10,:lo12:__yomsta_MOD_rtsur]
+ str x11,[x9,#32]
+ adrp x10,__yomsta_MOD_rttrop
+ ldr x11,[x10,:lo12:__yomsta_MOD_rttrop]
+ str x11,[x9,#40]
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ adrp x4,.Ltemperature_correction_constants
+ add x4,x4,:lo12:.Ltemperature_correction_constants
+ mov x5,#48
+ bl md2asm_initialize_reference_temperature_correction
+ add w23,w0,#242
+ cbnz w0,.Lmain_cleanup
+ /* Original SUDYN order retains departures, stable levels and tendencies. */
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ bl md2asm_allocate_saved_departure_points
+ add w23,w0,#216
+ cbnz w0,.Lmain_cleanup
+ /* Source SUALDYNB retains both declared diffusion argument owners. */
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ bl md2asm_allocate_diffusion_argument_storage
+ add w23,w0,#226
+ cbnz w0,.Lmain_cleanup
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ adrp x4,.Linterpolation_platform
+ add x4,x4,:lo12:.Linterpolation_platform
+ bl md2asm_initialize_stable_level_configuration
+ add w23,w0,#218
+ cbnz w0,.Lmain_cleanup
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ bl md2asm_initialize_lagged_tendency_configuration
+ add w23,w0,#220
+ cbnz w0,.Lmain_cleanup
+ /* SUSC2B calls SUSLB before its halo arithmetic and SLCSET. */
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ mov x9,#5224
+ add x2,x20,x9
+ mov x3,#4
+ bl md2asm_initialize_selected_sl_buffer_maps
+ add w23,w0,#74
+ cbnz w0,.Lmain_cleanup
+ /* Owned SUMP0 controls and complete spherical SUSC2B halo arithmetic. */
+ adrp x0,.Lspherical_halo_controls
+ add x0,x0,:lo12:.Lspherical_halo_controls
+ mov x1,#8
+ adrp x2,__yomct0_MOD_lelam
+ add x2,x2,:lo12:__yomct0_MOD_lelam
+ bl md2asm_initialize_selected_spherical_halo_controls
+ add w23,w0,#78
+ cbnz w0,.Lmain_cleanup
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ adrp x4,__yomcst_MOD_ra
+ add x4,x4,:lo12:__yomcst_MOD_ra
+ adrp x5,__yomcst_MOD_rpi
+ add x5,x5,:lo12:__yomcst_MOD_rpi
+ adrp x6,.Lspherical_halo_controls
+ add x6,x6,:lo12:.Lspherical_halo_controls
+ mov x7,#8
+ bl md2asm_initialize_spherical_interpolation_halo
+ add w23,w0,#80
+ cbnz w0,.Lmain_cleanup
+ /* Public transform outputs and source-named scalar defaults feed SLCSET. */
+ adrp x0,.Lserial_interpolation_controls
+ add x0,x0,:lo12:.Lserial_interpolation_controls
+ mov x1,#32
+ add x2,x25,#880
+ mov x3,#304
+ adrp x4,__yomct0_MOD_lelam
+ add x4,x4,:lo12:__yomct0_MOD_lelam
+ adrp x5,__yomct0_MOD_nconf
+ add x5,x5,:lo12:__yomct0_MOD_nconf
+ bl md2asm_initialize_serial_interpolation_controls
+ add w23,w0,#82
+ cbnz w0,.Lmain_cleanup
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ adrp x4,.Lserial_interpolation_controls
+ add x4,x4,:lo12:.Lserial_interpolation_controls
+ mov x5,#32
+ bl md2asm_initialize_serial_interpolation_buffer
+ add w23,w0,#84
+ cbnz w0,.Lmain_cleanup
+ /* SUSC2B saves physics tendencies after its serial interpolation storage. */
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ bl md2asm_allocate_saved_physics_tendencies
+ add w23,w0,#222
+ cbnz w0,.Lmain_cleanup
+ /* SUNDDH derives the consumed diagnostic layout from live model controls. */
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_initialize_semi_implicit_tendency_layout
+ add w23,w0,#224
+ cbnz w0,.Lmain_cleanup
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ bl md2asm_allocate_dynamical_diagnostic_storage
+ add w23,w0,#186
+ cbnz w0,.Lmain_cleanup
  /* Complete source-ordered SUPHMF over the final live MODEL records. */
  adrp x9,.Lforecast_controls
  add x9,x9,:lo12:.Lforecast_controls
@@ -602,6 +994,9 @@ md2asm_owned_loop_data_ready:
 .global md2asm_owned_fullpos_data_ready_r18
 md2asm_owned_fullpos_data_ready_r18:
  nop
+ bl .Lr19_initialize_remaining_scalars
+ add w23,w0,#194
+ cbnz w0,.Lmain_cleanup
 #ifndef VERIFY_WHOLE_RADIATION
  adrp x0,.Lradiation_output_environment
  add x0,x0,:lo12:.Lradiation_output_environment
@@ -658,6 +1053,14 @@ md2asm_owned_fullpos_data_ready_r18:
  str x10,[x9,#48]
  owned_model_address x10,1564136
  str x10,[x9,#64]
+ /* Preserve the live NAMCT0 missing-field marker in all GMV maps. */
+ adrp x10,.Lforecast_controls
+ add x10,x10,:lo12:.Lforecast_controls
+ mov x11,#51076
+ ldr w12,[x10,x11]
+ adrp x10,.Lgmv_controls
+ add x10,x10,:lo12:.Lgmv_controls
+ str w12,[x10,#12]
  owned_fields_address x0,1856
  mov x1,#1560
  mov x2,x9
@@ -759,6 +1162,32 @@ md2asm_owned_fresh_forecast_ready_r18:
  bl md2asm_load_spectral_initial_state
  add w23,w0,#128
  cbnz w0,.Lmain_cleanup
+ /* SUSPEC completes original terrain before any grid-field placement. */
+ adrp x9,.Lorography_controls
+ add x9,x9,:lo12:.Lorography_controls
+ adrp x10,.Lforecast_controls
+ add x10,x10,:lo12:.Lforecast_controls
+ mov x11,#35288
+ ldr w11,[x10,x11]
+ str w11,[x9]
+ adrp x10,md2asm_owned_physics_runtime_data
+ add x10,x10,:lo12:md2asm_owned_physics_runtime_data
+ ldr w11,[x10]
+ str w11,[x9,#4]
+ ldr w11,[x25,#908]
+ str w11,[x9,#8]
+ ldr w11,[x25,#900]
+ str w11,[x9,#12]
+ mov x0,x20
+ mov x1,#17096
+ ldr x2,[x21]
+ add x2,x2,#4048
+ mov x3,#4048
+ mov x4,x9
+ mov x5,#16
+ bl md2asm_initialize_selected_orography
+ add w23,w0,#76
+ cbnz w0,.Lmain_cleanup
  /* Own the complete surface graph before opening any output. */
  ldr x0,[x19,#16]
  adrp x1,.Lphysical_constants
@@ -853,6 +1282,12 @@ md2asm_owned_fresh_forecast_ready_r18:
  adrp x0,.Ldiagnostic_norm_status
  add x0,x0,:lo12:.Ldiagnostic_norm_status
  bl .Lcapture_physics_status
+ bl .Lr19_complete_fresh_initialization
+ add w23,w0,#196
+ cbnz w0,.Lmain_cleanup
+.global md2asm_owned_post_csta_ready_r19
+md2asm_owned_post_csta_ready_r19:
+ nop
  /* Explicit first-working-call storage boundary from GP_MODEL. */
  adrp x9,.Lnext_time_shape
  add x9,x9,:lo12:.Lnext_time_shape
@@ -908,6 +1343,87 @@ md2asm_owned_fresh_forecast_ready_r18:
  adrp x0,.Lattachment_status
  add x0,x0,:lo12:.Lattachment_status
  bl .Lcapture_physics_status
+ /* Final live grid and GFL dimensions precede spectral diffusion owners. */
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ bl md2asm_allocate_spectral_diffusion_storage
+ add w23,w0,#206
+ cbnz w0,.Lmain_cleanup
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ adrp x4,.Lspectral_diffusion_constants
+ add x4,x4,:lo12:.Lspectral_diffusion_constants
+ mov x5,#24
+ bl md2asm_calculate_spectral_diffusion_coefficients
+ add w23,w0,#208
+ cbnz w0,.Lmain_cleanup
+ /* Source SUINTERPOLATOR constructs splines, vertical, then latitude coefficients. */
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ bl md2asm_initialize_vertical_spline_interpolation
+ add w23,w0,#194
+ cbnz w0,.Lmain_cleanup
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ bl md2asm_initialize_vertical_interpolation_coefficients
+ add w23,w0,#190
+ cbnz w0,.Lmain_cleanup
+ mov x0,x20
+ mov x1,#17096
+ owned_model_address x2,0
+ movz x3,#(4275088 & 65535)
+ movk x3,#(4275088 >> 16),lsl#16
+ adrp x4,__yomct0_MOD_lrplane
+ add x4,x4,:lo12:__yomct0_MOD_lrplane
+ bl md2asm_initialize_meridional_interpolation
+ add w23,w0,#192
+ cbnz w0,.Lmain_cleanup
+ .global md2asm_owned_forecast_ready_r19
+md2asm_owned_forecast_ready_r19:
+ nop
+#ifdef MD2ASM_ENABLE_FORECAST
+ .global md2asm_r19_norm_contexts_before
+md2asm_r19_norm_contexts_before:
+ bl .Lr19_attach_norm_contexts
+ add w23,w0,#204
+ cbnz w0,.Lmain_cleanup
+ .global md2asm_r19_norm_contexts_attached
+md2asm_r19_norm_contexts_attached:
+ nop
+ mov x0,x25
+ adrp x1,.Lforecast_controls
+ add x1,x1,:lo12:.Lforecast_controls
+ adrp x2,md2asm_owned_spectral_norm_state
+ add x2,x2,:lo12:md2asm_owned_spectral_norm_state
+ bl md2asm_attach_selected_owned_reporting_context
+ add w23,w0,#208
+ cbnz w0,.Lmain_cleanup
+ .global md2asm_r19_reporting_context_attached
+md2asm_r19_reporting_context_attached:
+ nop
+ mov x0,x20
+ owned_fields_address x1,0
+ adrp x2,md2asm_owned_empty_trajectory_state
+ add x2,x2,:lo12:md2asm_owned_empty_trajectory_state
+ owned_model_address x3,0
+ adrp x4,.Lfullpos_record
+ add x4,x4,:lo12:.Lfullpos_record
+ bl md2asm_enter_selected_forecast
+ add w23,w0,#198
+ cbnz w0,.Lmain_cleanup
+#endif
  ldr x0,[x19,#40]
  ldr x1,[x21,#88]
  mov x2,#0x8550
@@ -955,6 +1471,18 @@ md2asm_owned_fresh_forecast_ready_r18:
  cbnz w0,.Lmain_cleanup
  mov w23,wzr
  .Lmain_cleanup:
+ /* Drop reporting before the norm address or its contexts can be released. */
+ bl md2asm_detach_selected_owned_reporting_context
+ cbz w0,.Lr19_reporting_cleanup_done
+ cbnz w23,.Lr19_reporting_cleanup_done
+ add w23,w0,#210
+.Lr19_reporting_cleanup_done:
+ /* Drop borrowed diagnostic contexts before any fields/Geometry are released. */
+ bl .Lr19_detach_norm_contexts
+ cbz w0,.Lr19_norm_cleanup_done
+ cbnz w23,.Lr19_norm_cleanup_done
+ add w23,w0,#206
+.Lr19_norm_cleanup_done:
  adrp x9,.Lfullpos_live
  ldr w10,[x9,:lo12:.Lfullpos_live]
  cbz w10,.Lr18_fullpos_released
@@ -1026,11 +1554,66 @@ md2asm_owned_fresh_forecast_ready_r18:
  adrp x9,.Lmodel_owner
  ldr x9,[x9,:lo12:.Lmodel_owner]
  cbz x9,.Lmain_release_geometry
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_release_meridional_interpolation
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_release_vertical_interpolation_coefficients
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_release_vertical_spline_interpolation
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_release_spectral_diffusion_storage
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_release_dynamical_diagnostic_storage
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_release_acoustic_reference_temperature
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_release_reference_temperature_correction
+ /* Release mode owners before their source pressure coefficients. */
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_release_semi_implicit_mode_storage
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_release_reference_pressure_coefficients
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_release_diffusion_argument_storage
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_release_forecast_dynamic_storage
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_release_serial_interpolation_buffer
+ owned_model_address x0,0
+ movz x1,#(4275088 & 65535)
+ movk x1,#(4275088 >> 16),lsl#16
+ bl md2asm_release_selected_sl_buffer_maps
  owned_model_address x0,1578336
  mov x1,#264
  bl md2asm_release_cloud_parameter_eta
  .Lmain_release_geometry:
  cbz x25,.Lmain_release_old_vertical
+ mov x0,x20
+ bl md2asm_release_selected_orography
  mov x0,x25
  bl md2asm_release_owned_geometry
  mov x25,xzr
@@ -2176,7 +2759,11 @@ __yomlouis_MOD_yrlouis: .zero 8
 .section .rodata
 .p2align 3
 .Lgridpoint_controls: .word 24,19,86,8,2,0,0
+.data
+.p2align 3
 .Lgmv_controls: .word 1,1,0,-99999999,0,0
+.section .rodata
+.p2align 3
 .Lupper_padding_offsets: .word 2480704,2484352,2488000,2498944
 .Lfields_owner_offsets:
  .word 23936
@@ -2674,4 +3261,251 @@ __yoe_phys_mwave_MOD_n_phys_mwave: .zero 4
 .global md2asm_owned_fresh_forecast_table_r18
 .set md2asm_owned_fresh_forecast_table_r18,.Lfresh_forecast_table_r18
 .Lfresh_forecast_table_r18:.skip 64
+.section .note.GNU-stack,"",%progbits
+
+// Integer-only live joins for the R19 source-order contract.
+.text
+.macro R19_ENTER
+ sub sp,sp,#32
+ stp x18,x30,[sp]
+ str x29,[sp,#16]
+ mov x29,sp
+.endm
+.macro R19_LEAVE
+ ldr x29,[sp,#16]
+ ldp x18,x30,[sp]
+ add sp,sp,#32
+ ret
+.endm
+.macro R19_PAIR off,cap
+ movz x11,#(\cap & 65535)
+ movk x11,#(\cap >> 16),lsl#16
+ stp x10,x11,[x9,#\off]
+.endm
+.p2align 4
+.Lr19_bind_initial_aliases:
+ R19_ENTER
+ adrp x9,.Lr19_input_pairs
+ add x9,x9,:lo12:.Lr19_input_pairs
+ adrp x10,.Lheaders
+ add x10,x10,:lo12:.Lheaders
+ R19_PAIR 0,5232
+ mov x10,x20
+ R19_PAIR 16,20400
+ mov x10,x25
+ R19_PAIR 32,1872
+ adrp x10,.Lforecast_controls
+ add x10,x10,:lo12:.Lforecast_controls
+ R19_PAIR 48,51512
+ mov x0,x9
+ bl md2asm_bind_initial_input_data
+ R19_LEAVE
+.Lr19_initialize_inactive_startup:
+ R19_ENTER
+ adrp x9,.Lr19_inactive_pairs
+ add x9,x9,:lo12:.Lr19_inactive_pairs
+ adrp x10,.Lr19_nudging
+ add x10,x10,:lo12:.Lr19_nudging
+ R19_PAIR 0,1824
+ owned_model_address x10,1556120
+ R19_PAIR 16,7584
+ adrp x10,.Lr19_ng3nh95
+ add x10,x10,:lo12:.Lr19_ng3nh95
+ R19_PAIR 32,4
+ adrp x10,:got:__yomgrib_MOD_nbitsexpr
+ ldr x10,[x10,:got_lo12:__yomgrib_MOD_nbitsexpr]
+ R19_PAIR 48,4
+ owned_model_address x10,4218352
+ R19_PAIR 64,88
+ owned_model_address x10,1577888
+ R19_PAIR 80,448
+ adrp x10,.Lforecast_controls
+ add x10,x10,:lo12:.Lforecast_controls
+ mov x12,#35164
+ add x10,x10,x12
+ R19_PAIR 96,4
+ adrp x10,:got:__yomct0_MOD_lr2d
+ ldr x10,[x10,:got_lo12:__yomct0_MOD_lr2d]
+ R19_PAIR 112,4
+ mov x2,x9
+ adrp x0,.Lnamelist_text
+ add x0,x0,:lo12:.Lnamelist_text
+ mov x1,x27
+ bl md2asm_initialize_selected_inactive_startup_controls
+ R19_LEAVE
+.Lr19_initialize_remaining_scalars:
+ R19_ENTER
+ adrp x9,.Lr19_scalar_pairs
+ add x9,x9,:lo12:.Lr19_scalar_pairs
+ adrp x10,.Lforecast_controls
+ add x10,x10,:lo12:.Lforecast_controls
+ R19_PAIR 0,51512
+ adrp x10,md2asm_owned_loop_data
+ add x10,x10,:lo12:md2asm_owned_loop_data
+ R19_PAIR 16,552
+ owned_model_address x10,1556120
+ R19_PAIR 32,7584
+ adrp x10,:got:__yommp0_MOD_nproc
+ ldr x10,[x10,:got_lo12:__yommp0_MOD_nproc]
+ R19_PAIR 48,4
+ adrp x10,md2asm_owned_forecast_scalar_data
+ add x10,x10,:lo12:md2asm_owned_forecast_scalar_data
+ R19_PAIR 64,112
+ mov x2,x9
+ adrp x0,.Lnamelist_text
+ add x0,x0,:lo12:.Lnamelist_text
+ mov x1,x27
+ bl md2asm_initialize_selected_forecast_scalar_data
+ R19_LEAVE
+.Lr19_complete_fresh_initialization:
+ R19_ENTER
+ adrp x9,.Lr19_post_csta_pairs
+ add x9,x9,:lo12:.Lr19_post_csta_pairs
+ mov x10,x20
+ R19_PAIR 0,17096
+ owned_model_address x10,8
+ R19_PAIR 16,1556112
+ owned_model_address x10,1564136
+ R19_PAIR 32,456
+ owned_fields_address x10,22736
+ R19_PAIR 48,2992
+ adrp x10,.Ldiagnostic_norm_controls
+ add x10,x10,:lo12:.Ldiagnostic_norm_controls
+ R19_PAIR 64,24
+ adrp x10,md2asm_owned_spectral_norm_state
+ add x10,x10,:lo12:md2asm_owned_spectral_norm_state
+ R19_PAIR 80,24
+ adrp x10,.Ldiagnostic_norm_results
+ add x10,x10,:lo12:.Ldiagnostic_norm_results
+ R19_PAIR 96,20928
+ adrp x10,.Lforecast_controls
+ add x10,x10,:lo12:.Lforecast_controls
+ R19_PAIR 112,51512
+ adrp x10,md2asm_owned_initialization_controls
+ add x10,x10,:lo12:md2asm_owned_initialization_controls
+ R19_PAIR 128,24
+ owned_model_address x10,1556120
+ R19_PAIR 144,7584
+ mov x0,x9
+ bl md2asm_complete_selected_fresh_initialization
+ R19_LEAVE
+.bss
+.p2align 3
+.global md2asm_owned_r19_input_pairs
+md2asm_owned_r19_input_pairs:
+.Lr19_input_pairs:.skip 64
+.global md2asm_owned_r19_inactive_pairs
+md2asm_owned_r19_inactive_pairs:
+.Lr19_inactive_pairs:.skip 128
+.global md2asm_owned_r19_scalar_pairs
+md2asm_owned_r19_scalar_pairs:
+.Lr19_scalar_pairs:.skip 80
+.global md2asm_owned_r19_post_csta_pairs
+md2asm_owned_r19_post_csta_pairs:
+.Lr19_post_csta_pairs:.skip 160
+.global md2asm_owned_r19_nudging
+md2asm_owned_r19_nudging:
+.Lr19_nudging:.skip 1824
+.Lr19_ng3nh95:.skip 4
+.section .note.GNU-stack,"",%progbits
+
+/* R19 entry-local norm context lifetime. Existing arithmetic stays unchanged. */
+.text
+.p2align 2
+.Lr19_attach_norm_contexts:
+ stp x18,x30,[sp,#-32]!
+ /* Grid controls borrow the corresponding actual initial-norm controls. */
+ adrp x0,.Ldiagnostic_norm_controls
+ add x0,x0,:lo12:.Ldiagnostic_norm_controls
+ adrp x9,.Lr19_grid_norm_controls
+ add x9,x9,:lo12:.Lr19_grid_norm_controls
+ ldp w10,w11,[x0]
+ stp w10,w11,[x9]
+ ldr w10,[x0,#16]
+ str w10,[x9,#8]
+ adrp x1,.Ldiagnostic_norm_results
+ add x1,x1,:lo12:.Ldiagnostic_norm_results
+ mov x2,#20928
+ bl md2asm_attach_spectral_norm_context
+ cbnz w0,.Lr19_norm_attach_return
+ adrp x0,.Lr19_grid_norm_controls
+ add x0,x0,:lo12:.Lr19_grid_norm_controls
+ adrp x1,.Lr19_grid_norm_results
+ add x1,x1,:lo12:.Lr19_grid_norm_results
+ mov x2,#264
+ bl md2asm_attach_gridpoint_norm_context
+ cbz w0,.Lr19_norm_attach_return
+ str w0,[sp,#16]
+ adrp x0,.Ldiagnostic_norm_results
+ add x0,x0,:lo12:.Ldiagnostic_norm_results
+ bl md2asm_detach_spectral_norm_context
+ ldr w0,[sp,#16]
+.Lr19_norm_attach_return:
+ ldp x18,x30,[sp],#32
+ ret
+.p2align 2
+.Lr19_detach_norm_contexts:
+ stp x18,x30,[sp,#-32]!
+ adrp x0,.Lr19_grid_norm_results
+ add x0,x0,:lo12:.Lr19_grid_norm_results
+ bl md2asm_detach_gridpoint_norm_context
+ str w0,[sp,#16]
+ adrp x0,.Ldiagnostic_norm_results
+ add x0,x0,:lo12:.Ldiagnostic_norm_results
+ bl md2asm_detach_spectral_norm_context
+ ldr w9,[sp,#16]
+ cmp w9,#0
+ csel w0,w9,w0,ne
+ ldp x18,x30,[sp],#32
+ ret
+.section .bss
+.p2align 3
+.Lr19_grid_norm_controls: .skip 12
+.p2align 3
+.Lr19_grid_norm_results: .skip 264
+/* Export only read-only observation addresses for the new lifetime check. */
+.global md2asm_r19_grid_norm_controls
+.type md2asm_r19_grid_norm_controls,%object
+.set md2asm_r19_grid_norm_controls,.Lr19_grid_norm_controls
+.size md2asm_r19_grid_norm_controls,12
+.global md2asm_r19_grid_norm_results
+.type md2asm_r19_grid_norm_results,%object
+.set md2asm_r19_grid_norm_results,.Lr19_grid_norm_results
+.size md2asm_r19_grid_norm_results,264
+.global md2asm_r19_spectral_norm_controls
+.type md2asm_r19_spectral_norm_controls,%object
+.set md2asm_r19_spectral_norm_controls,.Ldiagnostic_norm_controls
+.size md2asm_r19_spectral_norm_controls,24
+.global md2asm_r19_spectral_norm_results
+.type md2asm_r19_spectral_norm_results,%object
+.set md2asm_r19_spectral_norm_results,.Ldiagnostic_norm_results
+.size md2asm_r19_spectral_norm_results,20928
+
+.global md2asm_r19_fields_owner
+.type md2asm_r19_fields_owner,%object
+.set md2asm_r19_fields_owner,.Lfields_owner
+.size md2asm_r19_fields_owner,8
+
+
+.bss
+.p2align 3
+.Linterpolation_platform: .zero 16
+.Lorography_controls: .zero 16
+
+.bss
+.p2align 3
+.Lspherical_halo_controls: .zero 8
+.Lserial_interpolation_controls: .zero 32
+
+.data
+.p2align 3
+.Ltemperature_correction_constants: .zero 48
+
+.bss
+.p2align 3
+.Lspectral_diffusion_constants: .zero 24
+
+.bss
+.p2align 3
+.Lschedule_upstream: .zero 8
 .section .note.GNU-stack,"",%progbits

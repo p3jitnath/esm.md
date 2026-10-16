@@ -4,7 +4,7 @@ These direct assembly routines calculate atmospheric motion, heating, radiation 
 
 ## Coverage
 
-The table describes the audited coarse T21 global forecast. Its groups overlap and must not be added. The latest checkpoint adds six selected startup entries and complete selected output request preparation, scans and header metadata.
+The table describes the audited coarse T21 global forecast. Its groups overlap and must not be added. The selected original-file forecast now has complete assembly ownership, while the broader inventories include unselected branches and configurations.
 
 | Scope | Original bodies | Accepted assembly | Remaining |
 | --- | ---: | ---: | ---: |
@@ -16,15 +16,16 @@ There are 373 accepted original bodies overall, including VERDER outside the mai
 
 ## Verification
 
-The joint checkpoint uses one direct forecast time loop and 25 direct time updates. Its private update path writes each scheduled output once. Separate source and assembly forecasts start from the same binary inputs. Existing checks of unchanged children and completed numerical source-first/native stage pairs are reused. The 25 native update calls show completion; this gate does not compare raw state after every step.
+The autonomous entry runs one direct forecast time loop with 25 direct time updates and writes each scheduled output once. Its separate original OpenIFS reference is used only for verification. Existing accepted component checks are reused. Final state and every saved file match exactly. This gate does not compare raw state after every step.
 
 | Compared output | Complete scope | Differing bytes |
 | --- | ---: | ---: |
-| Final state | 685 buffer owners, 27,486,113 bytes | 0 |
+| Final state with matched unused inputs | 685 buffer owners, 27,486,113 bytes | 0 |
 | Saved forecast files | 10 files, 618,140 bytes | 0 |
-| Numerical status and step controls | 56 status bytes and 8 control bytes | 0 |
 
-A buffer owner is a complete retained array or record in model memory. The final-state gate compares its numerical bytes and checks the recorded array layout. It applies the existing rules for address metadata without changing numerical values. The source archive fixes unused incoming storage before the first calculation. Both sea-ice albedo tables retain their 576 initialized bytes and bind their 768 unused bytes. The solar-fraction table retains 48 initialized bytes and binds 64 unused bytes. Each of the two terrain tables retains 16,384 initialized bytes and binds its 128-byte final-block tail. Four spherical-geometry tables each retain 16,384 initialized bytes and bind a 128-byte final-block tail. Source allocation and consumer bounds establish that these tails are unused. Complete before and after packets are retained, and every final byte remains compared. The status gate checks floating-point controls, exception flags and the system error value. The assembly also preserves the registers required by its application binary interface, or ABI. The original source's documented use of register x18 remains a separate source limit.
+A buffer owner is a complete retained array or record in model memory. The final-state gate compares its numerical bytes and checks its array layout. Existing rules describe address relationships without changing numerical values. A separate verification input revision matches 7,744 incoming bytes in source-unused table bands and final-block padding before the first forecast calculation. It preserves 2,368 earlier frozen bytes and assigns positive zero to 5,376 newly specified padding bytes. Complete before-and-after records confirm that the other 787,632 bytes in these twelve input owners remain unchanged. Every returned byte remains compared. The production forecast runs from original files without this verification initializer.
+
+Both runs naturally return floating-point control zero, floating-point status 25 and system error value zero, without resets. Incoming status and five inactive optional arguments remain different and visible. Model-state and saved-file identity therefore do not establish whole-process identity. The assembly preserves its Arm application binary interface, or ABI, with an observed violation mask of zero. The original source's documented use of register x18 remains a separate source limit.
 
 Two complete recorded call sets also pass exact replay. The cloud calculation matches all 2,150 calls across 561,408,000 complete buffer bytes. The lake calculation matches all 2,150 calls across 17,105,400 bytes. These checks include actual numerical status and the final partial block. They cover the original source calls through step 24 and retain raw unused storage. The [cloud contract](../../skills/md2asm/references/openifs/cloud_microphysics_contract.md) and [lake contract](../../skills/md2asm/references/openifs/surface/lake_temperature_profile.md) state their arithmetic and scientific limits.
 
@@ -44,24 +45,19 @@ The [numerical contracts](../../skills/md2asm/references/openifs/) define the su
 
 In a tested ice-formation call, the original lake update stores an average water temperature of 277.13 K, while its limited temperature profile can represent at most 276.334 K. The profile describes temperature changes with depth. The original lake equations remain unchanged. Complete forecast water and heat balances, whole-process byte identity and comparative forecast speed remain unverified.
 
-The executable still uses OpenIFS Fortran for model startup, remaining setup, typed metadata and retained reference forwards. The [direct power routine](../../skills/md2asm/references/openifs/support/power_original_rounding.md) now replaces the frozen C power helper and passes this same complete forecast gate. Other declared numerical and runtime boundaries remain. It is not an autonomous assembly forecast. Autonomous input loading, initialisation, complete calculation ownership and output remain a separate phase.
+## Autonomous Forecast
 
-The separate [standalone initial-state executable](../../skills/md2asm/references/openifs/input/owned_fullpos_initial_state.md) reads the original GRIB files and live configuration through assembly. It owns initial fields, complete selected physics setup, original radiation inputs, diagnostic flux state, spectral norms, trajectory storage and selected loop controls with four filter buffers. The complete physics comparison matches 34,471,264 captured bytes, and the ordinary assembly entry preserves all 2,748,656 accepted initial field bytes. Permitted file-format, transform, mathematical and runtime services remain explicit, with no original OpenIFS library or harness. The entry now also constructs the complete selected output state and prepares the fresh forecast, matching 545,748 defined output-state bytes. Final controller bindings and the full forecast loop remain to be connected and checked before an autonomous forecast.
+The [complete assembly entry](../../skills/md2asm/references/openifs/input/standalone_weather_forecast.md) owns loading, configuration, setup, storage, all selected OpenIFS forecast calculations, time updates and output. It constructs and releases its own model and field records. The selected T21 case starts on 15 October 2004 and advances 24 hours over 2,048 horizontal points and 19 atmospheric layers. Its production executable starts without `ifsMASTER`, `ifs-run`, `ifs_env`, original OpenIFS numerical bodies or verification wrappers.
 
-## Remaining OpenIFS Autonomy Work
+External public services remain explicit, including ecCodes, ECTRANS, Atlas, NetCDF, linear algebra, mathematical functions, profiling and required runtimes. Assembly owns their arguments and call order. The [transform bindings](../../skills/md2asm/references/openifs/dynamics/inverse_legendre_reconstruction.md) keep callbacks on the accepted arithmetic route. The [direct power routine](../../skills/md2asm/references/openifs/support/power_original_rounding.md) replaces the earlier original C helper.
 
-External libraries and their public interfaces may remain, including ecCodes, ECTRANS, ecRad, Atlas, FFT, BLAS, mathematical functions, FIAT and their required runtimes. Assembly must own the OpenIFS configuration, state, calculation sequence and original numerical bodies. Calling an original OpenIFS routine through a library remains an ownership gap.
+| Phase | Status |
+| --- | --- |
+| Autonomous selected forecast | Complete, with exact saved outputs, complete final-state comparison and the stated physical checks |
+| Full 24-hour optimisation | Not started |
+| Descriptive filename cleanup | Follows optimisation |
 
-| Area | Current state | Remaining work |
-| --- | --- | --- |
-| Initial files | Original GRIB loading, complete surface state and selected final-address initial records are verified from an assembly entry | Finish the remaining physics and working-state producers |
-| Vertical setup and Geometry | Complete selected coordinates, maps, transform interfaces and orography owners are connected | Complete remaining caller progression and output-coordinate attachment |
-| Model and fields | Final MODEL and FIELDS storage, 94 field owners, diagnostic flux and trajectory state are owned | Connect the remaining consumed configuration and working records |
-| Physics setup | Complete selected SUPHEC with radiation and surface setup matches 34,471,264 source bytes | Published and connected in the standalone entry |
-| Runtime and output | Direct loop, updates, metadata and writers pass the comparison forecast | Connect the complete owned state and remove remaining original forwards |
-| Complete acceptance | The autonomous forecast has not run | Require exact complete outputs and independent whole-forecast physical checks before optimisation |
-
-All 255 audited weather calculations are admitted. Remaining work lies in setup, ownership and complete forecast composition. Earlier bounded startup lists do not provide a current global count or an autonomy percentage. The separate 24-hour optimisation phase and filename cleanup have not started.
+All 255 audited weather calculations are accepted. The broader inventory counts include other model paths and do not give an autonomy percentage for this selected configuration.
 
 ## Input And Setup Components
 
