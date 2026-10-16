@@ -1,0 +1,28 @@
+# Upper Atmosphere Setup
+
+This batch implements the complete selected SUTOPH, SUNORGWD and SUCAPE setup routines, with their SEAPRE pressure-search child. SUTOPH sets pressure limits for later physical calculations. SUNORGWD configures gravity waves, which are air movements driven by buoyancy. SUCAPE sets controls for a later calculation of convective available potential energy, or CAPE, which describes the energy available for rising air. This setup does not calculate CAPE itself.
+
+The supported forecast has 19 layers, ECMWF mode and empty first uppercase NAMTOPH, NAMNORGWD and NAMCAPE groups. Its live controls are NBITER=2, LRRMES=false and LAGPHY=true. The parent also accepts iteration counts from one through 100 and either canonical LAGPHY value. LRRMES remains false, so the three unused drag-profile descriptors remain unchanged. Informational diagnostic printing is outside this raw numerical interface.
+
+The Arm application binary interface is `int md2asm_initialize_upper_atmosphere_setup(text, length, outputs, inputs)`, using x0 through x3. Outputs is a 48-byte table of address and byte-capacity pairs for TTOPH 496 bytes, TNORGWD 160 bytes and the owned CAPE record 32 bytes. The read-only input record has 72 bytes.
+
+| Input byte offset | Value | Required extent or value |
+| --- | --- | --- |
+| 0, 8 | STPRE pointer and capacity | 19 FP64 full-level pressures, 152 bytes |
+| 16, 24 | VALH pointer and capacity | 20 FP64 hybrid coefficients, 160 bytes |
+| 32, 40 | VBH pointer and capacity | 20 FP64 hybrid coefficients, 160 bytes |
+| 48, 52 | NFLEVG and NBITER | Int32 values 19 and one through 100 |
+| 56, 60, 64 | LRRMES, LAGPHY and LECMWF | Logical32 values zero, zero or one, and one |
+| 68 | Input padding | Four uninterpreted bytes |
+
+Pressures are positive, finite, nondecreasing and no greater than 200,000 Pa. Hybrid coefficients are dimensionless values between zero and one, including either signed zero. All complete records and arrays are mapped and eight-byte aligned, and their ranges must not wrap. Output records are mutually disjoint and disjoint from every input. Text contains one through 262,144 bytes. FPCR, the floating-point control register, must be zero. The parent checks every bound, control and all three empty groups before changing any output. It returns zero on success and two on an atomic refusal.
+
+SUTOPH retains all three profile descriptors and the alignment bytes. It sets the original scalar defaults, including pressure limits of 85,000 Pa and 95,000 Pa. SEAPRE scans from layer 19 down to one and retains the first layer whose pressure is at least the requested limit. An exact tie qualifies. If no layer qualifies, the result remains 19. The live grid gives pressure indices 15 and 17.
+
+SUNORGWD retains all source constants and pressure-index conventions. It searches strictly above 80,000 Pa, 20,000 Pa and 10,000 Pa in descending layer order. Only the launch and tropopause indices then subtract the found index from 19. The live grid gives 4, 11 and 5. The source maximum rainfall rate is the default-precision expression `20./24./3600.` in kg m−2 s−1. That expression and other unsuffixed literals first round in FP32 before conversion to stored FP64. The emitted assembly stores those exact rounded bits and performs no reduced-precision arithmetic at runtime. Its wave-life time scale is 86,400 s.
+
+SUCAPE copies the live NBITER, sets NETAPES to one, GCAPERET to zero and GCAPEPSD to 0.7. For each layer, it adds VALH(j) to VBH(j), adds VALH(j−1), adds VBH(j−1), then multiplies by 0.5, retaining every FP64 rounding point. The last layer at or below 0.7 supplies NCAPEPSD. The source leaves that index unchanged if no layer qualifies. The live grid gives NCAPEPSD=13. The owned record contains three int32 values at offsets zero, four and eight, four retained padding bytes, and the two FP64 values at offsets 16 and 24. Five original module names can bind to this separately owned namespace without an original module dependency.
+
+The raw children are `md2asm_initialize_top_physics_parameters_raw(TTOPH, STPRE, level_pointer)`, `md2asm_initialize_nonorographic_wave_parameters_raw(TNORGWD, STPRE, levels)` and `md2asm_initialize_convective_energy_controls_raw(CAPE, VALH, VBH, levels, iterations)`. Callers must satisfy the checked parent contract. `md2asm_search_pressure_parameter_level(target, index, STPRE, level_pointer)` retains the original SEAPRE pointer ABI, including its `seapre_` alias. The parent uses 336 stack bytes and its largest owned nested path uses 400 bytes through SUTOPH and the leaf search. The code preserves x18, Arm saved registers, errno, FPCR and natural FPSR, with sixteen-byte stack alignment. No heap allocation, numerical library, original callable, type table or prepared state packet supplies production.
+
+Three complete genuine source cases compare all 2,064 returned bytes with zero differences. They cover the live grid, pressure and coefficient ties, and no crossing. Thirty-nine independent pressure-index and physical-parameter relations pass, using sufficient decimal precision to retain the exact stored threshold ties. Native ABI masks are zero and natural FPCR and FPSR match. Original diagnostic errno changes and source x18 use remain explicit service differences. Seven atomic refusals and two protected ranges pass. A static assembly entry writes all 688 exact bytes and verifies the five owned aliases, with no undefined symbols or dynamic dependencies. The independent source and ABI review passes without rerunning the gate. Enclosing MODEL integration and a complete autonomous forecast remain separate work.
