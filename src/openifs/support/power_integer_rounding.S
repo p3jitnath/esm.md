@@ -2,7 +2,7 @@
 // Contract: skills/md2asm/references/openifs/support/power_original_rounding.md.
 // ABI: d0,d1,d2 operands; d0 result; finite inputs; FPCR=0.
 // Generic arrays use scale 2^-2148 inside the unchanged 1728-byte frame.
-// The compact leaf call uses a separate 16-byte saved-LR frame.
+// Each compact or wide leaf call uses a separate 16-byte saved-LR frame.
 // Preserve x18, x19-x29 and d8-d15, with sixteen-byte stack alignment.
 .arch armv8-a
 .text
@@ -14,10 +14,22 @@ md2asm_round_product_sum_candidate:
  stp x29,x30,[sp,#-16]!
  bl md2asm_try_compact_product_sum
  ldp x29,x30,[sp],#16
- cbnz w0,.Lcandidate_generic_product_sum
+ cbnz w0,.Lcandidate_try_wide_product_sum
  // A compact success belongs to the original fast operand class.
  adrp x6,:got:md2asm_product_sum_fast_calls
  ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+ ldr x7,[x6]
+ add x7,x7,#1
+ str x7,[x6]
+ ret
+.Lcandidate_try_wide_product_sum:
+ // A wide success belongs to the original wide diagnostic class.
+ stp x29,x30,[sp,#-16]!
+ bl md2asm_try_wide_product_sum
+ ldp x29,x30,[sp],#16
+ cbnz w0,.Lcandidate_generic_product_sum
+ adrp x6,:got:md2asm_product_sum_wide_calls
+ ldr x6,[x6,:got_lo12:md2asm_product_sum_wide_calls]
  ldr x7,[x6]
  add x7,x7,#1
  str x7,[x6]

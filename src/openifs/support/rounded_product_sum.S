@@ -4,10 +4,10 @@
  * Mathematical result is RN(a*b+c), including original Arm exception status.
  * This has fused-result semantics. It must not replace the weather solver's
  * separately rounded multiplication and addition.
- * Direct AArch64 integer arithmetic uses the compact child or general body.
+ * Direct AArch64 integer arithmetic uses compact/wide children or the general body.
  * Inputs use d0,d1,d2, result uses d0. All finite operands require FPCR zero.
  * Preserve x18, x19..x29, d8..d15, SP, FPCR and errno.
- * Generic frame is 1712 bytes; the compact call uses a separate 16-byte frame.
+ * Generic frame is 1712 bytes; each child call uses a separate 16-byte frame.
  */
 .text
 .p2align 4
@@ -31,6 +31,12 @@ md2asm_round_product_sum_direct:
     // Keep the original domain refusal ahead of the compact leaf.
     stp x29, x30, [sp, #-16]!
     bl md2asm_try_compact_product_sum
+    ldp x29, x30, [sp], #16
+    cbnz w0, .Lproduct_try_wide
+    ret
+.Lproduct_try_wide:
+    stp x29, x30, [sp, #-16]!
+    bl md2asm_try_wide_product_sum
     ldp x29, x30, [sp], #16
     cbnz w0, .Lproduct_compact_fallback
     ret
