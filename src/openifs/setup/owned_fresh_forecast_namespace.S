@@ -1,0 +1,34 @@
+// Contract: skills/md2asm/references/openifs/setup/fresh_forecast_continuation.md.
+.arch armv8.2-a
+.bss
+.p2align 4
+.global md2asm_owned_io_control_fields
+.type md2asm_owned_io_control_fields,%object
+.size md2asm_owned_io_control_fields,248
+md2asm_owned_io_control_fields:.zero 248
+.global __yomios_MOD_cfrcf
+.type __yomios_MOD_cfrcf,%object
+.set __yomios_MOD_cfrcf,md2asm_owned_io_control_fields
+.size __yomios_MOD_cfrcf,120
+.global __yomios_MOD_ciosprf
+.type __yomios_MOD_ciosprf,%object
+.set __yomios_MOD_ciosprf,md2asm_owned_io_control_fields+120
+.size __yomios_MOD_ciosprf,120
+.global __yomios_MOD_lrcftime
+.type __yomios_MOD_lrcftime,%object
+.set __yomios_MOD_lrcftime,md2asm_owned_io_control_fields+240
+.size __yomios_MOD_lrcftime,4
+.p2align 4
+.global md2asm_owned_fresh_forecast_state
+.type md2asm_owned_fresh_forecast_state,%object
+.size md2asm_owned_fresh_forecast_state,128
+md2asm_owned_fresh_forecast_state:.zero 128
+.global __yomlcz_MOD_gpforcesp
+.type __yomlcz_MOD_gpforcesp,%object
+.set __yomlcz_MOD_gpforcesp,md2asm_owned_fresh_forecast_state
+.size __yomlcz_MOD_gpforcesp,112
+.global __gfl_subs_mod_MOD_l_cld_deact
+.type __gfl_subs_mod_MOD_l_cld_deact,%object
+.set __gfl_subs_mod_MOD_l_cld_deact,md2asm_owned_fresh_forecast_state+120
+.size __gfl_subs_mod_MOD_l_cld_deact,4
+.section .note.GNU-stack,"",%progbits

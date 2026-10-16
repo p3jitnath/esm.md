@@ -1,5 +1,5 @@
-/* Contract: skills/md2asm/references/openifs/input/owned_loop_initial_state.md. */
-/* Standalone selected T21 initial-state composition, revision 17.
+/* Contract: skills/md2asm/references/openifs/input/owned_fullpos_initial_state.md. */
+/* Standalone selected T21 initial-state composition, revision 18.
  * Own entry, configuration, contexts, loading, output and release are assembly.
  * External file, transform, scalar-math and runtime services are declared.
  * This input checkpoint does not run a forecast. */
@@ -191,6 +191,9 @@ main:
  mov x4,#51512
  bl md2asm_initialize_selected_forecast_controls
  add w23,w0,#58
+ cbnz w0,.Lmain_cleanup
+ bl .Lprepare_early_fullpos_file_metadata
+ add w23,w0,#182
  cbnz w0,.Lmain_cleanup
  adrp x9,.Lforecast_controls
  add x9,x9,:lo12:.Lforecast_controls
@@ -588,6 +591,17 @@ md2asm_owned_loop_data_ready:
  str x11,[x10,#8]
  ldr x11,[x9,#160]
  str x11,[x10,#16]
+ mov x0,x20
+ mov x1,x25
+ adrp x2,.Lnamelist_text
+ add x2,x2,:lo12:.Lnamelist_text
+ mov x3,x27
+ bl .Linitialize_fullpos_startup
+ add w23,w0,#184
+ cbnz w0,.Lmain_cleanup
+.global md2asm_owned_fullpos_data_ready_r18
+md2asm_owned_fullpos_data_ready_r18:
+ nop
 #ifndef VERIFY_WHOLE_RADIATION
  adrp x0,.Lradiation_output_environment
  add x0,x0,:lo12:.Lradiation_output_environment
@@ -730,6 +744,12 @@ md2asm_owned_loop_data_ready:
  adrp x0,.Ldiagnostic_flux_status
  add x0,x0,:lo12:.Ldiagnostic_flux_status
  bl .Lcapture_physics_status
+ bl .Lprepare_r18_fresh_forecast
+ add w23,w0,#186
+ cbnz w0,.Lmain_cleanup
+.global md2asm_owned_fresh_forecast_ready_r18
+md2asm_owned_fresh_forecast_ready_r18:
+ nop
  ldr x0,[x19,#8]
  mov x1,x20
  mov x2,x22
@@ -934,7 +954,22 @@ md2asm_owned_loop_data_ready:
  add w23,w0,#76
  cbnz w0,.Lmain_cleanup
  mov w23,wzr
-.Lmain_cleanup:
+ .Lmain_cleanup:
+ adrp x9,.Lfullpos_live
+ ldr w10,[x9,:lo12:.Lfullpos_live]
+ cbz w10,.Lr18_fullpos_released
+ str wzr,[x9,:lo12:.Lfullpos_live]
+ adrp x0,.Lfullpos_record
+ add x0,x0,:lo12:.Lfullpos_record
+ movz x1,#45072
+ movk x1,#7,lsl#16
+ adrp x9,.Lgeometry_owner
+ ldr x2,[x9,:lo12:.Lgeometry_owner]
+ add x2,x2,#8
+ mov x3,#872
+ bl md2asm_release_selected_fullpos
+.Lr18_fullpos_released:
+ bl md2asm_release_selected_fresh_forecast
  bl md2asm_release_selected_loop_data
  owned_model_address x0,0
  adrp x1,.Lsuphec_context
@@ -2317,9 +2352,326 @@ __yoe_phys_mwave_MOD_n_phys_mwave: .zero 4
 .Lsuphec_surface_result:.skip 16
 .section .note.GNU-stack,"",%progbits
 
-// This alias shares the actual SU0PHY-owned LOCEDELAY word.
-#include "forecast_shared_control_alias.inc.S"
+// R18 shares the actual SU0PHY-to-SUFPC namespace through output_runtime_bindings.S.
 .bss
 .p2align 3
 .Lloop_data_inputs:.skip 96
+.section .note.GNU-stack,"",%progbits
+
+/* R18 named-source metadata and accepted Fullpos composition. */
+.text
+.Lprepare_early_fullpos_file_metadata:
+ stp x29,x30,[sp,#-64]!
+ stp x18,x19,[sp,#16]
+ stp x20,x21,[sp,#32]
+ mov x29,sp
+ adrp x19,.Lforecast_controls
+ add x19,x19,:lo12:.Lforecast_controls
+ adrp x20,.Lfullpos_sufa_controls
+ add x20,x20,:lo12:.Lfullpos_sufa_controls
+ stp xzr,xzr,[x20]
+ stp xzr,xzr,[x20,#16]
+ stp xzr,xzr,[x20,#32]
+ mov x9,#35104
+ ldr w10,[x19,x9]
+ str w10,[x20,#20]
+ mov x9,#39520
+ ldr w10,[x19,x9]
+ str w10,[x20,#36]
+ mov x9,#35184
+ ldr w10,[x19,x9]
+ str w10,[x20,#12]
+ adrp x9,.Lforecast_upstream
+ add x9,x9,:lo12:.Lforecast_upstream
+ ldr w10,[x9,#12]
+ str w10,[x20,#32]
+ mov w10,#8
+ str w10,[x20,#40]
+ adrp x0,.Lnamelist_text
+ add x0,x0,:lo12:.Lnamelist_text
+ mov x1,x27
+ mov x2,x20
+ adrp x3,md2asm_owned_fullpos_file_metadata_namespace
+ add x3,x3,:lo12:md2asm_owned_fullpos_file_metadata_namespace
+ mov x4,#4512
+ bl md2asm_initialize_selected_fullpos_file_metadata
+ ldp x20,x21,[sp,#32]
+ ldp x18,x19,[sp,#16]
+ ldp x29,x30,[sp],#64
+ ret
+
+/* x0 Geometry,x1 sidecar,x2 text,x3 bytes. All are live earlier owned records. */
+.Linitialize_fullpos_startup:
+ stp x29,x30,[sp,#-96]!
+ stp x18,x19,[sp,#16]
+ stp x20,x21,[sp,#32]
+ stp x22,x23,[sp,#48]
+ stp x24,x25,[sp,#64]
+ mov x29,sp
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ mov x22,x3
+ adrp x23,.Lfullpos_inputs
+ add x23,x23,:lo12:.Lfullpos_inputs
+ adrp x24,.Lforecast_controls
+ add x24,x24,:lo12:.Lforecast_controls
+ adrp x2,.Lfullpos_output_upstream
+ add x2,x2,:lo12:.Lfullpos_output_upstream
+ mov x9,#35104
+ ldr w10,[x24,x9]
+ str w10,[x2]
+ mov x9,#39520
+ ldr w10,[x24,x9]
+ str w10,[x2,#4]
+ mov x0,x21
+ mov x1,x22
+ adrp x3,md2asm_owned_output_metadata
+ add x3,x3,:lo12:md2asm_owned_output_metadata
+ mov x4,#112
+ bl md2asm_initialize_selected_output_metadata
+ ldr x18,[sp,#16]
+ cbnz w0,.Lfullpos_startup_return
+ mov x0,x21
+ mov x1,x22
+ adr x2,.Lfullpos_NAMOPH
+ mov x3,#6
+ bl md2asm_require_empty_physics_group
+ cbnz w0,.Lfullpos_startup_return
+ mov x0,x21
+ mov x1,x22
+ adr x2,.Lfullpos_NAMVAR
+ mov x3,#6
+ bl md2asm_require_empty_physics_group
+ cbnz w0,.Lfullpos_startup_return
+ // SUOPH0 character defaults, including the complete256-character path view.
+ mov x0,x23
+ mov x1,#632
+ mov w2,#32
+ bl .Lfullpos_fill
+ mov x9,#34596
+ add x1,x24,x9
+ mov x0,x23
+ mov x2,#16
+ bl .Lfullpos_copy
+ add x0,x23,#336
+ mov x9,#34596
+ add x1,x24,x9
+ mov x2,#16
+ bl .Lfullpos_copy
+ add x0,x23,#16
+ adr x1,.Lfullpos_prefixes
+ mov x2,#10
+ bl .Lfullpos_copy
+ mov w9,#0x2f2e
+ strh w9,[x23,#32]
+ add x0,x23,#352
+ adr x1,.Lfullpos_climate
+ mov x2,#11
+ bl .Lfullpos_copy
+ mov w9,#0x732e
+ movk w9,#0x7866,lsl#16
+ str w9,[x23,#608]
+ // Source selected output flags and unused bundle words precede every child.
+ add x9,x23,#288
+ stp xzr,xzr,[x9]
+ stp xzr,xzr,[x9,#16]
+ stp xzr,xzr,[x9,#32]
+ mov x10,#35104
+ ldr w11,[x24,x10]
+ str w11,[x9]
+ mov x10,#35600
+ ldr w11,[x24,x10]
+ str w11,[x9,#4]
+ mov x10,#35568
+ ldr w11,[x24,x10]
+ str w11,[x9,#32]
+ adrp x10,__yomoph0_MOD_ntimefmt
+ ldr w11,[x10,:lo12:__yomoph0_MOD_ntimefmt]
+ str w11,[x9,#40]
+ ldr w11,[x20,#24]
+ str w11,[x9,#44]
+ add x9,x23,#616
+ stp xzr,xzr,[x9]
+ mov x10,#35184
+ ldr w11,[x24,x10]
+ str w11,[x9,#4]
+ mov w11,#1
+ str w11,[x9,#8]
+ // Borrow source-produced scalar inputs instead of using captured values.
+ add x25,x23,#632
+ stp xzr,xzr,[x25]
+ stp xzr,xzr,[x25,#16]
+ stp xzr,xzr,[x25,#32]
+ adrp x9,md2asm_owned_fullpos_file_metadata_namespace
+ ldr w10,[x9,:lo12:md2asm_owned_fullpos_file_metadata_namespace]
+ str w10,[x25]
+ adrp x9,.Lforecast_upstream
+ add x9,x9,:lo12:.Lforecast_upstream
+ ldr w10,[x9,#12]
+ str w10,[x25,#4]
+ ldr w10,[x9,#8]
+ str w10,[x25,#8]
+ mov w10,#8
+ str w10,[x25,#12]
+ owned_model_address x9,1577368
+ ldr w10,[x9,#24]
+ str w10,[x25,#16]
+ adrp x9,.Lphysical_constants
+ ldr x10,[x9,:lo12:.Lphysical_constants]
+ str x10,[x25,#24]
+ ldr w10,[x20,#24]
+ str w10,[x25,#32]
+ ldr w10,[x20,#20]
+ str w10,[x25,#36]
+ // One unique namespace carries the actual SU0PHY-to-SUFPC handoff.
+ adrp x9,.Lraw_physics_16
+ add x9,x9,:lo12:.Lraw_physics_16
+ ldr w10,[x9,#16]
+ adrp x9,md2asm_owned_fullpos_runtime_controls
+ add x9,x9,:lo12:md2asm_owned_fullpos_runtime_controls
+ str w10,[x9,#20]
+ adrp x25,.Lfullpos_table
+ add x25,x25,:lo12:.Lfullpos_table
+ stp x21,x22,[x25]
+ mov x10,#20400
+ stp x19,x10,[x25,#16]
+ mov x10,#51112
+ stp x24,x10,[x25,#32]
+ mov x10,#336
+ stp x23,x10,[x25,#48]
+ add x9,x23,#336
+ mov x10,#296
+ stp x9,x10,[x25,#64]
+ add x9,x23,#632
+ mov x10,#48
+ stp x9,x10,[x25,#80]
+ owned_model_address x9,192
+ movz x10,#48416
+ movk x10,#20,lsl#16
+ stp x9,x10,[x25,#96]
+ owned_model_address x9,1588752
+ mov x10,#100
+ stp x9,x10,[x25,#112]
+ owned_model_address x9,1564136
+ mov x10,#456
+ stp x9,x10,[x25,#128]
+ owned_model_address x9,4231864
+ mov x10,#280
+ stp x9,x10,[x25,#144]
+ owned_model_address x9,1626696
+ mov x10,#392
+ stp x9,x10,[x25,#160]
+ add x9,x20,#8
+ mov x10,#872
+ stp x9,x10,[x25,#176]
+ adrp x9,.Lfullpos_record
+ add x9,x9,:lo12:.Lfullpos_record
+ movz x10,#45072
+ movk x10,#7,lsl#16
+ stp x9,x10,[x25,#192]
+ adrp x9,md2asm_owned_fullpos_runtime_controls
+ add x9,x9,:lo12:md2asm_owned_fullpos_runtime_controls
+ mov x10,#48
+ stp x9,x10,[x25,#208]
+ mov x0,x25
+ adrp x1,.Lfullpos_workspace
+ add x1,x1,:lo12:.Lfullpos_workspace
+ movz x2,#17728
+ movk x2,#12,lsl#16
+ bl md2asm_initialize_selected_fullpos
+ ldr x18,[sp,#16]
+ cbnz w0,.Lfullpos_startup_return
+ adrp x9,.Lfullpos_live
+ mov w10,#1
+ str w10,[x9,:lo12:.Lfullpos_live]
+.Lfullpos_startup_return:
+ ldp x24,x25,[sp,#64]
+ ldp x22,x23,[sp,#48]
+ ldp x20,x21,[sp,#32]
+ ldp x18,x19,[sp,#16]
+ ldp x29,x30,[sp],#96
+ ret
+.Lfullpos_fill:
+ cbz x1,.Lfullpos_fill_done
+.Lfullpos_fill_loop:
+ strb w2,[x0],#1
+ subs x1,x1,#1
+ b.ne .Lfullpos_fill_loop
+.Lfullpos_fill_done:ret
+.Lfullpos_copy:
+ cbz x2,.Lfullpos_copy_done
+.Lfullpos_copy_loop:
+ ldrb w9,[x1],#1
+ strb w9,[x0],#1
+ subs x2,x2,#1
+ b.ne .Lfullpos_copy_loop
+.Lfullpos_copy_done:ret
+.section .rodata
+.Lfullpos_prefixes:.ascii "ICMGGICMUA"
+.Lfullpos_climate:.ascii "const.clim."
+.Lfullpos_NAMOPH:.ascii "NAMOPH"
+.Lfullpos_NAMVAR:.ascii "NAMVAR"
+.bss
+.p2align 3
+.global md2asm_owned_fullpos_inputs_r18
+.set md2asm_owned_fullpos_inputs_r18,.Lfullpos_inputs
+.Lfullpos_inputs:.skip 680
+.Lfullpos_sufa_controls:.skip 48
+.Lfullpos_output_upstream:.skip 8
+.global md2asm_owned_fullpos_table_r18
+.set md2asm_owned_fullpos_table_r18,.Lfullpos_table
+.Lfullpos_table:.skip 224
+.global md2asm_owned_fullpos_record_r18
+.set md2asm_owned_fullpos_record_r18,.Lfullpos_record
+.Lfullpos_record:.skip 503824
+.Lfullpos_workspace:.skip 804160
+.Lfullpos_live:.skip 8
+.section .note.GNU-stack,"",%progbits
+.text
+.Lprepare_r18_fresh_forecast:
+ stp x29,x30,[sp,#-32]!
+ stp x19,x18,[sp,#16]
+ adrp x0,.Lnamelist_text
+ add x0,x0,:lo12:.Lnamelist_text
+ mov x1,x27
+ adrp x9,.Lforecast_controls
+ add x9,x9,:lo12:.Lforecast_controls
+ mov x10,#39520
+ ldr w2,[x9,x10]
+ adrp x3,md2asm_owned_io_control_fields
+ add x3,x3,:lo12:md2asm_owned_io_control_fields
+ mov x4,#248
+ bl md2asm_initialize_selected_io_controls
+ ldr x18,[sp,#24]
+ cbnz w0,.Lfresh_r18_return
+ adrp x19,.Lfresh_forecast_table_r18
+ add x19,x19,:lo12:.Lfresh_forecast_table_r18
+ owned_model_address x9,0
+ movz x10,#15248
+ movk x10,#65,lsl#16
+ stp x9,x10,[x19]
+ adrp x9,.Lclock_state
+ add x9,x9,:lo12:.Lclock_state
+ mov x10,#360
+ stp x9,x10,[x19,#16]
+ adrp x9,.Lforecast_controls
+ add x9,x9,:lo12:.Lforecast_controls
+ mov x10,#51512
+ stp x9,x10,[x19,#32]
+ adrp x9,md2asm_owned_io_control_fields
+ add x9,x9,:lo12:md2asm_owned_io_control_fields
+ mov x10,#248
+ stp x9,x10,[x19,#48]
+ mov x0,x19
+ bl md2asm_prepare_selected_fresh_forecast
+.Lfresh_r18_return:
+ ldp x19,x18,[sp,#16]
+ ldp x29,x30,[sp],#32
+ ret
+.bss
+.p2align 3
+.global md2asm_owned_fresh_forecast_table_r18
+.set md2asm_owned_fresh_forecast_table_r18,.Lfresh_forecast_table_r18
+.Lfresh_forecast_table_r18:.skip 64
 .section .note.GNU-stack,"",%progbits
