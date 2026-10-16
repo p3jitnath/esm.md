@@ -1,0 +1,800 @@
+/* Contract: skills/md2asm/references/openifs/setup/surface_optimization_parameters.md.
+ * Selected SUOPTSURF parameter/storage state. Quiet startup omits informational table printing.
+ * x0 controls8,x1 namespace1368,x2 capacity; int0/1/2. */
+.arch armv8.2-a
+.text
+.p2align 4
+.macro OENTER bytes
+ sub sp,sp,#\bytes
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mov x29,sp
+.endm
+.macro OLEAVE bytes
+ ldr x18,[sp,#96]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#\bytes
+ ret
+.endm
+.macro OCALL name
+ bl \name
+ ldr x18,[x29,#96]
+.endm
+.global md2asm_initialize_selected_surface_optimization_parameters
+.type md2asm_initialize_selected_surface_optimization_parameters,%function
+md2asm_initialize_selected_surface_optimization_parameters:
+ cbz x0,.Loptimization_bad_leaf
+ cbz x1,.Loptimization_bad_leaf
+ orr x3,x0,x1
+ tst x3,#7
+ b.ne .Loptimization_bad_leaf
+ cmp x2,#1368
+ b.lo .Loptimization_bad_leaf
+ adds x3,x0,#8
+ b.cs .Loptimization_bad_leaf
+ adds x4,x1,#1368
+ b.cs .Loptimization_bad_leaf
+ cmp x0,x4
+ b.hs .Loptimization_clear
+ cmp x1,x3
+ b.lo .Loptimization_bad_leaf
+.Loptimization_clear:
+ mrs x3,fpcr
+ cbnz x3,.Loptimization_bad_leaf
+ ldr x3,[x0]
+ cmp x3,#1
+ b.ne .Loptimization_bad_leaf
+ mov x3,x1
+ mov x4,#171
+.Loptimization_fresh:
+ ldr x5,[x3],#8
+ cbnz x5,.Loptimization_bad_leaf
+ subs x4,x4,#1
+ b.ne .Loptimization_fresh
+ OENTER 1504
+ mov x19,x1
+ OCALL __errno_location
+ str x0,[sp,#104]
+ ldr w9,[x0]
+ str w9,[sp,#112]
+ add x9,sp,#128
+ mov x10,#171
+.Loptimization_private_zero:
+ str xzr,[x9],#8
+ subs x10,x10,#1
+ b.ne .Loptimization_private_zero
+ adr x20,.Loptimization_plan
+ mov x21,#18
+.Loptimization_allocate:
+ ldr x9,[x20]
+ add x22,sp,#128
+ add x22,x22,x9
+ ldr x0,[x20,#8]
+ OCALL malloc
+ cbz x0,.Loptimization_failure
+ str x0,[x22]
+ ldr x9,[x20,#16]
+ str x9,[x22,#8]
+ mov x9,#8
+ str x9,[x22,#16]
+ ldr x10,[x20,#24]
+ str x10,[x22,#24]
+ str x9,[x22,#32]
+ mov x9,#1
+ str x9,[x22,#40]
+ str x9,[x22,#48]
+ ldrb w10,[x20,#28]
+ cmp w10,#2
+ b.ne .Loptimization_rank_one
+ mov x10,#20
+ str x10,[x22,#56]
+ str x10,[x22,#64]
+ str x9,[x22,#72]
+ mov x10,#2
+ str x10,[x22,#80]
+ b .Loptimization_copy_literals
+.Loptimization_rank_one:
+ mov x10,#21
+ str x10,[x22,#56]
+.Loptimization_copy_literals:
+ ldr x9,[x20,#32]
+ adr x10,.Loptimization_literal_tables
+ add x9,x9,x10
+ ldr x10,[x20,#8]
+.Loptimization_copy_array:
+ ldr x11,[x9],#8
+ str x11,[x0],#8
+ subs x10,x10,#8
+ b.ne .Loptimization_copy_array
+ add x20,x20,#40
+ subs x21,x21,#1
+ b.ne .Loptimization_allocate
+ add x9,sp,#128
+ mov x10,x19
+ mov x11,#171
+.Loptimization_commit:
+ ldr x12,[x9],#8
+ str x12,[x10],#8
+ subs x11,x11,#1
+ b.ne .Loptimization_commit
+ mov w0,#0
+ b .Loptimization_status
+.Loptimization_failure:
+ adr x20,.Loptimization_plan
+ mov x21,#18
+.Loptimization_cleanup:
+ ldr x9,[x20]
+ add x22,sp,#128
+ ldr x0,[x22,x9]
+ cbz x0,.Loptimization_cleanup_next
+ OCALL free
+.Loptimization_cleanup_next:
+ add x20,x20,#40
+ subs x21,x21,#1
+ b.ne .Loptimization_cleanup
+ mov w0,#1
+.Loptimization_status:
+ ldr x9,[sp,#104]
+ ldr w10,[sp,#112]
+ str w10,[x9]
+ OLEAVE 1504
+.Loptimization_bad_leaf:
+ mov w0,#2
+ ret
+.size md2asm_initialize_selected_surface_optimization_parameters,.-md2asm_initialize_selected_surface_optimization_parameters
+.global md2asm_release_surface_optimization_parameters
+.type md2asm_release_surface_optimization_parameters,%function
+md2asm_release_surface_optimization_parameters:
+ cbz x0,.Loptimization_release_bad
+ tst x0,#7
+ b.ne .Loptimization_release_bad
+ cmp x1,#1368
+ b.lo .Loptimization_release_bad
+ adds x2,x0,#1368
+ b.cs .Loptimization_release_bad
+ OENTER 128
+ mov x19,x0
+ OCALL __errno_location
+ str x0,[sp,#104]
+ ldr w9,[x0]
+ str w9,[sp,#112]
+ adr x20,.Loptimization_plan
+ mov x21,#18
+.Loptimization_release_next:
+ ldr x9,[x20]
+ add x22,x19,x9
+ ldr x0,[x22]
+ cbz x0,.Loptimization_release_continue
+ str xzr,[x22]
+ OCALL free
+.Loptimization_release_continue:
+ add x20,x20,#40
+ subs x21,x21,#1
+ b.ne .Loptimization_release_next
+ ldr x9,[sp,#104]
+ ldr w10,[sp,#112]
+ str w10,[x9]
+ mov w0,#0
+ OLEAVE 128
+.Loptimization_release_bad:
+ mov w0,#2
+ ret
+.size md2asm_release_surface_optimization_parameters,.-md2asm_release_surface_optimization_parameters
+.section .rodata
+.p2align 3
+.Loptimization_plan:
+/* RVR0VT */
+.quad 0,320,-21,3307124817920,0
+/* RVCMAX25 */
+.quad 88,320,-21,3307124817920,320
+/* RHUMREL */
+.quad 176,320,-21,3307124817920,640
+/* RA1 */
+.quad 264,320,-21,3307124817920,960
+/* RB1 */
+.quad 352,320,-21,3307124817920,1280
+/* RG0 */
+.quad 440,320,-21,3307124817920,1600
+/* RGM25 */
+.quad 528,320,-21,3307124817920,1920
+/* RE_VCMAX */
+.quad 616,320,-21,3307124817920,2240
+/* RE_JMAX */
+.quad 704,320,-21,3307124817920,2560
+/* OVR0VT */
+.quad 792,168,-1,3302829850624,2880
+/* OVCMAX25 */
+.quad 856,168,-1,3302829850624,3048
+/* OHUMREL */
+.quad 920,168,-1,3302829850624,3216
+/* OA1 */
+.quad 984,168,-1,3302829850624,3384
+/* OB1 */
+.quad 1048,168,-1,3302829850624,3552
+/* OG0 */
+.quad 1112,168,-1,3302829850624,3720
+/* OGM25 */
+.quad 1176,168,-1,3302829850624,3888
+/* OE_VCMAX */
+.quad 1240,168,-1,3302829850624,4056
+/* OE_JMAX */
+.quad 1304,168,-1,3302829850624,4224
+.Loptimization_literal_tables:
+/* Literal RVR0VT source elements, first dimension contiguous. */
+.quad 0x3e82b92efa0253dc
+.quad 0x3e81e0b7972ed0e6
+.quad 0x3e9efbf212fd3ecd
+.quad 0x3e9d15c15ba026e1
+.quad 0x3e9b3f06e22d9850
+.quad 0x3e95874d521d7819
+.quad 0x3e6036a8097e40e9
+.quad 0x3e8376297cfbff14
+.quad 0x3ea18c8929a3ac31
+.quad 0x3e6de759867d33e8
+.quad 0x3e165575e0ff4a28
+.quad 0x3e8376297cfbff14
+.quad 0x3e98c6cec59b3644
+.quad 0x3e8376297cfbff14
+.quad 0x3e8376297cfbff14
+.quad 0x3e81d2f92741e507
+.quad 0x3e665575e0ff4a28
+.quad 0x3e9f871a403c12fd
+.quad 0x3e8c4798ccbe54d2
+.quad 0x3e921e908ed8f651
+.quad 0x3e7bdd14e95230d3
+.quad 0x3e6036a8097e40e9
+.quad 0x3e9efbf212fd3ecd
+.quad 0x3e9d15c15ba026e1
+.quad 0x3e9b3f06e22d9850
+.quad 0x3e95874d521d7819
+.quad 0x3e6036a8097e40e9
+.quad 0x3e8376297cfbff14
+.quad 0x3ea18c8929a3ac31
+.quad 0x3e6de759867d33e8
+.quad 0x3e165575e0ff4a28
+.quad 0x3e8376297cfbff14
+.quad 0x3e98c6cec59b3644
+.quad 0x3e8376297cfbff14
+.quad 0x3e8376297cfbff14
+.quad 0x3e81d2f92741e507
+.quad 0x3e665575e0ff4a28
+.quad 0x3e9f871a403c12fd
+.quad 0x3e8c4798ccbe54d2
+.quad 0x3e921e908ed8f651
+/* Literal RVCMAX25 source elements, first dimension contiguous. */
+.quad 0x4048800000000000
+.quad 0x404859999999999a
+.quad 0x404f19999999999a
+.quad 0x4041800000000000
+.quad 0x4044f33333333333
+.quad 0x4040f33333333333
+.quad 0x4044266666666666
+.quad 0x4049000000000000
+.quad 0x4051800000000000
+.quad 0x404e000000000000
+.quad 0x4049000000000000
+.quad 0x4049000000000000
+.quad 0x40484ccccccccccd
+.quad 0x4049000000000000
+.quad 0x4049000000000000
+.quad 0x404d333333333333
+.quad 0x4046400000000000
+.quad 0x404519999999999a
+.quad 0x4049000000000000
+.quad 0x4049000000000000
+.quad 0x4051a00000000000
+.quad 0x4044266666666666
+.quad 0x404f19999999999a
+.quad 0x4041800000000000
+.quad 0x4044f33333333333
+.quad 0x4040f33333333333
+.quad 0x4044266666666666
+.quad 0x4049000000000000
+.quad 0x4051800000000000
+.quad 0x404e000000000000
+.quad 0x4049000000000000
+.quad 0x4049000000000000
+.quad 0x40484ccccccccccd
+.quad 0x4049000000000000
+.quad 0x4049000000000000
+.quad 0x404d333333333333
+.quad 0x4046400000000000
+.quad 0x404519999999999a
+.quad 0x4049000000000000
+.quad 0x4049000000000000
+/* Literal RHUMREL source elements, first dimension contiguous. */
+.quad 0x4010000000000000
+.quad 0x400a8f5c28f5c28f
+.quad 0x400770a3d70a3d71
+.quad 0x3ff0000000000000
+.quad 0x400a000000000000
+.quad 0x4010000000000000
+.quad 0x400c28f5c28f5c29
+.quad 0x3ff0000000000000
+.quad 0x4010000000000000
+.quad 0x3ff0000000000000
+.quad 0x3ff0000000000000
+.quad 0x3ff0000000000000
+.quad 0x4010000000000000
+.quad 0x3ff0000000000000
+.quad 0x3ff0000000000000
+.quad 0x40050a3d70a3d70a
+.quad 0x4010000000000000
+.quad 0x3ffbae147ae147ae
+.quad 0x3ff0000000000000
+.quad 0x3ff0000000000000
+.quad 0x40007ae147ae147b
+.quad 0x400c28f5c28f5c29
+.quad 0x400770a3d70a3d71
+.quad 0x3ff0000000000000
+.quad 0x400a000000000000
+.quad 0x4010000000000000
+.quad 0x400c28f5c28f5c29
+.quad 0x3ff0000000000000
+.quad 0x4010000000000000
+.quad 0x3ff0000000000000
+.quad 0x3ff0000000000000
+.quad 0x3ff0000000000000
+.quad 0x4010000000000000
+.quad 0x3ff0000000000000
+.quad 0x3ff0000000000000
+.quad 0x40050a3d70a3d70a
+.quad 0x4010000000000000
+.quad 0x3ffbae147ae147ae
+.quad 0x3ff0000000000000
+.quad 0x3ff0000000000000
+/* Literal RA1 source elements, first dimension contiguous. */
+.quad 0x3fee45a1cac08312
+.quad 0x3fec6a7ef9db22d1
+.quad 0x3fe5c28f5c28f5c3
+.quad 0x3feb333333333333
+.quad 0x3fef47ae147ae148
+.quad 0x3fef47ae147ae148
+.quad 0x3fe5604189374bc7
+.quad 0x3feb333333333333
+.quad 0x3fef47ae147ae148
+.quad 0x3feb333333333333
+.quad 0x3fe70a3d70a3d70a
+.quad 0x3fe999999999999a
+.quad 0x3fed6872b020c49c
+.quad 0x3feb333333333333
+.quad 0x3feb333333333333
+.quad 0x3feba5e353f7ced9
+.quad 0x3fef47ae147ae148
+.quad 0x3fe71a9fbe76c8b4
+.quad 0x3feb333333333333
+.quad 0x3feb333333333333
+.quad 0x3feba5e353f7ced9
+.quad 0x3fe5604189374bc7
+.quad 0x3fe5c28f5c28f5c3
+.quad 0x3feb333333333333
+.quad 0x3fef47ae147ae148
+.quad 0x3fef47ae147ae148
+.quad 0x3fe5604189374bc7
+.quad 0x3feb333333333333
+.quad 0x3fef47ae147ae148
+.quad 0x3feb333333333333
+.quad 0x3fe70a3d70a3d70a
+.quad 0x3fe999999999999a
+.quad 0x3fed6872b020c49c
+.quad 0x3feb333333333333
+.quad 0x3feb333333333333
+.quad 0x3feba5e353f7ced9
+.quad 0x3fef47ae147ae148
+.quad 0x3fe71a9fbe76c8b4
+.quad 0x3feb333333333333
+.quad 0x3feb333333333333
+/* Literal RB1 source elements, first dimension contiguous. */
+.quad 0x3fc0a3d70a3d70a4
+.quad 0x3fbdf3b645a1cac1
+.quad 0x3fc5810624dd2f1b
+.quad 0x3fc1eb851eb851ec
+.quad 0x3fbcac083126e979
+.quad 0x3fc1a9fbe76c8b44
+.quad 0x3fcae147ae147ae1
+.quad 0x3fc1eb851eb851ec
+.quad 0x3fbcac083126e979
+.quad 0x3fc1eb851eb851ec
+.quad 0x3fc999999999999a
+.quad 0x3fc1eb851eb851ec
+.quad 0x3fc020c49ba5e354
+.quad 0x3fc1eb851eb851ec
+.quad 0x3fc1eb851eb851ec
+.quad 0x3fca5e353f7ced91
+.quad 0x3fbcac083126e979
+.quad 0x3fc395810624dd2f
+.quad 0x3fc1eb851eb851ec
+.quad 0x3fc1eb851eb851ec
+.quad 0x3fc5810624dd2f1b
+.quad 0x3fcae147ae147ae1
+.quad 0x3fc5810624dd2f1b
+.quad 0x3fc1eb851eb851ec
+.quad 0x3fbcac083126e979
+.quad 0x3fc1a9fbe76c8b44
+.quad 0x3fcae147ae147ae1
+.quad 0x3fc1eb851eb851ec
+.quad 0x3fbcac083126e979
+.quad 0x3fc1eb851eb851ec
+.quad 0x3fc999999999999a
+.quad 0x3fc1eb851eb851ec
+.quad 0x3fc020c49ba5e354
+.quad 0x3fc1eb851eb851ec
+.quad 0x3fc1eb851eb851ec
+.quad 0x3fca5e353f7ced91
+.quad 0x3fbcac083126e979
+.quad 0x3fc395810624dd2f
+.quad 0x3fc1eb851eb851ec
+.quad 0x3fc1eb851eb851ec
+/* Literal RG0 source elements, first dimension contiguous. */
+.quad 0x3f7ca18bd66277c4
+.quad 0x3f7b328b6d86ec18
+.quad 0x3f75d4e8fb00bcbe
+.quad 0x3f7999999999999a
+.quad 0x3f7f85d744f5d356
+.quad 0x3f800d77e0000000
+.quad 0x3f916872b020c49c
+.quad 0x3f7999999999999a
+.quad 0x3f80a3d70a3d70a4
+.quad 0x3f7999999999999a
+.quad 0x3f93333333333333
+.quad 0x3f7999999999999a
+.quad 0x3f7e44fa05143bf7
+.quad 0x3f7999999999999a
+.quad 0x3f7999999999999a
+.quad 0x3f8d14e3bcd35a86
+.quad 0x3f7fa97e132b55ef
+.quad 0x3f763dc486ad2dcb
+.quad 0x3f7999999999999a
+.quad 0x3f7999999999999a
+.quad 0x3f966cf41f212d77
+.quad 0x3f916872b020c49c
+.quad 0x3f75d4e8fb00bcbe
+.quad 0x3f7999999999999a
+.quad 0x3f7f85d744f5d356
+.quad 0x3f800d77e0000000
+.quad 0x3f916872b020c49c
+.quad 0x3f7999999999999a
+.quad 0x3f80a3d70a3d70a4
+.quad 0x3f7999999999999a
+.quad 0x3f93333333333333
+.quad 0x3f7999999999999a
+.quad 0x3f7e44fa05143bf7
+.quad 0x3f7999999999999a
+.quad 0x3f7999999999999a
+.quad 0x3f8d14e3bcd35a86
+.quad 0x3f7fa97e132b55ef
+.quad 0x3f763dc486ad2dcb
+.quad 0x3f7999999999999a
+.quad 0x3f7999999999999a
+/* Literal RGM25 source elements, first dimension contiguous. */
+.quad 0x3fe06a7ef9db22d1
+.quad 0x3fe50624dd2f1aa0
+.quad 0x3fb999999999999a
+.quad 0x3fd999999999999a
+.quad 0x3fe7020c49ba5e35
+.quad 0x3fd8c29032e88a98
+.quad 0x3fd999999999999a
+.quad 0x3fd999999999999a
+.quad 0x3fe999999999999a
+.quad 0x3fd999999999999a
+.quad 0x3fd999999999999a
+.quad 0x3fd999999999999a
+.quad 0x3fe2e147ae147ae1
+.quad 0x3fd999999999999a
+.quad 0x3fd999999999999a
+.quad 0x3fd999999999999a
+.quad 0x3fe72b020c49ba5e
+.quad 0x3fd9db22d0e56042
+.quad 0x3fd999999999999a
+.quad 0x3fd999999999999a
+.quad 0x3fd999999999999a
+.quad 0x3fe50624dd2f1aa0
+.quad 0x3fb999999999999a
+.quad 0x3fd999999999999a
+.quad 0x3fe7020c49ba5e35
+.quad 0x3fd8c29032e88a98
+.quad 0x3fd999999999999a
+.quad 0x3fd999999999999a
+.quad 0x3fe999999999999a
+.quad 0x3fd999999999999a
+.quad 0x3fd999999999999a
+.quad 0x3fd999999999999a
+.quad 0x3fe2e147ae147ae1
+.quad 0x3fd999999999999a
+.quad 0x3fd999999999999a
+.quad 0x3fd999999999999a
+.quad 0x3fe72b020c49ba5e
+.quad 0x3fd9db22d0e56042
+.quad 0x3fd999999999999a
+.quad 0x3fd999999999999a
+/* Literal RE_VCMAX source elements, first dimension contiguous. */
+.quad 0x40f1c614cccccccd
+.quad 0x40e8716333333333
+.quad 0x40ed3d0666666666
+.quad 0x40f1759000000000
+.quad 0x40f6b26e66666666
+.quad 0x40f087a170a3d70a
+.quad 0x40e700c000000000
+.quad 0x40f1759000000000
+.quad 0x40e8716333333333
+.quad 0x40f1759000000000
+.quad 0x40f06e4000000000
+.quad 0x40f1759000000000
+.quad 0x40f1cca99999999a
+.quad 0x40f1759000000000
+.quad 0x40f1759000000000
+.quad 0x40e700c000000000
+.quad 0x40e8716333333333
+.quad 0x40f093b4cccccccd
+.quad 0x40f1759000000000
+.quad 0x40f1759000000000
+.quad 0x40f38da333333333
+.quad 0x40e700c000000000
+.quad 0x40ed3d0666666666
+.quad 0x40f1759000000000
+.quad 0x40f6b26e66666666
+.quad 0x40f087a170a3d70a
+.quad 0x40e700c000000000
+.quad 0x40f1759000000000
+.quad 0x40e8716333333333
+.quad 0x40f1759000000000
+.quad 0x40f06e4000000000
+.quad 0x40f1759000000000
+.quad 0x40f1cca99999999a
+.quad 0x40f1759000000000
+.quad 0x40f1759000000000
+.quad 0x40e700c000000000
+.quad 0x40e8716333333333
+.quad 0x40f093b4cccccccd
+.quad 0x40f1759000000000
+.quad 0x40f1759000000000
+/* Literal RE_JMAX source elements, first dimension contiguous. */
+.quad 0x40efaa2666666666
+.quad 0x40e43e7000000000
+.quad 0x40e11d0666666666
+.quad 0x40e85b8000000000
+.quad 0x40e10cd99999999a
+.quad 0x40e10cd99999999a
+.quad 0x40eaa04000000000
+.quad 0x40e85b8000000000
+.quad 0x40e10cd99999999a
+.quad 0x40e85b8000000000
+.quad 0x40f304c000000000
+.quad 0x40e85b8000000000
+.quad 0x40e10cd99999999a
+.quad 0x40e85b8000000000
+.quad 0x40e85b8000000000
+.quad 0x40eaa04000000000
+.quad 0x40e9c27333333333
+.quad 0x40e10cd99999999a
+.quad 0x40e85b8000000000
+.quad 0x40e85b8000000000
+.quad 0x40f8b96000000000
+.quad 0x40eaa04000000000
+.quad 0x40e11d0666666666
+.quad 0x40e85b8000000000
+.quad 0x40e10cd99999999a
+.quad 0x40e10cd99999999a
+.quad 0x40eaa04000000000
+.quad 0x40e85b8000000000
+.quad 0x40e10cd99999999a
+.quad 0x40e85b8000000000
+.quad 0x40f304c000000000
+.quad 0x40e85b8000000000
+.quad 0x40e10cd99999999a
+.quad 0x40e85b8000000000
+.quad 0x40e85b8000000000
+.quad 0x40eaa04000000000
+.quad 0x40e9c27333333333
+.quad 0x40e10cd99999999a
+.quad 0x40e85b8000000000
+.quad 0x40e85b8000000000
+/* Literal OVR0VT source elements, first dimension contiguous. */
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+/* Literal OVCMAX25 source elements, first dimension contiguous. */
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+/* Literal OHUMREL source elements, first dimension contiguous. */
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+/* Literal OA1 source elements, first dimension contiguous. */
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+/* Literal OB1 source elements, first dimension contiguous. */
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+/* Literal OG0 source elements, first dimension contiguous. */
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+/* Literal OGM25 source elements, first dimension contiguous. */
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+/* Literal OE_VCMAX source elements, first dimension contiguous. */
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+/* Literal OE_JMAX source elements, first dimension contiguous. */
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.quad 0xc0c3878000000000
+.section .note.GNU-stack,"",%progbits
