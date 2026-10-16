@@ -1,7 +1,7 @@
 /* Source build for the qualified private forecast graph.
  * Contract: skills/md2asm/references/openifs/dynamics/private_forecast_graph_sources.md.
  * Preserve the original interface, ordered arithmetic, and caller-owned storage. */
-// Complete selected surface-time layer. The retained shared checks are reused.
+// Complete selected surface-time layer. The shared numerical checks are pending.
 .text
 .p2align 4
 .macro CALL target
@@ -13,7 +13,7 @@
 .type md2asm_surface_time_layer_lake_profile_r3_7358525,%function
 md2asm_surface_time_layer_lake_profile_r3_7358525:
  mov x16,sp
- sub sp,sp,#32768
+ sub sp,sp,#65536
  str x29,[sp,#4096]
  str x30,[sp,#4104]
  mov x29,sp
@@ -236,26 +236,45 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  ldr x0,[x19,#56]
  mov x16,#12184
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // KTVL: preserve its source assumed-shape descriptor.
  str x0,[sp,#8408]
  ldr x0,[x19,#56]
  mov x16,#12120
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // KTVH: preserve its source assumed-shape descriptor.
  str x0,[sp,#8416]
  mov x16,#16384
  add x0,sp,x16
+ // KVEG: preserve its source assumed-shape descriptor.
+ mov x13,#36480
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-25
+ str x9,[x13,#8]
+ mov x9,#4
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#258
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x9,#24
+ str x9,[x13,#64]
+ mov x9,#1
+ str x9,[x13,#72]
+ mov x9,#2
+ str x9,[x13,#80]
+ mov x0,x13
  str x0,[sp,#8424]
  ldr x0,[x19,#56]
  mov x16,#12312
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // KSOTY: preserve its source assumed-shape descriptor.
  str x0,[sp,#8432]
  ldr x0,[x19,#24]
  mov x16,#8
@@ -264,16 +283,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  ldr x0,[x19,#56]
  mov x16,#12056
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PSDOR: preserve its source assumed-shape descriptor.
  str x0,[sp,#8448]
  ldr x0,[x19,#64]
  mov x16,#1096
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PFRTI: preserve its source assumed-shape descriptor.
  str x0,[sp,#8456]
  ldr x9,[x19,#0]
  mov x16,#9048
@@ -285,70 +300,57 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#37120
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PSST: preserve its source assumed-shape descriptor.
  str x0,[sp,#8464]
  ldr x0,[x19,#56]
  mov x16,#10240
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PUSTRTI: preserve its source assumed-shape descriptor.
  str x0,[sp,#8472]
  ldr x0,[x19,#56]
  mov x16,#10328
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PVSTRTI: preserve its source assumed-shape descriptor.
  str x0,[sp,#8480]
  ldr x0,[x19,#56]
  mov x16,#10416
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PAHFSTI: preserve its source assumed-shape descriptor.
  str x0,[sp,#8488]
  ldr x0,[x19,#56]
  mov x16,#10504
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PEVAPTI: preserve its source assumed-shape descriptor.
  str x0,[sp,#8496]
  ldr x0,[x19,#64]
  mov x16,#1272
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PSSRFLTI: preserve its source assumed-shape descriptor.
  str x0,[sp,#8504]
  ldr x0,[x19,#64]
  mov x16,#1360
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PSLRFLTI: preserve its source assumed-shape descriptor.
  str x0,[sp,#8512]
  ldr x0,[x19,#48]
  mov x16,#1040
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PLAT: preserve its source assumed-shape descriptor.
  str x0,[sp,#8520]
  ldr x0,[x19,#64]
  mov x16,#1712
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PANFMVT: preserve its source assumed-shape descriptor.
  str x0,[sp,#8528]
  ldr x0,[x19,#64]
  mov x16,#1624
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PANDAYVT: preserve its source assumed-shape descriptor.
  str x0,[sp,#8536]
  ldr x0,[x19,#48]
  mov x16,#1296
@@ -359,23 +361,69 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x0,[sp,#8544]
  mov x16,#16960
  add x0,sp,x16
+ // PCVT: preserve its source assumed-shape descriptor.
+ mov x13,#38528
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-25
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#770
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x9,#24
+ str x9,[x13,#64]
+ mov x9,#1
+ str x9,[x13,#72]
+ mov x9,#2
+ str x9,[x13,#80]
+ mov x0,x13
  str x0,[sp,#8552]
  mov x16,#16576
  add x0,sp,x16
+ // PLAIVT: preserve its source assumed-shape descriptor.
+ mov x13,#38656
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-25
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#770
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x9,#24
+ str x9,[x13,#64]
+ mov x9,#1
+ str x9,[x13,#72]
+ mov x9,#2
+ str x9,[x13,#80]
+ mov x0,x13
  str x0,[sp,#8560]
  ldr x0,[x19,#56]
  mov x16,#12632
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PLAIL: preserve its source assumed-shape descriptor.
  str x0,[sp,#8568]
  ldr x0,[x19,#56]
  mov x16,#12696
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PLAIH: preserve its source assumed-shape descriptor.
  str x0,[sp,#8576]
  ldr x9,[x19,#0]
  mov x16,#9128
@@ -387,7 +435,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#39040
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PLAILC: preserve its source assumed-shape descriptor.
  str x0,[sp,#8584]
  ldr x9,[x19,#0]
  mov x16,#9136
@@ -399,19 +452,20 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#39168
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PLAIHC: preserve its source assumed-shape descriptor.
  str x0,[sp,#8592]
  ldr x0,[x19,#72]
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // LDLAND: preserve its source assumed-shape descriptor.
  str x0,[sp,#8600]
  ldr x0,[x19,#72]
  mov x16,#64
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // LDSICE: preserve its source assumed-shape descriptor.
  str x0,[sp,#8608]
  ldr x0,[x19,#8]
  mov x16,#48
@@ -420,23 +474,17 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  ldr x0,[x19,#72]
  mov x16,#128
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // LDNH: preserve its source assumed-shape descriptor.
  str x0,[sp,#8624]
  ldr x0,[x19,#72]
  mov x16,#512
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // LDOCN_KPP: preserve its source assumed-shape descriptor.
  str x0,[sp,#8632]
  ldr x0,[x19,#64]
  mov x16,#192
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PSNM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8640]
  ldr x9,[x19,#0]
  mov x16,#6256
@@ -448,7 +496,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#40064
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PTSNM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8648]
  ldr x9,[x19,#0]
  mov x16,#6240
@@ -460,7 +513,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#1
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#40192
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#3
+ bl .Lstp_source_section
+ // PASNM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8656]
  ldr x9,[x19,#0]
  mov x16,#6248
@@ -472,7 +530,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#40320
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PRSNM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8664]
  ldr x9,[x19,#0]
  mov x16,#6264
@@ -484,14 +547,24 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#40448
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PWSNM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8672]
  ldr x0,[x19,#48]
  mov x16,#360
  add x0,x0,x16
  mov x1,#19
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#40576
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PAPRS: preserve its source assumed-shape descriptor.
  str x0,[sp,#8680]
  ldr x9,[x19,#0]
  mov x16,#6808
@@ -503,7 +576,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#40704
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PTSKM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8688]
  ldr x9,[x19,#0]
  mov x16,#5944
@@ -515,7 +593,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#40832
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PTSAM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8696]
  ldr x9,[x19,#0]
  mov x16,#5960
@@ -527,14 +610,17 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#40960
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PTIAM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8704]
  ldr x0,[x19,#64]
  mov x16,#128
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PWLM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8712]
  ldr x9,[x19,#0]
  mov x16,#5952
@@ -546,7 +632,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#41216
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PWSAM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8720]
  ldr x9,[x19,#0]
  mov x16,#6512
@@ -558,7 +649,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#41344
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PTLICEM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8728]
  ldr x9,[x19,#0]
  mov x16,#6528
@@ -570,7 +666,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#41472
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PTLMNWM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8736]
  ldr x9,[x19,#0]
  mov x16,#6520
@@ -582,7 +683,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#41600
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PTLWMLM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8744]
  ldr x9,[x19,#0]
  mov x16,#6536
@@ -594,7 +700,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#41728
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PTLBOTM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8752]
  ldr x9,[x19,#0]
  mov x16,#6544
@@ -606,7 +717,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#41856
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PTLSFM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8760]
  ldr x9,[x19,#0]
  mov x16,#6552
@@ -618,7 +734,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#41984
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PHLICEM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8768]
  ldr x9,[x19,#0]
  mov x16,#6560
@@ -630,14 +751,17 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#42112
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PHLMLM1M: preserve its source assumed-shape descriptor.
  str x0,[sp,#8776]
  ldr x0,[x19,#48]
  mov x16,#1488
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PGEMU: preserve its source assumed-shape descriptor.
  str x0,[sp,#8784]
  ldr x9,[x19,#0]
  mov x16,#9160
@@ -649,14 +773,17 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#42368
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PLDEPTH: preserve its source assumed-shape descriptor.
  str x0,[sp,#8792]
  ldr x0,[x19,#72]
  mov x16,#448
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // LDLAKE: preserve its source assumed-shape descriptor.
  str x0,[sp,#8800]
  ldr x9,[x19,#0]
  mov x16,#9152
@@ -668,98 +795,133 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#42624
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PCLAKE: preserve its source assumed-shape descriptor.
  str x0,[sp,#8808]
  ldr x0,[x19,#80]
  mov x16,#1144
  add x0,x0,x16
  mov x1,#19
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#42752
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PRSFC: preserve its source assumed-shape descriptor.
  str x0,[sp,#8816]
  ldr x0,[x19,#80]
  mov x16,#1320
  add x0,x0,x16
  mov x1,#19
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#42880
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PRSFL: preserve its source assumed-shape descriptor.
  str x0,[sp,#8824]
  ldr x0,[x19,#80]
  mov x16,#1936
  add x0,x0,x16
  mov x1,#19
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#43008
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PSLRFL: preserve its source assumed-shape descriptor.
  str x0,[sp,#8832]
  ldr x0,[x19,#80]
  mov x16,#1232
  add x0,x0,x16
  mov x1,#19
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#43136
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PSSFC: preserve its source assumed-shape descriptor.
  str x0,[sp,#8840]
  ldr x0,[x19,#80]
  mov x16,#1408
  add x0,x0,x16
  mov x1,#19
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#43264
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PSSFL: preserve its source assumed-shape descriptor.
  str x0,[sp,#8848]
  ldr x0,[x19,#56]
  mov x16,#12376
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PCVL: preserve its source assumed-shape descriptor.
  str x0,[sp,#8856]
  ldr x0,[x19,#56]
  mov x16,#12440
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PCVH: preserve its source assumed-shape descriptor.
  str x0,[sp,#8864]
  ldr x0,[x19,#56]
  mov x16,#12504
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PCUR: preserve its source assumed-shape descriptor.
  str x0,[sp,#8872]
  ldr x0,[x19,#64]
  mov x16,#752
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PWLMX: preserve its source assumed-shape descriptor.
  str x0,[sp,#8880]
  ldr x0,[x19,#64]
  mov x16,#1032
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PEVAPSNW: preserve its source assumed-shape descriptor.
  str x0,[sp,#8888]
  ldr x0,[x19,#40]
  mov x16,#32
  add x0,x0,x16
  mov x1,#19
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#44032
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PUSRF: preserve its source assumed-shape descriptor.
  str x0,[sp,#8896]
  ldr x0,[x19,#40]
  mov x16,#120
  add x0,x0,x16
  mov x1,#19
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#44160
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PVSRF: preserve its source assumed-shape descriptor.
  str x0,[sp,#8904]
  ldr x0,[x19,#40]
  mov x16,#208
  add x0,x0,x16
  mov x1,#19
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#44288
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PTSRF: preserve its source assumed-shape descriptor.
  str x0,[sp,#8912]
  ldr x9,[x19,#0]
  mov x16,#12368
@@ -771,7 +933,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#44416
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PZO: preserve its source assumed-shape descriptor.
  str x0,[sp,#8920]
  ldr x9,[x19,#0]
  mov x16,#12376
@@ -783,7 +950,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#44544
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PHO: preserve its source assumed-shape descriptor.
  str x0,[sp,#8928]
  ldr x9,[x19,#0]
  mov x16,#12392
@@ -795,7 +967,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#44672
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PHO_INV: preserve its source assumed-shape descriptor.
  str x0,[sp,#8936]
  ldr x9,[x19,#0]
  mov x16,#12384
@@ -807,7 +984,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#44800
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PDO: preserve its source assumed-shape descriptor.
  str x0,[sp,#8944]
  ldr x9,[x19,#0]
  mov x16,#12016
@@ -819,7 +1001,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#44928
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // POCDEPTH: preserve its source assumed-shape descriptor.
  str x0,[sp,#8952]
  ldr x9,[x19,#0]
  mov x16,#7416
@@ -831,7 +1018,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#45056
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PUO0: preserve its source assumed-shape descriptor.
  str x0,[sp,#8960]
  ldr x9,[x19,#0]
  mov x16,#7424
@@ -843,7 +1035,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#45184
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PVO0: preserve its source assumed-shape descriptor.
  str x0,[sp,#8968]
  ldr x9,[x19,#0]
  mov x16,#12400
@@ -855,7 +1052,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#45312
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PUOC: preserve its source assumed-shape descriptor.
  str x0,[sp,#8976]
  ldr x9,[x19,#0]
  mov x16,#12408
@@ -867,7 +1069,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#45440
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PVOC: preserve its source assumed-shape descriptor.
  str x0,[sp,#8984]
  ldr x9,[x19,#0]
  mov x16,#7400
@@ -879,7 +1086,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#45568
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PTO0: preserve its source assumed-shape descriptor.
  str x0,[sp,#8992]
  ldr x9,[x19,#0]
  mov x16,#7408
@@ -891,7 +1103,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#45696
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PSO0: preserve its source assumed-shape descriptor.
  str x0,[sp,#9000]
  ldr x9,[x19,#0]
  mov x16,#12328
@@ -903,7 +1120,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#45824
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PADVT: preserve its source assumed-shape descriptor.
  str x0,[sp,#9008]
  ldr x9,[x19,#0]
  mov x16,#12336
@@ -915,7 +1137,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#45952
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PADVS: preserve its source assumed-shape descriptor.
  str x0,[sp,#9016]
  ldr x9,[x19,#0]
  mov x16,#12344
@@ -927,7 +1154,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#46080
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PTRI0: preserve its source assumed-shape descriptor.
  str x0,[sp,#9024]
  ldr x9,[x19,#0]
  mov x16,#12352
@@ -939,7 +1171,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#46208
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PTRI1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9032]
  ldr x9,[x19,#0]
  mov x16,#12360
@@ -951,7 +1188,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#46336
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PSWDK_SAVE: preserve its source assumed-shape descriptor.
  str x0,[sp,#9040]
  ldr x9,[x19,#0]
  mov x16,#12024
@@ -963,7 +1205,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#46464
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PUSTRC: preserve its source assumed-shape descriptor.
  str x0,[sp,#9048]
  ldr x9,[x19,#0]
  mov x16,#12032
@@ -975,7 +1222,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#46592
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PVSTRC: preserve its source assumed-shape descriptor.
  str x0,[sp,#9056]
  ldr x9,[x19,#0]
  mov x16,#15392
@@ -987,7 +1239,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#46720
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PUSTOKES: preserve its source assumed-shape descriptor.
  str x0,[sp,#9064]
  ldr x9,[x19,#0]
  mov x16,#15400
@@ -999,7 +1256,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#46848
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PVSTOKES: preserve its source assumed-shape descriptor.
  str x0,[sp,#9072]
  ldr x9,[x19,#0]
  mov x16,#15408
@@ -1011,7 +1273,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#46976
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PTAUOCX: preserve its source assumed-shape descriptor.
  str x0,[sp,#9080]
  ldr x9,[x19,#0]
  mov x16,#15416
@@ -1023,7 +1290,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#47104
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PTAUOCY: preserve its source assumed-shape descriptor.
  str x0,[sp,#9088]
  ldr x9,[x19,#0]
  mov x16,#15424
@@ -1035,7 +1307,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#47232
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PPHIOC: preserve its source assumed-shape descriptor.
  str x0,[sp,#9096]
  ldr x9,[x19,#0]
  mov x16,#15432
@@ -1047,7 +1324,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#47360
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PWSEMEAN: preserve its source assumed-shape descriptor.
  str x0,[sp,#9104]
  ldr x9,[x19,#0]
  mov x16,#15440
@@ -1059,56 +1341,47 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,x20
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#47488
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PWSFMEAN: preserve its source assumed-shape descriptor.
  str x0,[sp,#9112]
  ldr x0,[x19,#80]
  mov x16,#3832
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PTSDFL: preserve its source assumed-shape descriptor.
  str x0,[sp,#9120]
  ldr x0,[x19,#80]
  mov x16,#4152
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PROFD: preserve its source assumed-shape descriptor.
  str x0,[sp,#9128]
  ldr x0,[x19,#80]
  mov x16,#4216
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PROFS: preserve its source assumed-shape descriptor.
  str x0,[sp,#9136]
  ldr x0,[x19,#80]
  mov x16,#3896
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PWFSD: preserve its source assumed-shape descriptor.
  str x0,[sp,#9144]
  ldr x0,[x19,#80]
  mov x16,#4088
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PMELT: preserve its source assumed-shape descriptor.
  str x0,[sp,#9152]
  ldr x0,[x19,#80]
  mov x16,#3960
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PFWEV: preserve its source assumed-shape descriptor.
  str x0,[sp,#9160]
  ldr x0,[x19,#80]
  mov x16,#4408
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PENES: preserve its source assumed-shape descriptor.
  str x0,[sp,#9168]
  ldr x9,[x19,#0]
  mov x16,#12304
@@ -1120,7 +1393,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#48512
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PDIFM: preserve its source assumed-shape descriptor.
  str x0,[sp,#9176]
  ldr x9,[x19,#0]
  mov x16,#12312
@@ -1132,7 +1410,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#48640
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PDIFT: preserve its source assumed-shape descriptor.
  str x0,[sp,#9184]
  ldr x9,[x19,#0]
  mov x16,#12320
@@ -1144,7 +1427,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#48768
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // PDIFS: preserve its source assumed-shape descriptor.
  str x0,[sp,#9192]
  ldr x9,[x19,#0]
  mov x16,#12416
@@ -1156,247 +1444,600 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  mov x1,#0
  mov x2,x20
- bl .Ldispatch_first
+ mov x3,#48896
+ add x3,sp,x3
+ mov x4,#2
+ mov x5,#3
+ bl .Lstp_source_section
+ // POTKE: preserve its source assumed-shape descriptor.
  str x0,[sp,#9200]
  mov x16,#17344
  add x0,sp,x16
+ // PRESPBSTR: preserve its source assumed-shape descriptor.
+ mov x13,#49024
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-25
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#770
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x9,#24
+ str x9,[x13,#64]
+ mov x9,#1
+ str x9,[x13,#72]
+ mov x9,#2
+ str x9,[x13,#80]
+ mov x0,x13
  str x0,[sp,#9208]
  mov x16,#17728
  add x0,sp,x16
+ // PRESPBSTR2: preserve its source assumed-shape descriptor.
+ mov x13,#49152
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-25
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#770
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x9,#24
+ str x9,[x13,#64]
+ mov x9,#1
+ str x9,[x13,#72]
+ mov x9,#2
+ str x9,[x13,#80]
+ mov x0,x13
  str x0,[sp,#9216]
  mov x16,#18112
  add x0,sp,x16
+ // PBIOMASS_LAST: preserve its source assumed-shape descriptor.
+ mov x13,#49280
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-25
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#770
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x9,#24
+ str x9,[x13,#64]
+ mov x9,#1
+ str x9,[x13,#72]
+ mov x9,#2
+ str x9,[x13,#80]
+ mov x0,x13
  str x0,[sp,#9224]
  mov x16,#18496
  add x0,sp,x16
+ // PBIOMASSTR_LAST: preserve its source assumed-shape descriptor.
+ mov x13,#49408
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-25
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#770
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x9,#24
+ str x9,[x13,#64]
+ mov x9,#1
+ str x9,[x13,#72]
+ mov x9,#2
+ str x9,[x13,#80]
+ mov x0,x13
  str x0,[sp,#9232]
  mov x16,#18880
  add x0,sp,x16
+ // PBIOMASSTR2_LAST: preserve its source assumed-shape descriptor.
+ mov x13,#49536
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-25
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#770
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x9,#24
+ str x9,[x13,#64]
+ mov x9,#1
+ str x9,[x13,#72]
+ mov x9,#2
+ str x9,[x13,#80]
+ mov x0,x13
  str x0,[sp,#9240]
  mov x16,#19264
  add x0,sp,x16
+ // PBLOSSVT: preserve its source assumed-shape descriptor.
+ mov x13,#49664
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-25
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#770
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x9,#24
+ str x9,[x13,#64]
+ mov x9,#1
+ str x9,[x13,#72]
+ mov x9,#2
+ str x9,[x13,#80]
+ mov x0,x13
  str x0,[sp,#9248]
  mov x16,#19648
  add x0,sp,x16
+ // PBGAINVT: preserve its source assumed-shape descriptor.
+ mov x13,#49792
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-25
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#770
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x9,#24
+ str x9,[x13,#64]
+ mov x9,#1
+ str x9,[x13,#72]
+ mov x9,#2
+ str x9,[x13,#80]
+ mov x0,x13
  str x0,[sp,#9256]
  mov x16,#20032
  add x0,sp,x16
+ // PLAI: preserve its source assumed-shape descriptor.
+ mov x13,#49920
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-1
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#769
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x0,x13
  str x0,[sp,#9264]
  mov x16,#20224
  add x0,sp,x16
+ // PBIOM: preserve its source assumed-shape descriptor.
+ mov x13,#50048
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-1
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#769
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x0,x13
  str x0,[sp,#9272]
  mov x16,#20416
  add x0,sp,x16
+ // PBLOSS: preserve its source assumed-shape descriptor.
+ mov x13,#50176
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-1
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#769
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x0,x13
  str x0,[sp,#9280]
  mov x16,#20608
  add x0,sp,x16
+ // PBGAIN: preserve its source assumed-shape descriptor.
+ mov x13,#50304
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-1
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#769
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x0,x13
  str x0,[sp,#9288]
  mov x16,#20800
  add x0,sp,x16
+ // PBIOMSTR: preserve its source assumed-shape descriptor.
+ mov x13,#50432
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-1
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#769
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x0,x13
  str x0,[sp,#9296]
  mov x16,#20992
  add x0,sp,x16
+ // PBIOMSTR2: preserve its source assumed-shape descriptor.
+ mov x13,#50560
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-1
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#769
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x0,x13
  str x0,[sp,#9304]
  ldr x0,[x19,#56]
  mov x16,#10872
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PSNE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9312]
  ldr x0,[x19,#56]
  mov x16,#11048
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PTSNE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9320]
  ldr x0,[x19,#56]
  mov x16,#11224
  add x0,x0,x16
  mov x1,#1
  mov x2,#0
- bl .Ldispatch_first
+ mov x3,#50944
+ add x3,sp,x3
+ mov x4,#1
+ mov x5,#2
+ bl .Lstp_source_section
+ // PASNE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9328]
  ldr x0,[x19,#56]
  mov x16,#10960
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PRSNE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9336]
  ldr x0,[x19,#56]
  mov x16,#11136
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PWSNE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9344]
  ldr x0,[x19,#56]
  mov x16,#11440
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PTSAE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9352]
  ldr x0,[x19,#56]
  mov x16,#11616
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PTIAE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9360]
  ldr x0,[x19,#56]
  mov x16,#11312
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PWLE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9368]
  ldr x0,[x19,#56]
  mov x16,#11528
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PWSAE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9376]
  ldr x0,[x19,#56]
  mov x16,#12888
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PTLICEE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9384]
  ldr x0,[x19,#56]
  mov x16,#12952
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PTLMNWE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9392]
  ldr x0,[x19,#56]
  mov x16,#13016
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PTLWMLE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9400]
  ldr x0,[x19,#56]
  mov x16,#13080
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PTLBOTE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9408]
  ldr x0,[x19,#56]
  mov x16,#13144
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PTLSFE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9416]
  ldr x0,[x19,#56]
  mov x16,#13208
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PHLICEE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9424]
  ldr x0,[x19,#56]
  mov x16,#13272
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PHLMLE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9432]
  ldr x0,[x19,#56]
  mov x16,#11704
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PUOE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9440]
  ldr x0,[x19,#56]
  mov x16,#11792
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PVOE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9448]
  ldr x0,[x19,#56]
  mov x16,#11880
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PTOE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9456]
  ldr x0,[x19,#56]
  mov x16,#11968
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PSOE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9464]
  mov x16,#21184
  add x0,sp,x16
+ // PLAIE1: preserve its source assumed-shape descriptor.
+ mov x13,#53248
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-25
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#770
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x9,#24
+ str x9,[x13,#64]
+ mov x9,#1
+ str x9,[x13,#72]
+ mov x9,#2
+ str x9,[x13,#80]
+ mov x0,x13
  str x0,[sp,#9472]
  mov x16,#21568
  add x0,sp,x16
+ // PBSTRE1: preserve its source assumed-shape descriptor.
+ mov x13,#53376
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-25
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#770
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x9,#24
+ str x9,[x13,#64]
+ mov x9,#1
+ str x9,[x13,#72]
+ mov x9,#4
+ str x9,[x13,#80]
+ mov x0,x13
  str x0,[sp,#9480]
  mov x16,#22336
  add x0,sp,x16
+ // PBSTR2E1: preserve its source assumed-shape descriptor.
+ mov x13,#53504
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-25
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#770
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x9,#24
+ str x9,[x13,#64]
+ mov x9,#1
+ str x9,[x13,#72]
+ mov x9,#2
+ str x9,[x13,#80]
+ mov x0,x13
  str x0,[sp,#9488]
  ldr x0,[x19,#88]
  mov x16,#112
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PDHTSS: preserve its source assumed-shape descriptor.
  str x0,[sp,#9496]
  ldr x0,[x19,#88]
  mov x16,#224
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PDHTTS: preserve its source assumed-shape descriptor.
  str x0,[sp,#9504]
  ldr x0,[x19,#88]
  mov x16,#336
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PDHTIS: preserve its source assumed-shape descriptor.
  str x0,[sp,#9512]
  ldr x0,[x19,#88]
  mov x16,#448
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PDHSSS: preserve its source assumed-shape descriptor.
  str x0,[sp,#9520]
  ldr x0,[x19,#88]
  mov x16,#560
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PDHIIS: preserve its source assumed-shape descriptor.
  str x0,[sp,#9528]
  ldr x0,[x19,#88]
  mov x16,#648
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PDHWLS: preserve its source assumed-shape descriptor.
  str x0,[sp,#9536]
  mov x16,#22720
  add x0,sp,x16
+ // PDHBIOS: preserve its source assumed-shape descriptor.
+ mov x13,#54400
+ add x13,sp,x13
+ str x0,[x13]
+ mov x9,#-73
+ str x9,[x13,#8]
+ mov x9,#8
+ str x9,[x13,#16]
+ str x9,[x13,#32]
+ str wzr,[x13,#24]
+ mov w9,#771
+ str w9,[x13,#28]
+ mov x9,#1
+ str x9,[x13,#40]
+ mov x9,#1
+ str x9,[x13,#48]
+ mov x9,#24
+ str x9,[x13,#56]
+ mov x9,#24
+ str x9,[x13,#64]
+ mov x9,#1
+ str x9,[x13,#72]
+ mov x9,#2
+ str x9,[x13,#80]
+ mov x9,#48
+ str x9,[x13,#88]
+ mov x9,#1
+ str x9,[x13,#96]
+ mov x9,#5
+ str x9,[x13,#104]
+ mov x0,x13
  str x0,[sp,#9544]
  ldr x0,[x19,#64]
  mov x16,#1800
  add x0,x0,x16
- mov x1,#0
- mov x2,#0
- bl .Ldispatch_first
+ // PDHVEGS: preserve its source assumed-shape descriptor.
  str x0,[sp,#9552]
  ldr x9,[sp,#8256]
  str x9,[sp,#0]
@@ -1755,9 +2396,90 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  ldr x28,[sp,#4184]
  ldr x29,[sp,#4096]
  ldr x30,[sp,#4104]
- add sp,sp,#32768
+ add sp,sp,#65536
  ret
 .size md2asm_surface_time_layer_lake_profile_r3_7358525,.-md2asm_surface_time_layer_lake_profile_r3_7358525
+// Build a section descriptor from metadata only. Keep signed source selectors.
+// x0 source; x1/x2 selected second/third index; x3 destination;
+// x4 retained leading rank; x5 exact source rank. The raw owner stays fixed.
+.Lstp_source_section:
+ mov x6,x0
+ mov x7,x3
+ ldrb w10,[x6,#28]
+ cmp x10,x5
+ b.ne .Ldispatch_reject
+ ldr x8,[x6]
+ ldr x9,[x6,#8]
+ ldp x11,x12,[x6,#16]
+ stp x11,x12,[x7,#16]
+ strb w4,[x7,#28]
+ ldr x11,[x6,#32]
+ str x11,[x7,#32]
+ mov x11,#0
+ add x17,x7,#40
+ cmp x10,#1
+ b.lt .Lstp_section_done
+ ldp x14,x15,[x6,#40]
+ ldr x16,[x6,#56]
+ cmp x4,#1
+ b.lt .Lstp_selected_axis_0
+ madd x9,x14,x15,x9
+ str x14,[x17]
+ mov x0,#1
+ str x0,[x17,#8]
+ sub x16,x16,x15
+ add x16,x16,#1
+ str x16,[x17,#16]
+ sub x11,x11,x14
+ add x17,x17,#24
+ b .Lstp_next_axis_0
+.Lstp_selected_axis_0:
+ b .Ldispatch_reject
+.Lstp_next_axis_0:
+ cmp x10,#2
+ b.lt .Lstp_section_done
+ ldp x14,x15,[x6,#64]
+ ldr x16,[x6,#80]
+ cmp x4,#2
+ b.lt .Lstp_selected_axis_1
+ madd x9,x14,x15,x9
+ str x14,[x17]
+ mov x0,#1
+ str x0,[x17,#8]
+ sub x16,x16,x15
+ add x16,x16,#1
+ str x16,[x17,#16]
+ sub x11,x11,x14
+ add x17,x17,#24
+ b .Lstp_next_axis_1
+.Lstp_selected_axis_1:
+ madd x9,x14,x1,x9
+.Lstp_next_axis_1:
+ cmp x10,#3
+ b.lt .Lstp_section_done
+ ldp x14,x15,[x6,#88]
+ ldr x16,[x6,#104]
+ cmp x4,#3
+ b.lt .Lstp_selected_axis_2
+ madd x9,x14,x15,x9
+ str x14,[x17]
+ mov x0,#1
+ str x0,[x17,#8]
+ sub x16,x16,x15
+ add x16,x16,#1
+ str x16,[x17,#16]
+ sub x11,x11,x14
+ add x17,x17,#24
+ b .Lstp_next_axis_2
+.Lstp_selected_axis_2:
+ madd x9,x14,x2,x9
+.Lstp_next_axis_2:
+.Lstp_section_done:
+ ldr x12,[x6,#32]
+ madd x8,x9,x12,x8
+ stp x8,x11,[x7]
+ mov x0,x7
+ ret
 // Read the first declared element. A null zero-size view stays null.
 .Ldispatch_first:
 ldr x8,[x0]
