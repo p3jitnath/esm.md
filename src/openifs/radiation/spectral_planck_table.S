@@ -50,7 +50,8 @@ md2asm_fill_selected_spectral_planck_table:
  b .Lspt_bounds
 .Lspt_first:
  ldr d1,[x22]
- adr x9,.Lspt_range_constants
+ adrp x9,.Lspt_range_constants
+ add x9,x9,:lo12:.Lspt_range_constants
  ldr d0,[x9,#8]
  fmul d0,d0,d1
  ldr d2,[x9]
@@ -58,14 +59,16 @@ md2asm_fill_selected_spectral_planck_table:
  b .Lspt_bounds
 .Lspt_last:
  ldr d0,[x22,#8]
- adr x9,.Lspt_range_constants
+ adrp x9,.Lspt_range_constants
+ add x9,x9,:lo12:.Lspt_range_constants
  ldp d1,d2,[x9,#16]
  fadd d2,d0,d2
  fmax d1,d1,d2
 .Lspt_bounds:
  str d0,[sp,#120]
  fsub d0,d1,d0
- adr x9,.Lspt_range_constants
+ adrp x9,.Lspt_range_constants
+ add x9,x9,:lo12:.Lspt_range_constants
  ldr d1,[x9,#32]
  fdiv d0,d0,d1
  str d0,[sp,#128]

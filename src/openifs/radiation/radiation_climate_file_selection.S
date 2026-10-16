@@ -139,7 +139,8 @@ md2asm_select_radiation_climate_files:
  bl .Lrs_blank_field
  cbz w0,.Lrs_solar_name_ready
  add x0,x23,#48
- adr x1,.Lrs_solar_name
+ adrp x1,.Lrs_solar_name
+ add x1,x1,:lo12:.Lrs_solar_name
  mov x2,#(.Lrs_solar_end-.Lrs_solar_name)
  bl memcpy
 .Lrs_solar_name_ready:
@@ -147,7 +148,8 @@ md2asm_select_radiation_climate_files:
  bl .Lrs_blank_field
  cbz w0,.Lrs_climate_name_ready
  add x0,x23,#304
- adr x1,.Lrs_climate_name
+ adrp x1,.Lrs_climate_name
+ add x1,x1,:lo12:.Lrs_climate_name
  mov x2,#(.Lrs_climate_end-.Lrs_climate_name)
  bl memcpy
 .Lrs_climate_name_ready:
@@ -177,9 +179,11 @@ md2asm_select_radiation_climate_files:
  cmp w10,#2
  b.hi .Lrs_bad_frame
 .Lrs_series_index_ready:
- adr x9,.Lrs_series_offsets
+ adrp x9,.Lrs_series_offsets
+ add x9,x9,:lo12:.Lrs_series_offsets
  ldr w10,[x9,x10,lsl#2]
- adr x1,.Lrs_series_names
+ adrp x1,.Lrs_series_names
+ add x1,x1,:lo12:.Lrs_series_names
  add x1,x1,x10
  mov x0,x1
  bl strlen
@@ -199,14 +203,17 @@ md2asm_select_radiation_climate_files:
  ldr w10,[x23,#20]
  sub w10,w10,#1
 .Lrs_copy_series:
- adr x9,.Lrs_series_offsets
+ adrp x9,.Lrs_series_offsets
+ add x9,x9,:lo12:.Lrs_series_offsets
  ldr w10,[x9,x10,lsl#2]
- adr x1,.Lrs_series_names
+ adrp x1,.Lrs_series_names
+ add x1,x1,:lo12:.Lrs_series_names
  add x1,x1,x10
  add x0,x23,#560
  bl memcpy
 .Lrs_series_name_ready:
- adr x0,.Lrs_data_environment
+ adrp x0,.Lrs_data_environment
+ add x0,x0,:lo12:.Lrs_data_environment
  bl getenv
  mov x24,x0
  mov x25,#0
@@ -257,7 +264,8 @@ md2asm_select_radiation_climate_files:
  mov x2,x25
  bl memcpy
  add x0,x28,x25
- adr x1,.Lrs_ifsdata
+ adrp x1,.Lrs_ifsdata
+ add x1,x1,:lo12:.Lrs_ifsdata
  mov x2,#9
  bl memcpy
  add x0,x28,x25

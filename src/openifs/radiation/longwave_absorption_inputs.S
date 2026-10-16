@@ -29,7 +29,8 @@ md2asm_decode_longwave_absorption_inputs:
  cmp x2,x6
  b.lo .Lrrtm_bad
 .Lrrtm_clear:
- adr x4,.Lrrtm_record_plan
+ adrp x4,.Lrrtm_record_plan
+ add x4,x4,:lo12:.Lrrtm_record_plan
  mov x5,#16
 .Lrrtm_preflight:
  ldp x6,x7,[x4],#16
@@ -45,7 +46,8 @@ md2asm_decode_longwave_absorption_inputs:
  b.ne .Lrrtm_bad
  subs x5,x5,#1
  b.ne .Lrrtm_preflight
- adr x4,.Lrrtm_file_copy_plan
+ adrp x4,.Lrrtm_file_copy_plan
+ add x4,x4,:lo12:.Lrrtm_file_copy_plan
  mov x5,#28
 .Lrrtm_file_field:
  ldp x6,x7,[x4]
@@ -63,8 +65,10 @@ md2asm_decode_longwave_absorption_inputs:
  add x4,x4,#32
  subs x5,x5,#1
  b.ne .Lrrtm_file_field
- adr x4,.Lrrtm_literal_copy_plan
- adr x12,.Lrrtm_literal_values
+ adrp x4,.Lrrtm_literal_copy_plan
+ add x4,x4,:lo12:.Lrrtm_literal_copy_plan
+ adrp x12,.Lrrtm_literal_values
+ add x12,x12,:lo12:.Lrrtm_literal_values
  mov x5,#17
 .Lrrtm_literal_range:
  ldp x6,x7,[x4]

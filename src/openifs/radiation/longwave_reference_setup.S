@@ -52,7 +52,8 @@ md2asm_initialize_longwave_reference_parameters:
 .Lspans_done:
  mrs x6,fpcr
  cbnz x6,.Lbad
- adr x6,.Lmass_offsets
+ adrp x6,.Lmass_offsets
+ add x6,x6,:lo12:.Lmass_offsets
  mov x7,#10
  mov x10,#0x7ff0
  lsl x10,x10,#48
@@ -81,7 +82,8 @@ md2asm_initialize_longwave_reference_parameters:
  mov x0,x19
  bl md2asm_longwave_transmission_table
  ldr x18,[sp,#48]
- adr x0,.Llongwave_literal_tables
+ adrp x0,.Llongwave_literal_tables
+ add x0,x0,:lo12:.Llongwave_literal_tables
  mov x1,#40016
  add x1,x19,x1
  mov x2,#3526
@@ -107,13 +109,15 @@ md2asm_initialize_longwave_reference_parameters:
 .type md2asm_longwave_mass_mixing_ratios,%function
 md2asm_longwave_mass_mixing_ratios:
  ldr d2,[x1,#160]
- adr x2,.Lratio_plan
+ adrp x2,.Lratio_plan
+ add x2,x2,:lo12:.Lratio_plan
  mov x3,#9
 .Lratio:
  ldp w4,w5,[x2]
  ldr w6,[x2,#8]
  cbnz w4,.Lratio_input
- adr x7,.Lozone_ppmv
+ adrp x7,.Lozone_ppmv
+ add x7,x7,:lo12:.Lozone_ppmv
  ldr d0,[x7]
  b .Lratio_mass
 .Lratio_input:
@@ -126,7 +130,8 @@ md2asm_longwave_mass_mixing_ratios:
  add x2,x2,#12
  subs x3,x3,#1
  b.ne .Lratio
- adr x2,.Lsurdi_literals
+ adrp x2,.Lsurdi_literals
+ add x2,x2,:lo12:.Lsurdi_literals
  ldp x3,x4,[x2]
  stp x3,x4,[x0]
  ldr x3,[x2,#16]
@@ -144,7 +149,8 @@ md2asm_longwave_transmission_table:
  str x18,[sp,#32]
  mov x29,sp
  mov x19,x0
- adr x9,.Ltrans_constants
+ adrp x9,.Ltrans_constants
+ add x9,x9,:lo12:.Ltrans_constants
  ldr d0,[x9]
  mov x10,#40008
  str d0,[x19,x10]
@@ -155,7 +161,8 @@ md2asm_longwave_transmission_table:
  mov x20,#1
 .Ltrans_loop:
  scvtf d0,x20
- adr x9,.Ltrans_constants
+ adrp x9,.Ltrans_constants
+ add x9,x9,:lo12:.Ltrans_constants
  ldp d1,d2,[x9]
  fdiv d0,d0,d2
  fmul d1,d1,d0

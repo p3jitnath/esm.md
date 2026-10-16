@@ -61,10 +61,12 @@ md2asm_create_selected_spectral_planck:
  mov x21,x0
  add x0,x19,#112
  mov x1,x21
- adr x2,.Lsps_bound_descriptor
+ adrp x2,.Lsps_bound_descriptor
+ add x2,x2,:lo12:.Lsps_bound_descriptor
  mov x3,#8
  bl .Lsps_descriptor
- adr x9,.Lsps_bounds
+ adrp x9,.Lsps_bounds
+ add x9,x9,:lo12:.Lsps_bounds
  ldp x10,x11,[x9]
  stp x10,x11,[x21]
  mov x0,#12
@@ -73,7 +75,8 @@ md2asm_create_selected_spectral_planck:
  mov x21,x0
  add x0,x19,#176
  mov x1,x21
- adr x2,.Lsps_map_descriptor
+ adrp x2,.Lsps_map_descriptor
+ add x2,x2,:lo12:.Lsps_map_descriptor
  mov x3,#8
  bl .Lsps_descriptor
  mov w9,#1
@@ -83,7 +86,8 @@ md2asm_create_selected_spectral_planck:
  mov w9,#2
  mov w10,#201
  stp w9,w10,[x19]
- adr x9,.Lsps_temperature
+ adrp x9,.Lsps_temperature
+ add x9,x9,:lo12:.Lsps_temperature
  ldp x10,x11,[x9]
  stp x10,x11,[x19,#8]
  mov x0,#3216
@@ -92,7 +96,8 @@ md2asm_create_selected_spectral_planck:
  mov x21,x0
  add x0,x19,#24
  mov x1,x21
- adr x2,.Lsps_lut_descriptor
+ adrp x2,.Lsps_lut_descriptor
+ add x2,x2,:lo12:.Lsps_lut_descriptor
  mov x3,#11
  bl .Lsps_descriptor
  mov x0,x21
@@ -156,12 +161,14 @@ md2asm_release_selected_spectral_planck:
  mov x19,x0
  mov x20,#0
 .Lsps_release_owner:
- adr x9,.Lsps_owner_offsets
+ adrp x9,.Lsps_owner_offsets
+ add x9,x9,:lo12:.Lsps_owner_offsets
  ldr w9,[x9,x20,lsl#2]
  ldr x0,[x19,x9]
  cbz x0,.Lsps_release_next
  bl free
- adr x9,.Lsps_owner_offsets
+ adrp x9,.Lsps_owner_offsets
+ add x9,x9,:lo12:.Lsps_owner_offsets
  ldr w9,[x9,x20,lsl#2]
  str xzr,[x19,x9]
 .Lsps_release_next:

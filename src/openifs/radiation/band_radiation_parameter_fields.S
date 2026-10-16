@@ -5,7 +5,8 @@
 .global md2asm_longwave_band_parameter_fields
 .type md2asm_longwave_band_parameter_fields,%function
 md2asm_longwave_band_parameter_fields:
- adr x9,.Llw_rows
+ adrp x9,.Llw_rows
+ add x9,x9,:lo12:.Llw_rows
  mov x10,#1183
 .Llongwave_row:
  ldp x11,x12,[x9]
@@ -35,7 +36,8 @@ md2asm_selected_shortwave_parameter_fields:
  mov x19,x0
  mov x20,x1
  mov x21,x2
- adr x9,.Lpressure_constants
+ adrp x9,.Lpressure_constants
+ add x9,x9,:lo12:.Lpressure_constants
  ldp d0,d1,[x9]
  fmov d2,#1.0
  fadd d0,d0,d2
@@ -53,7 +55,8 @@ md2asm_selected_shortwave_parameter_fields:
  fdiv d0,d3,d0
  fdiv d1,d3,d1
  stp d0,d1,[sp,#64]
- adr x9,.Lpressure_constants
+ adrp x9,.Lpressure_constants
+ add x9,x9,:lo12:.Lpressure_constants
  ldr d0,[x9,#16]
  ldr d1,[x9,#8]
  bl pow
@@ -61,7 +64,8 @@ md2asm_selected_shortwave_parameter_fields:
  ldr d1,[sp,#72]
  fdiv d0,d1,d0
  str d0,[x19,#2456]
- adr x9,.Lpressure_constants
+ adrp x9,.Lpressure_constants
+ add x9,x9,:lo12:.Lpressure_constants
  ldr d0,[x9,#16]
  ldr d1,[x9]
  bl pow
@@ -69,7 +73,8 @@ md2asm_selected_shortwave_parameter_fields:
  ldr d1,[sp,#64]
  fdiv d0,d1,d0
  str d0,[x19,#2448]
- adr x9,.Lsw_rows
+ adrp x9,.Lsw_rows
+ add x9,x9,:lo12:.Lsw_rows
  mov x10,#413
 .Lshortwave_row:
  ldp x11,x12,[x9]
@@ -94,8 +99,10 @@ md2asm_selected_shortwave_parameter_fields:
  b.ne .Lsolar_zero
  ldr x9,[x19,#2304]
  ldr x10,[x19,#2368]
- adr x11,.LZSUN6
- adr x12,.LZSUN2KM6
+ adrp x11,.LZSUN6
+ add x11,x11,:lo12:.LZSUN6
+ adrp x12,.LZSUN2KM6
+ add x12,x12,:lo12:.LZSUN2KM6
  mov x13,#6
 .Lsolar_coefficients:
  ldr x14,[x11],#8

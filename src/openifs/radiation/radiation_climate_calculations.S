@@ -18,7 +18,8 @@ md2asm_initialize_radiation_climatology_means:
  mov x29,sp
  mov x19,x0
  ldr d8,[x1]
- adr x9,.Lclimate_fp
+ adrp x9,.Lclimate_fp
+ add x9,x9,:lo12:.Lclimate_fp
  ldr d0,[x9]
  fdiv d8,d8,d0
  ldr x20,[x19,#64]
@@ -40,7 +41,8 @@ md2asm_initialize_radiation_climatology_means:
  add x22,x22,#1
  cmp x22,#64
  b.lo .Lcm_weight_sum
- adr x9,.Lclimate_fp
+ adrp x9,.Lclimate_fp
+ add x9,x9,:lo12:.Lclimate_fp
  ldr d1,[x9,#8]
  fmul d0,d1,d0
  mov x22,#0
@@ -51,7 +53,8 @@ md2asm_initialize_radiation_climatology_means:
  add x22,x22,#1
  cmp x22,#64
  b.lo .Lcm_normalize
- adr x20,.Lclimate_mean_descriptors
+ adrp x20,.Lclimate_mean_descriptors
+ add x20,x20,:lo12:.Lclimate_mean_descriptors
  mov x22,#0
 .Lcm_gas:
  ldr w9,[x20,x22,lsl#2]
@@ -112,7 +115,8 @@ md2asm_initialize_radiation_gas_coordinates:
  ldr x9,[x20]
  str x9,[sp,#96]
  ldr d8,[x2]
- adr x9,.Lclimate_fp
+ adrp x9,.Lclimate_fp
+ add x9,x9,:lo12:.Lclimate_fp
  ldr d0,[x9]
  fdiv d8,d8,d0
  ldr x21,[x20,#64]
@@ -131,7 +135,8 @@ md2asm_initialize_radiation_gas_coordinates:
  /* The caller-facing input descriptor is retained in the private slot. */
  ldr x10,[x19,#64]
  str xzr,[x10]
- adr x11,.Lclimate_fp
+ adrp x11,.Lclimate_fp
+ add x11,x11,:lo12:.Lclimate_fp
  ldr d3,[x11,#16]
  mov x12,#0
 .Lcg_half_levels:

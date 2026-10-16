@@ -70,7 +70,8 @@ md2asm_apply_selected_radiation_namelist:
  add x9,x19,#6
  cmp x9,x20
  b.hs .Lradsel_bad
- adr x10,.Lradsel_group
+ adrp x10,.Lradsel_group
+ add x10,x10,:lo12:.Lradsel_group
  mov w11,#0
 .Lradsel_group_match:
  ldrb w12,[x19,x11]
@@ -251,7 +252,8 @@ md2asm_apply_selected_radiation_namelist:
 .Lradsel_skip_return:
  ret
 .Lradsel_lookup:
- adr x9,.Lradsel_keys
+ adrp x9,.Lradsel_keys
+ add x9,x9,:lo12:.Lradsel_keys
  mov w10,#13
 .Lradsel_lookup_row:
  ldr w11,[x9,#32]
@@ -300,12 +302,14 @@ md2asm_apply_selected_radiation_namelist:
  cmp w9,#102
  b.ne .Lradsel_token_bad
  mov w15,#0
- adr x10,.Lradsel_false_text
+ adrp x10,.Lradsel_false_text
+ add x10,x10,:lo12:.Lradsel_false_text
  mov w11,#5
  b .Lradsel_bool_match
 .Lradsel_true:
  mov w15,#1
- adr x10,.Lradsel_true_text
+ adrp x10,.Lradsel_true_text
+ add x10,x10,:lo12:.Lradsel_true_text
  mov w11,#4
 .Lradsel_bool_match:
  cmp x1,#1

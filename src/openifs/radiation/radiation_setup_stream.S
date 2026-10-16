@@ -1,0 +1,398 @@
+/* Contract: skills/md2asm/references/openifs/radiation/selected_radiation_setup.md. */
+/* Owned radiation records and payloads, without a high-level writer.
+ * x0 output path, x1 MODEL4275088, x2 setup context7168. Return0/1/2.
+ * Live qualified record and owner extents are caller preconditions.
+ * Undefined payloads are recorded as received, without adjustment.
+ */
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_write_radiation_setup_stream
+.type md2asm_write_radiation_setup_stream,%function
+md2asm_write_radiation_setup_stream:
+ cbz x0,.Lrs_bad_leaf
+ cbz x1,.Lrs_bad_leaf
+ cbz x2,.Lrs_bad_leaf
+ orr x9,x1,x2
+ tst x9,#7
+ b.ne .Lrs_bad_leaf
+ ldr x9,[x2,#72]
+ cmp x9,#1
+ b.ne .Lrs_bad_leaf
+ sub sp,sp,#160
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mov x29,sp
+ mov x20,x1
+ mov x21,x2
+ mov x1,x0
+ mov x0,#-100
+ mov x2,#577
+ mov x3,#420
+ mov x8,#56
+ svc #0
+ tbnz x0,#63,.Lrs_open_failed
+ mov x19,x0
+ adrp x22,.Lrs_records
+ add x22,x22,:lo12:.Lrs_records
+ movz x23,#29
+.Lrs_record:
+ ldp w9,w2,[x22],#8
+ add x1,x20,x9
+ bl .Lrs_write
+ cbnz w0,.Lrs_close
+ subs x23,x23,#1
+ b.ne .Lrs_record
+ adrp x22,.Lrs_climate_records
+ add x22,x22,:lo12:.Lrs_climate_records
+ movz x23,#4
+.Lrs_climate_record:
+ ldp w9,w2,[x22],#8
+ ldr x1,[x21,x9]
+ cbz x1,.Lrs_bad_record
+ bl .Lrs_write
+ cbnz w0,.Lrs_close
+ subs x23,x23,#1
+ b.ne .Lrs_climate_record
+ adrp x22,.Lrs_owners
+ add x22,x22,:lo12:.Lrs_owners
+ movz x23,#145
+.Lrs_owner:
+ ldp w9,w10,[x22]
+ ldr w11,[x22,#8]
+ add x22,x22,#16
+ cbnz w11,.Lrs_climate_owner
+ add x24,x20,x9
+ b .Lrs_owner_descriptor
+.Lrs_climate_owner:
+ ldr x24,[x21,x9]
+ cbz x24,.Lrs_bad_record
+.Lrs_owner_descriptor:
+ add x24,x24,x10
+ ldr x1,[x24]
+ cbz x1,.Lrs_owner_next
+ ldrb w25,[x24,#28]
+ sub w9,w25,#1
+ cmp w9,#3
+ b.hi .Lrs_bad_record
+ ldr x26,[x24,#16]
+ cbz x26,.Lrs_bad_record
+ cmp x26,#4096
+ b.hi .Lrs_bad_record
+ mov x27,#1
+ ldr x28,[x24,#8]
+ add x12,x24,#40
+.Lrs_owner_dimension:
+ ldp x9,x10,[x12]
+ ldr x11,[x12,#16]
+ madd x28,x9,x10,x28
+ subs x11,x11,x10
+ add x11,x11,#1
+ cmp x11,#0
+ csel x11,x11,xzr,ge
+ umulh x9,x27,x11
+ cbnz x9,.Lrs_bad_record
+ mul x27,x27,x11
+ add x12,x12,#24
+ subs w25,w25,#1
+ b.ne .Lrs_owner_dimension
+ cbnz x28,.Lrs_bad_record
+ umulh x9,x27,x26
+ cbnz x9,.Lrs_bad_record
+ mul x2,x27,x26
+ mov x9,#0x8000000
+ cmp x2,x9
+ b.hi .Lrs_bad_record
+ bl .Lrs_write
+ cbnz w0,.Lrs_close
+.Lrs_owner_next:
+ subs x23,x23,#1
+ b.ne .Lrs_owner
+ adrp x1,:got:md2asm_owned_longwave_original_coefficients
+ ldr x1,[x1,:got_lo12:md2asm_owned_longwave_original_coefficients]
+ movz x2,#3200
+ movk x2,#48,lsl#16
+ bl .Lrs_write
+ cbnz w0,.Lrs_close
+ adrp x1,:got:md2asm_owned_longwave_reduced_coefficients
+ ldr x1,[x1,:got_lo12:md2asm_owned_longwave_reduced_coefficients]
+ movz x2,#49704
+ movk x2,#18,lsl#16
+ bl .Lrs_write
+ cbnz w0,.Lrs_close
+ adrp x1,:got:md2asm_owned_longwave_reference_parameters
+ ldr x1,[x1,:got_lo12:md2asm_owned_longwave_reference_parameters]
+ movz x2,#2688
+ movk x2,#1,lsl#16
+ bl .Lrs_write
+ cbnz w0,.Lrs_close
+ adrp x1,:got:md2asm_owned_shortwave_absorption_parameters
+ ldr x1,[x1,:got_lo12:md2asm_owned_shortwave_absorption_parameters]
+ movz x2,#62040
+ movk x2,#61,lsl#16
+ bl .Lrs_write
+ cbnz w0,.Lrs_close
+ adrp x1,:got:md2asm_owned_legacy_longwave_band_parameters
+ ldr x1,[x1,:got_lo12:md2asm_owned_legacy_longwave_band_parameters]
+ movz x2,#9440
+ bl .Lrs_write
+ cbnz w0,.Lrs_close
+ adrp x1,:got:md2asm_owned_aerosol_optical_parameters
+ ldr x1,[x1,:got_lo12:md2asm_owned_aerosol_optical_parameters]
+ movz x2,#45008
+ movk x2,#2,lsl#16
+ bl .Lrs_write
+ cbnz w0,.Lrs_close
+ add x1,x21,#128
+ movz x2,#688
+ bl .Lrs_write
+ cbnz w0,.Lrs_close
+ adrp x1,:got:md2asm_owned_cloud_optical_550_parameters
+ ldr x1,[x1,:got_lo12:md2asm_owned_cloud_optical_550_parameters]
+ movz x2,#48
+ bl .Lrs_write
+ cbnz w0,.Lrs_close
+ adrp x1,:got:md2asm_owned_shortwave_auxiliary_namespace
+ ldr x1,[x1,:got_lo12:md2asm_owned_shortwave_auxiliary_namespace]
+ movz x2,#21216
+ movk x2,#1,lsl#16
+ bl .Lrs_write
+ cbnz w0,.Lrs_close
+ mov w0,#0
+ b .Lrs_close
+.Lrs_bad_record:
+ mov w0,#2
+.Lrs_close:
+ mov w20,w0
+ mov x0,x19
+ mov x8,#57
+ svc #0
+ cmp x0,#0
+ cset w9,ne
+ cmp w20,#0
+ csel w0,w9,w20,eq
+ b .Lrs_return
+.Lrs_open_failed:
+ mov w0,#1
+.Lrs_return:
+ ldr x18,[sp,#96]
+ ldp x27,x28,[sp,#80]
+ ldp x25,x26,[sp,#64]
+ ldp x23,x24,[sp,#48]
+ ldp x21,x22,[sp,#32]
+ ldp x19,x20,[sp,#16]
+ ldp x29,x30,[sp]
+ add sp,sp,#160
+ ret
+.Lrs_bad_leaf:
+ mov w0,#2
+ ret
+/* Linux write may finish a buffer through several shorter writes. */
+.Lrs_write:
+ cbz x2,.Lrs_written
+.Lrs_write_more:
+ mov x0,x19
+ mov x8,#64
+ svc #0
+ cmn x0,#4
+ b.eq .Lrs_write_more
+ cmp x0,#0
+ b.le .Lrs_write_failed
+ add x1,x1,x0
+ subs x2,x2,x0
+ b.ne .Lrs_write_more
+.Lrs_written:
+ mov w0,#0
+ ret
+.Lrs_write_failed:
+ mov w0,#1
+ ret
+.section .rodata
+.p2align 3
+.Lrs_records:
+ .word 1608728,2040
+ .word 1856400,176
+ .word 1627088,229312
+ .word 1622432,32
+ .word 1610768,10744
+ .word 1622464,4232
+ .word 1626696,392
+ .word 1621512,64
+ .word 1606488,2240
+ .word 4100096,22472
+ .word 1392648,1384
+ .word 1359640,33008
+ .word 1394960,133608
+ .word 1528568,6432
+ .word 1577888,448
+ .word 1589160,440
+ .word 1589600,760
+ .word 1590360,880
+ .word 1591240,344
+ .word 1591584,14856
+ .word 1606440,44
+ .word 4231864,280
+ .word 4143760,1096
+ .word 4218440,904
+ .word 1588296,120
+ .word 1588752,100
+ .word 4122568,1800
+ .word 4124368,1800
+ .word 4098608,1376
+.Lrs_climate_records:
+ .word 6832,136
+ .word 6848,520
+ .word 6840,1208
+ .word 6856,928
+.Lrs_owners:
+ .word 1608728,1824,0,0
+ .word 1608728,1912,0,0
+ .word 1608728,1976,0,0
+ .word 1610768,2304,0,0
+ .word 1610768,2368,0,0
+ .word 1622464,0,0,0
+ .word 1622464,64,0,0
+ .word 1622464,128,0,0
+ .word 1622464,192,0,0
+ .word 1608728,1480,0,0
+ .word 1608728,1544,0,0
+ .word 1608728,1608,0,0
+ .word 1608728,1672,0,0
+ .word 1608728,1736,0,0
+ .word 1626696,328,0,0
+ .word 1621512,0,0,0
+ .word 1606488,0,0,0
+ .word 1606488,112,0,0
+ .word 1606488,224,0,0
+ .word 1606488,336,0,0
+ .word 1606488,560,0,0
+ .word 1606488,696,0,0
+ .word 1606488,984,0,0
+ .word 1606488,872,0,0
+ .word 1606488,784,0,0
+ .word 1606488,1072,0,0
+ .word 1606488,1160,0,0
+ .word 1606488,1248,0,0
+ .word 1606488,1336,0,0
+ .word 1606488,1424,0,0
+ .word 1606488,1512,0,0
+ .word 1606488,1600,0,0
+ .word 1606488,1688,0,0
+ .word 1606488,1776,0,0
+ .word 1606488,1864,0,0
+ .word 1606488,1952,0,0
+ .word 1606488,2128,0,0
+ .word 4100096,10048,0,0
+ .word 4100096,10112,0,0
+ .word 4100096,10176,0,0
+ .word 4100096,10240,0,0
+ .word 4100096,10304,0,0
+ .word 4100096,10368,0,0
+ .word 4100096,10432,0,0
+ .word 4100096,10520,0,0
+ .word 4100096,10608,0,0
+ .word 4100096,10672,0,0
+ .word 4100096,10736,0,0
+ .word 4100096,10800,0,0
+ .word 4100096,10864,0,0
+ .word 4100096,10928,0,0
+ .word 4100096,10992,0,0
+ .word 4100096,11056,0,0
+ .word 4100096,11128,0,0
+ .word 4100096,11216,0,0
+ .word 4100096,11304,0,0
+ .word 4100096,11392,0,0
+ .word 4100096,11480,0,0
+ .word 4100096,11544,0,0
+ .word 4100096,11608,0,0
+ .word 4100096,11672,0,0
+ .word 4100096,11736,0,0
+ .word 4100096,11824,0,0
+ .word 4100096,11912,0,0
+ .word 4100096,12000,0,0
+ .word 4100096,12088,0,0
+ .word 4100096,12176,0,0
+ .word 4100096,12264,0,0
+ .word 4100096,12376,0,0
+ .word 4100096,12488,0,0
+ .word 4100096,12600,0,0
+ .word 4100096,12712,0,0
+ .word 4100096,12824,0,0
+ .word 4100096,12936,0,0
+ .word 4100096,13024,0,0
+ .word 4100096,13112,0,0
+ .word 4100096,13200,0,0
+ .word 4100096,13288,0,0
+ .word 4100096,13400,0,0
+ .word 4100096,13512,0,0
+ .word 4100096,13624,0,0
+ .word 4100096,13736,0,0
+ .word 4100096,17864,0,0
+ .word 1359640,0,0,0
+ .word 1394960,8,0,0
+ .word 1394960,120,0,0
+ .word 1394960,232,0,0
+ .word 1394960,344,0,0
+ .word 1394960,456,0,0
+ .word 1394960,568,0,0
+ .word 1394960,680,0,0
+ .word 1528568,1000,0,0
+ .word 1528568,1112,0,0
+ .word 1528568,1400,0,0
+ .word 1528568,1512,0,0
+ .word 1528568,1800,0,0
+ .word 1528568,1912,0,0
+ .word 1528568,2024,0,0
+ .word 1528568,2400,0,0
+ .word 1528568,2512,0,0
+ .word 1528568,2624,0,0
+ .word 1528568,3000,0,0
+ .word 1528568,1224,0,0
+ .word 1528568,1312,0,0
+ .word 1528568,1624,0,0
+ .word 1528568,1712,0,0
+ .word 1528568,2136,0,0
+ .word 1528568,2224,0,0
+ .word 1528568,2312,0,0
+ .word 1528568,2736,0,0
+ .word 1528568,2824,0,0
+ .word 1528568,2912,0,0
+ .word 1528568,3112,0,0
+ .word 6832,0,1,0
+ .word 6832,64,1,0
+ .word 6848,0,1,0
+ .word 6848,64,1,0
+ .word 6848,128,1,0
+ .word 6848,192,1,0
+ .word 6848,256,1,0
+ .word 6848,320,1,0
+ .word 6848,384,1,0
+ .word 6848,448,1,0
+ .word 6840,0,1,0
+ .word 6840,64,1,0
+ .word 6840,128,1,0
+ .word 6840,240,1,0
+ .word 6840,352,1,0
+ .word 6840,464,1,0
+ .word 6840,576,1,0
+ .word 6840,688,1,0
+ .word 6840,800,1,0
+ .word 6840,912,1,0
+ .word 6840,1024,1,0
+ .word 6856,0,1,0
+ .word 6856,64,1,0
+ .word 6856,128,1,0
+ .word 6856,216,1,0
+ .word 6856,304,1,0
+ .word 6856,392,1,0
+ .word 6856,480,1,0
+ .word 6856,568,1,0
+ .word 6856,656,1,0
+ .word 6856,744,1,0
+ .word 6856,832,1,0
+.section .note.GNU-stack,"",%progbits

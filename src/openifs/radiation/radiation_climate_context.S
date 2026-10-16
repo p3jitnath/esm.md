@@ -40,7 +40,8 @@ md2asm_create_radiation_climate_context:
  mrs x7,fpcr
  cbnz x7,.Lrc_bad_leaf
  ldr x7,[x2]
- adr x8,.Lrc_owned_pi
+ adrp x8,.Lrc_owned_pi
+ add x8,x8,:lo12:.Lrc_owned_pi
  ldr x8,[x8]
  cmp x7,x8
  b.ne .Lrc_bad_leaf
@@ -104,10 +105,12 @@ md2asm_create_radiation_climate_context:
  bl nc_open
  cbnz w0,.Lrc_file_error
  ldr w26,[sp,#128]
- adr x9,.Lrc_file_plans
+ adrp x9,.Lrc_file_plans
+ add x9,x9,:lo12:.Lrc_file_plans
  add x9,x9,x22,lsl#4
  ldp w10,w11,[x9]
- adr x24,.Lrc_array_plans
+ adrp x24,.Lrc_array_plans
+ add x24,x24,:lo12:.Lrc_array_plans
  add x24,x24,x10
  add x25,x24,x11
 .Lrc_file_array:
@@ -117,7 +120,8 @@ md2asm_create_radiation_climate_context:
  ldr w5,[x24,#12]
  cmp w5,#2
  b.eq .Lrc_zero_array
- adr x10,.Lrc_names
+ adrp x10,.Lrc_names
+ add x10,x10,:lo12:.Lrc_names
  ldr w9,[x24,#8]
  add x1,x10,x9
  mov w0,w26
@@ -162,7 +166,8 @@ md2asm_create_radiation_climate_context:
  add x22,x22,#1
  cmp x22,#3
  b.lo .Lrc_open_file
- adr x24,.Lrc_rad_plans
+ adrp x24,.Lrc_rad_plans
+ add x24,x24,:lo12:.Lrc_rad_plans
  mov x25,#0
 .Lrc_rad_array:
  ldr w9,[x24]
@@ -254,7 +259,8 @@ md2asm_release_radiation_climate_context:
  stp x21,x18,[sp,#32]
  mov x29,sp
  mov x19,x0
- adr x20,.Lrc_release_offsets
+ adrp x20,.Lrc_release_offsets
+ add x20,x20,:lo12:.Lrc_release_offsets
  mov x21,#32
 .Lrc_free_owner:
  ldr w9,[x20],#4

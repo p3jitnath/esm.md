@@ -1,5 +1,5 @@
-/* Contract: skills/md2asm/references/openifs/input/owned_trajectory_initial_state.md. */
-/* Standalone selected T21 initial-state composition, revision 14.
+/* Contract: skills/md2asm/references/openifs/input/owned_radiation_initial_state.md. */
+/* Standalone selected T21 initial-state composition, revision 15.
  * Own entry, configuration, contexts, loading, output and release are assembly.
  * External file, transform, scalar-math and runtime services are declared.
  * This input checkpoint does not run a forecast. */
@@ -110,7 +110,8 @@ main:
  adrp x9,.Lvertical_owner
  ldr x20,[x9,:lo12:.Lvertical_owner]
  mov x0,x20
- adr x1,.Lowned_alias_destinations
+ adrp x1,.Lowned_alias_destinations
+ add x1,x1,:lo12:.Lowned_alias_destinations
  adrp x2,.Lmodel_owner
  add x2,x2,:lo12:.Lmodel_owner
  bl md2asm_create_selected_model_storage
@@ -214,7 +215,8 @@ main:
  add x0,x0,:lo12:.Lclock_inputs
  adrp x1,.Lclock_state
  add x1,x1,:lo12:.Lclock_state
- adr x2,.Ltime_integration_controls
+ adrp x2,.Ltime_integration_controls
+ add x2,x2,:lo12:.Ltime_integration_controls
  movz x3,#48600
  movk x3,#20,lsl#16
  add x3,x22,x3
@@ -319,8 +321,10 @@ main:
  adrp x0,.Lnamelist_text
  add x0,x0,:lo12:.Lnamelist_text
  mov x1,x27
- adr x2,.Lfield_dimension_pairs
- adr x3,.Lfield_dimension_controls
+ adrp x2,.Lfield_dimension_pairs
+ add x2,x2,:lo12:.Lfield_dimension_pairs
+ adrp x3,.Lfield_dimension_controls
+ add x3,x3,:lo12:.Lfield_dimension_controls
  bl md2asm_initialize_physics_field_dimensions
  add w23,w0,#216
  cbnz w0,.Lmain_cleanup
@@ -357,7 +361,8 @@ main:
  str w10,[x4,#8]
  ldr w10,[x24,#28]
  str w10,[x4,#12]
- adr x9,.Lfield_fixed_controls
+ adrp x9,.Lfield_fixed_controls
+ add x9,x9,:lo12:.Lfield_fixed_controls
  ldp x10,x11,[x9]
  stp x10,x11,[x4,#16]
  owned_model_address x9,1564136
@@ -377,7 +382,8 @@ main:
  owned_model_address x0,16
  owned_model_address x1,1564136
  owned_model_address x2,200
- adr x3,.Lfield_dimension_controls
+ adrp x3,.Lfield_dimension_controls
+ add x3,x3,:lo12:.Lfield_dimension_controls
  bl md2asm_initialize_spectral_field_dimensions
  add w23,w0,#218
  cbnz w0,.Lmain_cleanup
@@ -394,7 +400,8 @@ main:
  /* Complete source-ordered SUPHMF over the final live MODEL records. */
  adrp x9,.Lforecast_controls
  add x9,x9,:lo12:.Lforecast_controls
- adr x10,.Lmf_parent_controls
+ adrp x10,.Lmf_parent_controls
+ add x10,x10,:lo12:.Lmf_parent_controls
  mov x11,#39520
  ldr w11,[x9,x11]
  str w11,[x10]
@@ -411,13 +418,84 @@ main:
  owned_model_address x3,0
  adrp x4,.Lphysical_constants
  add x4,x4,:lo12:.Lphysical_constants
- adr x5,.Lmf_namespace_pairs
+ adrp x5,.Lmf_namespace_pairs
+ add x5,x5,:lo12:.Lmf_namespace_pairs
  mov x6,x10
  bl md2asm_initialize_meteo_france_physics
  add w23,w0,#50
  cbnz w0,.Lmain_cleanup
- adr x0,.Lmf_parent_status
+ adrp x0,.Lmf_parent_status
+ add x0,x0,:lo12:.Lmf_parent_status
  bl .Lcapture_physics_status
+ /* Own the earlier radiation allocations before the ECMWF setup calls. */
+ adrp x9,.Lradiation_text_bytes
+ str x27,[x9,:lo12:.Lradiation_text_bytes]
+ adrp x9,.Lradiation_upstream_seed
+ add x9,x9,:lo12:.Lradiation_upstream_seed
+ adrp x10,__yomct0_MOD_lecmwf
+ ldr w10,[x10,:lo12:__yomct0_MOD_lecmwf]
+ str w10,[x9]
+ adrp x10,__yomct0_MOD_larpegef
+ ldr w10,[x10,:lo12:__yomct0_MOD_larpegef]
+ str w10,[x9,#4]
+ /* Original SUMPINI selects the scalar policy for this GNU build. */
+ mov w10,#1
+ str w10,[x9,#20]
+ adrp x10,md2asm_owned_dynamical_namespace
+ add x10,x10,:lo12:md2asm_owned_dynamical_namespace
+ ldr w10,[x10,#276]
+ str w10,[x9,#24]
+ adrp x0,md2asm_owned_radiation_setup_context
+ add x0,x0,:lo12:md2asm_owned_radiation_setup_context
+ mov x1,#7168
+ adrp x2,.Lnamelist_text
+ add x2,x2,:lo12:.Lnamelist_text
+ mov x3,x27
+ adrp x4,.Lphysical_constants
+ add x4,x4,:lo12:.Lphysical_constants
+ mov x5,x9
+ adrp x6,.Lclock_state
+ add x6,x6,:lo12:.Lclock_state
+ bl md2asm_initialize_radiation_setup_context
+ add w23,w0,#161
+ cbnz w0,.Lmain_cleanup
+ mov x0,x20
+ owned_model_address x1,0
+ adrp x2,md2asm_owned_radiation_setup_context
+ add x2,x2,:lo12:md2asm_owned_radiation_setup_context
+ bl md2asm_create_selected_radiation_storage
+ add w23,w0,#163
+ cbnz w0,.Lmain_cleanup
+ /* The first SUGFL1 composition stores use the live selected species counts. */
+ adrp x2,.Lcomposition_live_counts
+ add x2,x2,:lo12:.Lcomposition_live_counts
+ owned_model_address x9,392
+ ldr w10,[x9]
+ str w10,[x2]
+ owned_model_address x9,292
+ ldr w10,[x9]
+ str w10,[x2,#4]
+ owned_model_address x9,300
+ ldr w10,[x9]
+ str w10,[x2,#8]
+ adrp x0,md2asm_owned_radiation_setup_context
+ add x0,x0,:lo12:md2asm_owned_radiation_setup_context
+ mov x9,#6912
+ add x0,x0,x9
+ mov x1,#8
+ mov x3,#12
+ bl md2asm_initialize_selected_composition_aerosol_flags
+ add w23,w0,#165
+ cbnz w0,.Lmain_cleanup
+ adrp x9,md2asm_owned_radiation_setup_context
+ add x9,x9,:lo12:md2asm_owned_radiation_setup_context
+ mov x10,#6912
+ ldr w11,[x9,x10]
+ add x10,x10,#4
+ ldr w12,[x9,x10]
+ owned_model_address x9,4231904
+ str w11,[x9]
+ str w12,[x9,#8]
  owned_model_address x0,1581376
  mov x1,#16
  bl md2asm_initialize_condensation_parameters
@@ -483,7 +561,8 @@ main:
  bl md2asm_initialize_cloud_gravity_wave_parameters
  add w23,w0,#72
  cbnz w0,.Lmain_cleanup
- adr x9,.Lconvection_inputs
+ adrp x9,.Lconvection_inputs
+ add x9,x9,:lo12:.Lconvection_inputs
  owned_model_address x10,1359528
  str x10,[x9,#48]
  mov x10,#3336
@@ -492,9 +571,11 @@ main:
  adrp x0,.Lnamelist_text
  add x0,x0,:lo12:.Lnamelist_text
  mov x1,x27
- adr x2,.Lconvection_records
+ adrp x2,.Lconvection_records
+ add x2,x2,:lo12:.Lconvection_records
  mov x3,x9
- adr x4,.Lconvection_controls
+ adrp x4,.Lconvection_controls
+ add x4,x4,:lo12:.Lconvection_controls
  bl md2asm_initialize_convection_parameters
  add w23,w0,#74
  cbnz w0,.Lmain_cleanup
@@ -507,7 +588,8 @@ main:
  ldr x11,[x9,#16]
  str x11,[x10,#160]
  /* SUPHEC's prognostic cloud setup consumes the live TPHY2 interval. */
- adr x9,.Lprognostic_cloud_inputs
+ adrp x9,.Lprognostic_cloud_inputs
+ add x9,x9,:lo12:.Lprognostic_cloud_inputs
  mov x10,#3336
  ldr x10,[x20,x10]
  str x10,[x9]
@@ -525,19 +607,49 @@ main:
  adrp x0,.Lphysics_status_final
  add x0,x0,:lo12:.Lphysics_status_final
  bl .Lcapture_physics_status
+ /* Whole SUECRAD consumes the actual source-computed PETAH. */
+ mov x0,x20
+ owned_model_address x1,0
+ adrp x2,md2asm_owned_radiation_setup_context
+ add x2,x2,:lo12:md2asm_owned_radiation_setup_context
+ adrp x3,.Lcloud_pressure
+ add x3,x3,:lo12:.Lcloud_pressure
+ add x3,x3,#312
+#ifdef VERIFY_WHOLE_RADIATION
+ bl md2asm_verify_whole_radiation
+#else
+ bl md2asm_initialize_selected_radiation_setup
+#endif
+ add w23,w0,#167
+ cbnz w0,.Lmain_cleanup
+#ifndef VERIFY_WHOLE_RADIATION
+ adrp x0,.Lradiation_output_environment
+ add x0,x0,:lo12:.Lradiation_output_environment
+ bl getenv
+ cbz x0,.Lradiation_stream_skipped
+ owned_model_address x1,0
+ adrp x2,md2asm_owned_radiation_setup_context
+ add x2,x2,:lo12:md2asm_owned_radiation_setup_context
+ bl md2asm_write_radiation_setup_stream
+ add w23,w0,#169
+ cbnz w0,.Lmain_cleanup
+.Lradiation_stream_skipped:
+#endif
  /* Source storage order: SPECTRAL, GMV, then surface and TGFL below. */
  owned_fields_address x21,22736
  mov x0,x21
  mov w1,#19
  mov w2,#21
- adr x3,.Lfield_codes
+ adrp x3,.Lfield_codes
+ add x3,x3,:lo12:.Lfield_codes
  adrp x4,.Lspectral_dummy
  add x4,x4,:lo12:.Lspectral_dummy
  bl md2asm_initialize_serial_spectral_field
  add w23,w0,#112
  cbnz w0,.Lmain_cleanup
  /* Source physics working storage precedes the main GMV/GFL owners. */
- adr x9,.Lphysics_field_shape
+ adrp x9,.Lphysics_field_shape
+ add x9,x9,:lo12:.Lphysics_field_shape
  ldr w10,[x20,#5144]
  str w10,[x9]
  ldr w10,[x20,#5224]
@@ -550,11 +662,13 @@ main:
  owned_fields_address x0,25728
  mov x1,#704
  mov x2,x9
- adr x3,__yoe_phys_mwave_MOD_n_phys_mwave
+ adrp x3,__yoe_phys_mwave_MOD_n_phys_mwave
+ add x3,x3,:lo12:__yoe_phys_mwave_MOD_n_phys_mwave
  bl md2asm_initialize_ecmwf_physics_fields
  add w23,w0,#118
  cbnz w0,.Lmain_cleanup
- adr x9,.Lgmv_inputs
+ adrp x9,.Lgmv_inputs
+ add x9,x9,:lo12:.Lgmv_inputs
  str x20,[x9]
  owned_model_address x10,1577888
  str x10,[x9,#16]
@@ -567,7 +681,8 @@ main:
  owned_fields_address x0,1856
  mov x1,#1560
  mov x2,x9
- adr x3,.Lgmv_controls
+ adrp x3,.Lgmv_controls
+ add x3,x3,:lo12:.Lgmv_controls
  bl md2asm_initialize_grid_motion_fields
  add w23,w0,#116
  cbnz w0,.Lmain_cleanup
@@ -583,9 +698,11 @@ main:
  bl md2asm_initialize_selected_initialization_controls
  add w23,w0,#157
  cbnz w0,.Lmain_cleanup
- adr x0,.Linitialization_control_status
+ adrp x0,.Linitialization_control_status
+ add x0,x0,:lo12:.Linitialization_control_status
  bl .Lcapture_physics_status
- adr x2,.Ltrajectory_controls
+ adrp x2,.Ltrajectory_controls
+ add x2,x2,:lo12:.Ltrajectory_controls
  owned_model_address x9,1359328
  ldp w10,w11,[x9]
  stp w10,w11,[x2]
@@ -603,17 +720,20 @@ main:
  bl md2asm_create_empty_trajectory_state
  add w23,w0,#159
  cbnz w0,.Lmain_cleanup
- adr x0,.Linitial_trajectory_status
+ adrp x0,.Linitial_trajectory_status
+ add x0,x0,:lo12:.Linitial_trajectory_status
  bl .Lcapture_physics_status
  /* Own diagnostic records before SUINIF can inspect their read switches. */
- adr x9,.Ldiagnostic_flux_records
+ adrp x9,.Ldiagnostic_flux_records
+ add x9,x9,:lo12:.Ldiagnostic_flux_records
  owned_fields_address x10,35304
  str x10,[x9]
  owned_fields_address x10,197576
  str x10,[x9,#16]
  owned_fields_address x10,528320
  str x10,[x9,#32]
- adr x10,.Ldiagnostic_flux_controls
+ adrp x10,.Ldiagnostic_flux_controls
+ add x10,x10,:lo12:.Ldiagnostic_flux_controls
  ldr w11,[x20,#5144]
  str w11,[x10]
  ldr w11,[x20,#5160]
@@ -641,7 +761,8 @@ main:
  bl md2asm_initialize_selected_flux_configuration
  add w23,w0,#151
  cbnz w0,.Lmain_cleanup
- adr x0,.Ldiagnostic_flux_status
+ adrp x0,.Ldiagnostic_flux_status
+ add x0,x0,:lo12:.Ldiagnostic_flux_status
  bl .Lcapture_physics_status
  ldr x0,[x19,#8]
  mov x1,x20
@@ -667,14 +788,16 @@ main:
  mov w28,#1
  owned_fields_address x26,3416
  mov x0,x26
- adr x1,.Lgridpoint_controls
+ adrp x1,.Lgridpoint_controls
+ add x1,x1,:lo12:.Lgridpoint_controls
  owned_model_address x2,192
  bl md2asm_initialize_gridpoint_field
  add w23,w0,#144
  cbnz w0,.Lmain_cleanup
  /* Reuse exactly the admitted incoming padding before file placement. */
  ldr x10,[x26]
- adr x9,.Lupper_padding_offsets
+ adrp x9,.Lupper_padding_offsets
+ add x9,x9,:lo12:.Lupper_padding_offsets
  mov w11,#4
 .Lentry_padding_field:
  ldr w12,[x9],#4
@@ -709,10 +832,12 @@ main:
  bl md2asm_initialize_spectral_virtual_temperature
  add w23,w0,#150
  cbnz w0,.Lmain_cleanup
- adr x0,.Linitial_virtual_temperature_status
+ adrp x0,.Linitial_virtual_temperature_status
+ add x0,x0,:lo12:.Linitial_virtual_temperature_status
  bl .Lcapture_physics_status
  /* Compute the initial diagnostics from the completed live spectral state. */
- adr x4,.Ldiagnostic_norm_controls
+ adrp x4,.Ldiagnostic_norm_controls
+ add x4,x4,:lo12:.Ldiagnostic_norm_controls
  adrp x9,__yomct0_MOD_nsppr
  ldr w9,[x9,:lo12:__yomct0_MOD_nsppr]
  str w9,[x4]
@@ -739,10 +864,12 @@ main:
  bl md2asm_compute_selected_spectral_norms
  add w23,w0,#153
  cbnz w0,.Lmain_cleanup
- adr x0,.Ldiagnostic_norm_status
+ adrp x0,.Ldiagnostic_norm_status
+ add x0,x0,:lo12:.Ldiagnostic_norm_status
  bl .Lcapture_physics_status
  /* Explicit first-working-call storage boundary from GP_MODEL. */
- adr x9,.Lnext_time_shape
+ adrp x9,.Lnext_time_shape
+ add x9,x9,:lo12:.Lnext_time_shape
  ldr w10,[x20,#5144]
  str w10,[x9]
  ldr w10,[x20,#5224]
@@ -760,7 +887,8 @@ main:
  add w23,w0,#152
  cbnz w0,.Lmain_cleanup
  /* Construct the selected field containers over the completed live state. */
- adr x0,.Lattachment_controls
+ adrp x0,.Lattachment_controls
+ add x0,x0,:lo12:.Lattachment_controls
  add x0,x0,#4
  bl md2asm_require_default_field_namespace
  add w23,w0,#154
@@ -769,7 +897,8 @@ main:
  add x9,x9,:lo12:.Lforecast_controls
  mov x10,#51076
  ldr w10,[x9,x10]
- adr x9,.Lattachment_controls
+ adrp x9,.Lattachment_controls
+ add x9,x9,:lo12:.Lattachment_controls
  str w10,[x9]
 #ifdef VERIFY_CONTAINER_PREIMAGE
  bl md2asm_attachment_preimage_begin
@@ -781,7 +910,8 @@ main:
  owned_model_address x3,0
  adrp x4,.Lphysical_constants
  add x4,x4,:lo12:.Lphysical_constants
- adr x5,.Lattachment_controls
+ adrp x5,.Lattachment_controls
+ add x5,x5,:lo12:.Lattachment_controls
  bl md2asm_attach_selected_field_containers
  mov w24,w0
 #ifdef VERIFY_CONTAINER_PREIMAGE
@@ -789,7 +919,8 @@ main:
 #endif
  add w23,w24,#156
  cbnz w24,.Lmain_cleanup
- adr x0,.Lattachment_status
+ adrp x0,.Lattachment_status
+ add x0,x0,:lo12:.Lattachment_status
  bl .Lcapture_physics_status
  ldr x0,[x19,#40]
  ldr x1,[x21,#88]
@@ -812,7 +943,8 @@ main:
  add w23,w0,#192
  cbnz w0,.Lmain_cleanup
  ldr x0,[x19,#64]
- adr x1,.Lmetadata_gather
+ adrp x1,.Lmetadata_gather
+ add x1,x1,:lo12:.Lmetadata_gather
  mov x2,#5
  bl .Lwrite_record_payloads
  add w23,w0,#224
@@ -837,6 +969,14 @@ main:
  cbnz w0,.Lmain_cleanup
  mov w23,wzr
 .Lmain_cleanup:
+ owned_model_address x0,0
+ adrp x1,md2asm_owned_radiation_setup_context
+ add x1,x1,:lo12:md2asm_owned_radiation_setup_context
+#ifdef VERIFY_WHOLE_RADIATION
+ bl md2asm_verify_release_whole_radiation
+#else
+ bl md2asm_release_selected_radiation_setup
+#endif
  adrp x0,md2asm_owned_empty_trajectory_state
  add x0,x0,:lo12:md2asm_owned_empty_trajectory_state
  mov x1,#192
@@ -844,7 +984,8 @@ main:
  adrp x9,.Lfields_owner
  ldr x0,[x9,:lo12:.Lfields_owner]
  cbz x0,.Lmain_release_surface
- adr x0,.Ldiagnostic_flux_records
+ adrp x0,.Ldiagnostic_flux_records
+ add x0,x0,:lo12:.Ldiagnostic_flux_records
  bl md2asm_release_selected_flux_configuration
  owned_fields_address x0,0
  bl md2asm_release_selected_field_containers
@@ -888,7 +1029,8 @@ main:
 .Lmain_release_old_vertical:
  adrp x0,.Lmodel_owner
  add x0,x0,:lo12:.Lmodel_owner
- adr x1,.Lowned_alias_destinations
+ adrp x1,.Lowned_alias_destinations
+ add x1,x1,:lo12:.Lowned_alias_destinations
  bl md2asm_release_selected_model_storage
  cbz x20,.Lmain_return
  mov x0,x20
@@ -1393,7 +1535,8 @@ md2asm_owned_initial_metadata_auxiliary:
  ldr x20,[x9,:lo12:.Lvertical_owner]
  adrp x9,.Lgeometry_owner
  ldr x21,[x9,:lo12:.Lgeometry_owner]
- adr x1,.Lsetup_magic
+ adrp x1,.Lsetup_magic
+ add x1,x1,:lo12:.Lsetup_magic
  mov x2,#72
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
@@ -1435,7 +1578,8 @@ md2asm_owned_initial_metadata_auxiliary:
  movk x2,#2,lsl#16
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x22,.Lsetup_geometry_owners
+ adrp x22,.Lsetup_geometry_owners
+ add x22,x22,:lo12:.Lsetup_geometry_owners
  mov x23,#121
 .Lsetup_G_owner:
  ldr w1,[x22],#4
@@ -1444,7 +1588,8 @@ md2asm_owned_initial_metadata_auxiliary:
  cbnz w0,.Lsetup_close
  subs x23,x23,#1
  b.ne .Lsetup_G_owner
- adr x22,.Lsetup_stream_offsets
+ adrp x22,.Lsetup_stream_offsets
+ add x22,x22,:lo12:.Lsetup_stream_offsets
  mov x23,#5
 .Lsetup_stream_owner:
  ldr w24,[x22],#4
@@ -1497,7 +1642,8 @@ md2asm_owned_initial_metadata_auxiliary:
  mov x1,#0x500000
  bl .Lsetup_write_owner
  cbnz w0,.Lsetup_close
- adr x1,.Lmodel_extension_shape
+ adrp x1,.Lmodel_extension_shape
+ add x1,x1,:lo12:.Lmodel_extension_shape
  mov x2,#48
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
@@ -1506,7 +1652,8 @@ md2asm_owned_initial_metadata_auxiliary:
  movk x2,#(4275088 >> 16),lsl#16
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x1,.Lowned_alias_slots
+ adrp x1,.Lowned_alias_slots
+ add x1,x1,:lo12:.Lowned_alias_slots
  mov x2,#120
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
@@ -1520,11 +1667,13 @@ md2asm_owned_initial_metadata_auxiliary:
  mov x2,#1920
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x1,.Lconvection_thermal
+ adrp x1,.Lconvection_thermal
+ add x1,x1,:lo12:.Lconvection_thermal
  mov x2,#24
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x1,.Lfields_extension_header
+ adrp x1,.Lfields_extension_header
+ add x1,x1,:lo12:.Lfields_extension_header
  owned_fields_address x24,0
  str x24,[x1,#32]
  owned_model_address x9,0
@@ -1542,7 +1691,8 @@ md2asm_owned_initial_metadata_auxiliary:
  mov x2,#24
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x22,.Lfields_owner_offsets
+ adrp x22,.Lfields_owner_offsets
+ add x22,x22,:lo12:.Lfields_owner_offsets
  mov w23,#22
 .Lfields_stream_owner:
  ldr w25,[x22],#4
@@ -1552,15 +1702,18 @@ md2asm_owned_initial_metadata_auxiliary:
  cbnz w0,.Lsetup_close
  subs w23,w23,#1
  b.ne .Lfields_stream_owner
- adr x1,.Lworking_extension_header
+ adrp x1,.Lworking_extension_header
+ add x1,x1,:lo12:.Lworking_extension_header
  mov x2,#24
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x1,__yoe_phys_mwave_MOD_n_phys_mwave
+ adrp x1,__yoe_phys_mwave_MOD_n_phys_mwave
+ add x1,x1,:lo12:__yoe_phys_mwave_MOD_n_phys_mwave
  mov x2,#4
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x22,.Lworking_owner_offsets
+ adrp x22,.Lworking_owner_offsets
+ add x22,x22,:lo12:.Lworking_owner_offsets
  mov w23,#9
 .Lworking_stream_owner:
  ldr w25,[x22],#4
@@ -1570,15 +1723,18 @@ md2asm_owned_initial_metadata_auxiliary:
  cbnz w0,.Lsetup_close
  subs w23,w23,#1
  b.ne .Lworking_stream_owner
- adr x1,.Lattachment_extension_header
+ adrp x1,.Lattachment_extension_header
+ add x1,x1,:lo12:.Lattachment_extension_header
  mov x2,#32
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x1,.Lattachment_status
+ adrp x1,.Lattachment_status
+ add x1,x1,:lo12:.Lattachment_status
  mov x2,#24
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x22,.Lattachment_owner_offsets
+ adrp x22,.Lattachment_owner_offsets
+ add x22,x22,:lo12:.Lattachment_owner_offsets
  mov w23,#63
 .Lattachment_stream_owner:
  ldr w25,[x22],#4
@@ -1588,7 +1744,8 @@ md2asm_owned_initial_metadata_auxiliary:
  cbnz w0,.Lsetup_close
  subs w23,w23,#1
  b.ne .Lattachment_stream_owner
- adr x1,.Lmf_extension_header
+ adrp x1,.Lmf_extension_header
+ add x1,x1,:lo12:.Lmf_extension_header
  mov x2,#40
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
@@ -1602,31 +1759,38 @@ md2asm_owned_initial_metadata_auxiliary:
  mov x2,#272
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x1,.Lmf_parent_status
+ adrp x1,.Lmf_parent_status
+ add x1,x1,:lo12:.Lmf_parent_status
  mov x2,#24
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x1,.Lmf_parent_controls
+ adrp x1,.Lmf_parent_controls
+ add x1,x1,:lo12:.Lmf_parent_controls
  mov x2,#12
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x1,.Linitial_virtual_temperature_header
+ adrp x1,.Linitial_virtual_temperature_header
+ add x1,x1,:lo12:.Linitial_virtual_temperature_header
  mov x2,#16
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x1,.Linitial_virtual_temperature_status
+ adrp x1,.Linitial_virtual_temperature_status
+ add x1,x1,:lo12:.Linitial_virtual_temperature_status
  mov x2,#24
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x1,.Ldiagnostic_extension_header
+ adrp x1,.Ldiagnostic_extension_header
+ add x1,x1,:lo12:.Ldiagnostic_extension_header
  mov x2,#56
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x1,.Ldiagnostic_flux_controls
+ adrp x1,.Ldiagnostic_flux_controls
+ add x1,x1,:lo12:.Ldiagnostic_flux_controls
  mov x2,#32
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x1,.Ldiagnostic_norm_controls
+ adrp x1,.Ldiagnostic_norm_controls
+ add x1,x1,:lo12:.Ldiagnostic_norm_controls
  mov x2,#24
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
@@ -1640,11 +1804,13 @@ md2asm_owned_initial_metadata_auxiliary:
  mov x2,#24
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x1,.Ldiagnostic_flux_status
+ adrp x1,.Ldiagnostic_flux_status
+ add x1,x1,:lo12:.Ldiagnostic_flux_status
  mov x2,#48
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x1,.Ltrajectory_extension_header
+ adrp x1,.Ltrajectory_extension_header
+ add x1,x1,:lo12:.Ltrajectory_extension_header
  mov x2,#48
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
@@ -1653,7 +1819,8 @@ md2asm_owned_initial_metadata_auxiliary:
  mov x2,#24
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x1,.Ltrajectory_controls
+ adrp x1,.Ltrajectory_controls
+ add x1,x1,:lo12:.Ltrajectory_controls
  mov x2,#20
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
@@ -1662,7 +1829,8 @@ md2asm_owned_initial_metadata_auxiliary:
  mov x2,#192
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adr x1,.Linitialization_control_status
+ adrp x1,.Linitialization_control_status
+ add x1,x1,:lo12:.Linitialization_control_status
  mov x2,#48
  bl .Lstate_write_bytes
 .Lsetup_close:
@@ -1770,7 +1938,8 @@ md2asm_owned_initial_metadata_auxiliary:
 
 .text
 .Lbind_final_record_tables:
- adr x9,.Lcomplete_physics_records
+ adrp x9,.Lcomplete_physics_records
+ add x9,x9,:lo12:.Lcomplete_physics_records
  owned_model_address x10,4143760
  str x10,[x9,#0]
  owned_model_address x10,4219344
@@ -1809,14 +1978,16 @@ md2asm_owned_initial_metadata_auxiliary:
  str x10,[x9,#304]
  owned_model_address x10,1577816
  str x10,[x9,#320]
- adr x9,.Lcloud_records
+ adrp x9,.Lcloud_records
+ add x9,x9,:lo12:.Lcloud_records
  owned_model_address x10,1578336
  str x10,[x9,#0]
  owned_model_address x10,1588032
  str x10,[x9,#16]
  owned_model_address x10,1588128
  str x10,[x9,#32]
- adr x9,.Lfield_dimension_pairs
+ adrp x9,.Lfield_dimension_pairs
+ add x9,x9,:lo12:.Lfield_dimension_pairs
  owned_model_address x10,16
  str x10,[x9,#0]
  owned_model_address x10,1577368
@@ -1829,14 +2000,16 @@ md2asm_owned_initial_metadata_auxiliary:
  str x10,[x9,#64]
  owned_model_address x10,4218352
  str x10,[x9,#80]
- adr x9,.Lconvection_records
+ adrp x9,.Lconvection_records
+ add x9,x9,:lo12:.Lconvection_records
  owned_model_address x10,1581392
  str x10,[x9,#0]
  owned_model_address x10,1588432
  str x10,[x9,#16]
  owned_model_address x10,1588416
  str x10,[x9,#32]
- adr x9,.Lmetadata_gather
+ adrp x9,.Lmetadata_gather
+ add x9,x9,:lo12:.Lmetadata_gather
  owned_model_address x10,8
  str x10,[x9,#0]
  owned_model_address x10,1577888
@@ -2115,3 +2288,40 @@ __yoe_phys_mwave_MOD_n_phys_mwave: .zero 4
 .Linitialization_control_status:.skip 24
 .Linitial_trajectory_status:.skip 24
 .section .note.GNU-stack,"",%progbits
+
+.global md2asm_radiation_gate_constants
+.set md2asm_radiation_gate_constants,.Lphysical_constants
+
+.global md2asm_radiation_gate_forecast
+.set md2asm_radiation_gate_forecast,.Lforecast_controls
+
+.global md2asm_radiation_gate_clock
+.set md2asm_radiation_gate_clock,.Lclock_state
+
+.global md2asm_radiation_gate_text
+.set md2asm_radiation_gate_text,.Lnamelist_text
+
+.global md2asm_radiation_gate_model_owner
+.set md2asm_radiation_gate_model_owner,.Lmodel_owner
+
+.global md2asm_radiation_gate_geometry_owner
+.set md2asm_radiation_gate_geometry_owner,.Lgeometry_owner
+
+.global md2asm_radiation_gate_runtime
+.set md2asm_radiation_gate_runtime,.Lradiation_runtime
+
+.global md2asm_radiation_gate_text_bytes
+.set md2asm_radiation_gate_text_bytes,.Lradiation_text_bytes
+
+.global md2asm_radiation_gate_upstream
+.set md2asm_radiation_gate_upstream,.Lradiation_upstream_seed
+
+.bss
+.p2align 3
+.Lradiation_runtime:.zero 32
+.Lradiation_text_bytes:.zero 8
+.Lradiation_upstream_seed:.zero 112
+.Lcomposition_live_counts:.zero 16
+
+.section .rodata
+.Lradiation_output_environment:.asciz "MD2ASM_RADIATION_ASSEMBLY_OUTPUT"

@@ -107,14 +107,16 @@ md2asm_initialize_selected_spectral_radiation_tables:
  b.lo .Lprivate_copy
  add x0,x25,#2304
  mov w1,#1
- adr x2,.Lsolar_extent
+ adrp x2,.Lsolar_extent
+ add x2,x2,:lo12:.Lsolar_extent
  mov w3,#1
  mov w4,#1
  BCALL md2asm_allocate_radiation_flux_array
  cbnz w0,.Lband_failed
  add x0,x25,#2368
  mov w1,#1
- adr x2,.Lsolar_extent
+ adrp x2,.Lsolar_extent
+ add x2,x2,:lo12:.Lsolar_extent
  mov w3,#1
  mov w4,#1
  BCALL md2asm_allocate_radiation_flux_array
