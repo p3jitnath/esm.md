@@ -56,8 +56,8 @@ External libraries and their public interfaces may remain, including ecCodes, EC
 | --- | --- | --- |
 | Initial files | Original GRIB loading, complete surface state and selected final-address initial records are verified from an assembly entry | Finish the remaining physics and working-state producers |
 | Vertical setup and Geometry | Complete selected coordinates, maps, transform interfaces and orography owners are connected | Complete remaining caller progression and output-coordinate attachment |
-| Model and fields | Final MODEL and FIELDS storage, 22 field owners and several complete parameter families are owned | Finish remaining consumed records, field containers and diagnostic flux state |
-| Physics setup | Cloud, convection, exchange and stability components pass complete source comparisons | Complete radiation inputs, land parameters and their enclosing setup callers |
+| Model and fields | Final MODEL and FIELDS storage, 94 field owners and several complete parameter families are owned | Finish remaining consumed records, field access and diagnostic flux state |
+| Physics setup | Cloud, convection, exchange and stability components pass complete source comparisons | Complete radiation inputs and their enclosing setup callers |
 | Runtime and output | Direct loop, updates, metadata and writers pass the comparison forecast | Connect the complete owned state and remove remaining original forwards |
 | Complete acceptance | The autonomous forecast has not run | Require exact complete outputs and independent whole-forecast physical checks before optimisation |
 
@@ -88,6 +88,9 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 | Owned complete surface metadata | Two complete source cases match 4,397,520 bytes across 70 owners | [Surface configuration](../../skills/md2asm/references/openifs/setup/selected_surface_configuration.md) |
 | Owned complete grid-field configuration | Three complete original setup cases match all 4,077,408 namespace bytes | [Grid-field configuration](../../skills/md2asm/references/openifs/setup/selected_grid_field_configuration.md) |
 | Owned selected forecast controls | Four complete source cases match 206,048 bytes across 108 named controls, all 13 schedules and the connected clock | [Forecast controls](../../skills/md2asm/references/openifs/setup/selected_forecast_controls.md) |
+| Owned complete surface parameters | Complete SUSURF and SUSURF_CTL match 27,436 source bytes across the object, globals and 79 numerical owners | [Surface parameters](../../skills/md2asm/references/openifs/setup/complete_surface_parameter_setup.md) |
+| Owned surface radiation parameters | Three complete SUSRAD and SURWN cases match 13,944 bytes, retaining source-unwritten tails | [Surface radiation](../../skills/md2asm/references/openifs/setup/surface_radiation_parameter_setup.md) |
+| Owned spectral Planck lookup | Four complete two-band cases match 1,952 bytes with independent blackbody-energy checks | [Planck lookup](../../skills/md2asm/references/openifs/radiation/spectral_planck_lookup.md) |
 | Owned convection parameters | Three complete SUCUMF/SUCUMF2 profiles match 1,860 bytes, including source thermal transitions and retained threshold words | [Convection parameters](../../skills/md2asm/references/openifs/setup/convection_parameter_setup.md) |
 | Owned physics time and cloud-level controls | Four complete SUPHY2 cases match 640 bytes, including live transition levels 10 and 14 and exact threshold ties | [Physics time controls](../../skills/md2asm/references/openifs/setup/physics_time_controls.md) |
 | Owned field-container attachment | Three complete container records and 63 new arrays match 3,729,391 source bytes | [Container lifetime](../../skills/md2asm/references/openifs/setup/field_container_attachment.md) |

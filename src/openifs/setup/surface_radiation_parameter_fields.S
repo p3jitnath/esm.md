@@ -1,0 +1,445 @@
+/* Contract: skills/md2asm/references/openifs/setup/surface_radiation_parameter_setup.md. */
+/* Selected source inputs and complete selected SUSRAD/SURWN field stages.
+ * Frozen integration_contract.md: all views aligned, disjoint and mapped. */
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_initialize_selected_surface_radiation_inputs
+.type md2asm_initialize_selected_surface_radiation_inputs,%function
+md2asm_initialize_selected_surface_radiation_inputs:
+ cbz x0,.Linput_bad
+ cbz x1,.Linput_bad
+ orr x9,x0,x1
+ tst x9,#7
+ b.ne .Linput_bad
+ cmp x2,#456
+ b.lo .Linput_bad
+ adds x9,x0,#8
+ b.cs .Linput_bad
+ adds x10,x1,#456
+ b.cs .Linput_bad
+ cmp x0,x10
+ b.hs .Linput_disjoint
+ cmp x1,x9
+ b.lo .Linput_bad
+.Linput_disjoint:
+ ldr x9,[x0]
+ cmp x9,#1
+ b.ne .Linput_bad
+ adrp x9,.Linput_constants
+ add x9,x9,:lo12:.Linput_constants
+ mov x10,#57
+.Linput_copy:
+ ldr x11,[x9],#8
+ str x11,[x1],#8
+ subs x10,x10,#1
+ b.ne .Linput_copy
+ mov w0,#0
+ ret
+.Linput_bad:
+ mov w0,#2
+ ret
+.size md2asm_initialize_selected_surface_radiation_inputs,.-md2asm_initialize_selected_surface_radiation_inputs
+.global md2asm_surface_radiation_parameter_fields
+.type md2asm_surface_radiation_parameter_fields,%function
+md2asm_surface_radiation_parameter_fields:
+ // x0 inputs456,x1 TRAD48,x2 TRDI1256,x3 TLW304,x4 TSW240.
+ ldp w9,w10,[x0]
+ stp w9,w10,[x1]
+ mov w9,#3
+ str w9,[x1,#8]
+ ldr w9,[x0,#12]
+ str w9,[x1,#12]
+ ldp x9,x10,[x0,#16]
+ stp x9,x10,[x1,#16]
+ ldp x9,x10,[x0,#40]
+ stp x9,x10,[x1,#32]
+ adrp x9,.Lrdi_constants
+ add x9,x9,:lo12:.Lrdi_constants
+ ldr x10,[x9]
+ str x10,[x2]
+ ldp x10,x11,[x9,#344]
+ stp x10,x11,[x2,#344]
+ ldr d0,[x2]
+ adrp x10,.Lforest_scales
+ add x10,x10,:lo12:.Lforest_scales
+ ldr d1,[x10]
+ fmul d2,d0,d1
+ add x11,x2,#8
+ mov x12,#21
+.Lforest_uv:
+ str d2,[x11],#8
+ subs x12,x12,#1
+ b.ne .Lforest_uv
+ ldr d1,[x10,#8]
+ fmul d2,d0,d1
+ mov x12,#21
+.Lforest_ir:
+ str d2,[x11],#8
+ subs x12,x12,#1
+ b.ne .Lforest_ir
+ mov x10,#0
+.Lforest_override:
+ adrp x11,.Lforest_indices
+ add x11,x11,:lo12:.Lforest_indices
+ ldr x12,[x11,x10,lsl #3]
+ add x12,x12,#1
+ ldr x13,[x9,x12,lsl #3]
+ str x13,[x2,x12,lsl #3]
+ add x12,x12,#21
+ ldr x13,[x9,x12,lsl #3]
+ str x13,[x2,x12,lsl #3]
+ add x10,x10,#1
+ cmp x10,#6
+ b.lo .Lforest_override
+ add x10,x9,#360
+ add x11,x2,#360
+ mov x12,#112
+.Lemiss_copy:
+ ldr x13,[x10],#8
+ str x13,[x11],#8
+ subs x12,x12,#1
+ b.ne .Lemiss_copy
+ ldr w9,[x0,#8]
+ str w9,[x3]
+ ldr x9,[x0,#32]
+ str x9,[x3,#8]
+ add x9,x0,#56
+ add x10,x3,#16
+ mov x11,#36
+.Lxp_copy:
+ ldr x12,[x9],#8
+ str x12,[x10],#8
+ subs x11,x11,#1
+ b.ne .Lxp_copy
+ ldr x9,[x4]
+ add x10,x0,#344
+ mov x11,#6
+.Lsun_copy:
+ ldr x12,[x10],#8
+ str x12,[x9],#8
+ subs x11,x11,#1
+ b.ne .Lsun_copy
+ ldr x9,[x4,#64]
+ ldr x10,[x4,#152]
+ adrp x11,.Lice_constants
+ add x11,x11,:lo12:.Lice_constants
+ mov x12,#0
+.Lice_band:
+ mov x13,#0
+.Lice_month:
+ add x14,x13,#6
+ cmp x14,#12
+ sub x15,x14,#12
+ csel x14,x14,x15,lo
+ add x15,x12,x14
+ ldr x16,[x11,x15,lsl #3]
+ str x16,[x9,x15,lsl #3]
+ add x15,x12,x13
+ str x16,[x10,x15,lsl #3]
+ add x13,x13,#1
+ cmp x13,#12
+ b.lo .Lice_month
+ add x12,x12,#12
+ cmp x12,#72
+ b.lo .Lice_band
+ ret
+.size md2asm_surface_radiation_parameter_fields,.-md2asm_surface_radiation_parameter_fields
+.section .rodata
+.p2align 3
+.Lforest_scales:
+ .quad 0x3ff1b21815a07b35
+ .quad 0x3fed1d29dc725c3e
+.Lforest_indices:
+ .quad 3,4,5,6,18,19
+.Linput_constants:
+ .quad 0x0000000e00000006
+ .quad 0x0000000200000006
+ .quad 0x0000000000000001
+ .quad 0x0000000100000001
+ .quad 0x406f400000000000
+ .quad 0x4049000000000000
+ .quad 0x408c200000000000
+ .quad 0x4047371e96c3fc44
+ .quad 0x4060290e410b630b
+ .quad 0x4069ea72862f598a
+ .quad 0x40739fbeea209aaa
+ .quad 0x4066f76aa8eb4635
+ .quad 0xc05c87dfb9389b52
+ .quad 0x405266b49e01de27
+ .quad 0x40716e10f51ac9b0
+ .quad 0x4070ec4fbfc6540d
+ .quad 0xc04ca93aeee95747
+ .quad 0xc0502f8472c0e7bc
+ .quad 0x4055cf3ffac1d29e
+ .quad 0x40428682c6ef3d3a
+ .quad 0x40699f9a5657fb6a
+ .quad 0x40777948de2ac322
+ .quad 0x4065c05feda66128
+ .quad 0xc060b018bd66277c
+ .quad 0xc042d36e04c05921
+ .quad 0x402ddc3b70ef5665
+ .quad 0x40564a5072085b18
+ .quad 0x40663dc7a398201d
+ .quad 0x40575bc45cbbc2b9
+ .quad 0xc051a958644523f6
+ .quad 0xc03a5f86c226809d
+ .quad 0x4044318201cd5f9a
+ .quad 0x405b235f6fd21ff3
+ .quad 0x404960a42aed1394
+ .quad 0xc03f7f064ece9a2c
+ .quad 0x3fc05f7403dddb12
+ .quad 0x3ffcd4141e9af5ba
+ .quad 0x4022299213935abb
+ .quad 0x4052c4bb2788db05
+ .quad 0x406ed16b8f9b1316
+ .quad 0x40789537c99ae925
+ .quad 0x40725da51c193b3a
+ .quad 0x405646e82d7b634e
+ .quad 0x3f5f687b139c94f7
+ .quad 0x3fc15ee136e71cda
+ .quad 0x3fd49ddc1e7967cb
+ .quad 0x3fd4dfc5cdd50a89
+ .quad 0x3fc71e29b6b2af14
+ .quad 0x3fa123810e8858ff
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+.Lrdi_constants:
+ .quad 0x3fc3333333333333
+ .quad 0x3fc53c1ce6c093d9
+ .quad 0x3fc53c1ce6c093d9
+ .quad 0x3fc53c1ce6c093d9
+ .quad 0x3fd3d70a3d70a3d7
+ .quad 0x3fd8f5c28f5c28f6
+ .quad 0x3fd6666666666666
+ .quad 0x3fdc28f5c28f5c29
+ .quad 0x3fc53c1ce6c093d9
+ .quad 0x3fc53c1ce6c093d9
+ .quad 0x3fc53c1ce6c093d9
+ .quad 0x3fc53c1ce6c093d9
+ .quad 0x3fc53c1ce6c093d9
+ .quad 0x3fc53c1ce6c093d9
+ .quad 0x3fc53c1ce6c093d9
+ .quad 0x3fc53c1ce6c093d9
+ .quad 0x3fc53c1ce6c093d9
+ .quad 0x3fc53c1ce6c093d9
+ .quad 0x3fc53c1ce6c093d9
+ .quad 0x3fd47ae147ae147b
+ .quad 0x3fd47ae147ae147b
+ .quad 0x3fc53c1ce6c093d9
+ .quad 0x3fc177e5eaab0425
+ .quad 0x3fc177e5eaab0425
+ .quad 0x3fc177e5eaab0425
+ .quad 0x3fceb851eb851eb8
+ .quad 0x3fd147ae147ae148
+ .quad 0x3fd147ae147ae148
+ .quad 0x3fd51eb851eb851f
+ .quad 0x3fc177e5eaab0425
+ .quad 0x3fc177e5eaab0425
+ .quad 0x3fc177e5eaab0425
+ .quad 0x3fc177e5eaab0425
+ .quad 0x3fc177e5eaab0425
+ .quad 0x3fc177e5eaab0425
+ .quad 0x3fc177e5eaab0425
+ .quad 0x3fc177e5eaab0425
+ .quad 0x3fc177e5eaab0425
+ .quad 0x3fc177e5eaab0425
+ .quad 0x3fc177e5eaab0425
+ .quad 0x3fd0000000000000
+ .quad 0x3fd0000000000000
+ .quad 0x3fc177e5eaab0425
+ .quad 0x3faeb851eb851eb8
+ .quad 0x3d719799812dea11
+ .quad 0x3fefae147ae147ae
+ .quad 0x3fedc28f5c28f5c3
+ .quad 0x3fedc28f5c28f5c3
+ .quad 0x3fedc28f5c28f5c3
+ .quad 0x3fedc28f5c28f5c3
+ .quad 0x3fedc28f5c28f5c3
+ .quad 0x3fedc28f5c28f5c3
+ .quad 0x3fedc28f5c28f5c3
+ .quad 0x3fedc28f5c28f5c3
+ .quad 0x3fedc28f5c28f5c3
+ .quad 0x3fedc28f5c28f5c3
+ .quad 0x3fedc28f5c28f5c3
+ .quad 0x3fedc28f5c28f5c3
+ .quad 0x3fedc28f5c28f5c3
+ .quad 0x3fedc28f5c28f5c3
+ .quad 0x3fedc28f5c28f5c3
+ .quad 0x3fefae147ae147ae
+ .quad 0x3feeb851eb851eb8
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fefae147ae147ae
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fefae147ae147ae
+ .quad 0x3fefae147ae147ae
+ .quad 0x3fee147ae147ae14
+ .quad 0x3fee147ae147ae14
+ .quad 0x3fee147ae147ae14
+ .quad 0x3fee147ae147ae14
+ .quad 0x3fee147ae147ae14
+ .quad 0x3fee147ae147ae14
+ .quad 0x3fee147ae147ae14
+ .quad 0x3fee147ae147ae14
+ .quad 0x3fee147ae147ae14
+ .quad 0x3fee147ae147ae14
+ .quad 0x3fee147ae147ae14
+ .quad 0x3fee147ae147ae14
+ .quad 0x3fee147ae147ae14
+ .quad 0x3fee147ae147ae14
+ .quad 0x3fe6f41f212d7732
+ .quad 0x3fd217c1bda5119d
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+.Lice_constants:
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fec083126e978d5
+ .quad 0x3fe8e5604189374c
+ .quad 0x3fe8e5604189374c
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fec083126e978d5
+ .quad 0x3fe8e5604189374c
+ .quad 0x3fe8e5604189374c
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fec083126e978d5
+ .quad 0x3fe8e5604189374c
+ .quad 0x3fe8e5604189374c
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fef333333333333
+ .quad 0x3fea9fbe76c8b439
+ .quad 0x3fea9fbe76c8b439
+ .quad 0x3fea9fbe76c8b439
+ .quad 0x3fea9fbe76c8b439
+ .quad 0x3fea9fbe76c8b439
+ .quad 0x3fe46a7ef9db22d1
+ .quad 0x3fdc5a1cac083127
+ .quad 0x3fdc5a1cac083127
+ .quad 0x3fea9fbe76c8b439
+ .quad 0x3fea9fbe76c8b439
+ .quad 0x3fea9fbe76c8b439
+ .quad 0x3fea9fbe76c8b439
+ .quad 0x3fd0000000000000
+ .quad 0x3fd0000000000000
+ .quad 0x3fd0000000000000
+ .quad 0x3fd0000000000000
+ .quad 0x3fd0000000000000
+ .quad 0x3fc395810624dd2f
+ .quad 0x3fac28f5c28f5c29
+ .quad 0x3fac28f5c28f5c29
+ .quad 0x3fd0000000000000
+ .quad 0x3fd0000000000000
+ .quad 0x3fd0000000000000
+ .quad 0x3fd0000000000000
+ .quad 0x3f9999999999999a
+ .quad 0x3f9999999999999a
+ .quad 0x3f9999999999999a
+ .quad 0x3f9999999999999a
+ .quad 0x3f9999999999999a
+ .quad 0x3f9eb851eb851eb8
+ .quad 0x3fa26e978d4fdf3b
+ .quad 0x3fa26e978d4fdf3b
+ .quad 0x3f9999999999999a
+ .quad 0x3f9999999999999a
+ .quad 0x3f9999999999999a
+ .quad 0x3f9999999999999a
+
+.section .note.GNU-stack,"",%progbits
