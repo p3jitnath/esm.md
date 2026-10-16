@@ -3,9 +3,9 @@
  * Ordered arithmetic and ABI are skills/md2asm/references/openifs/physics/adding_ica_sw.md.
  * Fourteen pointers arrive through x0..x7 and six caller-stack slots.
  * Outputs contain every half-level flux in W/m^2, in Fortran column order.
- * The 96-byte frame preserves x19..x30. x18 and d8..d15 stay untouched.
- * Private scratch is 48*(nlev+1) bytes, always aligned to 16 bytes.
- * Two independent FP64 lanes and the scalar remainder retain all roundings. */
+ * The 160-byte frame preserves x19..x30 and d8..d15. x18 stays untouched.
+ * Private scratch is 96*(nlev+1) bytes, aligned to 16 bytes.
+ * Two independent vector groups, a pair and a scalar retain all roundings. */
 #ifndef ORIGINAL_SYMBOL
 #define ORIGINAL_SYMBOL __radiation_adding_ica_sw_MOD_adding_ica_sw
 #endif
@@ -163,15 +163,146 @@
     AST 0,x24,x10,\width
 .endm
 
+
+/* Two independent vector groups share loop control and address calculation.
+ * Registers 0..14 and 16..30 hold the groups. v15 holds exact one.
+ * Each cell retains every original multiplication, sum and division. */
+.macro ALD4 lo,hi,base,index
+    add x15,\base,\index
+    ldp q\lo,q\hi,[x15]
+.endm
+.macro AST4 lo,hi,base,index
+    add x15,\base,\index
+    stp q\lo,q\hi,[x15]
+.endm
+.macro AMUL4 a,b,c,d,e,f
+    fmul v\a\().2d,v\c\().2d,v\e\().2d
+    fmul v\b\().2d,v\d\().2d,v\f\().2d
+.endm
+.macro AADD4 a,b,c,d,e,f
+    fadd v\a\().2d,v\c\().2d,v\e\().2d
+    fadd v\b\().2d,v\d\().2d,v\f\().2d
+.endm
+.macro ASUB4 a,b,c,d,e,f
+    fsub v\a\().2d,v\c\().2d,v\e\().2d
+    fsub v\b\().2d,v\d\().2d,v\f\().2d
+.endm
+.macro ADIV4 a,b,c,d,e,f
+    fdiv v\a\().2d,v\c\().2d,v\e\().2d
+    fdiv v\b\().2d,v\d\().2d,v\f\().2d
+.endm
+
+.macro ADDING_FOUR_GROUP
+    ALD4 1,17,x4,x5
+    ALD4 0,16,x1,x5
+    AST4 0,16,x24,x5
+    mov x9,#0
+    mov x10,x5
+.Lfour_direct\@:
+    cmp x9,x20
+    b.hs .Lfour_ground\@
+    ALD4 2,18,x0,x10
+    AMUL4 0,16,0,16,2,18
+    add x10,x10,x21
+    AST4 0,16,x24,x10
+    add x9,x9,#1
+    b .Lfour_direct\@
+.Lfour_ground\@:
+    ALD4 3,19,x2,x5
+    ALD4 5,21,x3,x5
+    AMUL4 4,20,5,21,0,16
+    AMUL4 4,20,4,20,1,17
+    lsl x11,x20,#5
+    AST4 3,19,x6,x11
+    AST4 4,20,x7,x11
+    mov x9,x20
+.Lfour_upward\@:
+    cbz x9,.Lfour_top\@
+    sub x9,x9,#1
+    sub x10,x10,x21
+    lsl x11,x9,#5
+    ALD4 5,21,x25,x10
+    ALD4 6,22,x26,x10
+    ALD4 7,23,x27,x10
+    ALD4 8,24,x28,x10
+    ALD4 0,16,x24,x10
+    AMUL4 9,25,3,19,5,21
+    ASUB4 9,25,15,15,9,25
+    ADIV4 9,25,15,15,9,25
+    AMUL4 10,26,6,22,6,22
+    AMUL4 10,26,10,26,3,19
+    AMUL4 11,27,7,23,0,16
+    AMUL4 12,28,3,19,8,24
+    AMUL4 12,28,12,28,0,16
+    AADD4 12,28,4,20,12,28
+    AMUL4 12,28,6,22,12,28
+    AMUL4 10,26,10,26,9,25
+    AADD4 10,26,5,21,10,26
+    AMUL4 12,28,12,28,9,25
+    AADD4 11,27,11,27,12,28
+    AST4 9,25,x8,x11
+    AST4 10,26,x6,x11
+    AST4 11,27,x7,x11
+    mov v3.16b,v10.16b
+    mov v19.16b,v26.16b
+    mov v4.16b,v11.16b
+    mov v20.16b,v27.16b
+    b .Lfour_upward\@
+.Lfour_top\@:
+    movi v14.2d,#0
+    movi v30.2d,#0
+    AST4 14,30,x23,x5
+    AST4 4,20,x22,x5
+    mov x9,#0
+    mov x10,x5
+.Lfour_downward\@:
+    cmp x9,x20
+    b.hs .Lfour_last_direct\@
+    lsl x11,x9,#5
+    ALD4 9,25,x8,x11
+    add x11,x11,#32
+    ALD4 3,19,x6,x11
+    ALD4 4,20,x7,x11
+    ALD4 5,21,x25,x10
+    ALD4 6,22,x26,x10
+    ALD4 8,24,x28,x10
+    ALD4 0,16,x24,x10
+    AMUL4 10,26,6,22,14,30
+    AMUL4 11,27,5,21,4,20
+    AADD4 10,26,10,26,11,27
+    AMUL4 11,27,8,24,0,16
+    AADD4 10,26,10,26,11,27
+    AMUL4 10,26,10,26,9,25
+    AMUL4 13,29,3,19,10,26
+    AADD4 13,29,13,29,4,20
+    AMUL4 0,16,0,16,1,17
+    AST4 0,16,x24,x10
+    add x10,x10,x21
+    AST4 10,26,x23,x10
+    AST4 13,29,x22,x10
+    mov v14.16b,v10.16b
+    mov v30.16b,v26.16b
+    add x9,x9,#1
+    b .Lfour_downward\@
+.Lfour_last_direct\@:
+    ALD4 0,16,x24,x10
+    AMUL4 0,16,0,16,1,17
+    AST4 0,16,x24,x10
+.endm
+
 .global ORIGINAL_SYMBOL
 .type ORIGINAL_SYMBOL,%function
 ORIGINAL_SYMBOL:
-    stp x29,x30,[sp,#-96]!
+    stp x29,x30,[sp,#-160]!
     stp x19,x20,[sp,#16]
     stp x21,x22,[sp,#32]
     stp x23,x24,[sp,#48]
     stp x25,x26,[sp,#64]
     stp x27,x28,[sp,#80]
+    stp d8,d9,[sp,#96]
+    stp d10,d11,[sp,#112]
+    stp d12,d13,[sp,#128]
+    stp d14,d15,[sp,#144]
     mov x29,sp
     ldrsw x19,[x0]
     ldrsw x20,[x1]
@@ -181,22 +312,35 @@ ORIGINAL_SYMBOL:
     mov x4,x5
     mov x25,x6
     mov x26,x7
-    ldp x27,x28,[sp,#96]
-    ldp x0,x22,[sp,#112]
-    ldp x23,x24,[sp,#128]
+    ldp x27,x28,[sp,#160]
+    ldp x0,x22,[sp,#176]
+    ldp x23,x24,[sp,#192]
     cbz x19,.Lreturn
     lsl x21,x19,#3           /* Complete plane pitch, in bytes. */
     add x12,x20,#1
-    lsl x12,x12,#4
+    lsl x12,x12,#5
     add x13,x12,x12,lsl #1
     sub sp,sp,x13
     mov x6,sp
     add x7,x6,x12
     add x8,x7,x12
+    fmov d15,#1.0
+    dup v15.2d,v15.d[0]
+    mov x5,#0
+    cmp x19,#4
+    b.lo .Lpair_dispatch
+.Lfour:
+    ADDING_FOUR_GROUP
+    add x5,x5,#32
+    sub x17,x21,x5
+    cmp x17,#32
+    b.hs .Lfour
+    cbz x17,.Lreturn
+.Lpair_dispatch:
     fmov d22,#1.0
     dup v22.2d,v22.d[0]
-    mov x5,#0
-    cmp x19,#2
+    sub x17,x21,x5
+    cmp x17,#16
     b.lo .Lscalar
 .Lpair:
     ADDING_GROUP 2
@@ -209,12 +353,16 @@ ORIGINAL_SYMBOL:
     ADDING_GROUP 1
 .Lreturn:
     mov sp,x29
+    ldp d8,d9,[sp,#96]
+    ldp d10,d11,[sp,#112]
+    ldp d12,d13,[sp,#128]
+    ldp d14,d15,[sp,#144]
     ldp x19,x20,[sp,#16]
     ldp x21,x22,[sp,#32]
     ldp x23,x24,[sp,#48]
     ldp x25,x26,[sp,#64]
     ldp x27,x28,[sp,#80]
-    ldp x29,x30,[sp],#96
+    ldp x29,x30,[sp],#160
     ret
 .size ORIGINAL_SYMBOL,.-ORIGINAL_SYMBOL
 .section .note.GNU-stack,"",%progbits

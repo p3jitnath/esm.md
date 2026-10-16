@@ -1,4 +1,4 @@
-/* Complete shortwave two-stream layer calculation for physics P01 and P02.
+/* Local scalar schedule candidate for the unchanged layer equations P01 and P02.
  * Physics is formulations/openifs/physics/two_stream_shortwave_transport.md.
  * Contract is skills/md2asm/references/openifs/physics/calc_reflectance_transmittance_sw.md.
  * x0 count, x1 mu, x2..x6 input arrays, x7 diffuse reflection.
@@ -52,18 +52,19 @@ ORIGINAL_SYMBOL:
     fmov d0,#1.0
     fsub d1,d0,d11
     str d1,[sp,#184]
-    fmul d2,d9,d1
-    fmul d3,d10,d11
-    fadd d14,d2,d3
-    fmul d2,d9,d11
-    fmul d3,d10,d1
-    fadd d15,d2,d3
+    // Start the independent square root before both coupling sums.
     fsub d2,d9,d10
     fadd d3,d9,d10
     fmul d2,d2,d3
     ldr d3,.Lsw_rt_floor
     fmaxnm d2,d2,d3
     fsqrt d12,d2
+    fmul d2,d9,d1
+    fmul d3,d10,d11
+    fadd d14,d2,d3
+    fmul d2,d9,d11
+    fmul d3,d10,d1
+    fadd d15,d2,d3
     fmul d2,d12,d8
     fsub d2,d0,d2
     fabs d2,d2
@@ -73,6 +74,8 @@ ORIGINAL_SYMBOL:
     ldr d3,.Lsw_rt_adjustment
     fmul d8,d8,d3
 .Lsw_rt_angle_ready:
+    // Independent products cover part of the division wait.
+    fdiv d0,d13,d8
     fmul d2,d12,d8
     str d2,[sp,#192]
     fmul d2,d12,d11
@@ -80,7 +83,6 @@ ORIGINAL_SYMBOL:
     ldr d1,[sp,#184]
     fmul d2,d12,d1
     str d2,[sp,#208]
-    fdiv d0,d13,d8
     fmov d1,xzr
     fmaxnm d0,d0,d1
     fneg d0,d0
@@ -91,48 +93,46 @@ ORIGINAL_SYMBOL:
     fmul d0,d12,d13
     fneg d0,d0
     bl exp
-    fmul d1,d0,d0
-    str d1,[sp,#232]
-    fmov d2,#2.0
-    fmul d2,d2,d12
-    fmul d2,d2,d0
-    str d2,[sp,#240]
+    // EXP is finished for this cell, so caller registers keep rounded values.
+    fmul d16,d0,d0
+    fmov d17,#2.0
+    fmul d17,d17,d12
+    fmul d17,d17,d0
+    ldp d18,d19,[sp,#192]
+    ldr d20,[sp,#208]
+    ldr d21,[sp,#184]
+    ldr d22,[sp,#216]
     fadd d3,d12,d9
     fsub d4,d12,d9
-    fmul d4,d4,d1
+    fmul d4,d4,d16
     fadd d3,d3,d4
     fmov d5,#1.0
     fdiv d3,d5,d3
-    fsub d4,d5,d1
-    fmul d4,d10,d4
-    fmul d4,d4,d3
-    str d4,[x26,x19]
-    fmul d4,d2,d3
-    str d4,[x27,x19]
+    // Prepare independent factors while the reciprocal is in progress.
+    fmul d7,d18,d18
+    fsub d7,d5,d7
     ldr d0,[x22,x19]
     fmul d0,d8,d0
+    fsub d1,d5,d18
+    fadd d2,d5,d18
+    fsub d6,d5,d16
+    fmul d6,d10,d6
+    fmul d4,d6,d3
+    str d4,[x26,x19]
+    fmul d4,d17,d3
+    str d4,[x27,x19]
     fmul d0,d0,d3
-    ldr d6,[sp,#192]
-    fmul d7,d6,d6
-    fsub d7,d5,d7
     fdiv d0,d0,d7
-    str d0,[sp,#248]
-    fsub d1,d5,d6
-    fadd d2,d5,d6
-    ldr d3,[sp,#200]
-    fadd d4,d15,d3
+    fadd d4,d15,d19
     fmul d4,d1,d4
-    fsub d3,d15,d3
+    fsub d3,d15,d19
     fmul d3,d2,d3
-    ldr d7,[sp,#232]
-    fmul d3,d3,d7
+    fmul d3,d3,d16
     fsub d4,d4,d3
     fmul d3,d15,d8
     fsub d3,d11,d3
-    ldr d6,[sp,#240]
-    fmul d3,d6,d3
-    ldr d7,[sp,#216]
-    fmul d3,d3,d7
+    fmul d3,d17,d3
+    fmul d3,d3,d22
     fsub d4,d4,d3
     fmul d4,d0,d4
     fmov d3,xzr
@@ -140,19 +140,15 @@ ORIGINAL_SYMBOL:
     fmaxnm d4,d4,d3
     str d4,[x28,x19]
     fmul d3,d14,d8
-    ldr d7,[sp,#184]
-    fadd d3,d7,d3
-    fmul d3,d6,d3
-    ldr d6,[sp,#208]
-    fadd d7,d14,d6
+    fadd d3,d21,d3
+    fmul d3,d17,d3
+    fadd d7,d14,d20
     fmul d7,d2,d7
-    fsub d6,d14,d6
+    fsub d6,d14,d20
     fmul d6,d1,d6
-    ldr d2,[sp,#232]
-    fmul d6,d6,d2
+    fmul d6,d6,d16
     fsub d7,d7,d6
-    ldr d2,[sp,#216]
-    fmul d7,d2,d7
+    fmul d7,d22,d7
     fsub d3,d3,d7
     fmul d3,d0,d3
     fsub d5,d5,d4
