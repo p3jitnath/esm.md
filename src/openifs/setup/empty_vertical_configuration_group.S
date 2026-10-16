@@ -2,7 +2,7 @@
  * Contract: skills/md2asm/references/openifs/setup/vertical_coordinate_configuration.md.
  * x0 mapped text, x1 byte count. w0 zero for an empty group, otherwise two.
  * Only a group beginning after line-leading spaces/tabs is selected.
- * ASCII case is ignored, and exclamation comments extend to the next line.
+ * NAMCVER is uppercase-exact. Exclamation comments extend to the next line.
  */
 .arch armv8.2-a
 .text
@@ -36,7 +36,6 @@ md2asm_empty_vertical_configuration_group:
  cmp x4,x1
  b.hs .Lvertical_group_reject
  ldrb w7,[x0,x4]
- orr w7,w7,#32
  ldrb w8,[x6,x5]
  cmp w7,w8
  b.ne .Lvertical_group_skip_line
@@ -107,5 +106,5 @@ md2asm_empty_vertical_configuration_group:
  mov w0,#2
  ret
 .size md2asm_empty_vertical_configuration_group,.-md2asm_empty_vertical_configuration_group
-.Lvertical_group_name: .ascii "namcver"
+.Lvertical_group_name: .ascii "NAMCVER"
 .section .note.GNU-stack,"",%progbits
