@@ -54,15 +54,14 @@ External libraries and their public interfaces may remain, including ecCodes, EC
 
 | Area | Current state | Remaining work |
 | --- | --- | --- |
-| Initial files | Spectral and upper-air loading is verified from an assembly entry | Complete surface configuration and connect all initial state to the forecast |
-| Vertical setup | The complete selected numerical chain is published and qualified | Attach its owners to complete startup and output-coordinate setup |
-| Field configuration | Complete grid-field and surface parents are qualified | Attach both parents to owned initial loading |
-| Geometry and maps | Spectral maps and all 34 partition allocations are qualified | Complete OpenIFS wrappers, partition-map calculations, transform queries and orography owners |
-| Model and control | Constants, clock and several storage components are owned | Finish MODEL, FIELDS, remaining physics records and CNT0 through CNT3 progression |
-| Runtime and output | Direct loop, updates, metadata and writers pass the mixed forecast | Remove OpenIFS shadows, close three source aliases, and own state queries, OpenIFS logs and stream lifetimes |
+| Initial files | Original GRIB loading, complete surface state and selected final-address initial records are verified from an assembly entry | Finish the remaining physics and working-state producers |
+| Vertical setup and Geometry | Complete selected coordinates, maps, transform interfaces and orography owners are connected | Complete remaining caller progression and output-coordinate attachment |
+| Model and fields | Final MODEL and FIELDS storage, 22 field owners and several complete parameter families are owned | Finish remaining consumed records, field containers and diagnostic flux state |
+| Physics setup | Cloud, convection, exchange and stability components pass complete source comparisons | Complete radiation inputs, land parameters and their enclosing setup callers |
+| Runtime and output | Direct loop, updates, metadata and writers pass the comparison forecast | Connect the complete owned state and remove remaining original forwards |
 | Complete acceptance | The autonomous forecast has not run | Require exact complete outputs and independent whole-forecast physical checks before optimisation |
 
-The current named startup and map audit contains 86 OpenIFS entries, with seventeen admitted in the mixed forecast and 69 awaiting ownership or forecast admission. Fifteen of those 69 already have qualified selected vertical calculations. This is a bounded list, rather than a global remaining-routine count or an autonomy percentage. Atlas mesh construction is inactive in the selected case. The separate 24-hour optimisation phase and filename cleanup have not started.
+All 255 audited weather calculations are admitted. Remaining work lies in setup, ownership and complete forecast composition. Earlier bounded startup lists do not provide a current global count or an autonomy percentage. The separate 24-hour optimisation phase and filename cleanup have not started.
 
 ## Input And Setup Components
 
@@ -90,6 +89,7 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 | Owned selected forecast controls | Four complete source cases match 206,048 bytes across 108 named controls, all 13 schedules and the connected clock | [Forecast controls](../../skills/md2asm/references/openifs/setup/selected_forecast_controls.md) |
 | Owned convection parameters | Three complete SUCUMF/SUCUMF2 profiles match 1,860 bytes, including source thermal transitions and retained threshold words | [Convection parameters](../../skills/md2asm/references/openifs/setup/convection_parameter_setup.md) |
 | Owned physics time and cloud-level controls | Four complete SUPHY2 cases match 640 bytes, including live transition levels 10 and 14 and exact threshold ties | [Physics time controls](../../skills/md2asm/references/openifs/setup/physics_time_controls.md) |
+| Owned radiation climate inputs | Four records and all 32 owners match two complete source cases, including 5,621,016 numerical bytes per case | [Radiation climate input](../../skills/md2asm/references/openifs/radiation/radiation_climate_inputs.md) |
 | Owned prognostic-cloud parameters | Three complete SUCLDP cases match 8,328 bytes, with independent beta/gamma accuracy and parameter checks | [Prognostic-cloud setup](../../skills/md2asm/references/openifs/setup/prognostic_cloud_parameter_setup.md) |
 | Owned cloud and gravity-wave parameters | Three complete source profiles match 2,040 bytes, including the allocated cloud profile | [Cloud and gravity-wave setup](../../skills/md2asm/references/openifs/setup/cloud_gravity_wave_setup.md) |
 | Owned dynamical configuration | Four complete SUDYNCORE cases match 1,280 bytes, with 43 owned scalar aliases and preserved unwritten fields | [Dynamical configuration](../../skills/md2asm/references/openifs/setup/dynamical_configuration.md) |
