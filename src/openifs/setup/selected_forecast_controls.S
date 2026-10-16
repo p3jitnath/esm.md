@@ -372,6 +372,9 @@ md2asm_initialize_selected_forecast_controls:
 
 /* Bounded first-group parser, adapted from the accepted namelist children.
  * The table gives a key, its source value kind, bounds and temporary slot. */
+.global md2asm_parse_bounded_scalar_group
+.type md2asm_parse_bounded_scalar_group,%function
+md2asm_parse_bounded_scalar_group:
 .Lparse_control_group:
  stp x29,x30,[sp,#-96]!
  stp x19,x20,[sp,#16]
@@ -677,6 +680,7 @@ md2asm_initialize_selected_forecast_controls:
  ldp x27,x28,[sp,#80]
  ldp x29,x30,[sp],#96
  ret
+.size md2asm_parse_bounded_scalar_group,.-md2asm_parse_bounded_scalar_group
 /* Skip bounded spaces and complete line comments. */
 .Lskip_control_space:
  cmp x0,x1
