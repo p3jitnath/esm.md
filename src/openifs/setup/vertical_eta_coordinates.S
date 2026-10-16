@@ -1,0 +1,276 @@
+/* Selected SUVERT eta and initial-knot stage, before SUVERTFE.
+ * Contract: skills/md2asm/references/openifs/setup/vertical_eta_coordinate_contract.md in this directory.
+ * x0 Geometry17096B, x1 two FP64 inputs VP00/pi, x2 two FP64 output addresses.
+ * Owns no heap storage. Return0 ready,2 unsupported before output mutation.
+ */
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_initialize_vertical_eta_coordinates
+.type md2asm_initialize_vertical_eta_coordinates,%function
+md2asm_initialize_vertical_eta_coordinates:
+ cbz x0,.Leta_reject
+ cbz x1,.Leta_reject
+ cbz x2,.Leta_reject
+ orr x9,x0,x1
+ orr x9,x9,x2
+ tst x9,#7
+ b.ne .Leta_reject
+ mrs x9,fpcr
+ cbnz x9,.Leta_reject
+ ldr x9,[x1]
+ tbnz x9,#63,.Leta_reject
+ cbz x9,.Leta_reject
+ ubfx x10,x9,#52,#11
+ cmp x10,#2047
+ b.eq .Leta_reject
+ ldr x9,[x1,#8]
+ ldr x10,.Leta_pi
+ cmp x9,x10
+ b.ne .Leta_reject
+ ldp x9,x10,[x2]
+ cbz x9,.Leta_reject
+ cbz x10,.Leta_reject
+ cmp x9,x10
+ b.eq .Leta_reject
+ orr x9,x9,x10
+ tst x9,#7
+ b.ne .Leta_reject
+ adr x9,.Leta_associations
+ mov x10,#0
+.Leta_associated:
+ ldp w11,w12,[x9],#8
+ ldr x13,[x0,w11,uxtw]
+ add x14,x0,w12,uxtw
+ cmp x13,x14
+ b.ne .Leta_reject
+ add x10,x10,#1
+ cmp x10,#4
+ b.lo .Leta_associated
+ adr x9,.Leta_controls
+ mov x10,#0
+.Leta_control_check:
+ ldp w11,w12,[x9],#8
+ ldr w13,[x0,w11,uxtw]
+ cmp w13,w12
+ b.ne .Leta_reject
+ add x10,x10,#1
+ cmp x10,#11
+ b.lo .Leta_control_check
+ ldr x9,[x0,#3152]
+ cbnz x9,.Leta_reject
+ ldr x9,[x0,#3160]
+ mov x10,#0x3fe0000000000000
+ cmp x9,x10
+ b.ne .Leta_reject
+ adr x9,.Leta_array_bounds
+ mov x10,#0
+.Leta_descriptor_check:
+ ldr x11,[x9]
+ add x11,x0,x11
+ ldr x12,[x11]
+ cbz x12,.Leta_reject
+ tst x12,#7
+ b.ne .Leta_reject
+ ldr x12,[x11,#16]
+ cmp x12,#8
+ b.ne .Leta_reject
+ ldr x12,[x11,#24]
+ mov x13,#0x30100000000
+ cmp x12,x13
+ b.ne .Leta_reject
+ ldr x12,[x11,#32]
+ cmp x12,#8
+ b.ne .Leta_reject
+ ldr x12,[x11,#40]
+ cmp x12,#1
+ b.ne .Leta_reject
+ ldp x12,x13,[x11,#48]
+ ldp x14,x15,[x9,#8]
+ cmp x12,x14
+ b.ne .Leta_reject
+ cmp x13,x15
+ b.ne .Leta_reject
+ ldr x13,[x11,#8]
+ add x13,x13,x12
+ cbnz x13,.Leta_reject
+ add x9,x9,#24
+ add x10,x10,#1
+ cmp x10,#9
+ b.lo .Leta_descriptor_check
+ sub sp,sp,#320
+ stp x29,x30,[sp]
+ mov x29,sp
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x18,[sp,#64]
+ stp d8,d9,[sp,#80]
+ stp d10,d11,[sp,#96]
+ stp d12,d13,[sp,#112]
+ stp d14,d15,[sp,#128]
+ mov x19,x0
+ ldp d8,d9,[x1]
+ mov x25,x2
+ ldr d10,[x19,#3152]
+ ldr d11,[x19,#3160]
+ ldr x9,[x19,#16]
+ ldr x10,[x19,#80]
+ ldr x11,[x19,#528]
+ ldr x12,[x19,#656]
+ mov x13,#0
+ fmov d3,#0.5
+.Leta_ordinary:
+ ldr d0,[x9,x13,lsl#3]
+ ldr d1,[x10,x13,lsl#3]
+ fadd d0,d0,d1
+ str d0,[x11,x13,lsl#3]
+ cbz x13,.Leta_ordinary_next
+ sub x14,x13,#1
+ ldr d1,[x11,x14,lsl#3]
+ fadd d1,d0,d1
+ fmul d1,d1,d3
+ str d1,[x12,x13,lsl#3]
+.Leta_ordinary_next:
+ add x13,x13,#1
+ cmp x13,#20
+ b.lo .Leta_ordinary
+ ldr x9,[x11]
+ str x9,[x12]
+ ldr x9,[x11,#152]
+ str x9,[x12,#160]
+ /* Both original bound calculations remain numerical child calls. */
+ fmov d0,xzr
+ fmov d1,#1.0
+ fmov d2,xzr
+ bl md2asm_vertical_interval_coordinate
+ ldr x9,[x25]
+ str d0,[x9]
+ fmov d0,xzr
+ fmov d1,#1.0
+ fmov d2,#1.0
+ bl md2asm_vertical_interval_coordinate
+ ldr x9,[x25,#8]
+ str d0,[x9]
+ ldr x20,[x19,#144]
+ ldr x21,[x19,#80]
+ ldr x22,[x19,#592]
+ add x24,sp,#160
+ str xzr,[x24]
+ mov x23,#1
+.Leta_cumulative:
+ sub x9,x23,#1
+ ldr d0,[x21,x9,lsl#3]
+ fmul d0,d0,d8
+ ldr d1,[x20,x9,lsl#3]
+ fadd d0,d1,d0
+ ldr d1,[x21,x23,lsl#3]
+ fmul d1,d1,d8
+ ldr d2,[x20,x23,lsl#3]
+ fadd d1,d2,d1
+ fsub d0,d1,d0
+ fmov d1,d10
+ bl md2asm_pow_original_rounding_candidate
+ sub x9,x23,#1
+ ldr d1,[x24,x9,lsl#3]
+ fadd d0,d1,d0
+ str d0,[x24,x23,lsl#3]
+ add x23,x23,#1
+ cmp x23,#20
+ b.lo .Leta_cumulative
+ ldr d1,[x24,#152]
+ mov x23,#0
+.Leta_regular_normalisation:
+ ldr d0,[x24,x23,lsl#3]
+ fdiv d0,d0,d1
+ str d0,[x22,x23,lsl#3]
+ add x23,x23,#1
+ cmp x23,#20
+ b.lo .Leta_regular_normalisation
+ mov x23,#0
+.Leta_chebyshev:
+ ldr d12,[x22,x23,lsl#3]
+ fmul d0,d9,d12
+ bl md2asm_cos_original_rounding
+ fmov d1,#0.5
+ fmul d0,d1,d0
+ fsub d13,d1,d0
+ fmov d0,#1.0
+ fsub d0,d0,d11
+ fmul d0,d0,d12
+ fmul d1,d11,d13
+ fadd d0,d0,d1
+ str d0,[x22,x23,lsl#3]
+ add x23,x23,#1
+ cmp x23,#20
+ b.lo .Leta_chebyshev
+ str xzr,[x22]
+ fmov d0,#1.0
+ str d0,[x22,#152]
+ ldr x9,[x19,#720]
+ mov x10,#1
+ fmov d3,#0.5
+.Leta_full_levels:
+ sub x11,x10,#1
+ ldr d0,[x22,x10,lsl#3]
+ ldr d1,[x22,x11,lsl#3]
+ fadd d0,d0,d1
+ fmul d0,d0,d3
+ str d0,[x9,x10,lsl#3]
+ add x10,x10,#1
+ cmp x10,#20
+ b.lo .Leta_full_levels
+ ldr x10,[x22]
+ str x10,[x9]
+ ldr x10,[x22,#152]
+ str x10,[x9,#160]
+ ldr x12,[x19,#784]
+ mov x10,#1
+ fmov d3,#1.0
+.Leta_inverse_depth:
+ sub x11,x10,#1
+ ldr d0,[x22,x10,lsl#3]
+ ldr d1,[x22,x11,lsl#3]
+ fsub d0,d0,d1
+ fdiv d0,d3,d0
+ str d0,[x12,x11,lsl#3]
+ add x10,x10,#1
+ cmp x10,#20
+ b.lo .Leta_inverse_depth
+ ldr x12,[x19,#848]
+ mov x10,#0
+.Leta_knots:
+ add x11,x10,#2
+ ldr x13,[x9,x11,lsl#3]
+ str x13,[x12,x10,lsl#3]
+ add x10,x10,#1
+ cmp x10,#17
+ b.lo .Leta_knots
+ mov w0,#0
+ ldp d8,d9,[sp,#80]
+ ldp d10,d11,[sp,#96]
+ ldp d12,d13,[sp,#112]
+ ldp d14,d15,[sp,#128]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x18,[sp,#64]
+ ldp x29,x30,[sp]
+ add sp,sp,#320
+ ret
+.Leta_reject:
+ mov w0,#2
+ ret
+.size md2asm_initialize_vertical_eta_coordinates,.-md2asm_initialize_vertical_eta_coordinates
+.p2align 3
+.Leta_pi: .quad 0x400921fb54442d18
+.Leta_associations:
+ .word 3240,16,3248,528,3256,848,3264,3024
+.Leta_controls:
+ .word 5224,19,5252,19,3040,0,3044,0,3076,1,3132,1
+ .word 3136,0,3180,0,3056,4,3068,17,8,0
+.Leta_array_bounds:
+ .quad 16,0,19,144,0,19,80,0,19
+ .quad 528,0,19,656,0,20,592,0,19,720,0,20
+ .quad 784,1,19,848,1,17
+.section .note.GNU-stack,"",%progbits

@@ -55,7 +55,7 @@ External libraries and their public interfaces may remain, including ecCodes, EC
 | Area | Current state | Remaining work |
 | --- | --- | --- |
 | Initial files | Spectral and upper-air loading is verified from an assembly entry | Complete surface configuration and connect all initial state to the forecast |
-| Vertical setup | The selected full numerical chain is locally qualified and reviewed | Publish and attach its owners to complete startup and output-coordinate setup |
+| Vertical setup | The complete selected numerical chain is published and qualified | Attach its owners to complete startup and output-coordinate setup |
 | Field configuration | Complete grid-field and surface parents are qualified | Attach both parents to owned initial loading |
 | Geometry and maps | Spectral maps and all 34 partition allocations are qualified | Complete OpenIFS wrappers, partition-map calculations, transform queries and orography owners |
 | Model and control | Constants, clock and several storage components are owned | Finish MODEL, FIELDS, remaining physics records and CNT0 through CNT3 progression |
@@ -76,6 +76,7 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 | Owned surface field registration | All 32 optional-input combinations and complete trajectory records | [Field registration](../../skills/md2asm/references/openifs/setup/surface_field_registration.md) |
 | Owned layered surface field registration | All 32 optional-input combinations, complete allocated arrays and paired release | [Layered registration](../../skills/md2asm/references/openifs/setup/layered_surface_field_registration.md) |
 | Owned surface group finalization | Complete field indices and totals for both group kinds and all time-level choices | [Group finalization](../../skills/md2asm/references/openifs/setup/surface_group_finalization.md) |
+| Owned complete vertical setup | Three complete SUVERT cases match all 28 numerical owners and metadata | [Vertical setup](../../skills/md2asm/references/openifs/setup/owned_vertical_system_contract.md) |
 | Owned spectral geometry maps | Thirty source cases match complete map owners and records, with independent high-precision checks | [Spectral maps](../../skills/md2asm/references/openifs/setup/spectral_geometry_maps.md) |
 | Owned serial partition allocations | All 34 owners and complete metadata match the original allocation stages | [Partition storage](../../skills/md2asm/references/openifs/setup/partition_array_storage.md) |
 | Owned complete surface metadata | Two complete source cases match 4,397,520 bytes across 70 owners | [Surface configuration](../../skills/md2asm/references/openifs/setup/selected_surface_configuration.md) |
