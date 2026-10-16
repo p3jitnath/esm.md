@@ -2,7 +2,7 @@
 .arch armv8.2-a
 .text
 /* Five-address UPDRGAS caller interface over the accepted owned service.
- * x0 TERDI176, x1 TERAD2040, x2 TDYNA456, x3 TRIP175976,
+ * x0 TDYNA456, x1 TERAD2040, x2 TERDI176, x3 TRIP175976,
  * x4 optional solar FP64 address. The radiation context remains live.
  * The private table borrows real input records and climate owners.
  * No original OpenIFS type table or global pointer enters this call. */
@@ -14,9 +14,9 @@ md2asm_updrgas:
  stp x29,x30,[sp]
  stp x18,x19,[sp,#16]
  mov x29,sp
- mov x19,x0
+ mov x19,x2
  mov x9,#456
- stp x2,x9,[sp,#32]
+ stp x0,x9,[sp,#32]
  mov x9,#2040
  stp x1,x9,[sp,#48]
  movz x9,#(175976 & 65535)
