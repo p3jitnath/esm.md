@@ -1030,12 +1030,12 @@ md2asm_larmes_xyz_calls_get:
  ldr x0,[x9,:lo12:.Ltrajectory_calls]
  ret
 .size md2asm_larmes_xyz_calls_get,.-md2asm_larmes_xyz_calls_get
-/* WENO is outside this selected closure and is rejected by the parent guard. */
+/* Other forecast callers share the accepted complete WENO assembly child. */
 .global md2asm_laitri_weno
 .hidden md2asm_laitri_weno
 .type md2asm_laitri_weno,%function
 md2asm_laitri_weno:
- b abort
+ b laitri_weno_
 .size md2asm_laitri_weno,.-md2asm_laitri_weno
 .global md2asm_larmes_reporting_calculations_get
 .type md2asm_larmes_reporting_calculations_get,%function
