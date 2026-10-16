@@ -472,6 +472,12 @@ md2asm_parse_bounded_scalar_group:
  cmp w10,#9
  b.ls .Lparse_key_next
  cmp w9,#95
+ b.eq .Lparse_key_next
+ cmp w9,#37
+ b.eq .Lparse_key_next
+ cmp w9,#40
+ b.eq .Lparse_key_next
+ cmp w9,#41
  b.ne .Lparse_key_lookup
 .Lparse_key_next:
  add x19,x19,#1
