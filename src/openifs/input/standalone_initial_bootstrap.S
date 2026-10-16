@@ -1,5 +1,5 @@
-/* Contract: skills/md2asm/references/openifs/input/owned_ecmwf_physics_initial_state.md. */
-/* Standalone selected T21 initial-state composition, revision 16.
+/* Contract: skills/md2asm/references/openifs/input/owned_loop_initial_state.md. */
+/* Standalone selected T21 initial-state composition, revision 17.
  * Own entry, configuration, contexts, loading, output and release are assembly.
  * External file, transform, scalar-math and runtime services are declared.
  * This input checkpoint does not run a forecast. */
@@ -65,6 +65,10 @@ main:
  mov w23,#65
  mrs x9,fpcr
  cbnz x9,.Lmain_cleanup
+ /* Source SUINTDYN maps must exist before any module-compatible consumer. */
+ bl md2asm_initialize_owned_dynamics_field_maps
+ add w23,w0,#172
+ cbnz w0,.Lmain_cleanup
  adrp x24,.Lheaders
  add x24,x24,:lo12:.Lheaders
  ldp x0,x1,[x19,#8]
@@ -268,6 +272,17 @@ main:
  cbnz w0,.Lmain_cleanup
  adrp x9,.Lgeometry_owner
  ldr x25,[x9,:lo12:.Lgeometry_owner]
+ /* The returned sidecar owns live transform controls and atmosphere tables. */
+ add x0,x25,#880
+ mov x1,#4
+ bl md2asm_initialize_owned_process_count
+ add w23,w0,#174
+ cbnz w0,.Lmain_cleanup
+ add x0,x25,#1280
+ mov x1,#576
+ bl md2asm_bind_standard_atmosphere_data
+ add w23,w0,#176
+ cbnz w0,.Lmain_cleanup
  /* Bind dynamics controls to actual header and vertical producers. */
  adrp x4,.Ldynamics_inputs
  add x4,x4,:lo12:.Ldynamics_inputs
@@ -293,6 +308,42 @@ main:
  bl md2asm_initialize_selected_dynamics_controls
  add w23,w0,#236
  cbnz w0,.Lmain_cleanup
+ /* Bind the selected loop from live producer records, never captured values. */
+ adrp x9,.Lloop_data_inputs
+ add x9,x9,:lo12:.Lloop_data_inputs
+ mov x10,#20400
+ stp x20,x10,[x9]
+ add x10,x25,#880
+ mov x11,#304
+ stp x10,x11,[x9,#16]
+ adrp x10,.Lforecast_controls
+ add x10,x10,:lo12:.Lforecast_controls
+ mov x11,#51512
+ stp x10,x11,[x9,#32]
+ owned_model_address x10,1564136
+ mov x11,#456
+ stp x10,x11,[x9,#48]
+ owned_model_address x10,1359328
+ movz x11,#0xaf68
+ movk x11,#2,lsl#16
+ stp x10,x11,[x9,#64]
+ adrp x10,.Lnamelist_text
+ add x10,x10,:lo12:.Lnamelist_text
+ stp x10,x27,[x9,#80]
+ mov x0,x9
+ bl md2asm_initialize_selected_loop_data
+ add w23,w0,#178
+ cbnz w0,.Lmain_cleanup
+ adrp x0,.Lforecast_controls
+ add x0,x0,:lo12:.Lforecast_controls
+ adrp x1,.Lnamelist_text
+ add x1,x1,:lo12:.Lnamelist_text
+ mov x2,x27
+ bl md2asm_initialize_selected_physics_data
+ add w23,w0,#180
+ cbnz w0,.Lmain_cleanup
+.global md2asm_owned_loop_data_ready
+md2asm_owned_loop_data_ready:
  owned_model_address x9,1564136
  ldr w10,[x9,#24]
  adrp x9,.Lphysics_controls
@@ -884,6 +935,7 @@ main:
  cbnz w0,.Lmain_cleanup
  mov w23,wzr
 .Lmain_cleanup:
+ bl md2asm_release_selected_loop_data
  owned_model_address x0,0
  adrp x1,.Lsuphec_context
  add x1,x1,:lo12:.Lsuphec_context
@@ -2263,4 +2315,11 @@ __yoe_phys_mwave_MOD_n_phys_mwave: .zero 4
 .bss
 .p2align 3
 .Lsuphec_surface_result:.skip 16
+.section .note.GNU-stack,"",%progbits
+
+// This alias shares the actual SU0PHY-owned LOCEDELAY word.
+#include "forecast_shared_control_alias.inc.S"
+.bss
+.p2align 3
+.Lloop_data_inputs:.skip 96
 .section .note.GNU-stack,"",%progbits
