@@ -70,6 +70,10 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 | Accepted component | Complete comparison scope | Contract |
 | --- | --- | --- |
 | Standalone selected initial state | Final-address MODEL and FIELDS, Geometry, 94 field owners and connected physics parameters match their source gates | [Attached initial state](../../skills/md2asm/references/openifs/input/owned_diagnostic_initial_state.md) |
+| Owned empty trajectory | Six source-defined owners and shared time-level descriptors match complete source records | [Trajectory storage](../../skills/md2asm/references/openifs/setup/empty_trajectory_state.md) |
+| Owned original longwave input | Assembly reads RADRRTM and constructs all 143 typed original-band arrays, matching 3,148,928 bytes | [Longwave input](../../skills/md2asm/references/openifs/radiation/longwave_absorption_inputs.md) |
+| Owned longwave reduction | All 16 band reductions and common tables match 1,229,352 bytes, preserving source-unwritten storage | [Longwave reduction](../../skills/md2asm/references/openifs/radiation/longwave_gpoint_reduction.md) |
+| Owned aerosol distributions | Four complete numerical children and nine earlier allocations match source order and complete records | [Aerosol distributions](../../skills/md2asm/references/openifs/radiation/aerosol_distribution_setup.md) |
 | Owned selected spectral norms | Qualified wave and mean reductions use explicit owned state and a shared divergence-reporting value | [Spectral norms](../../skills/md2asm/references/openifs/dynamics/selected_spectral_norms.md) |
 | Owned diagnostic flux configuration | Two complete source profiles match all initialized and released TCFU, TXFU and TMCUF bytes, including two empty owners | [Flux configuration](../../skills/md2asm/references/openifs/setup/selected_flux_configuration.md) |
 | Owned selected aerosol parameters | Complete selected SU_AERW and its two active children match 581,388 bytes | [Aerosol parameters](../../skills/md2asm/references/openifs/radiation/selected_aerosol_setup.md) |

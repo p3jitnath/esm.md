@@ -135,16 +135,8 @@ md2asm_initialize_selected_radiation_controls:
     ldp x9,x10,[x23,#96]
     orr x9,x9,x10
     cbnz x9,.Lrad_bad_frame
-// Null fresh TERAD aerosol and Planck bases are required.
+// Earlier SUALLO aerosol owners remain live and unchanged; only Planck bases are fresh.
     ldr x9,[x19]
-    mov x10,#1480
-    mov x11,#5
-.Lrad_fresh_aerosol:
-    ldr x12,[x9,x10]
-    cbnz x12,.Lrad_bad_frame
-    add x10,x10,#64
-    subs x11,x11,#1
-    b.ne .Lrad_fresh_aerosol
     ldr x12,[x9,#1824]
     cbnz x12,.Lrad_bad_frame
     ldr x12,[x9,#1912]
