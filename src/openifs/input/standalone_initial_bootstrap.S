@@ -1,5 +1,5 @@
 /* Contract: skills/md2asm/references/openifs/input/standalone_initial_bootstrap.md. */
-/* Standalone selected T21 complete initial-state composition, revision 4.
+/* Standalone selected T21 complete initial-state composition, revision 5.
  * Own entry, configuration, contexts, loading, output and release are assembly.
  * External services are libc process/heap/I/O and ecCodes file decoding.
  * This input checkpoint does not run a forecast. */
@@ -42,7 +42,7 @@ main:
  mov x26,xzr
  mov x28,xzr
  mov w23,#64
- cmp w0,#11
+ cmp w0,#12
  b.ne .Lmain_cleanup
  mov w23,#65
  mrs x9,fpcr
@@ -200,20 +200,27 @@ main:
  ldr w10,[x9,#24]
  adrp x9,.Lphysics_controls
  add x9,x9,:lo12:.Lphysics_controls
- stp w10,wzr,[x9]
+ adrp x11,.Lconfiguration
+ add x11,x11,:lo12:.Lconfiguration
+ /* Source SUGFL1 default LUVPOUT; the complete namespace remains fresh zero. */
+ str wzr,[x11,#372]
+ ldr w11,[x11,#372]
+ stp w10,w11,[x9]
  adrp x0,.Lnamelist_text
  add x0,x0,:lo12:.Lnamelist_text
  mov x1,x27
- adrp x2,.Lphysics_record
- add x2,x2,:lo12:.Lphysics_record
- mov x3,#448
- adrp x4,.Lphysics_controls
- add x4,x4,:lo12:.Lphysics_controls
- adrp x5,.Lphysics_counts
- add x5,x5,:lo12:.Lphysics_counts
- bl md2asm_initialize_selected_physics_controls
+ adrp x2,.Lcomplete_physics_records
+ add x2,x2,:lo12:.Lcomplete_physics_records
+ adrp x3,.Lphysics_controls
+ add x3,x3,:lo12:.Lphysics_controls
+ adrp x4,.Lphysics_counts
+ add x4,x4,:lo12:.Lphysics_counts
+ bl md2asm_initialize_selected_physics_configuration
  add w23,w0,#212
  cbnz w0,.Lmain_cleanup
+ adrp x0,.Lphysics_status_su0phy
+ add x0,x0,:lo12:.Lphysics_status_su0phy
+ bl .Lcapture_physics_status
  /* Bind the namespace's selected count inputs to this actual producer. */
  mov w23,#215
  adrp x9,.Lphysics_counts
@@ -292,6 +299,39 @@ main:
  adrp x9,.Lnamespace_status
  add x9,x9,:lo12:.Lnamespace_status
  str w10,[x9,#16]
+ /* Available SUPHY families retain their source-relative call order. */
+ adrp x0,.Lnamelist_text
+ add x0,x0,:lo12:.Lnamelist_text
+ mov x1,x27
+ adrp x2,.Lphysical_constants
+ add x2,x2,:lo12:.Lphysical_constants
+ adrp x3,.Lsurface_physical_parameters
+ add x3,x3,:lo12:.Lsurface_physical_parameters
+ adrp x4,.Lozone_parameters
+ add x4,x4,:lo12:.Lozone_parameters
+ mov x5,#1696
+ mov x6,#15864
+ bl md2asm_initialize_surface_exchange_parameters
+ add w23,w0,#50
+ cbnz w0,.Lmain_cleanup
+ adrp x0,.Lcondensation_parameters
+ add x0,x0,:lo12:.Lcondensation_parameters
+ mov x1,#16
+ bl md2asm_initialize_condensation_parameters
+ add w23,w0,#52
+ cbnz w0,.Lmain_cleanup
+ adrp x0,.Lnamelist_text
+ add x0,x0,:lo12:.Lnamelist_text
+ mov x1,x27
+ adrp x2,.Ldiffusion_parameters
+ add x2,x2,:lo12:.Ldiffusion_parameters
+ mov x3,#72
+ bl md2asm_initialize_selected_diffusion_parameters
+ add w23,w0,#54
+ cbnz w0,.Lmain_cleanup
+ adrp x0,.Lphysics_status_final
+ add x0,x0,:lo12:.Lphysics_status_final
+ bl .Lcapture_physics_status
  ldr x0,[x19,#8]
  mov x1,x20
  mov x2,x22
@@ -363,6 +403,10 @@ main:
  mov w1,#0
  bl .Lwrite_initial_state_stream
  add w23,w0,#244
+ cbnz w0,.Lmain_cleanup
+ ldr x0,[x19,#88]
+ bl .Lwrite_physics_stream
+ add w23,w0,#56
  cbnz w0,.Lmain_cleanup
  mov w23,wzr
 .Lmain_cleanup:
@@ -636,6 +680,97 @@ main:
  mov w0,#1
  ret
 
+/* x0 writable24-byte status record; observe before later stage services. */
+.Lcapture_physics_status:
+ stp x29,x30,[sp,#-32]!
+ stp x18,x19,[sp,#16]
+ mov x29,sp
+ mov x19,x0
+ mrs x9,fpcr
+ mrs x10,fpsr
+ stp x9,x10,[x19]
+ bl __errno_location
+ ldr w9,[x0]
+ str w9,[x19,#16]
+ ldp x18,x19,[sp,#16]
+ ldp x29,x30,[sp],#32
+ ret
+/* x0 path; emit every complete live physics record and its producer inputs. */
+.Lwrite_physics_stream:
+ stp x29,x30,[sp,#-80]!
+ stp x18,x19,[sp,#16]
+ stp x20,x21,[sp,#32]
+ stp x22,x23,[sp,#48]
+ mov x29,sp
+ mov x20,x0
+.Lphysics_open:
+ mov x0,#-100
+ mov x1,x20
+ mov x2,#577
+ mov x3,#420
+ mov x8,#56
+ svc #0
+ cmn x0,#4
+ b.eq .Lphysics_open
+ tbnz x0,#63,.Lphysics_open_failed
+ mov x19,x0
+ adrp x1,.Lphysics_stream_magic
+ add x1,x1,:lo12:.Lphysics_stream_magic
+ mov x2,#8
+ bl .Lstate_write_bytes
+ cbnz w0,.Lphysics_close
+ adrp x21,.Lcomplete_physics_records
+ add x21,x21,:lo12:.Lcomplete_physics_records
+ mov w22,#21
+.Lphysics_stream_record:
+ ldp x9,x10,[x21],#16
+ stp x9,x10,[sp,#64]
+ add x1,sp,#64
+ mov x2,#16
+ bl .Lstate_write_bytes
+ cbnz w0,.Lphysics_close
+ ldp x1,x2,[sp,#64]
+ bl .Lstate_write_bytes
+ cbnz w0,.Lphysics_close
+ subs w22,w22,#1
+ b.ne .Lphysics_stream_record
+ adrp x1,.Lcomplete_physics_records
+ add x1,x1,:lo12:.Lcomplete_physics_records
+ mov x2,#272
+ bl .Lstate_write_bytes
+ cbnz w0,.Lphysics_close
+ adrp x1,.Lphysics_controls
+ add x1,x1,:lo12:.Lphysics_controls
+ mov x2,#8
+ bl .Lstate_write_bytes
+ cbnz w0,.Lphysics_close
+ adrp x1,.Lphysics_counts
+ add x1,x1,:lo12:.Lphysics_counts
+ mov x2,#20
+ bl .Lstate_write_bytes
+ cbnz w0,.Lphysics_close
+ adrp x1,.Lphysics_status_su0phy
+ add x1,x1,:lo12:.Lphysics_status_su0phy
+ mov x2,#48
+ bl .Lstate_write_bytes
+.Lphysics_close:
+ mov w23,w0
+ mov x0,x19
+ mov x8,#57
+ svc #0
+ cmp x0,#0
+ cset w0,ne
+ orr w0,w0,w23
+ b .Lphysics_stream_return
+.Lphysics_open_failed:
+ mov w0,#1
+.Lphysics_stream_return:
+ ldp x22,x23,[sp,#48]
+ ldp x20,x21,[sp,#32]
+ ldp x18,x19,[sp,#16]
+ ldp x29,x30,[sp],#80
+ ret
+
 .section .rodata
 .p2align 3
 .Lvertical_configuration: .word 19,1,0,0
@@ -713,4 +848,80 @@ md2asm_owned_initial_configuration:
 .Lsurface_trajectory: .zero 408
 .Lsurface_descriptions: .zero 46080
 .Lnamelist_text: .zero 262145
+
+.section .rodata
+.Lphysics_stream_magic: .ascii "PH21REC1"
+.section .data
+.p2align 3
+/* Complete genuine TMSE declaration defaults, before SU0PHY. */
+.Lraw_tmse:
+ .word 0,1,1,3,3
+ .ascii "SFX.X   "
+ .word 0
+ .quad 0x3f847ae147ae147b
+.p2align 3
+.Lcomplete_physics_records:
+ .quad .Lraw_physics_0,1096
+ .quad .Lraw_tmse,40
+ .quad .Lraw_physics_2,368
+ .quad .Lraw_physics_3,1024
+ .quad .Lraw_physics_4,88
+ .quad .Lraw_physics_5,168
+ .quad .Lraw_physics_6,100
+ .quad .Lraw_physics_7,80
+ .quad .Lraw_physics_8,32
+ .quad .Lphysics_record,448
+ .quad .Lraw_physics_10,2776
+ .quad .Lraw_physics_11,8
+ .quad .Lraw_physics_12,4
+ .quad .Lraw_physics_13,232
+ .quad .Lraw_physics_14,120
+ .quad .Lraw_physics_15,1024
+ .quad .Lraw_physics_16,24
+ .quad .Lsurface_physical_parameters,1696
+ .quad .Lozone_parameters,15864
+ .quad .Lcondensation_parameters,16
+ .quad .Ldiffusion_parameters,72
+.bss
+.p2align 3
+.Lraw_physics_0: .zero 1096
+.p2align 3
+.Lraw_physics_2: .zero 368
+.p2align 3
+.Lraw_physics_3: .zero 1024
+.p2align 3
+.Lraw_physics_4: .zero 88
+.p2align 3
+.Lraw_physics_5: .zero 168
+.p2align 3
+.Lraw_physics_6: .zero 100
+.p2align 3
+.Lraw_physics_7: .zero 80
+.p2align 3
+.Lraw_physics_8: .zero 32
+.p2align 3
+.Lraw_physics_10: .zero 2776
+.p2align 3
+.Lraw_physics_11: .zero 8
+.p2align 3
+.Lraw_physics_12: .zero 4
+.p2align 3
+.Lraw_physics_13: .zero 232
+.p2align 3
+.Lraw_physics_14: .zero 120
+.p2align 3
+.Lraw_physics_15: .zero 1024
+.p2align 3
+.Lraw_physics_16: .zero 24
+.p2align 3
+.Lsurface_physical_parameters: .zero 1696
+.p2align 3
+.Lozone_parameters: .zero 15864
+.p2align 3
+.Lcondensation_parameters: .zero 16
+.p2align 3
+.Ldiffusion_parameters: .zero 72
+.p2align 3
+.Lphysics_status_su0phy: .zero 24
+.Lphysics_status_final: .zero 24
 .section .note.GNU-stack,"",%progbits
