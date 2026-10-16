@@ -58,7 +58,7 @@ External libraries and their public interfaces may remain, including ecCodes, EC
 | Vertical setup | The selected full numerical chain is locally qualified and reviewed | Publish and attach its owners to complete startup and output-coordinate setup |
 | Field configuration | Nine grid-field utilities and surface primitives are qualified | Emit 53 default templates and complete both owned parent constructors |
 | Geometry and maps | Existing geometry children are qualified | Complete OpenIFS wrappers, partition-map storage, SUSPGM, SUSMAP, SUGMRE and orography owners |
-| Model and control | Constants, clock and several storage components are owned | Finish MODEL, FIELDS, physics configuration and CNT0 through CNT3 progression |
+| Model and control | Constants, clock and several storage components are owned | Finish MODEL, FIELDS, remaining physics records and CNT0 through CNT3 progression |
 | Runtime and output | Direct loop, updates, metadata and writers pass the mixed forecast | Remove OpenIFS shadows, close three source aliases, and own state queries, OpenIFS logs and stream lifetimes |
 | Complete acceptance | The autonomous forecast has not run | Require exact complete outputs and independent whole-forecast physical checks before optimisation |
 
@@ -76,6 +76,7 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 | Owned surface field registration | All 32 optional-input combinations and complete trajectory records | [Field registration](../../skills/md2asm/references/openifs/setup/surface_field_registration.md) |
 | Owned layered surface field registration | All 32 optional-input combinations, complete allocated arrays and paired release | [Layered registration](../../skills/md2asm/references/openifs/setup/layered_surface_field_registration.md) |
 | Owned surface group finalization | Complete field indices and totals for both group kinds and all time-level choices | [Group finalization](../../skills/md2asm/references/openifs/setup/surface_group_finalization.md) |
+| Owned selected physics controls | Five complete original setup cases match all 2,340 record and count bytes | [Physics controls](../../skills/md2asm/references/openifs/setup/selected_physics_controls.md) |
 | Owned physical constants | All 64 values match 512 genuine source bytes, with independent physical identities | [Constant setup](../../skills/md2asm/references/openifs/setup/physical_constant_setup.md) |
 | Owned clock fields | Six complete source-field cases and independent calendar checks | [Model clock](../../skills/md2asm/references/openifs/setup/model_clock_initialization.md) |
 | Owned surface-input configuration | Complete 2,304-byte source record, including both 21-entry vegetation tables | [Owned surface configuration](../../skills/md2asm/references/openifs/input/owned_surface_input_configuration.md) |
