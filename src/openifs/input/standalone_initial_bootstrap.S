@@ -1,5 +1,5 @@
-/* Contract: skills/md2asm/references/openifs/input/owned_complete_physics_initial_state.md. */
-/* Standalone selected T21 complete initial-state composition, revision 11.
+/* Contract: skills/md2asm/references/openifs/input/owned_virtual_temperature_initial_state.md. */
+/* Standalone selected T21 complete initial-state composition, revision 12.
  * Own entry, configuration, contexts, loading, output and release are assembly.
  * External services are libc, ecCodes and the qualified FIAT/ectrans interfaces.
  * This input checkpoint does not run a forecast. */
@@ -627,6 +627,18 @@ main:
  bl md2asm_load_initial_upper_air_state
  add w23,w0,#148
  cbnz w0,.Lmain_cleanup
+ /* Complete selected initial SPECRT after spectral and upper-air loading. */
+ mov x0,x20
+ mov x1,x26
+ owned_model_address x2,192
+ mov x3,x21
+ adrp x4,.Lphysical_constants
+ add x4,x4,:lo12:.Lphysical_constants
+ bl md2asm_initialize_spectral_virtual_temperature
+ add w23,w0,#150
+ cbnz w0,.Lmain_cleanup
+ adr x0,.Linitial_virtual_temperature_status
+ bl .Lcapture_physics_status
  /* Explicit first-working-call storage boundary from GP_MODEL. */
  adr x9,.Lnext_time_shape
  ldr w10,[x20,#5144]
@@ -1488,6 +1500,14 @@ md2asm_owned_initial_metadata_auxiliary:
  adr x1,.Lmf_parent_controls
  mov x2,#12
  bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x1,.Linitial_virtual_temperature_header
+ mov x2,#16
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ adr x1,.Linitial_virtual_temperature_status
+ mov x2,#24
+ bl .Lstate_write_bytes
 .Lsetup_close:
  mov w28,w0
  mov x0,x19
@@ -1901,3 +1921,12 @@ __yoe_phys_mwave_MOD_n_phys_mwave: .zero 4
 #include "forecast_control_aliases.inc.S"
 
 #include "physical_constant_aliases.inc.S"
+
+.section .rodata
+.p2align 3
+.Linitial_virtual_temperature_header:.ascii "R12TV001"
+.xword 24
+.bss
+.p2align 3
+.Linitial_virtual_temperature_status:.skip 24
+.section .note.GNU-stack,"",%progbits
