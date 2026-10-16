@@ -56,7 +56,7 @@ External libraries and their public interfaces may remain, including ecCodes, EC
 | --- | --- | --- |
 | Initial files | Spectral and upper-air loading is verified from an assembly entry | Complete surface configuration and connect all initial state to the forecast |
 | Vertical setup | The selected full numerical chain is locally qualified and reviewed | Publish and attach its owners to complete startup and output-coordinate setup |
-| Field configuration | The complete grid-field parent and surface primitives are qualified | Attach the grid-field parent and complete the owned surface parent |
+| Field configuration | Complete grid-field and surface parents are qualified | Attach both parents to owned initial loading |
 | Geometry and maps | Spectral maps and all 34 partition allocations are qualified | Complete OpenIFS wrappers, partition-map calculations, transform queries and orography owners |
 | Model and control | Constants, clock and several storage components are owned | Finish MODEL, FIELDS, remaining physics records and CNT0 through CNT3 progression |
 | Runtime and output | Direct loop, updates, metadata and writers pass the mixed forecast | Remove OpenIFS shadows, close three source aliases, and own state queries, OpenIFS logs and stream lifetimes |
@@ -78,6 +78,7 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 | Owned surface group finalization | Complete field indices and totals for both group kinds and all time-level choices | [Group finalization](../../skills/md2asm/references/openifs/setup/surface_group_finalization.md) |
 | Owned spectral geometry maps | Thirty source cases match complete map owners and records, with independent high-precision checks | [Spectral maps](../../skills/md2asm/references/openifs/setup/spectral_geometry_maps.md) |
 | Owned serial partition allocations | All 34 owners and complete metadata match the original allocation stages | [Partition storage](../../skills/md2asm/references/openifs/setup/partition_array_storage.md) |
+| Owned complete surface metadata | Two complete source cases match 4,397,520 bytes across 70 owners | [Surface configuration](../../skills/md2asm/references/openifs/setup/selected_surface_configuration.md) |
 | Owned complete grid-field configuration | Three complete original setup cases match all 4,077,408 namespace bytes | [Grid-field configuration](../../skills/md2asm/references/openifs/setup/selected_grid_field_configuration.md) |
 | Owned selected physics controls | Five complete original setup cases match all 2,340 record and count bytes | [Physics controls](../../skills/md2asm/references/openifs/setup/selected_physics_controls.md) |
 | Owned physical constants | All 64 values match 512 genuine source bytes, with independent physical identities | [Constant setup](../../skills/md2asm/references/openifs/setup/physical_constant_setup.md) |
