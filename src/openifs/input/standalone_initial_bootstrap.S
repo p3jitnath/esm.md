@@ -1,5 +1,5 @@
-/* Contract: skills/md2asm/references/openifs/input/owned_radiation_initial_state.md. */
-/* Standalone selected T21 initial-state composition, revision 15.
+/* Contract: skills/md2asm/references/openifs/input/owned_ecmwf_physics_initial_state.md. */
+/* Standalone selected T21 initial-state composition, revision 16.
  * Own entry, configuration, contexts, loading, output and release are assembly.
  * External file, transform, scalar-math and runtime services are declared.
  * This input checkpoint does not run a forecast. */
@@ -496,132 +496,47 @@ main:
  owned_model_address x9,4231904
  str w11,[x9]
  str w12,[x9,#8]
- owned_model_address x0,1581376
- mov x1,#16
- bl md2asm_initialize_condensation_parameters
- add w23,w0,#52
+ /* Complete selected SUPHEC consumes only live owned producers. */
+ adrp x0,md2asm_owned_surface_runtime_inputs
+ add x0,x0,:lo12:md2asm_owned_surface_runtime_inputs
+ mov x1,#32
+ bl md2asm_initialize_ecmwf_physics_runtime_inputs
+ add w23,w0,#170
  cbnz w0,.Lmain_cleanup
- adrp x0,.Lnamelist_text
- add x0,x0,:lo12:.Lnamelist_text
- mov x1,x27
- owned_model_address x2,1577816
- mov x3,#72
- bl md2asm_initialize_selected_diffusion_parameters
- add w23,w0,#54
+ mov x0,x20
+ owned_model_address x1,0
+ adrp x2,.Lsuphec_context
+ add x2,x2,:lo12:.Lsuphec_context
+ adrp x3,md2asm_owned_radiation_setup_context
+ add x3,x3,:lo12:md2asm_owned_radiation_setup_context
+ adrp x4,.Lnamelist_text
+ add x4,x4,:lo12:.Lnamelist_text
+ mov x5,x27
+ bl md2asm_initialize_selected_ecmwf_physics
+ add w23,w0,#172
  cbnz w0,.Lmain_cleanup
- adrp x0,.Lthermal_stability_namespace
- add x0,x0,:lo12:.Lthermal_stability_namespace
- mov x1,#1920
- adrp x2,.Lphysical_constants
- add x2,x2,:lo12:.Lphysical_constants
- mov x3,#520
- bl md2asm_initialize_thermal_diffusion_parameters
- add w23,w0,#55
- cbnz w0,.Lmain_cleanup
- /* Compute live SUPHEC pressure and eta inputs before the cloud children. */
+ adrp x0,.Lphysics_status_final
+ add x0,x0,:lo12:.Lphysics_status_final
+ bl .Lcapture_physics_status
+ /* Retain the existing pressure diagnostic format through its unchanged child. */
  mov x0,x20
  adrp x1,.Lphysical_constants
  add x1,x1,:lo12:.Lphysical_constants
  adrp x2,.Lcloud_pressure
  add x2,x2,:lo12:.Lcloud_pressure
  bl md2asm_initialize_cloud_pressure_inputs
- add w23,w0,#68
+ add w23,w0,#174
  cbnz w0,.Lmain_cleanup
- adrp x9,.Lcloud_inputs
- add x9,x9,:lo12:.Lcloud_inputs
- adrp x10,.Lcloud_pressure
- add x10,x10,:lo12:.Lcloud_pressure
- add x10,x10,#472
- str x10,[x9]
- mov x10,#3336
- ldr x10,[x20,x10]
- str x10,[x9,#16]
- ldr x10,[x20,#144]
- str x10,[x9,#32]
- ldr x10,[x20,#80]
- str x10,[x9,#48]
- adrp x10,.Lphysical_constants
- add x10,x10,:lo12:.Lphysical_constants
- str x10,[x9,#64]
- adrp x10,.Lclock_inputs
- add x10,x10,:lo12:.Lclock_inputs
- add x10,x10,#8
- str x10,[x9,#80]
- adrp x4,.Lcloud_controls
- add x4,x4,:lo12:.Lcloud_controls
- owned_model_address x10,1577888
- ldr w10,[x10]
- str w10,[x4,#4]
- adrp x0,.Lnamelist_text
- add x0,x0,:lo12:.Lnamelist_text
- mov x1,x27
- adrp x2,.Lcloud_records
- add x2,x2,:lo12:.Lcloud_records
- mov x3,x9
- bl md2asm_initialize_cloud_gravity_wave_parameters
- add w23,w0,#72
- cbnz w0,.Lmain_cleanup
- adrp x9,.Lconvection_inputs
- add x9,x9,:lo12:.Lconvection_inputs
- owned_model_address x10,1359528
- str x10,[x9,#48]
- mov x10,#3336
- ldr x10,[x20,x10]
- str x10,[x9]
- adrp x0,.Lnamelist_text
- add x0,x0,:lo12:.Lnamelist_text
- mov x1,x27
- adrp x2,.Lconvection_records
- add x2,x2,:lo12:.Lconvection_records
- mov x3,x9
- adrp x4,.Lconvection_controls
- add x4,x4,:lo12:.Lconvection_controls
- bl md2asm_initialize_convection_parameters
- add w23,w0,#74
- cbnz w0,.Lmain_cleanup
- adrp x9,.Lconvection_thermal
- add x9,x9,:lo12:.Lconvection_thermal
- adrp x10,.Lthermal_stability_namespace
- add x10,x10,:lo12:.Lthermal_stability_namespace
- ldr x11,[x9,#8]
- str x11,[x10,#144]
- ldr x11,[x9,#16]
- str x11,[x10,#160]
- /* SUPHEC's prognostic cloud setup consumes the live TPHY2 interval. */
- adrp x9,.Lprognostic_cloud_inputs
- add x9,x9,:lo12:.Lprognostic_cloud_inputs
- mov x10,#3336
- ldr x10,[x20,x10]
- str x10,[x9]
- owned_model_address x10,4150016
- str x10,[x9,#48]
- adrp x0,.Lnamelist_text
- add x0,x0,:lo12:.Lnamelist_text
- mov x1,x27
- owned_model_address x2,1578600
- mov x3,#2776
- mov x4,x9
- bl md2asm_initialize_prognostic_cloud_parameters
- add w23,w0,#78
- cbnz w0,.Lmain_cleanup
- adrp x0,.Lphysics_status_final
- add x0,x0,:lo12:.Lphysics_status_final
- bl .Lcapture_physics_status
- /* Whole SUECRAD consumes the actual source-computed PETAH. */
- mov x0,x20
- owned_model_address x1,0
- adrp x2,md2asm_owned_radiation_setup_context
- add x2,x2,:lo12:md2asm_owned_radiation_setup_context
- adrp x3,.Lcloud_pressure
- add x3,x3,:lo12:.Lcloud_pressure
- add x3,x3,#312
-#ifdef VERIFY_WHOLE_RADIATION
- bl md2asm_verify_whole_radiation
-#else
- bl md2asm_initialize_selected_radiation_setup
-#endif
- add w23,w0,#167
- cbnz w0,.Lmain_cleanup
+ adrp x9,md2asm_owned_ecmwf_thermal_namespace
+ add x9,x9,:lo12:md2asm_owned_ecmwf_thermal_namespace
+ adrp x10,.Lconvection_thermal
+ add x10,x10,:lo12:.Lconvection_thermal
+ ldr x11,[x9,#112]
+ str x11,[x10]
+ ldr x11,[x9,#144]
+ str x11,[x10,#8]
+ ldr x11,[x9,#160]
+ str x11,[x10,#16]
 #ifndef VERIFY_WHOLE_RADIATION
  adrp x0,.Lradiation_output_environment
  add x0,x0,:lo12:.Lradiation_output_environment
@@ -969,6 +884,12 @@ main:
  cbnz w0,.Lmain_cleanup
  mov w23,wzr
 .Lmain_cleanup:
+ owned_model_address x0,0
+ adrp x1,.Lsuphec_context
+ add x1,x1,:lo12:.Lsuphec_context
+ adrp x2,md2asm_owned_radiation_setup_context
+ add x2,x2,:lo12:md2asm_owned_radiation_setup_context
+ bl md2asm_release_selected_ecmwf_physics
  owned_model_address x0,0
  adrp x1,md2asm_owned_radiation_setup_context
  add x1,x1,:lo12:md2asm_owned_radiation_setup_context
@@ -1662,8 +1583,8 @@ md2asm_owned_initial_metadata_auxiliary:
  mov x2,#320
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
- adrp x1,.Lthermal_stability_namespace
- add x1,x1,:lo12:.Lthermal_stability_namespace
+ adrp x1,md2asm_owned_ecmwf_thermal_namespace
+ add x1,x1,:lo12:md2asm_owned_ecmwf_thermal_namespace
  mov x2,#1920
  bl .Lstate_write_bytes
  cbnz w0,.Lsetup_close
@@ -2099,9 +2020,6 @@ md2asm_owned_initial_metadata_auxiliary:
 .global md2asm_owned_initial_model_owner
 md2asm_owned_initial_model_owner:
 .Lmodel_owner: .zero 8
-.global md2asm_owned_thermal_stability_namespace
-md2asm_owned_thermal_stability_namespace:
-.Lthermal_stability_namespace: .zero 1920
 .Lconvection_thermal: .zero 24
 .p2align 3
 .Lowned_alias_slots:
@@ -2325,3 +2243,24 @@ __yoe_phys_mwave_MOD_n_phys_mwave: .zero 4
 
 .section .rodata
 .Lradiation_output_environment:.asciz "MD2ASM_RADIATION_ASSEMBLY_OUTPUT"
+
+.data
+.p2align 3
+.Lsuphec_context:
+ .quad .Lphysical_constants,520
+ .quad md2asm_owned_dynamical_namespace,320
+ .quad .Lforecast_controls,51512
+ .quad .Lclock_state,360
+ .quad md2asm_owned_surface_runtime_inputs,32
+ .quad md2asm_owned_ecmwf_thermal_namespace,1920
+ .quad md2asm_owned_surface_optimization_namespace,1368
+ .quad md2asm_owned_surface_thermal_namespace,1016
+ .quad md2asm_owned_methane_parameters,72
+ .quad md2asm_owned_cloud_optical_550_parameters,48
+ .quad md2asm_owned_legacy_longwave_band_parameters,9440
+ .quad .Lsuphec_surface_result,16
+ .quad 0,0
+.bss
+.p2align 3
+.Lsuphec_surface_result:.skip 16
+.section .note.GNU-stack,"",%progbits

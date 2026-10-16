@@ -1,4 +1,4 @@
-/* Contract: skills/md2asm/references/openifs/setup/ecmwf_physics_control_fields.md.
+/* Contract: skills/md2asm/references/openifs/setup/ecmwf_physics_setup.md.
  * Source minimum-ice selection and SUGFL1 composition switches.
  * Integer-only entries preserve FPCR/FPSR, errno, x18 and saved registers. */
 .arch armv8.2-a

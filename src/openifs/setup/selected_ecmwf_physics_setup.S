@@ -1,0 +1,700 @@
+/* Contract: skills/md2asm/references/openifs/setup/ecmwf_physics_setup.md.
+ * Complete selected SUPHEC composition. All production state is caller-owned.
+ * x0 vertical context20400, x1 MODEL4275088, x2 context208,
+ * x3 owned radiation context, x4 text, x5 text bytes. int0/1/2.
+ * Original children and module data are verification-only. */
+.arch armv8.2-a
+.text
+.p2align 4
+.macro MADDR reg,off
+ mov x16,#((\off)&65535)
+ movk x16,#((\off)>>16),lsl #16
+ add \reg,x20,x16
+.endm
+.macro PCALL name
+ bl \name
+ ldr x18,[sp,#96]
+.endm
+.macro PLEAVE
+ ldr x18,[sp,#96]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#2048
+ ret
+.endm
+.global md2asm_initialize_selected_ecmwf_physics
+.type md2asm_initialize_selected_ecmwf_physics,%function
+md2asm_initialize_selected_ecmwf_physics:
+ cbz x0,.Lphysics_bad_leaf
+ cbz x1,.Lphysics_bad_leaf
+ cbz x2,.Lphysics_bad_leaf
+ cbz x3,.Lphysics_bad_leaf
+ cbz x4,.Lphysics_bad_leaf
+ cbz x5,.Lphysics_bad_leaf
+ cmp x5,#64,lsl #12
+ b.hi .Lphysics_bad_leaf
+ orr x6,x0,x1
+ orr x6,x6,x2
+ orr x6,x6,x3
+ tst x6,#7
+ b.ne .Lphysics_bad_leaf
+ mov x6,#20400
+ adds x6,x0,x6
+ b.cs .Lphysics_bad_leaf
+ mov x7,#0x3b90
+ movk x7,#0x41,lsl #16
+ adds x7,x1,x7
+ b.cs .Lphysics_bad_leaf
+ adds x8,x2,#208
+ b.cs .Lphysics_bad_leaf
+ adds x9,x4,x5
+ b.cs .Lphysics_bad_leaf
+ mrs x10,fpcr
+ cbnz x10,.Lphysics_bad_leaf
+ sub sp,sp,#2048
+ stp x29,x30,[sp]
+ mov x29,sp
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ mov x22,x3
+ mov x23,x4
+ mov x24,x5
+ /* Outer live records may not overlap. */
+ cmp x19,x7
+ b.hs .Lphysics_outer_geo_clear
+ cmp x20,x6
+ b.lo .Lphysics_bad
+.Lphysics_outer_geo_clear:
+ cmp x21,x7
+ b.hs .Lphysics_outer_model_clear
+ cmp x20,x8
+ b.lo .Lphysics_bad
+.Lphysics_outer_model_clear:
+ cmp x21,x6
+ b.hs .Lphysics_outer_context_clear
+ cmp x19,x8
+ b.lo .Lphysics_bad
+.Lphysics_outer_context_clear:
+ cmp x23,x8
+ b.hs .Lphysics_outer_text_clear
+ cmp x21,x9
+ b.lo .Lphysics_bad
+.Lphysics_outer_text_clear:
+ cmp x23,x7
+ b.hs .Lphysics_text_model_clear
+ cmp x20,x9
+ b.lo .Lphysics_bad
+.Lphysics_text_model_clear:
+ cmp x23,x6
+ b.hs .Lphysics_text_geometry_clear
+ cmp x19,x9
+ b.lo .Lphysics_bad
+.Lphysics_text_geometry_clear:
+ mov x10,#7168
+ adds x10,x22,x10
+ b.cs .Lphysics_bad
+ cmp x22,x7
+ b.hs .Lphysics_radiation_model_clear
+ cmp x20,x10
+ b.lo .Lphysics_bad
+.Lphysics_radiation_model_clear:
+ cmp x22,x6
+ b.hs .Lphysics_radiation_geometry_clear
+ cmp x19,x10
+ b.lo .Lphysics_bad
+.Lphysics_radiation_geometry_clear:
+ cmp x22,x8
+ b.hs .Lphysics_radiation_context_clear
+ cmp x21,x10
+ b.lo .Lphysics_bad
+.Lphysics_radiation_context_clear:
+ cmp x22,x9
+ b.hs .Lphysics_radiation_text_clear
+ cmp x23,x10
+ b.lo .Lphysics_bad
+.Lphysics_radiation_text_clear:
+ ldr x10,[x21,#192]
+ cbnz x10,.Lphysics_bad
+ /* Each pair uses its required extent, rather than a larger capacity. */
+ adrp x17,.Lphysics_required_sizes
+ add x17,x17,:lo12:.Lphysics_required_sizes
+ mov x8,#0
+.Lphysics_pair_bounds:
+ add x9,x21,x8,lsl #4
+ ldp x10,x11,[x9]
+ cbz x10,.Lphysics_bad
+ tst x10,#7
+ b.ne .Lphysics_bad
+ ldr x12,[x17,x8,lsl #3]
+ cmp x11,x12
+ b.lo .Lphysics_bad
+ adds x13,x10,x12
+ b.cs .Lphysics_bad
+ add x14,x21,#208
+ cmp x10,x14
+ b.hs .Lphysics_pair_context_clear
+ cmp x21,x13
+ b.lo .Lphysics_bad
+.Lphysics_pair_context_clear:
+ mov x14,#20400
+ add x14,x19,x14
+ cmp x10,x14
+ b.hs .Lphysics_pair_geometry_clear
+ cmp x19,x13
+ b.lo .Lphysics_bad
+.Lphysics_pair_geometry_clear:
+ mov x14,#0x3b90
+ movk x14,#0x41,lsl #16
+ add x14,x20,x14
+ cmp x10,x14
+ b.hs .Lphysics_pair_model_clear
+ cmp x20,x13
+ b.lo .Lphysics_bad
+.Lphysics_pair_model_clear:
+ add x14,x23,x24
+ cmp x10,x14
+ b.hs .Lphysics_pair_text_clear
+ cmp x23,x13
+ b.lo .Lphysics_bad
+.Lphysics_pair_text_clear:
+ mov x14,#7168
+ add x14,x22,x14
+ cmp x10,x14
+ b.hs .Lphysics_pair_radiation_clear
+ cmp x22,x13
+ b.lo .Lphysics_bad
+.Lphysics_pair_radiation_clear:
+ mov x14,#0
+.Lphysics_pair_disjoint:
+ cmp x14,x8
+ b.hs .Lphysics_pair_next
+ add x9,x21,x14,lsl #4
+ ldr x11,[x9]
+ ldr x12,[x17,x14,lsl #3]
+ add x12,x11,x12
+ cmp x10,x12
+ b.hs .Lphysics_previous_pair_clear
+ cmp x11,x13
+ b.lo .Lphysics_bad
+.Lphysics_previous_pair_clear:
+ add x14,x14,#1
+ b .Lphysics_pair_disjoint
+.Lphysics_pair_next:
+ add x8,x8,#1
+ cmp x8,#12
+ b.lo .Lphysics_pair_bounds
+ ldr x25,[x21]
+ ldr x26,[x21,#16]
+ MADDR x27,1577888
+ MADDR x28,1608728
+ /* The selected owned upstream producers establish these live controls. */
+ mov x9,#5224
+ ldr w10,[x19,x9]
+ cmp w10,#19
+ b.ne .Lphysics_bad
+ mov x9,#5172
+ ldr w10,[x19,x9]
+ cmp w10,#21
+ b.ne .Lphysics_bad
+ mov x9,#4872
+ ldr w10,[x19,x9]
+ cmp w10,#32
+ b.ne .Lphysics_bad
+ ldr w9,[x27]
+ cmp w9,#1
+ b.ne .Lphysics_bad
+ MADDR x9,4144588
+ ldr w10,[x9]
+ cbnz w10,.Lphysics_bad
+ MADDR x9,4144600
+ ldr w10,[x9]
+ cbnz w10,.Lphysics_bad
+ ldr x9,[x21,#32]
+ mov x10,#35252
+ ldr w9,[x9,x10]
+ cmp w9,#2
+ b.ne .Lphysics_bad
+ ldr x9,[x21,#64]
+ ldr x10,[x9]
+ cbnz x10,.Lphysics_bad
+ ldr w10,[x9,#8]
+ cbnz w10,.Lphysics_bad
+ ldp x10,x11,[x9,#16]
+ orr x10,x10,x11
+ cbnz x10,.Lphysics_bad
+ ldr x9,[x27,#440]
+ cbnz x9,.Lphysics_bad
+ MADDR x9,1578336
+ ldr x9,[x9]
+ cbnz x9,.Lphysics_bad
+ ldr x9,[x21,#176]
+ ldp x10,x11,[x9]
+ orr x10,x10,x11
+ cbnz x10,.Lphysics_bad
+ ldr x9,[x21,#96]
+ mov x10,#171
+.Lphysics_optimization_fresh:
+ ldr x11,[x9],#8
+ cbnz x11,.Lphysics_bad
+ subs x10,x10,#1
+ b.ne .Lphysics_optimization_fresh
+ /* Ice fractions are finite and in the declared initial range [-1,1]. */
+ ldr x9,[x27,#312]
+ and x10,x9,#0x7fffffffffffffff
+ mov x11,#0x3ff0000000000000
+ cmp x10,x11
+ b.hi .Lphysics_bad
+ /* Validate source-empty groups before the first state mutation. */
+ adrp x10,.Lphysics_empty_groups
+ add x10,x10,:lo12:.Lphysics_empty_groups
+ str x10,[sp,#112]
+.Lphysics_group_check:
+ ldr x10,[sp,#112]
+ ldr x3,[x10]
+ cbz x3,.Lphysics_groups_ready
+ add x2,x10,#8
+ mov x0,x23
+ mov x1,x24
+ PCALL md2asm_require_empty_physics_group
+ cbnz w0,.Lphysics_bad
+ ldr x10,[sp,#112]
+ add x10,x10,#24
+ str x10,[sp,#112]
+ b .Lphysics_group_check
+.Lphysics_groups_ready:
+ PCALL __errno_location
+ str x0,[sp,#120]
+ /* SUPHEC section0.2 precedes every parameter child. */
+ ldr x0,[x21,#80]
+ mov x1,x25
+ PCALL md2asm_initialize_thermal_namespace_fields
+ mov x0,x19
+ mov x1,x25
+ add x2,sp,#128
+ PCALL md2asm_initialize_cloud_pressure_inputs
+ cbnz w0,.Lphysics_failure
+ /* SUCLD owns one persistent19-element CETA array. */
+ ldr x9,[sp,#120]
+ ldr w10,[x9]
+ str w10,[sp,#1848]
+ mrs x10,fpsr
+ str x10,[sp,#1840]
+ mov x0,#152
+ PCALL malloc
+ ldr x9,[sp,#120]
+ ldr w10,[sp,#1848]
+ str w10,[x9]
+ ldr x10,[sp,#1840]
+ msr fpsr,x10
+ cbz x0,.Lphysics_no_memory
+ mov x1,x0
+ MADDR x0,1578336
+ add x2,sp,#600
+ PCALL md2asm_diagnostic_cloud_parameter_fields
+ ldr x9,[x21,#192]
+ orr x9,x9,#1
+ str x9,[x21,#192]
+ MADDR x0,1581376
+ mov x1,#16
+ PCALL md2asm_initialize_condensation_parameters
+ cbnz w0,.Lphysics_failure
+ MADDR x9,1581392
+ mov x17,#344
+ add x15,sp,#752
+ stp x9,x17,[x15]
+ MADDR x9,1588432
+ mov x17,#240
+ add x15,sp,#768
+ stp x9,x17,[x15]
+ MADDR x9,1588416
+ mov x17,#12
+ add x15,sp,#784
+ stp x9,x17,[x15]
+ add x9,sp,#888
+ mov x17,#24
+ add x15,sp,#800
+ stp x9,x17,[x15]
+ mov x10,#3336
+ ldr x9,[x19,x10]
+ mov x17,#152
+ add x15,sp,#816
+ stp x9,x17,[x15]
+ mov x17,#520
+ add x15,sp,#832
+ stp x25,x17,[x15]
+ mov x17,#24
+ add x15,sp,#848
+ stp x26,x17,[x15]
+ MADDR x9,1359528
+ mov x17,#8
+ add x15,sp,#864
+ stp x9,x17,[x15]
+ mov w9,#19
+ mov w10,#21
+ add x15,sp,#880
+ stp w9,w10,[x15]
+ mov x0,x23
+ mov x1,x24
+ add x2,sp,#752
+ add x3,sp,#816
+ add x4,sp,#880
+ PCALL md2asm_initialize_convection_parameters
+ cbnz w0,.Lphysics_failure
+ ldr x9,[x21,#80]
+ ldr x10,[sp,#888]
+ str x10,[x9,#112]
+ add x15,sp,#896
+ ldp x10,x11,[x15]
+ str x10,[x9,#144]
+ str x11,[x9,#160]
+ MADDR x0,1588032
+ mov x9,#3336
+ ldr x1,[x19,x9]
+ ldr x9,[x19,#3240]
+ ldr x2,[x9,#128]
+ ldr x3,[x9,#64]
+ add x4,x25,#56
+ ldr w5,[x27]
+ PCALL md2asm_orographic_gravity_wave_parameter_fields
+ MADDR x0,1588128
+ mov x9,#3336
+ ldr x1,[x19,x9]
+ add x2,x25,#56
+ MADDR x3,1359528
+ PCALL md2asm_nonorographic_gravity_wave_parameter_fields
+ ldr x0,[x21,#80]
+ add x0,x0,#184
+ PCALL md2asm_initialize_stability_table_fields
+ mov x0,x23
+ mov x1,x24
+ MADDR x2,1577816
+ mov x3,#72
+ PCALL md2asm_initialize_selected_diffusion_parameters
+ cbnz w0,.Lphysics_failure
+ ldr x9,[x21,#192]
+ orr x9,x9,#4
+ str x9,[x21,#192]
+ mov x0,x19
+ mov x1,x20
+ mov x2,x22
+ add x3,sp,#440
+ PCALL md2asm_initialize_selected_radiation_setup
+ cbnz w0,.Lphysics_failure
+ ldr w9,[x28,#180]
+ cmp w9,#1
+ b.ne .Lphysics_unsupported_after_child
+ ldr w9,[x28,#60]
+ cmp w9,#6
+ b.ne .Lphysics_unsupported_after_child
+ ldr w9,[x28,#80]
+ cmp w9,#14
+ b.ne .Lphysics_unsupported_after_child
+ add x0,x27,#312
+ MADDR x9,1562912
+ ldr w1,[x9]
+ MADDR x9,1562932
+ ldr w2,[x9]
+ PCALL md2asm_minimum_surface_ice_fraction_fields
+ cbnz w0,.Lphysics_failure
+ ldr w9,[x27,#280]
+ ldr w10,[x27,#284]
+ add x15,sp,#1552
+ stp w9,w10,[x15]
+ add x0,sp,#1552
+ ldr x1,[x21,#96]
+ mov x2,#1368
+ PCALL md2asm_initialize_selected_surface_optimization_parameters
+ cbnz w0,.Lphysics_failure
+ ldr x9,[x21,#192]
+ orr x9,x9,#2
+ str x9,[x21,#192]
+ ldr w9,[x27,#188]
+ str w9,[sp,#912]
+ ldr w9,[x27,#192]
+ str w9,[sp,#916]
+ ldr w9,[x27,#264]
+ str w9,[sp,#920]
+ ldr w9,[x27,#340]
+ str w9,[sp,#924]
+ ldr w9,[x27,#348]
+ str w9,[sp,#928]
+ ldr w9,[x27,#268]
+ str w9,[sp,#932]
+ ldr w9,[x27,#272]
+ str w9,[sp,#936]
+ ldr w9,[x27,#276]
+ str w9,[sp,#940]
+ ldr w9,[x27,#280]
+ str w9,[sp,#944]
+ ldr w9,[x27,#292]
+ str w9,[sp,#948]
+ ldr w9,[x27,#172]
+ str w9,[sp,#952]
+ ldr w9,[x27,#176]
+ str w9,[sp,#956]
+ ldr w9,[x27,#180]
+ str w9,[sp,#960]
+ ldr w9,[x27,#184]
+ str w9,[sp,#964]
+ MADDR x9,4271608
+ ldr w9,[x9]
+ str w9,[sp,#968]
+ MADDR x9,4271612
+ ldr w9,[x9]
+ str w9,[sp,#972]
+ MADDR x9,4271628
+ ldr w9,[x9]
+ str w9,[sp,#976]
+ ldr x9,[x21,#64]
+ ldr w10,[x9]
+ str w10,[sp,#980]
+ ldr w10,[x9,#8]
+ str w10,[sp,#984]
+ str wzr,[sp,#988]
+ ldr x9,[x27,#304]
+ str x9,[sp,#992]
+ ldr x9,[x27,#384]
+ str x9,[sp,#1000]
+ ldr x9,[x27,#312]
+ str x9,[sp,#1008]
+ ldr x9,[x27,#320]
+ str x9,[sp,#1016]
+ ldr x9,[x21,#64]
+ ldp x10,x11,[x9,#16]
+ add x15,sp,#1024
+ stp x10,x11,[x15]
+ ldr x10,[x26]
+ str x10,[sp,#1040]
+ str x10,[sp,#1056]
+ ldr x10,[x26,#32]
+ str x10,[sp,#1048]
+ ldr w9,[x27,#196]
+ str w9,[sp,#1064]
+ str wzr,[sp,#1068]
+ ldr w9,[x27,#200]
+ str w9,[sp,#1072]
+ ldr w9,[x27,#236]
+ str w9,[sp,#1076]
+ MADDR x9,1577368
+ ldr w9,[x9]
+ str w9,[sp,#1080]
+ MADDR x9,1577396
+ ldr w9,[x9]
+ str w9,[sp,#1084]
+ MADDR x9,1577392
+ ldr w9,[x9]
+ str w9,[sp,#1088]
+ str wzr,[sp,#1092]
+ ldr w9,[x28,#60]
+ str w9,[sp,#1096]
+ ldr w9,[x28,#80]
+ str w9,[sp,#1100]
+ ldr w9,[x28,#72]
+ str w9,[sp,#1108]
+ ldr w9,[x28,#520]
+ str w9,[sp,#1120]
+ ldr w9,[x28,#524]
+ str w9,[sp,#1124]
+ ldr w9,[x27,#376]
+ str w9,[sp,#1112]
+ ldr w9,[x27,#380]
+ str w9,[sp,#1116]
+ ldr x9,[x21,#160]
+ ldr w10,[x9,#4]
+ str w10,[sp,#1104]
+ ldr x10,[x9,#9096]
+ str x10,[sp,#1128]
+ ldr x10,[x28,#560]
+ str x10,[sp,#1136]
+ ldr x10,[x28,#552]
+ str x10,[sp,#1144]
+ mov x10,#9128
+ add x9,x9,x10
+ add x10,sp,#1152
+ mov w11,#36
+.Lphysics_xp_copy:
+ ldr x12,[x9],#8
+ str x12,[x10],#8
+ subs w11,w11,#1
+ b.ne .Lphysics_xp_copy
+ MADDR x9,1613072
+ ldr x10,[x9]
+ cbz x10,.Lphysics_unsupported_after_child
+ ldr x11,[x9,#8]
+ ldr x12,[x9,#48]
+ add x11,x11,x12
+ add x10,x10,x11,lsl #3
+ add x9,sp,#1440
+ mov w11,#14
+.Lphysics_rsun_copy:
+ ldr x12,[x10],#8
+ str x12,[x9],#8
+ subs w11,w11,#1
+ b.ne .Lphysics_rsun_copy
+ add x0,sp,#912
+ add x1,sp,#1096
+ ldr x2,[x21,#96]
+ ldr x3,[x21,#112]
+ ldr x4,[x21,#176]
+ PCALL md2asm_create_selected_surface_parameters
+ cbnz w0,.Lphysics_failure
+ ldr x9,[x21,#176]
+ ldr x9,[x9]
+ str x9,[x27,#440]
+ ldr x9,[x21,#192]
+ orr x9,x9,#8
+ str x9,[x21,#192]
+ ldr w9,[x28,#80]
+ ldr w10,[x28,#60]
+ add x15,sp,#1560
+ stp w9,w10,[x15]
+ mov w9,#19
+ str w9,[sp,#1568]
+ mov x17,#2040
+ add x15,sp,#1576
+ stp x28,x17,[x15]
+ MADDR x9,1610768
+ mov x17,#10744
+ add x15,sp,#1592
+ stp x9,x17,[x15]
+ ldr x9,[x21,#144]
+ mov x17,#48
+ add x15,sp,#1608
+ stp x9,x17,[x15]
+ add x0,sp,#1560
+ add x1,sp,#1576
+ PCALL md2asm_initialize_selected_cloud_optical_parameters
+ cbnz w0,.Lphysics_failure
+ mov x9,#3336
+ ldr x9,[x19,x9]
+ mov x17,#152
+ add x15,sp,#1624
+ stp x9,x17,[x15]
+ mov x17,#520
+ add x15,sp,#1640
+ stp x25,x17,[x15]
+ mov x17,#16
+ add x15,sp,#1656
+ stp x26,x17,[x15]
+ MADDR x9,4150016
+ mov x17,#8
+ add x15,sp,#1672
+ stp x9,x17,[x15]
+ mov x0,x23
+ mov x1,x24
+ MADDR x2,1578600
+ mov x3,#2776
+ add x4,sp,#1624
+ PCALL md2asm_initialize_prognostic_cloud_parameters
+ cbnz w0,.Lphysics_failure
+ ldr x9,[x21,#48]
+ ldr x10,[x9]
+ str x10,[sp,#1688]
+ ldr w10,[x27,#152]
+ str w10,[sp,#1696]
+ ldr x9,[x21,#64]
+ ldr w10,[x9,#4]
+ str w10,[sp,#1700]
+ ldr w10,[x28,#408]
+ str w10,[sp,#1704]
+ ldr w10,[x28,#52]
+ str w10,[sp,#1708]
+ ldr x9,[x21,#80]
+ ldr x10,[x9,#112]
+ str x10,[sp,#1712]
+ ldr x10,[x9,#136]
+ str x10,[sp,#1720]
+ MADDR x9,4271536
+ mov x17,#1024
+ add x15,sp,#1728
+ stp x9,x17,[x15]
+ MADDR x9,1588296
+ mov x17,#120
+ add x15,sp,#1744
+ stp x9,x17,[x15]
+ MADDR x9,1588752
+ mov x17,#100
+ add x15,sp,#1760
+ stp x9,x17,[x15]
+ MADDR x9,1622432
+ mov x17,#32
+ add x15,sp,#1776
+ stp x9,x17,[x15]
+ ldr x9,[x21,#128]
+ mov x17,#72
+ add x15,sp,#1792
+ stp x9,x17,[x15]
+ mov x0,x23
+ mov x1,x24
+ add x2,sp,#1688
+ add x3,sp,#1728
+ PCALL md2asm_initialize_selected_ecmwf_physics_tail
+ cbnz w0,.Lphysics_failure
+ mov w0,#0
+ b .Lphysics_return
+.Lphysics_unsupported_after_child:
+ mov w0,#2
+ b .Lphysics_failure
+.Lphysics_no_memory:
+ mov w0,#1
+.Lphysics_failure:
+ str w0,[sp,#112]
+ mov x0,x20
+ mov x1,x21
+ mov x2,x22
+ PCALL md2asm_release_selected_ecmwf_physics
+ ldr w0,[sp,#112]
+ b .Lphysics_return
+.Lphysics_bad:
+ mov w0,#2
+.Lphysics_return:
+ PLEAVE
+.Lphysics_bad_leaf:
+ mov w0,#2
+ ret
+.size md2asm_initialize_selected_ecmwf_physics,.-md2asm_initialize_selected_ecmwf_physics
+.section .rodata
+.p2align 3
+.Lphysics_required_sizes:
+ .quad 520,320,51512,360,32,1920,1368,1016,72,48,9440,16
+.Lphysics_empty_groups:
+ .quad 6
+ .ascii "NAMGWD"
+ .zero 10
+ .quad 8
+ .ascii "NAMGWWMS"
+ .zero 8
+ .quad 7
+ .ascii "NAMCUMF"
+ .zero 9
+ .quad 8
+ .ascii "NAMCUMFS"
+ .zero 8
+ .quad 6
+ .ascii "NAMVDF"
+ .zero 10
+ .quad 10
+ .ascii "NAMDYNCORE"
+ .zero 6
+ .quad 7
+ .ascii "NAMCLDP"
+ .zero 9
+ .quad 7
+ .ascii "NAEPHLI"
+ .zero 9
+ .quad 9
+ .ascii "NAMMETHOX"
+ .zero 7
+ .quad 0
+.section .note.GNU-stack,"",%progbits
