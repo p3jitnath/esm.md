@@ -48,6 +48,22 @@ The executable still uses OpenIFS Fortran for model startup, remaining setup, ty
 
 The separate [standalone initial-input executable](../../skills/md2asm/references/openifs/input/standalone_initial_bootstrap.md) starts at its own assembly entry, constructs its own selected vertical, spectral and grid-point owners, reads three original GRIB files and writes all three complete numerical owners. All 2,748,656 bytes match the separate reference. Its production link contains only assembly and the declared Linux, libc and ecCodes services. It uses no OpenIFS harness, original module data or Fortran runtime. This input checkpoint does not run the full forecast and adds no original-body credit.
 
+## Remaining OpenIFS Autonomy Work
+
+External libraries and their public interfaces may remain, including ecCodes, ECTRANS, ecRad, Atlas, FFT, BLAS, mathematical functions, FIAT and their required runtimes. Assembly must own the OpenIFS configuration, state, calculation sequence and original numerical bodies. Calling an original OpenIFS routine through a library remains an ownership gap.
+
+| Area | Current state | Remaining work |
+| --- | --- | --- |
+| Initial files | Spectral and upper-air loading is verified from an assembly entry | Complete surface configuration and connect all initial state to the forecast |
+| Vertical setup | The selected full numerical chain is locally qualified and reviewed | Publish and attach its owners to complete startup and output-coordinate setup |
+| Field configuration | Nine grid-field utilities and surface primitives are qualified | Emit 53 default templates and complete both owned parent constructors |
+| Geometry and maps | Existing geometry children are qualified | Complete OpenIFS wrappers, partition-map storage, SUSPGM, SUSMAP, SUGMRE and orography owners |
+| Model and control | Constants, clock and several storage components are owned | Finish MODEL, FIELDS, physics configuration and CNT0 through CNT3 progression |
+| Runtime and output | Direct loop, updates, metadata and writers pass the mixed forecast | Remove OpenIFS shadows, close three source aliases, and own state queries, OpenIFS logs and stream lifetimes |
+| Complete acceptance | The autonomous forecast has not run | Require exact complete outputs and independent whole-forecast physical checks before optimisation |
+
+The current named startup and map audit contains 86 OpenIFS entries, with seventeen admitted in the mixed forecast and 69 awaiting ownership or forecast admission. Fifteen of those 69 already have qualified selected vertical calculations. This is a bounded list, rather than a global remaining-routine count or an autonomy percentage. Atlas mesh construction is inactive in the selected case. The separate 24-hour optimisation phase and filename cleanup have not started.
+
 ## Input And Setup Components
 
 The assembly readers use the declared C ecCodes file-format library. A record contains one decoded field and its identifying labels. Separate controls check each stage, including malformed input, buffer bounds, final partial blocks and the Arm ABI. The original input files supply every decoded value. Storage-child counts follow the checked, fixed call sequence inside the enclosing context. This run directly observes 25 context constructions and releases, with 2,150 balanced block calls.
