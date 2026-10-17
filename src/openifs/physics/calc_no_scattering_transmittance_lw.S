@@ -34,6 +34,68 @@ ORIGINAL_SYMBOL:
     mov x26,x6
     ldr d11,.Llw_clear_diffusivity
 .Llw_clear_point:
+    sub x9,x20,x19
+    cmp x9,#32
+    b.lo .Llw_clear_scalar_point
+    add x9,x21,x19
+    ldp x10,x11,[x9]
+    ldp x12,x13,[x9,#16]
+    ldr x14,.Llw_clear_threshold
+    mov x15,#0x4070000000000000
+.macro CLEAR_FOUR_DEPTH raw
+    cmp \raw,x14
+    b.ls .Llw_clear_scalar_point
+    cmp \raw,x15
+    b.hs .Llw_clear_scalar_point
+.endm
+    CLEAR_FOUR_DEPTH x10
+    CLEAR_FOUR_DEPTH x11
+    CLEAR_FOUR_DEPTH x12
+    CLEAR_FOUR_DEPTH x13
+    ldp q8,q24,[x9]
+    add x9,x22,x19
+    ldp q9,q25,[x9]
+    add x9,x23,x19
+    ldp q10,q26,[x9]
+    dup v2.2d,v11.d[0]
+    fmul v8.2d,v2.2d,v8.2d
+    fmul v24.2d,v2.2d,v24.2d
+    fneg v0.2d,v8.2d
+    fneg v1.2d,v24.2d
+    bl md2asm_try_exp_four_counted
+    cbnz w0,.Llw_clear_scalar_point
+    fsub v2.2d,v10.2d,v9.2d
+    fsub v27.2d,v26.2d,v25.2d
+    fdiv v2.2d,v2.2d,v8.2d
+    fdiv v27.2d,v27.2d,v24.2d
+    fadd v3.2d,v2.2d,v9.2d
+    fadd v28.2d,v27.2d,v25.2d
+    fadd v4.2d,v2.2d,v10.2d
+    fadd v29.2d,v27.2d,v26.2d
+    fmul v4.2d,v0.2d,v4.2d
+    fmul v29.2d,v1.2d,v29.2d
+    fsub v3.2d,v3.2d,v4.2d
+    fsub v28.2d,v28.2d,v29.2d
+    fsub v4.2d,v9.2d,v2.2d
+    fsub v29.2d,v25.2d,v27.2d
+    fsub v5.2d,v10.2d,v2.2d
+    fsub v30.2d,v26.2d,v27.2d
+    fmul v4.2d,v0.2d,v4.2d
+    fmul v29.2d,v1.2d,v29.2d
+    fsub v4.2d,v5.2d,v4.2d
+    fsub v29.2d,v30.2d,v29.2d
+    str q0,[x24,x19]
+    str q3,[x25,x19]
+    str q4,[x26,x19]
+    add x9,x19,#16
+    str q1,[x24,x9]
+    str q28,[x25,x9]
+    str q29,[x26,x9]
+    add x19,x19,#32
+    cmp x19,x20
+    b.ne .Llw_clear_point
+    b .Llw_clear_restore
+.Llw_clear_scalar_point:
     ldr d8,[x21,x19]
     ldr d9,[x22,x19]
     ldr d10,[x23,x19]
@@ -71,6 +133,7 @@ ORIGINAL_SYMBOL:
     add x19,x19,#8
     cmp x19,x20
     b.ne .Llw_clear_point
+ .Llw_clear_restore:
     ldp d8,d9,[sp,#80]
     ldp d10,d11,[sp,#96]
     ldp x19,x20,[sp,#0]

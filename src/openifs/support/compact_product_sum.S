@@ -49,7 +49,6 @@ md2asm_try_compact_product_sum_preclassified:
     and x6, x0, #0xfffffffffffff
     and x7, x1, #0xfffffffffffff
     and x8, x2, #0xfffffffffffff
-#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
     // A nonzero finite stored exponent identifies a normal nonzero operand.
     cbz w3, .Lcompact_slow_decode
     orr x6, x6, #0x10000000000000
@@ -57,25 +56,6 @@ md2asm_try_compact_product_sum_preclassified:
     orr x7, x7, #0x10000000000000
     cbz w5, .Lcompact_slow_decode
     orr x8, x8, #0x10000000000000
-#else
-    cbz w3, .Lcompact_a_fraction
-    orr x6, x6, #0x10000000000000
-.Lcompact_a_fraction:
-    cbz w4, .Lcompact_b_fraction
-    orr x7, x7, #0x10000000000000
-.Lcompact_b_fraction:
-    cbz w5, .Lcompact_c_fraction
-    orr x8, x8, #0x10000000000000
-.Lcompact_c_fraction:
-    cbz x6, .Lcompact_zero_product
-    cbz x7, .Lcompact_zero_product
-    cmp w3, #0
-    cinc w3, w3, eq
-    cmp w4, #0
-    cinc w4, w4, eq
-    cmp w5, #0
-    cinc w5, w5, eq
-#endif
 .Lcompact_exponents_ready:
     sub w13, w3, #1075
     sub w14, w4, #1075
@@ -290,7 +270,6 @@ md2asm_try_compact_product_sum_preclassified:
     mov w0, #1
     ret
 #endif
-#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
 // Repeating a hidden-bit OR leaves a partially decoded normal input unchanged.
 .Lcompact_slow_decode:
     cbz w3, .Lcompact_a_fraction
@@ -311,7 +290,6 @@ md2asm_try_compact_product_sum_preclassified:
     cmp w5, #0
     cinc w5, w5, eq
     b .Lcompact_exponents_ready
-#endif
 .size md2asm_try_compact_product_sum,.-md2asm_try_compact_product_sum
 .size md2asm_try_compact_product_sum_preclassified,.-md2asm_try_compact_product_sum_preclassified
 .section .note.GNU-stack,"",%progbits
