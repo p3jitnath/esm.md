@@ -4,7 +4,8 @@
  * Nineteen addresses and a complete P-by-H output owner.
  * x19 columns, x20 layers, x21 source plane, x22 layer, x23 column,
  * x24 matrix cell, x25 source, x26 output and x27/x28 selected bounds.
- * Preserve x18 and d8 through d15. No numerical child or driver stage. */
+ * Preserve x18 and d8 through d15. No numerical child or driver stage.
+ * Keep each signed row index in x12..x15 after its original first read. */
 .text
 .p2align 4
 .macro PARG reg,index
@@ -17,12 +18,17 @@
     madd x10,x10,x11,x24
     ldr \reg,[x9,x10,lsl #3]
 .endm
-.macro STENCIL reg,row,v,j
+.macro STENCIL reg,row,v,j,cache,first=0
+.if \first
     PARG 9,14
     mov x10,#\row
     ldr x11,[sp,#272]
     madd x10,x10,x11,x24
     ldrsw x10,[x9,x10,lsl #2]
+    mov \cache,x10
+.else
+    mov x10,\cache
+.endif
     mov x11,#\v
     madd x10,x11,x21,x10
 .if \j == 0
@@ -132,137 +138,137 @@ md2asm_laitriqm3d:
     mov x23,x27
 .Ltransport_cell:
     madd x24,x22,x19,x23
-    STENCIL d0,1,0,1
-    STENCIL d1,1,0,2
+    STENCIL d0,1,0,1,x13,1
+    STENCIL d1,1,0,2,x13,0
     FIELD d2,12,1
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#320]
-    STENCIL d0,2,0,1
-    STENCIL d1,2,0,2
+    STENCIL d0,2,0,1,x14,1
+    STENCIL d1,2,0,2,x14,0
     FIELD d2,12,2
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#328]
-    STENCIL d0,0,1,1
-    STENCIL d1,0,1,2
+    STENCIL d0,0,1,1,x12,1
+    STENCIL d1,0,1,2,x12,0
     FIELD d2,12,0
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#336]
-    STENCIL d6,1,1,0
+    STENCIL d6,1,1,0,x13,0
     fmov d0,d6
-    STENCIL d1,1,1,1
+    STENCIL d1,1,1,1,x13,0
     str d1,[sp,#512]
     fsub d1,d1,d6
     FIELD d2,13,0
     fmul d1,d2,d1
     fadd d0,d0,d1
-    STENCIL d1,1,1,2
+    STENCIL d1,1,1,2,x13,0
     str d1,[sp,#520]
     fsub d1,d1,d6
     FIELD d2,13,1
     fmul d1,d2,d1
     fadd d0,d0,d1
-    STENCIL d1,1,1,3
+    STENCIL d1,1,1,3,x13,0
     fsub d1,d1,d6
     FIELD d2,13,2
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#344]
-    STENCIL d6,2,1,0
+    STENCIL d6,2,1,0,x14,0
     fmov d0,d6
-    STENCIL d1,2,1,1
+    STENCIL d1,2,1,1,x14,0
     str d1,[sp,#528]
     fsub d1,d1,d6
     FIELD d2,13,3
     fmul d1,d2,d1
     fadd d0,d0,d1
-    STENCIL d1,2,1,2
+    STENCIL d1,2,1,2,x14,0
     str d1,[sp,#536]
     fsub d1,d1,d6
     FIELD d2,13,4
     fmul d1,d2,d1
     fadd d0,d0,d1
-    STENCIL d1,2,1,3
+    STENCIL d1,2,1,3,x14,0
     fsub d1,d1,d6
     FIELD d2,13,5
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#352]
-    STENCIL d0,3,1,1
-    STENCIL d1,3,1,2
+    STENCIL d0,3,1,1,x15,1
+    STENCIL d1,3,1,2,x15,0
     FIELD d2,12,3
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#360]
-    STENCIL d0,0,2,1
-    STENCIL d1,0,2,2
+    STENCIL d0,0,2,1,x12,0
+    STENCIL d1,0,2,2,x12,0
     FIELD d2,12,0
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#368]
-    STENCIL d6,1,2,0
+    STENCIL d6,1,2,0,x13,0
     fmov d0,d6
-    STENCIL d1,1,2,1
+    STENCIL d1,1,2,1,x13,0
     str d1,[sp,#544]
     fsub d1,d1,d6
     FIELD d2,13,0
     fmul d1,d2,d1
     fadd d0,d0,d1
-    STENCIL d1,1,2,2
+    STENCIL d1,1,2,2,x13,0
     str d1,[sp,#552]
     fsub d1,d1,d6
     FIELD d2,13,1
     fmul d1,d2,d1
     fadd d0,d0,d1
-    STENCIL d1,1,2,3
+    STENCIL d1,1,2,3,x13,0
     fsub d1,d1,d6
     FIELD d2,13,2
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#376]
-    STENCIL d6,2,2,0
+    STENCIL d6,2,2,0,x14,0
     fmov d0,d6
-    STENCIL d1,2,2,1
+    STENCIL d1,2,2,1,x14,0
     str d1,[sp,#560]
     fsub d1,d1,d6
     FIELD d2,13,3
     fmul d1,d2,d1
     fadd d0,d0,d1
-    STENCIL d1,2,2,2
+    STENCIL d1,2,2,2,x14,0
     str d1,[sp,#568]
     fsub d1,d1,d6
     FIELD d2,13,4
     fmul d1,d2,d1
     fadd d0,d0,d1
-    STENCIL d1,2,2,3
+    STENCIL d1,2,2,3,x14,0
     fsub d1,d1,d6
     FIELD d2,13,5
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#384]
-    STENCIL d0,3,2,1
-    STENCIL d1,3,2,2
+    STENCIL d0,3,2,1,x15,0
+    STENCIL d1,3,2,2,x15,0
     FIELD d2,12,3
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#392]
-    STENCIL d0,1,3,1
-    STENCIL d1,1,3,2
+    STENCIL d0,1,3,1,x13,0
+    STENCIL d1,1,3,2,x13,0
     FIELD d2,12,1
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#400]
-    STENCIL d0,2,3,1
-    STENCIL d1,2,3,2
+    STENCIL d0,2,3,1,x14,0
+    STENCIL d1,2,3,2,x14,0
     FIELD d2,12,2
     fsub d1,d1,d0
     fmul d1,d2,d1

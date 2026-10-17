@@ -393,6 +393,15 @@ ORIGINAL_SYMBOL:
  fadd v24.2d,v28.2d,v24.2d
  fsub v29.2d,v28.2d,v4.2d
  fmul v29.2d,v18.2d,v29.2d
+ // Start B's same rounded reciprocal while A's outputs are independent.
+ fmul v30.2d,v3.2d,v3.2d
+ add x9,x19,#16
+ ldr q31,[x23,x9]
+ fadd v18.2d,v12.2d,v31.2d
+ fsub v31.2d,v12.2d,v31.2d
+ fmul v31.2d,v31.2d,v30.2d
+ fadd v31.2d,v18.2d,v31.2d
+ fdiv v31.2d,v28.2d,v31.2d
  fmul v7.2d,v29.2d,v6.2d
  str q7,[x26,x19]
  fmul v7.2d,v5.2d,v6.2d
@@ -427,8 +436,8 @@ ORIGINAL_SYMBOL:
  fmul v17.2d,v0.2d,v17.2d
  fsub v6.2d,v6.2d,v17.2d
  fmul v6.2d,v20.2d,v6.2d
- fsub v30.2d,v28.2d,v7.2d
- fminnm v6.2d,v6.2d,v30.2d
+ fsub v18.2d,v28.2d,v7.2d
+ fminnm v6.2d,v6.2d,v18.2d
  movi v27.2d,#0
  fmaxnm v6.2d,v6.2d,v27.2d
  ldr x9,[sp,#224]
@@ -437,22 +446,17 @@ ORIGINAL_SYMBOL:
  str q0,[x9,x19]
  add x19,x19,#16
  // A state is dead. Reload the same immutable B input words.
- ldr q16,[x23,x19]
  ldr q17,[x24,x19]
  ldr q18,[x25,x19]
  ldr q19,[x22,x19]
  fmov d20,#1.0
  dup v20.2d,v20.d[0]
- fmul v0.2d,v3.2d,v3.2d
+ mov v0.16b,v30.16b
  fmov d1,#2.0
  dup v1.2d,v1.d[0]
  fmul v1.2d,v1.2d,v12.2d
  fmul v1.2d,v1.2d,v3.2d
- fadd v21.2d,v12.2d,v16.2d
- fsub v22.2d,v12.2d,v16.2d
- fmul v22.2d,v22.2d,v0.2d
- fadd v21.2d,v21.2d,v22.2d
- fdiv v21.2d,v20.2d,v21.2d
+ mov v21.16b,v31.16b
  fmul v23.2d,v10.2d,v10.2d
  fsub v23.2d,v20.2d,v23.2d
  fmul v24.2d,v8.2d,v19.2d
