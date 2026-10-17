@@ -279,4 +279,219 @@ md2asm_private_power_product_rounding_residual:
  mov w1,#0
  b .Lcompact_success_value_ready
 .size md2asm_private_power_product_rounding_residual,.-md2asm_private_power_product_rounding_residual
+
+// Private two-seed leaf. d10 is unchanged r; x16 points to the two exact
+// exponential seed records. Guard both signed zeros or the complete normal
+// box 2^-60 <= abs(r) < 1/128. Unsupported inputs refuse before effects.
+// Return d0/d1, w1=required mask and w0=0; refusal w0=1,w1=0.
+// Preserve x18..x30, full v8..v15, SP, FPCR/FPSR, errno and pending x27.
+// Only x0..x17, d0/d1 and NZCV are scratch. No frame or service calls.
+.macro MD2ASM_EXP_SEED_QUOTIENT offset, extra
+ ldp x5,x6,[x16,#\offset]
+ umulh x8,x2,x5
+ add w13,w1,#\extra
+ cmp w13,#64
+ b.hi .Lexp_seed_high\@
+ mul x7,x2,x5
+ b.eq .Lexp_seed_64\@
+ lsr x9,x7,x13
+ neg w12,w13
+ lsl x15,x8,x12
+ orr x9,x9,x15
+ sub w12,w13,#1
+ lsr x10,x7,x12
+ and x10,x10,#1
+ b .Lexp_seed_quotient_ready\@
+.Lexp_seed_64\@:
+ mov x9,x8
+ lsr x10,x7,#63
+ b .Lexp_seed_quotient_ready\@
+.Lexp_seed_high\@:
+ sub w12,w13,#64
+ lsr x9,x8,x12
+ sub w12,w12,#1
+ lsr x10,x8,x12
+ and x10,x10,#1
+.Lexp_seed_quotient_ready\@:
+.endm
+.macro MD2ASM_EXP_SEED_CONSTANT offset, bias, out
+ ldr x6,[x16,#(\offset+8)]
+ mov x14,#\bias
+ add x6,x6,x14
+ fmov \out,x6
+.endm
+.p2align 2
+.global md2asm_private_power_exponential_seed_pair
+.hidden md2asm_private_power_exponential_seed_pair
+.type md2asm_private_power_exponential_seed_pair,%function
+md2asm_private_power_exponential_seed_pair:
+ mrs x17,fpcr
+ cbnz x17,.Lexp_seed_pair_refuse
+ fmov x0,d10
+ lsl x5,x0,#1
+ cbz x5,.Lexp_seed_pair_zero
+ ubfx x1,x0,#52,#11
+ sub w5,w1,#963
+ cmp w5,#52
+ b.hi .Lexp_seed_pair_refuse
+ mov w5,#1075
+ sub w1,w5,w1
+ mov w4,#16
+ cmp w1,#106
+ b.hs .Lexp_seed_pair_constants
+ and x2,x0,#0xfffffffffffff
+ orr x2,x2,#0x10000000000000
+ MD2ASM_EXP_SEED_QUOTIENT 0,1
+ tbnz x0,#63,.Lexp_seed_pair_first_fine
+ cmp x9,#579
+ b.hs .Lexp_seed_pair_first_coarse
+.Lexp_seed_pair_first_fine:
+ add x9,x9,x10
+ add x7,x6,x9
+ sub x9,x6,x9
+ tst x0,#0x8000000000000000
+ csel x9,x9,x7,mi
+ mov x14,#0x3fc0000000000000
+ add x9,x9,x14
+ fmov d0,x9
+ b .Lexp_seed_pair_second
+.Lexp_seed_pair_first_coarse:
+ lsr x6,x6,#1
+ lsr x9,x9,#1
+ add x9,x9,x6
+ add x9,x9,#1
+ mov x14,#0x3fd0000000000000
+ add x9,x9,x14
+ fmov d0,x9
+.Lexp_seed_pair_second:
+ MD2ASM_EXP_SEED_QUOTIENT 32,2
+ add x9,x9,x10
+ add x7,x6,x9
+ sub x9,x6,x9
+ tst x0,#0x8000000000000000
+ csel x9,x9,x7,mi
+ mov x14,#0x3f90000000000000
+ add x9,x9,x14
+ fmov d1,x9
+.Lexp_seed_pair_counters:
+ cmp w1,#72
+ b.ls .Lexp_seed_pair_fast_two
+ cmp w1,#73
+ b.eq .Lexp_seed_pair_mixed
+ adrp x6,:got:md2asm_product_sum_wide_calls
+ ldr x6,[x6,:got_lo12:md2asm_product_sum_wide_calls]
+ ldr x7,[x6]
+ add x7,x7,#2
+ str x7,[x6]
+ b .Lexp_seed_pair_done
+.Lexp_seed_pair_fast_two:
+ adrp x6,:got:md2asm_product_sum_fast_calls
+ ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+ ldr x7,[x6]
+ add x7,x7,#2
+ str x7,[x6]
+ b .Lexp_seed_pair_done
+.Lexp_seed_pair_mixed:
+ adrp x6,:got:md2asm_product_sum_fast_calls
+ ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+ ldr x7,[x6]
+ add x7,x7,#1
+ str x7,[x6]
+ adrp x6,:got:md2asm_product_sum_wide_calls
+ ldr x6,[x6,:got_lo12:md2asm_product_sum_wide_calls]
+ ldr x7,[x6]
+ add x7,x7,#1
+ str x7,[x6]
+.Lexp_seed_pair_done:
+ mov w1,w4
+ mov w0,#0
+ ret
+.Lexp_seed_pair_zero:
+ mov w4,#0
+ mov w1,#0
+.Lexp_seed_pair_constants:
+ MD2ASM_EXP_SEED_CONSTANT 0,0x3fc0000000000000,d0
+ MD2ASM_EXP_SEED_CONSTANT 32,0x3f90000000000000,d1
+ b .Lexp_seed_pair_counters
+.Lexp_seed_pair_refuse:
+ mov w1,#0
+ mov w0,#1
+ ret
+.size md2asm_private_power_exponential_seed_pair,.-md2asm_private_power_exponential_seed_pair
+.purgem MD2ASM_EXP_SEED_QUOTIENT
+.purgem MD2ASM_EXP_SEED_CONSTANT
 .section .note.GNU-stack,"",%progbits
+
+// Private log merges. The parent proves zero a, or negative normal a with
+// 2^-121 <= abs(a) < 2^-15; 3/4 <= abs(b) <= 19/16 and 5/8 <= abs(c) <= 7/8.
+// Product and c have the same sign. Their sum stays strictly inside [1/2,1).
+// d0=a,d1=b,d2=c; return d0, w0=0 and w1=required mask. Preserve raw d1/d2,
+// x18..x30, full q8..q15, x27, SP, FPCR, FPSR and errno. x0..x17/NZCV scratch.
+// Nonzero FPCR tail-replays the original atomic entry before any effect.
+.text
+.p2align 2
+.global md2asm_private_power_log_polynomial_merge
+.hidden md2asm_private_power_log_polynomial_merge
+.type md2asm_private_power_log_polynomial_merge,%function
+md2asm_private_power_log_polynomial_merge:
+ mrs x17,fpcr
+ cbnz x17,md2asm_private_power_product_sum_deferred
+ fmov x0,d0
+ lsl x3,x0,#1
+ cbz x3,.Llog_merge_zero
+ fmov x1,d1
+ ubfx x3,x0,#52,#11
+ ubfx x4,x1,#52,#11
+ add w3,w3,w4
+ mov w4,#2097
+ sub w3,w4,w3
+ cmp w3,#107
+ b.hs .Llog_merge_small
+ and x6,x0,#0xfffffffffffff
+ orr x6,x6,#0x10000000000000
+ and x7,x1,#0xfffffffffffff
+ orr x7,x7,#0x10000000000000
+ mul x11,x6,x7
+ umulh x12,x6,x7
+ sub w10,w3,#64
+ lsr x13,x12,x10
+ sub w14,w10,#1
+ lsr x14,x12,x14
+ and x14,x14,#1
+ mov w15,#65
+ sub w15,w15,w10
+ lsl x15,x12,x15
+ orr x15,x15,x11
+ cmp x15,#0
+ cset w15,ne
+ fmov x2,d2
+ eor x16,x2,x13
+ and x16,x16,#1
+ orr w16,w16,w15
+ and w16,w16,w14
+ add x13,x13,x16
+ orr w6,w14,w15
+ lsl w6,w6,#4
+ add x0,x2,x13
+ cmp w3,#74
+ b.hi .Llog_merge_wide_bits
+ b .Lcompact_success_bits
+.Llog_merge_small:
+ fmov x0,d2
+ mov w6,#16
+ b .Llog_merge_wide_bits
+.Llog_merge_zero:
+ fmov x0,d2
+ mov w6,#0
+ b .Lcompact_success_bits
+.Llog_merge_wide_bits:
+ mov w1,w6
+ fmov d0,x0
+ mov w0,#0
+ adrp x6,:got:md2asm_product_sum_wide_calls
+ ldr x6,[x6,:got_lo12:md2asm_product_sum_wide_calls]
+ ldr x7,[x6]
+ add x7,x7,#1
+ str x7,[x6]
+ ret
+.size md2asm_private_power_log_polynomial_merge,.-md2asm_private_power_log_polynomial_merge

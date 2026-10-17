@@ -269,12 +269,12 @@ md2asm_pow_original_rounding_candidate:
  fmov d0,d14
  ldr d1,[sp,#208]
  ldr d2,[sp,#216]
- bl md2asm_private_power_product_sum_deferred
+ bl md2asm_private_power_log_polynomial_merge
  orr w27,w27,w1
  fmov d1,d0
  fmov d0,d14
  ldr d2,[sp,#224]
- bl md2asm_private_power_product_sum_deferred
+ bl md2asm_private_power_log_polynomial_merge
  orr w27,w27,w1
  fmov d1,d0
  fmov d0,d15
@@ -352,6 +352,14 @@ md2asm_pow_original_rounding_candidate:
  lsl x1,x1,#45
  add x26,x26,x1
  fmul d14,d10,d10
+ adr x16,md2asm_private_power_coefficient_records+96
+ bl md2asm_private_power_exponential_seed_pair
+ cbnz w0,.Lexp_seed_pair_original
+ orr w27,w27,w1
+ str d0,[sp,#160]
+ str d1,[sp,#168]
+ b .Lexp_seed_pair_ready
+.Lexp_seed_pair_original:
  fmov d0,d10
  ldr d1,[x20,#40]
  ldr d2,[x20,#32]
@@ -366,6 +374,7 @@ md2asm_pow_original_rounding_candidate:
  bl md2asm_private_power_coefficient_product_sum
  orr w27,w27,w1
  str d0,[sp,#168]
+.Lexp_seed_pair_ready:
  fmov d0,d14
  ldr d1,[sp,#160]
  fadd d2,d11,d10
