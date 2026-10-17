@@ -17,6 +17,51 @@
     mov x29,sp
     add x19,sp,#96
 .endm
+.macro aerosol_load3
+    ldr x13,[x9]
+    ldr x14,[x9,#8]
+    ldr x15,[x9,#40]
+    madd x14,x10,x15,x14
+    ldr x15,[x9,#64]
+    madd x14,x11,x15,x14
+    ldr x15,[x9,#88]
+    madd x14,x12,x15,x14
+    ldr d0,[x13,x14,lsl #3]
+.endm
+
+.macro aerosol_load2
+    ldr x13,[x9]
+    ldr x14,[x9,#8]
+    ldr x15,[x9,#40]
+    madd x14,x10,x15,x14
+    ldr x15,[x9,#64]
+    madd x14,x11,x15,x14
+    ldr d0,[x13,x14,lsl #3]
+.endm
+
+.macro aerosol_load_i1
+    ldr x13,[x9]
+    ldr x14,[x9,#8]
+    ldr x15,[x9,#40]
+    madd x14,x10,x15,x14
+    ldr w0,[x13,x14,lsl #2]
+.endm
+
+.macro aerosol_table_load
+    ldr w10,[x19,#316]
+    mov x11,x27
+    ldr w13,[x19,#324]
+    cmp w13,#2
+    b.eq .Laerosol_inline_table2_\@
+    mov x11,x26
+    mov x12,x27
+    aerosol_load3
+    b .Laerosol_inline_table_done_\@
+.Laerosol_inline_table2_\@:
+    aerosol_load2
+.Laerosol_inline_table_done_\@:
+.endm
+
 .global md2asm_add_aerosol_optics
 .type md2asm_add_aerosol_optics,%function
 md2asm_add_aerosol_optics:
@@ -256,34 +301,6 @@ md2asm_add_aerosol_optics_direct:
 
 // Complete descriptor loads. x9 descriptor, x10..x12 absolute indices.
 // Only x13..x16 and d0 are overwritten.
-.Laerosol_load3:
-    ldr x13,[x9]
-    ldr x14,[x9,#8]
-    ldr x15,[x9,#40]
-    madd x14,x10,x15,x14
-    ldr x15,[x9,#64]
-    madd x14,x11,x15,x14
-    ldr x15,[x9,#88]
-    madd x14,x12,x15,x14
-    ldr d0,[x13,x14,lsl #3]
-    ret
-.Laerosol_load2:
-    ldr x13,[x9]
-    ldr x14,[x9,#8]
-    ldr x15,[x9,#40]
-    madd x14,x10,x15,x14
-    ldr x15,[x9,#64]
-    madd x14,x11,x15,x14
-    ldr d0,[x13,x14,lsl #3]
-    ret
-.Laerosol_load_i1:
-    ldr x13,[x9]
-    ldr x14,[x9,#8]
-    ldr x15,[x9,#40]
-    madd x14,x10,x15,x14
-    ldr w0,[x13,x14,lsl #2]
-    ret
-
 .global md2asm_aerosol_rh_index
 .type md2asm_aerosol_rh_index,%function
 md2asm_aerosol_rh_index:
@@ -351,7 +368,7 @@ md2asm_aerosol_rh_index:
     add x9,x9,#176
     ldr w10,[x19,#268]
     ldr w11,[x19,#264]
-    bl .Laerosol_load2
+    aerosol_load2
     fdiv d1,d1,d0
     str d1,[x19,#304]
     add x0,x19,#240
@@ -361,10 +378,10 @@ md2asm_aerosol_rh_index:
     ldr x9,[x19,#16]
     ldr w10,[x19,#268]
     ldr w11,[x19,#264]
-    bl .Laerosol_load2
+    aerosol_load2
     fmov d1,d0
     add w11,w11,#1
-    bl .Laerosol_load2
+    aerosol_load2
     fsub d0,d0,d1
     adrp x9,.Laerosol_gravity
     ldr d1,[x9,:lo12:.Laerosol_gravity]
@@ -379,19 +396,19 @@ md2asm_aerosol_rh_index:
     cmp w10,w11
     b.gt .Laerosol_mass_done
     add x9,x28,#0
-    bl .Laerosol_load_i1
+    aerosol_load_i1
     cmp w0,#2
     b.lt .Laerosol_type_next
     str w0,[x19,#324]
     add x9,x28,#64
     ldr w10,[x19,#272]
-    bl .Laerosol_load_i1
+    aerosol_load_i1
     str w0,[x19,#320]
     ldr x9,[x19,#8]
     ldr w10,[x19,#268]
     ldr w11,[x19,#264]
     ldr w12,[x19,#272]
-    bl .Laerosol_load3
+    aerosol_load3
     ldr d1,[x19,#280]
     fmul d0,d1,d0
     str d0,[x19,#304]
@@ -441,7 +458,7 @@ md2asm_aerosol_rh_index:
     cmp w10,w23
     b.gt .Laerosol_accum_done
     add x9,x28,x24
-    bl .Laerosol_table_load
+    aerosol_table_load
     ldr d7,[x19,#304]
     fmul d1,d7,d0
     ldr w9,[x19,#324]
@@ -451,7 +468,7 @@ md2asm_aerosol_rh_index:
     csel x9,x9,x10,eq
     add x9,x24,x9
     add x9,x28,x9
-    bl .Laerosol_table_load
+    aerosol_table_load
     fmov d2,d0
     cbz w25,.Laerosol_accum_scattering
     ldr x9,[x19]
@@ -474,7 +491,7 @@ md2asm_aerosol_rh_index:
     csel x9,x9,x10,eq
     add x9,x24,x9
     add x9,x28,x9
-    bl .Laerosol_table_load
+    aerosol_table_load
     fmul d4,d1,d2
     ldr w9,[x19,#316]
     sub w9,w9,#1
@@ -496,16 +513,6 @@ md2asm_aerosol_rh_index:
 .Laerosol_accum_done:
     ldp x29,x30,[sp],#16
     ret
-.Laerosol_table_load:
-    ldr w10,[x19,#316]
-    mov x11,x27
-    ldr w13,[x19,#324]
-    cmp w13,#2
-    b.eq .Laerosol_load2
-    mov x11,x26
-    mov x12,x27
-    b .Laerosol_load3
-
 .Laerosol_direct_prepare:
     stp x29,x30,[sp,#-16]!
     ldr w25,[x19,#292]
@@ -530,11 +537,11 @@ md2asm_aerosol_rh_index:
     mov x10,x26
     ldr w11,[x19,#264]
     ldr w12,[x19,#268]
-    bl .Laerosol_load3
+    aerosol_load3
     fmov d1,d0
     add x9,x24,#112
     add x9,x28,x9
-    bl .Laerosol_load3
+    aerosol_load3
     fmov d2,d0
     cbz w25,.Laerosol_direct_scattering
     ldr x9,[x19]
@@ -551,7 +558,7 @@ md2asm_aerosol_rh_index:
 .Laerosol_direct_scattering:
     add x9,x24,#224
     add x9,x28,x9
-    bl .Laerosol_load3
+    aerosol_load3
     fmul d2,d2,d1
     fmul d3,d0,d2
     sub x9,x26,#1
@@ -618,7 +625,7 @@ md2asm_aerosol_rh_index:
     b.ge .Laerosol_combine_done
     add x9,x28,x27
     add x10,x26,#1
-    bl .Laerosol_load_i1
+    aerosol_load_i1
     sub w0,w0,#1
     sxtw x24,w0
     ldr d0,[x20,x24,lsl #3]

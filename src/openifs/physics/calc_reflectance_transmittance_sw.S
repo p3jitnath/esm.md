@@ -1,4 +1,287 @@
-/* Local scalar schedule candidate for the unchanged layer equations P01 and P02.
+// Physics formulations/openifs/physics/two_stream_shortwave_transport.md.
+// Contract skills/md2asm/references/openifs/physics/calc_reflectance_transmittance_sw.md.
+/* Two adjacent independent shortwave layer cells with the frozen equations.
+ * Public twelve-pointer ABI and bounds match calc_reflectance_transmittance_sw.
+ * The 256-byte frame has 32 outgoing bytes, saves x19..x30 and d8..d15,
+ * and keeps the original angle and two final output pointers. x18 is untouched.
+ * Integer guards precede FP work. A matching prefix may add only eventual
+ * scalar flags. Four EXP arguments pass admission before calls or outputs.
+ * Private pair EXP preserves full q8..q15/q24..q31. Every refusal and odd
+ * cell calls the accepted own scalar reflection body below. */
+#ifndef ORIGINAL_SYMBOL
+#define ORIGINAL_SYMBOL __radiation_two_stream_MOD_calc_reflectance_transmittance_sw
+#endif
+.arch armv8.2-a
+.text
+.p2align 4
+
+/* Both lanes must be nonnegative except signed zero, with magnitude <=x12. */
+.macro NONNEGATIVE_PAIR reg
+ fmov x9,d\reg
+ umov x10,v\reg\().d[1]
+ and x11,x9,#0x7fffffffffffffff
+ cmp x11,x12
+ b.hi .Lpair_scalar
+ cbz x11,.Lfirst_nonnegative\@
+ tbnz x9,#63,.Lpair_scalar
+.Lfirst_nonnegative\@:
+ and x11,x10,#0x7fffffffffffffff
+ cmp x11,x12
+ b.hi .Lpair_scalar
+ cbz x11,.Lsecond_nonnegative\@
+ tbnz x10,#63,.Lpair_scalar
+.Lsecond_nonnegative\@:
+.endm
+.macro BOUNDED_PAIR reg
+ fmov x9,d\reg
+ umov x10,v\reg\().d[1]
+ and x9,x9,#0x7fffffffffffffff
+ and x10,x10,#0x7fffffffffffffff
+ cmp x9,x12
+ b.hi .Lpair_scalar
+ cmp x10,x12
+ b.hi .Lpair_scalar
+.endm
+/* Both lanes are exact signed zero or finite2^-54<=abs(x)<512. */
+.macro EXP_PAIR_GUARD reg
+ fmov x9,d\reg
+ umov x10,v\reg\().d[1]
+ and x9,x9,#0x7fffffffffffffff
+ and x10,x10,#0x7fffffffffffffff
+ cbz x9,.Lfirst_exp_ready\@
+ cmp x9,x11
+ b.lo .Lpair_scalar
+ cmp x9,x12
+ b.hs .Lpair_scalar
+.Lfirst_exp_ready\@:
+ cbz x10,.Lsecond_exp_ready\@
+ cmp x10,x11
+ b.lo .Lpair_scalar
+ cmp x10,x12
+ b.hs .Lpair_scalar
+.Lsecond_exp_ready\@:
+.endm
+
+.global ORIGINAL_SYMBOL
+.type ORIGINAL_SYMBOL,%function
+ORIGINAL_SYMBOL:
+ ldr w9,[x0]
+ cmp w9,#0
+ b.le .Lpair_empty
+ sub sp,sp,#256
+ stp x19,x20,[sp,#32]
+ stp x21,x22,[sp,#48]
+ stp x23,x24,[sp,#64]
+ stp x25,x26,[sp,#80]
+ stp x27,x28,[sp,#96]
+ stp x29,x30,[sp,#112]
+ stp d8,d9,[sp,#128]
+ stp d10,d11,[sp,#144]
+ stp d12,d13,[sp,#160]
+ stp d14,d15,[sp,#176]
+ str w9,[sp,#192]
+ str x1,[sp,#208]
+ mov x19,#0
+ lsl x20,x9,#3
+ mov x21,x2
+ mov x22,x3
+ mov x23,x4
+ mov x24,x5
+ mov x25,x6
+ mov x26,x7
+ ldp x27,x28,[sp,#256]
+ ldp x9,x10,[sp,#272]
+ stp x9,x10,[sp,#224]
+ ldr x9,[x1]
+ and x10,x9,#0x7fffffffffffffff
+ mov x11,#0x3ff0000000000000
+ cmp x10,x11
+ b.hi .Lpair_scalar
+ cbz x10,.Lpair_loop
+ tbnz x9,#63,.Lpair_scalar
+.Lpair_loop:
+ sub x9,x20,x19
+ cmp x9,#16
+ b.lo .Lpair_last_scalar
+ mov w9,#2
+ str w9,[sp,#192]
+ ldr q13,[x21,x19]
+ ldr q30,[x22,x19]
+ ldr q9,[x23,x19]
+ ldr q10,[x24,x19]
+ ldr q11,[x25,x19]
+ movz x12,#0x412e,lsl #48
+ movk x12,#0x8480,lsl #32
+ NONNEGATIVE_PAIR 13
+ mov x12,#0x3ff0000000000000
+ NONNEGATIVE_PAIR 30
+ mov x12,#0x4020000000000000
+ BOUNDED_PAIR 9
+ BOUNDED_PAIR 10
+ BOUNDED_PAIR 11
+ ldr x9,[sp,#208]
+ ldr d8,[x9]
+ dup v8.2d,v8.d[0]
+ fmov d31,#1.0
+ dup v31.2d,v31.d[0]
+ fsub v24.2d,v31.2d,v11.2d
+ fsub v0.2d,v9.2d,v10.2d
+ fadd v1.2d,v9.2d,v10.2d
+ fmul v0.2d,v0.2d,v1.2d
+ ldr d1,.Lpair_floor
+ dup v1.2d,v1.d[0]
+ fmaxnm v0.2d,v0.2d,v1.2d
+ fsqrt v12.2d,v0.2d
+ fmul v0.2d,v9.2d,v24.2d
+ fmul v1.2d,v10.2d,v11.2d
+ fadd v14.2d,v0.2d,v1.2d
+ fmul v0.2d,v9.2d,v11.2d
+ fmul v1.2d,v10.2d,v24.2d
+ fadd v15.2d,v0.2d,v1.2d
+ fmul v0.2d,v12.2d,v8.2d
+ fsub v0.2d,v31.2d,v0.2d
+ fabs v0.2d,v0.2d
+ ldr d1,.Lpair_threshold
+ dup v1.2d,v1.d[0]
+ fcmgt v2.2d,v1.2d,v0.2d
+ and v3.16b,v8.16b,v2.16b
+ ldr d1,.Lpair_adjustment
+ dup v1.2d,v1.d[0]
+ fmul v3.2d,v3.2d,v1.2d
+ bsl v2.16b,v3.16b,v8.16b
+ mov v8.16b,v2.16b
+ fdiv v0.2d,v13.2d,v8.2d
+ fmul v25.2d,v12.2d,v8.2d
+ fmul v26.2d,v12.2d,v11.2d
+ fmul v27.2d,v12.2d,v24.2d
+ movi v1.2d,#0
+ fmaxnm v0.2d,v0.2d,v1.2d
+ fneg v28.2d,v0.2d
+ fmul v29.2d,v12.2d,v13.2d
+ fneg v29.2d,v29.2d
+ mov x11,#0x3c90000000000000
+ mov x12,#0x4080000000000000
+ EXP_PAIR_GUARD 28
+ EXP_PAIR_GUARD 29
+ mov v0.16b,v28.16b
+ bl md2asm_try_exp_pair_counted
+ mov v28.16b,v0.16b
+ mov v0.16b,v29.16b
+ bl md2asm_try_exp_pair_counted
+ mov v29.16b,v0.16b
+ fmul v16.2d,v29.2d,v29.2d
+ fmov d17,#2.0
+ dup v17.2d,v17.d[0]
+ fmul v17.2d,v17.2d,v12.2d
+ fmul v17.2d,v17.2d,v29.2d
+ fadd v3.2d,v12.2d,v9.2d
+ fsub v4.2d,v12.2d,v9.2d
+ fmul v4.2d,v4.2d,v16.2d
+ fadd v3.2d,v3.2d,v4.2d
+ fdiv v3.2d,v31.2d,v3.2d
+ fmul v7.2d,v25.2d,v25.2d
+ fsub v7.2d,v31.2d,v7.2d
+ fmul v0.2d,v8.2d,v30.2d
+ fsub v1.2d,v31.2d,v25.2d
+ fadd v2.2d,v31.2d,v25.2d
+ fsub v6.2d,v31.2d,v16.2d
+ fmul v6.2d,v10.2d,v6.2d
+ fmul v4.2d,v6.2d,v3.2d
+ str q4,[x26,x19]
+ fmul v4.2d,v17.2d,v3.2d
+ str q4,[x27,x19]
+ fmul v0.2d,v0.2d,v3.2d
+ fdiv v0.2d,v0.2d,v7.2d
+ fadd v4.2d,v15.2d,v26.2d
+ fmul v4.2d,v1.2d,v4.2d
+ fsub v3.2d,v15.2d,v26.2d
+ fmul v3.2d,v2.2d,v3.2d
+ fmul v3.2d,v3.2d,v16.2d
+ fsub v4.2d,v4.2d,v3.2d
+ fmul v3.2d,v15.2d,v8.2d
+ fsub v3.2d,v11.2d,v3.2d
+ fmul v3.2d,v17.2d,v3.2d
+ fmul v3.2d,v3.2d,v28.2d
+ fsub v4.2d,v4.2d,v3.2d
+ fmul v4.2d,v0.2d,v4.2d
+ movi v3.2d,#0
+ fminnm v4.2d,v4.2d,v31.2d
+ fmaxnm v4.2d,v4.2d,v3.2d
+ str q4,[x28,x19]
+ fmul v3.2d,v14.2d,v8.2d
+ fadd v3.2d,v24.2d,v3.2d
+ fmul v3.2d,v17.2d,v3.2d
+ fadd v7.2d,v14.2d,v27.2d
+ fmul v7.2d,v2.2d,v7.2d
+ fsub v6.2d,v14.2d,v27.2d
+ fmul v6.2d,v1.2d,v6.2d
+ fmul v6.2d,v6.2d,v16.2d
+ fsub v7.2d,v7.2d,v6.2d
+ fmul v7.2d,v28.2d,v7.2d
+ fsub v3.2d,v3.2d,v7.2d
+ fmul v3.2d,v0.2d,v3.2d
+ fsub v5.2d,v31.2d,v4.2d
+ fminnm v3.2d,v3.2d,v5.2d
+ movi v1.2d,#0
+ fmaxnm v3.2d,v3.2d,v1.2d
+ ldr x9,[sp,#224]
+ str q3,[x9,x19]
+ ldr x9,[sp,#232]
+ str q28,[x9,x19]
+ add x19,x19,#16
+ cmp x19,x20
+ b.lo .Lpair_loop
+ b .Lpair_return
+.Lpair_last_scalar:
+ mov w9,#1
+ str w9,[sp,#192]
+.Lpair_scalar:
+ add x0,sp,#192
+ ldr x1,[sp,#208]
+ add x2,x21,x19
+ add x3,x22,x19
+ add x4,x23,x19
+ add x5,x24,x19
+ add x6,x25,x19
+ add x7,x26,x19
+ add x9,x27,x19
+ add x10,x28,x19
+ stp x9,x10,[sp,#0]
+ ldp x9,x10,[sp,#224]
+ add x9,x9,x19
+ add x10,x10,x19
+ stp x9,x10,[sp,#16]
+ bl md2asm_mcica_reflect_scalar_fallback
+ ldr w9,[sp,#192]
+ add x19,x19,x9,lsl #3
+ cmp x19,x20
+ b.lo .Lpair_loop
+.Lpair_return:
+ ldp d8,d9,[sp,#128]
+ ldp d10,d11,[sp,#144]
+ ldp d12,d13,[sp,#160]
+ ldp d14,d15,[sp,#176]
+ ldp x19,x20,[sp,#32]
+ ldp x21,x22,[sp,#48]
+ ldp x23,x24,[sp,#64]
+ ldp x25,x26,[sp,#80]
+ ldp x27,x28,[sp,#96]
+ ldp x29,x30,[sp,#112]
+ add sp,sp,#256
+.Lpair_empty:
+ ret
+.size ORIGINAL_SYMBOL,.-ORIGINAL_SYMBOL
+.p2align 3
+.Lpair_floor: .double 1.0e-12
+.Lpair_threshold: .double 2.220446049250313080847263336181640625e-13
+.Lpair_adjustment: .double 0.9999999999997779553950749686919152736663818359375
+.section .note.GNU-stack,"",%progbits
+
+/* Accepted own scalar body for refused pairs and the odd final cell. */
+#undef ORIGINAL_SYMBOL
+#define ORIGINAL_SYMBOL md2asm_mcica_reflect_scalar_fallback
+.hidden md2asm_mcica_reflect_scalar_fallback
+/* Accepted scalar fallback for the unchanged layer equations P01 and P02.
  * Physics is formulations/openifs/physics/two_stream_shortwave_transport.md.
  * Contract is skills/md2asm/references/openifs/physics/calc_reflectance_transmittance_sw.md.
  * x0 count, x1 mu, x2..x6 input arrays, x7 diffuse reflection.

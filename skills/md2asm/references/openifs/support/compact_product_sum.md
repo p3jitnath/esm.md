@@ -1,6 +1,6 @@
 # Compact Exact Product And Sum
 
-Revision 2. This is a compact path for the [accepted atomic product and sum](rounded_product_sum.md). An atomic operation has one declared rounding point. It computes the exact real value $`ab+c`$, then rounds once to FP64, the eight-byte floating-point format, using round-to-nearest with ties to even. The weather solver retains its declared intermediate rounding points.
+Revision 3. This is a compact path for the [accepted atomic product and sum](rounded_product_sum.md). An atomic operation has one declared rounding point. It computes the exact real value $`ab+c`$, then rounds once to FP64, the eight-byte floating-point format, using round-to-nearest with ties to even. The weather solver retains its declared intermediate rounding points.
 
 ## Exact Integer Calculation
 
@@ -40,10 +40,21 @@ The application binary interface, or ABI, defines arguments and preserved regist
 | x18 through x30, v8 through v15, SP and FPCR | Preserved registers and stack pointer |
 | errno | Preserved library error indicator |
 
+The hidden entry `md2asm_try_compact_product_sum_preclassified` reuses inputs that the direct wrapper has already checked. It requires FPCR zero, finite operands unchanged in `d0` through `d2`, their exact raw words in `x0` through `x2`, and their stored eleven-bit exponents in `x3` through `x5`. It begins after the public entry’s repeated checks and shares every numerical instruction and return rule. The direct wrapper keeps its original upfront refusals, and other callers keep the complete public entry.
+
 The helper calls no function, creates no frame and reads no caller buffer. Both paths use authored integer assembly. Wrappers preserve their existing domain checks and remove their 16-byte return-address frame before the general arithmetic. Their bounded zero stores clear exactly 1,608 bytes in the [direct wrapper](rounded_product_sum.md) or 1,072 bytes in the [power child](power_original_rounding.md), using caller-saved `v3`; their general frames remain 1,712 and 1,728 bytes. The compact leaf does not use `v3`. The power child's compact success increments its original fast counter once. After compact refusal, the callers try the [wide exact path](wide_product_sum.md), then the general body, preserving the original classification.
 
-## Accepted Component Checks
+## Accepted Checks
 
-Each mathematical-helper route passes 6,846 retained cases and 102 new boundary cases against independent exact-rational arithmetic and the retained original atomic control. Result bits, numerical status, FPCR and errno match. Register preservation, inherited flags, signed zeros, alignment limits, word-crossing shifts, cancellation, rounding ties and overflow pass. The 222 register checks, 1,110 inherited-status checks and 20 domain refusals pass. The changed [autonomous forecast](../input/standalone_weather_forecast.md) also matches all 27,486,113 compared state bytes and all 618,140 saved-file bytes. The [README](../../../../../README.md) reports matched complete-process performance. The known process-boundary and physical-validation limits remain unchanged.
+Both helper wrappers retain their accepted 7,860-case comparisons against independent exact fractions and the original atomic control, with zero differences in result bits, status, FPCR or errno. The unchanged status update also retains its 28,416 comparisons across all 128 combinations of the seven defined incoming FPSR bits. These checks cover signed zeros, subnormal inputs, word-crossing shifts, cancellation, ties and overflow.
 
-The changed status predicate also passes 111 interface cases with all 128 combinations of the seven defined incoming FPSR bits on both helper routes. All 28,416 result and status comparisons and 222 register checks pass, with zero changes to FPCR or errno. The combined autonomous forecast retains complete-state and saved-file agreement.
+The private entry changes only the direct wrapper's call target. Its focused checks give the following results.
+
+| Check | Coverage | Result |
+| --- | --- | --- |
+| Exact results and status | 7,860 finite cases | No differences |
+| Incoming status retained | 1,280 cases | No differences |
+| Registers and stack | 9,140 seeded calls | ABI mask zero |
+| Original domain refusal | 14 nonfinite or unsupported-FPCR calls | Same abort |
+
+The combined [autonomous forecast](../input/standalone_weather_forecast.md) matches all 27,486,113 compared state bytes and all 618,140 saved-file bytes. Three matched ordinary pairs also retain all ten files and 59 observed final fields exactly, with checks outside timing. The [README](../../../../../README.md) reports their complete-process performance. The known process-boundary and physical-validation limits remain unchanged.

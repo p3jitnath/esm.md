@@ -24,6 +24,14 @@ md2asm_try_compact_product_sum:
     b.eq .Lcompact_fallback
     cmp w5, #2047
     b.eq .Lcompact_fallback
+.global md2asm_try_compact_product_sum_preclassified
+.hidden md2asm_try_compact_product_sum_preclassified
+.type md2asm_try_compact_product_sum_preclassified,%function
+/* Private ABI: caller has checked finite operands and FPCR=0.
+ * d0..d2 are unchanged, x0..x2 are their raw words, x3..x5 their stored exponents.
+ * Share the public entry's numerical body, return rules and preserved registers.
+ */
+md2asm_try_compact_product_sum_preclassified:
     eor x9, x0, x1
     lsr x9, x9, #63
     lsr x10, x2, #63
@@ -228,4 +236,5 @@ md2asm_try_compact_product_sum:
     mov w0, #1
     ret
 .size md2asm_try_compact_product_sum,.-md2asm_try_compact_product_sum
+.size md2asm_try_compact_product_sum_preclassified,.-md2asm_try_compact_product_sum_preclassified
 .section .note.GNU-stack,"",%progbits

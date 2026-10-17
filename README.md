@@ -46,7 +46,7 @@ The [autonomous assembly forecast](skills/md2asm/references/openifs/input/standa
 
 Three matched complete-process runs per variant on one pinned CPU of a quiet exclusive Grace node give the results below. The timer includes loading, setup, forecast calculations and output, with checks outside the timer. Every run reproduces all ten saved files and the 59 observed final numerical fields exactly. The larger complete-state comparison above separately accepts the changed implementation.
 
-Each time below is the median followed by the minimum–maximum range, in seconds.
+Each row comes from a separate matched batch. Each time is the median followed by the minimum–maximum range, in seconds.
 
 | Matched Change | Before (s) | After (s) | Speedup |
 | --- | ---: | ---: | ---: |
@@ -54,8 +54,9 @@ Each time below is the median followed by the minimum–maximum range, in second
 | Wider clears, status writes and grouped integer sequences | 37.47 [37.42–37.50] | 31.49 [31.19–31.64] | 1.19× |
 | Bounded exact integers for widely separated terms | 31.15 [30.91–31.68] | 26.65 [26.58–26.70] | 1.17× |
 | Interleaved radiation groups and fewer stack transfers | 26.57 [26.30–26.70] | 25.72 [25.21–26.15] | 1.03× |
+| Two-cell radiation and reused helper work | 26.12 [25.99–26.40] | 25.34 [25.33–25.88] | 1.03× |
 
-The latest median is **25.72 seconds** for this forecast and machine.
+The latest median is **25.34 seconds** for this forecast and machine.
 
 The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. All **255 audited weather and forcing routines** in this T21 main phase have accepted assembly replacements. The overlapping broader lists still have 91 local calculations and 358 main-forecast bodies remaining. The ordered original routine names and source paths remain in the local records.
 

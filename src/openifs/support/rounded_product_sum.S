@@ -28,9 +28,9 @@ md2asm_round_product_sum_direct:
     b.eq .Lproduct_sum_bad
     cmp x5, #2047
     b.eq .Lproduct_sum_bad
-    // Keep the original domain refusal ahead of the compact leaf.
+    // Keep the original domain refusal and reuse its exact x0..x5 classification.
     stp x29, x30, [sp, #-16]!
-    bl md2asm_try_compact_product_sum
+    bl md2asm_try_compact_product_sum_preclassified
     ldp x29, x30, [sp], #16
     cbnz w0, .Lproduct_try_wide
     ret
