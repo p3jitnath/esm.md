@@ -1,3 +1,9 @@
+// Private workers share the accepted arithmetic and complete admission.
+// x28 addresses an aligned 64-byte prefix with FAST/WIDE/EXP at 0/8/16.
+// Only the EXP word changes. The prefix address and public ABI stay preserved.
+#ifdef MD2ASM_SW_PRIVATE_COUNTERS
+#define md2asm_try_exp_eight_counted md2asm_sw_private_try_exp_eight_counted
+#endif
 // Contract skills/md2asm/references/openifs/support/scalar_exponential.md.
 /* Eight independent ordinary EXP values use the accepted per-lane FP64 tree.
  * q0..q3 hold four input pairs and the same result order; w0 is 0 on success.
@@ -48,11 +54,17 @@ md2asm_try_exp_eight_counted:
  EIGHT_EXP_GUARD 15
  EIGHT_EXP_GUARD 16
  // All eight arguments are admitted before the counter or FP tree changes.
+#ifdef MD2ASM_SW_PRIVATE_COUNTERS
+ ldr x1,[x28,#16]
+ add x1,x1,#8
+ str x1,[x28,#16]
+#else
  adrp x0,md2asm_exponential_native_calls_storage
  add x0,x0,:lo12:md2asm_exponential_native_calls_storage
  ldr x1,[x0]
  add x1,x1,#8
  str x1,[x0]
+#endif
  adrp x17,md2asm_exp_constants
  add x17,x17,:lo12:md2asm_exp_constants
  ld2r {v16.2d,v17.2d},[x17]

@@ -6,13 +6,23 @@
 #ifndef ORIGINAL_SYMBOL
 #define ORIGINAL_SYMBOL __radiation_mcica_sw_MOD_solver_mcica_sw
 #endif
+#ifdef MD2ASM_SW_PRIVATE_RANGE
+#include "shortwave_team_layout.inc.S"
+#endif
 .text
 .p2align 2
+#ifdef MD2ASM_SW_PRIVATE_RANGE
+.global SW_PRIVATE_PARENT
+.hidden SW_PRIVATE_PARENT
+.type SW_PRIVATE_PARENT,%function
+SW_PRIVATE_PARENT:
+#else
 .global md2asm_solver_mcica_sw
 .global ORIGINAL_SYMBOL
 .type md2asm_solver_mcica_sw,%function
 ORIGINAL_SYMBOL:
 md2asm_solver_mcica_sw:
+#endif
     mov x17,sp
     sub sp,sp,#1536
     stp x19,x20,[sp,#64]
@@ -50,12 +60,21 @@ md2asm_solver_mcica_sw:
     ldr w22,[x25,x8]
     mov x8,#20004
     ldr w23,[x25,x8]
+#ifdef MD2ASM_SW_PRIVATE_RANGE
+    ldr w8,[x25,#628]
+    str w8,[x29,#SW_PARENT_PRIVATE_DELTA_FLAG]
+#else
     ldr w28,[x25,#628]
+#endif
     ldr x24,[x29,#376]
     str w22,[x29,#600]
     str w21,[x29,#604]
     ldr x8,[x24,#240]
     str w8,[x29,#608]
+#ifdef MD2ASM_SW_PRIVATE_RANGE
+    ldr x8,[x29,#SW_PARENT_SAVED_CONTEXT]
+    ldr x0,[x8,#SW_WORK_SCRATCH]
+#else
     mul x8,x22,x21
     mov x9,#14
     mul x8,x8,x9
@@ -66,6 +85,7 @@ md2asm_solver_mcica_sw:
     lsl x0,x8,#3
     bl malloc
     cbz x0,.Lmcica_reject
+#endif
     mov x26,x0
     mov x8,x0
     str x8,[x29,#400]
@@ -166,6 +186,13 @@ md2asm_solver_mcica_sw:
     ldr x1,[x29,#560]
     mov x2,x22
     bl .Lmcica_descriptor
+#ifdef MD2ASM_SW_PRIVATE_RANGE
+    ldr x8,[x29,#SW_PARENT_SAVED_CONTEXT]
+    ldr x19,[x8,#SW_WORK_BEGIN]
+    ldr x20,[x8,#SW_WORK_END]
+    cmp w19,w20
+    b.ge .Lmcica_return
+#endif
 .Lmcica_column:
     ldr x8,[x29,#264]
     ldr w8,[x8]
@@ -221,7 +248,12 @@ md2asm_solver_mcica_sw:
     add x12,x12,#1
     cmp x12,x22
     b.lt .Lmcica_clear_copy8
+#ifdef MD2ASM_SW_PRIVATE_RANGE
+    ldr w8,[x29,#SW_PARENT_PRIVATE_DELTA_FLAG]
+    cbz w8,.Lmcica_clear_scaled
+#else
     cbz w28,.Lmcica_clear_scaled
+#endif
     ldr x0,[x29,#520]
     ldr x1,[x29,#528]
     ldr x2,[x29,#536]
@@ -309,7 +341,11 @@ md2asm_solver_mcica_sw:
     str x8,[sp,#24]
     add x8,x25,#540
     str x8,[sp,#32]
+#ifdef MD2ASM_SW_PRIVATE_RANGE
+    bl SW_PRIVATE_GENERATOR
+#else
     bl md2asm_cloud_generator
+#endif
     ldr x8,[x24,#3208]
     ldr d0,[x29,#624]
     str d0,[x8,x19,lsl #3]
@@ -390,7 +426,12 @@ md2asm_solver_mcica_sw:
     add x13,x13,#1
     cmp x13,x22
     b.lt .Lmcica_mix
+#ifdef MD2ASM_SW_PRIVATE_RANGE
+    ldr w8,[x29,#SW_PARENT_PRIVATE_DELTA_FLAG]
+    cbz w8,.Lmcica_cloud_scaled
+#else
     cbz w28,.Lmcica_cloud_scaled
+#endif
     ldr x0,[x29,#520]
     ldr x1,[x29,#528]
     ldr x2,[x29,#536]
@@ -479,8 +520,10 @@ md2asm_solver_mcica_sw:
     add w19,w19,#1
     cmp w19,w20
     b.lt .Lmcica_column
+#ifndef MD2ASM_SW_PRIVATE_RANGE
     mov x0,x26
     bl free
+#endif
 .Lmcica_return:
     ldr x18,[x29,#1000]
     ldp d8,d9,[sp,#160]
@@ -497,7 +540,11 @@ md2asm_solver_mcica_sw:
     ret
 .Lmcica_reject:
     brk #0
+#ifdef MD2ASM_SW_PRIVATE_RANGE
+.size SW_PRIVATE_PARENT,.-SW_PRIVATE_PARENT
+#else
 .size md2asm_solver_mcica_sw,.-md2asm_solver_mcica_sw
+#endif
 .Lmcica_descriptor:
     str x1,[x0]
     mov x3,#-1
@@ -574,7 +621,11 @@ md2asm_solver_mcica_sw:
     ldr x9,[x10,#32]
     add x9,x9,x8
     str x9,[sp,#24]
+#ifdef MD2ASM_SW_PRIVATE_RANGE
+    bl SW_PRIVATE_REFLECT
+#else
     bl md2asm_mcica_reflect
+#endif
     ldr x30,[x29,#1096]
     ret
 .Lmcica_add:

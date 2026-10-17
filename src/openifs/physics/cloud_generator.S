@@ -21,6 +21,9 @@
 .text
 .p2align 2
 .global GENERATOR_SYMBOL
+#ifdef MD2ASM_SW_PRIVATE_COUNTERS
+.hidden GENERATOR_SYMBOL
+#endif
 .type GENERATOR_SYMBOL,%function
 .hidden GENERATOR_COVER_SYMBOL
 .hidden GENERATOR_INITIALIZE_SYMBOL
@@ -181,7 +184,15 @@ GENERATOR_SYMBOL:
     ldr d1,[x8]
     fmov d2,#1.0
     fdiv d1,d2,d1
+#ifdef MD2ASM_SW_PRIVATE_COUNTERS
+    // Preserve the numerical last-layer index while private POWER uses x28.
+    str x28,[x29,#2784]
+    ldr x28,[x29,#72]
+    bl md2asm_cloud_private_pow
+    ldr x28,[x29,#2784]
+#else
     bl md2asm_pow_original_rounding_candidate
+#endif
     str d0,[x24,w27,uxtw #3]
 .Lgenerator_power_next:
     add w27,w27,#1

@@ -1,6 +1,6 @@
 # OpenIFS Cloud Sampling Parent
 
-Revision 1.0 freezes the complete forecast-configured radiation_cloud_generator::cloud_generator calculation from OpenIFS 48.1.1. The [physical input](../../../../../formulations/openifs/physics/cloud_sampling.md) defines conditioned cloud-top selection and shared water variations. The frozen forecast uses exponential-random overlap, whose source scheme number is one. Maximum-random and exponential-exponential schemes remain outside this entry's admitted domain.
+Revision 1.1 freezes the complete forecast-configured radiation_cloud_generator::cloud_generator calculation from OpenIFS 48.1.1. The [physical input](../../../../../formulations/openifs/physics/cloud_sampling.md) defines conditioned cloud-top selection and shared water variations. The frozen forecast uses exponential-random overlap, whose source scheme number is one. Maximum-random and exponential-exponential schemes remain outside this entry's admitted domain.
 
 ## Domain And Complete Update
 
@@ -19,6 +19,8 @@ The Arm application binary interface, ABI, defines argument order and preserved 
 Fractions and spread have nlev entries, overlap has nlev-1, and the complete matrix has ng*nlev. A single layer reads no overlap element. A 2 800-byte private header contains the complete 2 448-byte stream, descriptor, arguments and counters. Additional aligned storage contains four level-sized arrays, one sample-sized array and six child stack arguments. Address products fit their declared widths. Integer addresses align to four bytes, FP64 buffers and objects to eight, and the stack to sixteen. Inputs and complete sampler/table owners remain unchanged. Only total cover and, for cloudy columns, the complete matrix may change.
 
 The body preserves x19 through x29, the return address, low 64 bits of v8 through v15, stack alignment and FPCR. It does not use x18. Scheme and scalar limits are checked before output writes. The complete cover, stream, PDF and column children are privately bound, with their unchanged accepted proofs reused.
+
+The optional private shortwave entry `md2asm_sw_private_cloud_generator` uses the same thirteen-address ABI with `MD2ASM_SW_PRIVATE_COUNTERS`. Its incoming `x28` points to the caller-owned 64-byte counter prefix, aligned to 64 bytes, with fast product-sum, wide product-sum and EXP words at offsets zero, eight and 16. The original saved entry value remains at frame bytes 72 to 79. At the single POWER call, the body saves its live layer index at bytes 2784 to 2791 of the existing 2800-byte frame, loads the incoming counter base into `x28`, calls the accepted private POWER entry, then restores the exact layer index. The spare slot does not overlap the stream, descriptors or argument storage. All numerical instructions, random draws, branch rules, buffers and caller register obligations remain unchanged. The default build produces the complete original object, and the [shortwave parent gate](solver_mcica_sw.md) checks the private call in its complete caller.
 
 ## Critical Physics And Acceptance
 

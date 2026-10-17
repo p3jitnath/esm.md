@@ -8,6 +8,22 @@
  * The eight-value child preserves full q8..q15. Refusal restores the snapshot
  * and enters the complete old path without retrying this quad attempt.
  * Final flags/counts are observed after the group; FPCR zero is required. */
+// Private shortwave mode carries a writable counter base in x28.
+// x29 holds only the original direct-reflection pointer after it is saved.
+// The original public build and both frame layouts remain unchanged.
+#ifdef MD2ASM_SW_PRIVATE_COUNTERS
+#define MD2ASM_DIRECT_REFLECTION_POINTER x29
+#define MD2ASM_REFLECTION_SCALAR_ENTRY md2asm_sw_private_reflect_scalar_fallback
+#define MD2ASM_REFLECTION_FOUR_EXP md2asm_sw_private_try_exp_four_counted
+#define MD2ASM_REFLECTION_EIGHT_EXP md2asm_sw_private_try_exp_eight_counted
+#define MD2ASM_REFLECTION_SCALAR_EXP md2asm_cloud_private_exp
+#else
+#define MD2ASM_DIRECT_REFLECTION_POINTER x28
+#define MD2ASM_REFLECTION_SCALAR_ENTRY md2asm_mcica_reflect_scalar_fallback
+#define MD2ASM_REFLECTION_FOUR_EXP md2asm_try_exp_four_counted
+#define MD2ASM_REFLECTION_EIGHT_EXP md2asm_try_exp_eight_counted
+#define MD2ASM_REFLECTION_SCALAR_EXP exp
+#endif
 #ifndef ORIGINAL_SYMBOL
 #define ORIGINAL_SYMBOL __radiation_two_stream_MOD_calc_reflectance_transmittance_sw
 #endif
@@ -72,6 +88,9 @@
 .endm
 
 .global ORIGINAL_SYMBOL
+#ifdef MD2ASM_SW_PRIVATE_COUNTERS
+.hidden ORIGINAL_SYMBOL
+#endif
 .type ORIGINAL_SYMBOL,%function
 ORIGINAL_SYMBOL:
  ldr w9,[x0]
@@ -98,7 +117,7 @@ ORIGINAL_SYMBOL:
  mov x24,x5
  mov x25,x6
  mov x26,x7
- ldp x27,x28,[sp,#384]
+ ldp x27,MD2ASM_DIRECT_REFLECTION_POINTER,[sp,#384]
  ldp x9,x10,[sp,#400]
  stp x9,x10,[sp,#224]
  ldr x9,[x1]
@@ -174,7 +193,7 @@ ORIGINAL_SYMBOL:
  fneg v29.2d,v29.2d
  mov v0.16b,v28.16b
  mov v1.16b,v29.16b
- bl md2asm_try_exp_four_counted
+ bl MD2ASM_REFLECTION_FOUR_EXP
  cbnz w0,.Lpair_scalar
  mov v28.16b,v0.16b
  mov v29.16b,v1.16b
@@ -216,7 +235,7 @@ ORIGINAL_SYMBOL:
  movi v3.2d,#0
  fminnm v4.2d,v4.2d,v31.2d
  fmaxnm v4.2d,v4.2d,v3.2d
- str q4,[x28,x19]
+ str q4,[MD2ASM_DIRECT_REFLECTION_POINTER,x19]
  fmul v3.2d,v14.2d,v8.2d
  fadd v3.2d,v24.2d,v3.2d
  fmul v3.2d,v17.2d,v3.2d
@@ -363,7 +382,7 @@ ORIGINAL_SYMBOL:
  fneg v3.2d,v3.2d
  mov v0.16b,v6.16b
  mov v1.16b,v7.16b
- bl md2asm_try_exp_eight_counted
+ bl MD2ASM_REFLECTION_EIGHT_EXP
  cbnz w0,.Lquad_rollback
  // B state stays in q8..q15 and its EXP results stay in q2/q3.
  ldp q16,q20,[sp,#256]
@@ -423,7 +442,7 @@ ORIGINAL_SYMBOL:
  movi v6.2d,#0
  fminnm v7.2d,v7.2d,v28.2d
  fmaxnm v7.2d,v7.2d,v6.2d
- str q7,[x28,x19]
+ str q7,[MD2ASM_DIRECT_REFLECTION_POINTER,x19]
  fmul v6.2d,v21.2d,v16.2d
  fadd v6.2d,v23.2d,v6.2d
  fmul v6.2d,v5.2d,v6.2d
@@ -485,7 +504,7 @@ ORIGINAL_SYMBOL:
  movi v21.2d,#0
  fminnm v22.2d,v22.2d,v20.2d
  fmaxnm v22.2d,v22.2d,v21.2d
- str q22,[x28,x19]
+ str q22,[MD2ASM_DIRECT_REFLECTION_POINTER,x19]
  fmul v21.2d,v14.2d,v8.2d
  fadd v21.2d,v9.2d,v21.2d
  fmul v21.2d,v1.2d,v21.2d
@@ -528,13 +547,13 @@ ORIGINAL_SYMBOL:
  add x6,x25,x19
  add x7,x26,x19
  add x9,x27,x19
- add x10,x28,x19
+ add x10,MD2ASM_DIRECT_REFLECTION_POINTER,x19
  stp x9,x10,[sp,#0]
  ldp x9,x10,[sp,#224]
  add x9,x9,x19
  add x10,x10,x19
  stp x9,x10,[sp,#16]
- bl md2asm_mcica_reflect_scalar_fallback
+ bl MD2ASM_REFLECTION_SCALAR_ENTRY
  ldr w9,[sp,#192]
  add x19,x19,x9,lsl #3
  cmp x19,x20
@@ -562,8 +581,8 @@ ORIGINAL_SYMBOL:
 
 /* Accepted own scalar body for refused pairs and the odd final cell. */
 #undef ORIGINAL_SYMBOL
-#define ORIGINAL_SYMBOL md2asm_mcica_reflect_scalar_fallback
-.hidden md2asm_mcica_reflect_scalar_fallback
+#define ORIGINAL_SYMBOL MD2ASM_REFLECTION_SCALAR_ENTRY
+.hidden MD2ASM_REFLECTION_SCALAR_ENTRY
 /* Accepted scalar fallback for the unchanged layer equations P01 and P02.
  * Physics is formulations/openifs/physics/two_stream_shortwave_transport.md.
  * Contract is skills/md2asm/references/openifs/physics/calc_reflectance_transmittance_sw.md.
@@ -602,7 +621,7 @@ ORIGINAL_SYMBOL:
     mov x25,x6
     mov x26,x7
     ldr x27,[sp,#256]
-    ldr x28,[sp,#264]
+    ldr MD2ASM_DIRECT_REFLECTION_POINTER,[sp,#264]
     ldr x9,[sp,#272]
     str x9,[sp,#160]
     ldr x9,[sp,#280]
@@ -652,13 +671,13 @@ ORIGINAL_SYMBOL:
     fmov d1,xzr
     fmaxnm d0,d0,d1
     fneg d0,d0
-    bl exp
+    bl MD2ASM_REFLECTION_SCALAR_EXP
     str d0,[sp,#216]
     ldr x9,[sp,#168]
     str d0,[x9,x19]
     fmul d0,d12,d13
     fneg d0,d0
-    bl exp
+    bl MD2ASM_REFLECTION_SCALAR_EXP
     // EXP is finished for this cell, so caller registers keep rounded values.
     fmul d16,d0,d0
     fmov d17,#2.0
@@ -704,7 +723,7 @@ ORIGINAL_SYMBOL:
     fmov d3,xzr
     fminnm d4,d4,d5
     fmaxnm d4,d4,d3
-    str d4,[x28,x19]
+    str d4,[MD2ASM_DIRECT_REFLECTION_POINTER,x19]
     fmul d3,d14,d8
     fadd d3,d21,d3
     fmul d3,d17,d3

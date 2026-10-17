@@ -1,3 +1,9 @@
+// Private workers share the accepted arithmetic and complete admission.
+// x28 addresses an aligned 64-byte prefix with FAST/WIDE/EXP at 0/8/16.
+// Only the EXP word changes. The prefix address and public ABI stay preserved.
+#ifdef MD2ASM_SW_PRIVATE_COUNTERS
+#define md2asm_try_exp_four_counted md2asm_sw_private_try_exp_four_counted
+#endif
 // Contract skills/md2asm/references/openifs/support/scalar_exponential.md.
 /* Four independent ordinary exponentials with the accepted scalar rounding.
  * q0={a0,a1}, q1={b0,b1}; success w0=0 returns the same lane order.
@@ -10,6 +16,9 @@
 .text
 .p2align 4
 .global md2asm_try_exp_four_counted
+#ifdef MD2ASM_SW_PRIVATE_COUNTERS
+.hidden md2asm_try_exp_four_counted
+#endif
 .type md2asm_try_exp_four_counted,%function
 .macro FOUR_EXP_GUARD reg
     cbz x\reg,.Lfour_exp_guard_next\@
@@ -35,11 +44,17 @@ md2asm_try_exp_four_counted:
     FOUR_EXP_GUARD 11
     FOUR_EXP_GUARD 12
     // Every lane is admitted before the first counter or vector change.
+#ifdef MD2ASM_SW_PRIVATE_COUNTERS
+    ldr x10,[x28,#16]
+    add x10,x10,#4
+    str x10,[x28,#16]
+#else
     adrp x9,md2asm_exponential_native_calls_storage
     add x9,x9,:lo12:md2asm_exponential_native_calls_storage
     ldr x10,[x9]
     add x10,x10,#4
     str x10,[x9]
+#endif
     adrp x17,md2asm_exp_constants
     add x17,x17,:lo12:md2asm_exp_constants
     ld2r {v2.2d,v3.2d},[x17]
