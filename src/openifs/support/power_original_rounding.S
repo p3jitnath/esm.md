@@ -295,7 +295,7 @@ md2asm_pow_original_rounding_candidate:
  fmov d0,d9
  fmov d1,d11
  fneg d2,d12
- bl md2asm_private_power_product_sum_deferred
+ bl md2asm_private_power_product_rounding_residual
  orr w27,w27,w1
  fmov d2,d0
  fmov d0,d9

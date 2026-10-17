@@ -220,4 +220,63 @@ md2asm_private_power_square_residual:
  mov w1,#0
  b .Lcompact_success_value_ready
 .size md2asm_private_power_square_residual,.-md2asm_private_power_square_residual
+
+// Private exact product residual. d0=a,d1=b,d2=-RN(a*b).
+// Normal operands/addend or the proved normal-a, zero-b identity use this route.
+// The source relation is private; unsupported integer guards replay raw inputs.
+// Preserve d1/d2, x18..x30, v8..v15, SP, FPCR, FPSR and errno.
+// Only d0,d3, x0..x17 and NZCV are scratch. No frame or service call.
+.p2align 2
+.global md2asm_private_power_product_rounding_residual
+.hidden md2asm_private_power_product_rounding_residual
+.type md2asm_private_power_product_rounding_residual,%function
+md2asm_private_power_product_rounding_residual:
+ mrs x17,fpcr
+ cbnz x17,md2asm_private_power_product_sum_deferred
+ fmov x0,d0
+ fmov x1,d1
+ fmov x2,d2
+ ubfx x3,x0,#52,#11
+ sub w15,w3,#1
+ cmp w15,#2045
+ b.hi md2asm_private_power_product_sum_deferred
+ lsl x15,x1,#1
+ cbz x15,.Lpower_product_residual_zero
+ ubfx x4,x1,#52,#11
+ sub w15,w4,#1
+ cmp w15,#2045
+ b.hi md2asm_private_power_product_sum_deferred
+ ubfx x5,x2,#52,#11
+ sub w15,w5,#1
+ cmp w15,#2045
+ b.hi md2asm_private_power_product_sum_deferred
+ add w13,w3,w4
+ sub w13,w13,#2150
+ cmn w13,#1022
+ b.lt md2asm_private_power_product_sum_deferred
+ sub w5,w5,#1075
+ sub w15,w5,w13
+ and x6,x0,#0xfffffffffffff
+ orr x6,x6,#0x10000000000000
+ and x7,x1,#0xfffffffffffff
+ orr x7,x7,#0x10000000000000
+ mul x11,x6,x7
+ lsl x7,x2,x15
+ sub x11,x11,x7
+ eor x15,x0,x1
+ tst x15,#0x8000000000000000
+ cneg x11,x11,mi
+ cbz x11,.Lpower_product_residual_zero
+ scvtf d0,x11
+ add w13,w13,#1023
+ lsl x0,x13,#52
+ fmov d3,x0
+ fmul d0,d0,d3
+ mov w1,#0
+ b .Lcompact_success_value_ready
+.Lpower_product_residual_zero:
+ fmov d0,xzr
+ mov w1,#0
+ b .Lcompact_success_value_ready
+.size md2asm_private_power_product_rounding_residual,.-md2asm_private_power_product_rounding_residual
 .section .note.GNU-stack,"",%progbits
