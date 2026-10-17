@@ -235,23 +235,35 @@ md2asm_try_wide_product_sum:
     mov w0, #1
     ret
 .size md2asm_try_wide_product_sum,.-md2asm_try_wide_product_sum
-#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
-/* Private ABI from a tagged compact refusal, with no intervening FP operation.
+/* Prepared ABI from a tagged compact refusal, with no intervening FP operation.
  * x12:x11 product, x8 addend, w13/w14 exponents, w9/w10 signs,
  * w15 separation, w16 aligned length, w1 addend tag1 or product tag2.
+ * The caller must supply a tagged compact refusal with unchanged d0..d2;
+ * arbitrary scratch-register values are outside this hidden interface.
  * FPCR and finite validation already passed. The original wide body retains
- * normal-result admission, rounding and required-mask return. */
+ * normal-result admission and rounding, with immediate public FPSR union or
+ * the private required-mask return. */
 .p2align 4
+#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
 .global md2asm_private_wide_deferred_prepared
 .hidden md2asm_private_wide_deferred_prepared
 .type md2asm_private_wide_deferred_prepared,%function
 md2asm_private_wide_deferred_prepared:
+#else
+.global md2asm_try_wide_product_sum_prepared
+.hidden md2asm_try_wide_product_sum_prepared
+.type md2asm_try_wide_product_sum_prepared,%function
+md2asm_try_wide_product_sum_prepared:
+#endif
     sub w16, w16, w15
     eor w10, w9, w10
     cmp w1, #1
     b.eq .Lwide_addend_proven
     mov x7, xzr
     b .Lwide_normalize_dominant
+#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
 .size md2asm_private_wide_deferred_prepared,.-md2asm_private_wide_deferred_prepared
+#else
+.size md2asm_try_wide_product_sum_prepared,.-md2asm_try_wide_product_sum_prepared
 #endif
 .section .note.GNU-stack,"",%progbits

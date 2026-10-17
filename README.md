@@ -46,26 +46,23 @@ The [autonomous assembly forecast](skills/md2asm/references/openifs/input/standa
 
 Three matched complete-process runs per variant on one pinned CPU of a quiet exclusive Grace node give the results below. The timer includes loading, setup, forecast calculations and output, with checks outside the timer. Every run reproduces all ten saved files and the 59 observed final numerical fields exactly. The larger complete-state comparison above separately accepts the changed implementation.
 
-Each row comes from a separate matched batch. Each time is the median followed by the minimum–maximum range, in seconds.
+Selected earlier batches are shown below, with the full history in the local research records. Each row comes from a separate matched batch. Each time is the median followed by the minimum–maximum range, in seconds.
 
 | Matched Change | Before (s) | After (s) | Speedup |
 | --- | ---: | ---: | ---: |
 | Compact exact arithmetic | 76.98 [76.64–83.88] | 37.75 [37.23–44.64] | 2.04× |
 | Wider clears, status writes and grouped integer sequences | 37.47 [37.42–37.50] | 31.49 [31.19–31.64] | 1.19× |
 | Bounded exact integers for widely separated terms | 31.15 [30.91–31.68] | 26.65 [26.58–26.70] | 1.17× |
-| Interleaved radiation groups and fewer stack transfers | 26.57 [26.30–26.70] | 25.72 [25.21–26.15] | 1.03× |
-| Two-cell radiation and reused helper work | 26.12 [25.99–26.40] | 25.34 [25.33–25.88] | 1.03× |
-| Bounded gas-memory work and paired longwave layers | 25.42 [25.15–25.53] | 24.29 [24.15–24.66] | 1.05× |
-| Wider random-stream groups and four-value exponentials | 24.98 [24.94–25.07] | 24.38 [23.86–24.89] | 1.02× |
-| Private collection of exact-rounding status | 24.40 [24.40–24.41] | 24.19 [23.38–24.20] | 1.01× |
-| Composed seed groups and shared constant loads | 24.05 [23.80–24.59] | 24.02 [23.75–24.02] | 1.001× |
-| Prepared exact state and four-cell longwave transport | 24.05 [23.72–24.13] | 23.67 [23.66–24.34] | 1.02× |
-| Short decoder for normal private inputs | 24.00 [23.63–24.40] | 23.89 [23.36–24.15] | 1.005× |
-| Reused aerosol addresses, public decoding and grouped clear longwave | 24.18 [23.81–24.61] | 23.14 [23.00–23.39] | 1.045× |
-| Register band loops, advanced point pointers and paired aerosol bands | 23.00 [22.75–24.05] | 22.50 [21.84–23.57] | 1.022× |
 | Four-cell reflection with eight-value exponentials | 22.48 [22.23–22.64] | 22.04 [21.63–22.43] | 1.020× |
 
-The latest median is **22.04 seconds** for this forecast and machine. All three matched pairs are faster, and their complete wall-time ranges overlap. All three user CPU pairs improve, with the median falling from 20.76 to 20.35 seconds. Each combined change retains its general input paths, while focused checks cover varied inputs, signed strides, subnormal intermediate values and boundary values. Performance on other forecast inputs remains unmeasured.
+The runtime setting `EC_PMON=0` disables hardware energy monitoring. Energy and power diagnostic columns become zero. Weather calculations, memory and status reports, and all canonical forecast files remain in the timed process. The next two contrasts come from one rotated nine-run batch, with three runs per variant.
+
+| Matched Change | Before (s) | After (s) | Speedup |
+| --- | ---: | ---: | ---: |
+| Same solver, energy monitoring disabled | 22.11 [21.84–22.39] | 20.59 [20.58–20.61] | 1.074× |
+| Prepared public arithmetic, monitoring disabled for both | 20.59 [20.58–20.61] | 20.55 [20.55–20.55] | 1.002× |
+
+The latest median is **20.55 seconds** for this forecast and machine. All three wall-time pairs favour the arithmetic change. The timer reports 0.01 seconds, which limits the variation estimate for the equal displayed candidate times. User CPU medians are 20.38 and 20.35 seconds, with two of three pairs improving and overlapping ranges. The arithmetic gain is small and specific to this measured case. General input paths remain available, with focused checks across varied values, shapes, signed strides, subnormal values and boundaries. Performance on other forecast inputs remains unmeasured.
 
 The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. All **255 audited weather and forcing routines** in this T21 main phase have accepted assembly replacements. The overlapping broader lists still have 91 local calculations and 358 main-forecast bodies remaining. The ordered original routine names and source paths remain in the local records.
 

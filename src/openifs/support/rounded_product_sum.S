@@ -8,6 +8,8 @@
  * Inputs use d0,d1,d2, result uses d0. All finite operands require FPCR zero.
  * Preserve x18, x19..x29, d8..d15, SP, FPCR and errno.
  * Generic frame is 1712 bytes; each child call uses a separate 16-byte frame.
+ * A tagged compact refusal reuses its exact integer state in the hidden wide
+ * entry. Tag zero enters the unchanged general body. NZCV is caller scratch.
  */
 .text
 .p2align 4
@@ -35,8 +37,9 @@ md2asm_round_product_sum_direct:
     cbnz w0, .Lproduct_try_wide
     ret
 .Lproduct_try_wide:
+    cbz w1, .Lproduct_compact_fallback
     stp x29, x30, [sp, #-16]!
-    bl md2asm_try_wide_product_sum
+    bl md2asm_try_wide_product_sum_prepared
     ldp x29, x30, [sp], #16
     cbnz w0, .Lproduct_compact_fallback
     ret

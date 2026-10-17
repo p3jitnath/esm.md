@@ -1,15 +1,19 @@
 /* Define MD2ASM_PRODUCT_SUM_DEFERRED_STATUS only for POWER's private child.
  * Its success also returns w1=required flags 0, 16 or 20 without accessing FPSR.
  * The parent commits these flags before each observable boundary.
- * The ordinary public build retains immediate cumulative status. */
+ * The ordinary public build retains immediate cumulative status.
+ * On refusal, both builds return w1=0, 1 or 2 as described below. */
 #ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
 #define md2asm_try_compact_product_sum md2asm_private_compact_deferred
 #define md2asm_try_compact_product_sum_preclassified md2asm_private_compact_deferred_preclassified
 #endif
 /* Exact product plus addend, rounded once to nearest-even FP64.
  * d0,d1,d2 are a,b,c. w0=0 returns the exact result in d0.
- * w0=1 leaves d0,d1,d2 and FPSR unchanged for the verified general integer path.
- * Only x0..x17 and, on success, d0 are changed. No stack or external calls.
+ * w0=1 leaves d0,d1,d2 and FPSR unchanged for the owned wide or general path.
+ * For w0=1, w1=1 tags a wide addend, w1=2 a wide product and w1=0
+ * every other refusal. The tagged state is read only by the hidden wide entry.
+ * Only x0..x17, NZCV and, on success, d0 are changed. No stack or calls.
+ * Preserve x18..x30, full v8..v15, SP, FPCR and errno.
  * Contract: skills/md2asm/references/openifs/support/compact_product_sum.md.
  */
 .arch armv8-a
@@ -73,11 +77,7 @@ md2asm_try_compact_product_sum_preclassified:
     sub w16, w17, w16
     add w16, w16, w15
     cmp w16, #127
-#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
     b.gt .Lcompact_prepared_addend
-#else
-    b.gt .Lcompact_fallback
-#endif
     mov x7, #0
     cbz w15, .Lcompact_aligned
     tbnz w15, #6, .Lcompact_c_high
@@ -102,11 +102,7 @@ md2asm_try_compact_product_sum_preclassified:
 .Lcompact_product_length_ready:
     add w16, w16, w15
     cmp w16, #127
-#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
     b.gt .Lcompact_prepared_product
-#else
-    b.gt .Lcompact_fallback
-#endif
     mov w13, w14
     mov x7, #0
     tbnz w15, #6, .Lcompact_product_high
@@ -254,12 +250,9 @@ md2asm_try_compact_product_sum_preclassified:
     lsl x0, x0, #63
     b .Lcompact_success_bits
 .Lcompact_fallback:
-#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
     mov w1, #0
-#endif
     mov w0, #1
     ret
-#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
 /* Refusal tags retain raw product/exponents only at a proven wide class. */
 .Lcompact_prepared_addend:
     mov w1, #1
@@ -269,7 +262,6 @@ md2asm_try_compact_product_sum_preclassified:
     mov w1, #2
     mov w0, #1
     ret
-#endif
 // Repeating a hidden-bit OR leaves a partially decoded normal input unchanged.
 .Lcompact_slow_decode:
     cbz w3, .Lcompact_a_fraction

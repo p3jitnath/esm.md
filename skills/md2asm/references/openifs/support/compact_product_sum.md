@@ -1,6 +1,6 @@
 # Compact Exact Product And Sum
 
-Revision 6. This is a compact path for the [accepted atomic product and sum](rounded_product_sum.md). An atomic operation has one declared rounding point. It computes the exact real value $`ab+c`$, then rounds once to FP64, the eight-byte floating-point format, using round-to-nearest with ties to even. The weather solver retains its declared intermediate rounding points.
+Revision 7. This is a compact path for the [accepted atomic product and sum](rounded_product_sum.md). An atomic operation has one declared rounding point. It computes the exact real value $`ab+c`$, then rounds once to FP64, the eight-byte floating-point format, using round-to-nearest with ties to even. The weather solver retains its declared intermediate rounding points.
 
 ## Exact Integer Calculation
 
@@ -57,7 +57,7 @@ The private entry changes only the direct wrapper's call target. Its focused che
 | Registers and stack | 9,140 seeded calls | ABI mask zero |
 | Original domain refusal | 14 nonfinite or unsupported-FPCR calls | Same abort |
 
-The changed [autonomous forecast](../input/standalone_weather_forecast.md) matches all 685 numerical owners, 560 descriptor relationships and 27,486,113 raw bytes. All ten saved files over 618,140 bytes and 59 final-field views match exactly. The native ABI mask is zero, with natural FPCR, FPSR and errno of zero, 25 and zero. All six ordinary runs in three matched pairs also retain every saved file and final field, with checks outside timing. The [README](../../../../../README.md) reports the joint complete-process result. Known process-boundary differences and whole-forecast physical-budget limits remain unchanged.
+The changed [autonomous forecast](../input/standalone_weather_forecast.md) matches all 685 numerical owners, 560 descriptor relationships and 27,486,113 raw bytes. All ten saved files over 618,140 bytes and 59 controlled final-field views match exactly. The native ABI mask is zero, with natural FPCR, FPSR and errno of zero, 25 and zero. All nine ordinary runs in the frozen three-variant comparison also retain every saved file and 59 final views outside the timer. The arithmetic comparison uses the same supported `EC_PMON=0` setting for both implementations. Energy and power diagnostic columns become zero under that setting and remain outside canonical weather output. The [README](../../../../../README.md) reports the small complete-process result on this T21 case, with timing resolution and input scope. Known process-boundary differences and whole-forecast physical-budget limits remain unchanged. The independent physical evidence is reused, and performance on other forecast inputs remains unmeasured.
 
 ## Private POWER Mask Return
 
@@ -69,8 +69,8 @@ A finite stored exponent from 1 through 2046 identifies a normal nonzero input. 
 
 If any exponent is zero, the complete decoder handles zeros and subnormal values. Repeating an earlier hidden-bit OR leaves the integer unchanged. Both routes reach the same signs, exponents, exact product and refusal state. Public FPCR and finite-input checks, all rounding and status rules, fast/wide classifications and preserved registers remain in force. The compiled private object remains identical to the accepted revision-5 object, so its existing complete POWER and prepared-handoff evidence is reused.
 
-The changed public build passes 7,860 finite triples through each of its two wrappers, with exact result, FPSR, FPCR and `errno` agreement against the independent fractions and original atomic control. The same check covers 10,230 inherited-status calls, 2,046 seeded ABI calls and 20 original domain refusals. Native ABI masks are zero. Zeros, subnormal inputs, cancellation, ties, word-crossing shifts and overflow retain their existing complete routes. Detailed records remain local under `.runtime/openifs/public_compact_normal_decoder_7484780/`.
+The retained decoder checks cover zeros, subnormal inputs, cancellation, ties, word-crossing shifts and overflow. The [current public checks](rounded_product_sum.md#interface-and-actual-checks) also cover the prepared handoff.
 
-## Private Wide Handoff
+## Prepared Wide Handoff
 
-On private refusal, `w1=1` identifies an addend whose original aligned magnitude exceeds 127 bits, and `w1=2` identifies such a product. Other private refusals return `w1=0`. These tags apply only when `w0=1`. Successful `w1` remains the required exception mask. The tags retain the complete exact product, addend, signs, exponents and bit length for the [prepared wide entry](wide_product_sum.md#private-prepared-entry). They preserve floating inputs and hardware status. The ordinary public refusal interface remains unchanged.
+On refusal, `w1=1` identifies an addend whose original aligned magnitude exceeds 127 bits, and `w1=2` identifies such a product. Other refusals return `w1=0`. Read a tag only when `w0=1`. The public interface permits changes to `w1` as scratch, while successful private `w1` remains its required exception mask. Both tagged routes retain the complete exact product, addend, signs, exponents and bit length for their [prepared wide entry](wide_product_sum.md#prepared-entries). They preserve floating inputs and hardware status. After its original domain checks, the direct wrapper sends tag zero to the general body because only compact-class tiny results can remain, including zero-addend cases. The full wide entry would refuse those cases without an observable status change. Public compact-success arithmetic and the deferred-status object remain unchanged. The focused public handoff checks and current forecast limit are recorded in the [direct wrapper contract](rounded_product_sum.md#interface-and-actual-checks).
