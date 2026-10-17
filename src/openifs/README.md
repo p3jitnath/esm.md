@@ -43,7 +43,7 @@ The comparison uses a reviewed OpenIFS 48.1.1 reference with frozen inputs and a
 
 The [numerical contracts](../../skills/md2asm/references/openifs/) define the supported branches, buffers, arithmetic and independent checks. A separate observer checks the humidity floor and finite ordered rates. Exact agreement can reproduce a shared scientific defect, so it does not establish independent physics of the whole forecast.
 
-In a tested ice-formation call, the original lake update stores an average water temperature of 277.13 K, while its limited temperature profile can represent at most 276.334 K. The profile describes temperature changes with depth. The original lake equations remain unchanged. Complete forecast water and heat balances, whole-process byte identity and comparative forecast speed remain unverified.
+In a tested ice-formation call, the original lake update stores an average water temperature of 277.13 K, while its limited temperature profile can represent at most 276.334 K. The profile describes temperature changes with depth. The original lake equations remain unchanged. Complete forecast water and heat balances and whole-process byte identity remain unverified. The [README](../../README.md) reports matched complete-process timings with exact saved outputs.
 
 ## Autonomous Forecast
 
@@ -54,7 +54,7 @@ External public services remain explicit, including ecCodes, ECTRANS, Atlas, Net
 | Phase | Status |
 | --- | --- |
 | Autonomous selected forecast | Complete, with exact saved outputs, complete final-state comparison and the stated physical checks |
-| Full 24-hour optimisation | Not started |
+| Full 24-hour optimisation | In progress |
 | Descriptive filename cleanup | Follows optimisation |
 
 All 255 audited weather calculations are accepted. The broader inventory counts include other model paths and do not give an autonomy percentage for this selected configuration.

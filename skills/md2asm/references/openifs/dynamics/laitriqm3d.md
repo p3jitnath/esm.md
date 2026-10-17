@@ -1,6 +1,6 @@
 # LAITRIQM3D Transport Contract
 
-Revision 3 implements the complete OpenIFS 48.1.1 LAITRIQM3D routine from the [physics note](../../../../../formulations/openifs/dynamics/bounded_three_dimensional_transport.md), revision 1.0. The [direct body](../../../../../src/openifs/dynamics/laitriqm3d.S) contains every interpolation and limiting stage. No numerical child or driver supplies a missing calculation.
+Revision 4 implements the complete OpenIFS 48.1.1 LAITRIQM3D routine from the [physics note](../../../../../formulations/openifs/dynamics/bounded_three_dimensional_transport.md), revision 1.0. The [direct body](../../../../../src/openifs/dynamics/laitriqm3d.S) contains every interpolation and limiting stage. No numerical child or driver supplies a missing calculation.
 
 ## Method And Ordered Arithmetic
 
@@ -52,6 +52,8 @@ For each active cell, keep the four signed KL0 row indices in x12 through x15 af
 
 Keep each repeated cell weight after its original first read. The four PDLO weights use d18 through d21, the six PCLO weights use d22 through d27, PDLAT uses d28 and the three PCLA weights use d29 through d31. A later use copies the same raw FP64 bits from that register. Each saved weight is replaced on its own first use in every active cell before its later reuse. The inputs are read-only and disjoint from output, and no child call occurs while a saved weight is needed. The limiter retains d16 and d17, and weights used once or only on the conditional linear fallback keep their original reads. Every floating-point arithmetic instruction and first payload read stays in its accepted position.
 
+Keep the fixed matrix span P×H in caller-saved x7 after any surplus allocation has finished. It comes from the existing private frame and supplies the same multiplication operand for stencil-index and weight-plane addresses. Empty calls and failed allocation acquire no new read. No call or frame write changes this value while it is needed, and its lifetime ends before the final release. The existing row indices, raw weight registers, payload reads and arithmetic order stay unchanged.
+
 ## Supported Inputs And Acceptance
 
 Support 1 ≤ P ≤ 4096, 0 ≤ H ≤ 512, 1 ≤ KST ≤ P and KST−1 ≤ KPROF ≤ P. KQM is zero, one or two. The empty interval and zero layers write no output. Every active source stencil address must lie within S×F, with finite field values and weights. Position fractions lie in [0,1], layer coordinates increase strictly, and all intermediates stay finite. Unused input and output cells may hold arbitrary bits.
@@ -64,9 +66,9 @@ The physical and numerical contract was frozen before emission. The original pas
 
 The paired adapter passed twenty calls across all four mode paths, with zero differences in 5,600 complete output-owner bytes and 875 independent relations. It preserves 1,600 inactive output bytes. The five vertical-correction calls use unequal layer widths. These adapter checks establish byte agreement.
 
-The combined index and weight reuse passed sixty-two protected placements and 222 paired calls against the accepted direct body, with zero differences across 215,584 complete output-owner bytes. It also passed 223,964 independent physical relations, the nineteen-address ABI, nine inherited floating-point status patterns, immediate FPCR and errno, read-only owner checks and adjacent-byte guards. The added cases include valid negative row indices and a stencil at the last valid source-owner element. No floating-point arithmetic instruction or mathematical rule changes.
+The index, weight and fixed-span reuse passed sixty-two protected placements and 222 paired calls against the accepted direct body, with zero differences across 215,584 complete output-owner bytes. It also passed 223,964 independent physical relations, the nineteen-address ABI, nine inherited floating-point status patterns, immediate FPCR and errno, read-only owner checks and adjacent-byte guards. The added cases include valid negative row indices and a stencil at the last valid source-owner element. No floating-point arithmetic instruction or mathematical rule changes.
 
-The combined index and weight revision also passes the complete autonomous forecast comparison in a joint batch with private arithmetic fusion and radiation scratch-pointer updates. All 685 numerical owners, 560 descriptor relations and 27,486,113 raw bytes match, as do ten saved files across 618,140 bytes and 59 controlled final views. The ABI mask is zero, and natural FPCR/FPSR/errno are 0/25/0. Known optional-argument and entry-status differences remain visible, so this does not claim whole-process byte identity. All six ordinary matched processes also reproduce the ten files and 59 observed final views. The [README](../../../../../README.md) reports the combined timing result; it does not assign the gain to this routine alone.
+The index, weight and fixed-span revision also passes the complete autonomous forecast comparison in a joint batch with radiation recurrence values held in the registers that the next layer uses. All 685 numerical owners, 560 descriptor relations and 27,486,113 raw bytes match, as do ten saved files across 618,140 bytes and 59 controlled final views. The ABI mask is zero, and natural FPCR/FPSR/errno are 0/25/0. Known optional-argument and entry-status differences remain visible, so this does not claim whole-process byte identity. All six ordinary matched processes also reproduce the ten files and 59 observed final views. The [README](../../../../../README.md) reports the combined timing result; it does not assign the gain to this routine alone.
 
 ## Actual Forecast Acceptance
 

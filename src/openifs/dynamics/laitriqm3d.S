@@ -6,7 +6,8 @@
  * x24 matrix cell, x25 source, x26 output and x27/x28 selected bounds.
  * Preserve x18 and d8 through d15. No numerical child or driver stage.
  * Keep each signed row index in x12..x15 after its original first read.
- * Keep repeated read-only cell weights in d18..d31 after their first reads. */
+ * Keep repeated read-only cell weights in d18..d31 after their first reads.
+ * x7 holds the fixed matrix span after allocation and before final release. */
 .text
 .p2align 4
 .macro PARG reg,index
@@ -15,8 +16,7 @@
 .macro FIELD reg,arg,plane
     PARG 9,\arg
     mov x10,#\plane
-    ldr x11,[sp,#272]
-    madd x10,x10,x11,x24
+    madd x10,x10,x7,x24
     ldr \reg,[x9,x10,lsl #3]
 .endm
 
@@ -34,8 +34,7 @@
 .if \first
     PARG 9,14
     mov x10,#\row
-    ldr x11,[sp,#272]
-    madd x10,x10,x11,x24
+    madd x10,x10,x7,x24
     ldrsw x10,[x9,x10,lsl #2]
     mov \cache,x10
 .else
@@ -125,6 +124,7 @@ md2asm_laitriqm3d:
     cmp x9,x19
     b.lt .Ltransport_clear_surplus
 .Ltransport_start:
+    ldr x7,[sp,#272]
     mov x22,#0
 .Ltransport_layer:
     ldr w9,[sp,#256]

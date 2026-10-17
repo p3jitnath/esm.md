@@ -61,9 +61,9 @@ The runtime setting `EC_PMON=0` disables hardware energy monitoring. Energy and 
 | --- | ---: | ---: | ---: |
 | Same solver, energy monitoring disabled | 22.11 [21.84–22.39] | 20.59 [20.58–20.61] | 1.074× |
 | Prepared public arithmetic, monitoring disabled for both | 20.59 [20.58–20.61] | 20.55 [20.55–20.55] | 1.002× |
-| Private arithmetic fusion, transport weights and radiation scratch pointers, monitoring disabled for both | 19.97 [19.97–19.98] | 19.90 [19.88–19.93] | 1.004× |
+| Transport array size and radiation register reuse, monitoring disabled for both | 19.89 [19.88–19.90] | 19.82 [19.80–19.82] | 1.004× |
 
-The latest median is **19.90 seconds** for this forecast and machine. The joint change combines a private exact-arithmetic helper with its caller, keeps repeated transport weights in registers and advances radiation scratch pointers directly. All three wall-time and user CPU pairs favour this combined change, with nonoverlapping ranges. User CPU medians are 19.82 [19.81–19.82] and 19.74 [19.73–19.76] seconds. The timer reports 0.01 seconds. The measurements establish the joint gain without separating the three contributions. General input paths remain available, and performance on other forecast inputs remains unmeasured.
+The latest median is **19.82 seconds** for this forecast and machine. The joint change keeps a fixed transport-array size in a register and writes each new radiation-layer value directly into the register used by its next layer. All three wall-time and user CPU pairs favour this combined change, with nonoverlapping ranges. User CPU medians are 19.74 [19.72–19.74] and 19.67 [19.63–19.67] seconds. The timer reports 0.01 seconds. The measurements establish the joint gain without separating the two contributions. General input paths remain available, and performance on other forecast inputs remains unmeasured.
 
 The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. All **255 audited weather and forcing routines** in this T21 main phase have accepted assembly replacements. The overlapping broader lists still have 91 local calculations and 358 main-forecast bodies remaining. The ordered original routine names and source paths remain in the local records.
 
