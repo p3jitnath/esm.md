@@ -1,13 +1,13 @@
 // Physics formulations/openifs/physics/two_stream_shortwave_transport.md.
 // Contract skills/md2asm/references/openifs/physics/calc_reflectance_transmittance_sw.md.
-/* Two adjacent independent shortwave layer cells with the frozen equations.
- * Public twelve-pointer ABI and bounds match calc_reflectance_transmittance_sw.
- * The 256-byte frame has 32 outgoing bytes, saves x19..x30 and d8..d15,
- * and keeps the original angle and two final output pointers. x18 is untouched.
- * Integer guards precede FP work. A matching prefix may add only eventual
- * scalar flags. Four EXP arguments pass one complete child admission before counter or output effects.
- * Private four-value EXP preserves full q8..q15/q24..q31. Every refusal and odd
- * cell calls the accepted own scalar reflection body below. */
+/* Four cells share eight EXP values, with the unchanged two-cell path below.
+ * The public twelve-pointer ABI keeps disjoint aligned count-cell arrays.
+ * A 384-byte frame saves the original integer and low vector registers and
+ * carries 128 private bytes. Snapshot FPSR is a 32-bit word at sp+196.
+ * Complete four-cell integer guards precede the two frozen FP prefixes.
+ * The eight-value child preserves full q8..q15. Refusal restores the snapshot
+ * and enters the complete old path without retrying this quad attempt.
+ * Final flags/counts are observed after the group; FPCR zero is required. */
 #ifndef ORIGINAL_SYMBOL
 #define ORIGINAL_SYMBOL __radiation_two_stream_MOD_calc_reflectance_transmittance_sw
 #endif
@@ -43,13 +43,41 @@
  b.hi .Lpair_scalar
 .endm
 
+// Quad raw refusal uses the complete original two-cell bypass.
+.macro QUAD_NONNEGATIVE_PAIR reg
+ fmov x9,d\reg
+ umov x10,v\reg\().d[1]
+ and x11,x9,#0x7fffffffffffffff
+ cmp x11,x12
+ b.hi .Lpair_two_cell_bypass
+ cbz x11,.Lquad_first_nonnegative\@
+ tbnz x9,#63,.Lpair_two_cell_bypass
+.Lquad_first_nonnegative\@:
+ and x11,x10,#0x7fffffffffffffff
+ cmp x11,x12
+ b.hi .Lpair_two_cell_bypass
+ cbz x11,.Lquad_second_nonnegative\@
+ tbnz x10,#63,.Lpair_two_cell_bypass
+.Lquad_second_nonnegative\@:
+.endm
+.macro QUAD_BOUNDED_PAIR reg
+ fmov x9,d\reg
+ umov x10,v\reg\().d[1]
+ and x9,x9,#0x7fffffffffffffff
+ and x10,x10,#0x7fffffffffffffff
+ cmp x9,x12
+ b.hi .Lpair_two_cell_bypass
+ cmp x10,x12
+ b.hi .Lpair_two_cell_bypass
+.endm
+
 .global ORIGINAL_SYMBOL
 .type ORIGINAL_SYMBOL,%function
 ORIGINAL_SYMBOL:
  ldr w9,[x0]
  cmp w9,#0
  b.le .Lpair_empty
- sub sp,sp,#256
+ sub sp,sp,#384
  stp x19,x20,[sp,#32]
  stp x21,x22,[sp,#48]
  stp x23,x24,[sp,#64]
@@ -70,8 +98,8 @@ ORIGINAL_SYMBOL:
  mov x24,x5
  mov x25,x6
  mov x26,x7
- ldp x27,x28,[sp,#256]
- ldp x9,x10,[sp,#272]
+ ldp x27,x28,[sp,#384]
+ ldp x9,x10,[sp,#400]
  stp x9,x10,[sp,#224]
  ldr x9,[x1]
  and x10,x9,#0x7fffffffffffffff
@@ -81,6 +109,10 @@ ORIGINAL_SYMBOL:
  cbz x10,.Lpair_loop
  tbnz x9,#63,.Lpair_scalar
 .Lpair_loop:
+ sub x9,x20,x19
+ cmp x9,#32
+ b.hs .Lquad_try
+.Lpair_two_cell_bypass:
  sub x9,x20,x19
  cmp x9,#16
  b.lo .Lpair_last_scalar
@@ -209,6 +241,276 @@ ORIGINAL_SYMBOL:
  cmp x19,x20
  b.lo .Lpair_loop
  b .Lpair_return
+// Four reached cells share one eight-value child. The old path remains below.
+.Lquad_try:
+ mov w9,#2
+ str w9,[sp,#192]
+ ldr q13,[x21,x19]
+ ldr q30,[x22,x19]
+ ldr q9,[x23,x19]
+ ldr q10,[x24,x19]
+ ldr q11,[x25,x19]
+ movz x12,#0x412e,lsl #48
+ movk x12,#0x8480,lsl #32
+ QUAD_NONNEGATIVE_PAIR 13
+ mov x12,#0x3ff0000000000000
+ QUAD_NONNEGATIVE_PAIR 30
+ mov x12,#0x4020000000000000
+ QUAD_BOUNDED_PAIR 9
+ QUAD_BOUNDED_PAIR 10
+ QUAD_BOUNDED_PAIR 11
+ add x16,x19,#16
+ ldr q16,[x21,x16]
+ ldr q17,[x22,x16]
+ ldr q18,[x23,x16]
+ ldr q19,[x24,x16]
+ ldr q20,[x25,x16]
+ movz x12,#0x412e,lsl #48
+ movk x12,#0x8480,lsl #32
+ QUAD_NONNEGATIVE_PAIR 16
+ mov x12,#0x3ff0000000000000
+ QUAD_NONNEGATIVE_PAIR 17
+ mov x12,#0x4020000000000000
+ QUAD_BOUNDED_PAIR 18
+ QUAD_BOUNDED_PAIR 19
+ QUAD_BOUNDED_PAIR 20
+ // Only private stack writes occur before complete child admission.
+ mrs x9,FPSR
+ str w9,[sp,#196]
+ ldr x9,[sp,#208]
+ ldr d8,[x9]
+ dup v8.2d,v8.d[0]
+ fmov d31,#1.0
+ dup v31.2d,v31.d[0]
+ fsub v24.2d,v31.2d,v11.2d
+ fsub v0.2d,v9.2d,v10.2d
+ fadd v1.2d,v9.2d,v10.2d
+ fmul v0.2d,v0.2d,v1.2d
+ ldr d1,.Lpair_floor
+ dup v1.2d,v1.d[0]
+ fmaxnm v0.2d,v0.2d,v1.2d
+ fsqrt v12.2d,v0.2d
+ fmul v0.2d,v9.2d,v24.2d
+ fmul v1.2d,v10.2d,v11.2d
+ fadd v14.2d,v0.2d,v1.2d
+ fmul v0.2d,v9.2d,v11.2d
+ fmul v1.2d,v10.2d,v24.2d
+ fadd v15.2d,v0.2d,v1.2d
+ fmul v0.2d,v12.2d,v8.2d
+ fsub v0.2d,v31.2d,v0.2d
+ fabs v0.2d,v0.2d
+ ldr d1,.Lpair_threshold
+ dup v1.2d,v1.d[0]
+ fcmgt v2.2d,v1.2d,v0.2d
+ and v3.16b,v8.16b,v2.16b
+ ldr d1,.Lpair_adjustment
+ dup v1.2d,v1.d[0]
+ fmul v3.2d,v3.2d,v1.2d
+ bsl v2.16b,v3.16b,v8.16b
+ mov v8.16b,v2.16b
+ fdiv v0.2d,v13.2d,v8.2d
+ fmul v25.2d,v12.2d,v8.2d
+ fmul v26.2d,v12.2d,v11.2d
+ fmul v27.2d,v12.2d,v24.2d
+ movi v1.2d,#0
+ fmaxnm v0.2d,v0.2d,v1.2d
+ fneg v6.2d,v0.2d
+ fmul v7.2d,v12.2d,v13.2d
+ fneg v7.2d,v7.2d
+ stp q8,q12,[sp,#256]
+ stp q14,q15,[sp,#288]
+ stp q24,q25,[sp,#320]
+ stp q26,q27,[sp,#352]
+ ldr x9,[sp,#208]
+ ldr d8,[x9]
+ dup v8.2d,v8.d[0]
+ fmov d31,#1.0
+ dup v31.2d,v31.d[0]
+ fsub v9.2d,v31.2d,v20.2d
+ fsub v0.2d,v18.2d,v19.2d
+ fadd v1.2d,v18.2d,v19.2d
+ fmul v0.2d,v0.2d,v1.2d
+ ldr d1,.Lpair_floor
+ dup v1.2d,v1.d[0]
+ fmaxnm v0.2d,v0.2d,v1.2d
+ fsqrt v12.2d,v0.2d
+ fmul v0.2d,v18.2d,v9.2d
+ fmul v1.2d,v19.2d,v20.2d
+ fadd v14.2d,v0.2d,v1.2d
+ fmul v0.2d,v18.2d,v20.2d
+ fmul v1.2d,v19.2d,v9.2d
+ fadd v15.2d,v0.2d,v1.2d
+ fmul v0.2d,v12.2d,v8.2d
+ fsub v0.2d,v31.2d,v0.2d
+ fabs v0.2d,v0.2d
+ ldr d1,.Lpair_threshold
+ dup v1.2d,v1.d[0]
+ fcmgt v2.2d,v1.2d,v0.2d
+ and v3.16b,v8.16b,v2.16b
+ ldr d1,.Lpair_adjustment
+ dup v1.2d,v1.d[0]
+ fmul v3.2d,v3.2d,v1.2d
+ bsl v2.16b,v3.16b,v8.16b
+ mov v8.16b,v2.16b
+ fdiv v0.2d,v16.2d,v8.2d
+ fmul v10.2d,v12.2d,v8.2d
+ fmul v11.2d,v12.2d,v20.2d
+ fmul v13.2d,v12.2d,v9.2d
+ movi v1.2d,#0
+ fmaxnm v0.2d,v0.2d,v1.2d
+ fneg v2.2d,v0.2d
+ fmul v3.2d,v12.2d,v16.2d
+ fneg v3.2d,v3.2d
+ mov v0.16b,v6.16b
+ mov v1.16b,v7.16b
+ bl md2asm_try_exp_eight_counted
+ cbnz w0,.Lquad_rollback
+ // B state stays in q8..q15 and its EXP results stay in q2/q3.
+ ldp q16,q20,[sp,#256]
+ ldp q21,q22,[sp,#288]
+ ldp q23,q24,[sp,#320]
+ ldp q25,q26,[sp,#352]
+ ldr q17,[x23,x19]
+ ldr q18,[x24,x19]
+ ldr q19,[x25,x19]
+ ldr q27,[x22,x19]
+ fmov d28,#1.0
+ dup v28.2d,v28.d[0]
+ fmul v4.2d,v1.2d,v1.2d
+ fmov d5,#2.0
+ dup v5.2d,v5.d[0]
+ fmul v5.2d,v5.2d,v20.2d
+ fmul v5.2d,v5.2d,v1.2d
+ fadd v6.2d,v20.2d,v17.2d
+ fsub v7.2d,v20.2d,v17.2d
+ fmul v7.2d,v7.2d,v4.2d
+ fadd v6.2d,v6.2d,v7.2d
+ fdiv v6.2d,v28.2d,v6.2d
+ fmul v17.2d,v24.2d,v24.2d
+ fsub v17.2d,v28.2d,v17.2d
+ fmul v20.2d,v16.2d,v27.2d
+ fsub v27.2d,v28.2d,v24.2d
+ fadd v24.2d,v28.2d,v24.2d
+ fsub v29.2d,v28.2d,v4.2d
+ fmul v29.2d,v18.2d,v29.2d
+ fmul v7.2d,v29.2d,v6.2d
+ str q7,[x26,x19]
+ fmul v7.2d,v5.2d,v6.2d
+ str q7,[x27,x19]
+ fmul v20.2d,v20.2d,v6.2d
+ fdiv v20.2d,v20.2d,v17.2d
+ fadd v7.2d,v22.2d,v25.2d
+ fmul v7.2d,v27.2d,v7.2d
+ fsub v6.2d,v22.2d,v25.2d
+ fmul v6.2d,v24.2d,v6.2d
+ fmul v6.2d,v6.2d,v4.2d
+ fsub v7.2d,v7.2d,v6.2d
+ fmul v6.2d,v22.2d,v16.2d
+ fsub v6.2d,v19.2d,v6.2d
+ fmul v6.2d,v5.2d,v6.2d
+ fmul v6.2d,v6.2d,v0.2d
+ fsub v7.2d,v7.2d,v6.2d
+ fmul v7.2d,v20.2d,v7.2d
+ movi v6.2d,#0
+ fminnm v7.2d,v7.2d,v28.2d
+ fmaxnm v7.2d,v7.2d,v6.2d
+ str q7,[x28,x19]
+ fmul v6.2d,v21.2d,v16.2d
+ fadd v6.2d,v23.2d,v6.2d
+ fmul v6.2d,v5.2d,v6.2d
+ fadd v17.2d,v21.2d,v26.2d
+ fmul v17.2d,v24.2d,v17.2d
+ fsub v29.2d,v21.2d,v26.2d
+ fmul v29.2d,v27.2d,v29.2d
+ fmul v29.2d,v29.2d,v4.2d
+ fsub v17.2d,v17.2d,v29.2d
+ fmul v17.2d,v0.2d,v17.2d
+ fsub v6.2d,v6.2d,v17.2d
+ fmul v6.2d,v20.2d,v6.2d
+ fsub v30.2d,v28.2d,v7.2d
+ fminnm v6.2d,v6.2d,v30.2d
+ movi v27.2d,#0
+ fmaxnm v6.2d,v6.2d,v27.2d
+ ldr x9,[sp,#224]
+ str q6,[x9,x19]
+ ldr x9,[sp,#232]
+ str q0,[x9,x19]
+ add x19,x19,#16
+ // A state is dead. Reload the same immutable B input words.
+ ldr q16,[x23,x19]
+ ldr q17,[x24,x19]
+ ldr q18,[x25,x19]
+ ldr q19,[x22,x19]
+ fmov d20,#1.0
+ dup v20.2d,v20.d[0]
+ fmul v0.2d,v3.2d,v3.2d
+ fmov d1,#2.0
+ dup v1.2d,v1.d[0]
+ fmul v1.2d,v1.2d,v12.2d
+ fmul v1.2d,v1.2d,v3.2d
+ fadd v21.2d,v12.2d,v16.2d
+ fsub v22.2d,v12.2d,v16.2d
+ fmul v22.2d,v22.2d,v0.2d
+ fadd v21.2d,v21.2d,v22.2d
+ fdiv v21.2d,v20.2d,v21.2d
+ fmul v23.2d,v10.2d,v10.2d
+ fsub v23.2d,v20.2d,v23.2d
+ fmul v24.2d,v8.2d,v19.2d
+ fsub v25.2d,v20.2d,v10.2d
+ fadd v26.2d,v20.2d,v10.2d
+ fsub v27.2d,v20.2d,v0.2d
+ fmul v27.2d,v17.2d,v27.2d
+ fmul v22.2d,v27.2d,v21.2d
+ str q22,[x26,x19]
+ fmul v22.2d,v1.2d,v21.2d
+ str q22,[x27,x19]
+ fmul v24.2d,v24.2d,v21.2d
+ fdiv v24.2d,v24.2d,v23.2d
+ fadd v22.2d,v15.2d,v11.2d
+ fmul v22.2d,v25.2d,v22.2d
+ fsub v21.2d,v15.2d,v11.2d
+ fmul v21.2d,v26.2d,v21.2d
+ fmul v21.2d,v21.2d,v0.2d
+ fsub v22.2d,v22.2d,v21.2d
+ fmul v21.2d,v15.2d,v8.2d
+ fsub v21.2d,v18.2d,v21.2d
+ fmul v21.2d,v1.2d,v21.2d
+ fmul v21.2d,v21.2d,v2.2d
+ fsub v22.2d,v22.2d,v21.2d
+ fmul v22.2d,v24.2d,v22.2d
+ movi v21.2d,#0
+ fminnm v22.2d,v22.2d,v20.2d
+ fmaxnm v22.2d,v22.2d,v21.2d
+ str q22,[x28,x19]
+ fmul v21.2d,v14.2d,v8.2d
+ fadd v21.2d,v9.2d,v21.2d
+ fmul v21.2d,v1.2d,v21.2d
+ fadd v23.2d,v14.2d,v13.2d
+ fmul v23.2d,v26.2d,v23.2d
+ fsub v27.2d,v14.2d,v13.2d
+ fmul v27.2d,v25.2d,v27.2d
+ fmul v27.2d,v27.2d,v0.2d
+ fsub v23.2d,v23.2d,v27.2d
+ fmul v23.2d,v2.2d,v23.2d
+ fsub v21.2d,v21.2d,v23.2d
+ fmul v21.2d,v24.2d,v21.2d
+ fsub v28.2d,v20.2d,v22.2d
+ fminnm v21.2d,v21.2d,v28.2d
+ movi v25.2d,#0
+ fmaxnm v21.2d,v21.2d,v25.2d
+ ldr x9,[sp,#224]
+ str q21,[x9,x19]
+ ldr x9,[sp,#232]
+ str q2,[x9,x19]
+ add x19,x19,#16
+ cmp x19,x20
+ b.lo .Lpair_loop
+ b .Lpair_return
+.Lquad_rollback:
+ // The child refused before counter or FP effects. Replay the whole old path.
+ ldr w9,[sp,#196]
+ msr FPSR,x9
+ b .Lpair_two_cell_bypass
 .Lpair_last_scalar:
  mov w9,#1
  str w9,[sp,#192]
@@ -244,7 +546,7 @@ ORIGINAL_SYMBOL:
  ldp x25,x26,[sp,#80]
  ldp x27,x28,[sp,#96]
  ldp x29,x30,[sp,#112]
- add sp,sp,#256
+ add sp,sp,#384
 .Lpair_empty:
  ret
 .size ORIGINAL_SYMBOL,.-ORIGINAL_SYMBOL
