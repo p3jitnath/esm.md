@@ -4,7 +4,7 @@
 // The public entry retains sixteen address arguments. x18 and saved registers
 // are preserved. The hidden payload receives the same addresses with a private
 // flux clone in argument15, and its worker record in preserved register x28.
-// All allocation and validation precede launch. Workers change private owners.
+// Validation and initial arena allocation precede launch. Workers use private owners.
 // After join, the controller merges global column slots and commits once.
 #include "shortwave_team_layout.inc.S"
 #ifndef MD2ASM_SW_TEAM_REQUESTED
@@ -77,14 +77,28 @@ md2asm_solver_mcica_sw:
  cbz w0,.Lsw_cleanup
  SW_CALL omp_in_parallel
  cbnz w0,.Lsw_cleanup
+ // The existing numerical interval has one serial caller and no observers.
+ // Retain one bounded private arena until process exit. Its contents carry no
+ // model state. Rebuild record metadata and required incoming owners each call.
+ adrp x9,.Lsw_cached_arena
+ add x9,x9,:lo12:.Lsw_cached_arena
+ ldr x26,[x9]
+ cbnz x26,.Lsw_arena_ready
+ SW_CONSTANT x0,(SW_PAYLOAD_BYTES*MD2ASM_SW_TEAM_REQUESTED)
+ SW_CALL malloc
+ cbz x0,.Lsw_cleanup
+ mov x26,x0
+ adrp x9,.Lsw_cached_arena
+ add x9,x9,:lo12:.Lsw_cached_arena
+ str x26,[x9]
+.Lsw_arena_ready:
  mov x21,#0
 .Lsw_allocate_worker:
  mov x9,#SW_WORK_BYTES
  madd x20,x21,x9,x19
  add x20,x20,#SW_CONTROLLER_WORKERS
- SW_CONSTANT x0,SW_PAYLOAD_BYTES
- SW_CALL malloc
- cbz x0,.Lsw_cleanup
+ SW_CONSTANT x9,SW_PAYLOAD_BYTES
+ madd x0,x21,x9,x26
  str x0,[x20,#SW_WORK_SCRATCH]
  SW_CONSTANT x9,SW_PAYLOAD_FLUX_OFFSET
  add x22,x0,x9
@@ -109,6 +123,10 @@ md2asm_solver_mcica_sw:
  ldr x0,[x20,#SW_WORK_SCRATCH]
  add x0,x0,x10
  str x0,[x22,x9]
+ cbz x21,.Lsw_prepare_copy
+ cmp x9,#3208
+ b.ne .Lsw_prepare_output_next
+.Lsw_prepare_copy:
  ldr x2,[x23,#8]
  bl .Lsw_copy_bytes
 .Lsw_prepare_output_next:
@@ -279,18 +297,7 @@ md2asm_solver_mcica_sw:
  subs x11,x11,#1
  b.ne .Lsw_record_context
 #endif
- mov x21,#0
-.Lsw_free_worker:
- mov x9,#SW_WORK_BYTES
- madd x20,x21,x9,x19
- add x20,x20,#SW_CONTROLLER_WORKERS
- ldr x0,[x20,#SW_WORK_SCRATCH]
- cbz x0,.Lsw_next_free
- SW_CALL free
-.Lsw_next_free:
- add x21,x21,#1
- cmp x21,#8
- b.ne .Lsw_free_worker
+ // The bounded arena remains owned by this module until process exit.
  ldr x9,[x19,#SW_CONTROLLER_ENTRY_FPCR]
  msr fpcr,x9
  cbnz x25,.Lsw_restore_numerical_state
@@ -642,7 +649,7 @@ SW_PRIVATE_BRIDGE:
  add x28,x28,x9
  str x27,[x20,#SW_WORK_BEGIN]
  str x28,[x20,#SW_WORK_END]
- SW_CALL GOMP_barrier,96
+ // No cross-worker numerical dependency precedes this payload.
  msr fpcr,xzr
  msr fpsr,xzr
  ldr w9,[x19,#SW_CONTROLLER_ENTRY_ERRNO]
@@ -719,4 +726,7 @@ md2asm_test_sw_team_context:
  .quad 2352,7168,274032,1,112,8
  .quad 2440,7168,281200,1,112,8
  .quad 3208,64,288368,2,8,0
+.bss
+.balign 8
+.Lsw_cached_arena: .zero 8
 .section .note.GNU-stack,"",%progbits
