@@ -65,12 +65,15 @@ The runtime setting `EC_PMON=0` disables hardware energy monitoring. Energy and 
 | Grouped exponential seeds and logarithm polynomial updates, monitoring disabled for both | 19.24 [19.23–19.38] | 18.88 [18.88–18.89] | 1.019× |
 | One to four cloud workers with private counters, monitoring disabled for both | 18.90 [18.87–18.99] | 17.92 [17.91–17.93] | 1.055× |
 | Four to eight cloud workers, monitoring disabled for both | 17.94 [17.93–17.98] | 17.77 [17.75–17.77] | 1.010× |
+| Carried pressure intervals and independent ordered sums, monitoring disabled for both | 17.77 [17.76–17.78] | 17.32 [17.32–17.37] | 1.026× |
 
-The latest median is **17.77 seconds**, with complete forecast times of 17.75, 17.77 and 17.77 seconds. Each cloud worker has private temporary storage and diagnostic counters. The controller combines their counts and exception flags after all workers finish. All three wall-time pairs improve, with nonoverlapping ranges. Aggregate user CPU time rises from a median of 18.91 to 19.02 seconds, so this result uses extra parallel resources to reduce elapsed time. The timer reports 0.01 seconds. General input paths remain available, and performance on other forecast inputs remains unmeasured.
+The latest median is **17.32 seconds**, with complete forecast times of 17.32, 17.32 and 17.37 seconds. The pressure interpolation reuses its preceding interval, and four independent radiation sums proceed together while each retains its original addition order. Both variants use the same eight cloud workers and numerical controls. All three wall-time pairs improve, with nonoverlapping ranges. Median aggregate user-plus-system CPU time falls from 19.30 to 18.83 seconds. The timer reports 0.01 seconds. General supported input paths remain available, and performance on other forecast inputs remains unmeasured.
 
-The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. All **255 audited weather and forcing routines** in this T21 main phase have accepted assembly replacements. The overlapping broader lists still have 91 local calculations and 358 main-forecast bodies remaining. The ordered original routine names and source paths remain in the local records.
+The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. All **255 audited weather and forcing routines** in this T21 main phase have accepted assembly replacements. Other inventories describe separate, overlapping scopes and do not add unfinished routines to this tested route. The ordered original routine names and source paths remain in the local records.
 
 ## Notes
+
+For gas interpolation with zero model layers, complete output bytes agree but seven small cases expose an existing difference in numerical exception flags. Assembly retains its early return. The tested forecast has 19 layers, and its returned flags match the original.
 
 The original urban setup stores `RSBCONS=5.67e+08`, although its comment describes the Stefan–Boltzmann constant. This source value is preserved. Urban flux is disabled in the tested forecast, and this coefficient is excluded from the independent physical validation.
 

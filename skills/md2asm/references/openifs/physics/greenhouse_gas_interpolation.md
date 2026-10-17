@@ -6,7 +6,7 @@ Physics revision 1.0 is [greenhouse_gas_profiles.md](../../../../../formulations
 
 For each selected column, compute each climatology amount as `low+w*(high-low)`, with separate subtraction, multiplication and addition. Set accumulated amount zero to positive zero, then add layers in increasing pressure order. Preserve each FP64 rounding point.
 
-For each model face after the top, search intervals from the top. Choose the first with `p>=left` and `p<right`. Otherwise use the last interval, including equality at the final boundary. Compute `(p-left)/(right-left)`, then `Cleft+fraction*(Cright-Cleft)`, rounding each operation separately. The initial model amount is positive zero. Subtract successive rounded amounts, then divide by the separately rounded difference between successive model pressures.
+For each model face after the top, start from the preceding selected pressure interval. Start the first face at the top. Both supplied pressure sequences start at zero and increase strictly, so an earlier interval cannot contain a later face. Keep the original boundary comparisons and signed descriptor stride. Choose the first with `p>=left` and `p<right`. Otherwise use the last interval, including equality at the final boundary. Compute `(p-left)/(right-left)`, then `Cleft+fraction*(Cright-Cleft)`, rounding each operation separately. The initial model amount is positive zero. Subtract successive rounded amounts, then divide by the separately rounded difference between successive model pressures.
 
 The native body may keep rounded model amounts in registers and use one climatology accumulation buffer. This removes two temporary arrays without changing arithmetic dependencies or rounding. The original parent's private final interpolation weight is unused after the child returns and is not a model output.
 
@@ -32,7 +32,9 @@ The focused corpus covers latitude endpoints, uniform concentrations, pressure t
 
 ## Critical Results
 
-The small strict original/native verifier passed 99 calls over 19,696 complete owner bytes, with zero differences and 3,113 independent profile relations. Inputs, descriptor bytes, inactive outputs and guards stayed unchanged. Immediate preserved-register and stack checks passed, and FPCR was zero. The emitted instructions contain no fused or approximate operations, no FPCR writes and no x18 use.
+The updated strict original/native verifier passes 102 calls over 20,432 complete owner bytes, with zero differences and 3,217 independent profile relations. Inputs, descriptor bytes, inactive outputs and guards stay unchanged. The carried index and address match the original first interval, including boundary ties, final extrapolation, signed or gapped descriptors and the 4,096-layer scratch limit. Full immediate FPCR, FPSR, errno, x18 and saved-register checks match the accepted assembly in all 102 calls. These registers and values record arithmetic controls, numerical events, system errors and the required interface state.
+
+Seven zero-model-layer cases retain an existing exception-flag difference from the original routine. The original still calculates intermediate blends, while assembly takes its existing early return. Complete output bytes agree, and all nonempty tested calls also match the original immediate state. This optimisation preserves the accepted early-return behaviour.
 
 ## Actual Forecast Acceptance
 

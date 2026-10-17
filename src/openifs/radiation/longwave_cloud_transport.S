@@ -952,17 +952,30 @@ md2asm_solver_mcica_lw:
  mov x2,#0
 .Lmcica_lw_sum_boundary:
  fmov d0,xzr
+ fmov d2,xzr
+ fmov d4,xzr
+ fmov d6,xzr
  mov x3,#0
 .Lmcica_lw_sum_point:
- ldr d1,[x0,x3,lsl #3]
+ ldr d1,[x0]
+ ldr d3,[x0,#1120]
+ ldr d5,[x0,#2240]
+ ldr d7,[x0,#3360]
  fadd d0,d0,d1
+ fadd d2,d2,d3
+ fadd d4,d4,d5
+ fadd d6,d6,d7
+ add x0,x0,#8
  add x3,x3,#1
  cmp x3,#140
  b.lt .Lmcica_lw_sum_point
  str d0,[x1]
- add x0,x0,#1120
- add x1,x1,#64
- add x2,x2,#1
+ str d2,[x1,#64]
+ str d4,[x1,#128]
+ str d6,[x1,#192]
+ add x0,x0,#3360
+ add x1,x1,#256
+ add x2,x2,#4
  cmp x2,#20
  b.lt .Lmcica_lw_sum_boundary
  ret

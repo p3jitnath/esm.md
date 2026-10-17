@@ -14,7 +14,7 @@ The complete genuine packet has 30 owners and 1,467,596 bytes. Its eight mutable
 
 ## Complete Source Order
 
-For each column, calculate clear transmission and emission for every layer, then use accepted clear vertical transport. Set clear reflection to positive zero. Sum each spectral profile in increasing spectral-point order and store the clear downward surface spectrum.
+For each column, calculate clear transmission and emission for every layer, then use accepted clear vertical transport. Set clear reflection to positive zero. Sum each spectral profile in increasing spectral-point order and store the clear downward surface spectrum. Interleave four independent boundary sums to keep their additions in progress together. Each sum still starts at positive zero and performs the same 140 additions in the same order. The 20 boundary sums retain their original private output locations.
 
 Copy the strided cloud fraction, spread and overlap rows for the accepted complete cloud generator. Supply the original seed plus 997 and retain its qualified random numbers, probability table, overlap and power calculations. Store total cloud cover.
 
@@ -64,4 +64,8 @@ Keep the accepted elementary exponential, logarithm and power assembly boundarie
 
 ## Accepted Forecast Calls
 
-The complete direct parent passes 6,400 genuine native calls and 156,057,600 complete returned bytes with zero differences. All ten saved forecast files agree across 618,140 bytes. Completed private child calls retain their accepted physics, exact-output and interface checks. The separate original parent remains a verification reference. Other forecast stages remain in Fortran.
+The earlier complete-parent qualification passed 6,400 genuine native calls and 156,057,600 complete returned bytes with zero differences. All ten saved forecast files agree across 618,140 bytes. Completed private child calls retain their accepted physics, exact-output and interface checks. The separate original parent remains a verification reference. The current [autonomous forecast](../input/standalone_weather_forecast.md) also owns the other selected stages in assembly.
+
+## Ordered-Sum Update
+
+The updated parent passes the retained genuine packet and five branch cases with zero differing bytes across 146,304 returned bytes. All read-only owners, inactive cells, descriptors, child counts, ABI and immediate status remain unchanged, and 17,200 independent boundary relations pass. Separate raw-profile checks cover signed values, cancellation, subnormal values and special floating-point words. The local helper changes only caller-saved registers whose old values are unused by all four callers. Its reads stay within each 22,400-byte spectral profile, and its stores stay within the original 1,280-byte profile owner. The joint forecast passes the complete state, saved-file and repeated timing checks reported in the [README](../../../../../README.md).

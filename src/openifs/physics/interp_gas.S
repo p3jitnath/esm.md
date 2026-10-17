@@ -78,10 +78,10 @@ md2asm_openifs_interp_gas:
     add x14,x25,x0,lsl #3
     mov x10,#1
     fmov d7,xzr
-.Lgas_interp_model_layer:
-    ldr d0,[x13]
     mov x11,#0
     mov x8,x19
+.Lgas_interp_model_layer:
+    ldr d0,[x13]
 .Lgas_interp_search:
     ldr d1,[x8]
     ldr d2,[x8,x20]
@@ -110,8 +110,8 @@ md2asm_openifs_interp_gas:
     fsub d4,d2,d1
     fmul d4,d3,d4
     fadd d5,d1,d4
-    sub x8,x13,x26
-    ldr d1,[x8]
+    sub x12,x13,x26
+    ldr d1,[x12]
     fsub d2,d0,d1
     fsub d3,d5,d7
     fdiv d3,d3,d2
