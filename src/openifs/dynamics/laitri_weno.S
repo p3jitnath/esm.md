@@ -1,6 +1,7 @@
 /* Direct FP64 WENO interpolation from formulations/openifs/dynamics/departure_point_weno.md.
  * The contract is skills/md2asm/references/openifs/dynamics/laitri_weno.md.
  * All 22 arguments are ordinary GNU Fortran addresses. The source has no numerical child.
+ * Read-only horizontal weights remain in registers after their first guarded load.
  * POWER is the separately qualified opaque source-compatible primitive.
  * Eight-byte values, four-byte integers, column-first planes, FPCR zero and no fused operations.
  */
@@ -50,6 +51,34 @@
     b.ge .Lweno_bad
     ARG x11,17
     ldr \reg,[x11,x9,lsl #3]
+    fmov x11,\reg
+    ubfx x11,x11,#52,#11
+    cmp x11,#2047
+    b.eq .Lweno_bad
+.endm
+/* The horizontal interval has no call and owns these seven scratch registers. */
+.macro HLOAD reg,origin,vertical,longitude,shift=0
+    mov x10,#\vertical
+    madd x9,x13,x10,\origin
+    add x9,x9,#\longitude
+.if \shift == 1
+    ldr w10,[sp,#376]
+    cmp w10,#0
+    csel w10,w10,wzr,gt
+    sxtw x10,w10
+    madd x9,x13,x10,x9
+.elseif \shift == -1
+    ldr w10,[sp,#376]
+    cmp w10,#0
+    csel w10,w10,wzr,lt
+    sxtw x10,w10
+    madd x9,x13,x10,x9
+.endif
+    cmp x9,#0
+    b.lt .Lweno_bad
+    cmp x9,x14
+    b.ge .Lweno_bad
+    ldr \reg,[x12,x9,lsl #3]
     fmov x11,\reg
     ubfx x11,x11,#52,#11
     cmp x11,#2047
@@ -268,92 +297,114 @@ WENO_SYMBOL:
     madd x10,x24,x10,x23
     ldr w11,[x9,x10,lsl #2]
     str w11,[sp,#392]
-    VLOAD d0,1,-1,1,1
-    VLOAD d1,1,-1,2,1
+    // Bind only existing frame metadata; every field-point guard stays below.
+    ARG x12,17
+    ldr x13,[sp,#304]
+    ldr x14,[sp,#312]
+    ldrsw x15,[sp,#380]
+    sub x15,x15,#1
+    ldrsw x16,[sp,#384]
+    sub x16,x16,#1
+    ldrsw x17,[sp,#388]
+    sub x17,x17,#1
+    ldrsw x8,[sp,#392]
+    sub x8,x8,#1
+    HLOAD d0,x16,-1,1,1
+    HLOAD d1,x16,-1,2,1
     WLOAD d2,11,1
+    fmov d27,d2
     fsub d1,d1,d0
     fmul d1,d1,d2
     fadd d0,d0,d1
     str d0,[sp,#464]
-    VLOAD d0,2,-1,1,1
-    VLOAD d1,2,-1,2,1
+    HLOAD d0,x17,-1,1,1
+    HLOAD d1,x17,-1,2,1
     WLOAD d2,11,2
+    fmov d28,d2
     fsub d1,d1,d0
     fmul d1,d1,d2
     fadd d0,d0,d1
     str d0,[sp,#472]
-    VLOAD d0,0,0,1,0
-    VLOAD d1,0,0,2,0
+    HLOAD d0,x15,0,1,0
+    HLOAD d1,x15,0,2,0
     WLOAD d2,11,0
+    fmov d26,d2
     fsub d1,d1,d0
     fmul d1,d1,d2
     fadd d0,d0,d1
     str d0,[sp,#480]
-    VLOAD d0,1,0,0,0
-    VLOAD d1,1,0,1,0
-    VLOAD d2,1,0,2,0
-    VLOAD d3,1,0,3,0
+    HLOAD d0,x16,0,0,0
+    HLOAD d1,x16,0,1,0
+    HLOAD d2,x16,0,2,0
+    HLOAD d3,x16,0,3,0
     fmov d16,d1
     fmov d17,d2
     WLOAD d4,12,0
+    fmov d20,d4
     fsub d1,d1,d0
     fmul d1,d1,d4
     WLOAD d4,12,1
+    fmov d21,d4
     fsub d2,d2,d0
     fmul d2,d2,d4
     WLOAD d4,12,2
+    fmov d22,d4
     fsub d3,d3,d0
     fmul d3,d3,d4
     fadd d0,d0,d1
     fadd d0,d0,d2
     fadd d0,d0,d3
     str d0,[sp,#488]
-    VLOAD d0,2,0,0,0
-    VLOAD d1,2,0,1,0
-    VLOAD d2,2,0,2,0
-    VLOAD d3,2,0,3,0
+    HLOAD d0,x17,0,0,0
+    HLOAD d1,x17,0,1,0
+    HLOAD d2,x17,0,2,0
+    HLOAD d3,x17,0,3,0
     fmov d16,d1
     fmov d17,d2
     WLOAD d4,12,3
+    fmov d23,d4
     fsub d1,d1,d0
     fmul d1,d1,d4
     WLOAD d4,12,4
+    fmov d24,d4
     fsub d2,d2,d0
     fmul d2,d2,d4
     WLOAD d4,12,5
+    fmov d25,d4
     fsub d3,d3,d0
     fmul d3,d3,d4
     fadd d0,d0,d1
     fadd d0,d0,d2
     fadd d0,d0,d3
     str d0,[sp,#496]
-    VLOAD d0,3,0,1,0
-    VLOAD d1,3,0,2,0
+    HLOAD d0,x8,0,1,0
+    HLOAD d1,x8,0,2,0
     WLOAD d2,11,3
+    fmov d29,d2
     fsub d1,d1,d0
     fmul d1,d1,d2
     fadd d0,d0,d1
     str d0,[sp,#504]
-    VLOAD d0,0,1,1,0
-    VLOAD d1,0,1,2,0
-    WLOAD d2,11,0
+    HLOAD d0,x15,1,1,0
+    HLOAD d1,x15,1,2,0
+    fmov d2,d26
     fsub d1,d1,d0
     fmul d1,d1,d2
     fadd d0,d0,d1
     str d0,[sp,#512]
-    VLOAD d0,1,1,0,0
-    VLOAD d1,1,1,1,0
-    VLOAD d2,1,1,2,0
-    VLOAD d3,1,1,3,0
+    HLOAD d0,x16,1,0,0
+    HLOAD d1,x16,1,1,0
+    HLOAD d2,x16,1,2,0
+    HLOAD d3,x16,1,3,0
     fmov d16,d1
     fmov d17,d2
-    WLOAD d4,12,0
+    fmov d4,d20
     fsub d1,d1,d0
     fmul d1,d1,d4
-    WLOAD d4,12,1
+    fmov d4,d21
     fsub d2,d2,d0
     fmul d2,d2,d4
-    WLOAD d4,12,2
+    fmov d4,d22
     fsub d3,d3,d0
     fmul d3,d3,d4
     fadd d0,d0,d1
@@ -370,19 +421,19 @@ WENO_SYMBOL:
     fmaxnm d0,d18,d0
 .Lweno_longitude_free_1_1:
     str d0,[sp,#520]
-    VLOAD d0,2,1,0,0
-    VLOAD d1,2,1,1,0
-    VLOAD d2,2,1,2,0
-    VLOAD d3,2,1,3,0
+    HLOAD d0,x17,1,0,0
+    HLOAD d1,x17,1,1,0
+    HLOAD d2,x17,1,2,0
+    HLOAD d3,x17,1,3,0
     fmov d16,d1
     fmov d17,d2
-    WLOAD d4,12,3
+    fmov d4,d23
     fsub d1,d1,d0
     fmul d1,d1,d4
-    WLOAD d4,12,4
+    fmov d4,d24
     fsub d2,d2,d0
     fmul d2,d2,d4
-    WLOAD d4,12,5
+    fmov d4,d25
     fsub d3,d3,d0
     fmul d3,d3,d4
     fadd d0,d0,d1
@@ -399,33 +450,33 @@ WENO_SYMBOL:
     fmaxnm d0,d18,d0
 .Lweno_longitude_free_1_2:
     str d0,[sp,#528]
-    VLOAD d0,3,1,1,0
-    VLOAD d1,3,1,2,0
-    WLOAD d2,11,3
+    HLOAD d0,x8,1,1,0
+    HLOAD d1,x8,1,2,0
+    fmov d2,d29
     fsub d1,d1,d0
     fmul d1,d1,d2
     fadd d0,d0,d1
     str d0,[sp,#536]
-    VLOAD d0,0,2,1,0
-    VLOAD d1,0,2,2,0
-    WLOAD d2,11,0
+    HLOAD d0,x15,2,1,0
+    HLOAD d1,x15,2,2,0
+    fmov d2,d26
     fsub d1,d1,d0
     fmul d1,d1,d2
     fadd d0,d0,d1
     str d0,[sp,#544]
-    VLOAD d0,1,2,0,0
-    VLOAD d1,1,2,1,0
-    VLOAD d2,1,2,2,0
-    VLOAD d3,1,2,3,0
+    HLOAD d0,x16,2,0,0
+    HLOAD d1,x16,2,1,0
+    HLOAD d2,x16,2,2,0
+    HLOAD d3,x16,2,3,0
     fmov d16,d1
     fmov d17,d2
-    WLOAD d4,12,0
+    fmov d4,d20
     fsub d1,d1,d0
     fmul d1,d1,d4
-    WLOAD d4,12,1
+    fmov d4,d21
     fsub d2,d2,d0
     fmul d2,d2,d4
-    WLOAD d4,12,2
+    fmov d4,d22
     fsub d3,d3,d0
     fmul d3,d3,d4
     fadd d0,d0,d1
@@ -442,19 +493,19 @@ WENO_SYMBOL:
     fmaxnm d0,d18,d0
 .Lweno_longitude_free_2_1:
     str d0,[sp,#552]
-    VLOAD d0,2,2,0,0
-    VLOAD d1,2,2,1,0
-    VLOAD d2,2,2,2,0
-    VLOAD d3,2,2,3,0
+    HLOAD d0,x17,2,0,0
+    HLOAD d1,x17,2,1,0
+    HLOAD d2,x17,2,2,0
+    HLOAD d3,x17,2,3,0
     fmov d16,d1
     fmov d17,d2
-    WLOAD d4,12,3
+    fmov d4,d23
     fsub d1,d1,d0
     fmul d1,d1,d4
-    WLOAD d4,12,4
+    fmov d4,d24
     fsub d2,d2,d0
     fmul d2,d2,d4
-    WLOAD d4,12,5
+    fmov d4,d25
     fsub d3,d3,d0
     fmul d3,d3,d4
     fadd d0,d0,d1
@@ -471,75 +522,75 @@ WENO_SYMBOL:
     fmaxnm d0,d18,d0
 .Lweno_longitude_free_2_2:
     str d0,[sp,#560]
-    VLOAD d0,3,2,1,0
-    VLOAD d1,3,2,2,0
-    WLOAD d2,11,3
+    HLOAD d0,x8,2,1,0
+    HLOAD d1,x8,2,2,0
+    fmov d2,d29
     fsub d1,d1,d0
     fmul d1,d1,d2
     fadd d0,d0,d1
     str d0,[sp,#568]
-    VLOAD d0,0,3,1,0
-    VLOAD d1,0,3,2,0
-    WLOAD d2,11,0
+    HLOAD d0,x15,3,1,0
+    HLOAD d1,x15,3,2,0
+    fmov d2,d26
     fsub d1,d1,d0
     fmul d1,d1,d2
     fadd d0,d0,d1
     str d0,[sp,#576]
-    VLOAD d0,1,3,0,0
-    VLOAD d1,1,3,1,0
-    VLOAD d2,1,3,2,0
-    VLOAD d3,1,3,3,0
+    HLOAD d0,x16,3,0,0
+    HLOAD d1,x16,3,1,0
+    HLOAD d2,x16,3,2,0
+    HLOAD d3,x16,3,3,0
     fmov d16,d1
     fmov d17,d2
-    WLOAD d4,12,0
+    fmov d4,d20
     fsub d1,d1,d0
     fmul d1,d1,d4
-    WLOAD d4,12,1
+    fmov d4,d21
     fsub d2,d2,d0
     fmul d2,d2,d4
-    WLOAD d4,12,2
+    fmov d4,d22
     fsub d3,d3,d0
     fmul d3,d3,d4
     fadd d0,d0,d1
     fadd d0,d0,d2
     fadd d0,d0,d3
     str d0,[sp,#584]
-    VLOAD d0,2,3,0,0
-    VLOAD d1,2,3,1,0
-    VLOAD d2,2,3,2,0
-    VLOAD d3,2,3,3,0
+    HLOAD d0,x17,3,0,0
+    HLOAD d1,x17,3,1,0
+    HLOAD d2,x17,3,2,0
+    HLOAD d3,x17,3,3,0
     fmov d16,d1
     fmov d17,d2
-    WLOAD d4,12,3
+    fmov d4,d23
     fsub d1,d1,d0
     fmul d1,d1,d4
-    WLOAD d4,12,4
+    fmov d4,d24
     fsub d2,d2,d0
     fmul d2,d2,d4
-    WLOAD d4,12,5
+    fmov d4,d25
     fsub d3,d3,d0
     fmul d3,d3,d4
     fadd d0,d0,d1
     fadd d0,d0,d2
     fadd d0,d0,d3
     str d0,[sp,#592]
-    VLOAD d0,3,3,1,0
-    VLOAD d1,3,3,2,0
-    WLOAD d2,11,3
+    HLOAD d0,x8,3,1,0
+    HLOAD d1,x8,3,2,0
+    fmov d2,d29
     fsub d1,d1,d0
     fmul d1,d1,d2
     fadd d0,d0,d1
     str d0,[sp,#600]
-    VLOAD d0,1,4,1,-1
-    VLOAD d1,1,4,2,-1
-    WLOAD d2,11,1
+    HLOAD d0,x16,4,1,-1
+    HLOAD d1,x16,4,2,-1
+    fmov d2,d27
     fsub d1,d1,d0
     fmul d1,d1,d2
     fadd d0,d0,d1
     str d0,[sp,#608]
-    VLOAD d0,2,4,1,-1
-    VLOAD d1,2,4,2,-1
-    WLOAD d2,11,2
+    HLOAD d0,x17,4,1,-1
+    HLOAD d1,x17,4,2,-1
+    fmov d2,d28
     fsub d1,d1,d0
     fmul d1,d1,d2
     fadd d0,d0,d1
@@ -547,6 +598,7 @@ WENO_SYMBOL:
     ldr d0,[sp,#464]
     ldr d1,[sp,#472]
     WLOAD d2,9,0
+    fmov d30,d2
     fsub d1,d1,d0
     fmul d1,d1,d2
     fadd d0,d0,d1
@@ -554,14 +606,17 @@ WENO_SYMBOL:
     ldr d0,[sp,#480]
     ldr d1,[sp,#488]
     WLOAD d4,10,0
+    fmov d8,d4
     fsub d1,d1,d0
     fmul d1,d1,d4
     ldr d2,[sp,#496]
     WLOAD d4,10,1
+    fmov d9,d4
     fsub d2,d2,d0
     fmul d2,d2,d4
     ldr d3,[sp,#504]
     WLOAD d4,10,2
+    fmov d10,d4
     fsub d3,d3,d0
     fmul d3,d3,d4
     fadd d0,d0,d1
@@ -570,15 +625,15 @@ WENO_SYMBOL:
     str d0,[sp,#632]
     ldr d0,[sp,#512]
     ldr d1,[sp,#520]
-    WLOAD d4,10,0
+    fmov d4,d8
     fsub d1,d1,d0
     fmul d1,d1,d4
     ldr d2,[sp,#528]
-    WLOAD d4,10,1
+    fmov d4,d9
     fsub d2,d2,d0
     fmul d2,d2,d4
     ldr d3,[sp,#536]
-    WLOAD d4,10,2
+    fmov d4,d10
     fsub d3,d3,d0
     fmul d3,d3,d4
     fadd d0,d0,d1
@@ -599,15 +654,15 @@ WENO_SYMBOL:
     str d0,[sp,#640]
     ldr d0,[sp,#544]
     ldr d1,[sp,#552]
-    WLOAD d4,10,0
+    fmov d4,d8
     fsub d1,d1,d0
     fmul d1,d1,d4
     ldr d2,[sp,#560]
-    WLOAD d4,10,1
+    fmov d4,d9
     fsub d2,d2,d0
     fmul d2,d2,d4
     ldr d3,[sp,#568]
-    WLOAD d4,10,2
+    fmov d4,d10
     fsub d3,d3,d0
     fmul d3,d3,d4
     fadd d0,d0,d1
@@ -628,15 +683,15 @@ WENO_SYMBOL:
     str d0,[sp,#648]
     ldr d0,[sp,#576]
     ldr d1,[sp,#584]
-    WLOAD d4,10,0
+    fmov d4,d8
     fsub d1,d1,d0
     fmul d1,d1,d4
     ldr d2,[sp,#592]
-    WLOAD d4,10,1
+    fmov d4,d9
     fsub d2,d2,d0
     fmul d2,d2,d4
     ldr d3,[sp,#600]
-    WLOAD d4,10,2
+    fmov d4,d10
     fsub d3,d3,d0
     fmul d3,d3,d4
     fadd d0,d0,d1
@@ -645,7 +700,7 @@ WENO_SYMBOL:
     str d0,[sp,#656]
     ldr d0,[sp,#608]
     ldr d1,[sp,#616]
-    WLOAD d2,9,0
+    fmov d2,d30
     fsub d1,d1,d0
     fmul d1,d1,d2
     fadd d0,d0,d1

@@ -55,14 +55,15 @@ Selected earlier batches are shown below, with the full history in the local res
 | Bounded exact integers for widely separated terms | 31.15 [30.91–31.68] | 26.65 [26.58–26.70] | 1.17× |
 | Four-cell reflection with eight-value exponentials | 22.48 [22.23–22.64] | 22.04 [21.63–22.43] | 1.020× |
 
-The runtime setting `EC_PMON=0` disables hardware energy monitoring. Energy and power diagnostic columns become zero. Weather calculations, memory and status reports, and all canonical forecast files remain in the timed process. The next two contrasts come from one rotated nine-run batch, with three runs per variant.
+The runtime setting `EC_PMON=0` disables hardware energy monitoring. Energy and power diagnostic columns become zero. Weather calculations, memory and status reports, and all canonical forecast files remain in the timed process. The first two contrasts below come from one rotated nine-run batch, with three runs per variant. The last contrast comes from a separate batch of three alternating matched pairs, with monitoring disabled for both variants.
 
 | Matched Change | Before (s) | After (s) | Speedup |
 | --- | ---: | ---: | ---: |
 | Same solver, energy monitoring disabled | 22.11 [21.84–22.39] | 20.59 [20.58–20.61] | 1.074× |
 | Prepared public arithmetic, monitoring disabled for both | 20.59 [20.58–20.61] | 20.55 [20.55–20.55] | 1.002× |
+| Register reuse and exact coefficient products, monitoring disabled for both | 20.51 [20.50–20.51] | 20.02 [20.02–20.14] | 1.024× |
 
-The latest median is **20.55 seconds** for this forecast and machine. All three wall-time pairs favour the arithmetic change. The timer reports 0.01 seconds, which limits the variation estimate for the equal displayed candidate times. User CPU medians are 20.38 and 20.35 seconds, with two of three pairs improving and overlapping ranges. The arithmetic gain is small and specific to this measured case. General input paths remain available, with focused checks across varied values, shapes, signed strides, subnormal values and boundaries. Performance on other forecast inputs remains unmeasured.
+The latest median is **20.02 seconds** for this forecast and machine. The combined change reuses checked transport inputs, keeps a fixed cloud solve in registers and uses separate multiplication and addition where the product is proved exact. All three wall-time and user CPU pairs favour this combined change, with nonoverlapping ranges. User CPU medians are 20.34 [20.33–20.36] and 19.83 [19.82–19.86] seconds. The timer reports 0.01 seconds. General input paths remain available, with focused checks across varied values, shapes, signed strides, subnormal values and boundaries. Performance on other forecast inputs remains unmeasured.
 
 The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. All **255 audited weather and forcing routines** in this T21 main phase have accepted assembly replacements. The overlapping broader lists still have 91 local calculations and 358 main-forecast bodies remaining. The ordered original routine names and source paths remain in the local records.
 

@@ -2,6 +2,7 @@
 // Copyright (C) 2018-2023 Free Software Foundation, Inc.
 // SPDX-License-Identifier: LGPL-2.1-or-later
 // Direct POWER from the frozen original arithmetic and exact table words.
+// Proved-exact coefficient products retain each one-rounding boundary.
 // Input: formulations/openifs/support/scalar_power.md.
 // Contract: skills/md2asm/references/openifs/support/power_original_rounding.md.
 // ABI: d0=x, d1=y, d0=result; FPCR=0; 256-byte frame; sp aligned to 16 bytes.
@@ -186,15 +187,35 @@ md2asm_pow_original_rounding_candidate:
  fmov d0,d11
  ldr d1,[x19]
  ldr d2,[x26,#16]
- bl md2asm_private_power_product_sum_deferred
- orr w27,w27,w1
+ // Integer k times the 42-bit high coefficient is exact over the full domain.
+ fmul d0,d0,d1
+ fadd d0,d0,d2
+ adrp x6,:got:md2asm_product_sum_fast_calls
+ ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+ ldr x7,[x6]
+ add x7,x7,#1
+ str x7,[x6]
  fmov d12,d0
  fadd d13,d12,d10
  fmov d0,d11
  ldr d1,[x19,#8]
  ldr d2,[x26,#24]
+ // Four significant integer bits times this 49-bit coefficient fit exactly.
+ fmov x0,d11
+ tst x0,#0x1ffffffffffff
+ b.ne .Lpower_exact_log_low_original
+ fmul d0,d0,d1
+ fadd d0,d0,d2
+ adrp x6,:got:md2asm_product_sum_fast_calls
+ ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+ ldr x7,[x6]
+ add x7,x7,#1
+ str x7,[x6]
+ b .Lpower_exact_log_low_done
+.Lpower_exact_log_low_original:
  bl md2asm_private_power_product_sum_deferred
  orr w27,w27,w1
+.Lpower_exact_log_low_done:
  str d0,[sp,#160]
  fsub d0,d12,d13
  fadd d0,d0,d10
@@ -287,8 +308,23 @@ md2asm_pow_original_rounding_candidate:
  fmov d0,d11
  ldr d1,[x20,#16]
  fmov d2,d12
+ // The 36-bit split coefficient times a signed 17-bit integer is exact.
+ cmp x24,#0
+ cneg x0,x24,lt
+ cmp x0,#32,lsl #12
+ b.hs .Lpower_exact_exp_original
+ fmul d0,d0,d1
+ fadd d0,d0,d2
+ adrp x6,:got:md2asm_product_sum_fast_calls
+ ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+ ldr x7,[x6]
+ add x7,x7,#1
+ str x7,[x6]
+ b .Lpower_exact_exp_done
+.Lpower_exact_exp_original:
  bl md2asm_private_power_product_sum_deferred
  orr w27,w27,w1
+.Lpower_exact_exp_done:
  fmov d2,d0
  fmov d0,d11
  ldr d1,[x20,#24]

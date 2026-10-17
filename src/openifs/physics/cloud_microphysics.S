@@ -2530,122 +2530,186 @@ md2asm_cloudsc_complete:
  F_ADD SUMRHS, SUMRHS, QA55
  F_ADD XN5, QV, SUMRHS
  // No-pivot LU factorisation. Every product rounds before its subtraction.
- F_DIV LHS21, LHS21, LHS11
- F_MUL TMP0, LHS21, LHS12
- F_SUB LHS22, LHS22, TMP0
- F_MUL TMP0, LHS21, LHS13
- F_SUB LHS23, LHS23, TMP0
- F_MUL TMP0, LHS21, LHS14
- F_SUB LHS24, LHS24, TMP0
- F_MUL TMP0, LHS21, LHS15
- F_SUB LHS25, LHS25, TMP0
- F_DIV LHS31, LHS31, LHS11
- F_MUL TMP0, LHS31, LHS12
- F_SUB LHS32, LHS32, TMP0
- F_MUL TMP0, LHS31, LHS13
- F_SUB LHS33, LHS33, TMP0
- F_MUL TMP0, LHS31, LHS14
- F_SUB LHS34, LHS34, TMP0
- F_MUL TMP0, LHS31, LHS15
- F_SUB LHS35, LHS35, TMP0
- F_DIV LHS41, LHS41, LHS11
- F_MUL TMP0, LHS41, LHS12
- F_SUB LHS42, LHS42, TMP0
- F_MUL TMP0, LHS41, LHS13
- F_SUB LHS43, LHS43, TMP0
- F_MUL TMP0, LHS41, LHS14
- F_SUB LHS44, LHS44, TMP0
- F_MUL TMP0, LHS41, LHS15
- F_SUB LHS45, LHS45, TMP0
- F_DIV LHS51, LHS51, LHS11
- F_MUL TMP0, LHS51, LHS12
- F_SUB LHS52, LHS52, TMP0
- F_MUL TMP0, LHS51, LHS13
- F_SUB LHS53, LHS53, TMP0
- F_MUL TMP0, LHS51, LHS14
- F_SUB LHS54, LHS54, TMP0
- F_MUL TMP0, LHS51, LHS15
- F_SUB LHS55, LHS55, TMP0
- F_DIV LHS32, LHS32, LHS22
- F_MUL TMP0, LHS32, LHS23
- F_SUB LHS33, LHS33, TMP0
- F_MUL TMP0, LHS32, LHS24
- F_SUB LHS34, LHS34, TMP0
- F_MUL TMP0, LHS32, LHS25
- F_SUB LHS35, LHS35, TMP0
- F_DIV LHS42, LHS42, LHS22
- F_MUL TMP0, LHS42, LHS23
- F_SUB LHS43, LHS43, TMP0
- F_MUL TMP0, LHS42, LHS24
- F_SUB LHS44, LHS44, TMP0
- F_MUL TMP0, LHS42, LHS25
- F_SUB LHS45, LHS45, TMP0
- F_DIV LHS52, LHS52, LHS22
- F_MUL TMP0, LHS52, LHS23
- F_SUB LHS53, LHS53, TMP0
- F_MUL TMP0, LHS52, LHS24
- F_SUB LHS54, LHS54, TMP0
- F_MUL TMP0, LHS52, LHS25
- F_SUB LHS55, LHS55, TMP0
- F_DIV LHS43, LHS43, LHS33
- F_MUL TMP0, LHS43, LHS34
- F_SUB LHS44, LHS44, TMP0
- F_MUL TMP0, LHS43, LHS35
- F_SUB LHS45, LHS45, TMP0
- F_DIV LHS53, LHS53, LHS33
- F_MUL TMP0, LHS53, LHS34
- F_SUB LHS54, LHS54, TMP0
- F_MUL TMP0, LHS53, LHS35
- F_SUB LHS55, LHS55, TMP0
- F_DIV LHS54, LHS54, LHS44
- F_MUL TMP0, LHS54, LHS45
- F_SUB LHS55, LHS55, TMP0
+ // Keep the fixed five-species solve in registers, with the same FP64 order.
+ // d0..d24 hold LHS, d25..d29 hold XN, and d30 holds rounded TMP0.
+ LD d0, LHS11
+ LD d1, LHS21
+ LD d2, LHS31
+ LD d3, LHS41
+ LD d4, LHS51
+ LD d5, LHS12
+ LD d6, LHS22
+ LD d7, LHS32
+ LD d8, LHS42
+ LD d9, LHS52
+ LD d10, LHS13
+ LD d11, LHS23
+ LD d12, LHS33
+ LD d13, LHS43
+ LD d14, LHS53
+ LD d15, LHS14
+ LD d16, LHS24
+ LD d17, LHS34
+ LD d18, LHS44
+ LD d19, LHS54
+ LD d20, LHS15
+ LD d21, LHS25
+ LD d22, LHS35
+ LD d23, LHS45
+ LD d24, LHS55
+ LD d25, XN1
+ LD d26, XN2
+ LD d27, XN3
+ LD d28, XN4
+ LD d29, XN5
+ fdiv d1, d1, d0
+ fmul d30, d1, d5
+ fsub d6, d6, d30
+ fmul d30, d1, d10
+ fsub d11, d11, d30
+ fmul d30, d1, d15
+ fsub d16, d16, d30
+ fmul d30, d1, d20
+ fsub d21, d21, d30
+ fdiv d2, d2, d0
+ fmul d30, d2, d5
+ fsub d7, d7, d30
+ fmul d30, d2, d10
+ fsub d12, d12, d30
+ fmul d30, d2, d15
+ fsub d17, d17, d30
+ fmul d30, d2, d20
+ fsub d22, d22, d30
+ fdiv d3, d3, d0
+ fmul d30, d3, d5
+ fsub d8, d8, d30
+ fmul d30, d3, d10
+ fsub d13, d13, d30
+ fmul d30, d3, d15
+ fsub d18, d18, d30
+ fmul d30, d3, d20
+ fsub d23, d23, d30
+ fdiv d4, d4, d0
+ fmul d30, d4, d5
+ fsub d9, d9, d30
+ fmul d30, d4, d10
+ fsub d14, d14, d30
+ fmul d30, d4, d15
+ fsub d19, d19, d30
+ fmul d30, d4, d20
+ fsub d24, d24, d30
+ fdiv d7, d7, d6
+ fmul d30, d7, d11
+ fsub d12, d12, d30
+ fmul d30, d7, d16
+ fsub d17, d17, d30
+ fmul d30, d7, d21
+ fsub d22, d22, d30
+ fdiv d8, d8, d6
+ fmul d30, d8, d11
+ fsub d13, d13, d30
+ fmul d30, d8, d16
+ fsub d18, d18, d30
+ fmul d30, d8, d21
+ fsub d23, d23, d30
+ fdiv d9, d9, d6
+ fmul d30, d9, d11
+ fsub d14, d14, d30
+ fmul d30, d9, d16
+ fsub d19, d19, d30
+ fmul d30, d9, d21
+ fsub d24, d24, d30
+ fdiv d13, d13, d12
+ fmul d30, d13, d17
+ fsub d18, d18, d30
+ fmul d30, d13, d22
+ fsub d23, d23, d30
+ fdiv d14, d14, d12
+ fmul d30, d14, d17
+ fsub d19, d19, d30
+ fmul d30, d14, d22
+ fsub d24, d24, d30
+ fdiv d19, d19, d18
+ fmul d30, d19, d23
+ fsub d24, d24, d30
  // Forward substitution, then reverse back substitution.
- F_MUL TMP0, LHS21, XN1
- F_SUB XN2, XN2, TMP0
- F_MUL TMP0, LHS31, XN1
- F_SUB XN3, XN3, TMP0
- F_MUL TMP0, LHS32, XN2
- F_SUB XN3, XN3, TMP0
- F_MUL TMP0, LHS41, XN1
- F_SUB XN4, XN4, TMP0
- F_MUL TMP0, LHS42, XN2
- F_SUB XN4, XN4, TMP0
- F_MUL TMP0, LHS43, XN3
- F_SUB XN4, XN4, TMP0
- F_MUL TMP0, LHS51, XN1
- F_SUB XN5, XN5, TMP0
- F_MUL TMP0, LHS52, XN2
- F_SUB XN5, XN5, TMP0
- F_MUL TMP0, LHS53, XN3
- F_SUB XN5, XN5, TMP0
- F_MUL TMP0, LHS54, XN4
- F_SUB XN5, XN5, TMP0
- F_DIV XN5, XN5, LHS55
- F_MUL TMP0, LHS45, XN5
- F_SUB XN4, XN4, TMP0
- F_DIV XN4, XN4, LHS44
- F_MUL TMP0, LHS34, XN4
- F_SUB XN3, XN3, TMP0
- F_MUL TMP0, LHS35, XN5
- F_SUB XN3, XN3, TMP0
- F_DIV XN3, XN3, LHS33
- F_MUL TMP0, LHS23, XN3
- F_SUB XN2, XN2, TMP0
- F_MUL TMP0, LHS24, XN4
- F_SUB XN2, XN2, TMP0
- F_MUL TMP0, LHS25, XN5
- F_SUB XN2, XN2, TMP0
- F_DIV XN2, XN2, LHS22
- F_MUL TMP0, LHS12, XN2
- F_SUB XN1, XN1, TMP0
- F_MUL TMP0, LHS13, XN3
- F_SUB XN1, XN1, TMP0
- F_MUL TMP0, LHS14, XN4
- F_SUB XN1, XN1, TMP0
- F_MUL TMP0, LHS15, XN5
- F_SUB XN1, XN1, TMP0
- F_DIV XN1, XN1, LHS11
+ fmul d30, d1, d25
+ fsub d26, d26, d30
+ fmul d30, d2, d25
+ fsub d27, d27, d30
+ fmul d30, d7, d26
+ fsub d27, d27, d30
+ fmul d30, d3, d25
+ fsub d28, d28, d30
+ fmul d30, d8, d26
+ fsub d28, d28, d30
+ fmul d30, d13, d27
+ fsub d28, d28, d30
+ fmul d30, d4, d25
+ fsub d29, d29, d30
+ fmul d30, d9, d26
+ fsub d29, d29, d30
+ fmul d30, d14, d27
+ fsub d29, d29, d30
+ fmul d30, d19, d28
+ fsub d29, d29, d30
+ fdiv d29, d29, d24
+ fmul d30, d23, d29
+ fsub d28, d28, d30
+ fdiv d28, d28, d18
+ fmul d30, d17, d28
+ fsub d27, d27, d30
+ fmul d30, d22, d29
+ fsub d27, d27, d30
+ fdiv d27, d27, d12
+ fmul d30, d11, d27
+ fsub d26, d26, d30
+ fmul d30, d16, d28
+ fsub d26, d26, d30
+ fmul d30, d21, d29
+ fsub d26, d26, d30
+ fdiv d26, d26, d6
+ fmul d30, d5, d26
+ fsub d25, d25, d30
+ fmul d30, d10, d27
+ fsub d25, d25, d30
+ fmul d30, d15, d28
+ fsub d25, d25, d30
+ fmul d30, d20, d29
+ fsub d25, d25, d30
+ fdiv d25, d25, d0
+ // Retain every final matrix, solution and temporary word before cleaning.
+ ST d0, LHS11
+ ST d1, LHS21
+ ST d2, LHS31
+ ST d3, LHS41
+ ST d4, LHS51
+ ST d5, LHS12
+ ST d6, LHS22
+ ST d7, LHS32
+ ST d8, LHS42
+ ST d9, LHS52
+ ST d10, LHS13
+ ST d11, LHS23
+ ST d12, LHS33
+ ST d13, LHS43
+ ST d14, LHS53
+ ST d15, LHS14
+ ST d16, LHS24
+ ST d17, LHS34
+ ST d18, LHS44
+ ST d19, LHS54
+ ST d20, LHS15
+ ST d21, LHS25
+ ST d22, LHS35
+ ST d23, LHS45
+ ST d24, LHS55
+ ST d25, XN1
+ ST d26, XN2
+ ST d27, XN3
+ ST d28, XN4
+ ST d29, XN5
+ ST d30, TMP0
  F_CMP XN1, SMALL
  b.ge .Lsolved_species_1_ready
  F_ADD XN5, XN5, XN1
