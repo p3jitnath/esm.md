@@ -58,3 +58,7 @@ The private entry changes only the direct wrapper's call target. Its focused che
 | Original domain refusal | 14 nonfinite or unsupported-FPCR calls | Same abort |
 
 The combined [autonomous forecast](../input/standalone_weather_forecast.md) matches all 27,486,113 compared state bytes and all 618,140 saved-file bytes. Three matched ordinary pairs also retain all ten files and 59 observed final fields exactly, with checks outside timing. The [README](../../../../../README.md) reports their complete-process performance. The known process-boundary and physical-validation limits remain unchanged.
+
+## Private POWER Mask Return
+
+The same source also builds the private status-return child with `MD2ASM_PRODUCT_SUM_DEFERRED_STATUS`. A successful private call returns its required exception mask in `w1` and leaves FPSR unchanged. Exact returns explicitly supply mask zero. All numerical instructions, admission rules and other interface obligations remain those of this contract. The ordinary public build is byte-identical to its accepted object. The [POWER parent contract](power_original_rounding.md#private-status-collection) defines mask collection, every observation boundary, fallback storage and the changed-path checks.

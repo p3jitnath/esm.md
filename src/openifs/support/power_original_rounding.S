@@ -18,6 +18,7 @@ md2asm_pow_original_rounding_candidate:
  stp x23,x24,[sp,#48]
  stp x25,x26,[sp,#64]
  stp x27,x28,[sp,#80]
+ mov w27,#0
  stp d8,d9,[sp,#96]
  stp d10,d11,[sp,#112]
  stp d12,d13,[sp,#128]
@@ -179,18 +180,21 @@ md2asm_pow_original_rounding_candidate:
  add x26,x26,#72
  ldr d1,[x26]
  fmov d2,#-1.0
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  fmov d10,d0
  fmov d0,d11
  ldr d1,[x19]
  ldr d2,[x26,#16]
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  fmov d12,d0
  fadd d13,d12,d10
  fmov d0,d11
  ldr d1,[x19,#8]
  ldr d2,[x26,#24]
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  str d0,[sp,#160]
  fsub d0,d12,d13
  fadd d0,d0,d10
@@ -204,7 +208,8 @@ md2asm_pow_original_rounding_candidate:
  str d12,[sp,#184]
  fmov d1,d10
  fneg d2,d14
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  str d0,[sp,#192]
  fsub d0,d13,d12
  fadd d0,d0,d14
@@ -212,26 +217,31 @@ md2asm_pow_original_rounding_candidate:
  fmov d0,d10
  ldr d1,[x19,#64]
  ldr d2,[x19,#56]
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  str d0,[sp,#208]
  fmov d0,d10
  ldr d1,[x19,#48]
  ldr d2,[x19,#40]
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  str d0,[sp,#216]
  fmov d0,d10
  ldr d1,[x19,#32]
  ldr d2,[x19,#24]
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  str d0,[sp,#224]
  fmov d0,d14
  ldr d1,[sp,#208]
  ldr d2,[sp,#216]
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  fmov d1,d0
  fmov d0,d14
  ldr d2,[sp,#224]
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  fmov d1,d0
  fmov d0,d15
  ldr d2,[sp,#160]
@@ -241,7 +251,8 @@ md2asm_pow_original_rounding_candidate:
  fadd d2,d2,d3
  ldr d3,[sp,#200]
  fadd d2,d2,d3
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  fmov d10,d0
  fadd d11,d12,d10
  fsub d10,d12,d11
@@ -250,11 +261,13 @@ md2asm_pow_original_rounding_candidate:
  fmov d0,d9
  fmov d1,d11
  fneg d2,d12
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  fmov d2,d0
  fmov d0,d9
  fmov d1,d10
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  fmov d13,d0
  // Exponential range reduction and the original table polynomial.
  fmov x0,d12
@@ -274,11 +287,13 @@ md2asm_pow_original_rounding_candidate:
  fmov d0,d11
  ldr d1,[x20,#16]
  fmov d2,d12
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  fmov d2,d0
  fmov d0,d11
  ldr d1,[x20,#24]
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  fadd d10,d0,d13
  and x0,x24,#127
  add x0,x20,x0,lsl #4
@@ -291,27 +306,32 @@ md2asm_pow_original_rounding_candidate:
  fmov d0,d10
  ldr d1,[x20,#40]
  ldr d2,[x20,#32]
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  str d0,[sp,#160]
  fmov d0,d10
  ldr d1,[x20,#56]
  ldr d2,[x20,#48]
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  str d0,[sp,#168]
  fmov d0,d14
  ldr d1,[sp,#160]
  fadd d2,d11,d10
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  fmov d2,d0
  fmul d0,d14,d14
  ldr d1,[sp,#168]
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  fmov d10,d0
  cbz w25,.Lexp_special
  fmov d0,x26
  fmov d1,d10
  fmov d2,d0
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  b .Ldone
 .Ltiny_exp:
  fmov d0,#1.0
@@ -332,7 +352,8 @@ md2asm_pow_original_rounding_candidate:
  fmov d0,x26
  fmov d1,d10
  fmov d2,d0
- bl md2asm_round_product_sum_candidate
+ bl md2asm_private_power_product_sum_deferred
+ orr w27,w27,w1
  mov x0,#0x7f00000000000000
  fmov d1,x0
  fmul d0,d1,d0
@@ -389,6 +410,13 @@ md2asm_pow_original_rounding_candidate:
 .Lpositive_zero:
  fmov d0,xzr
 .Ldone:
+ cbz w27,.Ldeferred_flush_done_return
+ mrs x16,fpsr
+ bic x17,x27,x16
+ cbz x17,.Ldeferred_flush_done_return
+ orr x16,x16,x27
+ msr fpsr,x16
+.Ldeferred_flush_done_return:
  ldp x19,x20,[sp,#16]
  ldp x21,x22,[sp,#32]
  ldp x23,x24,[sp,#48]
@@ -472,6 +500,14 @@ md2asm_pow_original_rounding_candidate:
  b.ne .Lerror_return
  mov w0,#34
 .Lwith_errno:
+ cbz w27,.Ldeferred_flush_done_errno
+ mrs x16,fpsr
+ bic x17,x27,x16
+ cbz x17,.Ldeferred_flush_done_errno
+ orr x16,x16,x27
+ msr fpsr,x16
+.Ldeferred_flush_done_errno:
+ mov w27,#0
  stp x18,x30,[sp,#-32]!
  str d0,[sp,#16]
  str w0,[sp,#24]

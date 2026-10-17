@@ -1,3 +1,11 @@
+/* Define MD2ASM_PRODUCT_SUM_DEFERRED_STATUS only for POWER's private child.
+ * Its success also returns w1=required flags 0, 16 or 20 without accessing FPSR.
+ * The parent commits these flags before each observable boundary.
+ * The ordinary public build retains immediate cumulative status. */
+#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
+#define md2asm_try_compact_product_sum md2asm_private_compact_deferred
+#define md2asm_try_compact_product_sum_preclassified md2asm_private_compact_deferred_preclassified
+#endif
 /* Exact product plus addend, rounded once to nearest-even FP64.
  * d0,d1,d2 are a,b,c. w0=0 returns the exact result in d0.
  * w0=1 leaves d0,d1,d2 and FPSR unchanged for the verified general integer path.
@@ -8,6 +16,9 @@
 .text
 .p2align 4
 .global md2asm_try_compact_product_sum
+#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
+.hidden md2asm_try_compact_product_sum
+#endif
 .type md2asm_try_compact_product_sum,%function
 md2asm_try_compact_product_sum:
     mrs x17, fpcr
@@ -123,6 +134,9 @@ md2asm_try_compact_product_sum_preclassified:
     b.hi .Lcompact_product_larger
     b.lo .Lcompact_addend_larger
     mov x0, #0
+#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
+    mov w6, #0
+#endif
     b .Lcompact_success_bits
 .Lcompact_product_larger:
     subs x11, x11, x8
@@ -215,16 +229,24 @@ md2asm_try_compact_product_sum_preclassified:
     orr x0, x0, x9, lsl #63
     mov w6, #20
 .Lcompact_add_status:
+#ifndef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
     mrs x1, fpsr
     bic x2, x6, x1
     cbz x2, .Lcompact_success_bits
     orr x1, x1, x6
     msr fpsr, x1
+#endif
 .Lcompact_success_bits:
+#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
+    mov w1, w6
+#endif
     fmov d0, x0
     mov w0, #0
     ret
 .Lcompact_zero_product:
+#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
+    mov w6, #0
+#endif
     cbz x8, .Lcompact_both_zero
     mov x0, x2
     b .Lcompact_success_bits

@@ -34,6 +34,10 @@ md2asm_round_product_sum_candidate:
  add x7,x7,#1
  str x7,[x6]
  ret
+.global md2asm_private_original_general_product_sum
+.hidden md2asm_private_original_general_product_sum
+.type md2asm_private_original_general_product_sum,%function
+md2asm_private_original_general_product_sum:
 .Lcandidate_generic_product_sum:
  sub sp,sp,#1728
  add x17,sp,#1616

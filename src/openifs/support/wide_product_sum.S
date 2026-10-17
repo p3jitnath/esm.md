@@ -1,3 +1,9 @@
+/* Define MD2ASM_PRODUCT_SUM_DEFERRED_STATUS only for POWER's private child.
+ * Its success also returns w1=required flags 0, 16 or 20 without accessing FPSR.
+ * The ordinary public build retains immediate cumulative status. */
+#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
+#define md2asm_try_wide_product_sum md2asm_private_wide_deferred
+#endif
 /* Exact one-rounding product plus addend for the original wide operand class.
  * Input: formulations/openifs/support/rounded_product_sum.md.
  * Contract: skills/md2asm/references/openifs/support/wide_product_sum.md.
@@ -10,6 +16,9 @@
 .text
 .p2align 4
 .global md2asm_try_wide_product_sum
+#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
+.hidden md2asm_try_wide_product_sum
+#endif
 .type md2asm_try_wide_product_sum,%function
 md2asm_try_wide_product_sum:
     mrs x17, fpcr
@@ -207,12 +216,17 @@ md2asm_try_wide_product_sum:
     orr x0, x0, x9, lsl #63
     mov w6, #20             // Overflow and inexact.
 .Lwide_add_status:
+#ifndef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
     mrs x1, fpsr
     bic x2, x6, x1
     cbz x2, .Lwide_success
     orr x1, x1, x6
     msr fpsr, x1
+#endif
 .Lwide_success:
+#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
+    mov w1, w6
+#endif
     fmov d0, x0
     mov w0, #0
     ret

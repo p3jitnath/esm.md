@@ -57,8 +57,9 @@ Each row comes from a separate matched batch. Each time is the median followed b
 | Two-cell radiation and reused helper work | 26.12 [25.99–26.40] | 25.34 [25.33–25.88] | 1.03× |
 | Bounded gas-memory work and paired longwave layers | 25.42 [25.15–25.53] | 24.29 [24.15–24.66] | 1.05× |
 | Wider random-stream groups and four-value exponentials | 24.98 [24.94–25.07] | 24.38 [23.86–24.89] | 1.02× |
+| Private collection of exact-rounding status | 24.40 [24.40–24.41] | 24.19 [23.38–24.20] | 1.01× |
 
-The latest median is **24.38 seconds** for this forecast and machine.
+The latest median is **24.19 seconds** for this forecast and machine.
 
 The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. All **255 audited weather and forcing routines** in this T21 main phase have accepted assembly replacements. The overlapping broader lists still have 91 local calculations and 358 main-forecast bodies remaining. The ordered original routine names and source paths remain in the local records.
 
