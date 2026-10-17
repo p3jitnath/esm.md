@@ -1,4 +1,8 @@
 /* Complete calc_reflectance_transmittance_lw layer transport.
+ * Adjacent thick cells use the qualified two-value EXP. The complete physical
+ * guard, its FPSR restore and the own scalar point remain unchanged.
+ * FPCR zero is required. The private child preserves full q8..q15/q24..q31.
+ * Both counters retain one scalar contribution for each thick cell.
  * Physics formulations/openifs/radiation/longwave_layer_energy.md, P01-P03.
  * Contract skills/md2asm/references/openifs/radiation/longwave_layer_transport.md.
  * Ten ordinary addresses and complete separately rounded FP64 updates. */
@@ -100,6 +104,90 @@ md2asm_longwave_layer:
  msr fpsr,x10
  mov x20,#0
 .Llayer_point:
+ /* Consider only two complete thick cells after the unchanged whole-array guard. */
+ sub x9,x19,x20
+ cmp x9,#16
+ b.lo .Llayer_scalar_point
+ ldr x9,[x21,x20]
+ add x10,x21,x20
+ ldr x10,[x10,#8]
+ and x9,x9,#0x7fffffffffffffff
+ and x10,x10,#0x7fffffffffffffff
+ ldr x11,.Llayer_threshold
+ cmp x9,x11
+ b.ls .Llayer_scalar_point
+ cmp x10,x11
+ b.ls .Llayer_scalar_point
+ ldr q8,[x21,x20]
+ ldr q9,[x22,x20]
+ ldr q10,[x23,x20]
+ ldr q11,[x24,x20]
+ ldr q12,[x25,x20]
+ fsub v0.2d,v9.2d,v10.2d
+ fadd v1.2d,v9.2d,v10.2d
+ fmul v0.2d,v0.2d,v1.2d
+ ldr d1,.Llayer_k_minimum
+ dup v1.2d,v1.d[0]
+ fmax v0.2d,v0.2d,v1.2d
+ fsqrt v13.2d,v0.2d
+ fmul v0.2d,v13.2d,v8.2d
+ fneg v0.2d,v0.2d
+ /* The helper admits both arguments before FP work or either EXP-count change. */
+ bl md2asm_try_exp_pair_counted
+ cbnz w0,.Llayer_scalar_point
+ mov v14.16b,v0.16b
+ adrp x9,.Llayer_exp_count
+ add x9,x9,:lo12:.Llayer_exp_count
+.Llayer_pair_count:
+ ldxr x10,[x9]
+ add x10,x10,#2
+ stxr w11,x10,[x9]
+ cbnz w11,.Llayer_pair_count
+ fmul v0.2d,v14.2d,v14.2d
+ fadd v1.2d,v13.2d,v9.2d
+ fsub v2.2d,v13.2d,v9.2d
+ fmul v2.2d,v2.2d,v0.2d
+ fadd v1.2d,v1.2d,v2.2d
+ fmov d2,#1.0
+ dup v2.2d,v2.d[0]
+ fdiv v15.2d,v2.2d,v1.2d
+ fsub v0.2d,v2.2d,v0.2d
+ fmul v0.2d,v10.2d,v0.2d
+ fmul v16.2d,v0.2d,v15.2d
+ fmov d0,#2.0
+ dup v0.2d,v0.d[0]
+ fmul v0.2d,v0.2d,v13.2d
+ fmul v0.2d,v0.2d,v14.2d
+ fmul v17.2d,v0.2d,v15.2d
+ fsub v0.2d,v12.2d,v11.2d
+ fadd v1.2d,v9.2d,v10.2d
+ fmul v1.2d,v8.2d,v1.2d
+ fdiv v0.2d,v0.2d,v1.2d
+ fadd v1.2d,v0.2d,v11.2d
+ fadd v2.2d,v0.2d,v12.2d
+ fneg v3.2d,v0.2d
+ fadd v3.2d,v3.2d,v11.2d
+ fneg v4.2d,v0.2d
+ fadd v4.2d,v4.2d,v12.2d
+ fmul v5.2d,v16.2d,v3.2d
+ fsub v1.2d,v1.2d,v5.2d
+ fmul v5.2d,v17.2d,v2.2d
+ fsub v6.2d,v1.2d,v5.2d
+ fmul v5.2d,v16.2d,v2.2d
+ fsub v4.2d,v4.2d,v5.2d
+ fmul v5.2d,v17.2d,v3.2d
+ fsub v3.2d,v4.2d,v5.2d
+ mov v2.16b,v6.16b
+ str q16,[x26,x20]
+ str q17,[x27,x20]
+ str q2,[x28,x20]
+ ldr x10,[sp,#176]
+ str q3,[x10,x20]
+ add x20,x20,#16
+ cmp x20,x19
+ b.ne .Llayer_point
+ b .Llayer_restore
+.Llayer_scalar_point:
  ldr d8,[x21,x20]
  ldr d9,[x22,x20]
  ldr d10,[x23,x20]
@@ -184,6 +272,7 @@ md2asm_longwave_layer:
  add x20,x20,#8
  cmp x20,x19
  b.ne .Llayer_point
+.Llayer_restore:
  ldr x18,[sp,#160]
  ldp d8,d9,[sp,#96]
  ldp d10,d11,[sp,#112]

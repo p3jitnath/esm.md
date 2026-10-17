@@ -1,4 +1,6 @@
 /* Complete gas absorption and emission parent.
+ * Clear bounded scratch groups and clip ordinary contiguous spectral rows.
+ * Reordered spectra retain the complete scalar map.
  * Physics formulations/openifs/physics/gas_absorption_and_emission.md.
  * Contract skills/md2asm/references/openifs/physics/gas_optics.md.
  * Fifteen addresses, complete private native numerical children.
@@ -542,12 +544,22 @@ ldr x9,[sp,#1056]
     str x9,[sp,#1056]
 ldr x10,[sp,#1336]
     mov x9,#0
-.Lclear:
+    movi v3.16b,#0
+    and x11,x10,#-64
+    cbz x11,.Lclear_tail
+.Lclear_group:
+    add x12,x26,x9
+    stp q3,q3,[x12]
+    stp q3,q3,[x12,#32]
+    add x9,x9,#64
+    cmp x9,x11
+    b.lo .Lclear_group
+.Lclear_tail:
     cmp x9,x10
     b.hs .Lcleared
     str xzr,[x26,x9]
     add x9,x9,#8
-    b .Lclear
+    b .Lclear_tail
 .Lcleared:
     ldr x9,[x27,#224]
     sub x9,x9,x20
@@ -958,6 +970,30 @@ ldr x10,[sp,#512]
 .Llw_layer:
     cmp x14,x20
     b.hs .Llw_next_column
+    cmp w11,#3
+    b.eq .Llw_permuted
+    /* Four consecutive depths share row addresses and the rounded minimum. */
+    madd x16,x13,x20,x14
+    mov x0,#1120
+    mul x17,x16,x0
+    add x17,x10,x17
+    sub x16,x20,x14
+    sub x16,x16,#1
+    madd x16,x13,x20,x16
+    mul x16,x16,x0
+    add x16,x9,x16
+    dup v2.2d,v2.d[0]
+    mov x15,#0
+.Llw_contiguous:
+    ldp q0,q1,[x16],#32
+    fmax v0.2d,v2.2d,v0.2d
+    fmax v1.2d,v2.2d,v1.2d
+    stp q0,q1,[x17],#32
+    add x15,x15,#4
+    cmp x15,#140
+    b.lo .Llw_contiguous
+    b .Llw_next_layer
+.Llw_permuted:
     mov x15,#0
 .Llw_g:
     cmp x15,#140
