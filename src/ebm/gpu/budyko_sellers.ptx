@@ -1,0 +1,881 @@
+// Direct assembly from the energy-balance D02, D03, T01 and BC01 contract.
+// Physics: ../../../formulations/ebm/budyko_sellers.md.
+// CPU contract: ../../../skills/md2asm/references/budyko_sellers.md.
+// GPU contract: ../../../skills/md2asm-gpu/references/gpu-contract.md.
+// PTX 8.5 targets sm_90; ptxas produces native GPU machine code.
+// ABI: n:u32 in 1..65536; steps:u32 in 0..1000000; device addresses:u64.
+// q,stage,out,work have n+2 FP64 values each; coeff has 3*(n+2); par has 6.
+// These buffer owners are disjoint and aligned to at least 8 bytes.
+// eb_persistent uses one 128-thread block through 128 bands and 2080 shared bytes.
+// eb_temporal uses 128-thread blocks, ceil(n/112) blocks and 2048 shared bytes.
+// A temporal call advances 1..4 complete steps, then eb_publish restores parity.
+// All threads reach the required shared-memory barriers, including inactive ones.
+// Compatibility halo uses at least two threads; update covers n bands.
+// Its final selector is 0 or 1; use one ordered stream for complete stages.
+// Registers are private to each thread; no host calculation supplies a stage.
+.version 8.5
+.target sm_90
+.address_size 64
+
+.visible .entry eb_halo(.param .u32 n, .param .u64 q)
+{
+    .reg .pred %p;
+    .reg .u32 %r<8>;
+    .reg .u64 %a<6>;
+    .reg .b64 %bits;
+    ld.param.u32 %r0, [n];
+    ld.param.u64 %a0, [q];
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mov.u32 %r3, %tid.x;
+    mad.lo.u32 %r1, %r1, %r2, %r3;
+    setp.ge.u32 %p, %r1, 2;
+    @%p ret;
+    setp.eq.u32 %p, %r1, 0;
+    selp.u32 %r4, 1, %r0, %p;
+    add.u32 %r5, %r0, 1;
+    selp.u32 %r5, 0, %r5, %p;
+    mul.wide.u32 %a1, %r4, 8;
+    mul.wide.u32 %a2, %r5, 8;
+    add.u64 %a1, %a0, %a1;
+    add.u64 %a2, %a0, %a2;
+    ld.global.b64 %bits, [%a1];
+    st.global.b64 [%a2], %bits;
+    ret;
+}
+
+// One thread computes one complete cell update, reusing rounded faces locally.
+.visible .entry eb_update(
+    .param .u32 n, .param .u64 q, .param .u64 base,
+    .param .u64 out, .param .u64 work, .param .u64 coeff,
+    .param .u64 par, .param .u32 final)
+{
+    .reg .pred %p<4>;
+    .reg .u32 %r<8>;
+    .reg .u64 %a<16>;
+    .reg .f64 %d<24>;
+    ld.param.u32 %r0, [n];
+    ld.param.u64 %a0, [q];
+    ld.param.u64 %a1, [base];
+    ld.param.u64 %a2, [out];
+    ld.param.u64 %a3, [coeff];
+    ld.param.u64 %a4, [par];
+    ld.param.u32 %r5, [final];
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mov.u32 %r3, %tid.x;
+    mad.lo.u32 %r1, %r1, %r2, %r3;
+    add.u32 %r1, %r1, 1;
+    setp.gt.u32 %p0, %r1, %r0;
+    @%p0 ret;
+    add.u32 %r4, %r0, 2;
+    mul.wide.u32 %a5, %r4, 8;
+    mul.wide.u32 %a6, %r1, 8;
+    add.u64 %a7, %a0, %a6;
+    add.u64 %a8, %a3, %a6;
+    ld.global.f64 %d0, [%a7];
+    // Input pole copies read only this thread's unchanged interior value.
+    setp.eq.u32 %p1, %r1, 1;
+    @%p1 st.global.f64 [%a0], %d0;
+    setp.eq.u32 %p1, %r1, %r0;
+    @%p1 st.global.f64 [%a7+8], %d0;
+    mov.f64 %d1, 0d0000000000000000;
+    mov.f64 %d2, 0d0000000000000000;
+    setp.lt.u32 %p1, %r1, %r0;
+    @!%p1 bra EB_LEFT;
+    ld.global.f64 %d3, [%a7+8];
+    ld.global.f64 %d4, [%a8];
+    sub.rn.f64 %d3, %d3, %d0;
+    mul.rn.f64 %d1, %d4, %d3;
+EB_LEFT:
+    setp.gt.u32 %p1, %r1, 1;
+    @!%p1 bra EB_FORCE;
+    sub.u64 %a13, %a7, 8;
+    sub.u64 %a14, %a8, 8;
+    ld.global.f64 %d3, [%a13];
+    ld.global.f64 %d4, [%a14];
+    sub.rn.f64 %d3, %d0, %d3;
+    mul.rn.f64 %d2, %d4, %d3;
+EB_FORCE:
+    ld.global.f64 %d5, [%a4];
+    ld.global.f64 %d6, [%a4+8];
+    ld.global.f64 %d7, [%a4+16];
+    ld.global.f64 %d8, [%a4+24];
+    ld.global.f64 %d9, [%a4+32];
+    ld.global.f64 %d10, [%a4+40];
+    setp.le.f64 %p1, %d0, %d10;
+    add.u64 %a9, %a8, %a5;
+    add.u64 %a10, %a9, %a5;
+    selp.u64 %a9, %a10, %a9, %p1;
+    ld.global.f64 %d11, [%a9];
+    div.rn.f64 %d12, %d6, %d5;
+    mul.rn.f64 %d13, %d9, %d0;
+    add.rn.f64 %d13, %d8, %d13;
+    sub.rn.f64 %d13, %d11, %d13;
+    sub.rn.f64 %d14, %d1, %d2;
+    div.rn.f64 %d14, %d14, %d7;
+    add.rn.f64 %d14, %d13, %d14;
+    mul.rn.f64 %d14, %d12, %d14;
+    add.rn.f64 %d15, %d0, %d14;
+    setp.eq.u32 %p2, %r5, 0;
+    @%p2 bra EB_STORE;
+    add.u64 %a11, %a1, %a6;
+    ld.global.f64 %d16, [%a11];
+    mul.rn.f64 %d16, %d16, 0d3FE0000000000000;
+    mul.rn.f64 %d15, %d15, 0d3FE0000000000000;
+    add.rn.f64 %d15, %d16, %d15;
+EB_STORE:
+    add.u64 %a12, %a2, %a6;
+    st.global.f64 [%a12], %d15;
+    setp.eq.u32 %p1, %r1, 1;
+    @%p1 st.global.f64 [%a2], %d15;
+    setp.eq.u32 %p1, %r1, %r0;
+    @%p1 st.global.f64 [%a12+8], %d15;
+    ret;
+}
+.func (.param .f64 result) eb_euler(
+    .param .u32 n, .param .u32 index, .param .u64 q,
+    .param .u64 coeff, .param .f64 ratio, .param .f64 delta,
+    .param .f64 A, .param .f64 B, .param .f64 Tf)
+{
+    .reg .pred %p<4>;
+    .reg .u32 %r<8>;
+    .reg .u64 %a<16>;
+    .reg .f64 %d<24>;
+    ld.param.u32 %r0, [n];
+    ld.param.u64 %a0, [q];
+    ld.param.u64 %a3, [coeff];
+    ld.param.u32 %r1, [index];
+    add.u32 %r4, %r0, 2;
+    mul.wide.u32 %a5, %r4, 8;
+    mul.wide.u32 %a6, %r1, 8;
+    add.u64 %a7, %a0, %a6;
+    add.u64 %a8, %a3, %a6;
+    ld.global.f64 %d0, [%a7];
+    mov.f64 %d1, 0d0000000000000000;
+    mov.f64 %d2, 0d0000000000000000;
+    setp.lt.u32 %p1, %r1, %r0;
+    @!%p1 bra EU_LEFT;
+    ld.global.f64 %d3, [%a7+8];
+    ld.global.f64 %d4, [%a8];
+    sub.rn.f64 %d3, %d3, %d0;
+    mul.rn.f64 %d1, %d4, %d3;
+EU_LEFT:
+    setp.gt.u32 %p1, %r1, 1;
+    @!%p1 bra EU_FORCE;
+    sub.u64 %a13, %a7, 8;
+    sub.u64 %a14, %a8, 8;
+    ld.global.f64 %d3, [%a13];
+    ld.global.f64 %d4, [%a14];
+    sub.rn.f64 %d3, %d0, %d3;
+    mul.rn.f64 %d2, %d4, %d3;
+EU_FORCE:
+    ld.param.f64 %d12, [ratio];
+    ld.param.f64 %d7, [delta];
+    ld.param.f64 %d8, [A];
+    ld.param.f64 %d9, [B];
+    ld.param.f64 %d10, [Tf];
+    setp.le.f64 %p1, %d0, %d10;
+    add.u64 %a9, %a8, %a5;
+    add.u64 %a10, %a9, %a5;
+    selp.u64 %a9, %a10, %a9, %p1;
+    ld.global.f64 %d11, [%a9];
+    mul.rn.f64 %d13, %d9, %d0;
+    add.rn.f64 %d13, %d8, %d13;
+    sub.rn.f64 %d13, %d11, %d13;
+    sub.rn.f64 %d14, %d1, %d2;
+    div.rn.f64 %d14, %d14, %d7;
+    add.rn.f64 %d14, %d13, %d14;
+    mul.rn.f64 %d14, %d12, %d14;
+    add.rn.f64 %d15, %d0, %d14;
+    st.param.f64 [result], %d15;
+    ret;
+}
+// One full step per launch. Recompute the same first-stage neighbours locally.
+// Every first-stage operand comes from the immutable input interior, so blocks
+// need no barrier. The public first stage and both pole copies remain complete.
+.visible .entry eb_complete(
+    .param .u32 n, .param .u64 q, .param .u64 stage,
+    .param .u64 out, .param .u64 work, .param .u64 coeff, .param .u64 par)
+{
+    .reg .pred %p<5>;
+    .reg .u32 %r<8>;
+    .reg .u64 %a<20>;
+    .reg .f64 %d<24>;
+    .param .u32 fn, fi;
+    .param .u64 fq, fc;
+    .param .f64 fratio,fdelta,fA,fB,fTf;
+    .param .f64 euler;
+    ld.param.u32 %r0, [n];
+    ld.param.u64 %a0, [q];
+    ld.param.u64 %a1, [stage];
+    ld.param.u64 %a2, [out];
+    ld.param.u64 %a3, [coeff];
+    ld.param.u64 %a4, [par];
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mov.u32 %r3, %tid.x;
+    mad.lo.u32 %r1, %r1, %r2, %r3;
+    add.u32 %r1, %r1, 1;
+    setp.gt.u32 %p0, %r1, %r0;
+    @%p0 ret;
+    mul.wide.u32 %a5, %r1, 8;
+    add.u64 %a6, %a0, %a5;
+    add.u64 %a7, %a3, %a5;
+    ld.global.f64 %d0, [%a6];
+    setp.eq.u32 %p1, %r1, 1;
+    @%p1 st.global.f64 [%a0], %d0;
+    setp.eq.u32 %p1, %r1, %r0;
+    @%p1 st.global.f64 [%a6+8], %d0;
+    st.param.u32 [fn], %r0;
+    st.param.u32 [fi], %r1;
+    st.param.u64 [fq], %a0;
+    st.param.u64 [fc], %a3;
+    ld.global.f64 %d5, [%a4];
+    ld.global.f64 %d6, [%a4+8];
+    ld.global.f64 %d7, [%a4+16];
+    ld.global.f64 %d8, [%a4+24];
+    ld.global.f64 %d9, [%a4+32];
+    ld.global.f64 %d10, [%a4+40];
+    div.rn.f64 %d12, %d6, %d5;
+    st.param.f64 [fratio], %d12;
+    st.param.f64 [fdelta], %d7;
+    st.param.f64 [fA], %d8;
+    st.param.f64 [fB], %d9;
+    st.param.f64 [fTf], %d10;
+    call.uni (euler), eb_euler, (fn,fi,fq,fc,fratio,fdelta,fA,fB,fTf);
+    ld.param.f64 %d1, [euler];
+    mov.f64 %d2, 0d0000000000000000;
+    mov.f64 %d3, 0d0000000000000000;
+    setp.lt.u32 %p1, %r1, %r0;
+    @!%p1 bra EC_LEFT;
+    add.u32 %r4, %r1, 1;
+    st.param.u32 [fi], %r4;
+    call.uni (euler), eb_euler, (fn,fi,fq,fc,fratio,fdelta,fA,fB,fTf);
+    ld.param.f64 %d4, [euler];
+    ld.global.f64 %d5, [%a7];
+    sub.rn.f64 %d4, %d4, %d1;
+    mul.rn.f64 %d2, %d5, %d4;
+EC_LEFT:
+    setp.gt.u32 %p1, %r1, 1;
+    @!%p1 bra EC_FORCE;
+    sub.u32 %r4, %r1, 1;
+    st.param.u32 [fi], %r4;
+    call.uni (euler), eb_euler, (fn,fi,fq,fc,fratio,fdelta,fA,fB,fTf);
+    ld.param.f64 %d4, [euler];
+    sub.u64 %a8, %a7, 8;
+    ld.global.f64 %d5, [%a8];
+    sub.rn.f64 %d4, %d1, %d4;
+    mul.rn.f64 %d3, %d5, %d4;
+EC_FORCE:
+    add.u32 %r5, %r0, 2;
+    mul.wide.u32 %a8, %r5, 8;
+    add.u64 %a9, %a7, %a8;
+    add.u64 %a10, %a9, %a8;
+    setp.le.f64 %p1, %d1, %d10;
+    selp.u64 %a9, %a10, %a9, %p1;
+    ld.global.f64 %d11, [%a9];
+    mul.rn.f64 %d13, %d9, %d1;
+    add.rn.f64 %d13, %d8, %d13;
+    sub.rn.f64 %d13, %d11, %d13;
+    sub.rn.f64 %d14, %d2, %d3;
+    div.rn.f64 %d14, %d14, %d7;
+    add.rn.f64 %d14, %d13, %d14;
+    mul.rn.f64 %d14, %d12, %d14;
+    add.rn.f64 %d15, %d1, %d14;
+    mul.rn.f64 %d0, %d0, 0d3FE0000000000000;
+    mul.rn.f64 %d15, %d15, 0d3FE0000000000000;
+    add.rn.f64 %d15, %d0, %d15;
+    add.u64 %a11, %a1, %a5;
+    add.u64 %a12, %a2, %a5;
+    st.global.f64 [%a11], %d1;
+    st.global.f64 [%a12], %d15;
+    setp.eq.u32 %p1, %r1, 1;
+    @%p1 st.global.f64 [%a1], %d1;
+    @%p1 st.global.f64 [%a2], %d15;
+    setp.eq.u32 %p1, %r1, %r0;
+    @%p1 st.global.f64 [%a11+8], %d1;
+    @%p1 st.global.f64 [%a12+8], %d15;
+    ret;
+}
+// Block-local D02 and D03 with two shared rows and register state.
+// One block of 128 threads. Inactive threads still reach every barrier.
+.visible .entry eb_persistent(
+    .param .u32 n, .param .u64 q, .param .u64 stage,
+    .param .u64 out, .param .u64 work, .param .u64 coeff,
+    .param .u64 par, .param .u32 steps)
+{
+    .shared .align 8 .b8 current[1040];
+    .shared .align 8 .b8 first[1040];
+    .reg .pred %p<10>;
+    .reg .u32 %r<16>;
+    .reg .u64 %a<20>;
+    .reg .f64 %d<40>;
+    ld.param.u32 %r0, [n];
+    ld.param.u32 %r2, [steps];
+    setp.eq.u32 %p0, %r2, 0;
+    @%p0 ret;
+    ld.param.u64 %a0, [q];
+    ld.param.u64 %a1, [stage];
+    ld.param.u64 %a2, [out];
+    ld.param.u64 %a3, [coeff];
+    ld.param.u64 %a4, [par];
+    mov.u32 %r1, %tid.x;
+    add.u32 %r1, %r1, 1;
+    setp.le.u32 %p1, %r1, %r0;
+    setp.eq.u32 %p2, %r1, 1;
+    setp.eq.u32 %p3, %r1, %r0;
+    setp.lt.u32 %p4, %r1, %r0;
+    setp.gt.u32 %p5, %r1, 1;
+    mov.u32 %r10, current;
+    mov.u32 %r11, first;
+    mul.lo.u32 %r12, %r1, 8;
+    add.u32 %r10, %r10, %r12;
+    add.u32 %r11, %r11, %r12;
+    mul.wide.u32 %a5, %r1, 8;
+    add.u64 %a6, %a0, %a5;
+    add.u64 %a7, %a3, %a5;
+    ld.global.f64 %d5, [%a4];
+    ld.global.f64 %d6, [%a4+8];
+    ld.global.f64 %d7, [%a4+16];
+    ld.global.f64 %d8, [%a4+24];
+    ld.global.f64 %d9, [%a4+32];
+    ld.global.f64 %d10, [%a4+40];
+    div.rn.f64 %d12, %d6, %d5;
+    mov.b64 %a16, %d7;
+    and.b64 %a17, %a16, 0x800fffffffffffff;
+    shr.u64 %a18, %a16, 52;
+    and.b64 %a18, %a18, 2047;
+    setp.eq.u64 %p6, %a17, 0;
+    setp.ge.u64 %p7, %a18, 1;
+    setp.le.u64 %p8, %a18, 2045;
+    and.pred %p6, %p6, %p7;
+    and.pred %p6, %p6, %p8;
+    sub.u64 %a19, 2046, %a18;
+    shl.b64 %a19, %a19, 52;
+    mov.b64 %d36, %a19;
+    @!%p1 bra LP_READY;
+    ld.global.f64 %d0, [%a6];
+    st.shared.f64 [%r10], %d0;
+    ld.global.f64 %d20, [%a7];
+    sub.u64 %a8, %a7, 8;
+    ld.global.f64 %d21, [%a8];
+    add.u32 %r5, %r0, 2;
+    mul.wide.u32 %a8, %r5, 8;
+    add.u64 %a13, %a7, %a8;
+    add.u64 %a14, %a13, %a8;
+    ld.global.f64 %d22, [%a13];
+    ld.global.f64 %d23, [%a14];
+LP_READY:
+    bar.sync 0;
+    mov.u32 %r3, 0;
+    @%p6 bra LP_STEP_FAST;
+LP_STEP:
+    @!%p1 bra LP_FIRST_READY;
+    mov.f64 %d1, 0d0000000000000000;
+    mov.f64 %d2, 0d0000000000000000;
+    @!%p4 bra L1_LEFT;
+    ld.shared.f64 %d3, [%r10+8];
+    sub.rn.f64 %d3, %d3, %d0;
+    mul.rn.f64 %d1, %d20, %d3;
+L1_LEFT:
+    sub.u32 %r13, %r10, 8;
+    @!%p5 bra L1_FORCE;
+    ld.shared.f64 %d3, [%r13];
+    sub.rn.f64 %d3, %d0, %d3;
+    mul.rn.f64 %d2, %d21, %d3;
+L1_FORCE:
+    setp.le.f64 %p0, %d0, %d10;
+    selp.f64 %d11, %d23, %d22, %p0;
+    mul.rn.f64 %d13, %d9, %d0;
+    add.rn.f64 %d13, %d8, %d13;
+    sub.rn.f64 %d13, %d11, %d13;
+    sub.rn.f64 %d14, %d1, %d2;
+    div.rn.f64 %d14, %d14, %d7;
+    add.rn.f64 %d14, %d13, %d14;
+    mul.rn.f64 %d14, %d12, %d14;
+    add.rn.f64 %d15, %d0, %d14;
+    st.shared.f64 [%r11], %d15;
+LP_FIRST_READY:
+    bar.sync 0;
+    @!%p1 bra LP_FINAL_READY;
+    mov.f64 %d1, 0d0000000000000000;
+    mov.f64 %d2, 0d0000000000000000;
+    @!%p4 bra L2_LEFT;
+    ld.shared.f64 %d3, [%r11+8];
+    sub.rn.f64 %d3, %d3, %d15;
+    mul.rn.f64 %d1, %d20, %d3;
+L2_LEFT:
+    sub.u32 %r13, %r11, 8;
+    @!%p5 bra L2_FORCE;
+    ld.shared.f64 %d3, [%r13];
+    sub.rn.f64 %d3, %d15, %d3;
+    mul.rn.f64 %d2, %d21, %d3;
+L2_FORCE:
+    setp.le.f64 %p0, %d15, %d10;
+    selp.f64 %d11, %d23, %d22, %p0;
+    mul.rn.f64 %d13, %d9, %d15;
+    add.rn.f64 %d13, %d8, %d13;
+    sub.rn.f64 %d13, %d11, %d13;
+    sub.rn.f64 %d14, %d1, %d2;
+    div.rn.f64 %d14, %d14, %d7;
+    add.rn.f64 %d14, %d13, %d14;
+    mul.rn.f64 %d14, %d12, %d14;
+    add.rn.f64 %d30, %d15, %d14;
+    mul.rn.f64 %d16, %d0, 0d3FE0000000000000;
+    mul.rn.f64 %d30, %d30, 0d3FE0000000000000;
+    add.rn.f64 %d30, %d16, %d30;
+    st.shared.f64 [%r10], %d30;
+LP_FINAL_READY:
+    bar.sync 0;
+    add.u32 %r3, %r3, 1;
+    setp.lt.u32 %p0, %r3, %r2;
+    @!%p0 bra LP_RETURN;
+    mov.f64 %d0, %d30;
+    bra LP_STEP;
+LP_STEP_FAST:
+    @!%p1 bra LP_FIRST_READY_FAST;
+    mov.f64 %d1, 0d0000000000000000;
+    mov.f64 %d2, 0d0000000000000000;
+    @!%p4 bra L1_LEFT_FAST;
+    ld.shared.f64 %d3, [%r10+8];
+    sub.rn.f64 %d3, %d3, %d0;
+    mul.rn.f64 %d1, %d20, %d3;
+L1_LEFT_FAST:
+    sub.u32 %r13, %r10, 8;
+    @!%p5 bra L1_FORCE_FAST;
+    ld.shared.f64 %d3, [%r13];
+    sub.rn.f64 %d3, %d0, %d3;
+    mul.rn.f64 %d2, %d21, %d3;
+L1_FORCE_FAST:
+    setp.le.f64 %p0, %d0, %d10;
+    selp.f64 %d11, %d23, %d22, %p0;
+    mul.rn.f64 %d13, %d9, %d0;
+    add.rn.f64 %d13, %d8, %d13;
+    sub.rn.f64 %d13, %d11, %d13;
+    sub.rn.f64 %d14, %d1, %d2;
+    mul.rn.f64 %d14, %d14, %d36;
+    add.rn.f64 %d14, %d13, %d14;
+    mul.rn.f64 %d14, %d12, %d14;
+    add.rn.f64 %d15, %d0, %d14;
+    st.shared.f64 [%r11], %d15;
+LP_FIRST_READY_FAST:
+    bar.sync 0;
+    @!%p1 bra LP_FINAL_READY_FAST;
+    mov.f64 %d1, 0d0000000000000000;
+    mov.f64 %d2, 0d0000000000000000;
+    @!%p4 bra L2_LEFT_FAST;
+    ld.shared.f64 %d3, [%r11+8];
+    sub.rn.f64 %d3, %d3, %d15;
+    mul.rn.f64 %d1, %d20, %d3;
+L2_LEFT_FAST:
+    sub.u32 %r13, %r11, 8;
+    @!%p5 bra L2_FORCE_FAST;
+    ld.shared.f64 %d3, [%r13];
+    sub.rn.f64 %d3, %d15, %d3;
+    mul.rn.f64 %d2, %d21, %d3;
+L2_FORCE_FAST:
+    setp.le.f64 %p0, %d15, %d10;
+    selp.f64 %d11, %d23, %d22, %p0;
+    mul.rn.f64 %d13, %d9, %d15;
+    add.rn.f64 %d13, %d8, %d13;
+    sub.rn.f64 %d13, %d11, %d13;
+    sub.rn.f64 %d14, %d1, %d2;
+    mul.rn.f64 %d14, %d14, %d36;
+    add.rn.f64 %d14, %d13, %d14;
+    mul.rn.f64 %d14, %d12, %d14;
+    add.rn.f64 %d30, %d15, %d14;
+    mul.rn.f64 %d16, %d0, 0d3FE0000000000000;
+    mul.rn.f64 %d30, %d30, 0d3FE0000000000000;
+    add.rn.f64 %d30, %d16, %d30;
+    st.shared.f64 [%r10], %d30;
+LP_FINAL_READY_FAST:
+    bar.sync 0;
+    add.u32 %r3, %r3, 1;
+    setp.lt.u32 %p0, %r3, %r2;
+    @!%p0 bra LP_RETURN;
+    mov.f64 %d0, %d30;
+    bra LP_STEP_FAST;
+LP_RETURN:
+    @!%p1 ret;
+    and.b32 %r4, %r2, 1;
+    setp.eq.u32 %p0, %r4, 0;
+    selp.f64 %d31, %d30, %d0, %p0;
+    selp.f64 %d32, %d0, %d30, %p0;
+    add.u64 %a10, %a0, %a5;
+    add.u64 %a11, %a1, %a5;
+    add.u64 %a12, %a2, %a5;
+    st.global.f64 [%a10], %d31;
+    st.global.f64 [%a11], %d15;
+    st.global.f64 [%a12], %d32;
+    @%p2 st.global.f64 [%a0], %d31;
+    @%p2 st.global.f64 [%a1], %d15;
+    @%p2 st.global.f64 [%a2], %d32;
+    @%p3 st.global.f64 [%a10+8], %d31;
+    @%p3 st.global.f64 [%a11+8], %d15;
+    @%p3 st.global.f64 [%a12+8], %d32;
+    ret;
+}
+
+.visible .entry eb_temporal(
+    .param .u32 n, .param .u64 q, .param .u64 stage,
+    .param .u64 out, .param .u64 work, .param .u64 coeff,
+    .param .u64 par, .param .u32 steps)
+{
+    .shared .align 8 .b8 current[1024];
+    .shared .align 8 .b8 first[1024];
+    .reg .pred %p<16>;
+    .reg .u32 %r<24>;
+    .reg .u64 %a<24>;
+    .reg .f64 %d<40>;
+    ld.param.u32 %r0, [n];
+    ld.param.u32 %r2, [steps];
+    setp.eq.u32 %p0, %r2, 0;
+    @%p0 ret;
+    ld.param.u64 %a0, [q];
+    ld.param.u64 %a1, [stage];
+    ld.param.u64 %a2, [out];
+    ld.param.u64 %a3, [coeff];
+    ld.param.u64 %a4, [par];
+    ld.param.u64 %a15, [work];
+    mov.u32 %r6, %tid.x;
+    mov.u32 %r7, %ctaid.x;
+    mad.lo.u32 %r1, %r7, 112, %r6;
+    sub.u32 %r1, %r1, 7;
+    setp.ge.s32 %p1, %r1, 1;
+    setp.le.s32 %p2, %r1, %r0;
+    and.pred %p1, %p1, %p2;
+    setp.eq.u32 %p2, %r1, 1;
+    setp.eq.u32 %p3, %r1, %r0;
+    setp.lt.u32 %p4, %r1, %r0;
+    setp.gt.u32 %p5, %r1, 1;
+    setp.ge.u32 %p11, %r6, 8;
+    setp.lt.u32 %p12, %r6, 120;
+    and.pred %p11, %p11, %p12;
+    and.pred %p11, %p11, %p1;
+    sub.u32 %r8, %r2, 1;
+    mov.u32 %r10, current;
+    mov.u32 %r11, first;
+    mul.lo.u32 %r12, %r6, 8;
+    add.u32 %r10, %r10, %r12;
+    add.u32 %r11, %r11, %r12;
+    mul.wide.u32 %a5, %r1, 8;
+    add.u64 %a6, %a0, %a5;
+    add.u64 %a7, %a3, %a5;
+    ld.global.f64 %d5, [%a4];
+    ld.global.f64 %d6, [%a4+8];
+    ld.global.f64 %d7, [%a4+16];
+    ld.global.f64 %d8, [%a4+24];
+    ld.global.f64 %d9, [%a4+32];
+    ld.global.f64 %d10, [%a4+40];
+    div.rn.f64 %d12, %d6, %d5;
+    mov.b64 %a16, %d7;
+    and.b64 %a17, %a16, 0x800fffffffffffff;
+    shr.u64 %a18, %a16, 52;
+    and.b64 %a18, %a18, 2047;
+    setp.eq.u64 %p6, %a17, 0;
+    setp.ge.u64 %p7, %a18, 1;
+    setp.le.u64 %p8, %a18, 2045;
+    and.pred %p6, %p6, %p7;
+    and.pred %p6, %p6, %p8;
+    sub.u64 %a19, 2046, %a18;
+    shl.b64 %a19, %a19, 52;
+    mov.b64 %d36, %a19;
+    @!%p1 bra TB_READY;
+    ld.global.f64 %d0, [%a6];
+    st.shared.f64 [%r10], %d0;
+    ld.global.f64 %d20, [%a7];
+    sub.u64 %a8, %a7, 8;
+    ld.global.f64 %d21, [%a8];
+    add.u32 %r5, %r0, 2;
+    mul.wide.u32 %a8, %r5, 8;
+    add.u64 %a13, %a7, %a8;
+    add.u64 %a14, %a13, %a8;
+    ld.global.f64 %d22, [%a13];
+    ld.global.f64 %d23, [%a14];
+TB_READY:
+    bar.sync 0;
+    mov.u32 %r3, 0;
+    @%p6 bra TB_STEP_FAST;
+TB_STEP:
+    mad.lo.u32 %r14, %r3, 2, 1;
+    sub.u32 %r15, 128, %r14;
+    setp.ge.u32 %p9, %r6, %r14;
+    setp.lt.u32 %p10, %r6, %r15;
+    and.pred %p9, %p9, %p10;
+    and.pred %p9, %p9, %p1;
+    @!%p9 bra TB_FIRST_READY;
+    ld.shared.f64 %d0, [%r10];
+    mov.f64 %d1, 0d0000000000000000;
+    mov.f64 %d2, 0d0000000000000000;
+    @!%p4 bra TB1_LEFT;
+    ld.shared.f64 %d3, [%r10+8];
+    sub.rn.f64 %d3, %d3, %d0;
+    mul.rn.f64 %d1, %d20, %d3;
+TB1_LEFT:
+    sub.u32 %r13, %r10, 8;
+    @!%p5 bra TB1_FORCE;
+    ld.shared.f64 %d3, [%r13];
+    sub.rn.f64 %d3, %d0, %d3;
+    mul.rn.f64 %d2, %d21, %d3;
+TB1_FORCE:
+    setp.le.f64 %p0, %d0, %d10;
+    selp.f64 %d11, %d23, %d22, %p0;
+    mul.rn.f64 %d13, %d9, %d0;
+    add.rn.f64 %d13, %d8, %d13;
+    sub.rn.f64 %d13, %d11, %d13;
+    sub.rn.f64 %d14, %d1, %d2;
+    div.rn.f64 %d14, %d14, %d7;
+    add.rn.f64 %d14, %d13, %d14;
+    mul.rn.f64 %d14, %d12, %d14;
+    add.rn.f64 %d15, %d0, %d14;
+    st.shared.f64 [%r11], %d15;
+TB_FIRST_READY:
+    bar.sync 0;
+    add.u32 %r14, %r14, 1;
+    sub.u32 %r15, 128, %r14;
+    setp.ge.u32 %p9, %r6, %r14;
+    setp.lt.u32 %p10, %r6, %r15;
+    and.pred %p9, %p9, %p10;
+    and.pred %p9, %p9, %p1;
+    @!%p9 bra TB_FINAL_READY;
+    mov.f64 %d1, 0d0000000000000000;
+    mov.f64 %d2, 0d0000000000000000;
+    @!%p4 bra TB2_LEFT;
+    ld.shared.f64 %d3, [%r11+8];
+    sub.rn.f64 %d3, %d3, %d15;
+    mul.rn.f64 %d1, %d20, %d3;
+TB2_LEFT:
+    sub.u32 %r13, %r11, 8;
+    @!%p5 bra TB2_FORCE;
+    ld.shared.f64 %d3, [%r13];
+    sub.rn.f64 %d3, %d15, %d3;
+    mul.rn.f64 %d2, %d21, %d3;
+TB2_FORCE:
+    setp.le.f64 %p0, %d15, %d10;
+    selp.f64 %d11, %d23, %d22, %p0;
+    mul.rn.f64 %d13, %d9, %d15;
+    add.rn.f64 %d13, %d8, %d13;
+    sub.rn.f64 %d13, %d11, %d13;
+    sub.rn.f64 %d14, %d1, %d2;
+    div.rn.f64 %d14, %d14, %d7;
+    add.rn.f64 %d14, %d13, %d14;
+    mul.rn.f64 %d14, %d12, %d14;
+    add.rn.f64 %d30, %d15, %d14;
+    mul.rn.f64 %d16, %d0, 0d3FE0000000000000;
+    mul.rn.f64 %d30, %d30, 0d3FE0000000000000;
+    add.rn.f64 %d30, %d16, %d30;
+    st.shared.f64 [%r10], %d30;
+    setp.eq.u32 %p9, %r3, %r8;
+    and.pred %p9, %p9, %p11;
+    @!%p9 bra TB_FINAL_READY;
+    add.u64 %a10, %a2, %a5;
+    add.u64 %a11, %a1, %a5;
+    add.u64 %a12, %a15, %a5;
+    st.global.f64 [%a10], %d0;
+    st.global.f64 [%a11], %d15;
+    st.global.f64 [%a12], %d30;
+    @%p2 st.global.f64 [%a2], %d0;
+    @%p2 st.global.f64 [%a1], %d15;
+    @%p2 st.global.f64 [%a15], %d30;
+    @%p3 st.global.f64 [%a10+8], %d0;
+    @%p3 st.global.f64 [%a11+8], %d15;
+    @%p3 st.global.f64 [%a12+8], %d30;
+TB_FINAL_READY:
+    bar.sync 0;
+    add.u32 %r3, %r3, 1;
+    setp.lt.u32 %p0, %r3, %r2;
+    @%p0 bra TB_STEP;
+    ret;
+TB_STEP_FAST:
+    mad.lo.u32 %r14, %r3, 2, 1;
+    sub.u32 %r15, 128, %r14;
+    setp.ge.u32 %p9, %r6, %r14;
+    setp.lt.u32 %p10, %r6, %r15;
+    and.pred %p9, %p9, %p10;
+    and.pred %p9, %p9, %p1;
+    @!%p9 bra TB_FIRST_READY_FAST;
+    ld.shared.f64 %d0, [%r10];
+    mov.f64 %d1, 0d0000000000000000;
+    mov.f64 %d2, 0d0000000000000000;
+    @!%p4 bra TB1_LEFT_FAST;
+    ld.shared.f64 %d3, [%r10+8];
+    sub.rn.f64 %d3, %d3, %d0;
+    mul.rn.f64 %d1, %d20, %d3;
+TB1_LEFT_FAST:
+    sub.u32 %r13, %r10, 8;
+    @!%p5 bra TB1_FORCE_FAST;
+    ld.shared.f64 %d3, [%r13];
+    sub.rn.f64 %d3, %d0, %d3;
+    mul.rn.f64 %d2, %d21, %d3;
+TB1_FORCE_FAST:
+    setp.le.f64 %p0, %d0, %d10;
+    selp.f64 %d11, %d23, %d22, %p0;
+    mul.rn.f64 %d13, %d9, %d0;
+    add.rn.f64 %d13, %d8, %d13;
+    sub.rn.f64 %d13, %d11, %d13;
+    sub.rn.f64 %d14, %d1, %d2;
+    mul.rn.f64 %d14, %d14, %d36;
+    add.rn.f64 %d14, %d13, %d14;
+    mul.rn.f64 %d14, %d12, %d14;
+    add.rn.f64 %d15, %d0, %d14;
+    st.shared.f64 [%r11], %d15;
+TB_FIRST_READY_FAST:
+    bar.sync 0;
+    add.u32 %r14, %r14, 1;
+    sub.u32 %r15, 128, %r14;
+    setp.ge.u32 %p9, %r6, %r14;
+    setp.lt.u32 %p10, %r6, %r15;
+    and.pred %p9, %p9, %p10;
+    and.pred %p9, %p9, %p1;
+    @!%p9 bra TB_FINAL_READY_FAST;
+    mov.f64 %d1, 0d0000000000000000;
+    mov.f64 %d2, 0d0000000000000000;
+    @!%p4 bra TB2_LEFT_FAST;
+    ld.shared.f64 %d3, [%r11+8];
+    sub.rn.f64 %d3, %d3, %d15;
+    mul.rn.f64 %d1, %d20, %d3;
+TB2_LEFT_FAST:
+    sub.u32 %r13, %r11, 8;
+    @!%p5 bra TB2_FORCE_FAST;
+    ld.shared.f64 %d3, [%r13];
+    sub.rn.f64 %d3, %d15, %d3;
+    mul.rn.f64 %d2, %d21, %d3;
+TB2_FORCE_FAST:
+    setp.le.f64 %p0, %d15, %d10;
+    selp.f64 %d11, %d23, %d22, %p0;
+    mul.rn.f64 %d13, %d9, %d15;
+    add.rn.f64 %d13, %d8, %d13;
+    sub.rn.f64 %d13, %d11, %d13;
+    sub.rn.f64 %d14, %d1, %d2;
+    mul.rn.f64 %d14, %d14, %d36;
+    add.rn.f64 %d14, %d13, %d14;
+    mul.rn.f64 %d14, %d12, %d14;
+    add.rn.f64 %d30, %d15, %d14;
+    mul.rn.f64 %d16, %d0, 0d3FE0000000000000;
+    mul.rn.f64 %d30, %d30, 0d3FE0000000000000;
+    add.rn.f64 %d30, %d16, %d30;
+    st.shared.f64 [%r10], %d30;
+    setp.eq.u32 %p9, %r3, %r8;
+    and.pred %p9, %p9, %p11;
+    @!%p9 bra TB_FINAL_READY_FAST;
+    add.u64 %a10, %a2, %a5;
+    add.u64 %a11, %a1, %a5;
+    add.u64 %a12, %a15, %a5;
+    st.global.f64 [%a10], %d0;
+    st.global.f64 [%a11], %d15;
+    st.global.f64 [%a12], %d30;
+    @%p2 st.global.f64 [%a2], %d0;
+    @%p2 st.global.f64 [%a1], %d15;
+    @%p2 st.global.f64 [%a15], %d30;
+    @%p3 st.global.f64 [%a10+8], %d0;
+    @%p3 st.global.f64 [%a11+8], %d15;
+    @%p3 st.global.f64 [%a12+8], %d30;
+TB_FINAL_READY_FAST:
+    bar.sync 0;
+    add.u32 %r3, %r3, 1;
+    setp.lt.u32 %p0, %r3, %r2;
+    @%p0 bra TB_STEP_FAST;
+    ret;
+
+}
+// Publish complete physical q/out rows after all tile inputs are finished.
+.visible .entry eb_publish(
+    .param .u32 n, .param .u64 q, .param .u64 out,
+    .param .u64 work, .param .u32 steps)
+{
+    .reg .pred %p<4>;
+    .reg .u32 %r<8>;
+    .reg .u64 %a<8>;
+    .reg .f64 %d<4>;
+    ld.param.u32 %r0, [n];
+    ld.param.u32 %r5, [steps];
+    ld.param.u64 %a0, [q];
+    ld.param.u64 %a1, [out];
+    ld.param.u64 %a2, [work];
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mov.u32 %r3, %tid.x;
+    mad.lo.u32 %r1, %r1, %r2, %r3;
+    add.u32 %r1, %r1, 1;
+    setp.gt.u32 %p0, %r1, %r0;
+    @%p0 ret;
+    mul.wide.u32 %a3, %r1, 8;
+    add.u64 %a4, %a0, %a3;
+    add.u64 %a5, %a1, %a3;
+    add.u64 %a6, %a2, %a3;
+    ld.global.f64 %d0, [%a5];
+    ld.global.f64 %d1, [%a6];
+    and.b32 %r5, %r5, 1;
+    setp.eq.u32 %p1, %r5, 0;
+    selp.f64 %d2, %d1, %d0, %p1;
+    selp.f64 %d3, %d0, %d1, %p1;
+    st.global.f64 [%a4], %d2;
+    st.global.f64 [%a5], %d3;
+    setp.eq.u32 %p1, %r1, 1;
+    @%p1 st.global.f64 [%a0], %d2;
+    @%p1 st.global.f64 [%a1], %d3;
+    setp.eq.u32 %p1, %r1, %r0;
+    @%p1 st.global.f64 [%a4+8], %d2;
+    @%p1 st.global.f64 [%a5+8], %d3;
+    ret;
+}
+
+.func (.param .b64 inverse) power2_inverse(.param .f64 divisor)
+{
+    .reg .pred %p<3>;
+    .reg .b64 %v<4>;
+    ld.param.b64 %v0, [divisor];
+    and.b64 %v1, %v0, 0x800fffffffffffff;
+    shr.u64 %v2, %v0, 52;
+    and.b64 %v2, %v2, 2047;
+    setp.eq.u64 %p0, %v1, 0;
+    setp.ge.u64 %p1, %v2, 1;
+    setp.le.u64 %p2, %v2, 2045;
+    and.pred %p0, %p0, %p1;
+    and.pred %p0, %p0, %p2;
+    sub.u64 %v3, 2046, %v2;
+    shl.b64 %v3, %v3, 52;
+    selp.b64 %v3, %v3, 0, %p0;
+    st.param.b64 [inverse], %v3;
+    ret;
+}
+
+// Probe the actual inverse helper over CPU-generated rounding edge cases.
+// ABI n,iterations:u32 and disjoint a,b,out:u64 with n FP64 values.
+.visible .entry division_check(.param .u32 n, .param .u32 iterations,
+    .param .u64 a, .param .u64 b, .param .u64 out)
+{
+    .reg .pred %p<2>;
+    .reg .u32 %r<8>;
+    .reg .u64 %v<8>;
+    .reg .f64 %d<4>;
+    .param .b64 inverse;
+    .param .u32 valid;
+    .param .f64 divisor;
+    ld.param.u32 %r0, [n];
+    ld.param.u64 %v0, [a];
+    ld.param.u64 %v1, [b];
+    ld.param.u64 %v2, [out];
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mov.u32 %r3, %tid.x;
+    mad.lo.u32 %r1, %r1, %r2, %r3;
+    setp.ge.u32 %p0, %r1, %r0;
+    @%p0 ret;
+    mul.wide.u32 %v3, %r1, 8;
+    add.u64 %v4, %v0, %v3;
+    add.u64 %v5, %v1, %v3;
+    add.u64 %v6, %v2, %v3;
+    ld.global.f64 %d0, [%v4];
+    ld.global.f64 %d1, [%v5];
+    st.param.f64 [divisor], %d1;
+    call.uni (inverse), power2_inverse, (divisor);
+    ld.param.b64 %v7, [inverse];
+    mov.b64 %d2, %v7;
+    setp.ne.u64 %p1, %v7, 0;
+    @%p1 mul.rn.f64 %d3, %d0, %d2;
+    @!%p1 div.rn.f64 %d3, %d0, %d1;
+    st.global.f64 [%v6], %d3;
+    ret;
+}

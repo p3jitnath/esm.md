@@ -28,6 +28,34 @@ Start with the [short template](formulations/TEMPLATE.md), [shallow-water maths]
 
 The published tree contains Markdown and assembly. Build instructions and the local comparison protocol are in the [evaluation notes](skills/md2asm/SKILL.md). [AGENTS.md](AGENTS.md) defines the first-year-undergraduate writing convention. Local tools, language controls, data and the poster remain outside Git.
 
+## GPU solvers
+
+The same shallow-water and energy-balance models also run on one NVIDIA GH200 GPU. The LLM emits PTX, NVIDIA’s virtual assembly language, directly from the frozen numerical contracts. NVIDIA’s assembler then creates GPU machine code. The [md2asm-gpu skill](skills/md2asm-gpu/SKILL.md) and [GPU execution contract](skills/md2asm-gpu/references/gpu-contract.md) describe the direct route, complete stages and supported launches. Sources are [shallow water](src/sw/gpu/2d_rusanov_ssprk2.ptx) and [energy balance](src/ebm/gpu/budyko_sellers.ptx).
+
+These archived tables give million complete cell updates per second from twelve accepted repetitions on one fixed GPU in a completed quiet exclusive allocation. Each entry is the median rate followed by its minimum–maximum range. Higher is faster. A water update includes all three fields, both time stages and periodic boundaries. An energy-balance update includes both stages and pole boundaries.
+
+| Shallow-Water Implementation | 64² Cells | 256² Cells | 1024² Cells |
+| --- | ---: | ---: | ---: |
+| Direct PTX assembly | 672.9 [669.9–673.9] | 5820.4 [5803.9–5843.5] | 8706.4 [8661.6–8724.8] |
+| Fortran tuned | 538.8 [536.7–539.7] | 5495.3 [5472.7–5510.7] | 7951.1 [7890.2–7974.8] |
+| Fortran vanilla | 319.5 [318.1–320.4] | 4000.2 [3990.6–4008.8] | 5809.1 [5804.8–5818.2] |
+| Julia tuned | 515.5 [514.1–516.6] | 4917.5 [4900.9–4928.4] | 5782.1 [5757.8–5796.2] |
+| Julia vanilla | 276.1 [275.7–277.2] | 3303.7 [3300.7–3317.6] | 5179.1 [5168.3–5193.8] |
+| Python tuned | 473.3 [471.1–473.7] | 4179.4 [4160.8–4188.6] | 5181.7 [5157.8–5202.3] |
+| Python vanilla | 269.6 [268.4–269.9] | 3060.8 [3042.9–3067.7] | 4423.0 [4387.7–4445.8] |
+
+| Energy-Balance Implementation | 128 Bands | 4096 Bands | 65536 Bands |
+| --- | ---: | ---: | ---: |
+| Direct PTX assembly | 749.9 [740.2–753.5] | 5023.8 [4980.7–5048.2] | 62023.9 [61291.6–62281.8] |
+| Fortran tuned | 518.9 [513.9–524.3] | 2058.0 [2052.1–2065.6] | 29312.8 [29227.8–29378.5] |
+| Fortran vanilla | 15.7 [15.7–15.8] | 473.5 [471.6–475.8] | 7076.0 [7063.8–7096.7] |
+| Julia tuned | 532.4 [530.3–536.3] | 2101.1 [2097.3–2107.4] | 29549.0 [29378.5–29667.7] |
+| Julia vanilla | 16.2 [16.1–16.2] | 482.9 [482.1–484.4] | 7082.3 [7067.8–7101.7] |
+| Python tuned | 492.0 [490.9–495.4] | 1862.1 [1860.0–1870.2] | 25329.1 [25296.1–25396.6] |
+| Python vanilla | 15.5 [15.5–15.6] | 464.8 [464.4–466.4] | 6783.8 [6772.5–6810.3] |
+
+The timer measures replay of an already prepared sequence of GPU launches. It excludes compilation, startup, allocation, transfers, graph construction and verification. Julia uses separate sequential processes on the same GPU. All seven variants pass independent physics, complete trajectories, ordinary launches, replay, boundary and buffer checks with zero differing output bytes. The water check has 34 scientific cases and the energy-balance check has 28, including 1000-step trajectories. These GPU times describe steady computation and are separate from the CPU forecast’s complete-process times. These GPU checks and measurements belong to the archived study; this merge does not rerun them. Controls, tools, raw repeated samples and figures remain in the local research archive.
+
 ## OpenIFS development
 
 The openifs-md branch extends this workflow to OpenIFS 48.1.1. Assembly replaces 373 original routine bodies within their selected input and calculation scopes, and seven field-registry methods that store array addresses and dimensions. Their small checks cover independent physical relations within declared input ranges, with known source limits recorded below. The checked forecast-call cases pass exact byte comparisons in a coarse global forecast.

@@ -34,6 +34,8 @@ Use [md2asm](skills/md2asm/SKILL.md) for direct assembly development and optimis
 
 Preserve equation IDs and increase the formulation revision when its mathematics changes, keeping generated artifacts traceable to the scientific source. The direct solver must be emitted as AArch64 assembly and built with an assembler and linker; it must not use high-level solver code, compiler intermediate representations, or compiler-generated assembly.
 
+For the GPU extension, use [md2asm-gpu](skills/md2asm-gpu/SKILL.md). Its declared NVIDIA target uses directly emitted PTX assembled by `ptxas` into native GPU machine code, as the GPU exception to the AArch64 target above. Keep GPU shallow-water source under `src/sw/gpu/` and energy-balance source under `src/ebm/gpu/`, with numerical and launch contracts under `skills/md2asm-gpu/references/`. Preserve the frozen physics, ordered FP64 arithmetic, exact outputs, independent checks and exclusive-node rule. Publish only Markdown and assembly, including PTX. Retain language controls, host tools, binary code, raw results and figures locally under `.runtime/`.
+
 Keep comparison implementations and evaluation drivers separate from the direct solver, ensuring that no driver supplies an omitted numerical stage. Every implementation must obey its declared Arm ABI and instruction set while handling supported shapes, boundary cells, and vector remainders. Describe the observable generation route without claiming knowledge of an LLM's internal representations.
 
 ## Work sequence
