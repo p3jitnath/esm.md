@@ -196,17 +196,16 @@
     ALD4 1,17,x4,x5
     ALD4 0,16,x1,x5
     AST4 0,16,x24,x5
-    mov x9,#0
+    mov x9,x20
     mov x10,x5
+    cbz x9,.Lfour_ground\@
 .Lfour_direct\@:
-    cmp x9,x20
-    b.hs .Lfour_ground\@
     ALD4 2,18,x0,x10
     AMUL4 0,16,0,16,2,18
     add x10,x10,x21
     AST4 0,16,x24,x10
-    add x9,x9,#1
-    b .Lfour_direct\@
+    subs x9,x9,#1
+    b.ne .Lfour_direct\@
 .Lfour_ground\@:
     ALD4 3,19,x2,x5
     ALD4 5,21,x3,x5
@@ -218,9 +217,8 @@
     stp q3,q19,[x6]
     stp q4,q20,[x7]
     mov x9,x20
-.Lfour_upward\@:
     cbz x9,.Lfour_top\@
-    sub x9,x9,#1
+.Lfour_upward\@:
     sub x10,x10,x21
     ALD4 5,21,x25,x10
     ALD4 6,22,x26,x10
@@ -244,17 +242,17 @@
     stp q9,q25,[x8,#-32]!
     stp q3,q19,[x6,#-32]!
     stp q4,q20,[x7,#-32]!
-    b .Lfour_upward\@
+    subs x9,x9,#1
+    b.ne .Lfour_upward\@
 .Lfour_top\@:
     movi v14.2d,#0
     movi v30.2d,#0
     AST4 14,30,x23,x5
     AST4 4,20,x22,x5
-    mov x9,#0
+    mov x9,x20
     mov x10,x5
+    cbz x9,.Lfour_last_direct\@
 .Lfour_downward\@:
-    cmp x9,x20
-    b.hs .Lfour_last_direct\@
     ldp q9,q25,[x8],#32
     ldp q3,q19,[x6,#32]!
     ldp q4,q20,[x7,#32]!
@@ -275,8 +273,8 @@
     add x10,x10,x21
     AST4 14,30,x23,x10
     AST4 13,29,x22,x10
-    add x9,x9,#1
-    b .Lfour_downward\@
+    subs x9,x9,#1
+    b.ne .Lfour_downward\@
 .Lfour_last_direct\@:
     ALD4 0,16,x24,x10
     AMUL4 0,16,0,16,1,17

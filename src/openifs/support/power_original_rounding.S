@@ -238,19 +238,22 @@ md2asm_pow_original_rounding_candidate:
  fmov d0,d10
  ldr d1,[x19,#64]
  ldr d2,[x19,#56]
- bl md2asm_private_power_product_sum_deferred
+ adr x16,md2asm_private_power_coefficient_records+0
+ bl md2asm_private_power_coefficient_product_sum
  orr w27,w27,w1
  str d0,[sp,#208]
  fmov d0,d10
  ldr d1,[x19,#48]
  ldr d2,[x19,#40]
- bl md2asm_private_power_product_sum_deferred
+ adr x16,md2asm_private_power_coefficient_records+32
+ bl md2asm_private_power_coefficient_product_sum
  orr w27,w27,w1
  str d0,[sp,#216]
  fmov d0,d10
  ldr d1,[x19,#32]
  ldr d2,[x19,#24]
- bl md2asm_private_power_product_sum_deferred
+ adr x16,md2asm_private_power_coefficient_records+64
+ bl md2asm_private_power_coefficient_product_sum
  orr w27,w27,w1
  str d0,[sp,#224]
  fmov d0,d14
@@ -342,13 +345,15 @@ md2asm_pow_original_rounding_candidate:
  fmov d0,d10
  ldr d1,[x20,#40]
  ldr d2,[x20,#32]
- bl md2asm_private_power_product_sum_deferred
+ adr x16,md2asm_private_power_coefficient_records+96
+ bl md2asm_private_power_coefficient_product_sum
  orr w27,w27,w1
  str d0,[sp,#160]
  fmov d0,d10
  ldr d1,[x20,#56]
  ldr d2,[x20,#48]
- bl md2asm_private_power_product_sum_deferred
+ adr x16,md2asm_private_power_coefficient_records+128
+ bl md2asm_private_power_coefficient_product_sum
  orr w27,w27,w1
  str d0,[sp,#168]
  fmov d0,d14
@@ -554,4 +559,33 @@ md2asm_pow_original_rounding_candidate:
  ldp x18,x30,[sp],#32
 .Lerror_return:
  ret
+
+// Exact integer metadata for the five immutable polynomial coefficient pairs.
+// Each32-byte record contains significands,stored exponents and signs.
+.p2align 4
+.global md2asm_private_power_coefficient_records
+.hidden md2asm_private_power_coefficient_records
+.type md2asm_private_power_coefficient_records,%object
+md2asm_private_power_coefficient_records:
+ // log_seed1, original b/c table offsets[64, 56].
+ .quad 0x10002b8b263fc3,0x12495b9b4845e9
+ .word 1023,1023
+ .word 0,1
+ // log_seed2, original b/c table offsets[48, 40].
+ .quad 0x1555555529a47a,0x1999999959554e
+ .word 1022,1022
+ .word 1,0
+ // log_seed3, original b/c table offsets[32, 24].
+ .quad 0x10000000000006,0x15555555555560
+ .word 1022,1022
+ .word 0,1
+ // exp_seed1, original b/c table offsets[40, 32].
+ .quad 0x1555555555543c,0x1ffffffffffdbd
+ .word 1020,1021
+ .word 0,0
+ // exp_seed2, original b/c table offsets[56, 48].
+ .quad 0x11111167a4d017,0x155555cf172b91
+ .word 1016,1018
+ .word 0,0
+.size md2asm_private_power_coefficient_records,160
 .section .note.GNU-stack,"",%progbits

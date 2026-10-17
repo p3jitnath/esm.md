@@ -46,4 +46,34 @@ md2asm_private_power_product_sum_deferred:
  mov w1,#0
  ret
 .size md2asm_private_power_product_sum_deferred,.-md2asm_private_power_product_sum_deferred
+
+// Private fixed-pair entry. d0..d2 retain original a,b,c for every replay.
+// x16 supplies a matching,read-only32-byte significand/exponent/sign record.
+// Share the included compact body and all original wide/general boundaries.
+.p2align 2
+.global md2asm_private_power_coefficient_product_sum
+.hidden md2asm_private_power_coefficient_product_sum
+.type md2asm_private_power_coefficient_product_sum,%function
+md2asm_private_power_coefficient_product_sum:
+ mrs x17,fpcr
+ cbnz x17,md2asm_private_power_product_sum_deferred
+ fmov x0,d0
+ ubfx x3,x0,#52,#11
+ cmp w3,#2047
+ b.eq md2asm_private_power_product_sum_deferred
+ cbz w3,.Lcoefficient_fused_a_zero_exponent
+ and x6,x0,#0xfffffffffffff
+ orr x6,x6,#0x10000000000000
+ ldp x7,x8,[x16]
+ ldp w4,w5,[x16,#16]
+ ldp w9,w10,[x16,#24]
+ eor x9,x9,x0,lsr #63
+ b .Lcompact_exponents_ready
+.Lcoefficient_fused_a_zero_exponent:
+ lsl x17,x0,#1
+ cbnz x17,md2asm_private_power_product_sum_deferred
+ fmov x0,d2
+ mov w6,#0
+ b .Lcompact_success_bits
+.size md2asm_private_power_coefficient_product_sum,.-md2asm_private_power_coefficient_product_sum
 .section .note.GNU-stack,"",%progbits
