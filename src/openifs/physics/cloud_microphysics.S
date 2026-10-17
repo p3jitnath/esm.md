@@ -1,3 +1,23 @@
+// The default entry keeps the complete original serial ABI and frame.
+// MD2ASM_CLOUD_PRIVATE_RANGE selects a controller-only range: x0 points to
+// 76 original argument words, x1/x2 are global half-open column bounds,
+// x3 is 320*(N+1) bytes of private scratch, and x4 is the worker errno address.
+// Incoming x28 points to a separate 64-byte private counter prefix.
+// Saved x29 holds the parameter record; this private entry has no frame chain.
+// The controller validates the public contract and owns setup, clear and join.
+#ifdef MD2ASM_CLOUD_PRIVATE_RANGE
+#define CLOUD_PARAMETERS x29
+#define CLOUD_POWER md2asm_cloud_private_pow
+#define CLOUD_EXP md2asm_cloud_private_exp
+#define CLOUD_SUPERSAT md2asm_cloud_private_supersatcheck
+#define CLOUD_ENTRY md2asm_cloudsc_private_counter_range
+#else
+#define CLOUD_PARAMETERS x28
+#define CLOUD_POWER md2asm_pow_original_rounding_candidate
+#define CLOUD_EXP exp
+#define CLOUD_SUPERSAT md2asm_cloud_supersatcheck
+#define CLOUD_ENTRY md2asm_cloudsc_complete
+#endif
 /* Direct AArch64 CLOUDSC from the frozen source-ordered contract.
  * Physics formulations/openifs/physics/cloud_water_and_rain.md.
  * Contract skills/md2asm/references/openifs/cloud_microphysics_contract.md.
@@ -523,13 +543,13 @@
 .endm
 .macro EXP dst, src
  LD d0, \src
- bl exp
+ bl CLOUD_EXP
  ST d0, \dst
 .endm
 .macro POW dst, base, exponent
  LD d0, \base
  LD d1, \exponent
- bl md2asm_pow_original_rounding_candidate
+ bl CLOUD_POWER
  ST d0, \dst
 .endm
 .macro F_CMP left, right
@@ -550,7 +570,7 @@
  ST d0, \dst
 .endm
 .macro PAR dst, field
- ldr d0, [x28, #P_\field]
+ ldr d0, [CLOUD_PARAMETERS, #P_\field]
  ST d0, \dst
 .endm
 .macro CUM dst, offset
@@ -615,12 +635,24 @@
  lsl x26, x26, #3
 .endm
 
-.global md2asm_cloudsc_complete
-.type md2asm_cloudsc_complete, %function
-md2asm_cloudsc_complete:
+.global CLOUD_ENTRY
+.type CLOUD_ENTRY, %function
+CLOUD_ENTRY:
+#ifdef MD2ASM_CLOUD_PRIVATE_RANGE
+ cmp x1,x2
+ b.eq .Lcloud_range_empty
+#endif
  sub sp, sp, #2, lsl #12
+#ifdef MD2ASM_CLOUD_PRIVATE_RANGE
+ str x1,[sp,#968]
+ str x2,[sp,#976]
+ str x3,[sp,#984]
+ str x4,[sp,#992]
+#endif
  stp x29, x30, [sp]
+#ifndef MD2ASM_CLOUD_PRIVATE_RANGE
  mov x29, sp
+#endif
  stp x19, x20, [sp, #16]
  stp x21, x22, [sp, #32]
  stp x23, x24, [sp, #48]
@@ -631,6 +663,17 @@ md2asm_cloudsc_complete:
  stp d10, d11, [sp, #128]
  stp d12, d13, [sp, #144]
  stp d14, d15, [sp, #160]
+#ifdef MD2ASM_CLOUD_PRIVATE_RANGE
+ add x19,sp,#256
+ mov x9,x0
+ mov x10,x19
+ mov x11,#76
+.Lcopy_range_arguments:
+ ldr x12,[x9],#8
+ str x12,[x10],#8
+ subs x11,x11,#1
+ b.ne .Lcopy_range_arguments
+#else
  add x19, sp, #256
  stp x0, x1, [x19]
  stp x2, x3, [x19, #16]
@@ -644,8 +687,9 @@ md2asm_cloudsc_complete:
  str x12, [x10], #8
  subs x11, x11, #1
  b.ne .Lcopy_arguments
+#endif
  add x20, sp, #1280
- ldr x28, [x19]
+ ldr CLOUD_PARAMETERS, [x19]
  mrs x9, fpcr
  cbnz x9, .Lreject
  ldr x9, [x19, #72]
@@ -674,36 +718,36 @@ md2asm_cloudsc_complete:
  cmp w11, w23
  b.gt .Lreject
  str w11, [sp, #916]
- ldr w9, [x28, #P_NCLDTOP]
+ ldr w9, [CLOUD_PARAMETERS, #P_NCLDTOP]
  cmp w9, #2
  b.lt .Lreject
  cmp w9, w22
  b.gt .Lreject
  str w9, [sp, #920]
- ldr w9, [x28, #P_NSSOPT]
+ ldr w9, [CLOUD_PARAMETERS, #P_NSSOPT]
  cmp w9, #1
  b.ne .Lreject
  // Qualify the immutable actual route before any returned storage changes.
- ldr w9, [x28, #P_LAERICEAUTO]
- ldr w10, [x28, #P_LAERICESED]
+ ldr w9, [CLOUD_PARAMETERS, #P_LAERICEAUTO]
+ ldr w10, [CLOUD_PARAMETERS, #P_LAERICESED]
  orr w9, w9, w10
- ldr w10, [x28, #P_LAERLIQAUTOLSP]
+ ldr w10, [CLOUD_PARAMETERS, #P_LAERLIQAUTOLSP]
  orr w9, w9, w10
- ldr w10, [x28, #P_LAERLIQCOLL]
+ ldr w10, [CLOUD_PARAMETERS, #P_LAERLIQCOLL]
  orr w9, w9, w10
- ldr w10, [x28, #P_LCLOUD_INHOMOG]
+ ldr w10, [CLOUD_PARAMETERS, #P_LCLOUD_INHOMOG]
  orr w9, w9, w10
- ldr w10, [x28, #P_LCLDBUDGET]
+ ldr w10, [CLOUD_PARAMETERS, #P_LCLDBUDGET]
  orr w9, w9, w10
- ldr w10, [x28, #P_LCLDBUDC]
+ ldr w10, [CLOUD_PARAMETERS, #P_LCLDBUDC]
  orr w9, w9, w10
- ldr w10, [x28, #P_LCLDBUDL]
+ ldr w10, [CLOUD_PARAMETERS, #P_LCLDBUDL]
  orr w9, w9, w10
- ldr w10, [x28, #P_LCLDBUDI]
+ ldr w10, [CLOUD_PARAMETERS, #P_LCLDBUDI]
  orr w9, w9, w10
- ldr w10, [x28, #P_LCLDBUDT]
+ ldr w10, [CLOUD_PARAMETERS, #P_LCLDBUDT]
  orr w9, w9, w10
- ldr w10, [x28, #P_LCLDBUD_VERTINT]
+ ldr w10, [CLOUD_PARAMETERS, #P_LCLDBUD_VERTINT]
  orr w9, w9, w10
  cbnz w9, .Lreject
  ldr x9, [x19, #32]
@@ -730,6 +774,15 @@ md2asm_cloudsc_complete:
  ST d0, DT
  mul x27, x23, x22
  lsl x27, x27, #3
+#ifdef MD2ASM_CLOUD_PRIVATE_RANGE
+ // The controller prepared both addresses before the startup barrier.
+ ldr x0,[sp,#992]
+ str x0,[sp,#936]
+ ldr w9,[x0]
+ str w9,[sp,#944]
+ ldr x0,[sp,#984]
+ str x0,[sp,#960]
+#else
  bl __errno_location
  str x0, [sp, #936]
  ldr w9, [x0]
@@ -739,6 +792,7 @@ md2asm_cloudsc_complete:
  bl calloc
  cbz x0, .Lreject
  str x0, [sp, #960]
+#endif
  // Constants are read from the original frozen shared initialisation.
  ZER ZERO
  LIT ONE, .LCone
@@ -774,6 +828,12 @@ md2asm_cloudsc_complete:
  F_DIV RGR, ONE, RG
  F_SUB TMP0, ALS, ALV
  F_DIV RLDCP, ONE, TMP0
+#ifdef MD2ASM_CLOUD_PRIVATE_RANGE
+ // The controller cleared the complete rain-fraction owner once.
+ ldr x24,[sp,#968]
+ ldr w9,[sp,#976]
+ str w9,[sp,#916]
+#else
  // The original initialises the entire rain-fraction owner, including inactive columns.
  ldr x9, [x19, #472]
  mov x10, #0
@@ -784,6 +844,7 @@ md2asm_cloudsc_complete:
  b.lt .Lrain_fraction_zero
  ldr w24, [sp, #912]
  sub x24, x24, #1
+#endif
 .Lcolumn:
  ldr w9, [sp, #916]
  cmp x24, x9
@@ -2866,7 +2927,7 @@ md2asm_cloudsc_complete:
  ST d0, PSURF
  mov w9, #1
  str w9, [sp, #1072]
- mov x0, x28
+ mov x0, CLOUD_PARAMETERS
  add x1, sp, #1072
  mov x2, x1
  mov x3, x1
@@ -2891,7 +2952,7 @@ md2asm_cloudsc_complete:
  str x9, [sp, #48]
  add x9, x20, #IADJ
  str x9, [sp, #56]
- bl md2asm_cloud_supersatcheck
+ bl CLOUD_SUPERSAT
  add sp, sp, #128
  F_MUL TMP0, QADJ, INVDT
  OWN TMP1, 19, 0
@@ -3117,8 +3178,10 @@ md2asm_cloudsc_complete:
  add x24, x24, #1
  b .Lcolumn
 .Ldone:
+#ifndef MD2ASM_CLOUD_PRIVATE_RANGE
  ldr x0, [sp, #960]
  bl free
+#endif
  ldr x9, [sp, #936]
  ldr w10, [sp, #944]
  str w10, [x9]
@@ -3138,7 +3201,11 @@ md2asm_cloudsc_complete:
 .Lreject:
  bl abort
  brk #0
-.size md2asm_cloudsc_complete, .-md2asm_cloudsc_complete
+#ifdef MD2ASM_CLOUD_PRIVATE_RANGE
+.Lcloud_range_empty:
+ ret
+#endif
+.size CLOUD_ENTRY, .-CLOUD_ENTRY
 .section .rodata
 .align 3
 .LCone: .quad 0x3ff0000000000000

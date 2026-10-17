@@ -1,3 +1,12 @@
+// Define MD2ASM_CLOUD_PRIVATE_COUNTERS only for the hidden cloud worker graph.
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+#define md2asm_cloud_supersatcheck md2asm_cloud_private_supersatcheck
+#define CLOUD_SUPERSAT_INDEX x29
+#define CLOUD_SUPERSAT_EXP md2asm_cloud_private_exp
+#else
+#define CLOUD_SUPERSAT_INDEX x28
+#define CLOUD_SUPERSAT_EXP exp
+#endif
 /* Complete supersaturation adjustment from the frozen physical contract.
  * Physics formulations/openifs/physics/cloud_supersaturation.md
  * ABI/order skills/md2asm/references/openifs/physics/cloud_supersatcheck.md
@@ -15,6 +24,9 @@
     str d0,[sp,#(208+8*\index)]
 .endm
 .global md2asm_cloud_supersatcheck
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+.hidden md2asm_cloud_supersatcheck
+#endif
 .type md2asm_cloud_supersatcheck,%function
 md2asm_cloud_supersatcheck:
     mrs x9,fpcr
@@ -59,7 +71,9 @@ md2asm_cloud_supersatcheck:
     stp d10,d11,[sp,#112]
     stp d12,d13,[sp,#128]
     stp d14,d15,[sp,#144]
+#ifndef MD2ASM_CLOUD_PRIVATE_COUNTERS
     mov x29,sp
+#endif
     mov x19,x0
     sub w9,w9,#1
     uxtw x20,w9
@@ -99,18 +113,18 @@ md2asm_cloud_supersatcheck:
     str d0,[sp,#336]
     ldr d0,[x19,#224]
     str d0,[sp,#344]
-    mov x28,x20
+    mov CLOUD_SUPERSAT_INDEX,x20
 .Lcs_cell:
-    ldr d8,[x23,x28,lsl #3]
+    ldr d8,[x23,CLOUD_SUPERSAT_INDEX,lsl #3]
     ldr d0,.Lcs_160
     fmax d9,d8,d0
-    ldr d10,[x24,x28,lsl #3]
-    ldr d11,[x25,x28,lsl #3]
+    ldr d10,[x24,CLOUD_SUPERSAT_INDEX,lsl #3]
+    ldr d11,[x25,CLOUD_SUPERSAT_INDEX,lsl #3]
     fmov d0,#1.0
     fmin d11,d11,d0
     fmov d1,xzr
     fmax d11,d11,d1
-    ldr d1,[x26,x28,lsl #3]
+    ldr d1,[x26,CLOUD_SUPERSAT_INDEX,lsl #3]
     fdiv d12,d0,d1
 /* The phase fraction uses its complete source clipping and square. */
     ldr d0,[sp,#264]
@@ -131,7 +145,7 @@ md2asm_cloud_supersatcheck:
     ldr d2,[sp,#248]
     fsub d2,d9,d2
     fdiv d0,d0,d2
-    bl exp
+    bl CLOUD_SUPERSAT_EXP
     fmov d14,d0
     ldr d1,[sp,#216]
     fsub d0,d9,d1
@@ -140,7 +154,7 @@ md2asm_cloud_supersatcheck:
     ldr d2,[sp,#256]
     fsub d2,d9,d2
     fdiv d0,d0,d2
-    bl exp
+    bl CLOUD_SUPERSAT_EXP
     fmov d15,d0
 /* Water and selected single-phase vapour factors. */
     ldr d0,[sp,#224]
@@ -248,13 +262,13 @@ md2asm_cloud_supersatcheck:
     fadd d0,d0,d2
     fmul d14,d0,d12
     ldr x9,[sp,#160]
-    str d14,[x9,x28,lsl #3]
+    str d14,[x9,CLOUD_SUPERSAT_INDEX,lsl #3]
     fneg d0,d12
     ldr x9,[sp,#168]
-    str d0,[x9,x28,lsl #3]
+    str d0,[x9,CLOUD_SUPERSAT_INDEX,lsl #3]
     ldr d0,[sp,#416]
     ldr x9,[sp,#176]
-    str d0,[x9,x28,lsl #3]
+    str d0,[x9,CLOUD_SUPERSAT_INDEX,lsl #3]
     cmp x22,#1
     b.ne .Lcs_threshold_phase
     fmul d0,d12,d13
@@ -273,11 +287,11 @@ md2asm_cloud_supersatcheck:
     fmov d1,d12
 .Lcs_store_phase:
     ldr x9,[sp,#184]
-    str d0,[x9,x28,lsl #3]
+    str d0,[x9,CLOUD_SUPERSAT_INDEX,lsl #3]
     ldr x9,[sp,#192]
-    str d1,[x9,x28,lsl #3]
-    add x28,x28,#1
-    cmp x28,x21
+    str d1,[x9,CLOUD_SUPERSAT_INDEX,lsl #3]
+    add CLOUD_SUPERSAT_INDEX,CLOUD_SUPERSAT_INDEX,#1
+    cmp CLOUD_SUPERSAT_INDEX,x21
     b.lt .Lcs_cell
     ldp x29,x30,[sp,#0]
     ldp x19,x20,[sp,#16]

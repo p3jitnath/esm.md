@@ -1,3 +1,14 @@
+// Define MD2ASM_CLOUD_PRIVATE_COUNTERS only for the hidden cloud worker graph.
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+#define md2asm_private_original_general_product_sum md2asm_cloud_private_general_product_sum
+#define md2asm_private_power_product_sum_deferred md2asm_cloud_private_power_product_sum_deferred
+#define md2asm_private_power_coefficient_product_sum md2asm_cloud_private_power_coefficient_product_sum
+#define md2asm_private_power_log_seed_triplet md2asm_cloud_private_power_log_seed_triplet
+#define md2asm_private_power_square_residual md2asm_cloud_private_power_square_residual
+#define md2asm_private_power_product_rounding_residual md2asm_cloud_private_power_product_rounding_residual
+#define md2asm_private_power_exponential_seed_pair md2asm_cloud_private_power_exponential_seed_pair
+#define md2asm_private_power_log_polynomial_merge md2asm_cloud_private_power_log_polynomial_merge
+#endif
 /* Private atomic POWER entry. Borrow x27 as a read-only pending FPSR mask.
  * Preserve all saved registers and original fast/wide counter classification.
  * d0..d2 inputs, d0 result, w1=required mask. General return sets w1=0.
@@ -26,8 +37,12 @@ md2asm_private_power_product_sum_deferred:
 .Ldeferred_atomic_wide_return:
  ldp x29,x30,[sp],#16
  cbnz w0,.Ldeferred_atomic_general
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+ add x6,x28,#8
+#else
  adrp x6,:got:md2asm_product_sum_wide_calls
  ldr x6,[x6,:got_lo12:md2asm_product_sum_wide_calls]
+#endif
  ldr x7,[x6]
  add x7,x7,#1
  str x7,[x6]
@@ -150,12 +165,20 @@ md2asm_private_power_log_seed_triplet:
  cmp w1,#74
  b.hi .Llog_seed_wide_counter
 .Llog_seed_fast_counter:
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+ mov x6,x28
+#else
  adrp x6,:got:md2asm_product_sum_fast_calls
  ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+#endif
  b .Llog_seed_count
 .Llog_seed_wide_counter:
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+ add x6,x28,#8
+#else
  adrp x6,:got:md2asm_product_sum_wide_calls
  ldr x6,[x6,:got_lo12:md2asm_product_sum_wide_calls]
+#endif
 .Llog_seed_count:
  ldr x7,[x6]
  add x7,x7,#3
@@ -378,27 +401,43 @@ md2asm_private_power_exponential_seed_pair:
  b.ls .Lexp_seed_pair_fast_two
  cmp w1,#73
  b.eq .Lexp_seed_pair_mixed
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+ add x6,x28,#8
+#else
  adrp x6,:got:md2asm_product_sum_wide_calls
  ldr x6,[x6,:got_lo12:md2asm_product_sum_wide_calls]
+#endif
  ldr x7,[x6]
  add x7,x7,#2
  str x7,[x6]
  b .Lexp_seed_pair_done
 .Lexp_seed_pair_fast_two:
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+ mov x6,x28
+#else
  adrp x6,:got:md2asm_product_sum_fast_calls
  ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+#endif
  ldr x7,[x6]
  add x7,x7,#2
  str x7,[x6]
  b .Lexp_seed_pair_done
 .Lexp_seed_pair_mixed:
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+ mov x6,x28
+#else
  adrp x6,:got:md2asm_product_sum_fast_calls
  ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+#endif
  ldr x7,[x6]
  add x7,x7,#1
  str x7,[x6]
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+ add x6,x28,#8
+#else
  adrp x6,:got:md2asm_product_sum_wide_calls
  ldr x6,[x6,:got_lo12:md2asm_product_sum_wide_calls]
+#endif
  ldr x7,[x6]
  add x7,x7,#1
  str x7,[x6]
@@ -488,8 +527,12 @@ md2asm_private_power_log_polynomial_merge:
  mov w1,w6
  fmov d0,x0
  mov w0,#0
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+ add x6,x28,#8
+#else
  adrp x6,:got:md2asm_product_sum_wide_calls
  ldr x6,[x6,:got_lo12:md2asm_product_sum_wide_calls]
+#endif
  ldr x7,[x6]
  add x7,x7,#1
  str x7,[x6]

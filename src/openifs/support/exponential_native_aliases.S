@@ -1,3 +1,21 @@
+// Define MD2ASM_CLOUD_PRIVATE_COUNTERS only for the hidden cloud worker graph.
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+// Private scalar EXP count. x28 owns FAST/WIDE/EXP words at 0/8/16.
+// The accepted scalar body preserves the private counter base and all saved registers.
+.arch armv8-a
+.text
+.p2align 2
+.global md2asm_cloud_private_exp
+.hidden md2asm_cloud_private_exp
+.type md2asm_cloud_private_exp,%function
+md2asm_cloud_private_exp:
+ ldr x10,[x28,#16]
+ add x10,x10,#1
+ str x10,[x28,#16]
+ b md2asm_exp_original_rounding
+.size md2asm_cloud_private_exp,.-md2asm_cloud_private_exp
+.section .note.GNU-stack,"",%progbits
+#else
 // Solver contract skills/md2asm/references/openifs/support/exponential_native_binding.md.
 /* Original scalar EXP names; numerical body remains unchanged.
  * Contract: skills/md2asm/references/openifs/support/exponential_native_binding.md.
@@ -52,3 +70,5 @@ md2asm_exp_pair_counted_admitted:
 .p2align 3
 .Lexp_native_calls: .zero 8
 .section .note.GNU-stack,"",%progbits
+
+#endif

@@ -1,3 +1,7 @@
+// Define MD2ASM_CLOUD_PRIVATE_COUNTERS only for the hidden cloud worker graph.
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+#define md2asm_private_original_general_product_sum md2asm_cloud_private_general_product_sum
+#endif
 // Exact RN(a*b+c) at the frozen POWER single-rounding source locations.
 // Contract: skills/md2asm/references/openifs/support/power_original_rounding.md.
 // ABI: d0,d1,d2 operands; d0 result; finite inputs; FPCR=0.
@@ -7,6 +11,7 @@
 .arch armv8-a
 .text
 .p2align 4
+#ifndef MD2ASM_CLOUD_PRIVATE_COUNTERS
 .global md2asm_round_product_sum_candidate
 .type md2asm_round_product_sum_candidate,%function
 md2asm_round_product_sum_candidate:
@@ -34,6 +39,7 @@ md2asm_round_product_sum_candidate:
  add x7,x7,#1
  str x7,[x6]
  ret
+#endif
 .global md2asm_private_original_general_product_sum
 .hidden md2asm_private_original_general_product_sum
 .type md2asm_private_original_general_product_sum,%function
@@ -115,12 +121,21 @@ md2asm_private_original_general_product_sum:
  cmp w6,#127
  b.gt .Lclass_wide
 .Lclass_fast:
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+ ldr x6,[sp,#1688]
+#else
  adrp x6,:got:md2asm_product_sum_fast_calls
  ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+#endif
  b .Lcount
 .Lclass_wide:
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+ ldr x6,[sp,#1688]
+ add x6,x6,#8
+#else
  adrp x6,:got:md2asm_product_sum_wide_calls
  ldr x6,[x6,:got_lo12:md2asm_product_sum_wide_calls]
+#endif
 .Lcount:
  ldr x7,[x6]
  add x7,x7,#1
@@ -318,8 +333,12 @@ md2asm_private_original_general_product_sum:
  add sp,sp,#1728
  ret
 .Lzero_product:
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+ ldr x6,[sp,#1688]
+#else
  adrp x6,:got:md2asm_product_sum_fast_calls
  ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+#endif
  ldr x7,[x6]
  add x7,x7,#1
  str x7,[x6]
@@ -334,7 +353,9 @@ md2asm_private_original_general_product_sum:
  mov w0,#116
  bl _exit
  brk #116
+#ifndef MD2ASM_CLOUD_PRIVATE_COUNTERS
 .size md2asm_round_product_sum_candidate,.-md2asm_round_product_sum_candidate
+#endif
 // Insert a 64-bit word into a zeroed limb array. x0 is a bit index,
 // x1 is the array and x2 is the word. The last write is within 67 limbs.
 .Linsert:
@@ -353,6 +374,10 @@ md2asm_private_original_general_product_sum:
  str x7,[x5,#8]
 .Linsert_done:
  ret
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+.size md2asm_private_original_general_product_sum,.-md2asm_private_original_general_product_sum
+.section .note.GNU-stack,"",%progbits
+#else
 .global md2asm_diagnostic_status_clear
 .type md2asm_diagnostic_status_clear,%function
 md2asm_diagnostic_status_clear:
@@ -376,3 +401,5 @@ md2asm_product_sum_fast_calls: .zero 8
 .size md2asm_product_sum_wide_calls,8
 md2asm_product_sum_wide_calls: .zero 8
 .section .note.GNU-stack,"",%progbits
+
+#endif

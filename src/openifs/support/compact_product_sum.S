@@ -1,3 +1,4 @@
+// Define MD2ASM_CLOUD_PRIVATE_COUNTERS only for the hidden cloud worker graph.
 /* MD2ASM_COMPACT_IN_ATOMIC includes this same body in the private wrapper.
  * It keeps the normal leaf builds unchanged, commits only compact successes
  * to the fast counter and sends unchanged refusal tags to the wide dispatcher. */
@@ -248,8 +249,12 @@ md2asm_try_compact_product_sum_preclassified:
 #endif
     mov w0, #0
 #ifdef MD2ASM_COMPACT_IN_ATOMIC
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+    mov x6,x28
+#else
     adrp x6,:got:md2asm_product_sum_fast_calls
     ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+#endif
     ldr x7,[x6]
     add x7,x7,#1
     str x7,[x6]

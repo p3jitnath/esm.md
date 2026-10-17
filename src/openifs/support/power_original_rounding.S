@@ -1,3 +1,15 @@
+// Define MD2ASM_CLOUD_PRIVATE_COUNTERS only for the hidden cloud worker graph.
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+#define md2asm_pow_original_rounding_candidate md2asm_cloud_private_pow
+#define md2asm_private_power_coefficient_records md2asm_cloud_private_coefficient_records
+#define md2asm_private_power_product_sum_deferred md2asm_cloud_private_power_product_sum_deferred
+#define md2asm_private_power_coefficient_product_sum md2asm_cloud_private_power_coefficient_product_sum
+#define md2asm_private_power_log_seed_triplet md2asm_cloud_private_power_log_seed_triplet
+#define md2asm_private_power_square_residual md2asm_cloud_private_power_square_residual
+#define md2asm_private_power_product_rounding_residual md2asm_cloud_private_power_product_rounding_residual
+#define md2asm_private_power_exponential_seed_pair md2asm_cloud_private_power_exponential_seed_pair
+#define md2asm_private_power_log_polynomial_merge md2asm_cloud_private_power_log_polynomial_merge
+#endif
 // Algorithm and constants derived from GLIBC 2.38.
 // Copyright (C) 2018-2023 Free Software Foundation, Inc.
 // SPDX-License-Identifier: LGPL-2.1-or-later
@@ -10,6 +22,9 @@
 .text
 .p2align 4
 .global md2asm_pow_original_rounding_candidate
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+.hidden md2asm_pow_original_rounding_candidate
+#endif
 .type md2asm_pow_original_rounding_candidate,%function
 md2asm_pow_original_rounding_candidate:
  stp x29,x30,[sp,#-256]!
@@ -190,8 +205,12 @@ md2asm_pow_original_rounding_candidate:
  // Integer k times the 42-bit high coefficient is exact over the full domain.
  fmul d0,d0,d1
  fadd d0,d0,d2
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+ mov x6,x28
+#else
  adrp x6,:got:md2asm_product_sum_fast_calls
  ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+#endif
  ldr x7,[x6]
  add x7,x7,#1
  str x7,[x6]
@@ -206,8 +225,12 @@ md2asm_pow_original_rounding_candidate:
  b.ne .Lpower_exact_log_low_original
  fmul d0,d0,d1
  fadd d0,d0,d2
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+ mov x6,x28
+#else
  adrp x6,:got:md2asm_product_sum_fast_calls
  ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+#endif
  ldr x7,[x6]
  add x7,x7,#1
  str x7,[x6]
@@ -328,8 +351,12 @@ md2asm_pow_original_rounding_candidate:
  b.hs .Lpower_exact_exp_original
  fmul d0,d0,d1
  fadd d0,d0,d2
+#ifdef MD2ASM_CLOUD_PRIVATE_COUNTERS
+ mov x6,x28
+#else
  adrp x6,:got:md2asm_product_sum_fast_calls
  ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+#endif
  ldr x7,[x6]
  add x7,x7,#1
  str x7,[x6]
