@@ -52,14 +52,46 @@ INITIALIZE_SYMBOL:
     ldr q2,[x11]
     adr x11,.Lseed_lane_shifts_eight
     ldr q5,[x11]
+    adr x11,.Lseed_lane_shifts_sixteen
+    ldp q16,q17,[x11]
     adr x12,.Lseed_feedback_eight
     mov w4,#1
     mov w9,#2
 .Lseed_bit:
     add x5,x3,#16
-    mov w6,#75
+    mov w6,#37
     dup v1.4s,w9
-.Lseed_eight_integers:
+.Lseed_sixteen_integers:
+    dup v0.4s,w0
+    ushl v4.4s,v0.4s,v5.4s
+    ushl v18.4s,v0.4s,v16.4s
+    ushl v19.4s,v0.4s,v17.4s
+    ushl v0.4s,v0.4s,v2.4s
+    sshr v0.4s,v0.4s,#31
+    sshr v4.4s,v4.4s,#31
+    sshr v18.4s,v18.4s,#31
+    sshr v19.4s,v19.4s,#31
+    and v0.16b,v0.16b,v1.16b
+    and v4.16b,v4.16b,v1.16b
+    and v18.16b,v18.16b,v1.16b
+    and v19.16b,v19.16b,v1.16b
+    ldp q3,q6,[x5]
+    ldp q20,q21,[x5,#32]
+    orr v3.16b,v3.16b,v0.16b
+    orr v6.16b,v6.16b,v4.16b
+    orr v20.16b,v20.16b,v18.16b
+    orr v21.16b,v21.16b,v19.16b
+    stp q3,q6,[x5],#32
+    stp q20,q21,[x5],#32
+    lsr w2,w0,#24
+    ubfx w7,w0,#16,#8
+    ldr w2,[x12,w2,uxtw #2]
+    ldr w7,[x12,w7,uxtw #2]
+    eor w0,w7,w0,lsl #16
+    eor w0,w0,w2,lsl #8
+    subs w6,w6,#1
+    b.ne .Lseed_sixteen_integers
+    /* Eight final integers retain the qualified eight-step update. */
     dup v0.4s,w0
     ushl v4.4s,v0.4s,v5.4s
     ushl v0.4s,v0.4s,v2.4s
@@ -74,8 +106,6 @@ INITIALIZE_SYMBOL:
     lsr w2,w0,#24
     ldr w2,[x12,w2,uxtw #2]
     eor w0,w2,w0,lsl #8
-    subs w6,w6,#1
-    b.ne .Lseed_eight_integers
     /* Four final integers retain the original four-step update. */
     dup v0.4s,w0
     ushl v0.4s,v0.4s,v2.4s
@@ -118,6 +148,8 @@ INITIALIZE_SYMBOL:
     .word 0,1,2,3
 .Lseed_lane_shifts_eight:
     .word 4,5,6,7
+.Lseed_lane_shifts_sixteen:
+    .word 8,9,10,11,12,13,14,15
 .Lseed_feedback_four:
     .word 0,175,350,497,700,531,994,845,1400,1495,1062,1161,1988,1899,1690,1589
 .p2align 4

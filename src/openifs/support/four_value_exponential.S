@@ -42,9 +42,7 @@ md2asm_try_exp_four_counted:
     str x10,[x9]
     adrp x17,md2asm_exp_constants
     add x17,x17,:lo12:md2asm_exp_constants
-    ldp d2,d3,[x17]
-    dup v2.2d,v2.d[0]
-    dup v3.2d,v3.d[0]
+    ld2r {v2.2d,v3.2d},[x17]
     ldr d4,[x17,#24]
     dup v4.2d,v4.d[0]
     fmul v5.2d,v2.2d,v0.2d
@@ -96,12 +94,9 @@ md2asm_try_exp_four_counted:
     ins v5.d[1],x2
     fmul v6.2d,v0.2d,v0.2d
     fmul v7.2d,v1.2d,v1.2d
-    ldp d16,d17,[x17,#32]
-    ldp d18,d19,[x17,#48]
-    dup v16.2d,v16.d[0]
-    dup v17.2d,v17.d[0]
-    dup v18.2d,v18.d[0]
-    dup v19.2d,v19.d[0]
+    add x17,x17,#32
+    ld2r {v16.2d,v17.2d},[x17],#16
+    ld2r {v18.2d,v19.2d},[x17]
     fadd v20.2d,v2.2d,v0.2d
     fadd v21.2d,v3.2d,v1.2d
     fmul v22.2d,v0.2d,v17.2d

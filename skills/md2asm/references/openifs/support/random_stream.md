@@ -1,6 +1,6 @@
 # OpenIFS random stream
 
-Implementation revision 1.3 preserves the complete numerical bodies of `random_numbers_mix::uniform_distribution` and `random_numbers_mix::initialize_random_numbers` from OpenIFS 48.1.1, in `algor/module/random_numbers_mix.F90`. The [physical input](../../../../../formulations/openifs/support/random_stream.md) defines the lagged integer sequence and its conversion to a sample. These routines support cloud sampling and do not advance the atmospheric equations.
+Implementation revision 1.4 preserves the complete numerical bodies of `random_numbers_mix::uniform_distribution` and `random_numbers_mix::initialize_random_numbers` from OpenIFS 48.1.1, in `algor/module/random_numbers_mix.F90`. The [physical input](../../../../../formulations/openifs/support/random_stream.md) defines the lagged integer sequence and its conversion to a sample. These routines support cloud sampling and do not advance the atmospheric equations.
 
 ## State and ordered calculations
 
@@ -14,15 +14,18 @@ For initialization, XOR the seed's 32-bit pattern with 123459876, interpret that
 
 ## Equivalent Grouped Initialisation
 
-The direct initializer evaluates eight consecutive shift-register transitions together. This is the same integer recurrence and sample sequence. Let `r` be the current unsigned 32-bit register. A right shift by 24 selects its highest eight bits, giving a table index from zero through 255. The left shift discards bits above position 31.
+The direct initializer evaluates sixteen consecutive shift-register transitions together, preserving the same integer recurrence and sample sequence. Let `r` be the current unsigned 32-bit register. Shifting right by 24 selects its highest eight bits. Each value `T8[n]` comes from starting with `n << 24` and applying the original one-bit rule eight times. The unchanged table contains 256 four-byte words, each below two raised to 15.
 
 ```text
-next_r = ((r << 8) & 0xffffffff) XOR T8[r >> 24]
+F8(r) = ((r << 8) & 0xffffffff) XOR T8[r >> 24]
+F16(r) = ((r << 16) & 0xffffffff)
+         XOR (T8[r >> 24] << 8)
+         XOR T8[(r >> 16) & 255]
 ```
 
-Each table value `T8[n]` is obtained by starting with `n << 24` and applying the original one-bit shift and XOR rule eight times. The complete table occupies 256 four-byte words. The feedback value 175 affects only low register bits during these eight transitions, so the discarded bits are the old bits 31 through 24, in that order. Linearity under XOR establishes the complete transition from the zero word and 32 single-bit basis words.
+`F8` advances the register by eight original steps. Its feedback cannot reach the high byte, so that byte equals the old bits 23 through 16. Therefore `F16` is exactly two applications of `F8`, with both table indices obtained from the same old register. The mask retains 32-bit wrap. The discarded bits are the old bits 31 through 16, in order, because feedback cannot reach them within sixteen steps. Checking the zero word and all 32 single-bit basis words proves the complete linear transition and outgoing-bit order.
 
-For each bit position from one through 29, process 75 groups of eight interior integers, then four final integers through the accepted four-step rule. Thus each plane advances the register exactly 604 times. The first vector uses lane shifts zero through three, and the second uses four through seven. An arithmetic right shift by 31 turns each outgoing bit into a whole-lane mask. Masking by the current bit-position value and combining it with each destination by OR sets exactly the original eight output bits. The accepted four-step table still supplies the 64 initial advances and the four-value tail. The same complete uniform child then consumes and discards all 999 warm-up samples.
+For each bit position from one through 29, process 37 groups of sixteen interior integers, then use the qualified eight-value and four-value tails. Each plane still advances exactly 604 times. Four vectors use lane shifts zero through three, four through seven, eight through eleven and twelve through fifteen. A right shift that repeats the sign bit turns each outgoing bit into a whole-lane mask. Masking by the current bit-position value and combining it with the destination by OR sets exactly the original output bits. The four-step table still supplies the 64 initial advances and four-value tail. The complete uniform child still discards all 999 warm-up samples.
 
 ## ABI and bounds
 
@@ -32,7 +35,7 @@ The stream occupies 2448 writable bytes aligned to eight bytes. Its used count i
 
 The initialization entry receives the address of a four-byte seed in `x0` and the stream address in `x1`. The seed is from $`-2^{31}`$ through $`2^{31}-1`$ and remains unchanged. The seed and stream are disjoint. The initialization frame is 8016 bytes, keeps the stack aligned to 16 bytes and owns all 999 discarded FP64 samples. The complete assembly retains its warm-up inside the direct solver, so no driver supplies a missing stage.
 
-The grouped initializer clears exactly state bytes 8 through 2431 with 151 stores of 16 zero bytes and one final store of eight zero bytes. It sets integer 607 separately at bytes 2432 through 2435. The eight-value loop uses paired vector loads and stores over bytes 16 through 2415. Its four-value tail covers bytes 2416 through 2431. The eight-step table has exactly 256 readable four-byte entries, and the retained four-step table has 16. Ordinary AArch64 vector loads and stores support the declared eight-byte state alignment; no 16-byte state alignment or extra accessible state bytes are required. The four padding bytes remain untouched.
+The grouped initializer clears exactly state bytes 8 through 2431 with 151 stores of 16 zero bytes and one final store of eight zero bytes. It sets integer 607 separately at bytes 2432 through 2435. The sixteen-value loop uses paired vector loads and stores over bytes 16 through 2383. Its eight-value tail covers bytes 2384 through 2415, and its four-value tail covers bytes 2416 through 2431. The eight-step table has exactly 256 readable four-byte entries, and the retained four-step table has 16. Ordinary AArch64 vector loads and stores support the declared eight-byte state alignment; no 16-byte state alignment or extra accessible state bytes are required. The four padding bytes remain untouched.
 
 Both entries preserve `x19` through `x29`, the low 64 bits of `v8` through `v15`, the 16-byte-aligned incoming stack pointer and FPCR. They do not use `x18`. Profiling hooks and the original abort for an uninitialized stream are outside the valid numerical input domain. Initialization's original profiling hook is retained by the original side of the paired forecast observer.
 
@@ -44,7 +47,7 @@ An independent integer verifier uses a queue of 607 states and generates each ne
 
 Critical cases cover the smallest and largest signed seeds, the observed forecast seed -275, seed XOR cancellation and the minimum XOR word, initialization, empty arrays, retained samples, exact refill boundaries, multiple refills, positive and negative strides, 30-bit extrema and call partitioning. Guard pages and poisoned gaps check output bounds and untouched storage. Every sample must lie in $`[0,1)`$ and be an exact multiple of $`2^{-30}`$. The immediate assembly ABI observer checks saved integer and FP64 registers and FPCR on each native call.
 
-The eight-step transition and outgoing-bit order pass the zero word and all 32 basis words before source emission. The current changed-path gate checks 540 eight-value initializer calls against the retained independent integer verifier. Its 15 seeds, two protected placements, eight-byte and 16-byte state alignment, and nine inherited FPSR patterns preserve all 2448 stream bytes, neighbouring bytes, the seed, saved registers, FPCR, FPSR and errno values zero, 33 and 34, with zero differences. The compared stream and neighbour span is 1,324,080 bytes. The unchanged uniform consumer retains its earlier empty-array, stride, refill, call-partition and original-result checks.
+The sixteen-step transition and outgoing-bit order pass the zero word and all 32 basis words before source emission. The current changed-path gate checks 540 sixteen-value initializer calls against the retained independent integer verifier. Its 15 seeds, two protected placements, eight-byte and 16-byte state alignment, and nine inherited FPSR patterns preserve all 2448 stream bytes, neighbouring bytes, the seed, saved registers, FPCR, FPSR and errno values zero, 33 and 34, with zero differences. The compared stream and neighbour span is 1,324,080 bytes. The unchanged uniform consumer retains its earlier empty-array, stride, refill, call-partition and original-result checks.
 
 The grouped source was written directly in AArch64 assembly from this integer recurrence and assembled with GNU GCC's assembler driver for Armv8.2-A with Advanced SIMD. No compiler-generated numerical assembly or high-level numerical child supplies its state expansion, clear or warm-up. The shortwave and longwave private entries compile this same source with distinct entry and uniform-child names. Local source hashes, exact build commands, table proof and independent source review identify the checked artifacts.
 
@@ -56,6 +59,6 @@ The earlier scalar initializer and unchanged uniform consumer passed the 2026-10
 
 The earlier four-value grouped initializer also passes the selected [autonomous forecast](../input/standalone_weather_forecast.md). The final comparison matches all 27,486,113 bytes in 685 owned buffers and all ten saved files, containing 618,140 bytes. This is a final-state and file comparison, separate from the earlier per-call stream observations. The declared process-boundary and physical-validation limits remain unchanged.
 
-## Current Eight-Value Selection
+## Current Sixteen-Value Selection
 
-The current protected gate and twelve matched quiet component pairs pass. Every pair favours the eight-value complete initializer across the retained 15 seeds and two alignments, including the complete 999-sample warm-up. The selected joint batch passes all 685 numerical owners over 27,486,113 bytes, ten saved files over 618,140 bytes and 59 final field views, with zero differences. Natural status and the ABI remain unchanged. Three matched ordinary forecast pairs give medians of 24.98 and 24.38 seconds. This measures the combined initializer and four-value exponential changes, with the existing process-boundary and physical limits unchanged. The public comparison is in the [README](../../../../../README.md). Detailed records remain in the ignored local evidence folders.
+All 540 protected calls and twelve matched quiet component pairs pass, preserving the complete 999-sample warm-up. Each measured pair favours the sixteen-value initializer over the selected eight-value implementation. Detailed measurements remain local. The joint seed-expansion and constant-load batch passes all 685 numerical owners over 27,486,113 bytes, ten files over 618,140 bytes and 59 final views, with zero differences. Natural status and ABI remain unchanged. Three matched ordinary forecast pairs give medians of 24.05 and 24.02 seconds, with all pairs favouring the candidate and overlapping full wall-time ranges. User-time medians are 22.52 and 22.38 seconds. The [README](../../../../../README.md) reports this combined scope. Known process-boundary differences and whole-forecast physical limits remain unchanged.
