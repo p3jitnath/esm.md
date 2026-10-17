@@ -1,3 +1,6 @@
+/* MD2ASM_COMPACT_IN_ATOMIC includes this same body in the private wrapper.
+ * It keeps the normal leaf builds unchanged, commits only compact successes
+ * to the fast counter and sends unchanged refusal tags to the wide dispatcher. */
 /* Define MD2ASM_PRODUCT_SUM_DEFERRED_STATUS only for POWER's private child.
  * Its success also returns w1=required flags 0, 16 or 20 without accessing FPSR.
  * The parent commits these flags before each observable boundary.
@@ -19,12 +22,14 @@
 .arch armv8-a
 .text
 .p2align 4
+#ifndef MD2ASM_COMPACT_IN_ATOMIC
 .global md2asm_try_compact_product_sum
 #ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
 .hidden md2asm_try_compact_product_sum
 #endif
 .type md2asm_try_compact_product_sum,%function
 md2asm_try_compact_product_sum:
+#endif
     mrs x17, fpcr
     cbnz x17, .Lcompact_fallback
     fmov x0, d0
@@ -39,6 +44,7 @@ md2asm_try_compact_product_sum:
     b.eq .Lcompact_fallback
     cmp w5, #2047
     b.eq .Lcompact_fallback
+#ifndef MD2ASM_COMPACT_IN_ATOMIC
 .global md2asm_try_compact_product_sum_preclassified
 .hidden md2asm_try_compact_product_sum_preclassified
 .type md2asm_try_compact_product_sum_preclassified,%function
@@ -47,6 +53,7 @@ md2asm_try_compact_product_sum:
  * Share the public entry's numerical body, return rules and preserved registers.
  */
 md2asm_try_compact_product_sum_preclassified:
+#endif
     eor x9, x0, x1
     lsr x9, x9, #63
     lsr x10, x2, #63
@@ -237,6 +244,13 @@ md2asm_try_compact_product_sum_preclassified:
 #endif
     fmov d0, x0
     mov w0, #0
+#ifdef MD2ASM_COMPACT_IN_ATOMIC
+    adrp x6,:got:md2asm_product_sum_fast_calls
+    ldr x6,[x6,:got_lo12:md2asm_product_sum_fast_calls]
+    ldr x7,[x6]
+    add x7,x7,#1
+    str x7,[x6]
+#endif
     ret
 .Lcompact_zero_product:
 #ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
@@ -252,16 +266,28 @@ md2asm_try_compact_product_sum_preclassified:
 .Lcompact_fallback:
     mov w1, #0
     mov w0, #1
+#ifdef MD2ASM_COMPACT_IN_ATOMIC
+    b .Ldeferred_atomic_wide
+#else
     ret
+#endif
 /* Refusal tags retain raw product/exponents only at a proven wide class. */
 .Lcompact_prepared_addend:
     mov w1, #1
     mov w0, #1
+#ifdef MD2ASM_COMPACT_IN_ATOMIC
+    b .Ldeferred_atomic_wide
+#else
     ret
+#endif
 .Lcompact_prepared_product:
     mov w1, #2
     mov w0, #1
+#ifdef MD2ASM_COMPACT_IN_ATOMIC
+    b .Ldeferred_atomic_wide
+#else
     ret
+#endif
 // Repeating a hidden-bit OR leaves a partially decoded normal input unchanged.
 .Lcompact_slow_decode:
     cbz w3, .Lcompact_a_fraction
@@ -282,6 +308,8 @@ md2asm_try_compact_product_sum_preclassified:
     cmp w5, #0
     cinc w5, w5, eq
     b .Lcompact_exponents_ready
+#ifndef MD2ASM_COMPACT_IN_ATOMIC
 .size md2asm_try_compact_product_sum,.-md2asm_try_compact_product_sum
 .size md2asm_try_compact_product_sum_preclassified,.-md2asm_try_compact_product_sum_preclassified
+#endif
 .section .note.GNU-stack,"",%progbits

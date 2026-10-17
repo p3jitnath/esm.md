@@ -5,7 +5,8 @@
  * x19 columns, x20 layers, x21 source plane, x22 layer, x23 column,
  * x24 matrix cell, x25 source, x26 output and x27/x28 selected bounds.
  * Preserve x18 and d8 through d15. No numerical child or driver stage.
- * Keep each signed row index in x12..x15 after its original first read. */
+ * Keep each signed row index in x12..x15 after its original first read.
+ * Keep repeated read-only cell weights in d18..d31 after their first reads. */
 .text
 .p2align 4
 .macro PARG reg,index
@@ -18,6 +19,17 @@
     madd x10,x10,x11,x24
     ldr \reg,[x9,x10,lsl #3]
 .endm
+
+// A cache holds one unchanged weight until this active cell finishes.
+.macro CACHED_FIELD reg,arg,plane,cache,first=0
+.if \first
+    FIELD \reg,\arg,\plane
+    fmov \cache,\reg
+.else
+    fmov \reg,\cache
+.endif
+.endm
+
 .macro STENCIL reg,row,v,j,cache,first=0
 .if \first
     PARG 9,14
@@ -140,21 +152,21 @@ md2asm_laitriqm3d:
     madd x24,x22,x19,x23
     STENCIL d0,1,0,1,x13,1
     STENCIL d1,1,0,2,x13,0
-    FIELD d2,12,1
+    CACHED_FIELD d2,12,1,d19,1
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#320]
     STENCIL d0,2,0,1,x14,1
     STENCIL d1,2,0,2,x14,0
-    FIELD d2,12,2
+    CACHED_FIELD d2,12,2,d20,1
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#328]
     STENCIL d0,0,1,1,x12,1
     STENCIL d1,0,1,2,x12,0
-    FIELD d2,12,0
+    CACHED_FIELD d2,12,0,d18,1
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
@@ -164,18 +176,18 @@ md2asm_laitriqm3d:
     STENCIL d1,1,1,1,x13,0
     str d1,[sp,#512]
     fsub d1,d1,d6
-    FIELD d2,13,0
+    CACHED_FIELD d2,13,0,d22,1
     fmul d1,d2,d1
     fadd d0,d0,d1
     STENCIL d1,1,1,2,x13,0
     str d1,[sp,#520]
     fsub d1,d1,d6
-    FIELD d2,13,1
+    CACHED_FIELD d2,13,1,d23,1
     fmul d1,d2,d1
     fadd d0,d0,d1
     STENCIL d1,1,1,3,x13,0
     fsub d1,d1,d6
-    FIELD d2,13,2
+    CACHED_FIELD d2,13,2,d24,1
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#344]
@@ -184,31 +196,31 @@ md2asm_laitriqm3d:
     STENCIL d1,2,1,1,x14,0
     str d1,[sp,#528]
     fsub d1,d1,d6
-    FIELD d2,13,3
+    CACHED_FIELD d2,13,3,d25,1
     fmul d1,d2,d1
     fadd d0,d0,d1
     STENCIL d1,2,1,2,x14,0
     str d1,[sp,#536]
     fsub d1,d1,d6
-    FIELD d2,13,4
+    CACHED_FIELD d2,13,4,d26,1
     fmul d1,d2,d1
     fadd d0,d0,d1
     STENCIL d1,2,1,3,x14,0
     fsub d1,d1,d6
-    FIELD d2,13,5
+    CACHED_FIELD d2,13,5,d27,1
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#352]
     STENCIL d0,3,1,1,x15,1
     STENCIL d1,3,1,2,x15,0
-    FIELD d2,12,3
+    CACHED_FIELD d2,12,3,d21,1
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#360]
     STENCIL d0,0,2,1,x12,0
     STENCIL d1,0,2,2,x12,0
-    FIELD d2,12,0
+    CACHED_FIELD d2,12,0,d18,0
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
@@ -218,18 +230,18 @@ md2asm_laitriqm3d:
     STENCIL d1,1,2,1,x13,0
     str d1,[sp,#544]
     fsub d1,d1,d6
-    FIELD d2,13,0
+    CACHED_FIELD d2,13,0,d22,0
     fmul d1,d2,d1
     fadd d0,d0,d1
     STENCIL d1,1,2,2,x13,0
     str d1,[sp,#552]
     fsub d1,d1,d6
-    FIELD d2,13,1
+    CACHED_FIELD d2,13,1,d23,0
     fmul d1,d2,d1
     fadd d0,d0,d1
     STENCIL d1,1,2,3,x13,0
     fsub d1,d1,d6
-    FIELD d2,13,2
+    CACHED_FIELD d2,13,2,d24,0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#376]
@@ -238,45 +250,45 @@ md2asm_laitriqm3d:
     STENCIL d1,2,2,1,x14,0
     str d1,[sp,#560]
     fsub d1,d1,d6
-    FIELD d2,13,3
+    CACHED_FIELD d2,13,3,d25,0
     fmul d1,d2,d1
     fadd d0,d0,d1
     STENCIL d1,2,2,2,x14,0
     str d1,[sp,#568]
     fsub d1,d1,d6
-    FIELD d2,13,4
+    CACHED_FIELD d2,13,4,d26,0
     fmul d1,d2,d1
     fadd d0,d0,d1
     STENCIL d1,2,2,3,x14,0
     fsub d1,d1,d6
-    FIELD d2,13,5
+    CACHED_FIELD d2,13,5,d27,0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#384]
     STENCIL d0,3,2,1,x15,0
     STENCIL d1,3,2,2,x15,0
-    FIELD d2,12,3
+    CACHED_FIELD d2,12,3,d21,0
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#392]
     STENCIL d0,1,3,1,x13,0
     STENCIL d1,1,3,2,x13,0
-    FIELD d2,12,1
+    CACHED_FIELD d2,12,1,d19,0
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#400]
     STENCIL d0,2,3,1,x14,0
     STENCIL d1,2,3,2,x14,0
-    FIELD d2,12,2
+    CACHED_FIELD d2,12,2,d20,0
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#408]
     ldr d0,[sp,#320]
     ldr d1,[sp,#328]
-    FIELD d2,10,0
+    CACHED_FIELD d2,10,0,d28,1
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
@@ -285,17 +297,17 @@ md2asm_laitriqm3d:
     fmov d0,d6
     ldr d1,[sp,#344]
     fsub d1,d1,d6
-    FIELD d2,11,0
+    CACHED_FIELD d2,11,0,d29,1
     fmul d1,d2,d1
     fadd d0,d0,d1
     ldr d1,[sp,#352]
     fsub d1,d1,d6
-    FIELD d2,11,1
+    CACHED_FIELD d2,11,1,d30,1
     fmul d1,d2,d1
     fadd d0,d0,d1
     ldr d1,[sp,#360]
     fsub d1,d1,d6
-    FIELD d2,11,2
+    CACHED_FIELD d2,11,2,d31,1
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#440]
@@ -303,23 +315,23 @@ md2asm_laitriqm3d:
     fmov d0,d6
     ldr d1,[sp,#376]
     fsub d1,d1,d6
-    FIELD d2,11,0
+    CACHED_FIELD d2,11,0,d29,0
     fmul d1,d2,d1
     fadd d0,d0,d1
     ldr d1,[sp,#384]
     fsub d1,d1,d6
-    FIELD d2,11,1
+    CACHED_FIELD d2,11,1,d30,0
     fmul d1,d2,d1
     fadd d0,d0,d1
     ldr d1,[sp,#392]
     fsub d1,d1,d6
-    FIELD d2,11,2
+    CACHED_FIELD d2,11,2,d31,0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#448]
     ldr d0,[sp,#400]
     ldr d1,[sp,#408]
-    FIELD d2,10,0
+    CACHED_FIELD d2,10,0,d28,0
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
@@ -381,42 +393,42 @@ md2asm_laitriqm3d:
 .Ltransport_linear_fallback:
     ldr d0,[sp,#512]
     ldr d1,[sp,#520]
-    FIELD d2,12,1
+    CACHED_FIELD d2,12,1,d19,0
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#432]
     ldr d0,[sp,#528]
     ldr d1,[sp,#536]
-    FIELD d2,12,2
+    CACHED_FIELD d2,12,2,d20,0
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#440]
     ldr d0,[sp,#544]
     ldr d1,[sp,#552]
-    FIELD d2,12,1
+    CACHED_FIELD d2,12,1,d19,0
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#448]
     ldr d0,[sp,#560]
     ldr d1,[sp,#568]
-    FIELD d2,12,2
+    CACHED_FIELD d2,12,2,d20,0
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#456]
     ldr d0,[sp,#432]
     ldr d1,[sp,#440]
-    FIELD d2,10,0
+    CACHED_FIELD d2,10,0,d28,0
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1
     str d0,[sp,#320]
     ldr d0,[sp,#448]
     ldr d1,[sp,#456]
-    FIELD d2,10,0
+    CACHED_FIELD d2,10,0,d28,0
     fsub d1,d1,d0
     fmul d1,d2,d1
     fadd d0,d0,d1

@@ -212,15 +212,16 @@
     ALD4 5,21,x3,x5
     AMUL4 4,20,5,21,0,16
     AMUL4 4,20,4,20,1,17
-    lsl x11,x20,#5
-    AST4 3,19,x6,x11
-    AST4 4,20,x7,x11
+    add x6,x6,x20,lsl #5
+    add x7,x7,x20,lsl #5
+    add x8,x8,x20,lsl #5
+    stp q3,q19,[x6]
+    stp q4,q20,[x7]
     mov x9,x20
 .Lfour_upward\@:
     cbz x9,.Lfour_top\@
     sub x9,x9,#1
     sub x10,x10,x21
-    lsl x11,x9,#5
     ALD4 5,21,x25,x10
     ALD4 6,22,x26,x10
     ALD4 7,23,x27,x10
@@ -240,9 +241,9 @@
     AADD4 10,26,5,21,10,26
     AMUL4 12,28,12,28,9,25
     AADD4 11,27,11,27,12,28
-    AST4 9,25,x8,x11
-    AST4 10,26,x6,x11
-    AST4 11,27,x7,x11
+    stp q9,q25,[x8,#-32]!
+    stp q10,q26,[x6,#-32]!
+    stp q11,q27,[x7,#-32]!
     mov v3.16b,v10.16b
     mov v19.16b,v26.16b
     mov v4.16b,v11.16b
@@ -258,11 +259,9 @@
 .Lfour_downward\@:
     cmp x9,x20
     b.hs .Lfour_last_direct\@
-    lsl x11,x9,#5
-    ALD4 9,25,x8,x11
-    add x11,x11,#32
-    ALD4 3,19,x6,x11
-    ALD4 4,20,x7,x11
+    ldp q9,q25,[x8],#32
+    ldp q3,q19,[x6,#32]!
+    ldp q4,q20,[x7,#32]!
     ALD4 5,21,x25,x10
     ALD4 6,22,x26,x10
     ALD4 8,24,x28,x10
@@ -288,6 +287,10 @@
     ALD4 0,16,x24,x10
     AMUL4 0,16,0,16,1,17
     AST4 0,16,x24,x10
+    // The old pair and scalar remainder keep the original scratch bases.
+    sub x6,x6,x20,lsl #5
+    sub x7,x7,x20,lsl #5
+    sub x8,x8,x20,lsl #5
 .endm
 
 .global ORIGINAL_SYMBOL
