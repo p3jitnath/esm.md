@@ -2,8 +2,10 @@
 // Physics: formulations/openifs/physics/cloud_water_and_rain.md.
 // Contract: skills/md2asm/references/openifs/cloud_microphysics_contract.md.
 // G is the full column count; N is the level count.
-// A 1024-byte context, aligned to 64 bytes, stores arguments in bytes 0..607,
-// metadata in bytes 608..767 and four 64-byte worker records from byte 768.
+// The default four-worker context has 1024 bytes, aligned to 64 bytes.
+// Its arguments occupy bytes 0..607 and worker records start at byte 768.
+// The eight-worker selection uses 1344 bytes and worker records from byte 832;
+// argument and public-state offsets stay fixed, as defined below.
 // Each worker owns a heap with a 64-byte counter prefix. FAST, WIDE and EXP
 // counts occupy offsets 0, 8 and 16; the numerical scratch starts at byte 64.
 // x28 holds that prefix through the private mathematical call graph.
@@ -13,8 +15,33 @@
 // The controller joins flags and counts after all workers return, preserving
 // the caller's FPCR and errno and excluding status from runtime services.
 .arch armv8.2-a
+// Capacity changes controller storage only; the numerical range is unchanged.
+#ifndef MD2ASM_CLOUD_TEAM_CAPACITY
+#define MD2ASM_CLOUD_TEAM_CAPACITY 4
+#endif
+#if MD2ASM_CLOUD_TEAM_CAPACITY == 4
+#define CLOUD_TEAM_FRAME_BYTES 2048
+#define CLOUD_TEAM_CONTEXT_BYTES 1024
+#define CLOUD_TEAM_CLEAR_PAIRS 26
+#define CLOUD_TEAM_RECORD_PAIRS 64
+#define CLOUD_TEAM_WORKER_BASE 768
+#define CLOUD_TEAM_TOTAL_FAST 720
+#define CLOUD_TEAM_TOTAL_WIDE 728
+#define CLOUD_TEAM_TOTAL_EXP 736
+#elif MD2ASM_CLOUD_TEAM_CAPACITY == 8
+#define CLOUD_TEAM_FRAME_BYTES 2560
+#define CLOUD_TEAM_CONTEXT_BYTES 1344
+#define CLOUD_TEAM_CLEAR_PAIRS 46
+#define CLOUD_TEAM_RECORD_PAIRS 84
+#define CLOUD_TEAM_WORKER_BASE 832
+#define CLOUD_TEAM_TOTAL_FAST 752
+#define CLOUD_TEAM_TOTAL_WIDE 760
+#define CLOUD_TEAM_TOTAL_EXP 768
+#else
+#error Cloud team capacity must be four or eight.
+#endif
 #ifndef MD2ASM_CLOUD_TEAM_REQUESTED
-#define MD2ASM_CLOUD_TEAM_REQUESTED 4
+#define MD2ASM_CLOUD_TEAM_REQUESTED MD2ASM_CLOUD_TEAM_CAPACITY
 #endif
 .text
 .macro CLOUD_TEAM_CALL name, save=640
@@ -39,7 +66,7 @@
 .type md2asm_cloudsc_complete,%function
 md2asm_cloudsc_complete:
  mov x17,sp
- sub sp,sp,#2048
+ sub sp,sp,#CLOUD_TEAM_FRAME_BYTES
  add x16,sp,#544
  stp x19,x20,[x16]
  stp x21,x22,[x16,#16]
@@ -64,7 +91,7 @@ md2asm_cloudsc_complete:
  subs x11,x11,#1
  b.ne .Lcloud_team_save_arguments
  add x9,x19,#608
- mov x10,#26
+ mov x10,#CLOUD_TEAM_CLEAR_PAIRS
 .Lcloud_team_zero_context:
  stp xzr,xzr,[x9],#16
  subs x10,x10,#1
@@ -157,7 +184,7 @@ md2asm_cloudsc_complete:
  str x23,[x19,#608]
  str x22,[x19,#616]
  ldr x24,[x19,#624]
- cmp x24,#4
+ cmp x24,#MD2ASM_CLOUD_TEAM_CAPACITY
  b.lt .Lcloud_team_cleanup
  CLOUD_TEAM_CALL __errno_location
  str x0,[x19,#648]
@@ -177,7 +204,7 @@ md2asm_cloudsc_complete:
  add x9,x19,#688
  str x0,[x9,x21,lsl #3]
  add x21,x21,#1
- cmp x21,#4
+ cmp x21,#MD2ASM_CLOUD_TEAM_CAPACITY
  b.ne .Lcloud_team_allocate
  adr x0,.Lcloud_team_callback
  mov x1,x19
@@ -189,10 +216,10 @@ md2asm_cloudsc_complete:
  ldr x26,[x19,#664]
  cmp x26,#1
  b.lt .Lcloud_team_cleanup
- cmp x26,#4
+ cmp x26,#MD2ASM_CLOUD_TEAM_CAPACITY
  b.gt .Lcloud_team_cleanup
  ldr x24,[x19,#640]
- add x20,x19,#768
+ add x20,x19,#CLOUD_TEAM_WORKER_BASE
  mov x21,#0
 .Lcloud_team_union:
  ldr x9,[x20,#24]
@@ -206,7 +233,7 @@ md2asm_cloudsc_complete:
  mov x11,#0
  mov x12,#0
  add x13,x19,#688
- mov x14,#4
+ mov x14,#MD2ASM_CLOUD_TEAM_CAPACITY
 .Lcloud_private_counter_union:
  ldr x9,[x13],#8
  ldp x15,x16,[x9]
@@ -216,9 +243,9 @@ md2asm_cloudsc_complete:
  add x12,x12,x15
  subs x14,x14,#1
  b.ne .Lcloud_private_counter_union
- str x10,[x19,#720]
- str x11,[x19,#728]
- str x12,[x19,#736]
+ str x10,[x19,#CLOUD_TEAM_TOTAL_FAST]
+ str x11,[x19,#CLOUD_TEAM_TOTAL_WIDE]
+ str x12,[x19,#CLOUD_TEAM_TOTAL_EXP]
  adrp x9,:got:md2asm_product_sum_fast_calls
  ldr x9,[x9,:got_lo12:md2asm_product_sum_fast_calls]
  ldr x15,[x9]
@@ -240,7 +267,7 @@ md2asm_cloudsc_complete:
  adrp x9,.Lcloud_team_last_context
  add x9,x9,:lo12:.Lcloud_team_last_context
  mov x10,x19
- mov x11,#64
+ mov x11,#CLOUD_TEAM_RECORD_PAIRS
 .Lcloud_team_record_context:
  ldp x12,x13,[x10],#16
  stp x12,x13,[x9],#16
@@ -255,7 +282,7 @@ md2asm_cloudsc_complete:
  CLOUD_TEAM_CALL free
 .Lcloud_team_next_free:
  add x21,x21,#1
- cmp x21,#4
+ cmp x21,#MD2ASM_CLOUD_TEAM_CAPACITY
  b.ne .Lcloud_team_free
  ldr x9,[x19,#632]
  msr fpcr,x9
@@ -292,7 +319,7 @@ md2asm_cloudsc_complete:
  ldp x25,x26,[x16,#48]
  ldp x27,x28,[x16,#64]
  ldp x29,x30,[x16,#80]
- add sp,sp,#2048
+ add sp,sp,#CLOUD_TEAM_FRAME_BYTES
  ret
 .size md2asm_cloudsc_complete,.-md2asm_cloudsc_complete
 
@@ -321,12 +348,12 @@ md2asm_cloudsc_complete:
  mov w26,w0
  cmp x26,#1
  b.lo .Lcloud_team_bad_T
- cmp x26,#4
+ cmp x26,#MD2ASM_CLOUD_TEAM_CAPACITY
  b.hi .Lcloud_team_bad_T
  cbnz x25,.Lcloud_team_T_recorded
  str x26,[x19,#664]
 .Lcloud_team_T_recorded:
- add x20,x19,#768
+ add x20,x19,#CLOUD_TEAM_WORKER_BASE
  add x20,x20,x25,lsl #6
  mov x9,#1
  str x9,[x20]
@@ -396,6 +423,6 @@ md2asm_test_cloud_team_context:
 .size md2asm_test_cloud_team_context,.-md2asm_test_cloud_team_context
 .bss
 .balign 64
-.Lcloud_team_last_context: .zero 1024
+.Lcloud_team_last_context: .zero CLOUD_TEAM_CONTEXT_BYTES
 #endif
 .section .note.GNU-stack,"",%progbits
