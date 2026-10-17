@@ -5,8 +5,8 @@
  * The 256-byte frame has 32 outgoing bytes, saves x19..x30 and d8..d15,
  * and keeps the original angle and two final output pointers. x18 is untouched.
  * Integer guards precede FP work. A matching prefix may add only eventual
- * scalar flags. Four EXP arguments pass admission before calls or outputs.
- * Private pair EXP preserves full q8..q15/q24..q31. Every refusal and odd
+ * scalar flags. Four EXP arguments pass one complete child admission before counter or output effects.
+ * Private four-value EXP preserves full q8..q15/q24..q31. Every refusal and odd
  * cell calls the accepted own scalar reflection body below. */
 #ifndef ORIGINAL_SYMBOL
 #define ORIGINAL_SYMBOL __radiation_two_stream_MOD_calc_reflectance_transmittance_sw
@@ -41,25 +41,6 @@
  b.hi .Lpair_scalar
  cmp x10,x12
  b.hi .Lpair_scalar
-.endm
-/* Both lanes are exact signed zero or finite2^-54<=abs(x)<512. */
-.macro EXP_PAIR_GUARD reg
- fmov x9,d\reg
- umov x10,v\reg\().d[1]
- and x9,x9,#0x7fffffffffffffff
- and x10,x10,#0x7fffffffffffffff
- cbz x9,.Lfirst_exp_ready\@
- cmp x9,x11
- b.lo .Lpair_scalar
- cmp x9,x12
- b.hs .Lpair_scalar
-.Lfirst_exp_ready\@:
- cbz x10,.Lsecond_exp_ready\@
- cmp x10,x11
- b.lo .Lpair_scalar
- cmp x10,x12
- b.hs .Lpair_scalar
-.Lsecond_exp_ready\@:
 .endm
 
 .global ORIGINAL_SYMBOL
@@ -159,16 +140,12 @@ ORIGINAL_SYMBOL:
  fneg v28.2d,v0.2d
  fmul v29.2d,v12.2d,v13.2d
  fneg v29.2d,v29.2d
- mov x11,#0x3c90000000000000
- mov x12,#0x4080000000000000
- EXP_PAIR_GUARD 28
- EXP_PAIR_GUARD 29
  mov v0.16b,v28.16b
- bl md2asm_try_exp_pair_counted
+ mov v1.16b,v29.16b
+ bl md2asm_try_exp_four_counted
+ cbnz w0,.Lpair_scalar
  mov v28.16b,v0.16b
- mov v0.16b,v29.16b
- bl md2asm_try_exp_pair_counted
- mov v29.16b,v0.16b
+ mov v29.16b,v1.16b
  fmul v16.2d,v29.2d,v29.2d
  fmov d17,#2.0
  dup v17.2d,v17.d[0]
