@@ -67,7 +67,11 @@ For long FP64 capture checks, represent physical residuals and their existing ro
 
 ## Locate the performance bound
 
-Profile complete steps, including waits in external services, and inspect their machine instructions before tuning. Map unnamed samples to linked assembly blocks. Compare numerical variants under matched monitoring settings and report any changed diagnostic output. Registers are small storage locations inside the processor; vector instructions apply one operation to several values at once. Build a [roofline model](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2008/EECS-2008-134.pdf) from useful operations, live working sets, and traffic at each relevant memory level. Keep estimated logical bytes distinct from measured cache refills and DRAM traffic.
+Profile complete steps, including waits in external services, and inspect their machine instructions before tuning. Map unnamed samples to linked assembly blocks. Compare numerical variants under matched monitoring settings and report any changed diagnostic output.
+
+Registers are small storage locations inside the processor. Vector instructions apply one operation to several values at once. In a profiling-only build, store the caller’s return address in an unused saved register. Restore its original value at the public return. Attribute samples only inside children that keep the register unchanged throughout their execution, and check each address against a linked call instruction.
+
+Build a [roofline model](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2008/EECS-2008-134.pdf) from useful operations, live working sets, and traffic at each relevant memory level. Keep estimated logical bytes distinct from measured cache refills and DRAM traffic.
 
 Measure bandwidth with the kernel’s read/write ratio, vector width, alignment, and working size. Calibrate compatible arithmetic with representative operands, including division, square root, comparisons, lane shifts, and shared issue resources. A joint instruction mix captures resource sharing better than separate peaks; compare independent schedules and report calibration variation alongside any broader hardware bound.
 
