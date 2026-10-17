@@ -47,21 +47,6 @@
     ldr w0,[x13,x14,lsl #2]
 .endm
 
-.macro aerosol_table_load
-    ldr w10,[x19,#316]
-    mov x11,x27
-    ldr w13,[x19,#324]
-    cmp w13,#2
-    b.eq .Laerosol_inline_table2_\@
-    mov x11,x26
-    mov x12,x27
-    aerosol_load3
-    b .Laerosol_inline_table_done_\@
-.Laerosol_inline_table2_\@:
-    aerosol_load2
-.Laerosol_inline_table_done_\@:
-.endm
-
 // Bind band one once. All descriptor offsets and strides remain signed.
 // x9 is the descriptor, x26 the humidity bin, and x27 the species index.
 .macro aerosol_bind_table2 pointer, step
@@ -481,6 +466,12 @@ md2asm_aerosol_rh_index:
     str w9,[x19,#316]
     cmp w23,#1
     b.lt .Laerosol_accum_done
+    // x6 holds the fixed scattering choice until this call-free loop ends.
+    mov w6,#1
+    cbz w25,.Laerosol_bind_config_ready
+    ldr x10,[x19]
+    ldr w6,[x10,#612]
+.Laerosol_bind_config_ready:
     add x9,x28,x24
     ldr w10,[x19,#324]
     cmp w10,#2
@@ -488,11 +479,7 @@ md2asm_aerosol_rh_index:
     aerosol_bind_table3 x0,x1
     add x9,x9,#112
     aerosol_bind_table3 x2,x3
-    cbz w25,.Laerosol_bind_hydrophilic_direction
-    ldr x10,[x19]
-    ldr w10,[x10,#612]
-    cbz w10,.Laerosol_bind_done
-.Laerosol_bind_hydrophilic_direction:
+    cbz w6,.Laerosol_bind_done
     add x9,x9,#112
     aerosol_bind_table3 x4,x5
     b .Laerosol_bind_done
@@ -500,18 +487,63 @@ md2asm_aerosol_rh_index:
     aerosol_bind_table2 x0,x1
     add x9,x9,#88
     aerosol_bind_table2 x2,x3
-    cbz w25,.Laerosol_bind_hydrophobic_direction
-    ldr x10,[x19]
-    ldr w10,[x10,#612]
-    cbz w10,.Laerosol_bind_done
-.Laerosol_bind_hydrophobic_direction:
+    cbz w6,.Laerosol_bind_done
     add x9,x9,#88
     aerosol_bind_table2 x4,x5
 .Laerosol_bind_done:
+    // The humidity index is dead after every starting address is bound.
+    mov x26,#0
 .Laerosol_accum_band:
-    ldr w10,[x19,#316]
-    cmp w10,w23
-    b.gt .Laerosol_accum_done
+    cmp x26,x23
+    b.ge .Laerosol_accum_complete
+    sub x9,x23,x26
+    cmp x9,#2
+    b.lo .Laerosol_accum_scalar_band
+    cmp x1,#8
+    b.ne .Laerosol_accum_scalar_band
+    cmp x3,#8
+    b.ne .Laerosol_accum_scalar_band
+    cbz w6,.Laerosol_accum_pair_ready
+    cmp x5,#8
+    b.ne .Laerosol_accum_scalar_band
+.Laerosol_accum_pair_ready:
+    ldr q0,[x0]
+    add x0,x0,#16
+    ldr d7,[x19,#304]
+    dup v7.2d,v7.d[0]
+    fmul v1.2d,v7.2d,v0.2d
+    ldr q2,[x2]
+    add x2,x2,#16
+    cbnz w6,.Laerosol_accum_pair_scattering
+    fmov v3.2d,#1.0
+    fsub v3.2d,v3.2d,v2.2d
+    fmul v1.2d,v1.2d,v3.2d
+    add x9,x20,x26,lsl #3
+    ldr q3,[x9]
+    fadd v3.2d,v3.2d,v1.2d
+    str q3,[x9]
+    b .Laerosol_accum_pair_next
+.Laerosol_accum_pair_scattering:
+    ldr q0,[x4]
+    add x4,x4,#16
+    fmul v4.2d,v1.2d,v2.2d
+    add x9,x20,x26,lsl #3
+    ldr q3,[x9]
+    fadd v3.2d,v3.2d,v1.2d
+    str q3,[x9]
+    add x9,x21,x26,lsl #3
+    ldr q3,[x9]
+    fadd v3.2d,v3.2d,v4.2d
+    str q3,[x9]
+    fmul v4.2d,v4.2d,v0.2d
+    add x9,x22,x26,lsl #3
+    ldr q3,[x9]
+    fadd v3.2d,v3.2d,v4.2d
+    str q3,[x9]
+.Laerosol_accum_pair_next:
+    add x26,x26,#2
+    b .Laerosol_accum_band
+.Laerosol_accum_scalar_band:
     ldr d0,[x0]
     add x0,x0,x1
     ldr d7,[x19,#304]
@@ -519,40 +551,34 @@ md2asm_aerosol_rh_index:
     ldr d0,[x2]
     add x2,x2,x3
     fmov d2,d0
-    cbz w25,.Laerosol_accum_scattering
-    ldr x9,[x19]
-    ldr w9,[x9,#612]
-    cbnz w9,.Laerosol_accum_scattering
+    cbnz w6,.Laerosol_accum_scattering
     fmov d3,#1.0
     fsub d3,d3,d2
     fmul d1,d1,d3
-    ldr w9,[x19,#316]
-    sub w9,w9,#1
-    ldr d3,[x20,x9,lsl #3]
+    ldr d3,[x20,x26,lsl #3]
     fadd d3,d3,d1
-    str d3,[x20,x9,lsl #3]
+    str d3,[x20,x26,lsl #3]
     b .Laerosol_accum_next
 .Laerosol_accum_scattering:
     ldr d0,[x4]
     add x4,x4,x5
     fmul d4,d1,d2
-    ldr w9,[x19,#316]
-    sub w9,w9,#1
-    ldr d3,[x20,x9,lsl #3]
+    ldr d3,[x20,x26,lsl #3]
     fadd d3,d3,d1
-    str d3,[x20,x9,lsl #3]
-    ldr d3,[x21,x9,lsl #3]
+    str d3,[x20,x26,lsl #3]
+    ldr d3,[x21,x26,lsl #3]
     fadd d3,d3,d4
-    str d3,[x21,x9,lsl #3]
+    str d3,[x21,x26,lsl #3]
     fmul d4,d4,d0
-    ldr d3,[x22,x9,lsl #3]
+    ldr d3,[x22,x26,lsl #3]
     fadd d3,d3,d4
-    str d3,[x22,x9,lsl #3]
+    str d3,[x22,x26,lsl #3]
 .Laerosol_accum_next:
-    ldr w9,[x19,#316]
-    add w9,w9,#1
-    str w9,[x19,#316]
+    add x26,x26,#1
     b .Laerosol_accum_band
+.Laerosol_accum_complete:
+    add w9,w26,#1
+    str w9,[x19,#316]
 .Laerosol_accum_done:
     ldp x29,x30,[sp],#16
     ret
@@ -662,43 +688,60 @@ md2asm_aerosol_rh_index:
     add x9,x9,x10
     mul x23,x9,x22
     lsl x23,x23,#3
+    cbz x22,.Laerosol_combine_done
+    // All numerical children have returned. Bind unchanged output owners.
+    mov w7,#1
+    cbz w25,.Laerosol_bind_output_sw
+    ldr w7,[x28,#612]
+    ldr x2,[x19,#48]
+    add x2,x2,x23
+    cbz w7,.Laerosol_bind_output_done
+    ldr x3,[x19,#56]
+    ldr x4,[x19,#64]
+    b .Laerosol_bind_output_scattering
+.Laerosol_bind_output_sw:
+    ldr x2,[x19,#72]
+    add x2,x2,x23
+    ldr x3,[x19,#80]
+    ldr x4,[x19,#88]
+.Laerosol_bind_output_scattering:
+    add x3,x3,x23
+    add x4,x4,x23
+.Laerosol_bind_output_done:
+    add x5,x20,x21,lsl #3
+    add x6,x5,x21,lsl #3
+    add x9,x28,x27
+    ldr x0,[x9]
+    ldr x1,[x9,#8]
+    ldr x10,[x9,#40]
+    add x1,x1,x10
+    add x0,x0,x1,lsl #2
+    lsl x1,x10,#2
     mov x26,#0
 .Laerosol_combine_point:
     cmp x26,x22
     b.ge .Laerosol_combine_done
-    add x9,x28,x27
-    add x10,x26,#1
-    aerosol_load_i1
-    sub w0,w0,#1
-    sxtw x24,w0
+    ldr w24,[x0]
+    add x0,x0,x1
+    sub w24,w24,#1
+    sxtw x24,w24
     ldr d0,[x20,x24,lsl #3]
-    add x9,x20,x21,lsl #3
-    ldr d1,[x9,x24,lsl #3]
-    add x9,x9,x21,lsl #3
-    ldr d2,[x9,x24,lsl #3]
+    ldr d1,[x5,x24,lsl #3]
+    ldr d2,[x6,x24,lsl #3]
     cbnz w25,.Laerosol_combine_longwave
-    ldr x9,[x19,#72]
-    add x9,x9,x23
-    ldr d3,[x9,x26,lsl #3]
+    ldr d3,[x2,x26,lsl #3]
     fadd d4,d3,d0
-    ldr x10,[x19,#80]
-    add x10,x10,x23
-    ldr d5,[x10,x26,lsl #3]
+    ldr d5,[x3,x26,lsl #3]
     fmul d5,d5,d3
     fadd d5,d5,d1
     fdiv d6,d2,d5
-    ldr x11,[x19,#88]
-    add x11,x11,x23
-    str d6,[x11,x26,lsl #3]
+    str d6,[x4,x26,lsl #3]
     fdiv d6,d5,d4
-    str d6,[x10,x26,lsl #3]
-    str d4,[x9,x26,lsl #3]
+    str d6,[x3,x26,lsl #3]
+    str d4,[x2,x26,lsl #3]
     b .Laerosol_combine_next
 .Laerosol_combine_longwave:
-    ldr x9,[x19,#48]
-    add x9,x9,x23
-    ldr w10,[x28,#612]
-    cbz w10,.Laerosol_combine_absorption
+    cbz w7,.Laerosol_combine_absorption
     fcmp d0,#0.0
     b.le .Laerosol_combine_next
     fmov d4,xzr
@@ -706,21 +749,17 @@ md2asm_aerosol_rh_index:
     b.le .Laerosol_combine_lw_zero_direction
     fdiv d4,d2,d1
 .Laerosol_combine_lw_zero_direction:
-    ldr x10,[x19,#64]
-    add x10,x10,x23
-    str d4,[x10,x26,lsl #3]
-    ldr d3,[x9,x26,lsl #3]
+    str d4,[x4,x26,lsl #3]
+    ldr d3,[x2,x26,lsl #3]
     fadd d3,d3,d0
     fdiv d4,d1,d3
-    ldr x10,[x19,#56]
-    add x10,x10,x23
-    str d4,[x10,x26,lsl #3]
-    str d3,[x9,x26,lsl #3]
+    str d4,[x3,x26,lsl #3]
+    str d3,[x2,x26,lsl #3]
     b .Laerosol_combine_next
 .Laerosol_combine_absorption:
-    ldr d3,[x9,x26,lsl #3]
+    ldr d3,[x2,x26,lsl #3]
     fadd d3,d3,d0
-    str d3,[x9,x26,lsl #3]
+    str d3,[x2,x26,lsl #3]
 .Laerosol_combine_next:
     add x26,x26,#1
     b .Laerosol_combine_point

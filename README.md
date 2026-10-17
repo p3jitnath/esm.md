@@ -62,8 +62,9 @@ Each row comes from a separate matched batch. Each time is the median followed b
 | Prepared exact state and four-cell longwave transport | 24.05 [23.72–24.13] | 23.67 [23.66–24.34] | 1.02× |
 | Short decoder for normal private inputs | 24.00 [23.63–24.40] | 23.89 [23.36–24.15] | 1.005× |
 | Reused aerosol addresses, public decoding and grouped clear longwave | 24.18 [23.81–24.61] | 23.14 [23.00–23.39] | 1.045× |
+| Register band loops, advanced point pointers and paired aerosol bands | 23.00 [22.75–24.05] | 22.50 [21.84–23.57] | 1.022× |
 
-The latest median is **23.14 seconds** for this forecast and machine. All three matched pairs are faster, and their complete wall-time ranges do not overlap. Median user CPU time falls from 22.28 to 21.50 seconds. Each combined change retains its general input paths, while focused checks cover varied inputs and boundary values. Performance on other forecast inputs remains unmeasured.
+The latest median is **22.50 seconds** for this forecast and machine. Two of three matched pairs are faster, and their complete wall-time ranges overlap. All three user CPU pairs improve, with the median falling from 21.48 to 20.73 seconds. Each combined change retains its general input paths, while focused checks cover varied inputs, signed strides, subnormal intermediate values and boundary values. Performance on other forecast inputs remains unmeasured.
 
 The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. All **255 audited weather and forcing routines** in this T21 main phase have accepted assembly replacements. The overlapping broader lists still have 91 local calculations and 358 main-forecast bodies remaining. The ordered original routine names and source paths remain in the local records.
 
