@@ -229,12 +229,21 @@ md2asm_pow_original_rounding_candidate:
  str d12,[sp,#184]
  fmov d1,d10
  fneg d2,d14
- bl md2asm_private_power_product_sum_deferred
+ bl md2asm_private_power_square_residual
  orr w27,w27,w1
  str d0,[sp,#192]
  fsub d0,d13,d12
  fadd d0,d0,d14
  str d0,[sp,#200]
+ // The three seeds share the proved reduction interval and exact rounding.
+ adr x16,md2asm_private_power_coefficient_records
+ bl md2asm_private_power_log_seed_triplet
+ cbnz w0,.Lpower_log_seed_original
+ orr w27,w27,w1
+ stp d0,d1,[sp,#208]
+ str d2,[sp,#224]
+ b .Lpower_log_seed_ready
+.Lpower_log_seed_original:
  fmov d0,d10
  ldr d1,[x19,#64]
  ldr d2,[x19,#56]
@@ -256,6 +265,7 @@ md2asm_pow_original_rounding_candidate:
  bl md2asm_private_power_coefficient_product_sum
  orr w27,w27,w1
  str d0,[sp,#224]
+.Lpower_log_seed_ready:
  fmov d0,d14
  ldr d1,[sp,#208]
  ldr d2,[sp,#216]
@@ -561,29 +571,29 @@ md2asm_pow_original_rounding_candidate:
  ret
 
 // Exact integer metadata for the five immutable polynomial coefficient pairs.
-// Each32-byte record contains significands,stored exponents and signs.
+// Each 32-byte record contains significands, stored exponents and signs.
 .p2align 4
 .global md2asm_private_power_coefficient_records
 .hidden md2asm_private_power_coefficient_records
 .type md2asm_private_power_coefficient_records,%object
 md2asm_private_power_coefficient_records:
- // log_seed1, original b/c table offsets[64, 56].
+ // log_seed1, original b/c table offsets [64, 56].
  .quad 0x10002b8b263fc3,0x12495b9b4845e9
  .word 1023,1023
  .word 0,1
- // log_seed2, original b/c table offsets[48, 40].
+ // log_seed2, original b/c table offsets [48, 40].
  .quad 0x1555555529a47a,0x1999999959554e
  .word 1022,1022
  .word 1,0
- // log_seed3, original b/c table offsets[32, 24].
+ // log_seed3, original b/c table offsets [32, 24].
  .quad 0x10000000000006,0x15555555555560
  .word 1022,1022
  .word 0,1
- // exp_seed1, original b/c table offsets[40, 32].
+ // exp_seed1, original b/c table offsets [40, 32].
  .quad 0x1555555555543c,0x1ffffffffffdbd
  .word 1020,1021
  .word 0,0
- // exp_seed2, original b/c table offsets[56, 48].
+ // exp_seed2, original b/c table offsets [56, 48].
  .quad 0x11111167a4d017,0x155555cf172b91
  .word 1016,1018
  .word 0,0

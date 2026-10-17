@@ -243,6 +243,9 @@ md2asm_try_compact_product_sum_preclassified:
     mov w1, w6
 #endif
     fmov d0, x0
+#ifdef MD2ASM_COMPACT_IN_ATOMIC
+.Lcompact_success_value_ready:
+#endif
     mov w0, #0
 #ifdef MD2ASM_COMPACT_IN_ATOMIC
     adrp x6,:got:md2asm_product_sum_fast_calls
