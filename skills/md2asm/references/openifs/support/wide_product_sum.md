@@ -1,6 +1,6 @@
 # Wide Atomic Product And Sum
 
-Revision 1. The entry `md2asm_try_wide_product_sum` calculates $`\operatorname{RN}(ab+c)`$, where RN rounds the exact expression once to FP64, the 64-bit floating-point format, with ties to even. This is an internal atomic helper. It keeps the accepted mathematical helper's rounding point and must not replace the weather solver's separately rounded multiplication and addition. The [basic input](../../../../../formulations/openifs/support/rounded_product_sum.md) defines this operation.
+Revision 2. The entry `md2asm_try_wide_product_sum` calculates $`\operatorname{RN}(ab+c)`$, where RN rounds the exact expression once to FP64, the 64-bit floating-point format, with ties to even. This is an internal atomic helper. It keeps the accepted mathematical helper's rounding point and must not replace the weather solver's separately rounded multiplication and addition. The [basic input](../../../../../formulations/openifs/support/rounded_product_sum.md) defines this operation.
 
 ## Bounded Exact Representation
 
@@ -44,3 +44,19 @@ The selected controlled full forecast passes all 685 numerical owners, 560 descr
 ## Private POWER Mask Return
 
 The same source also builds the private status-return child with `MD2ASM_PRODUCT_SUM_DEFERRED_STATUS`. A successful private call returns its required exception mask in `w1` and leaves FPSR unchanged. Exact returns explicitly supply mask zero. All numerical instructions, admission rules and other interface obligations remain those of this contract. The ordinary public build is byte-identical to its accepted object. The [POWER parent contract](power_original_rounding.md#private-status-collection) defines mask collection, every observation boundary, fallback storage and the changed-path checks.
+
+## Private Prepared Entry
+
+The hidden entry `md2asm_private_wide_deferred_prepared` reuses the state from a tagged [private compact refusal](compact_product_sum.md#private-wide-handoff). This immediate integer-only handoff has already checked finite inputs and FPCR zero and has proved the original wide class. It uses the following registers.
+
+| Register | Exact Value |
+| --- | --- |
+| `w1` | One for addend dominance, two for product dominance |
+| `x12:x11` | Complete unsigned product, high word followed by low word |
+| `x8` | Unsigned addend significand |
+| `w13`, `w14` | Product and addend binary exponents |
+| `w9`, `w10` | Product and addend signs, each zero or one |
+| `w15` | Nonnegative difference between these exponents |
+| `w16` | Dominant aligned integer's bit length |
+
+Subtract `w15` from `w16` to recover the dominant raw bit length. Form the exclusive OR of the signs, reuse the existing addend swap when needed, then enter the unchanged normalisation and rounding body. The prepared route returns exactly the full private entry's result, required mask or tiny-result refusal. All saved-register, floating-input, status and stack obligations remain unchanged. It adds no buffer or floating-point operation. The ordinary public object remains byte-identical.

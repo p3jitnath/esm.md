@@ -21,7 +21,12 @@ md2asm_private_power_product_sum_deferred:
  ret
 .Ldeferred_atomic_wide:
  stp x29,x30,[sp,#-16]!
+ cbz w1,.Ldeferred_atomic_unprepared_wide
+ bl md2asm_private_wide_deferred_prepared
+ b .Ldeferred_atomic_wide_return
+.Ldeferred_atomic_unprepared_wide:
  bl md2asm_private_wide_deferred
+.Ldeferred_atomic_wide_return:
  ldp x29,x30,[sp],#16
  cbnz w0,.Ldeferred_atomic_general
  adrp x6,:got:md2asm_product_sum_wide_calls

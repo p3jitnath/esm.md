@@ -76,6 +76,7 @@ md2asm_try_wide_product_sum:
     add w0, w16, w15
     cmp w0, #127
     b.le .Lwide_fallback
+.Lwide_addend_proven:
     // Make x12:x11 dominant, x7:x8 smaller, with their exact exponents.
     mov x0, x11
     mov x1, x12
@@ -234,4 +235,23 @@ md2asm_try_wide_product_sum:
     mov w0, #1
     ret
 .size md2asm_try_wide_product_sum,.-md2asm_try_wide_product_sum
+#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
+/* Private ABI from a tagged compact refusal, with no intervening FP operation.
+ * x12:x11 product, x8 addend, w13/w14 exponents, w9/w10 signs,
+ * w15 separation, w16 aligned length, w1 addend tag1 or product tag2.
+ * FPCR and finite validation already passed. The original wide body retains
+ * normal-result admission, rounding and required-mask return. */
+.p2align 4
+.global md2asm_private_wide_deferred_prepared
+.hidden md2asm_private_wide_deferred_prepared
+.type md2asm_private_wide_deferred_prepared,%function
+md2asm_private_wide_deferred_prepared:
+    sub w16, w16, w15
+    eor w10, w9, w10
+    cmp w1, #1
+    b.eq .Lwide_addend_proven
+    mov x7, xzr
+    b .Lwide_normalize_dominant
+.size md2asm_private_wide_deferred_prepared,.-md2asm_private_wide_deferred_prepared
+#endif
 .section .note.GNU-stack,"",%progbits

@@ -1,6 +1,6 @@
 # Compact Exact Product And Sum
 
-Revision 3. This is a compact path for the [accepted atomic product and sum](rounded_product_sum.md). An atomic operation has one declared rounding point. It computes the exact real value $`ab+c`$, then rounds once to FP64, the eight-byte floating-point format, using round-to-nearest with ties to even. The weather solver retains its declared intermediate rounding points.
+Revision 4. This is a compact path for the [accepted atomic product and sum](rounded_product_sum.md). An atomic operation has one declared rounding point. It computes the exact real value $`ab+c`$, then rounds once to FP64, the eight-byte floating-point format, using round-to-nearest with ties to even. The weather solver retains its declared intermediate rounding points.
 
 ## Exact Integer Calculation
 
@@ -62,3 +62,7 @@ The combined [autonomous forecast](../input/standalone_weather_forecast.md) matc
 ## Private POWER Mask Return
 
 The same source also builds the private status-return child with `MD2ASM_PRODUCT_SUM_DEFERRED_STATUS`. A successful private call returns its required exception mask in `w1` and leaves FPSR unchanged. Exact returns explicitly supply mask zero. All numerical instructions, admission rules and other interface obligations remain those of this contract. The ordinary public build is byte-identical to its accepted object. The [POWER parent contract](power_original_rounding.md#private-status-collection) defines mask collection, every observation boundary, fallback storage and the changed-path checks.
+
+## Private Wide Handoff
+
+On private refusal, `w1=1` identifies an addend whose original aligned magnitude exceeds 127 bits, and `w1=2` identifies such a product. Other private refusals return `w1=0`. These tags apply only when `w0=1`. Successful `w1` remains the required exception mask. The tags retain the complete exact product, addend, signs, exponents and bit length for the [prepared wide entry](wide_product_sum.md#private-prepared-entry). They preserve floating inputs and hardware status. The ordinary public object and its refusal interface remain unchanged.

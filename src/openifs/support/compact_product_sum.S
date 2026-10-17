@@ -82,7 +82,11 @@ md2asm_try_compact_product_sum_preclassified:
     sub w16, w17, w16
     add w16, w16, w15
     cmp w16, #127
+#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
+    b.gt .Lcompact_prepared_addend
+#else
     b.gt .Lcompact_fallback
+#endif
     mov x7, #0
     cbz w15, .Lcompact_aligned
     tbnz w15, #6, .Lcompact_c_high
@@ -107,7 +111,11 @@ md2asm_try_compact_product_sum_preclassified:
 .Lcompact_product_length_ready:
     add w16, w16, w15
     cmp w16, #127
+#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
+    b.gt .Lcompact_prepared_product
+#else
     b.gt .Lcompact_fallback
+#endif
     mov w13, w14
     mov x7, #0
     tbnz w15, #6, .Lcompact_product_high
@@ -255,8 +263,22 @@ md2asm_try_compact_product_sum_preclassified:
     lsl x0, x0, #63
     b .Lcompact_success_bits
 .Lcompact_fallback:
+#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
+    mov w1, #0
+#endif
     mov w0, #1
     ret
+#ifdef MD2ASM_PRODUCT_SUM_DEFERRED_STATUS
+/* Refusal tags retain raw product/exponents only at a proven wide class. */
+.Lcompact_prepared_addend:
+    mov w1, #1
+    mov w0, #1
+    ret
+.Lcompact_prepared_product:
+    mov w1, #2
+    mov w0, #1
+    ret
+#endif
 .size md2asm_try_compact_product_sum,.-md2asm_try_compact_product_sum
 .size md2asm_try_compact_product_sum_preclassified,.-md2asm_try_compact_product_sum_preclassified
 .section .note.GNU-stack,"",%progbits

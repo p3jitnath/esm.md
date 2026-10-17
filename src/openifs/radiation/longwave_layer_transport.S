@@ -1,5 +1,6 @@
 /* Complete calc_reflectance_transmittance_lw layer transport.
- * Adjacent thick cells use the qualified two-value EXP. The complete physical
+ * Four adjacent thick cells use the qualified four-value EXP; pairs remain.
+ * The complete physical
  * guard, its FPSR restore and the own scalar point remain unchanged.
  * FPCR zero is required. The private child preserves full q8..q15/q24..q31.
  * Both counters retain one scalar contribution for each thick cell.
@@ -118,6 +119,144 @@ md2asm_longwave_layer:
  b.ls .Llayer_scalar_point
  cmp x10,x11
  b.ls .Llayer_scalar_point
+ /* Four cells share the qualified helper after all four select thick work. */
+ sub x9,x19,x20
+ cmp x9,#32
+ b.lo .Llayer_pair_body
+ add x12,x21,x20
+ ldp x9,x10,[x12,#16]
+ and x9,x9,#0x7fffffffffffffff
+ and x10,x10,#0x7fffffffffffffff
+ cmp x9,x11
+ b.ls .Llayer_pair_body
+ cmp x10,x11
+ b.ls .Llayer_pair_body
+ add x9,x21,x20
+ ldp q8,q24,[x9]
+ add x9,x22,x20
+ ldp q9,q25,[x9]
+ add x9,x23,x20
+ ldp q10,q26,[x9]
+ add x9,x24,x20
+ ldp q11,q27,[x9]
+ add x9,x25,x20
+ ldp q12,q28,[x9]
+.Llayer_four_prefix:
+ fsub v0.2d,v9.2d,v10.2d
+ fsub v1.2d,v25.2d,v26.2d
+ fadd v2.2d,v9.2d,v10.2d
+ fadd v3.2d,v25.2d,v26.2d
+ fmul v0.2d,v0.2d,v2.2d
+ fmul v1.2d,v1.2d,v3.2d
+ ldr d2,.Llayer_k_minimum
+ dup v2.2d,v2.d[0]
+ fmax v0.2d,v0.2d,v2.2d
+ fmax v1.2d,v1.2d,v2.2d
+ fsqrt v13.2d,v0.2d
+ fsqrt v29.2d,v1.2d
+ fmul v0.2d,v13.2d,v8.2d
+ fmul v1.2d,v29.2d,v24.2d
+ fneg v0.2d,v0.2d
+ fneg v1.2d,v1.2d
+ /* Every lane is admitted before EXP work, either counter or any output. */
+ bl md2asm_try_exp_four_counted
+ cbnz w0,.Llayer_pair_body
+ mov v14.16b,v0.16b
+ mov v30.16b,v1.16b
+ adrp x9,.Llayer_exp_count
+ add x9,x9,:lo12:.Llayer_exp_count
+.Llayer_four_count:
+ ldxr x10,[x9]
+ add x10,x10,#4
+ stxr w11,x10,[x9]
+ cbnz w11,.Llayer_four_count
+.Llayer_four_transport:
+ fmul v0.2d,v14.2d,v14.2d
+ fmul v20.2d,v30.2d,v30.2d
+ fadd v1.2d,v13.2d,v9.2d
+ fadd v21.2d,v29.2d,v25.2d
+ fsub v2.2d,v13.2d,v9.2d
+ fsub v22.2d,v29.2d,v25.2d
+ fmul v2.2d,v2.2d,v0.2d
+ fmul v22.2d,v22.2d,v20.2d
+ fadd v1.2d,v1.2d,v2.2d
+ fadd v21.2d,v21.2d,v22.2d
+ fmov d2,#1.0
+ dup v2.2d,v2.d[0]
+ fmov d22,#1.0
+ dup v22.2d,v22.d[0]
+ fdiv v15.2d,v2.2d,v1.2d
+ fdiv v31.2d,v22.2d,v21.2d
+ fsub v0.2d,v2.2d,v0.2d
+ fsub v20.2d,v22.2d,v20.2d
+ fmul v0.2d,v10.2d,v0.2d
+ fmul v20.2d,v26.2d,v20.2d
+ fmul v16.2d,v0.2d,v15.2d
+ fmul v18.2d,v20.2d,v31.2d
+ fmov d0,#2.0
+ dup v0.2d,v0.d[0]
+ fmov d20,#2.0
+ dup v20.2d,v20.d[0]
+ fmul v0.2d,v0.2d,v13.2d
+ fmul v20.2d,v20.2d,v29.2d
+ fmul v0.2d,v0.2d,v14.2d
+ fmul v20.2d,v20.2d,v30.2d
+ fmul v17.2d,v0.2d,v15.2d
+ fmul v19.2d,v20.2d,v31.2d
+.Llayer_four_thermal:
+ fsub v0.2d,v12.2d,v11.2d
+ fsub v20.2d,v28.2d,v27.2d
+ fadd v1.2d,v9.2d,v10.2d
+ fadd v21.2d,v25.2d,v26.2d
+ fmul v1.2d,v8.2d,v1.2d
+ fmul v21.2d,v24.2d,v21.2d
+ fdiv v0.2d,v0.2d,v1.2d
+ fdiv v20.2d,v20.2d,v21.2d
+ fadd v1.2d,v0.2d,v11.2d
+ fadd v21.2d,v20.2d,v27.2d
+ fadd v2.2d,v0.2d,v12.2d
+ fadd v22.2d,v20.2d,v28.2d
+ fneg v3.2d,v0.2d
+ fneg v23.2d,v20.2d
+ fadd v3.2d,v3.2d,v11.2d
+ fadd v23.2d,v23.2d,v27.2d
+ fneg v4.2d,v0.2d
+ fneg v29.2d,v20.2d
+ fadd v4.2d,v4.2d,v12.2d
+ fadd v29.2d,v29.2d,v28.2d
+ fmul v5.2d,v16.2d,v3.2d
+ fmul v30.2d,v18.2d,v23.2d
+ fsub v1.2d,v1.2d,v5.2d
+ fsub v21.2d,v21.2d,v30.2d
+ fmul v5.2d,v17.2d,v2.2d
+ fmul v30.2d,v19.2d,v22.2d
+ fsub v6.2d,v1.2d,v5.2d
+ fsub v31.2d,v21.2d,v30.2d
+ fmul v5.2d,v16.2d,v2.2d
+ fmul v30.2d,v18.2d,v22.2d
+ fsub v4.2d,v4.2d,v5.2d
+ fsub v29.2d,v29.2d,v30.2d
+ fmul v5.2d,v17.2d,v3.2d
+ fmul v30.2d,v19.2d,v23.2d
+ fsub v3.2d,v4.2d,v5.2d
+ fsub v23.2d,v29.2d,v30.2d
+ mov v2.16b,v6.16b
+ mov v22.16b,v31.16b
+ add x9,x20,#16
+ str q16,[x26,x20]
+ str q17,[x27,x20]
+ str q2,[x28,x20]
+ ldr x10,[sp,#176]
+ str q3,[x10,x20]
+ str q18,[x26,x9]
+ str q19,[x27,x9]
+ str q22,[x28,x9]
+ str q23,[x10,x9]
+ add x20,x20,#32
+ cmp x20,x19
+ b.ne .Llayer_point
+ b .Llayer_restore
+.Llayer_pair_body:
  ldr q8,[x21,x20]
  ldr q9,[x22,x20]
  ldr q10,[x23,x20]
