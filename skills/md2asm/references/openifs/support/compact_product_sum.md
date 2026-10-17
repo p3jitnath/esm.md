@@ -1,6 +1,6 @@
 # Compact Exact Product And Sum
 
-Revision 4. This is a compact path for the [accepted atomic product and sum](rounded_product_sum.md). An atomic operation has one declared rounding point. It computes the exact real value $`ab+c`$, then rounds once to FP64, the eight-byte floating-point format, using round-to-nearest with ties to even. The weather solver retains its declared intermediate rounding points.
+Revision 5. This is a compact path for the [accepted atomic product and sum](rounded_product_sum.md). An atomic operation has one declared rounding point. It computes the exact real value $`ab+c`$, then rounds once to FP64, the eight-byte floating-point format, using round-to-nearest with ties to even. The weather solver retains its declared intermediate rounding points.
 
 ## Exact Integer Calculation
 
@@ -62,6 +62,14 @@ The combined [autonomous forecast](../input/standalone_weather_forecast.md) matc
 ## Private POWER Mask Return
 
 The same source also builds the private status-return child with `MD2ASM_PRODUCT_SUM_DEFERRED_STATUS`. A successful private call returns its required exception mask in `w1` and leaves FPSR unchanged. Exact returns explicitly supply mask zero. All numerical instructions, admission rules and other interface obligations remain those of this contract. The ordinary public build is byte-identical to its accepted object. The [POWER parent contract](power_original_rounding.md#private-status-collection) defines mask collection, every observation boundary, fallback storage and the changed-path checks.
+
+## Private Normal-Input Decoder
+
+For the private POWER child, a finite stored exponent from 1 through 2046 identifies a normal nonzero input. When all three exponents are in that range, setting significand bit 52 gives the same three integers as the full decoder. The child can then skip the two impossible zero-factor checks and the three zero-exponent corrections, reaching the unchanged exact multiplication with eight fewer integer instructions.
+
+If any exponent is zero, the complete original decoder handles zeros and subnormal values. An earlier hidden-bit OR can safely run again because setting an already-set bit leaves the integer unchanged. Both routes reach the same exponent calculations, signs, exact product and prepared-wide state. Public entry instructions, rounding, status masks, classifications, counters and preserved registers remain unchanged.
+
+The focused revision-5 checks pass 7,860 finite triples and 1,280 incoming-status cases, giving 9,140 complete atomic comparisons and ABI calls. They also pass 18,280 private-child comparisons, all 6,525 tagged handoffs and 139 prepared tiny-result refusals, plus 46 domain refusals. The complete POWER comparison passes 10,976 result/status/counter pairs and 468 seeded ABI calls. Every compared bit and immediate status value agrees. The changed complete forecast matches all 685 numerical owners, 560 descriptor relations and 27,486,113 raw bytes, ten saved files over 618,140 bytes and 59 final views. Native ABI mask is zero, with natural FPCR/FPSR/errno 0/25/0. Three matched ordinary pairs retain all files and final views outside timing. Their wall medians are 24.00 and 23.89 seconds, with overlapping ranges; all three use less user CPU time. The [README](../../../../../README.md) reports the complete-process comparison. The focused simple POWER workload has a small timing regression, retained in the local records. Known physical and process-boundary limits remain unchanged.
 
 ## Private Wide Handoff
 

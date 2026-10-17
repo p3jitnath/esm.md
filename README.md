@@ -60,8 +60,9 @@ Each row comes from a separate matched batch. Each time is the median followed b
 | Private collection of exact-rounding status | 24.40 [24.40–24.41] | 24.19 [23.38–24.20] | 1.01× |
 | Composed seed groups and shared constant loads | 24.05 [23.80–24.59] | 24.02 [23.75–24.02] | 1.001× |
 | Prepared exact state and four-cell longwave transport | 24.05 [23.72–24.13] | 23.67 [23.66–24.34] | 1.02× |
+| Short decoder for normal private inputs | 24.00 [23.63–24.40] | 23.89 [23.36–24.15] | 1.005× |
 
-The latest median is **23.67 seconds** for this forecast and machine. The latest batch has overlapping wall-time ranges, with two of three matched pairs faster. All three use less user CPU time, with the median falling from 22.35 to 22.30 seconds.
+The latest median is **23.89 seconds** for this forecast and machine. The latest batch has overlapping wall-time ranges, with two of three matched pairs faster. All three use less user CPU time, with the median falling from 22.36 to 22.28 seconds. The earlier 23.67-second median belongs to a separate matched batch.
 
 The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. All **255 audited weather and forcing routines** in this T21 main phase have accepted assembly replacements. The overlapping broader lists still have 91 local calculations and 358 main-forecast bodies remaining. The ordered original routine names and source paths remain in the local records.
 
