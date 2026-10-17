@@ -59,7 +59,7 @@ Use the smaller compute or bandwidth limit, adding justified dependency and inst
 
 ## Apply successful methods
 
-Retain a method when its complete-step gain exceeds measured variation and the frozen outputs remain identical. Keep each method’s domain argument with the source; exact sampled agreement complements this argument.
+Retain a method when its complete-step gain exceeds measured variation and the frozen outputs remain identical. Prove fast-path guards from the mathematical domain, then qualify varied shapes, values, branch conditions and fallback cases. Keep this argument with the source and state which input ranges the performance measurements cover.
 
 | Method | Preconditions and implementation |
 | --- | --- |
