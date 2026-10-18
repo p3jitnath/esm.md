@@ -246,3 +246,40 @@ md2asm_openifs_gpu_finalize:
 .Lgpu_context: .zero 8
 .Lgpu_module: .zero 8
 .section .note.GNU-stack,"",%progbits
+
+// Nonnumerical environment and module lifetime service.
+// ABI and storage: skills/md2asm-gpu/references/openifs/cuda_runtime.md, revision 2.
+.text
+.p2align 2
+.global md2asm_openifs_gpu_prepare
+.type md2asm_openifs_gpu_prepare,%function
+md2asm_openifs_gpu_prepare:
+ GPU_ENTER
+ ldr x9,[sp,#136]
+ cbnz x9,.Lprepare_invalid
+ adrp x9,.Lgpu_context
+ ldr x10,[x9,:lo12:.Lgpu_context]
+ cbnz x10,.Lprepare_return
+ adrp x0,.Lgpu_module_environment
+ add x0,x0,:lo12:.Lgpu_module_environment
+ GPU_CALL getenv
+ cbz x0,.Lprepare_invalid
+ mov w1,#0
+ GPU_CALL md2asm_openifs_gpu_initialize
+ cbnz w0,.Lprepare_error
+ adrp x0,:got:md2asm_openifs_gpu_finalize
+ ldr x0,[x0,:got_lo12:md2asm_openifs_gpu_finalize]
+ mov x1,xzr
+ GPU_CALL on_exit
+ cbz w0,.Lprepare_return
+ GPU_CALL md2asm_openifs_gpu_finalize
+.Lprepare_invalid:
+ mov w26,#1
+ b .Lprepare_return
+.Lprepare_error:
+ mov w26,w0
+.Lprepare_return:
+ GPU_RETURN
+.size md2asm_openifs_gpu_prepare,.-md2asm_openifs_gpu_prepare
+.section .rodata
+.Lgpu_module_environment: .asciz "MD2ASM_OPENIFS_GPU_MODULE"
