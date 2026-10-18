@@ -58,6 +58,8 @@ The timer measures replay of an already prepared sequence of GPU launches. It ex
 
 ## OpenIFS development
 
+The OpenIFS GPU extension now has qualified direct PTX [exponential and arithmetic support](skills/md2asm-gpu/references/openifs/mathematical_support.md), plus an [assembly CUDA launcher](skills/md2asm-gpu/references/openifs/cuda_runtime.md) that preserves the original owned storage and numerical status. Complete GPU forecast integration is in progress.
+
 The openifs-md branch extends this workflow to OpenIFS 48.1.1. Assembly replaces 373 original routine bodies within their selected input and calculation scopes, and seven field-registry methods that store array addresses and dimensions. Their small checks cover independent physical relations within declared input ranges, with known source limits recorded below. The checked forecast-call cases pass exact byte comparisons in a coarse global forecast.
 
 | Check | Coverage | Differing bytes |

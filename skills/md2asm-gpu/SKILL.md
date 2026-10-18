@@ -15,11 +15,15 @@ Record the formulation and contract revisions, target GPU, assembly instruction 
 
 Use explicitly rounded FP64 instructions for each required operation. The PTX suffix `rn` means round to nearest with ties to even. Preserve intermediate rounding, signed zero, gradual underflow, operand order and threshold ties. Inspect final machine instructions as well as source. Internal refinement inside correctly rounded division or square root is distinct from contracting a model multiply and add.
 
+For a complete weather forecast, use the existing theme folders and audit every linked numerical dependency, including setup and input conversion. Keep public file-format, transform and operating-system services explicit. Freeze the complete call graph before counting progress, and distinguish source routines from linker aliases and internal entry addresses. The [OpenIFS GPU context](references/openifs/gpu_call_context.md), [assembly CUDA runtime](references/openifs/cuda_runtime.md) and [mathematical support](references/openifs/mathematical_support.md) define this project’s original-interface route.
+
 ## Own Complete Updates and Buffers
 
 Keep every numerical stage and required boundary calculation in GPU assembly. The host may load, allocate, transfer, launch, synchronise and store returned bytes. Use an ordered stream for dependencies across the whole grid. A block barrier orders threads within one block, so cross-block consumers require an ordered launch or a proof that all required inputs are already immutable.
 
 Document each entry’s integer dimensions, device addresses, alignment, extents, alias rules, thread bounds, shared storage and barriers. Preserve both required time stages, zero-step behaviour and the physical input/output buffers for odd and even repeated steps. When fusing a stage, retain the original rounded neighbouring expression or load its completed result. Give each boundary copy one clear owner, including corners and one-cell grids.
+
+On a device with coherent host page tables, verify ordinary host-memory access before moving an existing pointer graph. Assembly can retain its owned records and original addresses when every required device capability and complete allocation lifetime is established. Synchronise before the host reads results, and preserve caller numerical flags across nonnumerical CUDA services. Other devices need explicit device owners and pointer relocation.
 
 ## Reuse Work Where Dependencies Permit
 
@@ -36,6 +40,8 @@ A positive power-of-two divisor with a finite normal exact inverse permits one r
 Use the unchanged, independently verified Fortran solver as the canonical discrete reference. Compare complete raw states after each changed stage and step, then compare canonical files directly with zero differing bytes. Report a first mismatch by case, step, stage, field, cell and both bit patterns. Reuse accepted checks for unchanged paths and add only cases needed for changed launch, tile, boundary, arithmetic or buffer behaviour.
 
 Keep independent conservation, analytic or convergence checks, valid-state limits, unchanged inputs and buffer bounds. Cover partial blocks, dispatch edges, tile boundaries, zero steps and odd/even repeated batches when supported. Verify ordinary launches and CUDA graph replay. A graph records an already compiled launch sequence and must retain the same buffer alternation and final stage. Check timed final states outside the timer without changing output bits.
+
+When matching another processor, carry its floating-point flags and mathematical error writes explicitly. Diagnose rounding from exact operand bits, preserve its NaN selection and underflow rule, and combine independent flags with integer OR. Give error writes unique positions in the original operation order so that a parallel join selects the final write, including a repeated write of the incoming value. For relocatable PTX functions, use one aligned aggregate return and store each call’s parameter values immediately before that call.
 
 ## Match Controls and Measurements
 

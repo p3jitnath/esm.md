@@ -1,0 +1,432 @@
+// Contract: skills/md2asm-gpu/references/openifs/mathematical_support.md.
+// Complete IEEE binary64 primitive results and Arm-equivalent software flags; these primitives do not write errno.
+// Device ABI: result bits at return bytes 0..7, new flags at 8..11, zero event at 12..15.
+// This module imports the finite add/multiply helpers from scalar_exponential.ptx.
+// The .rn division and square-root instructions can use internal correctly rounded refinement.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_add_rn(.param .b64 left_word,.param .b64 right_word);
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_mul_rn(.param .b64 left_word,.param .b64 right_word);
+// Compare exact finite magnitudes a*b and c through integer significands.
+.func (.param .u32 equal_result) md2asm_gpu_exact_product_equal(
+ .param .b64 word_a,.param .b64 word_b,.param .b64 word_c)
+{
+ .reg .b64 %a,%b,%c,%ma,%mb,%mc,%lo,%hi,%tmp,%rev,%part;
+ .reg .b32 %ea,%eb,%ec,%tz,%tc,%scale,%target,%shift,%equal;
+ .reg .pred %p,%q;
+ ld.param.b64 %a,[word_a];
+ ld.param.b64 %b,[word_b];
+ ld.param.b64 %c,[word_c];
+ and.b64 %ma,%a,0x000fffffffffffff;
+ and.b64 %mb,%b,0x000fffffffffffff;
+ and.b64 %mc,%c,0x000fffffffffffff;
+ shr.u64 %tmp,%a,52;
+ cvt.u32.u64 %ea,%tmp;
+ and.b32 %ea,%ea,2047;
+ shr.u64 %tmp,%b,52;
+ cvt.u32.u64 %eb,%tmp;
+ and.b32 %eb,%eb,2047;
+ shr.u64 %tmp,%c,52;
+ cvt.u32.u64 %ec,%tmp;
+ and.b32 %ec,%ec,2047;
+ setp.ne.u32 %p,%ea,0;
+ @%p or.b64 %ma,%ma,0x0010000000000000;
+ selp.u32 %ea,%ea,1,%p;
+ setp.ne.u32 %p,%eb,0;
+ @%p or.b64 %mb,%mb,0x0010000000000000;
+ selp.u32 %eb,%eb,1,%p;
+ setp.ne.u32 %p,%ec,0;
+ @%p or.b64 %mc,%mc,0x0010000000000000;
+ selp.u32 %ec,%ec,1,%p;
+ mul.lo.u64 %lo,%ma,%mb;
+ mul.hi.u64 %hi,%ma,%mb;
+ or.b64 %tmp,%lo,%hi;
+ setp.eq.u64 %p,%tmp,0;
+ setp.eq.u64 %q,%mc,0;
+ and.pred %q,%p,%q;
+ selp.u32 %equal,1,0,%q;
+ @%p bra EXACT_DONE;
+ setp.eq.u64 %p,%mc,0;
+ @%p bra EXACT_DONE;
+ add.s32 %scale,%ea,%eb;
+ sub.s32 %scale,%scale,2150;
+ sub.s32 %target,%ec,1075;
+ brev.b64 %rev,%mc;
+ clz.b64 %tc,%rev;
+ shr.u64 %mc,%mc,%tc;
+ add.s32 %target,%target,%tc;
+ setp.eq.u64 %p,%lo,0;
+ @%p bra EXACT_LOW_ZERO;
+ brev.b64 %rev,%lo;
+ clz.b64 %tz,%rev;
+ shr.u64 %lo,%lo,%tz;
+ sub.u32 %shift,64,%tz;
+ shl.b64 %part,%hi,%shift;
+ or.b64 %lo,%lo,%part;
+ shr.u64 %hi,%hi,%tz;
+ bra EXACT_COMPARE;
+EXACT_LOW_ZERO:
+ brev.b64 %rev,%hi;
+ clz.b64 %tz,%rev;
+ shr.u64 %lo,%hi,%tz;
+ add.u32 %tz,%tz,64;
+ mov.u64 %hi,0;
+EXACT_COMPARE:
+ add.s32 %scale,%scale,%tz;
+ setp.eq.u64 %p,%hi,0;
+ setp.eq.u64 %q,%lo,%mc;
+ and.pred %p,%p,%q;
+ setp.eq.s32 %q,%scale,%target;
+ and.pred %p,%p,%q;
+ selp.u32 %equal,1,0,%p;
+EXACT_DONE:
+ st.param.u32 [equal_result],%equal;
+ ret;
+}
+.func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_finite_div_status(
+ .param .b64 word_a,.param .b64 word_b)
+{
+ .reg .b64 %a,%b,%r,%mag,%ma,%mb,%tmp,%na,%nb;
+ .reg .b32 %flags,%exact,%ea,%eb,%za,%zb,%sa,%sb,%delta;
+ .reg .f64 %fa,%fb,%fr;
+ .reg .pred %p,%q,%tiny;
+ ld.param.b64 %a,[word_a];
+ ld.param.b64 %b,[word_b];
+ mov.b64 %fa,%a;
+ mov.b64 %fb,%b;
+ div.rn.f64 %fr,%fa,%fb;
+ mov.b64 %r,%fr;
+ and.b64 %mag,%r,0x7fffffffffffffff;
+ mov.u32 %flags,20;
+ setp.eq.u64 %p,%mag,0x7ff0000000000000;
+ @%p bra DIV_FINITE_DONE;
+ {
+ .param .b64 a,b,c;
+ .param .u32 eq;
+ st.param.b64 [a],%r;
+ st.param.b64 [b],%b;
+ st.param.b64 [c],%a;
+ call.uni (eq),md2asm_gpu_exact_product_equal,(a,b,c);
+ ld.param.u32 %exact,[eq];
+ }
+ mov.u32 %flags,0;
+ setp.ne.u32 %p,%exact,0;
+ @%p bra DIV_FINITE_DONE;
+ mov.u32 %flags,16;
+ and.b64 %ma,%a,0x000fffffffffffff;
+ and.b64 %mb,%b,0x000fffffffffffff;
+ shr.u64 %tmp,%a,52;
+ cvt.u32.u64 %ea,%tmp;
+ and.b32 %ea,%ea,2047;
+ shr.u64 %tmp,%b,52;
+ cvt.u32.u64 %eb,%tmp;
+ and.b32 %eb,%eb,2047;
+ setp.ne.u32 %p,%ea,0;
+ @%p or.b64 %ma,%ma,0x0010000000000000;
+ selp.u32 %ea,%ea,1,%p;
+ setp.ne.u32 %p,%eb,0;
+ @%p or.b64 %mb,%mb,0x0010000000000000;
+ selp.u32 %eb,%eb,1,%p;
+ clz.b64 %za,%ma;
+ clz.b64 %zb,%mb;
+ sub.s32 %delta,%ea,%eb;
+ sub.s32 %delta,%delta,%za;
+ add.s32 %delta,%delta,%zb;
+ setp.lt.s32 %tiny,%delta,-1022;
+ setp.eq.s32 %p,%delta,-1022;
+ @!%p bra DIV_TINY_FLAGS;
+ sub.u32 %sa,%za,11;
+ sub.u32 %sb,%zb,11;
+ shl.b64 %na,%ma,%sa;
+ shl.b64 %nb,%mb,%sb;
+ setp.lt.u64 %tiny,%na,%nb;
+DIV_TINY_FLAGS:
+ @%tiny or.b32 %flags,%flags,8;
+DIV_FINITE_DONE:
+ st.param.b64 [result_flags_event],%r;
+ st.param.b32 [result_flags_event+8],%flags;
+ st.param.b32 [result_flags_event+12],0;
+ ret;
+}
+.func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_binary_status(
+ .param .b64 word_a,.param .b64 word_b,.param .u32 operation)
+{
+ .reg .b64 %a,%b,%ax,%bx,%r,%tmp,%qa,%qb,%sign;
+ .reg .b32 %flags,%op;
+ .reg .pred %p,%q,%an,%bn,%asn,%bsn,%ai,%bi,%az,%bz;
+ ld.param.b64 %a,[word_a];
+ ld.param.b64 %b,[word_b];
+ ld.param.u32 %op,[operation];
+ and.b64 %ax,%a,0x7fffffffffffffff;
+ and.b64 %bx,%b,0x7fffffffffffffff;
+ setp.gt.u64 %an,%ax,0x7ff0000000000000;
+ setp.gt.u64 %bn,%bx,0x7ff0000000000000;
+ and.b64 %qa,%a,0x0008000000000000;
+ and.b64 %qb,%b,0x0008000000000000;
+ setp.eq.u64 %asn,%qa,0;
+ setp.eq.u64 %bsn,%qb,0;
+ and.pred %asn,%asn,%an;
+ and.pred %bsn,%bsn,%bn;
+ mov.u32 %flags,0;
+ @%asn bra BINARY_NAN_A_INVALID;
+ @%bsn bra BINARY_NAN_B_INVALID;
+ @%an bra BINARY_NAN_A;
+ @%bn bra BINARY_NAN_B;
+ setp.eq.u64 %ai,%ax,0x7ff0000000000000;
+ setp.eq.u64 %bi,%bx,0x7ff0000000000000;
+ setp.eq.u64 %az,%ax,0;
+ setp.eq.u64 %bz,%bx,0;
+ xor.b64 %sign,%a,%b;
+ and.b64 %sign,%sign,0x8000000000000000;
+ setp.le.u32 %p,%op,1;
+ @%p bra BINARY_ADD_SUB;
+ setp.eq.u32 %p,%op,2;
+ @%p bra BINARY_MUL;
+ bra BINARY_DIV;
+BINARY_ADD_SUB:
+ setp.eq.u32 %p,%op,1;
+ @%p xor.b64 %b,%b,0x8000000000000000;
+ and.pred %p,%ai,%bi;
+ @!%p bra BINARY_ADD_ONE_INF;
+ xor.b64 %tmp,%a,%b;
+ shr.u64 %tmp,%tmp,63;
+ setp.ne.u64 %p,%tmp,0;
+ @%p bra BINARY_INVALID;
+BINARY_ADD_ONE_INF:
+ @%ai bra BINARY_RETURN_A;
+ @%bi bra BINARY_RETURN_B;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%a;
+ st.param.b64 [b],%b;
+ call.uni (ret),md2asm_gpu_add_rn,(a,b);
+ ld.param.b64 %r,[ret];
+ ld.param.b32 %flags,[ret+8];
+ }
+ bra BINARY_DONE;
+BINARY_MUL:
+ and.pred %p,%ai,%bz;
+ and.pred %q,%bi,%az;
+ or.pred %p,%p,%q;
+ @%p bra BINARY_INVALID;
+ or.pred %p,%ai,%bi;
+ @%p bra BINARY_SIGNED_INFINITY;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%a;
+ st.param.b64 [b],%b;
+ call.uni (ret),md2asm_gpu_mul_rn,(a,b);
+ ld.param.b64 %r,[ret];
+ ld.param.b32 %flags,[ret+8];
+ }
+ bra BINARY_DONE;
+BINARY_DIV:
+ and.pred %p,%ai,%bi;
+ and.pred %q,%az,%bz;
+ or.pred %p,%p,%q;
+ @%p bra BINARY_INVALID;
+ @%ai bra BINARY_SIGNED_INFINITY;
+ @%bi bra BINARY_SIGNED_ZERO;
+ @%bz bra BINARY_DIV_ZERO;
+ @%az bra BINARY_SIGNED_ZERO;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%a;
+ st.param.b64 [b],%b;
+ call.uni (ret),md2asm_gpu_finite_div_status,(a,b);
+ ld.param.b64 %r,[ret];
+ ld.param.b32 %flags,[ret+8];
+ }
+ bra BINARY_DONE;
+BINARY_DIV_ZERO:
+ mov.u32 %flags,2;
+BINARY_SIGNED_INFINITY:
+ or.b64 %r,%sign,0x7ff0000000000000;
+ bra BINARY_DONE;
+BINARY_SIGNED_ZERO:
+ mov.b64 %r,%sign;
+ bra BINARY_DONE;
+BINARY_RETURN_A:
+ mov.b64 %r,%a;
+ bra BINARY_DONE;
+BINARY_RETURN_B:
+ mov.b64 %r,%b;
+ bra BINARY_DONE;
+BINARY_NAN_A_INVALID:
+ mov.u32 %flags,1;
+BINARY_NAN_A:
+ or.b64 %r,%a,0x0008000000000000;
+ bra BINARY_DONE;
+BINARY_NAN_B_INVALID:
+ mov.u32 %flags,1;
+BINARY_NAN_B:
+ or.b64 %r,%b,0x0008000000000000;
+ bra BINARY_DONE;
+BINARY_INVALID:
+ mov.b64 %r,0x7ff8000000000000;
+ mov.u32 %flags,1;
+BINARY_DONE:
+ st.param.b64 [result_flags_event],%r;
+ st.param.b32 [result_flags_event+8],%flags;
+ st.param.b32 [result_flags_event+12],0;
+ ret;
+}
+.visible .func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_sqrt_status(.param .b64 word_a)
+{
+ .reg .b64 %a,%ax,%r,%tmp;
+ .reg .b32 %flags,%eq;
+ .reg .f64 %fa,%fr;
+ .reg .pred %p;
+ ld.param.b64 %a,[word_a];
+ and.b64 %ax,%a,0x7fffffffffffffff;
+ mov.u32 %flags,0;
+ setp.gt.u64 %p,%ax,0x7ff0000000000000;
+ @%p bra SQRT_NAN;
+ setp.eq.u64 %p,%ax,0;
+ @%p bra SQRT_RETURN_INPUT;
+ shr.u64 %tmp,%a,63;
+ setp.ne.u64 %p,%tmp,0;
+ @%p bra SQRT_INVALID;
+ setp.eq.u64 %p,%ax,0x7ff0000000000000;
+ @%p bra SQRT_RETURN_INPUT;
+ mov.b64 %fa,%a;
+ sqrt.rn.f64 %fr,%fa;
+ mov.b64 %r,%fr;
+ {
+ .param .b64 a,b,c;
+ .param .u32 equal;
+ st.param.b64 [a],%r;
+ st.param.b64 [b],%r;
+ st.param.b64 [c],%a;
+ call.uni (equal),md2asm_gpu_exact_product_equal,(a,b,c);
+ ld.param.u32 %eq,[equal];
+ }
+ setp.eq.u32 %p,%eq,0;
+ selp.u32 %flags,16,0,%p;
+ bra SQRT_DONE;
+SQRT_NAN:
+ and.b64 %tmp,%a,0x0008000000000000;
+ setp.eq.u64 %p,%tmp,0;
+ selp.u32 %flags,1,0,%p;
+ or.b64 %r,%a,0x0008000000000000;
+ bra SQRT_DONE;
+SQRT_RETURN_INPUT:
+ mov.b64 %r,%a;
+ bra SQRT_DONE;
+SQRT_INVALID:
+ mov.b64 %r,0x7ff8000000000000;
+ mov.u32 %flags,1;
+SQRT_DONE:
+ st.param.b64 [result_flags_event],%r;
+ st.param.b32 [result_flags_event+8],%flags;
+ st.param.b32 [result_flags_event+12],0;
+ ret;
+}
+
+.visible .func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_add_status(.param .b64 word_a,.param .b64 word_b)
+{
+ .reg .b64 %a,%b,%lo,%hi;
+ ld.param.b64 %a,[word_a];
+ ld.param.b64 %b,[word_b];
+ {
+ .param .b64 a,b;
+ .param .u32 operation;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%a;
+ st.param.b64 [b],%b;
+ st.param.u32 [operation],0;
+ call.uni (ret),md2asm_gpu_binary_status,(a,b,operation);
+ ld.param.b64 %lo,[ret];
+ ld.param.b64 %hi,[ret+8];
+ }
+ st.param.b64 [result_flags_event],%lo;
+ st.param.b64 [result_flags_event+8],%hi;
+ ret;
+}
+
+.visible .func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_sub_status(.param .b64 word_a,.param .b64 word_b)
+{
+ .reg .b64 %a,%b,%lo,%hi;
+ ld.param.b64 %a,[word_a];
+ ld.param.b64 %b,[word_b];
+ {
+ .param .b64 a,b;
+ .param .u32 operation;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%a;
+ st.param.b64 [b],%b;
+ st.param.u32 [operation],1;
+ call.uni (ret),md2asm_gpu_binary_status,(a,b,operation);
+ ld.param.b64 %lo,[ret];
+ ld.param.b64 %hi,[ret+8];
+ }
+ st.param.b64 [result_flags_event],%lo;
+ st.param.b64 [result_flags_event+8],%hi;
+ ret;
+}
+
+.visible .func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_mul_status(.param .b64 word_a,.param .b64 word_b)
+{
+ .reg .b64 %a,%b,%lo,%hi;
+ ld.param.b64 %a,[word_a];
+ ld.param.b64 %b,[word_b];
+ {
+ .param .b64 a,b;
+ .param .u32 operation;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%a;
+ st.param.b64 [b],%b;
+ st.param.u32 [operation],2;
+ call.uni (ret),md2asm_gpu_binary_status,(a,b,operation);
+ ld.param.b64 %lo,[ret];
+ ld.param.b64 %hi,[ret+8];
+ }
+ st.param.b64 [result_flags_event],%lo;
+ st.param.b64 [result_flags_event+8],%hi;
+ ret;
+}
+
+.visible .func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_div_status(.param .b64 word_a,.param .b64 word_b)
+{
+ .reg .b64 %a,%b,%lo,%hi;
+ ld.param.b64 %a,[word_a];
+ ld.param.b64 %b,[word_b];
+ {
+ .param .b64 a,b;
+ .param .u32 operation;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%a;
+ st.param.b64 [b],%b;
+ st.param.u32 [operation],3;
+ call.uni (ret),md2asm_gpu_binary_status,(a,b,operation);
+ ld.param.b64 %lo,[ret];
+ ld.param.b64 %hi,[ret+8];
+ }
+ st.param.b64 [result_flags_event],%lo;
+ st.param.b64 [result_flags_event+8],%hi;
+ ret;
+}
+.visible .func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_div_rn(.param .b64 word_a,.param .b64 word_b)
+{
+ .reg .b64 %a,%b,%lo,%hi;
+ ld.param.b64 %a,[word_a];
+ ld.param.b64 %b,[word_b];
+ {
+ .param .b64 a,b;
+ .param .u32 operation;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%a;
+ st.param.b64 [b],%b;
+ st.param.u32 [operation],3;
+ call.uni (ret),md2asm_gpu_binary_status,(a,b,operation);
+ ld.param.b64 %lo,[ret];
+ ld.param.b64 %hi,[ret+8];
+ }
+ st.param.b64 [result_flags_event],%lo;
+ st.param.b64 [result_flags_event+8],%hi;
+ ret;
+}
