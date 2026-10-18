@@ -2424,6 +2424,24 @@ md2asm_owned_initial_metadata_auxiliary:
  add x1,x1,:lo12:.Linitialization_control_status
  mov x2,#48
  bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ /* Serialize both final model-history owners through the owned output path. */
+ adrp x1,.Lhistory_extension_header
+ add x1,x1,:lo12:.Lhistory_extension_header
+ owned_model_address x9,0
+ str x9,[x1,#24]
+ mov x2,#32
+ bl .Lstate_write_bytes
+ cbnz w0,.Lsetup_close
+ owned_model_address x0,1565736
+ movz x1,#(1565736 & 65535)
+ movk x1,#(1565736 >> 16),lsl#16
+ bl .Lsetup_write_owner
+ cbnz w0,.Lsetup_close
+ owned_model_address x0,1577528
+ movz x1,#(1577528 & 65535)
+ movk x1,#(1577528 >> 16),lsl#16
+ bl .Lsetup_write_owner
 .Lsetup_close:
  mov w28,w0
  mov x0,x19
@@ -3508,4 +3526,12 @@ md2asm_owned_r19_nudging:
 .bss
 .p2align 3
 .Lschedule_upstream: .zero 8
+.section .note.GNU-stack,"",%progbits
+
+/* Append-only history metadata; complete payload extents come from live descriptors. */
+.data
+.p2align 3
+.Lhistory_extension_header:
+ .ascii "R19HST01"
+ .quad 1,2,0
 .section .note.GNU-stack,"",%progbits
