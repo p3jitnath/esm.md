@@ -184,7 +184,7 @@ The current [autonomous forecast contract](../../skills/md2asm/references/openif
 
 ## GPU extension
 
-The PTX extension has 205 distinct component-qualified originals. Three complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. Those overlapping views do not cover the separate complete-owner and model-history gates. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
+The PTX extension has 208 distinct component-qualified originals. Three complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. Those overlapping views do not cover the separate complete-owner and model-history gates. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
 
 These recent contracts describe complete device stages and their declared limits. Parent and child entries overlap, so their counts must not be added.
 
@@ -196,6 +196,9 @@ These recent contracts describe complete device stages and their declared limits
 | Interpolation boundary layers | [Boundary values](../../skills/md2asm-gpu/references/openifs/dynamics/interpolation_boundary_values.md) |
 | Gas profiles on pressure layers | [Gas interpolation](../../skills/md2asm-gpu/references/openifs/radiation/greenhouse_gas_interpolation.md) |
 | Seasonal ozone | [Ozone coefficients](../../skills/md2asm-gpu/references/openifs/physics/seasonal_ozone_coefficients.md) |
+| Ozone on model pressure layers | [Ozone mapping](../../skills/md2asm-gpu/references/openifs/radiation/ozone_pressure_layers.md) |
+| Monthly pressure-weighted gas amounts | [Monthly layers](../../skills/md2asm-gpu/references/openifs/physics/monthly_gas_layer_amounts.md) |
+| Complete convective downdraft | [Downdraft descent](../../skills/md2asm-gpu/references/openifs/physics/convective_downdraft_descent.md) |
 
 ## Local records
 

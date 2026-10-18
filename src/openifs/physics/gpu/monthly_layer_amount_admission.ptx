@@ -1,0 +1,137 @@
+// Direct assembly. Numerical and storage contract: ../../../../skills/md2asm-gpu/references/openifs/physics/monthly_gas_layer_amounts.md
+.version 8.5
+.target sm_90
+.address_size 64
+.func (.param .u32 error) monthly_layer_owner_range(.param .u64 base,.param .u64 bytes,.param .u64 mask,.param .u64 list,.param .u32 count,.param .u32 skip)
+{
+.reg .u64 %b,%n,%mask,%list,%end,%owner,%size,%stop,%word;.reg .u32 %i,%count,%skip,%error;.reg .pred %p,%q;
+ld.param.u64 %b,[base];ld.param.u64 %n,[bytes];ld.param.u64 %mask,[mask];ld.param.u64 %list,[list];ld.param.u32 %count,[count];ld.param.u32 %skip,[skip];mov.u32 %error,15741;
+setp.eq.u64 %p,%n,0;@%p bra GOOD;setp.eq.u64 %p,%b,0;@%p bra DONE;and.b64 %word,%b,%mask;setp.ne.u64 %p,%word,0;@%p bra DONE;setp.gt.u64 %p,%b,0x7fffffffffffffff;@%p bra DONE;setp.gt.u64 %p,%n,0x7fffffffffffffff;@%p bra DONE;add.u64 %end,%b,%n;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra DONE;mov.u32 %i,0;
+SCAN:setp.ge.u32 %p,%i,%count;@%p bra GOOD;setp.eq.u32 %p,%i,%skip;@%p bra NEXT;ld.u64 %owner,[%list];ld.u64 %size,[%list+8];setp.eq.u64 %p,%size,0;@%p bra NEXT;add.u64 %stop,%owner,%size;setp.lt.u64 %p,%b,%stop;setp.lt.u64 %q,%owner,%end;and.pred %p,%p,%q;@%p bra DONE;
+NEXT:add.u64 %list,%list,16;add.u32 %i,%i,1;bra SCAN;
+GOOD:mov.u32 %error,0;
+DONE:st.param.u32 [error],%error;ret;
+}
+
+
+
+.func (.param .u32 error) monthly_layer_descriptor_span(.param .u64 descriptor,.param .u32 rank,.param .u64 n0,.param .u64 n1,.param .u64 n2,.param .u64 owner_base,.param .u64 owner_bytes)
+{
+.reg .u64 %d,%n<3>,%n,%base,%bytes,%end,%point,%ptr,%lo,%hi,%extent,%stride,%scaled,%back,%product,%high,%sign,%negative,%positive,%new,%first,%last;
+.reg .u32 %rank,%i,%error;.reg .pred %p;
+ld.param.u64 %d,[descriptor];ld.param.u32 %rank,[rank];ld.param.u64 %n0,[n0];ld.param.u64 %n1,[n1];ld.param.u64 %n2,[n2];ld.param.u64 %base,[owner_base];ld.param.u64 %bytes,[owner_bytes];mov.u32 %error,15743;mov.u64 %negative,0;mov.u64 %positive,0;mov.u32 %i,0;
+SPAN_DIMENSION:mov.u64 %n,%n0;setp.eq.u32 %p,%i,1;@%p mov.u64 %n,%n1;setp.eq.u32 %p,%i,2;@%p mov.u64 %n,%n2;mul.wide.u32 %lo,%i,24;add.u64 %ptr,%d,%lo;ld.u64 %stride,[%ptr+40];ld.u64 %lo,[%ptr+48];ld.u64 %hi,[%ptr+56];setp.lt.s64 %p,%hi,%lo;@%p bra SPAN_RETURN;sub.u64 %extent,%hi,%lo;add.u64 %extent,%extent,1;setp.ne.u64 %p,%extent,%n;@%p bra SPAN_RETURN;setp.eq.u64 %p,%stride,0;@%p bra SPAN_RETURN;shl.b64 %scaled,%stride,3;shr.s64 %back,%scaled,3;setp.ne.u64 %p,%back,%stride;@%p bra SPAN_RETURN;sub.u64 %extent,%extent,1;mul.lo.u64 %product,%extent,%scaled;mul.hi.s64 %high,%extent,%scaled;shr.s64 %sign,%product,63;setp.ne.u64 %p,%high,%sign;@%p bra SPAN_RETURN;setp.lt.s64 %p,%product,0;@%p bra SPAN_NEGATIVE;add.u64 %new,%positive,%product;setp.lt.s64 %p,%new,%positive;@%p bra SPAN_RETURN;mov.u64 %positive,%new;bra SPAN_NEXT;
+SPAN_NEGATIVE:add.u64 %new,%negative,%product;setp.gt.s64 %p,%new,%negative;@%p bra SPAN_RETURN;mov.u64 %negative,%new;
+SPAN_NEXT:add.u32 %i,%i,1;setp.lt.u32 %p,%i,%rank;@%p bra SPAN_DIMENSION;
+ld.u64 %point,[%d];and.b64 %new,%point,7;setp.ne.u64 %p,%new,0;@%p bra SPAN_RETURN;add.u64 %first,%point,%negative;setp.gt.u64 %p,%first,%point;@%p bra SPAN_RETURN;add.u64 %last,%point,%positive;setp.lt.u64 %p,%last,%point;@%p bra SPAN_RETURN;add.u64 %last,%last,8;setp.lt.u64 %p,%last,%point;@%p bra SPAN_RETURN;add.u64 %end,%base,%bytes;setp.lt.u64 %p,%first,%base;@%p bra SPAN_RETURN;setp.gt.u64 %p,%last,%end;@%p bra SPAN_RETURN;mov.u32 %error,0;
+SPAN_RETURN:st.param.u32 [error],%error;ret;
+}
+.visible .func (.param .u32 error) md2asm_gpu_monthly_layer_amount_admit(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%list,%ptr,%offset,%v<7>,%record,%cap,%base<3>,%bytes<3>,%levels,%columns,%lo,%hi,%extent,%word,%absolute,%key,%previous,%phase1,%phase2,%volume,%pressure,%ps,%vc,%vl,%vm,%left,%right,%i,%j;
+.reg .u32 %error,%count,%contextindex,%outputindex;
+.reg .pred %p;
+.local .align 8 .b8 owners[512];
+.param .u64 rb,rn,rm,rl,sd,sn0,sn1,sn2,sb,sz;.param .u32 rc,rs,rr,srank,sresult;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];mov.u64 %list,owners;cvta.local.u64 %list,%list;mov.u32 %count,0;
+
+st.param.u64 [rb],%args;st.param.u64 [rn],56;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%args;st.u64 [%ptr+8],56;add.u32 %count,%count,1;
+mov.u32 %contextindex,%count;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%ctx;st.u64 [%ptr+8],64;add.u32 %count,%count,1;
+ld.u64 %v3,[%args+24];
+st.param.u64 [rb],%v3;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v3;st.u64 [%ptr+8],64;add.u32 %count,%count,1;
+ld.u64 %lo,[%v3+48];ld.u64 %hi,[%v3+56];
+mov.u32 %error,15742;setp.lt.s64 %p,%hi,%lo;@%p bra RETURN;
+sub.u64 %levels,%hi,%lo;
+mov.u32 %error,15742;setp.gt.u64 %p,%levels,512;@%p bra RETURN;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%contextindex;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+setp.eq.u64 %p,%levels,0;@%p bra SUCCESS;ld.u64 %v6,[%args+48];
+st.param.u64 [rb],%v6;st.param.u64 [rn],88;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v6;st.u64 [%ptr+8],88;add.u32 %count,%count,1;
+ld.u64 %lo,[%v6+48];ld.u64 %hi,[%v6+56];setp.lt.s64 %p,%hi,%lo;@%p bra EMPTY_LATITUDE;sub.u64 %columns,%hi,%lo;add.u64 %columns,%columns,1;
+mov.u32 %error,15742;setp.eq.u64 %p,%columns,0;@%p bra RETURN;
+mov.u32 %error,15742;setp.gt.u64 %p,%columns,4096;@%p bra RETURN;
+bra NONEMPTY_LATITUDE;
+EMPTY_LATITUDE:sub.u64 %word,%lo,1;
+mov.u32 %error,15742;setp.ne.u64 %p,%word,%hi;@%p bra RETURN;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%contextindex;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+bra SUCCESS;
+NONEMPTY_LATITUDE:
+ld.u64 %v0,[%args+0];
+st.param.u64 [rb],%v0;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v0;st.u64 [%ptr+8],4;add.u32 %count,%count,1;
+ld.u64 %v1,[%args+8];
+st.param.u64 [rb],%v1;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v1;st.u64 [%ptr+8],4;add.u32 %count,%count,1;
+ld.u64 %v2,[%args+16];
+st.param.u64 [rb],%v2;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v2;st.u64 [%ptr+8],8;add.u32 %count,%count,1;
+ld.u64 %v4,[%args+32];
+st.param.u64 [rb],%v4;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v4;st.u64 [%ptr+8],8;add.u32 %count,%count,1;
+ld.u64 %v5,[%args+40];
+st.param.u64 [rb],%v5;st.param.u64 [rn],112;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v5;st.u64 [%ptr+8],112;add.u32 %count,%count,1;
+ld.u64 %record,[%ctx+48];ld.u64 %cap,[%ctx+56];
+mov.u32 %error,15742;setp.lt.u64 %p,%cap,48;@%p bra RETURN;
+st.param.u64 [rb],%record;st.param.u64 [rn],48;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%record;st.u64 [%ptr+8],48;add.u32 %count,%count,1;
+ld.u64 %base0,[%record+0];ld.u64 %bytes0,[%record+8];
+st.param.u64 [rb],%base0;st.param.u64 [rn],%bytes0;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%base0;st.u64 [%ptr+8],%bytes0;add.u32 %count,%count,1;
+ld.u64 %base1,[%record+16];ld.u64 %bytes1,[%record+24];
+st.param.u64 [rb],%base1;st.param.u64 [rn],%bytes1;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%base1;st.u64 [%ptr+8],%bytes1;add.u32 %count,%count,1;
+ld.u64 %base2,[%record+32];ld.u64 %bytes2,[%record+40];
+mov.u32 %outputindex,%count;
+st.param.u64 [rb],%base2;st.param.u64 [rn],%bytes2;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%base2;st.u64 [%ptr+8],%bytes2;add.u32 %count,%count,1;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%contextindex;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+st.param.u64 [rb],%base2;st.param.u64 [rn],%bytes2;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%outputindex;call.uni (rr),monthly_layer_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+add.u64 %word,%levels,1;
+st.param.u64 [sd],%v3;st.param.u32 [srank],1;st.param.u64 [sn0],%word;st.param.u64 [sn1],1;st.param.u64 [sn2],1;st.param.u64 [sb],%base0;st.param.u64 [sz],%bytes0;call.uni (sresult),monthly_layer_descriptor_span,(sd,srank,sn0,sn1,sn2,sb,sz);ld.param.u32 %error,[sresult];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+st.param.u64 [sd],%v5;st.param.u32 [srank],3;st.param.u64 [sn0],%columns;st.param.u64 [sn1],%levels;st.param.u64 [sn2],12;st.param.u64 [sb],%base1;st.param.u64 [sz],%bytes1;call.uni (sresult),monthly_layer_descriptor_span,(sd,srank,sn0,sn1,sn2,sb,sz);ld.param.u32 %error,[sresult];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+st.param.u64 [sd],%v6;st.param.u32 [srank],2;st.param.u64 [sn0],%columns;st.param.u64 [sn1],%levels;st.param.u64 [sn2],1;st.param.u64 [sb],%base2;st.param.u64 [sz],%bytes2;call.uni (sresult),monthly_layer_descriptor_span,(sd,srank,sn0,sn1,sn2,sb,sz);ld.param.u32 %error,[sresult];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+ld.s32 %word,[%v0];
+mov.u32 %error,15744;setp.lt.s64 %p,%word,1;@%p bra RETURN;
+mov.u32 %error,15744;setp.gt.u64 %p,%word,12;@%p bra RETURN;
+sub.u64 %phase1,%word,1;
+ld.s32 %word,[%v1];
+mov.u32 %error,15744;setp.lt.s64 %p,%word,1;@%p bra RETURN;
+mov.u32 %error,15744;setp.gt.u64 %p,%word,12;@%p bra RETURN;
+sub.u64 %phase2,%word,1;
+ld.u64 %word,[%v2];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,15744;setp.gt.u64 %p,%absolute,0x3ff0000000000000;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p bra SCALAR_NONNEGATIVE_2;
+mov.u32 %error,15744;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra RETURN;
+SCALAR_NONNEGATIVE_2:
+ld.u64 %word,[%v4];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,15744;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p bra SCALAR_NONNEGATIVE_4;
+mov.u32 %error,15744;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra RETURN;
+SCALAR_NONNEGATIVE_4:
+ld.u64 %pressure,[%v3];ld.u64 %ps,[%v3+40];shl.b64 %ps,%ps,3;mov.u64 %i,0;
+PRESSURE_WORD:ld.u64 %word,[%pressure];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,15744;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p mov.u64 %word,0;setp.lt.s64 %p,%word,0;@%p not.b64 %key,%word;@!%p xor.b64 %key,%word,0x8000000000000000;setp.eq.u64 %p,%i,0;@%p bra FIRST_PRESSURE;
+mov.u32 %error,15744;setp.lt.u64 %p,%key,%previous;@%p bra RETURN;
+FIRST_PRESSURE:mov.u64 %previous,%key;add.u64 %pressure,%pressure,%ps;add.u64 %i,%i,1;setp.le.u64 %p,%i,%levels;@%p bra PRESSURE_WORD;ld.u64 %volume,[%v5];ld.u64 %vc,[%v5+40];shl.b64 %vc,%vc,3;ld.u64 %vl,[%v5+64];shl.b64 %vl,%vl,3;ld.u64 %vm,[%v5+88];shl.b64 %vm,%vm,3;mad.lo.u64 %phase1,%phase1,%vm,%volume;mad.lo.u64 %phase2,%phase2,%vm,%volume;mov.u64 %j,0;
+VOLUME_LAYER:mov.u64 %left,%phase1;mov.u64 %right,%phase2;mov.u64 %i,0;
+VOLUME_LATITUDE:
+ld.u64 %word,[%left];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,15744;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p bra VOLUME_OK_left;
+mov.u32 %error,15744;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra RETURN;
+VOLUME_OK_left:
+ld.u64 %word,[%right];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,15744;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p bra VOLUME_OK_right;
+mov.u32 %error,15744;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra RETURN;
+VOLUME_OK_right:
+add.u64 %left,%left,%vc;add.u64 %right,%right,%vc;add.u64 %i,%i,1;setp.lt.u64 %p,%i,%columns;@%p bra VOLUME_LATITUDE;add.u64 %phase1,%phase1,%vl;add.u64 %phase2,%phase2,%vl;add.u64 %j,%j,1;setp.lt.u64 %p,%j,%levels;@%p bra VOLUME_LAYER;
+SUCCESS:mov.u32 %error,0;
+RETURN:st.param.u32 [error],%error;ret;
+}
