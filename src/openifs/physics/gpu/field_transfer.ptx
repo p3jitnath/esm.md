@@ -1,0 +1,160 @@
+// Direct PTX from the physics state-update contract, revision 1.
+// Contract: skills/md2asm-gpu/references/openifs/physics/state_updates.md.
+// Original pointer vector and common 64-byte context; no host numerical stage.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_add_status(.param .b64 left_word, .param .b64 right_word);
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_sub_status(.param .b64 left_word, .param .b64 right_word);
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_mul_status(.param .b64 left_word, .param .b64 right_word);
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_div_status(.param .b64 left_word, .param .b64 right_word);
+.visible .entry md2asm_gpu_update_fields(.param .u64 args_original_vector,.param .u64 context)
+{
+
+ .reg .pred %p<8>;
+ .reg .u32 %r<16>,%k,%n,%first,%last,%flags,%raised,%old,%mask,%field,%mode,%ok;
+ .reg .b64 %args,%ctx,%dim,%physics,%initial,%tendency,%state,%descriptor,%da,%db,%dc,%a,%b,%c,%cell,%total,%step,%column,%level,%offset,%tmp,%tmp2,%dt,%value,%rate,%product,%op_a,%op_b,%op_r;
+ ld.param.u64 %args,[args_original_vector]; ld.param.u64 %ctx,[context];
+ setp.eq.u64 %p0,%ctx,0; @%p0 ret;
+ setp.eq.u64 %p0,%args,0; @%p0 bra BAD;
+ ld.global.u32 %old,[%ctx]; setp.ne.u32 %p0,%old,0; @%p0 ret;
+ ld.global.u32 %r0,[%ctx+4]; setp.ne.u32 %p0,%r0,1; @%p0 bra BAD;
+ mov.u32 %flags,0;
+
+ .reg .b64 %pi,%ps,%pa,%ldv,%pta,%pts,%po,%argfield;
+ ld.global.u64 %physics,[%args];
+ ld.global.u64 %tmp,[%args+8]; setp.eq.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.u32 %mode,[%tmp];
+ setp.lt.u32 %p0,%mode,1; @%p0 bra BAD; setp.gt.u32 %p0,%mode,2; @%p0 bra BAD;
+ ld.global.u64 %tmp,[%args+16]; setp.eq.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.u32 %first,[%tmp];
+ ld.global.u64 %tmp,[%args+24]; setp.eq.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.u32 %last,[%tmp];
+ ld.global.u64 %tmp,[%args+32]; setp.eq.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.u32 %k,[%tmp];
+ ld.global.u64 %tmp,[%args+40]; setp.eq.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.u32 %n,[%tmp];
+ setp.gt.u32 %p0,%k,4096; @%p0 bra BAD;
+ setp.gt.u32 %p0,%n,1024; @%p0 bra BAD;
+ setp.eq.u32 %p0,%k,0; @%p0 ret;
+ setp.eq.u32 %p0,%n,0; @%p0 ret;
+ setp.lt.s32 %p0,%first,1; @%p0 bra BAD;
+ setp.gt.u32 %p0,%first,%k; @%p0 bra BAD;
+ setp.gt.u32 %p0,%last,%k; @%p0 bra BAD;
+ sub.u32 %r0,%first,1; setp.lt.s32 %p0,%last,%r0; @%p0 bra BAD;
+ setp.lt.u32 %p0,%last,%first; @%p0 ret;
+
+ setp.eq.u64 %p0,%physics,0; @%p0 bra BAD;
+ mov.u32 %field,0;
+UF_VALIDATE:
+ setp.ge.u32 %p0,%field,13; @%p0 bra UF_VALID;
+ mul.wide.u32 %argfield,%field,8; add.u64 %argfield,%args,%argfield;
+ ld.global.u64 %po,[%argfield+672]; setp.eq.u64 %p0,%po,0; @%p0 bra UF_VALIDATE_NEXT;
+ ld.global.u64 %ldv,[%argfield+360]; setp.eq.u64 %p0,%ldv,0; @%p0 bra UF_VALIDATE_ACTIVE;
+ ld.global.u32 %mask,[%ldv]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD;
+ setp.eq.u32 %p0,%mask,0; @%p0 bra UF_VALIDATE_NEXT;
+UF_VALIDATE_ACTIVE:
+ setp.ne.u32 %p0,%mode,1; @%p0 bra UF_VALIDATE_NEXT;
+ ld.global.u64 %pta,[%argfield+464]; setp.eq.u64 %p0,%pta,0; @%p0 bra BAD;
+UF_VALIDATE_NEXT:
+ add.u32 %field,%field,1; bra UF_VALIDATE;
+UF_VALID:
+ ld.global.b64 %dt,[%physics+8];
+
+ mov.u32 %r0,%ctaid.x; mov.u32 %r1,%ntid.x; mov.u32 %r2,%tid.x;
+ mul.wide.u32 %cell,%r0,%r1; cvt.u64.u32 %tmp,%r2; add.u64 %cell,%cell,%tmp;
+ mov.u32 %r0,%nctaid.x; mul.wide.u32 %step,%r0,%r1;
+ mul.wide.u32 %total,%k,%n;
+CELL_LOOP:
+ setp.ge.u64 %p0,%cell,%total; @%p0 bra COMPLETE;
+ cvt.u64.u32 %tmp,%k; rem.u64 %column,%cell,%tmp; div.u64 %level,%cell,%tmp;
+ add.u64 %column,%column,1;
+ cvt.u64.u32 %tmp,%first; setp.lt.u64 %p0,%column,%tmp; @%p0 bra NEXT_CELL;
+ cvt.u64.u32 %tmp,%last; setp.gt.u64 %p0,%column,%tmp; @%p0 bra NEXT_CELL;
+ shl.b64 %offset,%cell,3;
+
+ mov.u32 %field,0;
+UF_FIELD:
+ setp.ge.u32 %p0,%field,13; @%p0 bra NEXT_CELL;
+ mul.wide.u32 %argfield,%field,8; add.u64 %argfield,%args,%argfield;
+ ld.global.u64 %po,[%argfield+672]; setp.eq.u64 %p0,%po,0; @%p0 bra UF_NEXT;
+ ld.global.u64 %ldv,[%argfield+360]; setp.eq.u64 %p0,%ldv,0; @%p0 bra UF_ACTIVE;
+ ld.global.u32 %mask,[%ldv]; setp.eq.u32 %p0,%mask,0; @%p0 bra UF_NEXT;
+UF_ACTIVE:
+ ld.global.u64 %pi,[%argfield+48]; ld.global.u64 %ps,[%argfield+152]; ld.global.u64 %pa,[%argfield+256];
+ ld.global.u64 %pta,[%argfield+464]; ld.global.u64 %pts,[%argfield+568];
+ add.u64 %c,%po,%offset;
+ setp.eq.u64 %p0,%pi,0; @%p0 bra UF_INCOMING;
+ add.u64 %a,%pi,%offset; ld.global.b64 %value,[%a]; bra UF_RATE;
+UF_INCOMING:
+ ld.global.b64 %value,[%c];
+UF_RATE:
+ setp.ne.u32 %p0,%mode,1; @%p0 bra UF_ADD;
+ add.u64 %a,%pta,%offset; ld.global.b64 %rate,[%a];
+ setp.eq.u64 %p0,%pts,0; @%p0 bra UF_PRODUCT;
+ add.u64 %a,%pts,%offset; ld.global.b64 %op_b,[%a]; mov.b64 %op_a,%rate;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_sub_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %rate,%op_r;
+UF_PRODUCT:
+ mov.b64 %op_a,%rate; mov.b64 %op_b,%dt;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_mul_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %op_a,%value; mov.b64 %op_b,%op_r;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %value,%op_r;
+UF_ADD:
+ setp.eq.u64 %p0,%pa,0; @%p0 bra UF_SUB;
+ add.u64 %a,%pa,%offset; ld.global.b64 %op_b,[%a]; mov.b64 %op_a,%value;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %value,%op_r;
+UF_SUB:
+ setp.eq.u64 %p0,%ps,0; @%p0 bra UF_STORE;
+ add.u64 %a,%ps,%offset; ld.global.b64 %op_b,[%a]; mov.b64 %op_a,%value;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_sub_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %value,%op_r;
+UF_STORE:
+ st.global.b64 [%c],%value;
+UF_NEXT:
+ add.u32 %field,%field,1; bra UF_FIELD;
+
+NEXT_CELL:
+ add.u64 %cell,%cell,%step; bra CELL_LOOP;
+COMPLETE:
+ add.u64 %tmp,%ctx,8; atom.global.or.b32 %old,[%tmp],%flags; ret;
+BAD:
+ atom.global.cas.b32 %old,[%ctx],0,1; ret;
+}

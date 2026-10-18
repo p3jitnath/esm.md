@@ -1,0 +1,295 @@
+// Direct PTX from the saturation-humidity contract, revision 1.
+// Contract: skills/md2asm-gpu/references/openifs/physics/saturation_humidity.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_add_status(.param .b64 left_word,.param .b64 right_word);
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_sub_status(.param .b64 left_word,.param .b64 right_word);
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_mul_status(.param .b64 left_word,.param .b64 right_word);
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_div_status(.param .b64 left_word,.param .b64 right_word);
+.extern .func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_exp_original_rounding(.param .b64 input_word);
+
+.visible .entry md2asm_gpu_satur(.param .u64 args_original_vector,.param .u64 context)
+{
+ .reg .pred %p<8>;
+ .reg .u32 %r<10>,%k,%n,%first,%last,%firstlevel,%linear,%phase,%flags,%raised,%event,%old;
+ .reg .b64 %args,%ctx,%pointer,%record,%pressure,%temperature,%output,%cell,%total,%step,%column,%level,%offset,%tmp,%tmp2,%ordinal,%old64;
+ .reg .b64 %rtice,%rticecu,%invordinary,%invconvective,%rtwat,%retv,%rtt,%r2es,%r3les,%r4les,%r3ies,%r4ies,%ice,%inverse;
+ .reg .b64 %t,%alpha,%delta,%numerator,%water,%frozenice,%blend,%ratio,%op_a,%op_b,%op_r;
+ .reg .f64 %tf,%icef,%waterf,%clipf,%alphaf,%ratiof;
+ ld.param.u64 %args,[args_original_vector]; ld.param.u64 %ctx,[context];
+ setp.eq.u64 %p0,%ctx,0; @%p0 ret;
+ setp.eq.u64 %p0,%args,0; @%p0 bra BAD;
+ ld.global.u32 %old,[%ctx]; setp.ne.u32 %p0,%old,0; @%p0 ret;
+ ld.global.u32 %r0,[%ctx+4]; setp.ne.u32 %p0,%r0,1; @%p0 bra BAD;
+ ld.global.u64 %pointer,[%args+0]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; ld.global.u32 %first,[%pointer];
+ ld.global.u64 %pointer,[%args+8]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; ld.global.u32 %last,[%pointer];
+ ld.global.u64 %pointer,[%args+16]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; ld.global.u32 %k,[%pointer];
+ ld.global.u64 %pointer,[%args+24]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; ld.global.u32 %firstlevel,[%pointer];
+ ld.global.u64 %pointer,[%args+32]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; ld.global.u32 %n,[%pointer];
+
+ setp.gt.u32 %p0,%k,4096; @%p0 bra BAD;
+ setp.gt.u32 %p0,%n,1024; @%p0 bra BAD;
+ setp.eq.u32 %p0,%k,0; @%p0 ret;
+ setp.eq.u32 %p0,%n,0; @%p0 ret;
+ setp.lt.s32 %p0,%first,1; @%p0 bra BAD;
+ add.u32 %r0,%k,1; setp.gt.u32 %p0,%first,%r0; @%p0 bra BAD;
+ setp.gt.u32 %p0,%last,%k; @%p0 bra BAD;
+ sub.u32 %r0,%first,1; setp.lt.s32 %p0,%last,%r0; @%p0 bra BAD;
+ setp.lt.s32 %p0,%firstlevel,1; @%p0 bra BAD;
+ add.u32 %r0,%n,1; setp.gt.u32 %p0,%firstlevel,%r0; @%p0 bra BAD;
+ setp.lt.u32 %p0,%last,%first; @%p0 ret;
+ setp.gt.u32 %p0,%firstlevel,%n; @%p0 ret;
+ ld.global.u64 %pointer,[%args+40]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; ld.global.u32 %linear,[%pointer];
+ setp.gt.u32 %p0,%linear,1; @%p0 bra BAD;
+ ld.global.u64 %pointer,[%args+72]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; ld.global.u32 %phase,[%pointer];
+ ld.global.u64 %pressure,[%args+48]; ld.global.u64 %temperature,[%args+56]; ld.global.u64 %output,[%args+64];
+ setp.eq.u64 %p0,%pressure,0; @%p0 bra BAD;
+ setp.eq.u64 %p0,%temperature,0; @%p0 bra BAD;
+ setp.eq.u64 %p0,%output,0; @%p0 bra BAD;
+ or.b64 %tmp,%pressure,%temperature; or.b64 %tmp,%tmp,%output; and.b64 %tmp,%tmp,7;
+ setp.ne.u64 %p0,%tmp,0; @%p0 bra BAD;
+ ld.global.u64 %record,[%ctx+48]; ld.global.u64 %tmp,[%ctx+56];
+ setp.eq.u64 %p0,%record,0; @%p0 bra BAD;
+ setp.ne.u64 %p0,%tmp,96; @%p0 bra BAD;
+ ld.global.u64 %pointer,[%record+0]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; and.b64 %tmp,%pointer,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.b64 %rtice,[%pointer];
+ ld.global.u64 %pointer,[%record+8]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; and.b64 %tmp,%pointer,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.b64 %rticecu,[%pointer];
+ ld.global.u64 %pointer,[%record+16]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; and.b64 %tmp,%pointer,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.b64 %invordinary,[%pointer];
+ ld.global.u64 %pointer,[%record+24]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; and.b64 %tmp,%pointer,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.b64 %invconvective,[%pointer];
+ ld.global.u64 %pointer,[%record+32]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; and.b64 %tmp,%pointer,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.b64 %rtwat,[%pointer];
+ ld.global.u64 %pointer,[%record+40]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; and.b64 %tmp,%pointer,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.b64 %retv,[%pointer];
+ ld.global.u64 %pointer,[%record+48]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; and.b64 %tmp,%pointer,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.b64 %rtt,[%pointer];
+ ld.global.u64 %pointer,[%record+56]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; and.b64 %tmp,%pointer,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.b64 %r2es,[%pointer];
+ ld.global.u64 %pointer,[%record+64]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; and.b64 %tmp,%pointer,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.b64 %r3les,[%pointer];
+ ld.global.u64 %pointer,[%record+72]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; and.b64 %tmp,%pointer,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.b64 %r4les,[%pointer];
+ ld.global.u64 %pointer,[%record+80]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; and.b64 %tmp,%pointer,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.b64 %r3ies,[%pointer];
+ ld.global.u64 %pointer,[%record+88]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; and.b64 %tmp,%pointer,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.b64 %r4ies,[%pointer];
+
+ mov.b64 %ice,%rtice; mov.b64 %inverse,%invordinary;
+ setp.ne.u32 %p0,%linear,0; @%p0 bra PHASE_READY;
+ setp.ne.u32 %p0,%phase,1; @%p0 bra PHASE_READY;
+ mov.b64 %ice,%rticecu; mov.b64 %inverse,%invconvective;
+PHASE_READY:
+ mov.u32 %flags,0;
+ mov.u32 %r0,%ctaid.x; mov.u32 %r1,%ntid.x; mov.u32 %r2,%tid.x;
+ mul.wide.u32 %cell,%r0,%r1; cvt.u64.u32 %tmp,%r2; add.u64 %cell,%cell,%tmp;
+ mov.u32 %r0,%nctaid.x; mul.wide.u32 %step,%r0,%r1;
+ mul.wide.u32 %total,%k,%n;
+CELL:
+ setp.ge.u64 %p0,%cell,%total; @%p0 bra COMPLETE;
+ cvt.u64.u32 %tmp,%k; rem.u64 %column,%cell,%tmp; div.u64 %level,%cell,%tmp;
+ add.u64 %column,%column,1; add.u64 %level,%level,1;
+ cvt.u64.u32 %tmp,%first; setp.lt.u64 %p0,%column,%tmp; @%p0 bra NEXT;
+ cvt.u64.u32 %tmp,%last; setp.gt.u64 %p0,%column,%tmp; @%p0 bra NEXT;
+ cvt.u64.u32 %tmp,%firstlevel; setp.lt.u64 %p0,%level,%tmp; @%p0 bra NEXT;
+ shl.b64 %offset,%cell,3; add.u64 %pointer,%temperature,%offset; ld.global.b64 %t,[%pointer];
+ mov.b64 %tf,%t; mov.b64 %icef,%ice; mov.b64 %waterf,%rtwat;
+ min.f64 %clipf,%waterf,%tf; max.f64 %clipf,%icef,%clipf;
+ mov.b64 %op_a,%clipf; mov.b64 %op_b,%ice;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_a,%op_r; mov.b64 %op_b,%inverse;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_a,%op_r; mov.b64 %op_b,%op_r;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %alphaf,%op_r; min.f64 %alphaf,0d3ff0000000000000,%alphaf; mov.b64 %alpha,%alphaf;
+ mov.b64 %op_a,%t; mov.b64 %op_b,%rtt;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_a,%r3les; mov.b64 %op_b,%op_r;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %numerator,%op_r; mov.b64 %op_a,%t; mov.b64 %op_b,%r4les;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_b,%op_r; mov.b64 %op_a,%numerator;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_div_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+{
+ .param .b64 input; .param .align 8 .b8 result[16];
+ st.param.b64 [input],%op_r;
+ call.uni (result),md2asm_gpu_exp_original_rounding,(input);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ ld.param.u32 %event,[result+12];
+ setp.eq.u32 %p0,%event,0; @%p0 bra EXP_EVENT_DONE_0;
+ shl.b64 %ordinal,%cell,1; add.u64 %ordinal,%ordinal,1; shl.b64 %ordinal,%ordinal,8;
+ cvt.u64.u32 %tmp,%event; or.b64 %ordinal,%ordinal,%tmp; add.u64 %tmp,%ctx,16;
+ atom.global.max.u64 %old64,[%tmp],%ordinal;
+EXP_EVENT_DONE_0:
+}
+ mov.b64 %water,%op_r;
+ setp.eq.u32 %p0,%linear,0; @%p0 bra SCALE_DONE_0;
+ mov.b64 %op_a,%r2es; mov.b64 %op_b,%water;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %water,%op_r;
+SCALE_DONE_0:
+ mov.b64 %op_a,%t; mov.b64 %op_b,%rtt;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_a,%r3ies; mov.b64 %op_b,%op_r;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %numerator,%op_r; mov.b64 %op_a,%t; mov.b64 %op_b,%r4ies;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_b,%op_r; mov.b64 %op_a,%numerator;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_div_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+{
+ .param .b64 input; .param .align 8 .b8 result[16];
+ st.param.b64 [input],%op_r;
+ call.uni (result),md2asm_gpu_exp_original_rounding,(input);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ ld.param.u32 %event,[result+12];
+ setp.eq.u32 %p0,%event,0; @%p0 bra EXP_EVENT_DONE_1;
+ shl.b64 %ordinal,%cell,1; add.u64 %ordinal,%ordinal,2; shl.b64 %ordinal,%ordinal,8;
+ cvt.u64.u32 %tmp,%event; or.b64 %ordinal,%ordinal,%tmp; add.u64 %tmp,%ctx,16;
+ atom.global.max.u64 %old64,[%tmp],%ordinal;
+EXP_EVENT_DONE_1:
+}
+ mov.b64 %frozenice,%op_r;
+ setp.eq.u32 %p0,%linear,0; @%p0 bra SCALE_DONE_1;
+ mov.b64 %op_a,%r2es; mov.b64 %op_b,%frozenice;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %frozenice,%op_r;
+SCALE_DONE_1:
+
+ mov.b64 %op_a,%alpha; mov.b64 %op_b,%water;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %blend,%op_r; mov.b64 %op_a,0x3ff0000000000000; mov.b64 %op_b,%alpha;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_a,%op_r; mov.b64 %op_b,%frozenice;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_a,%blend; mov.b64 %op_b,%op_r;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %blend,%op_r;
+ setp.ne.u32 %p0,%linear,0; @%p0 bra BLEND_SCALED;
+ mov.b64 %op_a,%r2es; mov.b64 %op_b,%blend;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %blend,%op_r;
+BLEND_SCALED:
+ add.u64 %pointer,%pressure,%offset; ld.global.b64 %op_b,[%pointer]; mov.b64 %op_a,%blend;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_div_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %ratiof,%op_r; min.f64 %ratiof,0d3fe0000000000000,%ratiof; mov.b64 %ratio,%ratiof;
+ mov.b64 %op_a,%retv; mov.b64 %op_b,%ratio;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_b,%op_r; mov.b64 %op_a,0x3ff0000000000000;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_b,%op_r; mov.b64 %op_a,0x3ff0000000000000;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_div_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_b,%op_r; mov.b64 %op_a,%ratio;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ add.u64 %pointer,%output,%offset; st.global.b64 [%pointer],%op_r;
+NEXT:
+ add.u64 %cell,%cell,%step; bra CELL;
+COMPLETE:
+ add.u64 %tmp,%ctx,8; atom.global.or.b32 %old,[%tmp],%flags; ret;
+BAD:
+ atom.global.cas.b32 %old,[%ctx],0,1; ret;
+}

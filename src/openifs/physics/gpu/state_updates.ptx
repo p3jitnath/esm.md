@@ -1,0 +1,1295 @@
+// Direct PTX from the physics state-update contract, revision 1.
+// Contract: skills/md2asm-gpu/references/openifs/physics/state_updates.md.
+// Original pointer vector and common 64-byte context; no host numerical stage.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_add_status(.param .b64 left_word, .param .b64 right_word);
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_sub_status(.param .b64 left_word, .param .b64 right_word);
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_mul_status(.param .b64 left_word, .param .b64 right_word);
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_div_status(.param .b64 left_word, .param .b64 right_word);
+
+// Check the complete active descriptor before any output write.
+.func (.param .u32 result) state_descriptor_valid(
+ .param .u64 d, .param .u32 first, .param .u32 last,
+ .param .u32 n, .param .u32 colon, .param .u32 component)
+{
+ .reg .pred %p<4>;
+ .reg .u32 %ok,%f,%l,%n,%colon,%c;
+ .reg .b64 %d,%x,%lo,%hi,%h,%v,%t,%c64;
+ ld.param.u64 %d,[d];
+ ld.param.u32 %f,[first]; ld.param.u32 %l,[last];
+ ld.param.u32 %n,[n]; ld.param.u32 %colon,[colon]; ld.param.u32 %c,[component];
+ mov.u32 %ok,0;
+ ld.global.u64 %x,[%d]; setp.eq.u64 %p0,%x,0; @%p0 bra VD_DONE;
+ and.b64 %t,%x,7; setp.ne.u64 %p0,%t,0; @%p0 bra VD_DONE;
+ ld.global.u64 %x,[%d+16]; setp.ne.u64 %p0,%x,8; @%p0 bra VD_DONE;
+ ld.global.u64 %x,[%d+32]; setp.ne.u64 %p0,%x,8; @%p0 bra VD_DONE;
+ ld.global.u64 %x,[%d+40]; setp.ne.u64 %p0,%x,1; @%p0 bra VD_DONE;
+ ld.global.s64 %lo,[%d+48]; ld.global.s64 %hi,[%d+56];
+ setp.lt.s64 %p0,%lo,-2147483648; @%p0 bra VD_DONE;
+ setp.gt.s64 %p0,%hi,2147483647; @%p0 bra VD_DONE;
+ sub.s64 %h,%hi,%lo; add.s64 %h,%h,1;
+ setp.lt.s64 %p0,%h,1; @%p0 bra VD_DONE;
+ setp.gt.s64 %p0,%h,8192; @%p0 bra VD_DONE;
+ cvt.u64.u32 %t,%f; setp.gt.s64 %p0,%lo,%t; @%p0 bra VD_DONE;
+ cvt.u64.u32 %t,%l; setp.lt.s64 %p0,%hi,%t; @%p0 bra VD_DONE;
+ ld.global.s64 %x,[%d+64]; setp.ne.u64 %p0,%x,%h; @%p0 bra VD_DONE;
+ ld.global.s64 %lo,[%d+72]; ld.global.s64 %hi,[%d+80];
+ setp.lt.s64 %p0,%lo,-2147483648; @%p0 bra VD_DONE;
+ setp.gt.s64 %p0,%hi,2147483647; @%p0 bra VD_DONE;
+ sub.s64 %v,%hi,%lo; add.s64 %v,%v,1;
+ setp.lt.s64 %p0,%v,1; @%p0 bra VD_DONE;
+ setp.gt.s64 %p0,%v,2048; @%p0 bra VD_DONE;
+ cvt.u64.u32 %t,%n;
+ setp.eq.u32 %p0,%colon,1; @%p0 bra VD_COLON;
+ setp.gt.s64 %p0,%lo,1; @%p0 bra VD_DONE;
+ setp.lt.s64 %p0,%hi,%t; @%p0 bra VD_DONE;
+ bra VD_COMPONENT;
+VD_COLON:
+ setp.ne.u64 %p0,%v,%t; @%p0 bra VD_DONE;
+VD_COMPONENT:
+ setp.eq.u32 %p0,%c,0; @%p0 bra VD_OK;
+ mul.lo.u64 %t,%h,%v;
+ ld.global.s64 %x,[%d+88]; setp.ne.u64 %p0,%x,%t; @%p0 bra VD_DONE;
+ ld.global.s64 %lo,[%d+96]; ld.global.s64 %hi,[%d+104];
+ setp.lt.s64 %p0,%lo,-2147483648; @%p0 bra VD_DONE;
+ setp.gt.s64 %p0,%hi,2147483647; @%p0 bra VD_DONE;
+ sub.s64 %x,%hi,%lo; add.s64 %x,%x,1;
+ setp.lt.s64 %p0,%x,1; @%p0 bra VD_DONE;
+ setp.gt.s64 %p0,%x,64; @%p0 bra VD_DONE;
+ cvt.u64.u32 %c64,%c; setp.gt.s64 %p0,%lo,%c64; @%p0 bra VD_DONE;
+ setp.lt.s64 %p0,%hi,%c64; @%p0 bra VD_DONE;
+VD_OK:
+ mov.u32 %ok,1;
+VD_DONE:
+ st.param.u32 [result],%ok;
+ ret;
+}
+.func (.param .u64 result) state_cell_address(.param .u64 d,.param .u64 column,.param .u64 level,.param .u32 component,.param .u32 colon)
+{
+ .reg .u32 %c,%colon;
+ .reg .pred %p;
+ .reg .b64 %d,%column,%level,%c64,%base,%offset,%stride,%x;
+ ld.param.u64 %d,[d]; ld.param.u64 %column,[column]; ld.param.u64 %level,[level]; ld.param.u32 %c,[component]; ld.param.u32 %colon,[colon];
+ ld.global.u64 %base,[%d]; ld.global.s64 %offset,[%d+8];
+ add.s64 %offset,%offset,%column;
+ setp.eq.u32 %p,%colon,0; @%p bra SA_LEVEL;
+ ld.global.s64 %x,[%d+72]; add.s64 %level,%level,%x;
+SA_LEVEL:
+ ld.global.s64 %stride,[%d+64]; mad.lo.s64 %offset,%level,%stride,%offset;
+ setp.eq.u32 %p,%c,0; @%p bra SA_DONE;
+ cvt.u64.u32 %c64,%c; ld.global.s64 %stride,[%d+88]; mad.lo.s64 %offset,%c64,%stride,%offset;
+SA_DONE:
+ shl.b64 %offset,%offset,3; add.u64 %base,%base,%offset; st.param.u64 [result],%base; ret;
+}
+.visible .entry md2asm_gpu_state_update(.param .u64 args_original_vector,.param .u64 context)
+{
+
+ .reg .pred %p<8>;
+ .reg .u32 %r<16>,%k,%n,%first,%last,%flags,%raised,%old,%mask,%field,%mode,%ok;
+ .reg .b64 %args,%ctx,%dim,%physics,%initial,%tendency,%state,%descriptor,%da,%db,%dc,%a,%b,%c,%cell,%total,%step,%column,%level,%offset,%tmp,%tmp2,%dt,%value,%rate,%product,%op_a,%op_b,%op_r;
+ ld.param.u64 %args,[args_original_vector]; ld.param.u64 %ctx,[context];
+ setp.eq.u64 %p0,%ctx,0; @%p0 ret;
+ setp.eq.u64 %p0,%args,0; @%p0 bra BAD;
+ ld.global.u32 %old,[%ctx]; setp.ne.u32 %p0,%old,0; @%p0 ret;
+ ld.global.u32 %r0,[%ctx+4]; setp.ne.u32 %p0,%r0,1; @%p0 bra BAD;
+ mov.u32 %flags,0;
+ ld.global.u64 %physics,[%args]; ld.global.u64 %dim,[%args+8];
+
+ setp.eq.u64 %p0,%dim,0; @%p0 bra BAD;
+ ld.global.u32 %first,[%dim]; ld.global.u32 %last,[%dim+4];
+ ld.global.u32 %k,[%dim+12]; ld.global.u32 %n,[%dim+48];
+ setp.gt.u32 %p0,%k,4096; @%p0 bra BAD;
+ setp.gt.u32 %p0,%n,1024; @%p0 bra BAD;
+ setp.eq.u32 %p0,%k,0; @%p0 ret;
+ setp.eq.u32 %p0,%n,0; @%p0 ret;
+ setp.lt.s32 %p0,%first,1; @%p0 bra BAD;
+ setp.gt.u32 %p0,%first,%k; @%p0 bra BAD;
+ setp.gt.u32 %p0,%last,%k; @%p0 bra BAD;
+ sub.u32 %r0,%first,1; setp.lt.s32 %p0,%last,%r0; @%p0 bra BAD;
+ setp.lt.u32 %p0,%last,%first; @%p0 ret;
+ ld.global.u64 %initial,[%args+16]; ld.global.u64 %tendency,[%args+24]; ld.global.u64 %state,[%args+32];
+ setp.eq.u64 %p0,%physics,0; @%p0 bra BAD;
+ setp.eq.u64 %p0,%initial,0; @%p0 bra BAD;
+ setp.eq.u64 %p0,%tendency,0; @%p0 bra BAD;
+ setp.eq.u64 %p0,%state,0; @%p0 bra BAD;
+ add.u64 %da,%initial,32;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %da; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %db,%tendency,32;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %db; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %dc,%state,32;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+UV_u:
+ add.u64 %da,%initial,120;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %da; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %db,%tendency,120;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %db; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %dc,%state,120;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+UV_v:
+ add.u64 %da,%initial,208;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %da; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %db,%tendency,208;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %db; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %dc,%state,208;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+UV_t:
+ ld.global.u32 %mask,[%state+4]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra UV_q;
+ add.u64 %da,%initial,384;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %da; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %db,%tendency,384;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %db; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %dc,%state,384;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+UV_q:
+ ld.global.u32 %mask,[%state+0]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra UV_o3;
+ add.u64 %da,%initial,296;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %da; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %db,%tendency,296;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %db; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %dc,%state,296;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+UV_o3:
+ ld.global.u32 %mask,[%state+8]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra UV_a;
+ add.u64 %da,%initial,472;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %da; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %db,%tendency,472;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %db; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %dc,%state,472;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+UV_a:
+ ld.global.u32 %mask,[%state+12]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra UV_ql;
+ add.u64 %da,%initial,1000;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %da; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 1;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %db,%tendency,1000;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %db; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 1;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %dc,%state,1000;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 1;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+UV_ql:
+ ld.global.u32 %mask,[%state+16]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra UV_qi;
+ add.u64 %da,%initial,1000;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %da; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 2;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %db,%tendency,1000;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %db; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 2;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %dc,%state,1000;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 2;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+UV_qi:
+ ld.global.u32 %mask,[%state+20]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra UV_qr;
+ add.u64 %da,%initial,1000;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %da; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 3;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %db,%tendency,1000;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %db; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 3;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %dc,%state,1000;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 3;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+UV_qr:
+ ld.global.u32 %mask,[%state+24]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra UV_qs;
+ add.u64 %da,%initial,1000;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %da; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 4;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %db,%tendency,1000;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %db; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 4;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %dc,%state,1000;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 4;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+UV_qs:
+ ld.global.u32 %mask,[%state+28]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra UV_tke;
+ add.u64 %da,%initial,560;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %da; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %db,%tendency,560;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %db; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+ add.u64 %dc,%state,560;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 0; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+UV_tke:
+ ld.global.b64 %dt,[%physics+8];
+
+ mov.u32 %r0,%ctaid.x; mov.u32 %r1,%ntid.x; mov.u32 %r2,%tid.x;
+ mul.wide.u32 %cell,%r0,%r1; cvt.u64.u32 %tmp,%r2; add.u64 %cell,%cell,%tmp;
+ mov.u32 %r0,%nctaid.x; mul.wide.u32 %step,%r0,%r1;
+ mul.wide.u32 %total,%k,%n;
+CELL_LOOP:
+ setp.ge.u64 %p0,%cell,%total; @%p0 bra COMPLETE;
+ cvt.u64.u32 %tmp,%k; rem.u64 %column,%cell,%tmp; div.u64 %level,%cell,%tmp;
+ add.u64 %column,%column,1;
+ cvt.u64.u32 %tmp,%first; setp.lt.u64 %p0,%column,%tmp; @%p0 bra NEXT_CELL;
+ cvt.u64.u32 %tmp,%last; setp.gt.u64 %p0,%column,%tmp; @%p0 bra NEXT_CELL;
+ shl.b64 %offset,%cell,3;
+ add.u64 %level,%level,1;
+ add.u64 %da,%initial,32;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%da; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %a,[result];
+}
+ add.u64 %db,%tendency,32;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%db; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %b,[result];
+}
+ add.u64 %dc,%state,32;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%dt;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_mul_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %product,%op_r; ld.global.b64 %op_a,[%a]; mov.b64 %op_b,%product;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+UN_u:
+ add.u64 %da,%initial,120;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%da; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %a,[result];
+}
+ add.u64 %db,%tendency,120;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%db; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %b,[result];
+}
+ add.u64 %dc,%state,120;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%dt;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_mul_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %product,%op_r; ld.global.b64 %op_a,[%a]; mov.b64 %op_b,%product;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+UN_v:
+ add.u64 %da,%initial,208;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%da; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %a,[result];
+}
+ add.u64 %db,%tendency,208;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%db; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %b,[result];
+}
+ add.u64 %dc,%state,208;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%dt;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_mul_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %product,%op_r; ld.global.b64 %op_a,[%a]; mov.b64 %op_b,%product;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+UN_t:
+ ld.global.u32 %mask,[%state+4]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra UN_q;
+ add.u64 %da,%initial,384;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%da; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %a,[result];
+}
+ add.u64 %db,%tendency,384;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%db; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %b,[result];
+}
+ add.u64 %dc,%state,384;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%dt;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_mul_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %product,%op_r; ld.global.b64 %op_a,[%a]; mov.b64 %op_b,%product;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+UN_q:
+ ld.global.u32 %mask,[%state+0]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra UN_o3;
+ add.u64 %da,%initial,296;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%da; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %a,[result];
+}
+ add.u64 %db,%tendency,296;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%db; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %b,[result];
+}
+ add.u64 %dc,%state,296;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%dt;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_mul_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %product,%op_r; ld.global.b64 %op_a,[%a]; mov.b64 %op_b,%product;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+UN_o3:
+ ld.global.u32 %mask,[%state+8]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra UN_a;
+ add.u64 %da,%initial,472;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%da; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %a,[result];
+}
+ add.u64 %db,%tendency,472;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%db; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %b,[result];
+}
+ add.u64 %dc,%state,472;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%dt;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_mul_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %product,%op_r; ld.global.b64 %op_a,[%a]; mov.b64 %op_b,%product;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+UN_a:
+ ld.global.u32 %mask,[%state+12]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra UN_ql;
+ add.u64 %da,%initial,1000;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%da; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],1; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %a,[result];
+}
+ add.u64 %db,%tendency,1000;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%db; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],1; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %b,[result];
+}
+ add.u64 %dc,%state,1000;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],1; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%dt;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_mul_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %product,%op_r; ld.global.b64 %op_a,[%a]; mov.b64 %op_b,%product;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+UN_ql:
+ ld.global.u32 %mask,[%state+16]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra UN_qi;
+ add.u64 %da,%initial,1000;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%da; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],2; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %a,[result];
+}
+ add.u64 %db,%tendency,1000;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%db; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],2; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %b,[result];
+}
+ add.u64 %dc,%state,1000;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],2; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%dt;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_mul_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %product,%op_r; ld.global.b64 %op_a,[%a]; mov.b64 %op_b,%product;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+UN_qi:
+ ld.global.u32 %mask,[%state+20]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra UN_qr;
+ add.u64 %da,%initial,1000;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%da; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],3; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %a,[result];
+}
+ add.u64 %db,%tendency,1000;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%db; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],3; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %b,[result];
+}
+ add.u64 %dc,%state,1000;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],3; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%dt;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_mul_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %product,%op_r; ld.global.b64 %op_a,[%a]; mov.b64 %op_b,%product;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+UN_qr:
+ ld.global.u32 %mask,[%state+24]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra UN_qs;
+ add.u64 %da,%initial,1000;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%da; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],4; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %a,[result];
+}
+ add.u64 %db,%tendency,1000;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%db; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],4; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %b,[result];
+}
+ add.u64 %dc,%state,1000;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],4; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%dt;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_mul_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %product,%op_r; ld.global.b64 %op_a,[%a]; mov.b64 %op_b,%product;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+UN_qs:
+ ld.global.u32 %mask,[%state+28]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra UN_tke;
+ add.u64 %da,%initial,560;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%da; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %a,[result];
+}
+ add.u64 %db,%tendency,560;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%db; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %b,[result];
+}
+ add.u64 %dc,%state,560;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],0;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%dt;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_mul_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %product,%op_r; ld.global.b64 %op_a,[%a]; mov.b64 %op_b,%product;
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+UN_tke:
+
+NEXT_CELL:
+ add.u64 %cell,%cell,%step; bra CELL_LOOP;
+COMPLETE:
+ add.u64 %tmp,%ctx,8; atom.global.or.b32 %old,[%tmp],%flags; ret;
+BAD:
+ atom.global.cas.b32 %old,[%ctx],0,1; ret;
+}
+.visible .entry md2asm_gpu_state_increment(.param .u64 args_original_vector,.param .u64 context)
+{
+
+ .reg .pred %p<8>;
+ .reg .u32 %r<16>,%k,%n,%first,%last,%flags,%raised,%old,%mask,%field,%mode,%ok;
+ .reg .b64 %args,%ctx,%dim,%physics,%initial,%tendency,%state,%descriptor,%da,%db,%dc,%a,%b,%c,%cell,%total,%step,%column,%level,%offset,%tmp,%tmp2,%dt,%value,%rate,%product,%op_a,%op_b,%op_r;
+ ld.param.u64 %args,[args_original_vector]; ld.param.u64 %ctx,[context];
+ setp.eq.u64 %p0,%ctx,0; @%p0 ret;
+ setp.eq.u64 %p0,%args,0; @%p0 bra BAD;
+ ld.global.u32 %old,[%ctx]; setp.ne.u32 %p0,%old,0; @%p0 ret;
+ ld.global.u32 %r0,[%ctx+4]; setp.ne.u32 %p0,%r0,1; @%p0 bra BAD;
+ mov.u32 %flags,0;
+ ld.global.u64 %dim,[%args];
+
+ setp.eq.u64 %p0,%dim,0; @%p0 bra BAD;
+ ld.global.u32 %first,[%dim]; ld.global.u32 %last,[%dim+4];
+ ld.global.u32 %k,[%dim+12]; ld.global.u32 %n,[%dim+48];
+ setp.gt.u32 %p0,%k,4096; @%p0 bra BAD;
+ setp.gt.u32 %p0,%n,1024; @%p0 bra BAD;
+ setp.eq.u32 %p0,%k,0; @%p0 ret;
+ setp.eq.u32 %p0,%n,0; @%p0 ret;
+ setp.lt.s32 %p0,%first,1; @%p0 bra BAD;
+ setp.gt.u32 %p0,%first,%k; @%p0 bra BAD;
+ setp.gt.u32 %p0,%last,%k; @%p0 bra BAD;
+ sub.u32 %r0,%first,1; setp.lt.s32 %p0,%last,%r0; @%p0 bra BAD;
+ setp.lt.u32 %p0,%last,%first; @%p0 ret;
+ ld.global.u64 %state,[%args+8]; setp.eq.u64 %p0,%state,0; @%p0 bra BAD;
+ ld.global.u64 %a,[%args+16]; setp.eq.u64 %p0,%a,0; @%p0 bra IV_u;
+ add.u64 %dc,%state,32;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 1; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+IV_u:
+ ld.global.u64 %a,[%args+24]; setp.eq.u64 %p0,%a,0; @%p0 bra IV_v;
+ add.u64 %dc,%state,120;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 1; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+IV_v:
+ ld.global.u64 %a,[%args+32]; setp.eq.u64 %p0,%a,0; @%p0 bra IV_t;
+ add.u64 %dc,%state,208;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 1; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+IV_t:
+ ld.global.u64 %a,[%args+48]; setp.eq.u64 %p0,%a,0; @%p0 bra IV_q;
+ ld.global.u32 %mask,[%state+4]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra IV_q;
+ add.u64 %dc,%state,384;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 1; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+IV_q:
+ ld.global.u64 %a,[%args+40]; setp.eq.u64 %p0,%a,0; @%p0 bra IV_o3;
+ ld.global.u32 %mask,[%state+0]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra IV_o3;
+ add.u64 %dc,%state,296;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 1; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+IV_o3:
+ ld.global.u64 %a,[%args+56]; setp.eq.u64 %p0,%a,0; @%p0 bra IV_a;
+ ld.global.u32 %mask,[%state+8]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra IV_a;
+ add.u64 %dc,%state,472;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 1; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+IV_a:
+ ld.global.u64 %a,[%args+96]; setp.eq.u64 %p0,%a,0; @%p0 bra IV_tke;
+ ld.global.u32 %mask,[%state+28]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra IV_tke;
+ add.u64 %dc,%state,560;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 1; st.param.u32 [component], 0;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+IV_tke:
+ ld.global.u64 %a,[%args+64]; setp.eq.u64 %p0,%a,0; @%p0 bra IV_ql;
+ ld.global.u32 %mask,[%state+12]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra IV_ql;
+ add.u64 %dc,%state,1000;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 1; st.param.u32 [component], 1;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+IV_ql:
+ ld.global.u64 %a,[%args+72]; setp.eq.u64 %p0,%a,0; @%p0 bra IV_qi;
+ ld.global.u32 %mask,[%state+16]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra IV_qi;
+ add.u64 %dc,%state,1000;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 1; st.param.u32 [component], 2;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+IV_qi:
+ ld.global.u64 %a,[%args+80]; setp.eq.u64 %p0,%a,0; @%p0 bra IV_qr;
+ ld.global.u32 %mask,[%state+20]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra IV_qr;
+ add.u64 %dc,%state,1000;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 1; st.param.u32 [component], 3;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+IV_qr:
+ ld.global.u64 %a,[%args+88]; setp.eq.u64 %p0,%a,0; @%p0 bra IV_qs;
+ ld.global.u32 %mask,[%state+24]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra IV_qs;
+ add.u64 %dc,%state,1000;
+{
+ .param .u64 dp; .param .u32 f,l,n,colon,component,valid;
+ st.param.u64 [dp], %dc; st.param.u32 [f], %first; st.param.u32 [l], %last; st.param.u32 [n], %n;
+ st.param.u32 [colon], 1; st.param.u32 [component], 4;
+ call.uni (valid), state_descriptor_valid, (dp,f,l,n,colon,component);
+ ld.param.u32 %ok,[valid]; setp.eq.u32 %p0,%ok,0; @%p0 bra BAD;
+}
+IV_qs:
+
+ mov.u32 %r0,%ctaid.x; mov.u32 %r1,%ntid.x; mov.u32 %r2,%tid.x;
+ mul.wide.u32 %cell,%r0,%r1; cvt.u64.u32 %tmp,%r2; add.u64 %cell,%cell,%tmp;
+ mov.u32 %r0,%nctaid.x; mul.wide.u32 %step,%r0,%r1;
+ mul.wide.u32 %total,%k,%n;
+CELL_LOOP:
+ setp.ge.u64 %p0,%cell,%total; @%p0 bra COMPLETE;
+ cvt.u64.u32 %tmp,%k; rem.u64 %column,%cell,%tmp; div.u64 %level,%cell,%tmp;
+ add.u64 %column,%column,1;
+ cvt.u64.u32 %tmp,%first; setp.lt.u64 %p0,%column,%tmp; @%p0 bra NEXT_CELL;
+ cvt.u64.u32 %tmp,%last; setp.gt.u64 %p0,%column,%tmp; @%p0 bra NEXT_CELL;
+ shl.b64 %offset,%cell,3;
+ ld.global.u64 %a,[%args+16]; setp.eq.u64 %p0,%a,0; @%p0 bra IN_u;
+ add.u64 %dc,%state,32;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],1;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ add.u64 %b,%a,%offset; ld.global.b64 %op_a,[%c]; ld.global.b64 %op_b,[%b];
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+IN_u:
+ ld.global.u64 %a,[%args+24]; setp.eq.u64 %p0,%a,0; @%p0 bra IN_v;
+ add.u64 %dc,%state,120;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],1;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ add.u64 %b,%a,%offset; ld.global.b64 %op_a,[%c]; ld.global.b64 %op_b,[%b];
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+IN_v:
+ ld.global.u64 %a,[%args+32]; setp.eq.u64 %p0,%a,0; @%p0 bra IN_t;
+ add.u64 %dc,%state,208;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],1;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ add.u64 %b,%a,%offset; ld.global.b64 %op_a,[%c]; ld.global.b64 %op_b,[%b];
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+IN_t:
+ ld.global.u64 %a,[%args+48]; setp.eq.u64 %p0,%a,0; @%p0 bra IN_q;
+ ld.global.u32 %mask,[%state+4]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra IN_q;
+ add.u64 %dc,%state,384;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],1;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ add.u64 %b,%a,%offset; ld.global.b64 %op_a,[%c]; ld.global.b64 %op_b,[%b];
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+IN_q:
+ ld.global.u64 %a,[%args+40]; setp.eq.u64 %p0,%a,0; @%p0 bra IN_o3;
+ ld.global.u32 %mask,[%state+0]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra IN_o3;
+ add.u64 %dc,%state,296;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],1;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ add.u64 %b,%a,%offset; ld.global.b64 %op_a,[%c]; ld.global.b64 %op_b,[%b];
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+IN_o3:
+ ld.global.u64 %a,[%args+56]; setp.eq.u64 %p0,%a,0; @%p0 bra IN_a;
+ ld.global.u32 %mask,[%state+8]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra IN_a;
+ add.u64 %dc,%state,472;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],1;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ add.u64 %b,%a,%offset; ld.global.b64 %op_a,[%c]; ld.global.b64 %op_b,[%b];
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+IN_a:
+ ld.global.u64 %a,[%args+96]; setp.eq.u64 %p0,%a,0; @%p0 bra IN_tke;
+ ld.global.u32 %mask,[%state+28]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra IN_tke;
+ add.u64 %dc,%state,560;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],0; st.param.u32 [colon],1;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ add.u64 %b,%a,%offset; ld.global.b64 %op_a,[%c]; ld.global.b64 %op_b,[%b];
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+IN_tke:
+ ld.global.u64 %a,[%args+64]; setp.eq.u64 %p0,%a,0; @%p0 bra IN_ql;
+ ld.global.u32 %mask,[%state+12]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra IN_ql;
+ add.u64 %dc,%state,1000;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],1; st.param.u32 [colon],1;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ add.u64 %b,%a,%offset; ld.global.b64 %op_a,[%c]; ld.global.b64 %op_b,[%b];
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+IN_ql:
+ ld.global.u64 %a,[%args+72]; setp.eq.u64 %p0,%a,0; @%p0 bra IN_qi;
+ ld.global.u32 %mask,[%state+16]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra IN_qi;
+ add.u64 %dc,%state,1000;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],2; st.param.u32 [colon],1;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ add.u64 %b,%a,%offset; ld.global.b64 %op_a,[%c]; ld.global.b64 %op_b,[%b];
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+IN_qi:
+ ld.global.u64 %a,[%args+80]; setp.eq.u64 %p0,%a,0; @%p0 bra IN_qr;
+ ld.global.u32 %mask,[%state+20]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra IN_qr;
+ add.u64 %dc,%state,1000;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],3; st.param.u32 [colon],1;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ add.u64 %b,%a,%offset; ld.global.b64 %op_a,[%c]; ld.global.b64 %op_b,[%b];
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+IN_qr:
+ ld.global.u64 %a,[%args+88]; setp.eq.u64 %p0,%a,0; @%p0 bra IN_qs;
+ ld.global.u32 %mask,[%state+24]; setp.gt.u32 %p0,%mask,1; @%p0 bra BAD; setp.eq.u32 %p0,%mask,0; @%p0 bra IN_qs;
+ add.u64 %dc,%state,1000;
+{
+ .param .u64 dp,column,level,result; .param .u32 component,colon;
+ st.param.u64 [dp],%dc; st.param.u64 [column],%column; st.param.u64 [level],%level;
+ st.param.u32 [component],4; st.param.u32 [colon],1;
+ call.uni (result),state_cell_address,(dp,column,level,component,colon); ld.param.u64 %c,[result];
+}
+ add.u64 %b,%a,%offset; ld.global.b64 %op_a,[%c]; ld.global.b64 %op_b,[%b];
+{
+ .param .b64 a; .param .b64 b; .param .align 8 .b8 result[16];
+ st.param.b64 [a], %op_a;
+ st.param.b64 [b], %op_b;
+ call.uni (result), md2asm_gpu_add_status, (a,b);
+ ld.param.b64 %op_r, [result];
+ ld.param.u32 %raised, [result+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%c],%op_r;
+IN_qs:
+
+NEXT_CELL:
+ add.u64 %cell,%cell,%step; bra CELL_LOOP;
+COMPLETE:
+ add.u64 %tmp,%ctx,8; atom.global.or.b32 %old,[%tmp],%flags; ret;
+BAD:
+ atom.global.cas.b32 %old,[%ctx],0,1; ret;
+}

@@ -1,0 +1,672 @@
+// Complete direct CPQTUV from the physics-rate closure contract, revision 1.
+// Contract: skills/md2asm-gpu/references/openifs/dynamics/physics_rate_closure.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+
+.visible .entry md2asm_gpu_cpqtuv(.param .u64 args_original_vector,.param .u64 context)
+{
+ .reg .pred %p<8>;
+ .reg .u32 %r<12>,%k,%n,%first,%last,%nf,%ndim,%ndim1,%dry,%d,%active,%lt1,%idx,%flags,%raised,%old,%neednew,%needold,%mass;
+ .reg .b64 %args,%ctx,%object,%cfg,%pointer,%record,%descriptor,%q,%l,%i,%rain,%snow,%cloud,%continuity;
+ .reg .b64 %u9,%v9,%t9,%oldgfl,%dynamics,%conv,%u1,%v1,%t1,%newgfl;
+ .reg .b64 %a,%b,%c,%z,%tmp,%tmp2,%cell,%total,%step,%column,%offset,%fieldbytes;
+ .reg .b64 %dt,%ramin,%rlmin,%latentliquid,%latentice,%one,%value,%value2,%temperature,%liquid,%ice,%sum,%contribution,%waterchange,%factor,%watersum,%op_a,%op_b,%op_r;
+ .reg .f64 %compare0,%compare1;
+ ld.param.u64 %args,[args_original_vector]; ld.param.u64 %ctx,[context];
+ setp.eq.u64 %p0,%ctx,0; @%p0 ret; setp.eq.u64 %p0,%args,0; @%p0 bra BAD;
+ ld.global.u32 %old,[%ctx]; setp.ne.u32 %p0,%old,0; @%p0 ret;
+ ld.global.u32 %r0,[%ctx+4]; setp.ne.u32 %p0,%r0,1; @%p0 bra BAD;
+ ld.global.u64 %pointer,[%args+16]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; ld.global.u32 %k,[%pointer];
+ ld.global.u64 %pointer,[%args+24]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; ld.global.u32 %first,[%pointer];
+ ld.global.u64 %pointer,[%args+32]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; ld.global.u32 %last,[%pointer];
+ ld.global.u64 %pointer,[%args+40]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; ld.global.u32 %n,[%pointer];
+
+ setp.lt.s32 %p0,%k,1; @%p0 bra BAD; setp.lt.s32 %p0,%n,0; @%p0 bra BAD;
+ setp.eq.u32 %p0,%n,0; @%p0 ret;
+ setp.lt.s32 %p0,%first,1; @%p0 bra BAD;
+ setp.gt.u32 %p0,%first,%k; @%p0 bra BAD;
+ setp.gt.u32 %p0,%last,%k; @%p0 bra BAD;
+ sub.u32 %r0,%first,1; setp.lt.s32 %p0,%last,%r0; @%p0 bra BAD;
+ setp.lt.u32 %p0,%last,%first; @%p0 ret;
+ mul.wide.u32 %total,%k,%n; setp.gt.u64 %p0,%total,0x0fffffffffffffff; @%p0 bra BAD; shl.b64 %fieldbytes,%total,3;
+ ld.global.u64 %object,[%args]; ld.global.u64 %cfg,[%args+8];
+ setp.eq.u64 %p0,%object,0; @%p0 bra BAD; setp.eq.u64 %p0,%cfg,0; @%p0 bra BAD;
+ ld.global.u32 %nf,[%cfg]; ld.global.u32 %ndim,[%cfg+48]; ld.global.u32 %ndim1,[%cfg+64];
+ setp.gt.u32 %p0,%nf,2163; @%p0 bra BAD;
+ setp.lt.s32 %p0,%ndim,0; @%p0 bra BAD; setp.lt.s32 %p0,%ndim1,0; @%p0 bra BAD;
+ cvt.u64.u32 %tmp,%ndim; mul.hi.u64 %tmp2,%tmp,%fieldbytes; setp.ne.u64 %p0,%tmp2,0; @%p0 bra BAD;
+ mul.lo.u64 %tmp2,%tmp,%fieldbytes; setp.gt.u64 %p0,%tmp2,0x7fffffffffffffff; @%p0 bra BAD;
+ cvt.u64.u32 %tmp,%ndim1; mul.hi.u64 %tmp2,%tmp,%fieldbytes; setp.ne.u64 %p0,%tmp2,0; @%p0 bra BAD;
+ mul.lo.u64 %tmp2,%tmp,%fieldbytes; setp.gt.u64 %p0,%tmp2,0x7fffffffffffffff; @%p0 bra BAD;
+ ld.global.u64 %pointer,[%args+48]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; ld.global.b64 %dt,[%pointer];
+ ld.global.u64 %pointer,[%args+56]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; ld.global.u32 %dry,[%pointer]; setp.gt.u32 %p0,%dry,1; @%p0 bra BAD;
+ ld.global.b64 %ramin,[%object+112]; ld.global.b64 %rlmin,[%object+120];
+ ld.global.u64 %record,[%ctx+48]; ld.global.u64 %tmp,[%ctx+56];
+ setp.eq.u64 %p0,%record,0; @%p0 bra BAD; setp.ne.u64 %p0,%tmp,16; @%p0 bra BAD;
+ ld.global.u64 %pointer,[%record+0]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; and.b64 %tmp,%pointer,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.b64 %latentliquid,[%pointer];
+ ld.global.u64 %pointer,[%record+8]; setp.eq.u64 %p0,%pointer,0; @%p0 bra BAD; and.b64 %tmp,%pointer,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra BAD; ld.global.b64 %latentice,[%pointer];
+ ld.global.u64 %u9,[%args+64];
+ ld.global.u64 %v9,[%args+72];
+ ld.global.u64 %t9,[%args+80];
+ ld.global.u64 %oldgfl,[%args+88];
+ ld.global.u64 %dynamics,[%args+96];
+ ld.global.u64 %conv,[%args+104];
+ ld.global.u64 %u1,[%args+112];
+ ld.global.u64 %v1,[%args+120];
+ ld.global.u64 %t1,[%args+128];
+ ld.global.u64 %newgfl,[%args+136];
+ setp.eq.u64 %p0,%u9,0; @%p0 bra BAD;
+ setp.eq.u64 %p0,%v9,0; @%p0 bra BAD;
+ setp.eq.u64 %p0,%t9,0; @%p0 bra BAD;
+ setp.eq.u64 %p0,%u1,0; @%p0 bra BAD;
+ setp.eq.u64 %p0,%v1,0; @%p0 bra BAD;
+ setp.eq.u64 %p0,%t1,0; @%p0 bra BAD;
+
+ or.b64 %tmp,%u9,%v9; or.b64 %tmp,%tmp,%t9; or.b64 %tmp,%tmp,%u1; or.b64 %tmp,%tmp,%v1; or.b64 %tmp,%tmp,%t1;
+ or.b64 %tmp,%tmp,%oldgfl; or.b64 %tmp,%tmp,%newgfl; or.b64 %tmp,%tmp,%dynamics; or.b64 %tmp,%tmp,%conv;
+ and.b64 %tmp,%tmp,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra BAD;
+ mov.u32 %neednew,0; mov.u32 %needold,0; mov.u32 %d,0; add.u64 %descriptor,%cfg,3848;
+VALIDATE_GENERIC:
+ setp.ge.u32 %p0,%d,%nf; @%p0 bra GENERIC_VALID;
+ ld.global.u32 %lt1,[%descriptor+92]; setp.gt.u32 %p0,%lt1,1; @%p0 bra BAD;
+ setp.eq.u32 %p0,%lt1,0; @%p0 bra VALIDATE_GENERIC_NEXT;
+ ld.global.u32 %idx,[%descriptor+188]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim1; @%p0 bra BAD;
+ ld.global.u32 %idx,[%descriptor+184]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim; @%p0 bra BAD;
+
+ mov.u32 %neednew,1; mov.u32 %needold,1;
+VALIDATE_GENERIC_NEXT:
+ add.u64 %descriptor,%descriptor,368; add.u32 %d,%d,1; bra VALIDATE_GENERIC;
+GENERIC_VALID:
+ ld.global.u64 %q,[%cfg+799840]; setp.eq.u64 %p0,%q,0; @%p0 bra BAD;
+ ld.global.u32 %r0,[%q+64]; setp.gt.u32 %p0,%r0,1; @%p0 bra BAD; ld.global.u32 %r0,[%q+92]; setp.gt.u32 %p0,%r0,1; @%p0 bra BAD;
+ ld.global.u64 %l,[%cfg+799856]; setp.eq.u64 %p0,%l,0; @%p0 bra BAD;
+ ld.global.u32 %r0,[%l+64]; setp.gt.u32 %p0,%r0,1; @%p0 bra BAD; ld.global.u32 %r0,[%l+92]; setp.gt.u32 %p0,%r0,1; @%p0 bra BAD;
+ ld.global.u64 %i,[%cfg+799848]; setp.eq.u64 %p0,%i,0; @%p0 bra BAD;
+ ld.global.u32 %r0,[%i+64]; setp.gt.u32 %p0,%r0,1; @%p0 bra BAD; ld.global.u32 %r0,[%i+92]; setp.gt.u32 %p0,%r0,1; @%p0 bra BAD;
+ ld.global.u64 %rain,[%cfg+799920]; setp.eq.u64 %p0,%rain,0; @%p0 bra BAD;
+ ld.global.u32 %r0,[%rain+64]; setp.gt.u32 %p0,%r0,1; @%p0 bra BAD; ld.global.u32 %r0,[%rain+92]; setp.gt.u32 %p0,%r0,1; @%p0 bra BAD;
+ ld.global.u64 %snow,[%cfg+799912]; setp.eq.u64 %p0,%snow,0; @%p0 bra BAD;
+ ld.global.u32 %r0,[%snow+64]; setp.gt.u32 %p0,%r0,1; @%p0 bra BAD; ld.global.u32 %r0,[%snow+92]; setp.gt.u32 %p0,%r0,1; @%p0 bra BAD;
+ ld.global.u64 %cloud,[%cfg+799984]; setp.eq.u64 %p0,%cloud,0; @%p0 bra BAD;
+ ld.global.u32 %r0,[%cloud+64]; setp.gt.u32 %p0,%r0,1; @%p0 bra BAD; ld.global.u32 %r0,[%cloud+92]; setp.gt.u32 %p0,%r0,1; @%p0 bra BAD;
+ ld.global.u64 %continuity,[%cfg+801104]; setp.eq.u64 %p0,%continuity,0; @%p0 bra BAD;
+ ld.global.u32 %r0,[%continuity+64]; setp.gt.u32 %p0,%r0,1; @%p0 bra BAD; ld.global.u32 %r0,[%continuity+92]; setp.gt.u32 %p0,%r0,1; @%p0 bra BAD;
+ ld.global.u32 %lt1,[%l+92]; setp.eq.u32 %p0,%lt1,0; @%p0 bra NAMED_VALID_l;
+ ld.global.u32 %idx,[%l+188]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim1; @%p0 bra BAD;
+ mov.u32 %neednew,1;
+ ld.global.u32 %idx,[%q+188]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim1; @%p0 bra BAD;
+NAMED_VALID_l:
+ ld.global.u32 %lt1,[%i+92]; setp.eq.u32 %p0,%lt1,0; @%p0 bra NAMED_VALID_i;
+ ld.global.u32 %idx,[%i+188]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim1; @%p0 bra BAD;
+ mov.u32 %neednew,1;
+ ld.global.u32 %idx,[%q+188]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim1; @%p0 bra BAD;
+NAMED_VALID_i:
+ ld.global.u32 %lt1,[%rain+92]; setp.eq.u32 %p0,%lt1,0; @%p0 bra NAMED_VALID_rain;
+ ld.global.u32 %idx,[%rain+188]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim1; @%p0 bra BAD;
+ mov.u32 %neednew,1;
+ ld.global.u32 %idx,[%q+188]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim1; @%p0 bra BAD;
+NAMED_VALID_rain:
+ ld.global.u32 %lt1,[%snow+92]; setp.eq.u32 %p0,%lt1,0; @%p0 bra NAMED_VALID_snow;
+ ld.global.u32 %idx,[%snow+188]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim1; @%p0 bra BAD;
+ mov.u32 %neednew,1;
+ ld.global.u32 %idx,[%q+188]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim1; @%p0 bra BAD;
+NAMED_VALID_snow:
+ ld.global.u32 %lt1,[%cloud+92]; setp.eq.u32 %p0,%lt1,0; @%p0 bra NAMED_VALID_cloud;
+ ld.global.u32 %idx,[%cloud+188]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim1; @%p0 bra BAD;
+ mov.u32 %neednew,1;
+NAMED_VALID_cloud:
+
+ ld.global.u32 %active,[%continuity+64]; setp.eq.u32 %p0,%active,0; @%p0 bra NO_CONTINUITY;
+ ld.global.u32 %idx,[%continuity+168]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim; @%p0 bra BAD;
+
+ mov.u32 %needold,1;
+ setp.eq.u64 %p0,%conv,0; @%p0 bra BAD;
+NO_CONTINUITY:
+ and.b32 %mass,%active,%dry;
+ ld.global.u32 %r0,[%q+64]; and.b32 %mass,%mass,%r0;
+ ld.global.u32 %r0,[%l+64]; and.b32 %mass,%mass,%r0;
+ ld.global.u32 %r0,[%i+64]; and.b32 %mass,%mass,%r0;
+ ld.global.u32 %r0,[%rain+64]; and.b32 %mass,%mass,%r0;
+ ld.global.u32 %r0,[%snow+64]; and.b32 %mass,%mass,%r0;
+ setp.eq.u32 %p0,%mass,0; @%p0 bra MASS_VALID;
+ setp.eq.u64 %p0,%dynamics,0; @%p0 bra BAD;
+ mov.u32 %neednew,1; mov.u32 %needold,1;
+ ld.global.u32 %idx,[%q+188]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim1; @%p0 bra BAD;
+ ld.global.u32 %idx,[%q+184]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim; @%p0 bra BAD;
+ ld.global.u32 %r0,[%continuity+168]; setp.eq.u32 %p0,%r0,%idx; @%p0 bra BAD;
+ ld.global.u32 %idx,[%l+188]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim1; @%p0 bra BAD;
+ ld.global.u32 %idx,[%l+184]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim; @%p0 bra BAD;
+ ld.global.u32 %r0,[%continuity+168]; setp.eq.u32 %p0,%r0,%idx; @%p0 bra BAD;
+ ld.global.u32 %idx,[%i+188]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim1; @%p0 bra BAD;
+ ld.global.u32 %idx,[%i+184]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim; @%p0 bra BAD;
+ ld.global.u32 %r0,[%continuity+168]; setp.eq.u32 %p0,%r0,%idx; @%p0 bra BAD;
+ ld.global.u32 %idx,[%rain+188]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim1; @%p0 bra BAD;
+ ld.global.u32 %idx,[%rain+184]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim; @%p0 bra BAD;
+ ld.global.u32 %r0,[%continuity+168]; setp.eq.u32 %p0,%r0,%idx; @%p0 bra BAD;
+ ld.global.u32 %idx,[%snow+188]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim1; @%p0 bra BAD;
+ ld.global.u32 %idx,[%snow+184]; setp.lt.s32 %p0,%idx,1; @%p0 bra BAD; setp.gt.u32 %p0,%idx,%ndim; @%p0 bra BAD;
+ ld.global.u32 %r0,[%continuity+168]; setp.eq.u32 %p0,%r0,%idx; @%p0 bra BAD;
+
+MASS_VALID:
+ setp.eq.u32 %p0,%neednew,0; @%p0 bra NEW_VALID;
+ setp.eq.u64 %p0,%newgfl,0; @%p0 bra BAD;
+NEW_VALID:
+ setp.eq.u32 %p0,%needold,0; @%p0 bra OLD_VALID;
+ setp.eq.u64 %p0,%oldgfl,0; @%p0 bra BAD;
+OLD_VALID:
+ mov.u32 %flags,0; mov.b64 %one,0x3ff0000000000000;
+ mov.u32 %r0,%ctaid.x; mov.u32 %r1,%ntid.x; mov.u32 %r2,%tid.x;
+ mul.wide.u32 %cell,%r0,%r1; cvt.u64.u32 %tmp,%r2; add.u64 %cell,%cell,%tmp;
+ mov.u32 %r0,%nctaid.x; mul.wide.u32 %step,%r0,%r1;
+CELL:
+ setp.ge.u64 %p0,%cell,%total; @%p0 bra COMPLETE;
+ cvt.u64.u32 %tmp,%k; rem.u64 %column,%cell,%tmp; add.u64 %column,%column,1;
+ cvt.u64.u32 %tmp,%first; setp.lt.u64 %p0,%column,%tmp; @%p0 bra NEXT_CELL;
+ cvt.u64.u32 %tmp,%last; setp.gt.u64 %p0,%column,%tmp; @%p0 bra NEXT_CELL;
+ shl.b64 %offset,%cell,3;
+ add.u64 %a,%u1,%offset; ld.global.b64 %op_b,[%a]; mov.b64 %op_a,%dt;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %value,%op_r; add.u64 %b,%u9,%offset; ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%value;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ st.global.b64 [%a],%op_r;
+ add.u64 %a,%v1,%offset; ld.global.b64 %op_b,[%a]; mov.b64 %op_a,%dt;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %value,%op_r; add.u64 %b,%v9,%offset; ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%value;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ st.global.b64 [%a],%op_r;
+ add.u64 %a,%t1,%offset; ld.global.b64 %op_b,[%a]; mov.b64 %op_a,%dt;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %value,%op_r; add.u64 %b,%t9,%offset; ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%value;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ st.global.b64 [%a],%op_r;
+
+ mov.u32 %d,0; add.u64 %descriptor,%cfg,3848;
+GENERIC_UPDATE:
+ setp.ge.u32 %p0,%d,%nf; @%p0 bra CORRECTIONS;
+ ld.global.u32 %lt1,[%descriptor+92]; setp.eq.u32 %p0,%lt1,0; @%p0 bra GENERIC_NEXT;
+ ld.global.u32 %idx,[%descriptor+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.u32 %idx,[%descriptor+184]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %b,%oldgfl,%tmp; add.u64 %b,%b,%offset;
+ ld.global.b64 %op_b,[%a]; mov.b64 %op_a,%dt;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %value,%op_r; ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%value;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ st.global.b64 [%a],%op_r;
+GENERIC_NEXT:
+ add.u32 %d,%d,1; add.u64 %descriptor,%descriptor,368; bra GENERIC_UPDATE;
+CORRECTIONS:
+ ld.global.u32 %lt1,[%l+92]; setp.eq.u32 %p0,%lt1,0; @%p0 bra EVAP_DONE_l;
+ ld.global.u32 %idx,[%l+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.b64 %value,[%a]; mov.b64 %compare0,%value; mov.b64 %compare1,%rlmin; setp.ge.f64 %p0,%compare0,%compare1; @%p0 bra EVAP_DONE_l;
+ ld.global.u32 %idx,[%q+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %b,%newgfl,%tmp; add.u64 %b,%b,%offset;
+ ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%value;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ st.global.b64 [%b],%op_r; mov.b64 %op_a,%latentliquid; mov.b64 %op_b,%value;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %value2,%op_r; add.u64 %c,%t1,%offset; ld.global.b64 %op_a,[%c]; mov.b64 %op_b,%value2;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ st.global.b64 [%c],%op_r; st.global.b64 [%a],0;
+EVAP_DONE_l:
+ ld.global.u32 %lt1,[%i+92]; setp.eq.u32 %p0,%lt1,0; @%p0 bra EVAP_DONE_i;
+ ld.global.u32 %idx,[%i+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.b64 %value,[%a]; mov.b64 %compare0,%value; mov.b64 %compare1,%rlmin; setp.ge.f64 %p0,%compare0,%compare1; @%p0 bra EVAP_DONE_i;
+ ld.global.u32 %idx,[%q+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %b,%newgfl,%tmp; add.u64 %b,%b,%offset;
+ ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%value;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ st.global.b64 [%b],%op_r; mov.b64 %op_a,%latentice; mov.b64 %op_b,%value;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %value2,%op_r; add.u64 %c,%t1,%offset; ld.global.b64 %op_a,[%c]; mov.b64 %op_b,%value2;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ st.global.b64 [%c],%op_r; st.global.b64 [%a],0;
+EVAP_DONE_i:
+ ld.global.u32 %lt1,[%rain+92]; setp.eq.u32 %p0,%lt1,0; @%p0 bra EVAP_DONE_rain;
+ ld.global.u32 %idx,[%rain+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.b64 %value,[%a]; mov.b64 %compare0,%value; mov.b64 %compare1,%rlmin; setp.ge.f64 %p0,%compare0,%compare1; @%p0 bra EVAP_DONE_rain;
+ ld.global.u32 %idx,[%q+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %b,%newgfl,%tmp; add.u64 %b,%b,%offset;
+ ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%value;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ st.global.b64 [%b],%op_r; mov.b64 %op_a,%latentliquid; mov.b64 %op_b,%value;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %value2,%op_r; add.u64 %c,%t1,%offset; ld.global.b64 %op_a,[%c]; mov.b64 %op_b,%value2;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ st.global.b64 [%c],%op_r; st.global.b64 [%a],0;
+EVAP_DONE_rain:
+ ld.global.u32 %lt1,[%snow+92]; setp.eq.u32 %p0,%lt1,0; @%p0 bra EVAP_DONE_snow;
+ ld.global.u32 %idx,[%snow+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.b64 %value,[%a]; mov.b64 %compare0,%value; mov.b64 %compare1,%rlmin; setp.ge.f64 %p0,%compare0,%compare1; @%p0 bra EVAP_DONE_snow;
+ ld.global.u32 %idx,[%q+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %b,%newgfl,%tmp; add.u64 %b,%b,%offset;
+ ld.global.b64 %op_a,[%b]; mov.b64 %op_b,%value;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ st.global.b64 [%b],%op_r; mov.b64 %op_a,%latentice; mov.b64 %op_b,%value;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %value2,%op_r; add.u64 %c,%t1,%offset; ld.global.b64 %op_a,[%c]; mov.b64 %op_b,%value2;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ st.global.b64 [%c],%op_r; st.global.b64 [%a],0;
+EVAP_DONE_snow:
+ ld.global.u32 %lt1,[%l+92]; setp.eq.u32 %p0,%lt1,0; @%p0 bra CLOUD_CAP;
+ ld.global.u32 %lt1,[%i+92]; setp.eq.u32 %p0,%lt1,0; @%p0 bra CLOUD_CAP;
+ ld.global.u32 %lt1,[%cloud+92]; setp.eq.u32 %p0,%lt1,0; @%p0 bra CLOUD_CAP;
+ ld.global.u32 %idx,[%l+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.u32 %idx,[%i+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %b,%newgfl,%tmp; add.u64 %b,%b,%offset;
+ ld.global.u32 %idx,[%cloud+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %c,%newgfl,%tmp; add.u64 %c,%c,%offset;
+ ld.global.b64 %liquid,[%a]; ld.global.b64 %ice,[%b]; ld.global.b64 %value,[%c];
+ mov.b64 %op_a,%liquid; mov.b64 %op_b,%ice;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %sum,%op_r;
+ mov.b64 %compare0,%value; mov.b64 %compare1,%ramin; setp.lt.f64 %p0,%compare0,%compare1; @%p0 bra CLOUD_CLEAR;
+ mov.b64 %compare0,%sum; mov.b64 %compare1,%rlmin; setp.ge.f64 %p0,%compare0,%compare1; @%p0 bra CLOUD_CAP;
+CLOUD_CLEAR:
+ ld.global.u32 %idx,[%q+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %z,%newgfl,%tmp; add.u64 %z,%z,%offset;
+ ld.global.b64 %op_a,[%z]; mov.b64 %op_b,%sum;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ st.global.b64 [%z],%op_r;
+ mov.b64 %op_a,%latentliquid; mov.b64 %op_b,%liquid;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %value2,%op_r; add.u64 %z,%t1,%offset; ld.global.b64 %op_a,[%z]; mov.b64 %op_b,%value2;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %temperature,%op_r; mov.b64 %op_a,%latentice; mov.b64 %op_b,%ice;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_b,%op_r; mov.b64 %op_a,%temperature;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ st.global.b64 [%z],%op_r; st.global.b64 [%a],0; st.global.b64 [%b],0; st.global.b64 [%c],0;
+CLOUD_CAP:
+ ld.global.u32 %lt1,[%cloud+92]; setp.eq.u32 %p0,%lt1,0; @%p0 bra CONTINUITY;
+ ld.global.u32 %idx,[%cloud+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.b64 %value,[%a]; mov.b64 %compare0,%value; setp.le.f64 %p0,%compare0,0d3ff0000000000000; @%p0 bra CONTINUITY;
+ st.global.b64 [%a],%one;
+CONTINUITY:
+ ld.global.u32 %active,[%continuity+64]; setp.eq.u32 %p0,%active,0; @%p0 bra NEXT_CELL;
+ ld.global.u32 %idx,[%continuity+168]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%oldgfl,%tmp; add.u64 %a,%a,%offset;
+ add.u64 %b,%conv,%offset; ld.global.b64 %value,[%b]; st.global.b64 [%a],%value;
+ setp.eq.u32 %p0,%mass,0; @%p0 bra NEXT_CELL;
+ ld.global.u32 %idx,[%q+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.u32 %idx,[%q+184]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %b,%oldgfl,%tmp; add.u64 %b,%b,%offset;
+ ld.global.b64 %op_a,[%a]; ld.global.b64 %op_b,[%b];
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %contribution,%op_r;
+ ld.global.u32 %idx,[%q+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %c,%dynamics,%tmp; add.u64 %c,%c,%offset;
+ ld.global.b64 %op_a,[%c]; mov.b64 %op_b,%dt;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_b,%op_r; mov.b64 %op_a,%contribution;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %waterchange,%op_r;
+ ld.global.u32 %idx,[%l+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.u32 %idx,[%l+184]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %b,%oldgfl,%tmp; add.u64 %b,%b,%offset;
+ ld.global.b64 %op_a,[%a]; ld.global.b64 %op_b,[%b];
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %contribution,%op_r;
+ ld.global.u32 %idx,[%l+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %c,%dynamics,%tmp; add.u64 %c,%c,%offset;
+ ld.global.b64 %op_a,[%c]; mov.b64 %op_b,%dt;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_b,%op_r; mov.b64 %op_a,%contribution;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_a,%waterchange; mov.b64 %op_b,%op_r;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %waterchange,%op_r;
+ ld.global.u32 %idx,[%i+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.u32 %idx,[%i+184]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %b,%oldgfl,%tmp; add.u64 %b,%b,%offset;
+ ld.global.b64 %op_a,[%a]; ld.global.b64 %op_b,[%b];
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %contribution,%op_r;
+ ld.global.u32 %idx,[%i+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %c,%dynamics,%tmp; add.u64 %c,%c,%offset;
+ ld.global.b64 %op_a,[%c]; mov.b64 %op_b,%dt;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_b,%op_r; mov.b64 %op_a,%contribution;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_a,%waterchange; mov.b64 %op_b,%op_r;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %waterchange,%op_r;
+ ld.global.u32 %idx,[%rain+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.u32 %idx,[%rain+184]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %b,%oldgfl,%tmp; add.u64 %b,%b,%offset;
+ ld.global.b64 %op_a,[%a]; ld.global.b64 %op_b,[%b];
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %contribution,%op_r;
+ ld.global.u32 %idx,[%rain+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %c,%dynamics,%tmp; add.u64 %c,%c,%offset;
+ ld.global.b64 %op_a,[%c]; mov.b64 %op_b,%dt;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_b,%op_r; mov.b64 %op_a,%contribution;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_a,%waterchange; mov.b64 %op_b,%op_r;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %waterchange,%op_r;
+ ld.global.u32 %idx,[%snow+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.u32 %idx,[%snow+184]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %b,%oldgfl,%tmp; add.u64 %b,%b,%offset;
+ ld.global.b64 %op_a,[%a]; ld.global.b64 %op_b,[%b];
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %contribution,%op_r;
+ ld.global.u32 %idx,[%snow+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %c,%dynamics,%tmp; add.u64 %c,%c,%offset;
+ ld.global.b64 %op_a,[%c]; mov.b64 %op_b,%dt;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_b,%op_r; mov.b64 %op_a,%contribution;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_a,%waterchange; mov.b64 %op_b,%op_r;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %waterchange,%op_r;
+ mov.b64 %op_a,%one; mov.b64 %op_b,%waterchange;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %factor,%op_r; mov.u32 %d,0; add.u64 %descriptor,%cfg,3848;
+MASS_RESCALE:
+ setp.ge.u32 %p0,%d,%nf; @%p0 bra MASS_SUM;
+ ld.global.u32 %lt1,[%descriptor+92]; setp.eq.u32 %p0,%lt1,0; @%p0 bra MASS_NEXT;
+ ld.global.u32 %idx,[%descriptor+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.b64 %op_a,[%a]; mov.b64 %op_b,%factor;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ st.global.b64 [%a],%op_r;
+MASS_NEXT:
+ add.u32 %d,%d,1; add.u64 %descriptor,%descriptor,368; bra MASS_RESCALE;
+MASS_SUM:
+ ld.global.u32 %idx,[%q+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.b64 %watersum,[%a];
+ ld.global.u32 %idx,[%l+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.b64 %op_b,[%a]; mov.b64 %op_a,%watersum;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %watersum,%op_r;
+ ld.global.u32 %idx,[%i+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.b64 %op_b,[%a]; mov.b64 %op_a,%watersum;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %watersum,%op_r;
+ ld.global.u32 %idx,[%rain+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.b64 %op_b,[%a]; mov.b64 %op_a,%watersum;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %watersum,%op_r;
+ ld.global.u32 %idx,[%snow+188]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%newgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.b64 %op_b,[%a]; mov.b64 %op_a,%watersum;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %watersum,%op_r;
+ mov.b64 %op_a,%one; mov.b64 %op_b,%watersum;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_b,%op_r; mov.b64 %op_a,%waterchange;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_div_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %op_a,%op_r; mov.b64 %op_b,%dt;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_div_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ mov.b64 %value,%op_r;
+ ld.global.u32 %idx,[%continuity+168]; sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%fieldbytes; add.u64 %a,%oldgfl,%tmp; add.u64 %a,%a,%offset;
+ ld.global.b64 %op_a,[%a]; mov.b64 %op_b,%value;
+{
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%op_a; st.param.b64 [b],%op_b;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %op_r,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+}
+ st.global.b64 [%a],%op_r;
+NEXT_CELL:
+ add.u64 %cell,%cell,%step; bra CELL;
+COMPLETE:
+ add.u64 %tmp,%ctx,8; atom.global.or.b32 %old,[%tmp],%flags; ret;
+BAD:
+ atom.global.cas.b32 %old,[%ctx],0,1; ret;
+}
