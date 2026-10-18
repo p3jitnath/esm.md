@@ -1,0 +1,98 @@
+// skills/md2asm-gpu/references/openifs/physics/monthly_ozone_update.md
+.version 8.5
+.target sm_90
+.address_size 64
+
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.const .align 8 .u64 monthly_ozone_latitude_table[19]={0xbff0000000000000,0xbfef838b8c811c17,0xbfee11f642522d1b,0xbfebb67ae8584caa,0xbfe8836fa2cf5039,0xbfe491b7523c161c,0xbfdfffffffffffff,0xbfd5e3a8748a0bf5,0xbfc63a1a7e0b7389,0x0000000000000000,0x3fc63a1a7e0b7389,0x3fd5e3a8748a0bf5,0x3fdfffffffffffff,0x3fe491b7523c161c,0x3fe8836fa2cf5039,0x3febb67ae8584caa,0x3fee11f642522d1b,0x3fef838b8c811c17,0x3ff0000000000000};
+.const .align 8 .u64 monthly_ozone_perturbation_latitude[9]={0x0000000000000000,0x3fd87de2a6aea963,0x3fe6a09e667f3bcc,0x3fed906bcf328d46,0x3ff0000000000000,0x3fed906bcf328d46,0x3fe6a09e667f3bcd,0x3fd87de2a6aea965,0x3ca1a62633145c07};
+.const .align 8 .u64 monthly_ozone_perturbation_height[7]={0x0000000000000000,0x3fdfffffffffffff,0x3febb67ae8584caa,0x3ff0000000000000,0x3febb67ae8584cab,0x3fdfffffffffffff,0x3ca1a62633145c07};
+.extern .func (.param .u32 error) md2asm_gpu_monthly_ozone_planes_admit(.param .u64 vector,.param .u32 m1,.param .u32 m2);
+.visible .func (.param .align 8 .b8 result[32]) md2asm_gpu_monthly_ozone_values(.param .u64 original_vector)
+{
+.reg .u64 %args,%rad,%rdi,%oz,%ptr,%table,%base,%offset,%step,%stride,%leftpoint,%rightpoint,%out,%j,%k,%integer,%product,%remainder,%quotient,%temporary;
+.reg .u32 %date,%minute,%month,%day,%year,%mode,%m1,%m2,%begin,%flags,%raised,%error;
+.reg .b64 %elapsed,%dayvalue,%minutes,%a1,%a2,%a3,%weight,%integerreal,%fraction,%left,%right,%blend,%amount,%factor,%amplitude,%latsine,%hsine,%perturb;
+.reg .pred %p,%q;.param .u64 av;.param .u32 im1,im2,refused;.param .b64 a,b;.param .align 8 .b8 arithmetic[16];
+ld.param.u64 %args,[original_vector];ld.u64 %rad,[%args];ld.u64 %rdi,[%args+8];ld.u64 %oz,[%args+16];ld.u64 %ptr,[%args+24];ld.u32 %date,[%ptr];ld.u64 %ptr,[%args+32];ld.u32 %minute,[%ptr];mov.u32 %flags,0;mov.u32 %error,0;
+mul.wide.u32 %temporary,%date,1374389535;shr.u64 %temporary,%temporary,37;cvt.u32.u64 %month,%temporary;mul.lo.u32 %year,%month,100;sub.u32 %day,%date,%year;mul.wide.u32 %temporary,%month,1374389535;shr.u64 %temporary,%temporary,37;cvt.u32.u64 %year,%temporary;mul.lo.u32 %year,%year,100;sub.u32 %month,%month,%year;sub.u32 %day,%day,1;cvt.rn.f64.u32 %dayvalue,%day;cvt.rn.f64.u32 %minutes,%minute;
+setp.eq.u32 %p,%month,1;@%p bra JANUARY;setp.eq.u32 %p,%month,2;@%p bra FEBRUARY;
+
+setp.eq.u32 %p,%month,3;@%p mov.b64 %a1,0x404da00000000000;
+setp.eq.u32 %p,%month,4;@%p mov.b64 %a1,0x4056900000000000;
+setp.eq.u32 %p,%month,5;@%p mov.b64 %a1,0x405e100000000000;
+setp.eq.u32 %p,%month,6;@%p mov.b64 %a1,0x4062e80000000000;
+setp.eq.u32 %p,%month,7;@%p mov.b64 %a1,0x4066a80000000000;
+setp.eq.u32 %p,%month,8;@%p mov.b64 %a1,0x406a880000000000;
+setp.eq.u32 %p,%month,9;@%p mov.b64 %a1,0x406e680000000000;
+setp.eq.u32 %p,%month,10;@%p mov.b64 %a1,0x4071140000000000;
+setp.eq.u32 %p,%month,11;@%p mov.b64 %a1,0x4073040000000000;
+setp.eq.u32 %p,%month,12;@%p mov.b64 %a1,0x4074e40000000000;
+st.param.b64 [a],%a1;st.param.b64 [b],%dayvalue;call.uni (arithmetic),md2asm_gpu_add_status,(a,b);ld.param.b64 %dayvalue,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+JANUARY:
+mov.b64 %a1,0x4096800000000000;
+st.param.b64 [a],%dayvalue;st.param.b64 [b],%a1;call.uni (arithmetic),md2asm_gpu_mul_status,(a,b);ld.param.b64 %elapsed,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a],%elapsed;st.param.b64 [b],%minutes;call.uni (arithmetic),md2asm_gpu_add_status,(a,b);ld.param.b64 %elapsed,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+bra YEAR_REMAINDER;
+FEBRUARY:setp.eq.u32 %p,%day,28;@%p mov.u32 %day,27;cvt.rn.f64.u32 %dayvalue,%day;
+mov.b64 %a1,0x4096b36dab9f559b;
+st.param.b64 [a],%dayvalue;st.param.b64 [b],%a1;call.uni (arithmetic),md2asm_gpu_mul_status,(a,b);ld.param.b64 %elapsed,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+mov.b64 %a1,0x40e5cc0000000000;
+st.param.b64 [a],%a1;st.param.b64 [b],%elapsed;call.uni (arithmetic),md2asm_gpu_add_status,(a,b);ld.param.b64 %elapsed,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a],%elapsed;st.param.b64 [b],%minutes;call.uni (arithmetic),md2asm_gpu_add_status,(a,b);ld.param.b64 %elapsed,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+YEAR_REMAINDER:mov.b64 %a1,0x41200d1000000000;setp.lt.f64 %p,%elapsed,%a1;@%p bra CHOOSE;
+cvt.rzi.u64.f64 %integer,%elapsed;cvt.rn.f64.u64 %integerreal,%integer;setp.ne.f64 %p,%elapsed,%integerreal;@%p or.b32 %flags,%flags,16;
+st.param.b64 [a],%elapsed;st.param.b64 [b],%integerreal;call.uni (arithmetic),md2asm_gpu_sub_status,(a,b);ld.param.b64 %fraction,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+cvt.u32.u64 %year,%integer;mul.wide.u32 %product,%year,535164227;shr.u64 %quotient,%product,48;mul.lo.u64 %product,%quotient,525960;setp.gt.u64 %p,%product,%integer;@%p sub.u64 %product,%product,525960;sub.u64 %remainder,%integer,%product;cvt.rn.f64.u64 %elapsed,%remainder;
+st.param.b64 [a],%elapsed;st.param.b64 [b],%fraction;call.uni (arithmetic),md2asm_gpu_add_status,(a,b);ld.param.b64 %elapsed,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+CHOOSE:mov.b64 %a1,0x40d5cc0000000000;setp.le.f64 %p,%elapsed,%a1;@%p bra EARLY;mov.b64 %a1,0x411ebd6000000000;setp.gt.f64 %p,%elapsed,%a1;@%p bra LATE;
+mov.b64 %a1,0x40d5cc0000000000;mov.b64 %a2,0x40efba8000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %q,%elapsed,%a2;and.pred %p,%p,%q;@%p mov.u32 %m1,1;@%p mov.u32 %m2,2;@%p bra INTERIOR;
+mov.b64 %a1,0x40efba8000000000;mov.b64 %a2,0x40fa478000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %q,%elapsed,%a2;and.pred %p,%p,%q;@%p mov.u32 %m1,2;@%p mov.u32 %m2,3;@%p bra INTERIOR;
+mov.b64 %a1,0x40fa478000000000;mov.b64 %a2,0x4102804000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %q,%elapsed,%a2;and.pred %p,%p,%q;@%p mov.u32 %m1,3;@%p mov.u32 %m2,4;@%p bra INTERIOR;
+mov.b64 %a1,0x4102804000000000;mov.b64 %a2,0x4107dcc000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %q,%elapsed,%a2;and.pred %p,%p,%q;@%p mov.u32 %m1,4;@%p mov.u32 %m2,5;@%p bra INTERIOR;
+mov.b64 %a1,0x4107dcc000000000;mov.b64 %a2,0x410d394000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %q,%elapsed,%a2;and.pred %p,%p,%q;@%p mov.u32 %m1,5;@%p mov.u32 %m2,6;@%p bra INTERIOR;
+mov.b64 %a1,0x410d394000000000;mov.b64 %a2,0x41114ae000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %q,%elapsed,%a2;and.pred %p,%p,%q;@%p mov.u32 %m1,6;@%p mov.u32 %m2,7;@%p bra INTERIOR;
+mov.b64 %a1,0x41114ae000000000;mov.b64 %a2,0x4114046000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %q,%elapsed,%a2;and.pred %p,%p,%q;@%p mov.u32 %m1,7;@%p mov.u32 %m2,8;@%p bra INTERIOR;
+mov.b64 %a1,0x4114046000000000;mov.b64 %a2,0x4116b2a000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %q,%elapsed,%a2;and.pred %p,%p,%q;@%p mov.u32 %m1,8;@%p mov.u32 %m2,9;@%p bra INTERIOR;
+mov.b64 %a1,0x4116b2a000000000;mov.b64 %a2,0x411960e000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %q,%elapsed,%a2;and.pred %p,%p,%q;@%p mov.u32 %m1,9;@%p mov.u32 %m2,10;@%p bra INTERIOR;
+mov.b64 %a1,0x411960e000000000;mov.b64 %a2,0x411c0f2000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %q,%elapsed,%a2;and.pred %p,%p,%q;@%p mov.u32 %m1,10;@%p mov.u32 %m2,11;@%p bra INTERIOR;
+mov.b64 %a1,0x411c0f2000000000;mov.b64 %a2,0x411ebd6000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %q,%elapsed,%a2;and.pred %p,%p,%q;@%p mov.u32 %m1,11;@%p mov.u32 %m2,12;@%p bra INTERIOR;
+INTERIOR:
+st.param.b64 [a],%elapsed;st.param.b64 [b],%a2;call.uni (arithmetic),md2asm_gpu_sub_status,(a,b);ld.param.b64 %a3,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a],%a1;st.param.b64 [b],%a2;call.uni (arithmetic),md2asm_gpu_sub_status,(a,b);ld.param.b64 %a1,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a],%a3;st.param.b64 [b],%a1;call.uni (arithmetic),md2asm_gpu_div_status,(a,b);ld.param.b64 %weight,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+bra WEIGHTS;
+EARLY:
+st.param.b64 [a],%a1;st.param.b64 [b],%elapsed;call.uni (arithmetic),md2asm_gpu_sub_status,(a,b);ld.param.b64 %a3,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+bra WRAP;
+LATE:mov.b64 %a1,0x4120bb7000000000;
+st.param.b64 [a],%a1;st.param.b64 [b],%elapsed;call.uni (arithmetic),md2asm_gpu_sub_status,(a,b);ld.param.b64 %a3,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+WRAP:mov.b64 %a1,0x40e5cc0000000000;
+st.param.b64 [a],%a3;st.param.b64 [b],%a1;call.uni (arithmetic),md2asm_gpu_div_status,(a,b);ld.param.b64 %weight,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+mov.u32 %m1,12;mov.u32 %m2,1;
+WEIGHTS:st.param.u64 [av],%args;st.param.u32 [im1],%m1;st.param.u32 [im2],%m2;call.uni (refused),md2asm_gpu_monthly_ozone_planes_admit,(av,im1,im2);ld.param.u32 %error,[refused];setp.ne.u32 %p,%error,0;@%p bra RETURN;ld.u64 %base,[%oz];ld.u64 %offset,[%oz+8];shl.b64 %offset,%offset,3;add.u64 %base,%base,%offset;ld.u64 %step,[%oz+88];shl.b64 %step,%step,3;cvt.u64.u32 %temporary,%m1;mad.lo.u64 %leftpoint,%temporary,%step,%base;cvt.u64.u32 %temporary,%m2;mad.lo.u64 %rightpoint,%temporary,%step,%base;ld.u64 %stride,[%oz+64];shl.b64 %stride,%stride,3;ld.b64 %factor,[%rdi+48];ld.b64 %amplitude,[%rad+576];mov.u64 %k,1;
+LEVEL:mul.lo.u64 %offset,%k,%stride;add.u64 %leftpoint,%leftpoint,%offset;add.u64 %rightpoint,%rightpoint,%offset;add.u64 %leftpoint,%leftpoint,8;add.u64 %rightpoint,%rightpoint,8;shl.b64 %offset,%k,9;add.u64 %out,%oz,1288;add.u64 %out,%out,%offset;mov.u64 %j,0;
+LATITUDE:ld.b64 %right,[%rightpoint];ld.b64 %left,[%leftpoint];
+st.param.b64 [a],%left;st.param.b64 [b],%right;call.uni (arithmetic),md2asm_gpu_sub_status,(a,b);ld.param.b64 %blend,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a],%weight;st.param.b64 [b],%blend;call.uni (arithmetic),md2asm_gpu_mul_status,(a,b);ld.param.b64 %blend,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a],%right;st.param.b64 [b],%blend;call.uni (arithmetic),md2asm_gpu_add_status,(a,b);ld.param.b64 %blend,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a],%factor;st.param.b64 [b],%blend;call.uni (arithmetic),md2asm_gpu_mul_status,(a,b);ld.param.b64 %amount,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.global.b64 [%out],%amount;add.u64 %leftpoint,%leftpoint,8;add.u64 %rightpoint,%rightpoint,8;add.u64 %out,%out,8;add.u64 %j,%j,1;setp.lt.u64 %p,%j,19;@%p bra LATITUDE;mul.lo.u64 %offset,%k,%stride;add.u64 %offset,%offset,160;sub.u64 %leftpoint,%leftpoint,%offset;sub.u64 %rightpoint,%rightpoint,%offset;add.u64 %k,%k,1;setp.le.u64 %p,%k,34;@%p bra LEVEL;mov.u64 %j,0;add.u64 %out,%oz,1288;
+BOUNDARY:shl.b64 %offset,%j,3;add.u64 %ptr,%out,%offset;st.global.u64 [%ptr],0;ld.b64 %amount,[%ptr+17408];st.global.b64 [%ptr+17920],%amount;add.u64 %j,%j,1;setp.lt.u64 %p,%j,19;@%p bra BOUNDARY;setp.eq.f64 %p,%amplitude,0d0000000000000000;@%p bra FINAL_LATITUDES;ld.u32 %mode,[%rad+140];setp.eq.u32 %p,%mode,0;@%p mov.u32 %begin,23;@%p bra PERTURBATION;setp.ne.u32 %p,%mode,1;@%p bra FINAL_LATITUDES;mov.u32 %begin,27;
+PERTURBATION:mov.u64 %j,0;
+PERTURB_LATITUDE:mov.u64 %table,monthly_ozone_perturbation_latitude;shl.b64 %offset,%j,3;add.u64 %ptr,%table,%offset;ld.const.b64 %latsine,[%ptr];
+st.param.b64 [a],%amplitude;st.param.b64 [b],%latsine;call.uni (arithmetic),md2asm_gpu_mul_status,(a,b);ld.param.b64 %perturb,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+mov.u64 %k,0;
+PERTURB_LEVEL:mov.u64 %table,monthly_ozone_perturbation_height;shl.b64 %offset,%k,3;add.u64 %ptr,%table,%offset;ld.const.b64 %hsine,[%ptr];
+st.param.b64 [a],%perturb;st.param.b64 [b],%hsine;call.uni (arithmetic),md2asm_gpu_mul_status,(a,b);ld.param.b64 %a1,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+mov.b64 %a2,0x3ff0000000000000;
+st.param.b64 [a],%a2;st.param.b64 [b],%a1;call.uni (arithmetic),md2asm_gpu_add_status,(a,b);ld.param.b64 %a1,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+cvt.u64.u32 %temporary,%begin;add.u64 %temporary,%temporary,%k;shl.b64 %offset,%temporary,9;add.u64 %out,%oz,1328;add.u64 %out,%out,%offset;shl.b64 %offset,%j,3;add.u64 %out,%out,%offset;ld.b64 %amount,[%out];
+st.param.b64 [a],%amount;st.param.b64 [b],%a1;call.uni (arithmetic),md2asm_gpu_mul_status,(a,b);ld.param.b64 %amount,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.global.b64 [%out],%amount;add.u64 %k,%k,1;setp.lt.u64 %p,%k,7;@%p bra PERTURB_LEVEL;add.u64 %j,%j,1;setp.lt.u64 %p,%j,9;@%p bra PERTURB_LATITUDE;
+FINAL_LATITUDES:mov.u64 %j,0;mov.u64 %table,monthly_ozone_latitude_table;add.u64 %out,%oz,776;
+FINAL_LATITUDE:shl.b64 %offset,%j,3;add.u64 %ptr,%table,%offset;ld.const.b64 %amount,[%ptr];add.u64 %ptr,%out,%offset;st.global.b64 [%ptr],%amount;add.u64 %j,%j,1;setp.lt.u64 %p,%j,19;@%p bra FINAL_LATITUDE;RETURN:st.param.u32 [result],%flags;st.param.u32 [result+4],%error;st.param.u64 [result+8],0;st.param.u64 [result+16],1;st.param.u64 [result+24],0;ret;
+}

@@ -1,0 +1,138 @@
+// skills/md2asm-gpu/references/openifs/physics/monthly_ozone_update.md
+.version 8.5
+.target sm_90
+.address_size 64
+.func (.param .u32 error) monthly_ozone_owner_range(.param .u64 base,.param .u64 bytes,.param .u64 mask,.param .u64 list,.param .u32 count,.param .u32 skip)
+{
+.reg .u64 %b,%n,%mask,%list,%end,%owner,%size,%stop,%word;.reg .u32 %i,%count,%skip,%error;.reg .pred %p,%q;
+ld.param.u64 %b,[base];ld.param.u64 %n,[bytes];ld.param.u64 %mask,[mask];ld.param.u64 %list,[list];ld.param.u32 %count,[count];ld.param.u32 %skip,[skip];mov.u32 %error,15941;
+setp.eq.u64 %p,%n,0;@%p bra GOOD;setp.eq.u64 %p,%b,0;@%p bra DONE;and.b64 %word,%b,%mask;setp.ne.u64 %p,%word,0;@%p bra DONE;setp.gt.u64 %p,%b,0x7fffffffffffffff;@%p bra DONE;setp.gt.u64 %p,%n,0x7fffffffffffffff;@%p bra DONE;add.u64 %end,%b,%n;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra DONE;mov.u32 %i,0;
+SCAN:setp.ge.u32 %p,%i,%count;@%p bra GOOD;setp.eq.u32 %p,%i,%skip;@%p bra NEXT;ld.u64 %owner,[%list];ld.u64 %size,[%list+8];setp.eq.u64 %p,%size,0;@%p bra NEXT;add.u64 %stop,%owner,%size;setp.lt.u64 %p,%b,%stop;setp.lt.u64 %q,%owner,%end;and.pred %p,%p,%q;@%p bra DONE;
+NEXT:add.u64 %list,%list,16;add.u32 %i,%i,1;bra SCAN;
+GOOD:mov.u32 %error,0;
+DONE:st.param.u32 [error],%error;ret;
+}
+
+
+
+
+.visible .func (.param .u32 error) md2asm_gpu_monthly_ozone_admit(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%v<5>,%rec,%capacity,%base,%bytes,%point,%offset,%lower,%upper,%extent,%stride,%expected,%lowersum,%product,%word,%test,%first,%last,%absolute,%list,%ptr,%temporary;
+.reg .u32 %error,%count,%ctxindex,%outindex,%i,%date,%minute,%year,%month,%day,%maxday,%r,%t;
+.reg .pred %p,%q;
+.local .align 8 .b8 owners[256];.param .u64 rb,rn,rm,rl;.param .u32 rc,rs,rr;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];mov.u64 %list,owners;cvta.local.u64 %list,%list;mov.u32 %count,0;
+
+st.param.u64 [rb],%args;st.param.u64 [rn],40;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_ozone_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %temporary,%count,16;add.u64 %ptr,%list,%temporary;st.u64 [%ptr],%args;st.u64 [%ptr+8],40;add.u32 %count,%count,1;
+mov.u32 %ctxindex,%count;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_ozone_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %temporary,%count,16;add.u64 %ptr,%list,%temporary;st.u64 [%ptr],%ctx;st.u64 [%ptr+8],64;add.u32 %count,%count,1;
+ld.u64 %v0,[%args+0];
+
+st.param.u64 [rb],%v0;st.param.u64 [rn],2040;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_ozone_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %temporary,%count,16;add.u64 %ptr,%list,%temporary;st.u64 [%ptr],%v0;st.u64 [%ptr+8],2040;add.u32 %count,%count,1;
+ld.u64 %v1,[%args+8];
+
+st.param.u64 [rb],%v1;st.param.u64 [rn],176;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_ozone_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %temporary,%count,16;add.u64 %ptr,%list,%temporary;st.u64 [%ptr],%v1;st.u64 [%ptr+8],176;add.u32 %count,%count,1;
+ld.u64 %v2,[%args+16];
+mov.u32 %outindex,%count;
+st.param.u64 [rb],%v2;st.param.u64 [rn],33008;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_ozone_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %temporary,%count,16;add.u64 %ptr,%list,%temporary;st.u64 [%ptr],%v2;st.u64 [%ptr+8],33008;add.u32 %count,%count,1;
+ld.u64 %v3,[%args+24];
+
+st.param.u64 [rb],%v3;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_ozone_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %temporary,%count,16;add.u64 %ptr,%list,%temporary;st.u64 [%ptr],%v3;st.u64 [%ptr+8],4;add.u32 %count,%count,1;
+ld.u64 %v4,[%args+32];
+
+st.param.u64 [rb],%v4;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_ozone_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %temporary,%count,16;add.u64 %ptr,%list,%temporary;st.u64 [%ptr],%v4;st.u64 [%ptr+8],4;add.u32 %count,%count,1;
+ld.u64 %rec,[%ctx+48];ld.u64 %capacity,[%ctx+56];
+mov.u32 %error,15942;setp.lt.u64 %p,%capacity,32;@%p bra RETURN;
+st.param.u64 [rb],%rec;st.param.u64 [rn],32;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_ozone_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %temporary,%count,16;add.u64 %ptr,%list,%temporary;st.u64 [%ptr],%rec;st.u64 [%ptr+8],32;add.u32 %count,%count,1;
+ld.u64 %point,[%rec];ld.u64 %capacity,[%rec+8];
+mov.u32 %error,15942;setp.lt.u64 %p,%capacity,8;@%p bra RETURN;
+st.param.u64 [rb],%point;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_ozone_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %temporary,%count,16;add.u64 %ptr,%list,%temporary;st.u64 [%ptr],%point;st.u64 [%ptr+8],8;add.u32 %count,%count,1;
+ld.u64 %word,[%point];
+mov.u32 %error,15944;setp.ne.u64 %p,%word,0x400921fb54442d18;@%p bra RETURN;
+ld.u64 %base,[%rec+16];ld.u64 %bytes,[%rec+24];
+st.param.u64 [rb],%base;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_ozone_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %temporary,%count,16;add.u64 %ptr,%list,%temporary;st.u64 [%ptr],%base;st.u64 [%ptr+8],%bytes;add.u32 %count,%count,1;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%ctxindex;call.uni (rr),monthly_ozone_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+st.param.u64 [rb],%v2;st.param.u64 [rn],33008;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%outindex;call.uni (rr),monthly_ozone_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+ld.u32 %date,[%v3];ld.u32 %minute,[%v4];
+mov.u32 %error,15942;setp.gt.u32 %p,%minute,2147483647;@%p bra RETURN;
+mul.wide.u32 %word,%date,1374389535;shr.u64 %word,%word,37;cvt.u32.u64 %t,%word;mul.lo.u32 %r,%t,100;sub.u32 %day,%date,%r;mul.wide.u32 %word,%t,1374389535;shr.u64 %word,%word,37;cvt.u32.u64 %year,%word;mul.lo.u32 %r,%year,100;sub.u32 %month,%t,%r;
+mov.u32 %error,15942;setp.lt.u32 %p,%year,1;@%p bra RETURN;
+mov.u32 %error,15942;setp.gt.u32 %p,%year,9999;@%p bra RETURN;
+mov.u32 %error,15942;setp.lt.u32 %p,%month,1;@%p bra RETURN;
+mov.u32 %error,15942;setp.gt.u32 %p,%month,12;@%p bra RETURN;
+mov.u32 %error,15942;setp.lt.u32 %p,%day,1;@%p bra RETURN;
+mov.u32 %maxday,31;
+setp.eq.u32 %p,%month,4;@%p mov.u32 %maxday,30;
+setp.eq.u32 %p,%month,6;@%p mov.u32 %maxday,30;
+setp.eq.u32 %p,%month,9;@%p mov.u32 %maxday,30;
+setp.eq.u32 %p,%month,11;@%p mov.u32 %maxday,30;
+setp.ne.u32 %p,%month,2;@%p bra DATE_MAX_READY;mov.u32 %maxday,28;and.b32 %r,%year,3;setp.ne.u32 %p,%r,0;@%p bra DATE_MAX_READY;mul.wide.u32 %word,%year,1374389535;shr.u64 %word,%word,37;cvt.u32.u64 %r,%word;mul.lo.u32 %r,%r,100;sub.u32 %r,%year,%r;setp.ne.u32 %p,%r,0;@%p bra LEAP;mul.wide.u32 %word,%year,1374389535;shr.u64 %word,%word,39;cvt.u32.u64 %r,%word;mul.lo.u32 %r,%r,400;sub.u32 %r,%year,%r;setp.ne.u32 %p,%r,0;@%p bra DATE_MAX_READY;
+LEAP:mov.u32 %maxday,29;
+DATE_MAX_READY:
+mov.u32 %error,15942;setp.gt.u32 %p,%day,%maxday;@%p bra RETURN;
+
+ld.u64 %word,[%v2+16];
+mov.u32 %error,15942;setp.ne.u64 %p,%word,8;@%p bra RETURN;
+ld.u64 %word,[%v2+32];
+mov.u32 %error,15942;setp.ne.u64 %p,%word,8;@%p bra RETURN;
+ld.u8 %word,[%v2+28];
+mov.u32 %error,15942;setp.ne.u64 %p,%word,3;@%p bra RETURN;
+ld.u8 %word,[%v2+29];
+mov.u32 %error,15942;setp.ne.u64 %p,%word,3;@%p bra RETURN;
+mov.u64 %expected,1;mov.u64 %lowersum,0;mov.u32 %i,0;
+DIMENSION:mul.wide.u32 %temporary,%i,24;add.u64 %ptr,%v2,%temporary;ld.u64 %stride,[%ptr+40];ld.s64 %lower,[%ptr+48];ld.s64 %upper,[%ptr+56];
+mov.u32 %error,15942;setp.ne.u64 %p,%stride,%expected;@%p bra RETURN;
+mov.u32 %error,15942;setp.gt.s64 %p,%lower,1;@%p bra RETURN;
+mov.u64 %word,19;setp.eq.u32 %p,%i,1;@%p mov.u64 %word,34;setp.eq.u32 %p,%i,2;@%p mov.u64 %word,12;
+mov.u32 %error,15942;setp.lt.s64 %p,%upper,%word;@%p bra RETURN;
+sub.u64 %extent,%upper,%lower;add.u64 %extent,%extent,1;
+mov.u32 %error,15942;setp.eq.u64 %p,%extent,0;@%p bra RETURN;
+mov.u32 %error,15942;setp.gt.u64 %p,%extent,4096;@%p bra RETURN;
+mul.lo.u64 %product,%lower,%stride;add.u64 %lowersum,%lowersum,%product;mul.lo.u64 %expected,%expected,%extent;add.u32 %i,%i,1;setp.lt.u32 %p,%i,3;@%p bra DIMENSION;ld.s64 %offset,[%v2+8];add.u64 %word,%offset,%lowersum;xor.b64 %test,%offset,%word;xor.b64 %temporary,%lowersum,%word;and.b64 %test,%test,%temporary;
+mov.u32 %error,15943;setp.lt.s64 %p,%test,0;@%p bra RETURN;
+shl.b64 %offset,%word,3;shr.s64 %test,%offset,3;
+mov.u32 %error,15943;setp.ne.u64 %p,%test,%word;@%p bra RETURN;
+ld.u64 %point,[%v2];
+st.param.u64 [rb],%point;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),monthly_ozone_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+add.u64 %first,%point,%offset;setp.lt.s64 %p,%offset,0;@%p bra NEGATIVE_OFFSET;
+mov.u32 %error,15943;setp.lt.u64 %p,%first,%point;@%p bra RETURN;
+bra OFFSET_READY;
+NEGATIVE_OFFSET:
+mov.u32 %error,15943;setp.gt.u64 %p,%first,%point;@%p bra RETURN;
+OFFSET_READY:shl.b64 %expected,%expected,3;add.u64 %last,%first,%expected;
+mov.u32 %error,15943;setp.lt.u64 %p,%last,%first;@%p bra RETURN;
+mov.u32 %error,15943;setp.lt.u64 %p,%first,%base;@%p bra RETURN;
+add.u64 %point,%base,%bytes;
+mov.u32 %error,15943;setp.gt.u64 %p,%last,%point;@%p bra RETURN;
+ld.u64 %word,[%v0+576];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,15944;setp.gt.u64 %p,%absolute,0x3ff0000000000000;@%p bra RETURN;
+ld.u64 %word,[%v1+48];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,15944;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+mov.u32 %error,15944;setp.eq.u64 %p,%absolute,0;@%p bra RETURN;
+mov.u32 %error,15944;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra RETURN;
+mov.u32 %error,0;
+RETURN:st.param.u32 [error],%error;ret;
+}
+.visible .func (.param .u32 error) md2asm_gpu_monthly_ozone_planes_admit(.param .u64 original_vector,.param .u32 month_one,.param .u32 month_two)
+{
+.reg .u64 %args,%oz,%base,%offset,%step,%stride,%left,%right,%p1,%p2,%j,%k,%word,%absolute;
+.reg .u32 %m1,%m2,%error;.reg .pred %p;
+ld.param.u64 %args,[original_vector];ld.param.u32 %m1,[month_one];ld.param.u32 %m2,[month_two];ld.u64 %oz,[%args+16];ld.u64 %base,[%oz];ld.u64 %offset,[%oz+8];shl.b64 %offset,%offset,3;add.u64 %base,%base,%offset;ld.u64 %step,[%oz+88];shl.b64 %step,%step,3;cvt.u64.u32 %j,%m1;mad.lo.u64 %left,%j,%step,%base;cvt.u64.u32 %j,%m2;mad.lo.u64 %right,%j,%step,%base;ld.u64 %stride,[%oz+64];shl.b64 %stride,%stride,3;mov.u64 %k,1;mov.u32 %error,15944;
+PLANE_LEVEL:mad.lo.u64 %p1,%k,%stride,%left;mad.lo.u64 %p2,%k,%stride,%right;mov.u64 %j,1;
+PLANE_LATITUDE:shl.b64 %offset,%j,3;add.u64 %base,%p1,%offset;ld.u64 %word,[%base];and.b64 %absolute,%word,0x7fffffffffffffff;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra PLANES_RETURN;setp.eq.u64 %p,%absolute,0;@%p bra LEFT_OK;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra PLANES_RETURN;
+LEFT_OK:add.u64 %base,%p2,%offset;ld.u64 %word,[%base];and.b64 %absolute,%word,0x7fffffffffffffff;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra PLANES_RETURN;setp.eq.u64 %p,%absolute,0;@%p bra RIGHT_OK;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra PLANES_RETURN;
+RIGHT_OK:add.u64 %j,%j,1;setp.le.u64 %p,%j,19;@%p bra PLANE_LATITUDE;add.u64 %k,%k,1;setp.le.u64 %p,%k,34;@%p bra PLANE_LEVEL;mov.u32 %error,0;
+PLANES_RETURN:st.param.u32 [error],%error;ret;
+}
+
