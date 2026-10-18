@@ -1,0 +1,11 @@
+# Complete Convective Column Update on the GPU
+
+CUMASTRN calculates the complete cloud-column update, including parcel preparation, cloud ascent, rain, downdrafts, heat, water and momentum transport, dissipation and final cloud diagnostics. Its eight numerical children execute on the device in source order. Every multiply, add, divide and square root retains the separately rounded 64-bit floating-point (FP64) calculation and original constants.
+
+The application binary interface (ABI) retains all 68 original addresses and all 36 complete writable buffers, including inactive columns, boundaries and integer flags. One serial GPU thread uses a 64-byte common context and a 320-byte live-constant/counter record. The frozen source shapes determine complete private work. Check complete buffer bounds, alignment and writable overlap before calculation, then copy complete outputs back only after success. The storage-only Arm boundary preserves saved registers, x18, floating-point state and the system error indicator.
+
+The supported calculation has normal nonlinear physics, normal downdrafts and inactive chemical tracer transport. It admits 1 through 4,096 columns, 4 through 1,024 levels and at most 65,536 column-level cells, subject to the accepted child workspace limits. Positive logarithm arguments and the qualified power-function domain remain input requirements. Empty work still clears the complete first dissipation plane, as the source requires.
+
+Fifty-eight protected GPU calls over 29 distinct original cases match 8,970,752 complete output bytes. Independent checks cover 604,157 distinct physical relations. Seventy-two critical controls and three ordinary-device graphs pass. Immediate selected-CPU status, actual mathematical counters, the 18,972-byte selected provider, 27 native functions and both independent source reviews pass. New consumed exponential, power and logarithm operands pass independent high-precision checks.
+
+The original source is arpifs/phys_ec/cumastrn.F90 and the selected CPU body is src/openifs/physics/cumastrn.S. The published host keeps only the selected serial production alias; other public and CPU-parallel aliases remain deferred. This complete component adds one original routine and no full GPU forecast result.

@@ -1,0 +1,26 @@
+// Contract: skills/md2asm-gpu/references/openifs/physics/model_time_and_forcing.md.
+// Complete original nine-address model clock and forcing entry. See skills/md2asm-gpu/references/openifs/physics/model_time_and_forcing.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .u32 error) md2asm_gpu_model_time_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 result[32]) md2asm_gpu_model_time_values(.param .u64 vector,.param .u64 record,.param .u64 scratch);
+.visible .func md2asm_gpu_model_time_fp64(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%scratch,%record,%lape,%ptr,%event;
+.reg .u32 %word,%other,%error,%flags,%old;
+.reg .pred %p;
+.param .u64 a,c,s,fl;.param .u32 refused;.param .align 8 .b8 returned[32];
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];
+mov.u32 %word,%tid.x;mov.u32 %other,%tid.y;or.b32 %word,%word,%other;mov.u32 %other,%tid.z;or.b32 %word,%word,%other;mov.u32 %other,%ctaid.x;or.b32 %word,%word,%other;mov.u32 %other,%ctaid.y;or.b32 %word,%word,%other;mov.u32 %other,%ctaid.z;or.b32 %word,%word,%other;setp.ne.u32 %p,%word,0;@%p ret;
+setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %scratch,%ctx,7;setp.ne.u64 %p,%scratch,0;@%p ret;ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;mov.u32 %error,16040;
+mov.u32 %word,%ntid.x;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%ntid.y;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%ntid.z;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%nctaid.x;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%nctaid.y;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%nctaid.z;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%dynamic_smem_size;setp.ne.u32 %p,%word,0;@%p bra REFUSE;ld.global.u32 %word,[%ctx+4];setp.ne.u32 %p,%word,1;@%p bra REFUSE;ld.global.u32 %word,[%ctx+12];setp.ne.u32 %p,%word,0;@%p bra REFUSE;
+st.param.u64 [a],%args;st.param.u64 [c],%ctx;call.uni (refused),md2asm_gpu_model_time_admit,(a,c);ld.param.u32 %error,[refused];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];st.param.u64 [a],%args;st.param.u64 [c],%record;st.param.u64 [s],%scratch;call.uni (returned),md2asm_gpu_model_time_values,(a,c,s);ld.param.u32 %flags,[returned];ld.param.u32 %error,[returned+4];ld.param.u64 %event,[returned+8];setp.ne.u32 %p,%error,0;@%p bra REFUSE;ld.global.u32 %old,[%ctx+8];or.b32 %flags,%flags,%old;st.global.u32 [%ctx+8],%flags;setp.eq.u64 %p,%event,0;@%p ret;st.global.u64 [%ctx+16],%event;ret;
+REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+.visible .entry md2asm_gpu_model_time_and_forcing(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx;.param .u64 a,c;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];st.param.u64 [a],%args;st.param.u64 [c],%ctx;call.uni md2asm_gpu_model_time_fp64,(a,c);ret;
+}

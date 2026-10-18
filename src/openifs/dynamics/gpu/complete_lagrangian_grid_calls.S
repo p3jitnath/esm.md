@@ -215,9 +215,9 @@ BEGIN gpu_lacdyn,36
  str x9,[x21,#40]
  CONST x9,8
  str x9,[x21,#48]
- CONST x9,192
+ CONST x9,0
  str x9,[x21,#56]
- CONST x9,192
+ CONST x9,0
  str x9,[x21,#64]
  CONST x9,4
  str x9,[x21,#72]

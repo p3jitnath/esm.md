@@ -48,9 +48,9 @@ st.param.u64 [rb],%v5;st.param.u64 [rn],8;st.param.u64 [rc],%cap;st.param.u64 [r
 ld.u64 %v6,[%args+48];ld.u64 %cap,[%record+48];
 st.param.u64 [rb],%v6;st.param.u64 [rn],8;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lacdyn_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
 ld.u64 %v7,[%args+56];ld.u64 %cap,[%record+56];
-st.param.u64 [rb],%v7;st.param.u64 [rn],192;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lacdyn_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v7;st.param.u64 [rn],0;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lacdyn_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
 ld.u64 %v8,[%args+64];ld.u64 %cap,[%record+64];
-st.param.u64 [rb],%v8;st.param.u64 [rn],192;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lacdyn_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v8;st.param.u64 [rn],0;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lacdyn_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
 ld.u64 %v9,[%args+72];ld.u64 %cap,[%record+72];
 st.param.u64 [rb],%v9;st.param.u64 [rn],4;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),lacdyn_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
 ld.u64 %v10,[%args+80];ld.u64 %cap,[%record+80];
@@ -193,8 +193,8 @@ st.u64 [%owners+72],%v3;mov.u64 %tmp,4;st.u64 [%owners+80],%tmp;st.u64 [%owners+
 st.u64 [%owners+96],%v4;mov.u64 %tmp,4;st.u64 [%owners+104],%tmp;st.u64 [%owners+112],0;
 st.u64 [%owners+120],%v5;mov.u64 %tmp,8;st.u64 [%owners+128],%tmp;st.u64 [%owners+136],0;
 st.u64 [%owners+144],%v6;mov.u64 %tmp,8;st.u64 [%owners+152],%tmp;st.u64 [%owners+160],0;
-st.u64 [%owners+168],%v7;mov.u64 %tmp,192;st.u64 [%owners+176],%tmp;st.u64 [%owners+184],0;
-st.u64 [%owners+192],%v8;mov.u64 %tmp,192;st.u64 [%owners+200],%tmp;st.u64 [%owners+208],0;
+st.u64 [%owners+168],%v7;mov.u64 %tmp,0;st.u64 [%owners+176],%tmp;st.u64 [%owners+184],0;
+st.u64 [%owners+192],%v8;mov.u64 %tmp,0;st.u64 [%owners+200],%tmp;st.u64 [%owners+208],0;
 st.u64 [%owners+216],%v9;mov.u64 %tmp,4;st.u64 [%owners+224],%tmp;st.u64 [%owners+232],0;
 st.u64 [%owners+240],%v10;mov.u64 %tmp,192;st.u64 [%owners+248],%tmp;st.u64 [%owners+256],0;
 st.u64 [%owners+264],%v11;mov.u64 %tmp,192;st.u64 [%owners+272],%tmp;st.u64 [%owners+280],0;

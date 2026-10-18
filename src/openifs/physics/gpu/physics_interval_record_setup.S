@@ -1,0 +1,139 @@
+// Contract: skills/md2asm-gpu/references/openifs/physics/physics_interval_controller.md.
+/* Integer-only capacities for the14-address physics interval controller.
+ * x0 is the original vector; x1 is a zeroed112-byte record.
+ * Return x0error and x1requiredscratch. No FP or service call occurs. */
+.text
+.p2align 4
+.global md2asm_gpu_fill_physics_interval_record
+.type md2asm_gpu_fill_physics_interval_record,%function
+md2asm_gpu_fill_physics_interval_record:
+ mov x2,x0
+ mov x3,x1
+ cbz x2,.Lfill_fail
+ cbz x3,.Lfill_fail
+ orr x9,x2,x3
+ tst x9,#7
+ b.ne .Lfill_fail
+ ldr x9,[x2,#0]
+ cbz x9,.Lfill_fail
+ tst x9,#7
+ b.ne .Lfill_fail
+ movz x9,#17096
+ str x9,[x3,#0]
+ ldr x9,[x2,#8]
+ cbz x9,.Lfill_fail
+ tst x9,#7
+ b.ne .Lfill_fail
+ movz x9,#360
+ str x9,[x3,#8]
+ ldr x9,[x2,#16]
+ cbz x9,.Lfill_fail
+ tst x9,#7
+ b.ne .Lfill_fail
+ movz x9,#48784
+ movk x9,#23,lsl #16
+ str x9,[x3,#16]
+ ldr x9,[x2,#24]
+ cbz x9,.Lfill_fail
+ tst x9,#7
+ b.ne .Lfill_fail
+ movz x9,#160
+ str x9,[x3,#24]
+ ldr x9,[x2,#32]
+ cbz x9,.Lfill_fail
+ tst x9,#3
+ b.ne .Lfill_fail
+ movz x9,#4
+ str x9,[x3,#32]
+ ldr x9,[x2,#40]
+ cbz x9,.Lfill_fail
+ tst x9,#3
+ b.ne .Lfill_fail
+ movz x9,#4
+ str x9,[x3,#40]
+ ldr x9,[x2,#48]
+ cbz x9,.Lfill_fail
+ tst x9,#3
+ b.ne .Lfill_fail
+ movz x9,#4
+ str x9,[x3,#48]
+ ldr x9,[x2,#56]
+ cbz x9,.Lfill_fail
+ tst x9,#7
+ b.ne .Lfill_fail
+ movz x9,#8
+ str x9,[x3,#56]
+ ldr x4,[x2]
+ ldrsw x5,[x4,#5144]
+ cmp x5,#1
+ b.lt .Lfill_fail
+ cmp x5,#4096
+ b.gt .Lfill_fail
+ ldrsw x6,[x4,#5224]
+ cmp x6,#0
+ b.lt .Lfill_fail
+ cmp x6,#512
+ b.gt .Lfill_fail
+ ldrsw x7,[x4,#5244]
+ cmp x7,#1
+ b.gt .Lfill_fail
+ ldrsw x8,[x4,#5248]
+ cmp x8,x6
+ b.lt .Lfill_fail
+ sub x8,x8,x7
+ add x8,x8,#1
+ cmp x8,#1024
+ b.hi .Lfill_fail
+ ldr x9,[x2,#32]
+ ldrsw x9,[x9]
+ cmp x9,#1
+ b.lt .Lfill_fail
+ add x10,x5,#1
+ cmp x9,x10
+ b.gt .Lfill_fail
+ ldr x10,[x2,#40]
+ ldrsw x10,[x10]
+ cmp x10,x5
+ b.gt .Lfill_fail
+ sub x11,x9,#1
+ cmp x10,x11
+ b.lt .Lfill_fail
+ ldr x11,[x2,#48]
+ ldr w11,[x11]
+ cmp w11,#1
+ b.hi .Lfill_fail
+ cbnz w11,.Lfill_ok
+ cbz x6,.Lfill_ok
+ cmp x9,x10
+ b.gt .Lfill_ok
+ mul x7,x5,x6
+ lsl x7,x7,#3
+ mul x8,x8,x5
+ lsl x8,x8,#3
+ str x8,[x3,#64]
+ str x8,[x3,#72]
+ str x8,[x3,#80]
+ ldr x9,[x2,#16]
+ ldrsw x10,[x9,#256]
+ cmp x10,#0
+ b.lt .Lfill_fail
+ mul x11,x8,x10
+ str x11,[x3,#88]
+ mul x11,x7,x10
+ str x11,[x3,#104]
+ ldr x9,[x2,#8]
+ ldrsw x10,[x9,#64]
+ cmp x10,#1
+ b.lt .Lfill_fail
+ mul x11,x7,x10
+ str x11,[x3,#96]
+.Lfill_ok:
+ mov x0,#0
+ mov x1,#512
+ ret
+.Lfill_fail:
+ mov x0,#1
+ mov x1,#0
+ ret
+.size md2asm_gpu_fill_physics_interval_record,.-md2asm_gpu_fill_physics_interval_record
+.section .note.GNU-stack,"",%progbits

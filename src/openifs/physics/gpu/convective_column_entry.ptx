@@ -1,0 +1,746 @@
+// Contract: skills/md2asm-gpu/references/openifs/physics/convective_column_update.md.
+// Unverified direct PTX batch draft. See the routine frozen contract.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sqrt_status(.param .b64 a);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_exp_original_rounding(.param .b64 a);
+.extern .func (.param .align 8 .b8 geometry[64]) md2asm_gpu_surface_descriptor_geometry(.param .u64 descriptor,.param .u32 rank,.param .u32 element_bytes,.param .u64 required0,.param .u64 required1,.param .u64 required2,.param .u32 zero_is_one);
+
+.func (.param .u32 result) md2asm_gpu_cumastrn_range(.param .u64 base,.param .u64 bytes,.param .u64 mask)
+{
+ .reg .u64 %b,%n,%m,%end; .reg .u32 %e; .reg .pred %p;
+ ld.param.u64 %b,[base];ld.param.u64 %n,[bytes];ld.param.u64 %m,[mask];mov.u32 %e,0;
+ setp.eq.u64 %p,%n,0;@%p bra RANGE_DONE;mov.u32 %e,8802;
+ setp.eq.u64 %p,%b,0;@%p bra RANGE_DONE;and.b64 %end,%b,%m;setp.ne.u64 %p,%end,0;@%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff;@%p bra RANGE_DONE;setp.gt.u64 %p,%n,0x7fffffffffffffff;@%p bra RANGE_DONE;
+ add.u64 %end,%b,%n;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra RANGE_DONE;mov.u32 %e,0;
+RANGE_DONE:st.param.u32 [result],%e;ret;
+}
+.func (.param .u32 result) md2asm_gpu_cumastrn_disjoint(.param .u64 a,.param .u64 an,.param .u64 b,.param .u64 bn)
+{
+ .reg .u64 %a,%an,%b,%bn,%ae,%be; .reg .u32 %e; .reg .pred %p,%q;
+ ld.param.u64 %a,[a];ld.param.u64 %an,[an];ld.param.u64 %b,[b];ld.param.u64 %bn,[bn];mov.u32 %e,0;
+ setp.eq.u64 %p,%an,0;@%p bra SEPARATE_DONE;setp.eq.u64 %p,%bn,0;@%p bra SEPARATE_DONE;
+ add.u64 %ae,%a,%an;add.u64 %be,%b,%bn;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;selp.u32 %e,8802,0,%p;
+SEPARATE_DONE:st.param.u32 [result],%e;ret;
+}
+.extern .func (.param .align 8 .b8 returned[40]) md2asm_gpu_convective_column_values(.param .u64 vector,.param .u64 record,.param .u64 scratch);
+.visible .func (.param .u32 returned) md2asm_gpu_cumastrn_admit(.param .u64 vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%v<68>,%record,%record_bytes,%constant<32>,%hook,%capacity,%temporary,%pointer,%word,%absolute,%bytes,%scratch,%required,%cells,%layer_bytes,%column_bytes,%integer_columns,%face_bytes,%species_bytes,%four_species,%random_bytes,%tracer_bytes,%tracer_columns,%owners,%a,%an,%b,%bn,%counter<3>;
+.reg .u32 %P,%N,%first,%last,%NRF,%T,%r,%r1,%ii,%jj,%error;.reg .pred %p;
+.local .align 8 .b8 owner_rows[2048];.param .u64 rb,rn,rm,da,dn,db,dm;.param .u32 rr;
+ld.param.u64 %args,[vector];ld.param.u64 %ctx,[common_context];
+
+ st.param.u64 [rb],%args;st.param.u64 [rn],544;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ld.global.u64 %v5,[%args+40];
+ld.global.u64 %v6,[%args+48];
+ld.global.u64 %v7,[%args+56];
+ld.global.u64 %v8,[%args+64];
+ld.global.u64 %v9,[%args+72];
+ld.global.u64 %v10,[%args+80];
+ld.global.u64 %v11,[%args+88];
+ld.global.u64 %v12,[%args+96];
+ld.global.u64 %v13,[%args+104];
+ld.global.u64 %v14,[%args+112];
+ld.global.u64 %v15,[%args+120];
+ld.global.u64 %v16,[%args+128];
+ld.global.u64 %v17,[%args+136];
+ld.global.u64 %v18,[%args+144];
+ld.global.u64 %v19,[%args+152];
+ld.global.u64 %v20,[%args+160];
+ld.global.u64 %v21,[%args+168];
+ld.global.u64 %v22,[%args+176];
+ld.global.u64 %v23,[%args+184];
+ld.global.u64 %v24,[%args+192];
+ld.global.u64 %v25,[%args+200];
+ld.global.u64 %v26,[%args+208];
+ld.global.u64 %v27,[%args+216];
+ld.global.u64 %v28,[%args+224];
+ld.global.u64 %v29,[%args+232];
+ld.global.u64 %v30,[%args+240];
+ld.global.u64 %v31,[%args+248];
+ld.global.u64 %v32,[%args+256];
+ld.global.u64 %v33,[%args+264];
+ld.global.u64 %v34,[%args+272];
+ld.global.u64 %v35,[%args+280];
+ld.global.u64 %v36,[%args+288];
+ld.global.u64 %v37,[%args+296];
+ld.global.u64 %v38,[%args+304];
+ld.global.u64 %v39,[%args+312];
+ld.global.u64 %v40,[%args+320];
+ld.global.u64 %v41,[%args+328];
+ld.global.u64 %v42,[%args+336];
+ld.global.u64 %v43,[%args+344];
+ld.global.u64 %v44,[%args+352];
+ld.global.u64 %v45,[%args+360];
+ld.global.u64 %v46,[%args+368];
+ld.global.u64 %v47,[%args+376];
+ld.global.u64 %v48,[%args+384];
+ld.global.u64 %v49,[%args+392];
+ld.global.u64 %v50,[%args+400];
+ld.global.u64 %v51,[%args+408];
+ld.global.u64 %v52,[%args+416];
+ld.global.u64 %v53,[%args+424];
+ld.global.u64 %v54,[%args+432];
+ld.global.u64 %v55,[%args+440];
+ld.global.u64 %v56,[%args+448];
+ld.global.u64 %v57,[%args+456];
+ld.global.u64 %v58,[%args+464];
+ld.global.u64 %v59,[%args+472];
+ld.global.u64 %v60,[%args+480];
+ld.global.u64 %v61,[%args+488];
+ld.global.u64 %v62,[%args+496];
+ld.global.u64 %v63,[%args+504];
+ld.global.u64 %v64,[%args+512];
+ld.global.u64 %v65,[%args+520];
+ld.global.u64 %v66,[%args+528];
+ld.global.u64 %v67,[%args+536];
+ st.param.u64 [rb],%v0;st.param.u64 [rn],864;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v1;st.param.u64 [rn],10408;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v2;st.param.u64 [rn],1359136;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v3;st.param.u64 [rn],11936;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v4;st.param.u64 [rn],3192;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v5;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v6;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v7;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v8;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v64;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u32 %P,[%v7];ld.global.u32 %N,[%v8];ld.global.u32 %first,[%v5];ld.global.u32 %last,[%v6];ld.global.u32 %T,[%v64];ld.global.u32 %NRF,[%v4+216];
+mov.u32 %error,8801;setp.lt.s32 %p,%P,1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.gt.u32 %p,%P,4096;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.lt.s32 %p,%N,4;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.gt.u32 %p,%N,1024;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.lt.s32 %p,%first,1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.gt.u32 %p,%first,%P;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.lt.s32 %p,%last,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.gt.u32 %p,%last,%P;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.gt.u32 %p,%T,4096;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.gt.u32 %p,%NRF,4096;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v0+4];setp.ne.u32 %p,%r,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v4];setp.ne.u32 %p,%r,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3764];setp.ne.u32 %p,%r,1;@%p bra ADMIT_DONE;
+ld.global.u32 %r,[%v1+140];setp.eq.u32 %p,%r,0;@%p bra TRACER_READY;
+mov.u32 %error,8801;setp.ne.u32 %p,%T,0;@%p bra ADMIT_DONE;
+TRACER_READY:mul.wide.u32 %cells,%P,%N;
+mov.u32 %error,8801;setp.gt.u64 %p,%cells,65536;@%p bra ADMIT_DONE;
+shl.b64 %layer_bytes,%cells,3;mul.wide.u32 %column_bytes,%P,8;mul.wide.u32 %integer_columns,%P,4;add.u32 %r,%N,1;mul.wide.u32 %face_bytes,%P,%r;shl.b64 %face_bytes,%face_bytes,3;shl.b64 %species_bytes,%layer_bytes,1;shl.b64 %four_species,%layer_bytes,2;mul.wide.u32 %random_bytes,%P,%NRF;shl.b64 %random_bytes,%random_bytes,3;cvt.u64.u32 %temporary,%T;mul.lo.u64 %tracer_bytes,%layer_bytes,%temporary;mul.wide.u32 %tracer_columns,%T,8;setp.gt.u32 %p,%first,%last;@%p bra CHILD_ARENA_READY;mul.lo.u64 %temporary,%cells,60;add.u64 %temporary,%temporary,%column_bytes;add.u64 %temporary,%temporary,31;and.b64 %temporary,%temporary,0xfffffffffffffff0;
+mov.u32 %error,8801;setp.gt.u64 %p,%temporary,1048576;@%p bra ADMIT_DONE;
+ld.global.u32 %r,[%v1+3768];setp.eq.u32 %p,%r,0;@%p bra CHILD_ARENA_READY;
+mov.u32 %error,8801;setp.gt.u64 %p,%cells,17467;@%p bra ADMIT_DONE;
+CHILD_ARENA_READY:
+ st.param.u64 [rb],%v0;st.param.u64 [rn],864;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v1;st.param.u64 [rn],10408;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v2;st.param.u64 [rn],1359136;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v3;st.param.u64 [rn],11936;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v4;st.param.u64 [rn],3192;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v5;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v6;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v7;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v8;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v9;st.param.u64 [rn],%integer_columns;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v10;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v11;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v12;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v13;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v14;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v15;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v16;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v17;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v18;st.param.u64 [rn],%face_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v19;st.param.u64 [rn],%face_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v20;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v21;st.param.u64 [rn],%face_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v22;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v23;st.param.u64 [rn],%face_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v24;st.param.u64 [rn],%column_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v25;st.param.u64 [rn],%column_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v26;st.param.u64 [rn],%random_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v27;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v28;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v29;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v30;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v31;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v32;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v33;st.param.u64 [rn],%integer_columns;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v34;st.param.u64 [rn],%integer_columns;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v35;st.param.u64 [rn],%integer_columns;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v36;st.param.u64 [rn],%integer_columns;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v37;st.param.u64 [rn],%integer_columns;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v38;st.param.u64 [rn],%integer_columns;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v39;st.param.u64 [rn],%integer_columns;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v40;st.param.u64 [rn],%integer_columns;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v41;st.param.u64 [rn],%integer_columns;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v42;st.param.u64 [rn],%integer_columns;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v43;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v44;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v45;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v46;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v47;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v48;st.param.u64 [rn],%four_species;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v49;st.param.u64 [rn],%species_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v50;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v51;st.param.u64 [rn],%face_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v52;st.param.u64 [rn],%face_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v53;st.param.u64 [rn],%column_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v54;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v55;st.param.u64 [rn],%species_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v56;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v57;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v58;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v59;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v60;st.param.u64 [rn],%column_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v61;st.param.u64 [rn],%column_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v62;st.param.u64 [rn],%column_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v63;st.param.u64 [rn],%layer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v64;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v65;st.param.u64 [rn],%tracer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v66;st.param.u64 [rn],%tracer_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ st.param.u64 [rb],%v67;st.param.u64 [rn],%tracer_columns;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+mov.u32 %error,8801;ld.global.u64 %word,[%v10];setp.eq.u64 %p,%word,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3504];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3512];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3544];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3552];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3560];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.eq.u64 %p,%word,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3568];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3576];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x3ff0000000000000;@%p bra ADMIT_DONE;
+setp.eq.u64 %p,%absolute,0;@%p bra ZERO_THETA_72;
+mov.u32 %error,8801;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra ADMIT_DONE;
+ZERO_THETA_72:
+ld.global.u64 %word,[%v1+3584];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x3ff0000000000000;@%p bra ADMIT_DONE;
+setp.eq.u64 %p,%absolute,0;@%p bra ZERO_THETA_80;
+mov.u32 %error,8801;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra ADMIT_DONE;
+ZERO_THETA_80:
+ld.global.u64 %word,[%v1+3592];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3600];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3608];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3616];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3624];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.eq.u64 %p,%word,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3632];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3640];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3648];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3656];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3664];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3672];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3680];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3688];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3696];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.eq.u64 %p,%word,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3704];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.eq.u64 %p,%word,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3712];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.eq.u64 %p,%word,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3720];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1+3728];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8801;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3752];setp.gt.u32 %p,%r,1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3756];setp.gt.u32 %p,%r,1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3760];setp.gt.u32 %p,%r,1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3764];setp.gt.u32 %p,%r,1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3768];setp.gt.u32 %p,%r,1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3772];setp.gt.u32 %p,%r,1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3776];setp.gt.u32 %p,%r,1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3780];setp.gt.u32 %p,%r,1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3784];setp.gt.u32 %p,%r,1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3788];setp.gt.u32 %p,%r,1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3792];setp.gt.u32 %p,%r,1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3796];setp.gt.u32 %p,%r,1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3800];setp.gt.u32 %p,%r,1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3804];setp.gt.u32 %p,%r,1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3812];setp.lt.s32 %p,%r,2;@%p bra ADMIT_DONE;
+add.s32 %r1,%N,0;
+mov.u32 %error,8801;setp.gt.u32 %p,%r,%r1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3816];setp.lt.s32 %p,%r,2;@%p bra ADMIT_DONE;
+add.s32 %r1,%N,-1;
+mov.u32 %error,8801;setp.gt.u32 %p,%r,%r1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3820];setp.lt.s32 %p,%r,1;@%p bra ADMIT_DONE;
+add.s32 %r1,%N,0;
+mov.u32 %error,8801;setp.gt.u32 %p,%r,%r1;@%p bra ADMIT_DONE;
+mov.u32 %error,8801;ld.global.u32 %r,[%v1+3828];setp.lt.s32 %p,%r,1;@%p bra ADMIT_DONE;
+add.s32 %r1,%N,0;
+mov.u32 %error,8801;setp.gt.u32 %p,%r,%r1;@%p bra ADMIT_DONE;
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %record_bytes,[%ctx+56];
+mov.u32 %error,8803;setp.ne.u64 %p,%record_bytes,320;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%record;st.param.u64 [rn],320;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %constant0,[%record+0];
+ st.param.u64 [rb],%constant0;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant0];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant1,[%record+8];
+ st.param.u64 [rb],%constant1;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant1];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant2,[%record+16];
+ st.param.u64 [rb],%constant2;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant2];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant3,[%record+24];
+ st.param.u64 [rb],%constant3;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant3];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant4,[%record+32];
+ st.param.u64 [rb],%constant4;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant4];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant5,[%record+40];
+ st.param.u64 [rb],%constant5;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant5];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant6,[%record+48];
+ st.param.u64 [rb],%constant6;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant6];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant7,[%record+56];
+ st.param.u64 [rb],%constant7;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant7];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant8,[%record+64];
+ st.param.u64 [rb],%constant8;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant8];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant9,[%record+72];
+ st.param.u64 [rb],%constant9;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant9];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant10,[%record+80];
+ st.param.u64 [rb],%constant10;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant10];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant11,[%record+88];
+ st.param.u64 [rb],%constant11;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant11];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant12,[%record+96];
+ st.param.u64 [rb],%constant12;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant12];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant13,[%record+104];
+ st.param.u64 [rb],%constant13;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant13];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant14,[%record+112];
+ st.param.u64 [rb],%constant14;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant14];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant15,[%record+120];
+ st.param.u64 [rb],%constant15;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant15];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant16,[%record+128];
+ st.param.u64 [rb],%constant16;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant16];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant17,[%record+136];
+ st.param.u64 [rb],%constant17;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant17];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant18,[%record+144];
+ st.param.u64 [rb],%constant18;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant18];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.eq.u64 %p,%word,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant19,[%record+152];
+ st.param.u64 [rb],%constant19;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant19];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.eq.u64 %p,%word,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant20,[%record+160];
+ st.param.u64 [rb],%constant20;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant20];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.eq.u64 %p,%word,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant21,[%record+168];
+ st.param.u64 [rb],%constant21;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant21];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant22,[%record+176];
+ st.param.u64 [rb],%constant22;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant22];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant23,[%record+184];
+ st.param.u64 [rb],%constant23;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant23];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant24,[%record+192];
+ st.param.u64 [rb],%constant24;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant24];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.eq.u64 %p,%word,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant25,[%record+200];
+ st.param.u64 [rb],%constant25;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant25];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.eq.u64 %p,%word,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant26,[%record+208];
+ st.param.u64 [rb],%constant26;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant26];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.eq.u64 %p,%word,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant27,[%record+216];
+ st.param.u64 [rb],%constant27;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant27];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant28,[%record+224];
+ st.param.u64 [rb],%constant28;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant28];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant29,[%record+232];
+ st.param.u64 [rb],%constant29;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant29];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.eq.u64 %p,%word,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant30,[%record+240];
+ st.param.u64 [rb],%constant30;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant30];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.eq.u64 %p,%word,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %constant31,[%record+248];
+ st.param.u64 [rb],%constant31;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %word,[%constant31];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,8803;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.eq.u64 %p,%word,0;@%p bra ADMIT_DONE;
+mov.u32 %error,8803;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra ADMIT_DONE;
+ld.global.u64 %hook,[%record+304];ld.global.u64 %capacity,[%record+312];
+mov.u32 %error,8803;setp.lt.u64 %p,%capacity,4;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%hook;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+mov.u32 %error,8803;ld.global.u32 %r,[%hook];setp.ne.u32 %p,%r,0;@%p bra ADMIT_DONE;
+mul.lo.u64 %required,%cells,268;add.u64 %required,%required,7;and.b64 %required,%required,0xfffffffffffffff8;mul.wide.u32 %temporary,%P,248;add.u64 %required,%required,%temporary;add.u64 %required,%required,16384;mul.lo.u64 %temporary,%cells,224;mul.wide.u32 %bytes,%P,84;add.u64 %temporary,%temporary,%bytes;add.u64 %temporary,%temporary,7;and.b64 %temporary,%temporary,0xfffffffffffffff8;add.u64 %required,%required,%temporary;mul.wide.u32 %temporary,%P,28;add.u64 %temporary,%temporary,7;and.b64 %temporary,%temporary,0xfffffffffffffff8;add.u64 %required,%required,%temporary;mul.lo.u64 %temporary,%cells,232;add.u64 %required,%required,%temporary;mul.wide.u32 %temporary,%P,48;add.u64 %required,%required,%temporary;add.u64 %required,%required,4104;ld.global.u64 %scratch,[%ctx+32];ld.global.u64 %capacity,[%ctx+40];
+mov.u32 %error,8803;setp.lt.u64 %p,%capacity,%required;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%scratch;st.param.u64 [rn],%required;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+ld.global.u64 %counter0,[%record+256];ld.global.u64 %capacity,[%record+264];setp.eq.u64 %p,%counter0,0;@%p bra COUNTER_ABSENT_0;
+mov.u32 %error,8803;setp.lt.u64 %p,%capacity,8;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%counter0;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+bra COUNTER_READY_0;COUNTER_ABSENT_0:
+mov.u32 %error,8803;setp.ne.u64 %p,%capacity,0;@%p bra ADMIT_DONE;
+COUNTER_READY_0:
+ld.global.u64 %counter1,[%record+272];ld.global.u64 %capacity,[%record+280];setp.eq.u64 %p,%counter1,0;@%p bra COUNTER_ABSENT_1;
+mov.u32 %error,8803;setp.lt.u64 %p,%capacity,8;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%counter1;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+bra COUNTER_READY_1;COUNTER_ABSENT_1:
+mov.u32 %error,8803;setp.ne.u64 %p,%capacity,0;@%p bra ADMIT_DONE;
+COUNTER_READY_1:
+ld.global.u64 %counter2,[%record+288];ld.global.u64 %capacity,[%record+296];setp.eq.u64 %p,%counter2,0;@%p bra COUNTER_ABSENT_2;
+mov.u32 %error,8803;setp.lt.u64 %p,%capacity,8;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%counter2;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+bra COUNTER_READY_2;COUNTER_ABSENT_2:
+mov.u32 %error,8803;setp.ne.u64 %p,%capacity,0;@%p bra ADMIT_DONE;
+COUNTER_READY_2:
+mov.u64 %owners,owner_rows;cvta.local.u64 %owners,%owners;
+add.u64 %temporary,%owners,0;st.u64 [%temporary],%args;mov.u64 %bytes,544;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,16;st.u64 [%temporary],%v0;mov.u64 %bytes,864;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,32;st.u64 [%temporary],%v1;mov.u64 %bytes,10408;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,48;st.u64 [%temporary],%v2;mov.u64 %bytes,1359136;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,64;st.u64 [%temporary],%v3;mov.u64 %bytes,11936;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,80;st.u64 [%temporary],%v4;mov.u64 %bytes,3192;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,96;st.u64 [%temporary],%v5;mov.u64 %bytes,4;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,112;st.u64 [%temporary],%v6;mov.u64 %bytes,4;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,128;st.u64 [%temporary],%v7;mov.u64 %bytes,4;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,144;st.u64 [%temporary],%v8;mov.u64 %bytes,4;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,160;st.u64 [%temporary],%v9;mov.u64 %bytes,%integer_columns;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,176;st.u64 [%temporary],%v10;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,192;st.u64 [%temporary],%v13;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,208;st.u64 [%temporary],%v14;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,224;st.u64 [%temporary],%v15;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,240;st.u64 [%temporary],%v16;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,256;st.u64 [%temporary],%v18;mov.u64 %bytes,%face_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,272;st.u64 [%temporary],%v19;mov.u64 %bytes,%face_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,288;st.u64 [%temporary],%v20;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,304;st.u64 [%temporary],%v21;mov.u64 %bytes,%face_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,320;st.u64 [%temporary],%v22;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,336;st.u64 [%temporary],%v23;mov.u64 %bytes,%face_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,352;st.u64 [%temporary],%v24;mov.u64 %bytes,%column_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,368;st.u64 [%temporary],%v25;mov.u64 %bytes,%column_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,384;st.u64 [%temporary],%v26;mov.u64 %bytes,%random_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,400;st.u64 [%temporary],%v31;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,416;st.u64 [%temporary],%v32;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,432;st.u64 [%temporary],%v42;mov.u64 %bytes,%integer_columns;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,448;st.u64 [%temporary],%v43;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,464;st.u64 [%temporary],%v64;mov.u64 %bytes,4;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,480;st.u64 [%temporary],%v65;mov.u64 %bytes,%tracer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,496;st.u64 [%temporary],%v66;mov.u64 %bytes,%tracer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,512;st.u64 [%temporary],%v67;mov.u64 %bytes,%tracer_columns;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,528;st.u64 [%temporary],%record;mov.u64 %bytes,320;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,544;st.u64 [%temporary],%constant0;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,560;st.u64 [%temporary],%constant1;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,576;st.u64 [%temporary],%constant2;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,592;st.u64 [%temporary],%constant3;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,608;st.u64 [%temporary],%constant4;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,624;st.u64 [%temporary],%constant5;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,640;st.u64 [%temporary],%constant6;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,656;st.u64 [%temporary],%constant7;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,672;st.u64 [%temporary],%constant8;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,688;st.u64 [%temporary],%constant9;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,704;st.u64 [%temporary],%constant10;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,720;st.u64 [%temporary],%constant11;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,736;st.u64 [%temporary],%constant12;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,752;st.u64 [%temporary],%constant13;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,768;st.u64 [%temporary],%constant14;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,784;st.u64 [%temporary],%constant15;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,800;st.u64 [%temporary],%constant16;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,816;st.u64 [%temporary],%constant17;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,832;st.u64 [%temporary],%constant18;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,848;st.u64 [%temporary],%constant19;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,864;st.u64 [%temporary],%constant20;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,880;st.u64 [%temporary],%constant21;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,896;st.u64 [%temporary],%constant22;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,912;st.u64 [%temporary],%constant23;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,928;st.u64 [%temporary],%constant24;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,944;st.u64 [%temporary],%constant25;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,960;st.u64 [%temporary],%constant26;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,976;st.u64 [%temporary],%constant27;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,992;st.u64 [%temporary],%constant28;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1008;st.u64 [%temporary],%constant29;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1024;st.u64 [%temporary],%constant30;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1040;st.u64 [%temporary],%constant31;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1056;st.u64 [%temporary],%hook;mov.u64 %bytes,4;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1072;st.u64 [%temporary],%v11;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1088;st.u64 [%temporary],%v12;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1104;st.u64 [%temporary],%v17;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1120;st.u64 [%temporary],%v27;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1136;st.u64 [%temporary],%v28;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1152;st.u64 [%temporary],%v29;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1168;st.u64 [%temporary],%v30;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1184;st.u64 [%temporary],%v33;mov.u64 %bytes,%integer_columns;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1200;st.u64 [%temporary],%v34;mov.u64 %bytes,%integer_columns;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1216;st.u64 [%temporary],%v35;mov.u64 %bytes,%integer_columns;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1232;st.u64 [%temporary],%v36;mov.u64 %bytes,%integer_columns;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1248;st.u64 [%temporary],%v37;mov.u64 %bytes,%integer_columns;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1264;st.u64 [%temporary],%v38;mov.u64 %bytes,%integer_columns;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1280;st.u64 [%temporary],%v39;mov.u64 %bytes,%integer_columns;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1296;st.u64 [%temporary],%v40;mov.u64 %bytes,%integer_columns;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1312;st.u64 [%temporary],%v41;mov.u64 %bytes,%integer_columns;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1328;st.u64 [%temporary],%v44;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1344;st.u64 [%temporary],%v45;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1360;st.u64 [%temporary],%v46;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1376;st.u64 [%temporary],%v47;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1392;st.u64 [%temporary],%v48;mov.u64 %bytes,%four_species;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1408;st.u64 [%temporary],%v49;mov.u64 %bytes,%species_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1424;st.u64 [%temporary],%v50;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1440;st.u64 [%temporary],%v51;mov.u64 %bytes,%face_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1456;st.u64 [%temporary],%v52;mov.u64 %bytes,%face_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1472;st.u64 [%temporary],%v53;mov.u64 %bytes,%column_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1488;st.u64 [%temporary],%v54;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1504;st.u64 [%temporary],%v55;mov.u64 %bytes,%species_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1520;st.u64 [%temporary],%v56;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1536;st.u64 [%temporary],%v57;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1552;st.u64 [%temporary],%v58;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1568;st.u64 [%temporary],%v59;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1584;st.u64 [%temporary],%v60;mov.u64 %bytes,%column_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1600;st.u64 [%temporary],%v61;mov.u64 %bytes,%column_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1616;st.u64 [%temporary],%v62;mov.u64 %bytes,%column_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1632;st.u64 [%temporary],%v63;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1648;st.u64 [%temporary],%ctx;mov.u64 %bytes,64;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1664;st.u64 [%temporary],%scratch;mov.u64 %bytes,%required;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1680;st.u64 [%temporary],%counter0;setp.eq.u64 %p,%counter0,0;selp.u64 %bytes,0,8,%p;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1696;st.u64 [%temporary],%counter1;setp.eq.u64 %p,%counter1,0;selp.u64 %bytes,0,8,%p;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1712;st.u64 [%temporary],%counter2;setp.eq.u64 %p,%counter2,0;selp.u64 %bytes,0,8,%p;st.u64 [%temporary+8],%bytes;
+mov.u32 %ii,67;MUTABLE_OWNER:mul.wide.u32 %temporary,%ii,16;add.u64 %pointer,%owners,%temporary;ld.u64 %a,[%pointer];ld.u64 %an,[%pointer+8];mov.u32 %jj,0;OWNER_PAIR:mul.wide.u32 %temporary,%jj,16;add.u64 %pointer,%owners,%temporary;ld.u64 %b,[%pointer];ld.u64 %bn,[%pointer+8];
+ st.param.u64 [da],%a;st.param.u64 [dn],%an;st.param.u64 [db],%b;st.param.u64 [dm],%bn;call.uni (rr),md2asm_gpu_cumastrn_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+add.u32 %jj,%jj,1;setp.lt.u32 %p,%jj,%ii;@%p bra OWNER_PAIR;add.u32 %ii,%ii,1;setp.lt.u32 %p,%ii,108;@%p bra MUTABLE_OWNER;mov.u32 %error,0;ADMIT_DONE:st.param.u32 [returned],%error;ret;
+}
+
+.visible .entry md2asm_gpu_cumastrn(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%ptr;
+ .reg .u32 %thread,%unique,%r,%error,%old;
+ .reg .pred %p;
+ .shared .align 4 .b32 admission;
+ .param .u64 av,cv;.param .u32 rr;
+  .param .u64 va,ra,sa;.param .align 8 .b8 returned[40];.reg .u64 %record,%scratch,%source,%destination,%length,%position,%step,%word64,%EXP,%FAST,%WIDE,%event,%counter,%old_count;.reg .u32 %saved_flags,%returned_error,%field,%word;
+
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %ptr,%ctx,7;setp.ne.u64 %p,%ptr,0;@%p ret;
+ mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
+ mov.u32 %r,%ctaid.x;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.z;or.b32 %unique,%unique,%r;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+ mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%nctaid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ ld.global.u32 %r,[%ctx+12];and.b32 %r,%r,1;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;
+ setp.ne.u32 %p,%thread,0;@%p bra WAIT;
+ st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),md2asm_gpu_cumastrn_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
+WAIT:
+ bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];st.param.u64 [va],%args;st.param.u64 [ra],%record;st.param.u64 [sa],%scratch;call.uni (returned),md2asm_gpu_convective_column_values,(va,ra,sa);ld.param.u32 %saved_flags,[returned];ld.param.u32 %returned_error,[returned+4];ld.param.u64 %event,[returned+8];ld.param.u64 %EXP,[returned+16];ld.param.u64 %FAST,[returned+24];ld.param.u64 %WIDE,[returned+32];setp.ne.u32 %p,%returned_error,0;@%p bra NUMERICAL_ERROR;mov.u32 %field,0;COMMIT_OWNER:mul.wide.u32 %position,%field,32;add.u64 %ptr,%scratch,8192;add.u64 %ptr,%ptr,%position;ld.global.u64 %destination,[%ptr];ld.global.u64 %source,[%ptr+8];ld.global.u64 %length,[%ptr+16];ld.global.u64 %step,[%ptr+24];mov.u64 %position,0;COMMIT_WORD:setp.ge.u64 %p,%position,%length;@%p bra COMMIT_NEXT;add.u64 %ptr,%source,%position;setp.eq.u64 %p,%step,4;@%p bra COMMIT_INTEGER;ld.global.u64 %word64,[%ptr];add.u64 %ptr,%destination,%position;st.global.u64 [%ptr],%word64;bra COMMIT_ADVANCE;COMMIT_INTEGER:ld.global.u32 %word,[%ptr];add.u64 %ptr,%destination,%position;st.global.u32 [%ptr],%word;COMMIT_ADVANCE:add.u64 %position,%position,%step;bra COMMIT_WORD;COMMIT_NEXT:add.u32 %field,%field,1;setp.lt.u32 %p,%field,36;@%p bra COMMIT_OWNER;atom.global.or.b32 %old,[%ctx+8],%saved_flags;setp.eq.u64 %p,%event,0;@%p bra EVENT_READY;st.global.u64 [%ctx+16],%event;EVENT_READY:
+ld.global.u64 %counter,[%record+256];setp.eq.u64 %p,%counter,0;@%p bra COUNTER_JOIN_0;ld.global.u64 %old_count,[%counter];add.u64 %old_count,%old_count,%EXP;st.global.u64 [%counter],%old_count;COUNTER_JOIN_0:
+ld.global.u64 %counter,[%record+272];setp.eq.u64 %p,%counter,0;@%p bra COUNTER_JOIN_1;ld.global.u64 %old_count,[%counter];add.u64 %old_count,%old_count,%FAST;st.global.u64 [%counter],%old_count;COUNTER_JOIN_1:
+ld.global.u64 %counter,[%record+288];setp.eq.u64 %p,%counter,0;@%p bra COUNTER_JOIN_2;ld.global.u64 %old_count,[%counter];add.u64 %old_count,%old_count,%WIDE;st.global.u64 [%counter],%old_count;COUNTER_JOIN_2:
+ret;NUMERICAL_ERROR:st.global.u32 [%ctx],%returned_error;ret;
+
+BAD_LAUNCH:mov.u32 %error,8800;
+REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
+}

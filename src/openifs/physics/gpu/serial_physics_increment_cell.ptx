@@ -1,0 +1,312 @@
+// Contract: skills/md2asm-gpu/references/openifs/physics/physics_interval_controller.md.
+// Direct PTX from pointwise_contract.md revision 1; local unverified candidate.
+// Original argument vector and 64-byte context follow ../gpu_context_contract.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_add_rn(.param .b64 left_word, .param .b64 right_word);
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_mul_rn(.param .b64 left_word, .param .b64 right_word);
+.extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_div_rn(.param .b64 left_word, .param .b64 right_word);
+.visible .func md2asm_gpu_interval_increment_cell(.param .u64 args_original_vector, .param .u64 context, .param .u64 selected_cell)
+{
+
+ .reg .pred %p<8>;
+ .reg .u32 %r<12>, %nproma, %levels, %start, %end, %numfields, %ndim, %ndim1, %d, %active, %mp1, %mp9, %flags, %raised, %old, %revision;
+ .reg .u64 %args, %ctx, %geom, %cfg, %startp, %endp, %dtp, %later_u, %later_v, %later_t, %later_q, %earlier_u, %earlier_v, %earlier_t, %earlier_q, %dyn_q, %cell, %total, %offset, %field_bytes, %descriptor, %later_addr, %earlier_addr, %dyn_addr, %tmp, %tmp2, %pitch, %column;
+ .reg .b64 %op_a, %op_b, %op_r, %inv, %increment;
+ ld.param.u64 %args, [args_original_vector];
+ ld.param.u64 %ctx, [context];
+ setp.eq.u64 %p0, %ctx, 0;
+ @%p0 ret;
+ setp.eq.u64 %p0, %args, 0;
+ @%p0 bra BAD;
+ ld.global.u32 %revision, [%ctx+4];
+ setp.ne.u32 %p0, %revision, 1;
+ @%p0 bra BAD;
+ ld.global.u32 %old, [%ctx];
+ setp.ne.u32 %p0, %old, 0;
+ @%p0 ret;
+
+ .reg .s32 %first_level, %last_level;
+ .reg .s64 %first_level64, %last_level64, %storage_levels, %bound_index;
+ .reg .u32 %nvtend, %mu, %mv, %mt;
+ .reg .u64 %output_field_bytes, %output_offset, %physics, %rates, %tracer_rates, %out_u, %out_v, %out_t, %out_q, %u_rate, %v_rate, %t_rate;
+ ld.global.u64 %tmp, [%args+24];
+ ld.global.u32 %r0, [%tmp];
+ setp.ne.u32 %p0, %r0, 0;
+ @%p0 ret;
+ ld.global.u64 %geom, [%args];
+ setp.eq.u64 %p0, %geom, 0;
+ @%p0 bra BAD;
+ ld.global.u32 %nproma, [%geom+5144];
+ ld.global.u32 %levels, [%geom+5224];
+ setp.lt.s32 %p0, %nproma, 1;
+ @%p0 bra BAD;
+ setp.lt.s32 %p0, %levels, 0;
+ @%p0 bra BAD;
+ setp.eq.u32 %p0, %levels, 0;
+ @%p0 ret;
+ ld.global.u64 %startp, [%args+32];
+ ld.global.u64 %endp, [%args+40];
+ ld.global.u32 %start, [%startp];
+ ld.global.u32 %end, [%endp];
+ setp.lt.s32 %p0, %start, 1;
+ @%p0 bra BAD;
+ setp.gt.u32 %p0, %start, %nproma;
+ @%p0 bra BAD;
+ setp.gt.u32 %p0, %end, %nproma;
+ @%p0 bra BAD;
+ sub.u32 %r0, %start, 1;
+ setp.lt.s32 %p0, %end, %r0;
+ @%p0 bra BAD;
+ setp.lt.u32 %p0, %end, %start;
+ @%p0 ret;
+
+ ld.param.u64 %cell,[selected_cell];
+ mul.wide.u32 %total, %nproma, %levels;
+ setp.ge.u64 %p0, %cell, %total;
+ @%p0 ret;
+ setp.gt.u64 %p0, %total, 0x0fffffffffffffff;
+ @%p0 bra BAD;
+ cvt.u64.u32 %pitch, %nproma;
+ rem.u64 %column, %cell, %pitch;
+ add.u64 %column, %column, 1;
+ cvt.u64.u32 %tmp, %start;
+ setp.lt.u64 %p0, %column, %tmp;
+ @%p0 ret;
+ cvt.u64.u32 %tmp, %end;
+ setp.gt.u64 %p0, %column, %tmp;
+ @%p0 ret;
+ shl.b64 %offset, %cell, 3;
+ shl.b64 %field_bytes, %total, 3;
+ mov.u32 %flags, 0;
+
+ ld.global.s32 %first_level, [%geom+5244];
+ ld.global.s32 %last_level, [%geom+5248];
+ setp.gt.s32 %p0, %first_level, 1;
+ @%p0 bra BAD;
+ setp.lt.s32 %p0, %last_level, %levels;
+ @%p0 bra BAD;
+ cvt.s64.s32 %first_level64, %first_level;
+ cvt.s64.s32 %last_level64, %last_level;
+ sub.s64 %storage_levels, %last_level64, %first_level64;
+ add.s64 %storage_levels, %storage_levels, 1;
+ shl.b64 %tmp, %pitch, 3;
+ mul.lo.u64 %output_field_bytes, %storage_levels, %tmp;
+ mov.s64 %bound_index, 1;
+ sub.s64 %bound_index, %bound_index, %first_level64;
+ mul.lo.u64 %tmp, %bound_index, %tmp;
+ add.u64 %output_offset, %offset, %tmp;
+ ld.global.u64 %physics, [%args+8];
+ ld.global.u64 %cfg, [%args+16];
+ setp.eq.u64 %p0, %physics, 0;
+ @%p0 bra BAD;
+ setp.eq.u64 %p0, %cfg, 0;
+ @%p0 bra BAD;
+ ld.global.u32 %numfields, [%cfg];
+ ld.global.u32 %ndim1, [%cfg+72];
+ ld.global.u32 %nvtend, [%physics+64];
+ ld.global.u32 %mu, [%physics+344];
+ ld.global.u32 %mv, [%physics+348];
+ ld.global.u32 %mt, [%physics+352];
+ setp.gt.u32 %p0, %numfields, 2163;
+ @%p0 bra BAD;
+ setp.lt.s32 %p0, %ndim1, 0;
+ @%p0 bra BAD;
+ setp.lt.s32 %p0, %nvtend, 1;
+ @%p0 bra BAD;
+ setp.lt.s32 %p0, %mu, 1;
+ @%p0 bra BAD;
+ setp.gt.u32 %p0, %mu, %nvtend;
+ @%p0 bra BAD;
+ setp.lt.s32 %p0, %mv, 1;
+ @%p0 bra BAD;
+ setp.gt.u32 %p0, %mv, %nvtend;
+ @%p0 bra BAD;
+ setp.lt.s32 %p0, %mt, 1;
+ @%p0 bra BAD;
+ setp.gt.u32 %p0, %mt, %nvtend;
+ @%p0 bra BAD;
+ mov.u32 %d, 0;
+ add.u64 %descriptor, %cfg, 3848;
+VALIDATE_DESCRIPTOR:
+ setp.ge.u32 %p0, %d, %numfields;
+ @%p0 bra DESCRIPTORS_VALID;
+ ld.global.u32 %active, [%descriptor+100];
+ setp.eq.u32 %p0, %active, 0;
+ @%p0 bra VALIDATE_NEXT;
+ ld.global.u32 %mp1, [%descriptor+204];
+ setp.lt.s32 %p0, %mp1, 1;
+ @%p0 bra BAD;
+ setp.gt.u32 %p0, %mp1, %ndim1;
+ @%p0 bra BAD;
+VALIDATE_NEXT:
+ add.u64 %descriptor, %descriptor, 368;
+ add.u32 %d, %d, 1;
+ bra VALIDATE_DESCRIPTOR;
+DESCRIPTORS_VALID:
+ ld.global.u64 %dtp, [%args+48];
+ ld.global.b64 %inv, [%dtp];
+ ld.global.u64 %rates, [%args+56];
+ ld.global.u64 %tracer_rates, [%args+64];
+ ld.global.u64 %out_u, [%args+72];
+ ld.global.u64 %out_v, [%args+80];
+ ld.global.u64 %out_t, [%args+88];
+ ld.global.u64 %out_q, [%args+96];
+ sub.u32 %r0, %mu, 1;
+ cvt.u64.u32 %tmp, %r0;
+ mul.lo.u64 %tmp, %tmp, %field_bytes;
+ add.u64 %tmp, %tmp, %offset;
+ add.u64 %earlier_addr, %rates, %tmp;
+ add.u64 %later_addr, %out_u, %output_offset;
+ ld.global.b64 %op_a, [%earlier_addr];
+ mov.b64 %op_b, %inv;
+{
+ .param .b64 left_word;
+ .param .b64 right_word;
+ .param .align 8 .b8 result_and_flags[16];
+ st.param.b64 [left_word], %op_a;
+ st.param.b64 [right_word], %op_b;
+ call.uni (result_and_flags), md2asm_gpu_mul_rn, (left_word, right_word);
+ ld.param.b64 %op_r, [result_and_flags];
+ ld.param.u32 %raised, [result_and_flags+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %op_b, %op_r;
+ ld.global.b64 %op_a, [%later_addr];
+{
+ .param .b64 left_word;
+ .param .b64 right_word;
+ .param .align 8 .b8 result_and_flags[16];
+ st.param.b64 [left_word], %op_a;
+ st.param.b64 [right_word], %op_b;
+ call.uni (result_and_flags), md2asm_gpu_add_rn, (left_word, right_word);
+ ld.param.b64 %op_r, [result_and_flags];
+ ld.param.u32 %raised, [result_and_flags+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%later_addr], %op_r;
+ sub.u32 %r0, %mv, 1;
+ cvt.u64.u32 %tmp, %r0;
+ mul.lo.u64 %tmp, %tmp, %field_bytes;
+ add.u64 %tmp, %tmp, %offset;
+ add.u64 %earlier_addr, %rates, %tmp;
+ add.u64 %later_addr, %out_v, %output_offset;
+ ld.global.b64 %op_a, [%earlier_addr];
+ mov.b64 %op_b, %inv;
+{
+ .param .b64 left_word;
+ .param .b64 right_word;
+ .param .align 8 .b8 result_and_flags[16];
+ st.param.b64 [left_word], %op_a;
+ st.param.b64 [right_word], %op_b;
+ call.uni (result_and_flags), md2asm_gpu_mul_rn, (left_word, right_word);
+ ld.param.b64 %op_r, [result_and_flags];
+ ld.param.u32 %raised, [result_and_flags+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %op_b, %op_r;
+ ld.global.b64 %op_a, [%later_addr];
+{
+ .param .b64 left_word;
+ .param .b64 right_word;
+ .param .align 8 .b8 result_and_flags[16];
+ st.param.b64 [left_word], %op_a;
+ st.param.b64 [right_word], %op_b;
+ call.uni (result_and_flags), md2asm_gpu_add_rn, (left_word, right_word);
+ ld.param.b64 %op_r, [result_and_flags];
+ ld.param.u32 %raised, [result_and_flags+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%later_addr], %op_r;
+ sub.u32 %r0, %mt, 1;
+ cvt.u64.u32 %tmp, %r0;
+ mul.lo.u64 %tmp, %tmp, %field_bytes;
+ add.u64 %tmp, %tmp, %offset;
+ add.u64 %earlier_addr, %rates, %tmp;
+ add.u64 %later_addr, %out_t, %output_offset;
+ ld.global.b64 %op_a, [%earlier_addr];
+ mov.b64 %op_b, %inv;
+{
+ .param .b64 left_word;
+ .param .b64 right_word;
+ .param .align 8 .b8 result_and_flags[16];
+ st.param.b64 [left_word], %op_a;
+ st.param.b64 [right_word], %op_b;
+ call.uni (result_and_flags), md2asm_gpu_mul_rn, (left_word, right_word);
+ ld.param.b64 %op_r, [result_and_flags];
+ ld.param.u32 %raised, [result_and_flags+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %op_b, %op_r;
+ ld.global.b64 %op_a, [%later_addr];
+{
+ .param .b64 left_word;
+ .param .b64 right_word;
+ .param .align 8 .b8 result_and_flags[16];
+ st.param.b64 [left_word], %op_a;
+ st.param.b64 [right_word], %op_b;
+ call.uni (result_and_flags), md2asm_gpu_add_rn, (left_word, right_word);
+ ld.param.b64 %op_r, [result_and_flags];
+ ld.param.u32 %raised, [result_and_flags+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%later_addr], %op_r;
+
+ mov.u32 %d, 0;
+ add.u64 %descriptor, %cfg, 3848;
+TRACER:
+ setp.ge.u32 %p0, %d, %numfields;
+ @%p0 bra COMPLETE;
+ ld.global.u32 %active, [%descriptor+100];
+ setp.eq.u32 %p0, %active, 0;
+ @%p0 bra NEXT_TRACER;
+ ld.global.u32 %mp1, [%descriptor+204];
+ sub.u32 %mp1, %mp1, 1;
+ cvt.u64.u32 %tmp2, %mp1;
+ mul.lo.u64 %tmp, %tmp2, %field_bytes;
+ add.u64 %tmp, %tmp, %offset;
+ add.u64 %earlier_addr, %tracer_rates, %tmp;
+ mul.lo.u64 %tmp, %tmp2, %output_field_bytes;
+ add.u64 %tmp, %tmp, %output_offset;
+ add.u64 %later_addr, %out_q, %tmp;
+ ld.global.b64 %op_a, [%earlier_addr];
+ mov.b64 %op_b, %inv;
+{
+ .param .b64 left_word;
+ .param .b64 right_word;
+ .param .align 8 .b8 result_and_flags[16];
+ st.param.b64 [left_word], %op_a;
+ st.param.b64 [right_word], %op_b;
+ call.uni (result_and_flags), md2asm_gpu_mul_rn, (left_word, right_word);
+ ld.param.b64 %op_r, [result_and_flags];
+ ld.param.u32 %raised, [result_and_flags+8];
+ or.b32 %flags, %flags, %raised;
+}
+ mov.b64 %op_b, %op_r;
+ ld.global.b64 %op_a, [%later_addr];
+{
+ .param .b64 left_word;
+ .param .b64 right_word;
+ .param .align 8 .b8 result_and_flags[16];
+ st.param.b64 [left_word], %op_a;
+ st.param.b64 [right_word], %op_b;
+ call.uni (result_and_flags), md2asm_gpu_add_rn, (left_word, right_word);
+ ld.param.b64 %op_r, [result_and_flags];
+ ld.param.u32 %raised, [result_and_flags+8];
+ or.b32 %flags, %flags, %raised;
+}
+ st.global.b64 [%later_addr], %op_r;
+NEXT_TRACER:
+ add.u64 %descriptor, %descriptor, 368;
+ add.u32 %d, %d, 1;
+ bra TRACER;
+COMPLETE:
+
+ add.u64 %tmp, %ctx, 8;
+ atom.global.or.b32 %old, [%tmp], %flags;
+ ret;
+BAD:
+ atom.global.cas.b32 %old, [%ctx], 0, 1;
+ ret;
+}

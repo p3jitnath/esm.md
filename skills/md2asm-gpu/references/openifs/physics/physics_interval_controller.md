@@ -1,0 +1,9 @@
+# Complete Slow-Physics Interval Controller on the GPU
+
+EC_PHYS_LSLPHY chooses the time interval for slow physical processes, then applies their complete state increments on the device. Intervals use seconds. If requested and model intervals compare equal, retain the stored interval bits. Otherwise use the requested interval when it is at least one second, or positive one second when it is smaller. Finite nonnegative intervals, including signed zero, retain the original rule.
+
+The application binary interface (ABI) retains all fourteen original addresses. One serial GPU thread uses a 64-byte common context, a 112-byte capacity record and 512 bytes of private work. Bounds, alignment, descriptor indices and writable buffer separation are checked before output. The Arm boundary owns storage and preserves x18, saved registers, floating-point state and the system error indicator. First-step, zero-level and empty intervals leave state arrays unchanged while retaining the interval decision.
+
+Twenty-four GPU and twenty-four selected-CPU calls, including twenty-two original Fortran calls, match 46,560 complete output bytes. Independent checks cover 466 rate/update relations. Thirty-four critical refusals, one absent-array no-work route and an ordinary-device graph pass. The complete increment cell retains its accepted numerical instructions, with only a callable interface and explicit cell index. The actual CPU provider, native instruction audit and independent complete numerical/host/admission review pass.
+
+The source is arpifs/phys_ec/ec_phys_lslphy.F90, with its accepted CPU interface in src/openifs/physics/ec_phys_lslphy.S. Separate 64-bit floating-point (FP64) rounding, signed zeros and gradual underflow remain unchanged. This component adds one original routine and no full GPU forecast or timing result.
