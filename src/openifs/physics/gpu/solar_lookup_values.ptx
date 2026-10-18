@@ -1,0 +1,41 @@
+// Contract skills/md2asm-gpu/references/openifs/physics/radiation_gas_forcing.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.visible .func (.param .align 8 .b8 result[32]) md2asm_gpu_solar_lookup_values(.param .u64 original_vector)
+{
+.reg .u64 %args,%class,%object,%year_address,%descriptor,%data,%offset,%stride,%lower_address,%upper_address,%output,%index,%count,%temporary;
+.reg .s64 %logical;
+.reg .b64 %year,%lower,%upper,%delta,%width,%weight,%a,%b,%difference,%product,%value,%saved<7>;.reg .u64 %absolute;
+.reg .u32 %flags,%raised,%n,%error;.reg .pred %p;
+.param .b64 ma,mb;.param .align 8 .b8 mr[16];
+ld.param.u64 %args,[original_vector];ld.global.u64 %class,[%args];ld.global.u64 %object,[%class];ld.global.u64 %year_address,[%args+8];ld.global.b64 %year,[%year_address];ld.global.u32 %n,[%object+128];cvt.u64.u32 %count,%n;
+ld.global.u64 %data,[%object];ld.global.s64 %logical,[%object+8];ld.global.u64 %stride,[%object+40];add.s64 %logical,%logical,%stride;shl.b64 %offset,%logical,3;add.u64 %lower_address,%data,%offset;shl.b64 %stride,%stride,3;mov.u64 %index,1;mov.u32 %flags,0;mov.u32 %error,15440;
+SCAN:setp.ge.u64 %p,%index,%count;@%p bra RETURN_RESULT;ld.global.b64 %lower,[%lower_address];add.u64 %upper_address,%lower_address,%stride;ld.global.b64 %upper,[%upper_address];setp.lt.f64 %p,%year,%lower;@%p bra NEXT;setp.lt.f64 %p,%year,%upper;@%p bra INTERPOLATE;
+NEXT:add.u64 %lower_address,%lower_address,%stride;add.u64 %index,%index,1;bra SCAN;
+INTERPOLATE:
+st.param.b64 [ma],%year;st.param.b64 [mb],%lower;call.uni (mr),md2asm_gpu_sub_status,(ma,mb);
+ld.param.b64 %delta,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%upper;st.param.b64 [mb],%lower;call.uni (mr),md2asm_gpu_sub_status,(ma,mb);
+ld.param.b64 %width,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%delta;st.param.b64 [mb],%width;call.uni (mr),md2asm_gpu_div_status,(ma,mb);
+ld.param.b64 %weight,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+and.b64 %absolute,%delta,0x7fffffffffffffff;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN_RESULT;
+and.b64 %absolute,%width,0x7fffffffffffffff;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN_RESULT;
+and.b64 %absolute,%weight,0x7fffffffffffffff;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN_RESULT;
+add.u64 %descriptor,%object,64;ld.global.u64 %data,[%descriptor];ld.global.s64 %logical,[%descriptor+8];ld.global.u64 %stride,[%descriptor+40];mad.lo.u64 %logical,%index,%stride,%logical;shl.b64 %offset,%logical,3;add.u64 %lower_address,%data,%offset;shl.b64 %stride,%stride,3;add.u64 %upper_address,%lower_address,%stride;ld.global.b64 %a,[%lower_address];ld.global.b64 %b,[%upper_address];
+st.param.b64 [ma],%b;st.param.b64 [mb],%a;call.uni (mr),md2asm_gpu_sub_status,(ma,mb);
+ld.param.b64 %difference,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%weight;st.param.b64 [mb],%difference;call.uni (mr),md2asm_gpu_mul_status,(ma,mb);
+ld.param.b64 %product,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%a;st.param.b64 [mb],%product;call.uni (mr),md2asm_gpu_add_status,(ma,mb);
+ld.param.b64 %value,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+and.b64 %absolute,%value,0x7fffffffffffffff;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN_RESULT;mov.b64 %saved0,%value;
+ld.global.u64 %output,[%args+16];st.global.b64 [%output],%saved0;
+mov.u32 %error,0;
+RETURN_RESULT:st.param.u32 [result],%flags;st.param.u32 [result+4],%error;st.param.u64 [result+8],0;st.param.u64 [result+16],0;st.param.u64 [result+24],0;ret;
+}

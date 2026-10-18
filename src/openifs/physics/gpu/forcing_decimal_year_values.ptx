@@ -1,0 +1,55 @@
+// Contract skills/md2asm-gpu/references/openifs/physics/radiation_gas_forcing.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.global .align 8 .b8 forcing_mean_month_days[96]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,63,64,0,0,0,0,0,160,77,64,0,0,0,0,0,144,86,64,0,0,0,0,0,16,94,64,0,0,0,0,0,232,98,64,0,0,0,0,0,168,102,64,0,0,0,0,0,136,106,64,0,0,0,0,0,104,110,64,0,0,0,0,0,20,113,64,0,0,0,0,0,4,115,64,0,0,0,0,0,228,116,64};
+.func (.param .align 8 .b8 result[16]) forcing_nearest_away_s32(.param .b64 input_word)
+{
+.reg .u64 %word,%absolute,%sign,%mantissa,%integer,%fraction,%mask,%half;.reg .s32 %exponent;.reg .u32 %answer,%shift,%error;.reg .pred %p;
+ld.param.b64 %word,[input_word];and.b64 %absolute,%word,0x7fffffffffffffff;shr.u64 %sign,%word,63;mov.u32 %answer,0;mov.u32 %error,0;setp.eq.u64 %p,%absolute,0;@%p bra DONE;
+shr.u64 %mantissa,%absolute,52;cvt.s32.u64 %exponent,%mantissa;sub.s32 %exponent,%exponent,1023;setp.ge.s32 %p,%exponent,0;@%p bra INTEGRAL;
+setp.ge.u64 %p,%absolute,0x3fe0000000000000;selp.u64 %integer,1,0,%p;bra SIGN_AND_RANGE;
+INTEGRAL:setp.gt.s32 %p,%exponent,31;@%p bra INVALID;and.b64 %mantissa,%absolute,0x000fffffffffffff;or.b64 %mantissa,%mantissa,0x0010000000000000;sub.s32 %exponent,52,%exponent;cvt.u32.s32 %shift,%exponent;shr.u64 %integer,%mantissa,%shift;mov.u64 %mask,1;shl.b64 %mask,%mask,%shift;sub.u64 %mask,%mask,1;and.b64 %fraction,%mantissa,%mask;add.u64 %half,%mask,1;shr.u64 %half,%half,1;setp.ge.u64 %p,%fraction,%half;@%p add.u64 %integer,%integer,1;
+SIGN_AND_RANGE:setp.eq.u64 %p,%sign,0;@%p bra POSITIVE;setp.gt.u64 %p,%integer,0x80000000;@%p bra INVALID;neg.s64 %integer,%integer;cvt.u32.u64 %answer,%integer;bra DONE;
+POSITIVE:setp.gt.u64 %p,%integer,0x7fffffff;@%p bra INVALID;cvt.u32.u64 %answer,%integer;bra DONE;
+INVALID:mov.u32 %error,15452;
+DONE:st.param.u32 [result],%answer;st.param.u32 [result+4],%error;st.param.u64 [result+8],0;ret;
+}
+.visible .func (.param .align 8 .b8 result[16]) md2asm_gpu_forcing_decimal_year(.param .u64 dyna_address,.param .u64 trip_address,.param .u64 live_record)
+{
+.reg .u64 %dyna,%trip,%record,%address,%offset;.reg .s64 %integer_product;
+.reg .s32 %days,%logical,%nstar,%two,%rounded,%seconds,%day_seconds,%date,%quotient,%year_integer,%month_integer,%day_integer;
+.reg .b64 %step,%temporary,%year_value,%month_days,%elapsed,%day_value;
+.reg .u32 %flags,%raised,%error;.reg .pred %p;
+.param .b64 ma,mb,round_input;.param .align 8 .b8 mr[16],round_result[16];
+ld.param.u64 %dyna,[dyna_address];ld.param.u64 %trip,[trip_address];ld.param.u64 %record,[live_record];mov.u32 %flags,0;mov.u32 %error,0;mov.b64 %year_value,0;
+ld.global.s32 %days,[%trip+16];ld.global.u64 %address,[%record+88];ld.global.s32 %logical,[%address];setp.ne.s32 %p,%logical,0;@%p bra ELAPSED_READY;setp.ne.s32 %p,%days,0;@%p bra ELAPSED_READY;
+ld.global.b64 %step,[%trip+200];mov.u32 %error,15452;setp.le.s64 %p,%step,0;@%p bra RETURN_YEAR;setp.gt.u64 %p,%step,0x7fefffffffffffff;@%p bra RETURN_YEAR;st.param.b64 [round_input],%step;call.uni (round_result),forcing_nearest_away_s32,(round_input);ld.param.s32 %rounded,[round_result];ld.param.u32 %error,[round_result+4];setp.ne.u32 %p,%error,0;@%p bra RETURN_YEAR;
+ld.global.u64 %address,[%record+96];ld.global.s32 %nstar,[%address];ld.global.s32 %two,[%dyna+20];setp.eq.s32 %p,%two,0;@%p bra INTEGER_RESTART;
+cvt.rn.f64.s32 %temporary,%nstar;
+st.param.b64 [ma],%temporary;st.param.b64 [mb],0x3fe0000000000000;call.uni (mr),md2asm_gpu_add_status,(ma,mb);
+ld.param.b64 %temporary,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%step;st.param.b64 [mb],%temporary;call.uni (mr),md2asm_gpu_mul_status,(ma,mb);
+ld.param.b64 %temporary,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [round_input],%temporary;call.uni (round_result),forcing_nearest_away_s32,(round_input);ld.param.s32 %seconds,[round_result];ld.param.u32 %error,[round_result+4];setp.ne.u32 %p,%error,0;@%p bra RETURN_YEAR;bra SECONDS_READY;
+INTEGER_RESTART:mul.wide.s32 %integer_product,%rounded,%nstar;mov.u32 %error,15452;setp.lt.s64 %p,%integer_product,-2147483648;@%p bra RETURN_YEAR;setp.gt.s64 %p,%integer_product,2147483647;@%p bra RETURN_YEAR;cvt.s32.s64 %seconds,%integer_product;mov.u32 %error,0;
+SECONDS_READY:ld.global.u64 %address,[%record+80];ld.global.b64 %temporary,[%address];mov.u32 %error,15452;setp.le.s64 %p,%temporary,0;@%p bra RETURN_YEAR;setp.gt.u64 %p,%temporary,0x7fefffffffffffff;@%p bra RETURN_YEAR;st.param.b64 [round_input],%temporary;call.uni (round_result),forcing_nearest_away_s32,(round_input);ld.param.s32 %day_seconds,[round_result];ld.param.u32 %error,[round_result+4];setp.ne.u32 %p,%error,0;@%p bra RETURN_YEAR;mov.u32 %error,15452;setp.eq.s32 %p,%day_seconds,0;@%p bra RETURN_YEAR;mov.u32 %error,0;div.s32 %days,%seconds,%day_seconds;
+ELAPSED_READY:ld.global.u64 %address,[%record+104];ld.global.s32 %date,[%address];mov.u32 %error,15452;setp.le.s32 %p,%date,0;@%p bra RETURN_YEAR;div.s32 %quotient,%date,100;rem.s32 %day_integer,%date,100;div.s32 %year_integer,%quotient,100;rem.s32 %month_integer,%quotient,100;setp.lt.s32 %p,%month_integer,1;@%p bra RETURN_YEAR;setp.gt.s32 %p,%month_integer,12;@%p bra RETURN_YEAR;setp.lt.s32 %p,%day_integer,1;@%p bra RETURN_YEAR;setp.gt.s32 %p,%day_integer,31;@%p bra RETURN_YEAR;mov.u32 %error,0;sub.s32 %month_integer,%month_integer,1;cvt.u64.u32 %offset,%month_integer;shl.b64 %offset,%offset,3;mov.u64 %address,forcing_mean_month_days;add.u64 %address,%address,%offset;ld.global.b64 %month_days,[%address];cvt.rn.f64.s32 %day_value,%day_integer;
+st.param.b64 [ma],%day_value;st.param.b64 [mb],0x3ff0000000000000;call.uni (mr),md2asm_gpu_sub_status,(ma,mb);
+ld.param.b64 %day_value,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%day_value;st.param.b64 [mb],%month_days;call.uni (mr),md2asm_gpu_add_status,(ma,mb);
+ld.param.b64 %day_value,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+cvt.rn.f64.s32 %elapsed,%days;
+st.param.b64 [ma],%day_value;st.param.b64 [mb],%elapsed;call.uni (mr),md2asm_gpu_add_status,(ma,mb);
+ld.param.b64 %day_value,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%day_value;st.param.b64 [mb],0x4076d40000000000;call.uni (mr),md2asm_gpu_div_status,(ma,mb);
+ld.param.b64 %day_value,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+cvt.rn.f64.s32 %year_value,%year_integer;
+st.param.b64 [ma],%year_value;st.param.b64 [mb],%day_value;call.uni (mr),md2asm_gpu_add_status,(ma,mb);
+ld.param.b64 %year_value,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+RETURN_YEAR:st.param.b64 [result],%year_value;st.param.u32 [result+8],%flags;st.param.u32 [result+12],%error;ret;
+}

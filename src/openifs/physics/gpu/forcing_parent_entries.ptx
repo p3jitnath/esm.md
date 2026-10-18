@@ -1,0 +1,58 @@
+// Contract skills/md2asm-gpu/references/openifs/physics/radiation_gas_forcing.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .u32 error) md2asm_gpu_forcing_parent_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .u32 error) md2asm_gpu_forcing_year_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 result[32]) md2asm_gpu_forcing_parent_values(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_forcing_decimal_year(.param .u64 dyna,.param .u64 trip,.param .u64 record);
+.visible .func md2asm_gpu_forcing_parent_fp64(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %vector,%context,%address,%dyna,%trip,%record,%output;.reg .u32 %error,%word,%flags;.reg .b64 %year;.reg .pred %p;
+.param .u64 pa,pb,pc;.param .u32 admitted;.param .align 8 .b8 parent_result[32],year_result[16];
+ld.param.u64 %context,[common_context];setp.eq.u64 %p,%context,0;@%p ret;and.b64 %address,%context,7;setp.ne.u64 %p,%address,0;@%p ret;
+setp.gt.u64 %p,%context,0x7fffffffffffffbf;@%p ret;
+ld.global.u32 %error,[%context];setp.ne.u32 %p,%error,0;@%p ret;
+mov.u32 %word,%tid.x;setp.ne.u32 %p,%word,0;@%p ret;mov.u32 %word,%tid.y;setp.ne.u32 %p,%word,0;@%p ret;mov.u32 %word,%tid.z;setp.ne.u32 %p,%word,0;@%p ret;
+mov.u32 %word,%ctaid.x;setp.ne.u32 %p,%word,0;@%p ret;mov.u32 %word,%ctaid.y;setp.ne.u32 %p,%word,0;@%p ret;mov.u32 %word,%ctaid.z;setp.ne.u32 %p,%word,0;@%p ret;
+mov.u32 %error,15464;
+mov.u32 %word,%nctaid.x;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%nctaid.y;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%nctaid.z;setp.ne.u32 %p,%word,1;@%p bra REFUSE;
+mov.u32 %word,%ntid.x;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%ntid.y;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%ntid.z;setp.ne.u32 %p,%word,1;@%p bra REFUSE;
+mov.u32 %word,%dynamic_smem_size;setp.ne.u32 %p,%word,0;@%p bra REFUSE;
+ld.global.u32 %word,[%context+4];setp.ne.u32 %p,%word,1;@%p bra REFUSE;ld.global.u32 %word,[%context+12];setp.ne.u32 %p,%word,0;@%p bra REFUSE;
+
+ld.param.u64 %vector,[original_vector];st.param.u64 [pa],%vector;st.param.u64 [pb],%context;call.uni (admitted),md2asm_gpu_forcing_parent_admit,(pa,pb);ld.param.u32 %error,[admitted];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [pa],%vector;st.param.u64 [pb],%context;call.uni (parent_result),md2asm_gpu_forcing_parent_values,(pa,pb);ld.param.u32 %flags,[parent_result];ld.param.u32 %error,[parent_result+4];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+add.u64 %address,%context,8;atom.global.or.b32 %word,[%address],%flags;ret;
+REFUSE:st.global.u32 [%context],%error;ret;
+}
+.visible .entry md2asm_gpu_forcing_parent(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %vector,%context;.param .u64 pa,pb;
+ld.param.u64 %vector,[original_vector];ld.param.u64 %context,[common_context];st.param.u64 [pa],%vector;st.param.u64 [pb],%context;call.uni md2asm_gpu_forcing_parent_fp64,(pa,pb);ret;
+}
+.visible .func md2asm_gpu_forcing_year_fp64(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %vector,%context,%address,%dyna,%trip,%record,%output;.reg .u32 %error,%word,%flags;.reg .b64 %year;.reg .pred %p;
+.param .u64 pa,pb,pc;.param .u32 admitted;.param .align 8 .b8 parent_result[32],year_result[16];
+ld.param.u64 %context,[common_context];setp.eq.u64 %p,%context,0;@%p ret;and.b64 %address,%context,7;setp.ne.u64 %p,%address,0;@%p ret;
+setp.gt.u64 %p,%context,0x7fffffffffffffbf;@%p ret;
+ld.global.u32 %error,[%context];setp.ne.u32 %p,%error,0;@%p ret;
+mov.u32 %word,%tid.x;setp.ne.u32 %p,%word,0;@%p ret;mov.u32 %word,%tid.y;setp.ne.u32 %p,%word,0;@%p ret;mov.u32 %word,%tid.z;setp.ne.u32 %p,%word,0;@%p ret;
+mov.u32 %word,%ctaid.x;setp.ne.u32 %p,%word,0;@%p ret;mov.u32 %word,%ctaid.y;setp.ne.u32 %p,%word,0;@%p ret;mov.u32 %word,%ctaid.z;setp.ne.u32 %p,%word,0;@%p ret;
+mov.u32 %error,15464;
+mov.u32 %word,%nctaid.x;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%nctaid.y;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%nctaid.z;setp.ne.u32 %p,%word,1;@%p bra REFUSE;
+mov.u32 %word,%ntid.x;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%ntid.y;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%ntid.z;setp.ne.u32 %p,%word,1;@%p bra REFUSE;
+mov.u32 %word,%dynamic_smem_size;setp.ne.u32 %p,%word,0;@%p bra REFUSE;
+ld.global.u32 %word,[%context+4];setp.ne.u32 %p,%word,1;@%p bra REFUSE;ld.global.u32 %word,[%context+12];setp.ne.u32 %p,%word,0;@%p bra REFUSE;
+
+ld.param.u64 %vector,[original_vector];st.param.u64 [pa],%vector;st.param.u64 [pb],%context;call.uni (admitted),md2asm_gpu_forcing_year_admit,(pa,pb);ld.param.u32 %error,[admitted];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %dyna,[%vector];ld.global.u64 %trip,[%vector+8];ld.global.u64 %output,[%vector+16];ld.global.u64 %record,[%context+48];st.param.u64 [pa],%dyna;st.param.u64 [pb],%trip;st.param.u64 [pc],%record;call.uni (year_result),md2asm_gpu_forcing_decimal_year,(pa,pb,pc);ld.param.b64 %year,[year_result];ld.param.u32 %flags,[year_result+8];ld.param.u32 %error,[year_result+12];setp.ne.u32 %p,%error,0;@%p bra REFUSE;st.global.b64 [%output],%year;
+add.u64 %address,%context,8;atom.global.or.b32 %word,[%address],%flags;ret;
+REFUSE:st.global.u32 [%context],%error;ret;
+}
+.visible .entry md2asm_gpu_forcing_year(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %vector,%context;.param .u64 pa,pb;
+ld.param.u64 %vector,[original_vector];ld.param.u64 %context,[common_context];st.param.u64 [pa],%vector;st.param.u64 [pb],%context;call.uni md2asm_gpu_forcing_year_fp64,(pa,pb);ret;
+}
