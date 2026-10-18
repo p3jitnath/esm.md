@@ -22,6 +22,10 @@ Each function receives raw unsigned 64-bit number words through PTX parameters. 
 
 These functions change no global numerical buffer and use no shared storage, barriers or cross-thread operations. The exponential reads an immutable 2,048-byte table. The operator module imports the finite addition and multiplication functions from the exponential module. Callers provide valid parameter and return storage, and combine the results through the [GPU call context](gpu_call_context.md).
 
+## Further Finite Functions
+
+The [finite mathematical functions contract](finite_mathematical_functions.md) adds an exact integer product sum and a complete finite arctangent. Their private return objects also carry the original helper classification or actual helper-call counts. Use their stated 24-byte and 32-byte interfaces when composing a parent.
+
 ## Numerical Status
 
 The Arm floating-point status register records invalid operation at bit zero, division by zero at bit one, overflow at bit two, underflow at bit three and inexact rounding at bit four. These functions return only newly raised flags. The caller combines them with its incoming status by integer OR, preserving all other incoming bits. The frozen processor mode has FPCR zero, so subnormal inputs remain numerical values and do not add a denormal-input flag.

@@ -1,0 +1,81 @@
+// Exact integer mathematical boundary from skills/md2asm-gpu/references/openifs/finite_mathematical_functions.md revision 1.
+.version 8.5
+.target sm_90
+.address_size 64
+.visible .func (.param .align 8 .b8 result[24]) md2asm_gpu_exact_product_sum(.param .b64 first,.param .b64 second,.param .b64 addend)
+{
+ .reg .u64 %a,%b,%c,%ma,%mb,%mc,%pl,%ph,%P,%C,%L,%R,%address,%other,%v0,%v1,%v2,%x,%y,%t,%u,%carry,%borrow,%mag,%sig,%sticky,%mask,%word,%sign,%odd;
+ .reg .u32 %ea,%eb,%ec,%sp,%sc,%sr,%pshift,%cshift,%common,%pb,%cb,%width,%class,%i,%q,%bit,%cut,%h,%shift,%guard,%flags,%j,%gbit;
+ .reg .s32 %e; .reg .pred %pred,%p1,%p2;
+ .local .align 8 .b8 exact_words[1072];
+ ld.param.b64 %a,[first]; ld.param.b64 %b,[second]; ld.param.b64 %c,[addend]; mov.u32 %flags,0; mov.u32 %class,0;
+ shr.u64 %x,%a,63; shr.u64 %y,%b,63; xor.b64 %x,%x,%y; cvt.u32.u64 %sp,%x; shr.u64 %x,%c,63; cvt.u32.u64 %sc,%x;
+ shr.u64 %x,%a,52; and.b64 %x,%x,2047; cvt.u32.u64 %ea,%x;
+ shr.u64 %x,%b,52; and.b64 %x,%x,2047; cvt.u32.u64 %eb,%x;
+ shr.u64 %x,%c,52; and.b64 %x,%x,2047; cvt.u32.u64 %ec,%x;
+ and.b64 %ma,%a,0x000fffffffffffff; and.b64 %mb,%b,0x000fffffffffffff; and.b64 %mc,%c,0x000fffffffffffff;
+ setp.ne.u32 %pred,%ea,0; @%pred or.b64 %ma,%ma,0x0010000000000000; @!%pred mov.u32 %ea,1;
+ setp.ne.u32 %pred,%eb,0; @%pred or.b64 %mb,%mb,0x0010000000000000; @!%pred mov.u32 %eb,1;
+ setp.ne.u32 %pred,%ec,0; @%pred or.b64 %mc,%mc,0x0010000000000000; @!%pred mov.u32 %ec,1;
+ mul.lo.u64 %pl,%ma,%mb; mul.hi.u64 %ph,%ma,%mb; add.u32 %pshift,%ea,%eb; sub.u32 %pshift,%pshift,2; add.u32 %cshift,%ec,1073;
+ or.b64 %x,%pl,%ph; setp.eq.u64 %pred,%x,0; @%pred bra CLASS_READY; setp.eq.u64 %pred,%mc,0; @%pred bra CLASS_READY;
+ bfind.u64 %pb,%pl; add.u32 %pb,%pb,1; setp.eq.u64 %pred,%ph,0; @%pred bra PRODUCT_BITS_READY; bfind.u64 %pb,%ph; add.u32 %pb,%pb,65;
+PRODUCT_BITS_READY:
+ bfind.u64 %cb,%mc; add.u32 %cb,%cb,1; min.u32 %common,%pshift,%cshift; sub.u32 %width,%pshift,%common; add.u32 %width,%width,%pb; setp.gt.u32 %pred,%width,127; @%pred mov.u32 %class,1;
+ sub.u32 %width,%cshift,%common; add.u32 %width,%width,%cb; setp.gt.u32 %pred,%width,127; @%pred mov.u32 %class,1;
+CLASS_READY:
+ mov.u64 %P,exact_words; cvta.local.u64 %P,%P; add.u64 %C,%P,536; mov.u32 %i,0;
+CLEAR:
+ mul.wide.u32 %address,%i,8; add.u64 %other,%C,%address; add.u64 %address,%P,%address; st.u64 [%address],0; st.u64 [%other],0; add.u32 %i,%i,1; setp.lt.u32 %pred,%i,67; @%pred bra CLEAR;
+ shr.u32 %q,%pshift,6; and.b32 %bit,%pshift,63; shl.b64 %v0,%pl,%bit; mov.u64 %v1,%ph; mov.u64 %v2,0;
+ setp.eq.u32 %pred,%bit,0; @%pred bra PRODUCT_INSERT; sub.u32 %cut,64,%bit; shr.u64 %v1,%pl,%cut; shl.b64 %x,%ph,%bit; or.b64 %v1,%v1,%x; shr.u64 %v2,%ph,%cut;
+PRODUCT_INSERT:
+ mul.wide.u32 %address,%q,8; add.u64 %address,%P,%address; st.u64 [%address],%v0; st.u64 [%address+8],%v1; st.u64 [%address+16],%v2;
+ shr.u32 %q,%cshift,6; and.b32 %bit,%cshift,63; shl.b64 %v0,%mc,%bit; mov.u64 %v1,0; setp.eq.u32 %pred,%bit,0; @%pred bra ADDEND_INSERT; sub.u32 %cut,64,%bit; shr.u64 %v1,%mc,%cut;
+ADDEND_INSERT:
+ mul.wide.u32 %address,%q,8; add.u64 %address,%C,%address; st.u64 [%address],%v0; st.u64 [%address+8],%v1;
+ mov.u32 %sr,%sp; setp.ne.u32 %pred,%sp,%sc; @%pred bra COMPARE; mov.u32 %i,0; mov.u64 %carry,0;
+ADD_WORDS:
+ mul.wide.u32 %address,%i,8; add.u64 %other,%C,%address; add.u64 %address,%P,%address; ld.u64 %x,[%address]; ld.u64 %y,[%other]; add.u64 %t,%x,%y; setp.lt.u64 %p1,%t,%x; add.u64 %u,%t,%carry; setp.lt.u64 %p2,%u,%t; or.pred %pred,%p1,%p2; selp.u64 %carry,1,0,%pred; st.u64 [%address],%u;
+ add.u32 %i,%i,1; setp.lt.u32 %pred,%i,67; @%pred bra ADD_WORDS; bra FIND_TOP;
+COMPARE: mov.u32 %i,66;
+COMPARE_WORD:
+ mul.wide.u32 %address,%i,8; add.u64 %other,%C,%address; add.u64 %address,%P,%address; ld.u64 %x,[%address]; ld.u64 %y,[%other]; setp.gt.u64 %pred,%x,%y; @%pred bra PRODUCT_LARGER; setp.lt.u64 %pred,%x,%y; @%pred bra ADDEND_LARGER;
+ setp.eq.u32 %pred,%i,0; @%pred bra CANCELLED; sub.u32 %i,%i,1; bra COMPARE_WORD;
+PRODUCT_LARGER: mov.u64 %L,%P; mov.u64 %R,%C; bra SUBTRACT_START;
+ADDEND_LARGER: mov.u64 %L,%C; mov.u64 %R,%P; mov.u32 %sr,%sc;
+SUBTRACT_START: mov.u32 %i,0; mov.u64 %borrow,0;
+SUBTRACT_WORDS:
+ mul.wide.u32 %address,%i,8; add.u64 %other,%L,%address; ld.u64 %x,[%other]; add.u64 %other,%R,%address; ld.u64 %y,[%other]; sub.u64 %t,%x,%y; setp.lt.u64 %p1,%x,%y; sub.u64 %u,%t,%borrow; setp.lt.u64 %p2,%t,%borrow; or.pred %pred,%p1,%p2; selp.u64 %borrow,1,0,%pred; add.u64 %address,%P,%address; st.u64 [%address],%u;
+ add.u32 %i,%i,1; setp.lt.u32 %pred,%i,67; @%pred bra SUBTRACT_WORDS;
+FIND_TOP: mov.u32 %i,66;
+TOP_WORD:
+ mul.wide.u32 %address,%i,8; add.u64 %address,%P,%address; ld.u64 %x,[%address]; setp.ne.u64 %pred,%x,0; @%pred bra TOP_FOUND; setp.eq.u32 %pred,%i,0; @%pred bra SIGNED_ZERO; sub.u32 %i,%i,1; bra TOP_WORD;
+CANCELLED: mov.u32 %sr,0;
+SIGNED_ZERO: mov.u64 %word,0; bra APPLY_SIGN;
+TOP_FOUND:
+ bfind.u64 %h,%x; shl.b32 %i,%i,6; add.u32 %h,%h,%i; sub.s32 %e,%h,2148; setp.gt.s32 %pred,%e,1023; @%pred bra OVERFLOW;
+ mov.u32 %shift,1074; setp.ge.s32 %pred,%e,-1022; @%pred sub.u32 %shift,%h,52;
+ shr.u32 %q,%shift,6; and.b32 %bit,%shift,63; mul.wide.u32 %address,%q,8; add.u64 %address,%P,%address; ld.u64 %x,[%address]; shr.u64 %sig,%x,%bit;
+ setp.eq.u32 %pred,%bit,0; @%pred bra SIGNIFICAND_READY; ld.u64 %y,[%address+8]; sub.u32 %cut,64,%bit; shl.b64 %y,%y,%cut; or.b64 %sig,%sig,%y;
+SIGNIFICAND_READY:
+ sub.u32 %j,%shift,1; shr.u32 %q,%j,6; and.b32 %gbit,%j,63; mul.wide.u32 %address,%q,8; add.u64 %address,%P,%address; ld.u64 %x,[%address]; shr.u64 %y,%x,%gbit; and.b64 %y,%y,1; cvt.u32.u64 %guard,%y;
+ mov.u64 %sticky,0; setp.eq.u32 %pred,%gbit,0; @%pred bra STICKY_START; shl.b64 %mask,1,%gbit; sub.u64 %mask,%mask,1; and.b64 %sticky,%x,%mask;
+STICKY_START: mov.u32 %i,0;
+STICKY_WORD:
+ setp.ge.u32 %pred,%i,%q; @%pred bra ROUND; mul.wide.u32 %address,%i,8; add.u64 %address,%P,%address; ld.u64 %x,[%address]; or.b64 %sticky,%sticky,%x; add.u32 %i,%i,1; bra STICKY_WORD;
+ROUND:
+ cvt.u64.u32 %x,%guard; or.b64 %x,%x,%sticky; setp.eq.u64 %pred,%x,0; @%pred bra ROUND_INCREMENT;
+ or.b32 %flags,%flags,16; setp.lt.s32 %pred,%e,-1022; @%pred or.b32 %flags,%flags,8;
+ROUND_INCREMENT:
+ setp.eq.u32 %pred,%guard,0; @%pred bra PACK; and.b64 %odd,%sig,1; or.b64 %odd,%odd,%sticky; setp.ne.u64 %pred,%odd,0; @%pred add.u64 %sig,%sig,1;
+PACK:
+ setp.lt.s32 %pred,%e,-1022; @%pred bra PACK_SUBNORMAL; setp.lt.u64 %pred,%sig,0x0020000000000000; @%pred bra PACK_NORMAL; shr.u64 %sig,%sig,1; add.s32 %e,%e,1;
+PACK_NORMAL:
+ setp.gt.s32 %pred,%e,1023; @%pred bra OVERFLOW; add.s32 %e,%e,1023; cvt.u64.u32 %word,%e; shl.b64 %word,%word,52; and.b64 %sig,%sig,0x000fffffffffffff; or.b64 %word,%word,%sig; bra APPLY_SIGN;
+PACK_SUBNORMAL: mov.u64 %word,%sig; bra APPLY_SIGN;
+OVERFLOW: mov.u64 %word,0x7ff0000000000000; mov.u32 %flags,20;
+APPLY_SIGN:
+ cvt.u64.u32 %sign,%sr; shl.b64 %sign,%sign,63; or.b64 %word,%word,%sign;
+ st.param.b64 [result],%word; st.param.u32 [result+8],%flags; st.param.u32 [result+12],0; st.param.u32 [result+16],%class; st.param.u32 [result+20],0; ret;
+}

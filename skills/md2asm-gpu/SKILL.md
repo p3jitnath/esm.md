@@ -27,6 +27,8 @@ Prepare child buffer descriptions in private storage and check their address ran
 
 Keep diagnostic counters and the small routines that read them in a separate assembly source, so a replacement parent can bind to their actual storage. Count helper calls where they execute, pass each child’s total to its parent, and join the original counter after the complete call. Link each shared GPU function once. When combining modules, confirm that reused function bodies and constant tables match their accepted objects. On a device with coherent host page tables, verify ordinary host-memory access before moving an existing pointer graph. Assembly can retain its owned records and original addresses when every required device capability and complete allocation lifetime is established. Synchronise before the host reads results, and preserve caller numerical flags across nonnumerical CUDA services. Other devices need explicit device owners and pointer relocation.
 
+Check the linked module’s constant-memory budget before combining large coefficient tables. When needed, store tables that stay unchanged in global memory, preserve every coefficient word, and prove that each calculated table index stays within its complete row.
+
 ## Reuse Work Where Dependencies Permit
 
 Neighbouring threads should access neighbouring values when this reduces memory transactions. Compare thread-block sizes, one-field and whole-cell threads, and flat or multidimensional grids on their intended workloads. Cache a repeated rounded value outside a component loop when its operands stay unchanged. Place workload-specific dispatch thresholds in the execution contract and local measurement records.
