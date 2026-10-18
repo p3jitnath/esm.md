@@ -1,0 +1,218 @@
+// Direct assembly. Numerical and storage contract: ../../../../skills/md2asm-gpu/references/openifs/physics/vertical_mixing_main.md
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sqrt_status(.param .b64 a);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_exp_original_rounding(.param .b64 a);
+.extern .func (.param .align 8 .b8 geometry[64]) md2asm_gpu_surface_descriptor_geometry(.param .u64 descriptor,.param .u32 rank,.param .u32 element_bytes,.param .u64 required0,.param .u64 required1,.param .u64 required2,.param .u32 zero_is_one);
+.extern .func (.param .align 8 .b8 result[32]) md2asm_gpu_power_nonnegative(.param .b64 base,.param .b64 exponent);
+.extern .func (.param .align 8 .b8 result[40]) md2asm_gpu_terrain_drag_values(.param .u64 original_vector,.param .u64 constant_record,.param .u64 private_scratch);
+
+.func (.param .u32 result) md2asm_gpu_vdftofdc_range(.param .u64 base,.param .u64 bytes,.param .u64 mask)
+{
+ .reg .u64 %b,%n,%m,%end; .reg .u32 %e; .reg .pred %p;
+ ld.param.u64 %b,[base];ld.param.u64 %n,[bytes];ld.param.u64 %m,[mask];mov.u32 %e,0;
+ setp.eq.u64 %p,%n,0;@%p bra RANGE_DONE;mov.u32 %e,6902;
+ setp.eq.u64 %p,%b,0;@%p bra RANGE_DONE;and.b64 %end,%b,%m;setp.ne.u64 %p,%end,0;@%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff;@%p bra RANGE_DONE;setp.gt.u64 %p,%n,0x7fffffffffffffff;@%p bra RANGE_DONE;
+ add.u64 %end,%b,%n;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra RANGE_DONE;mov.u32 %e,0;
+RANGE_DONE:st.param.u32 [result],%e;ret;
+}
+.func (.param .u32 result) md2asm_gpu_vdftofdc_disjoint(.param .u64 a,.param .u64 an,.param .u64 b,.param .u64 bn)
+{
+ .reg .u64 %a,%an,%b,%bn,%ae,%be; .reg .u32 %e; .reg .pred %p,%q;
+ ld.param.u64 %a,[a];ld.param.u64 %an,[an];ld.param.u64 %b,[b];ld.param.u64 %bn,[bn];mov.u32 %e,0;
+ setp.eq.u64 %p,%an,0;@%p bra SEPARATE_DONE;setp.eq.u64 %p,%bn,0;@%p bra SEPARATE_DONE;
+ add.u64 %ae,%a,%an;add.u64 %be,%b,%bn;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;selp.u32 %e,6902,0,%p;
+SEPARATE_DONE:st.param.u32 [result],%e;ret;
+}
+
+.func (.param .u32 result) md2asm_gpu_vdftofdc_admit(.param .u64 vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%v<10>,%record,%record_bytes,%gravity,%planet,%matrix_bytes,%vector_bytes,%scratch,%scratch_bytes,%capacity;
+ .reg .u32 %first,%last,%P,%N,%r,%error;.reg .pred %p;
+ .param .u64 rb,rn,rm,da,dn,db,dm;.param .u32 rr;
+ .reg .u64 %counter_record,%counter_record_bytes,%counter_pointer<3>,%counter_length<3>;
+ ld.param.u64 %args,[vector];ld.param.u64 %ctx,[context];
+ st.param.u64 [rb],%args;st.param.u64 [rn],80;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ ld.global.u64 %v0,[%args+0];
+ ld.global.u64 %v1,[%args+8];
+ ld.global.u64 %v2,[%args+16];
+ ld.global.u64 %v3,[%args+24];
+ ld.global.u64 %v4,[%args+32];
+ ld.global.u64 %v5,[%args+40];
+ ld.global.u64 %v6,[%args+48];
+ ld.global.u64 %v7,[%args+56];
+ ld.global.u64 %v8,[%args+64];
+ ld.global.u64 %v9,[%args+72];
+ st.param.u64 [rb],%v1;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v2;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v3;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v4;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ ld.global.u32 %first,[%v1];ld.global.u32 %last,[%v2];ld.global.u32 %P,[%v3];ld.global.u32 %N,[%v4];mov.u32 %error,6901;setp.gt.u32 %p,%P,4096;@%p bra ADMIT_DONE;setp.gt.u32 %p,%N,1024;@%p bra ADMIT_DONE;setp.lt.s32 %p,%first,1;@%p bra ADMIT_DONE;add.u32 %r,%P,1;setp.gt.u32 %p,%first,%r;@%p bra ADMIT_DONE;setp.gt.u32 %p,%last,%P;@%p bra ADMIT_DONE;mul.wide.u32 %matrix_bytes,%P,%N;shl.b64 %matrix_bytes,%matrix_bytes,3;mul.wide.u32 %vector_bytes,%P,8;mul.wide.u32 %scratch_bytes,%P,16;ld.global.u64 %scratch,[%ctx+32];ld.global.u64 %capacity,[%ctx+40];setp.lt.u64 %p,%capacity,%scratch_bytes;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v0;st.param.u64 [rn],72;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v1;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v2;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v3;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v4;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v5;st.param.u64 [rn],%matrix_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v6;st.param.u64 [rn],%matrix_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v7;st.param.u64 [rn],%matrix_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v8;st.param.u64 [rn],%vector_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v9;st.param.u64 [rn],%matrix_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%scratch;st.param.u64 [rn],%scratch_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ ld.global.u64 %record,[%ctx+48];ld.global.u64 %record_bytes,[%ctx+56];mov.u32 %error,6903;setp.lt.u64 %p,%record_bytes,16;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%record;st.param.u64 [rn],16;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ ld.global.u64 %gravity,[%record];ld.global.u64 %planet,[%record+8];
+ st.param.u64 [rb],%gravity;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%planet;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ mov.u32 %error,6903;ld.global.u64 %counter_record,[%ctx+48];ld.global.u64 %counter_record_bytes,[%ctx+56];
+ mov.u64 %counter_pointer0,0;mov.u64 %counter_length0,0;
+ mov.u64 %counter_pointer1,0;mov.u64 %counter_length1,0;
+ mov.u64 %counter_pointer2,0;mov.u64 %counter_length2,0;
+ setp.eq.u64 %p,%counter_record_bytes,16;@%p bra COUNTERS_ABSENT;setp.lt.u64 %p,%counter_record_bytes,40;@%p bra ADMIT_DONE;mov.u64 %counter_record_bytes,40;
+ st.param.u64 [rb],%counter_record;st.param.u64 [rn],%counter_record_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ ld.global.u64 %counter_pointer0,[%counter_record+16];setp.eq.u64 %p,%counter_pointer0,0;@%p bra COUNTER_ADMITTED_0;mov.u64 %counter_length0,8;
+ st.param.u64 [rb],%counter_pointer0;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+COUNTER_ADMITTED_0:
+ ld.global.u64 %counter_pointer1,[%counter_record+24];setp.eq.u64 %p,%counter_pointer1,0;@%p bra COUNTER_ADMITTED_1;mov.u64 %counter_length1,8;
+ st.param.u64 [rb],%counter_pointer1;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+COUNTER_ADMITTED_1:
+ ld.global.u64 %counter_pointer2,[%counter_record+32];setp.eq.u64 %p,%counter_pointer2,0;@%p bra COUNTER_ADMITTED_2;mov.u64 %counter_length2,8;
+ st.param.u64 [rb],%counter_pointer2;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+COUNTER_ADMITTED_2:
+ bra COUNTERS_ADMITTED;COUNTERS_ABSENT:mov.u64 %counter_record_bytes,16;
+ st.param.u64 [rb],%counter_record;st.param.u64 [rn],16;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdftofdc_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+COUNTERS_ADMITTED:
+ st.param.u64 [da],%v9;st.param.u64 [dn],%matrix_bytes;st.param.u64 [db],%args;st.param.u64 [dm],80;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%matrix_bytes;st.param.u64 [db],%v0;st.param.u64 [dm],72;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%matrix_bytes;st.param.u64 [db],%v1;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%matrix_bytes;st.param.u64 [db],%v2;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%matrix_bytes;st.param.u64 [db],%v3;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%matrix_bytes;st.param.u64 [db],%v4;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%matrix_bytes;st.param.u64 [db],%v5;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%matrix_bytes;st.param.u64 [db],%v6;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%matrix_bytes;st.param.u64 [db],%v7;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%matrix_bytes;st.param.u64 [db],%v8;st.param.u64 [dm],%vector_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%matrix_bytes;st.param.u64 [db],%gravity;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%matrix_bytes;st.param.u64 [db],%planet;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%matrix_bytes;st.param.u64 [db],%counter_record;st.param.u64 [dm],%counter_record_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%scratch_bytes;st.param.u64 [db],%args;st.param.u64 [dm],80;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%scratch_bytes;st.param.u64 [db],%v0;st.param.u64 [dm],72;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%scratch_bytes;st.param.u64 [db],%v1;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%scratch_bytes;st.param.u64 [db],%v2;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%scratch_bytes;st.param.u64 [db],%v3;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%scratch_bytes;st.param.u64 [db],%v4;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%scratch_bytes;st.param.u64 [db],%v5;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%scratch_bytes;st.param.u64 [db],%v6;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%scratch_bytes;st.param.u64 [db],%v7;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%scratch_bytes;st.param.u64 [db],%v8;st.param.u64 [dm],%vector_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%scratch_bytes;st.param.u64 [db],%gravity;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%scratch_bytes;st.param.u64 [db],%planet;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%scratch_bytes;st.param.u64 [db],%counter_record;st.param.u64 [dm],%counter_record_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%scratch_bytes;st.param.u64 [db],%v9;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%args;st.param.u64 [dm],80;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v0;st.param.u64 [dm],72;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v1;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v2;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v3;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v4;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v5;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v6;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v7;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v8;st.param.u64 [dm],%vector_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%gravity;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%planet;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%counter_record;st.param.u64 [dm],%counter_record_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v9;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%scratch;st.param.u64 [dm],%scratch_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer0;st.param.u64 [dn],%counter_length0;st.param.u64 [db],%args;st.param.u64 [dm],80;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer0;st.param.u64 [dn],%counter_length0;st.param.u64 [db],%v0;st.param.u64 [dm],72;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer0;st.param.u64 [dn],%counter_length0;st.param.u64 [db],%v1;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer0;st.param.u64 [dn],%counter_length0;st.param.u64 [db],%v2;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer0;st.param.u64 [dn],%counter_length0;st.param.u64 [db],%v3;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer0;st.param.u64 [dn],%counter_length0;st.param.u64 [db],%v4;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer0;st.param.u64 [dn],%counter_length0;st.param.u64 [db],%v5;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer0;st.param.u64 [dn],%counter_length0;st.param.u64 [db],%v6;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer0;st.param.u64 [dn],%counter_length0;st.param.u64 [db],%v7;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer0;st.param.u64 [dn],%counter_length0;st.param.u64 [db],%v8;st.param.u64 [dm],%vector_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer0;st.param.u64 [dn],%counter_length0;st.param.u64 [db],%gravity;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer0;st.param.u64 [dn],%counter_length0;st.param.u64 [db],%planet;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer0;st.param.u64 [dn],%counter_length0;st.param.u64 [db],%counter_record;st.param.u64 [dm],%counter_record_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer0;st.param.u64 [dn],%counter_length0;st.param.u64 [db],%v9;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer0;st.param.u64 [dn],%counter_length0;st.param.u64 [db],%scratch;st.param.u64 [dm],%scratch_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer0;st.param.u64 [dn],%counter_length0;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%args;st.param.u64 [dm],80;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%v0;st.param.u64 [dm],72;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%v1;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%v2;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%v3;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%v4;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%v5;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%v6;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%v7;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%v8;st.param.u64 [dm],%vector_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%gravity;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%planet;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%counter_record;st.param.u64 [dm],%counter_record_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%v9;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%scratch;st.param.u64 [dm],%scratch_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer1;st.param.u64 [dn],%counter_length1;st.param.u64 [db],%counter_pointer0;st.param.u64 [dm],%counter_length0;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%args;st.param.u64 [dm],80;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%v0;st.param.u64 [dm],72;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%v1;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%v2;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%v3;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%v4;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%v5;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%v6;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%v7;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%v8;st.param.u64 [dm],%vector_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%gravity;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%planet;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%counter_record;st.param.u64 [dm],%counter_record_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%v9;st.param.u64 [dm],%matrix_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%scratch;st.param.u64 [dm],%scratch_bytes;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%counter_pointer0;st.param.u64 [dm],%counter_length0;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter_pointer2;st.param.u64 [dn],%counter_length2;st.param.u64 [db],%counter_pointer1;st.param.u64 [dm],%counter_length1;call.uni (rr),md2asm_gpu_vdftofdc_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ADMIT_OK:mov.u32 %error,0;ADMIT_DONE:st.param.u32 [result],%error;ret;
+}
+
+.visible .func md2asm_gpu_vdftofdc_serial_call(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%ptr;
+ .reg .u32 %thread,%unique,%r,%error,%old;
+ .reg .pred %p;
+ .shared .align 4 .b32 admission;
+ .param .u64 av,cv;.param .u32 rr;
+  .param .u64 va,ca,sa;.param .align 8 .b8 returned[40];.reg .u64 %record,%scratch,%event64;
+ .reg .u64 %counter_record,%counter_record_bytes,%counter_increment,%counter_owner,%counter_previous,%serial_count<3>;
+
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %ptr,%ctx,7;setp.ne.u64 %p,%ptr,0;@%p ret;
+ mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
+ mov.u32 %r,%ctaid.x;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.z;or.b32 %unique,%unique,%r;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+ mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%nctaid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ setp.ne.u32 %p,%thread,0;@%p bra WAIT;
+ st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),md2asm_gpu_vdftofdc_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
+WAIT:
+ bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];st.param.u64 [va],%args;st.param.u64 [ca],%record;st.param.u64 [sa],%scratch;call.uni (returned),md2asm_gpu_terrain_drag_values,(va,ca,sa);ld.param.u32 %r,[returned];ld.param.u64 %event64,[returned+8];ld.param.u64 %serial_count0,[returned+16];ld.param.u64 %serial_count1,[returned+24];ld.param.u64 %serial_count2,[returned+32];atom.global.or.b32 %old,[%ctx+8],%r;
+ ld.global.u64 %counter_record_bytes,[%ctx+56];setp.lt.u64 %p,%counter_record_bytes,40;@%p bra COUNTER_JOIN_DONE;ld.global.u64 %counter_record,[%ctx+48];
+ mov.u64 %counter_increment,%serial_count0;setp.eq.u64 %p,%counter_increment,0;@%p bra COUNTER_JOIN_0;ld.global.u64 %counter_owner,[%counter_record+16];setp.eq.u64 %p,%counter_owner,0;@%p bra COUNTER_JOIN_0;ld.global.u64 %counter_previous,[%counter_owner];add.u64 %counter_previous,%counter_previous,%counter_increment;st.global.u64 [%counter_owner],%counter_previous;COUNTER_JOIN_0:
+ mov.u64 %counter_increment,%serial_count1;setp.eq.u64 %p,%counter_increment,0;@%p bra COUNTER_JOIN_1;ld.global.u64 %counter_owner,[%counter_record+24];setp.eq.u64 %p,%counter_owner,0;@%p bra COUNTER_JOIN_1;ld.global.u64 %counter_previous,[%counter_owner];add.u64 %counter_previous,%counter_previous,%counter_increment;st.global.u64 [%counter_owner],%counter_previous;COUNTER_JOIN_1:
+ mov.u64 %counter_increment,%serial_count2;setp.eq.u64 %p,%counter_increment,0;@%p bra COUNTER_JOIN_2;ld.global.u64 %counter_owner,[%counter_record+32];setp.eq.u64 %p,%counter_owner,0;@%p bra COUNTER_JOIN_2;ld.global.u64 %counter_previous,[%counter_owner];add.u64 %counter_previous,%counter_previous,%counter_increment;st.global.u64 [%counter_owner],%counter_previous;COUNTER_JOIN_2:
+COUNTER_JOIN_DONE:
+ setp.eq.u64 %p,%event64,0;@%p ret;st.global.u64 [%ctx+16],%event64;ret;
+
+BAD_LAUNCH:mov.u32 %error,6900;
+REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
+}

@@ -1,0 +1,44 @@
+// Direct assembly. Numerical and storage contract: ../../../../skills/md2asm-gpu/references/openifs/physics/seasonal_ozone_coefficients.md
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[32]) md2asm_gpu_seasonal_ozone_values(.param .b64 phase_word,.param .u64 output_address);
+.visible .func md2asm_gpu_seasonal_ozone_fp64(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %vector,%context,%phase_address,%output,%address,%end,%other,%other_end,%phase_word,%absolute,%event,%old_event;
+.reg .u32 %error,%word,%flags;.reg .pred %p,%q;
+.param .b64 phase_value;.param .u64 output_value;.param .align 8 .b8 result[32];
+ld.param.u64 %context,[common_context];setp.eq.u64 %p,%context,0;@%p ret;and.b64 %address,%context,7;setp.ne.u64 %p,%address,0;@%p ret;
+setp.gt.u64 %p,%context,0x7fffffffffffffbf;@%p ret;
+ld.global.u32 %error,[%context];setp.ne.u32 %p,%error,0;@%p ret;
+mov.u32 %word,%tid.x;setp.ne.u32 %p,%word,0;@%p ret;mov.u32 %word,%tid.y;setp.ne.u32 %p,%word,0;@%p ret;mov.u32 %word,%tid.z;setp.ne.u32 %p,%word,0;@%p ret;
+mov.u32 %word,%ctaid.x;setp.ne.u32 %p,%word,0;@%p ret;mov.u32 %word,%ctaid.y;setp.ne.u32 %p,%word,0;@%p ret;mov.u32 %word,%ctaid.z;setp.ne.u32 %p,%word,0;@%p ret;
+mov.u32 %error,15720;
+mov.u32 %word,%nctaid.x;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%nctaid.y;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%nctaid.z;setp.ne.u32 %p,%word,1;@%p bra REFUSE;
+mov.u32 %word,%ntid.x;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%ntid.y;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%ntid.z;setp.ne.u32 %p,%word,1;@%p bra REFUSE;
+mov.u32 %word,%dynamic_smem_size;setp.ne.u32 %p,%word,0;@%p bra REFUSE;
+ld.global.u32 %word,[%context+4];setp.ne.u32 %p,%word,1;@%p bra REFUSE;ld.global.u32 %word,[%context+12];setp.ne.u32 %p,%word,0;@%p bra REFUSE;
+ld.param.u64 %vector,[original_vector];mov.u32 %error,15721;
+setp.eq.u64 %p,%vector,0;@%p bra REFUSE;and.b64 %address,%vector,7;setp.ne.u64 %p,%address,0;@%p bra REFUSE;setp.gt.u64 %p,%vector,0x7fffffffffffffef;@%p bra REFUSE;
+add.u64 %end,%vector,16;add.u64 %other_end,%context,64;setp.lt.u64 %p,%vector,%other_end;setp.lt.u64 %q,%context,%end;and.pred %p,%p,%q;@%p bra REFUSE;
+ld.global.u64 %phase_address,[%vector];ld.global.u64 %output,[%vector+8];
+setp.eq.u64 %p,%phase_address,0;@%p bra REFUSE;and.b64 %address,%phase_address,7;setp.ne.u64 %p,%address,0;@%p bra REFUSE;setp.gt.u64 %p,%phase_address,0x7ffffffffffffff7;@%p bra REFUSE;
+setp.eq.u64 %p,%output,0;@%p bra REFUSE;and.b64 %address,%output,7;setp.ne.u64 %p,%address,0;@%p bra REFUSE;setp.gt.u64 %p,%output,0x7fffffffffff7f0f;@%p bra REFUSE;
+add.u64 %end,%phase_address,8;add.u64 %other_end,%context,64;setp.lt.u64 %p,%phase_address,%other_end;setp.lt.u64 %q,%context,%end;and.pred %p,%p,%q;@%p bra REFUSE;
+add.u64 %other_end,%vector,16;setp.lt.u64 %p,%phase_address,%other_end;setp.lt.u64 %q,%vector,%end;and.pred %p,%p,%q;@%p bra REFUSE;
+add.u64 %end,%output,33008;add.u64 %other_end,%context,64;setp.lt.u64 %p,%output,%other_end;setp.lt.u64 %q,%context,%end;and.pred %p,%p,%q;@%p bra REFUSE;
+add.u64 %other_end,%vector,16;setp.lt.u64 %p,%output,%other_end;setp.lt.u64 %q,%vector,%end;and.pred %p,%p,%q;@%p bra REFUSE;
+add.u64 %end,%output,776;add.u64 %address,%output,200;add.u64 %other_end,%phase_address,8;setp.lt.u64 %p,%address,%other_end;setp.lt.u64 %q,%phase_address,%end;and.pred %p,%p,%q;@%p bra REFUSE;
+ld.global.b64 %phase_word,[%phase_address];and.b64 %absolute,%phase_word,0x7fffffffffffffff;mov.u32 %error,15722;
+setp.gt.u64 %p,%absolute,0x4130000000000000;@%p bra REFUSE;
+DOMAIN_READY:st.param.b64 [phase_value],%phase_word;st.param.u64 [output_value],%output;call.uni (result),md2asm_gpu_seasonal_ozone_values,(phase_value,output_value);
+ld.param.u32 %flags,[result];ld.param.u32 %error,[result+4];ld.param.u64 %event,[result+8];
+add.u64 %address,%context,8;atom.global.or.b32 %word,[%address],%flags;setp.eq.u64 %p,%event,0;@%p bra EVENT_READY;add.u64 %address,%context,16;atom.global.max.u64 %old_event,[%address],%event;
+EVENT_READY:setp.eq.u32 %p,%error,0;@%p ret;
+REFUSE:st.global.u32 [%context],%error;ret;
+}
+.visible .entry md2asm_gpu_seasonal_ozone(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %vector,%context;.param .u64 vector_arg,context_arg;
+ld.param.u64 %vector,[original_vector];ld.param.u64 %context,[common_context];st.param.u64 [vector_arg],%vector;st.param.u64 [context_arg],%context;call.uni md2asm_gpu_seasonal_ozone_fp64,(vector_arg,context_arg);ret;
+}

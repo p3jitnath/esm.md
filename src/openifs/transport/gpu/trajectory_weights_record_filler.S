@@ -1,0 +1,609 @@
+// Direct assembly. Numerical and storage contract: ../../../../skills/md2asm-gpu/references/openifs/transport/semi_lagrangian_transport.md
+// Original ABI storage/launch draft from original_host_contract.md revision1.
+.text
+.p2align 2
+.macro CONST reg,value
+ movz \reg,#((\value)&65535)
+ .if ((\value)>>16)
+ movk \reg,#(((\value)>>16)&65535),lsl #16
+ .endif
+.endm
+.macro BEGIN name,count
+.global \name
+.type \name,%function
+\name:
+ sub sp,sp,#16384
+ stp x29,x30,[sp,#128]
+ stp x19,x20,[sp,#144]
+ stp x21,x22,[sp,#160]
+ stp x23,x24,[sp,#176]
+ stp x25,x26,[sp,#192]
+ stp x27,x28,[sp,#208]
+ str x18,[sp,#224]
+ add x29,sp,#128
+ stp x0,x1,[sp,#256]
+ stp x2,x3,[sp,#272]
+ stp x4,x5,[sp,#288]
+ stp x6,x7,[sp,#304]
+ .if \count>8
+ add x9,sp,#16384
+ add x10,sp,#320
+ mov w11,#(\count-8)
+.Lstack_copy\@:
+ ldr x12,[x9],#8
+ str x12,[x10],#8
+ subs w11,w11,#1
+ b.ne .Lstack_copy\@
+ .endif
+ add x19,sp,#256
+ add x20,sp,#640
+ add x21,sp,#768
+ stp xzr,xzr,[x20]
+ stp xzr,xzr,[x20,#16]
+ stp xzr,xzr,[x20,#32]
+ stp xzr,xzr,[x20,#48]
+ mov w9,#1
+ str w9,[x20,#4]
+ mov x9,x21
+ mov w10,#512
+.Lzero_record\@:
+ stp xzr,xzr,[x9],#16
+ subs w10,w10,#1
+ b.ne .Lzero_record\@
+.endm
+.macro RECORD bytes
+ str x21,[x20,#48]
+ mov x9,#\bytes
+ str x9,[x20,#56]
+.endm
+.macro SERVICE target
+ str x0,[sp,#14376]
+ mrs x9,fpcr
+ str x9,[sp,#14336]
+ mrs x9,fpsr
+ str x9,[sp,#14344]
+ bl __errno_location
+ ldr x18,[sp,#224]
+ str x0,[sp,#14352]
+ ldr w9,[x0]
+ str w9,[sp,#14360]
+ ldr x0,[sp,#14376]
+ bl \target
+ ldr x18,[sp,#224]
+ str x0,[sp,#14384]
+ ldr x9,[sp,#14352]
+ ldr w10,[sp,#14360]
+ str w10,[x9]
+ ldr x9,[sp,#14336]
+ msr fpcr,x9
+ ldr x9,[sp,#14344]
+ msr fpsr,x9
+ ldr x0,[sp,#14384]
+.endm
+.macro SERIAL_CALLER
+ SERVICE __oml_mod_MOD_oml_in_parallel
+ cbnz w0,.Ldraft_failure
+.endm
+.macro BYTES destination,left,right
+ umulh x17,\left,\right
+ cbnz x17,.Ldraft_failure
+ mul \destination,\left,\right
+ lsr x17,\destination,#60
+ cbnz x17,.Ldraft_failure
+ lsl \destination,\destination,#3
+.endm
+.macro ALLOC bytes
+ str \bytes,[x20,#40]
+ cbz \bytes,.Lallocated\@
+ mov x0,\bytes
+ SERVICE malloc
+ cbz x0,.Ldraft_failure
+ str x0,[x20,#32]
+.Lallocated\@:
+.endm
+.macro FINISH name,entry,counter,release=0
+ bl md2asm_openifs_gpu_prepare
+ ldr x18,[sp,#224]
+ cbnz w0,.Ldraft_failure
+ adrp x0,.Lentry\@
+ add x0,x0,:lo12:.Lentry\@
+ mov x1,x19
+ mov x2,x20
+ mov w3,#1
+ mov w4,#1
+ mov w5,#0
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#224]
+ cbnz w0,.Ldraft_failure
+ .if \release
+ ldr x0,[x20,#32]
+ cbz x0,.Lreleased\@
+ SERVICE free
+.Lreleased\@:
+ .endif
+ adrp x9,:got:\counter
+ ldr x9,[x9,:got_lo12:\counter]
+ ldr x10,[x9]
+ add x10,x10,#1
+ str x10,[x9]
+ ldr x18,[sp,#224]
+ ldp x19,x20,[sp,#144]
+ ldp x21,x22,[sp,#160]
+ ldp x23,x24,[sp,#176]
+ ldp x25,x26,[sp,#192]
+ ldp x27,x28,[sp,#208]
+ ldp x29,x30,[sp,#128]
+ add sp,sp,#16384
+ ret
+.size \name,.-\name
+.section .rodata
+.Lentry\@: .asciz "\entry"
+.bss
+.balign 8
+.global \counter
+.hidden \counter
+\counter: .zero 8
+.text
+.endm
+.macro ALIAS name,target
+.global \name
+.set \name,\target
+.endm
+// Storage-only interface derived from the accepted LAPINEA host record body.
+.global md2asm_gpu_fill_trajectory_weights_record
+.type md2asm_gpu_fill_trajectory_weights_record,%function
+md2asm_gpu_fill_trajectory_weights_record:
+ sub sp,sp,#16384
+ stp x29,x30,[sp,#128]
+ stp x19,x20,[sp,#144]
+ stp x21,x22,[sp,#160]
+ stp x23,x24,[sp,#176]
+ stp x25,x26,[sp,#192]
+ stp x27,x28,[sp,#208]
+ str x18,[sp,#224]
+ add x29,sp,#128
+ mov x19,x0
+ mov x21,x1
+ CONST x9,17096
+ str x9,[x21,#0]
+ CONST x9,1556112
+ str x9,[x21,#8]
+ CONST x9,13232
+ str x9,[x21,#16]
+ CONST x9,4
+ str x9,[x21,#24]
+ CONST x9,4
+ str x9,[x21,#32]
+ CONST x9,1800
+ str x9,[x21,#40]
+ CONST x9,4
+ str x9,[x21,#48]
+ CONST x9,4
+ str x9,[x21,#80]
+ CONST x9,4
+ str x9,[x21,#88]
+ mov x9,#208
+ str x9,[x21,#208]
+ ldr x9,[x19]
+ ldrsw x22,[x9,#5144]
+ cmp x22,#1
+ b.lt .Ldraft_failure
+ cmp x22,#1024
+ b.gt .Ldraft_failure
+ ldrsw x23,[x9,#5224]
+ cmp x23,#4
+ b.lt .Ldraft_failure
+ cmp x23,#256
+ b.gt .Ldraft_failure
+ mul x24,x22,x23
+ ldr x25,[x19,#16]
+ ldr x26,[x19,#40]
+ mov x10,#3
+ BYTES x9,x24,x10
+ str x9,[x21,#96]
+ lsl x9,x24,#3
+ str x9,[x21,#72]
+ str x9,[x21,#112]
+ str x9,[x21,#120]
+ lsl x9,x24,#4
+ str x9,[x21,#128]
+ str x9,[x21,#136]
+ lsl x9,x24,#2
+ str x9,[x21,#200]
+ CONST x9,6828
+ ldrsw x10,[x25,x9]
+ cmp x10,#1
+ b.lt .Ldraft_failure
+ BYTES x9,x24,x10
+ str x9,[x21,#104]
+ CONST x9,6472
+ ldrsw x10,[x25,x9]
+ cmp x10,#1
+ b.lt .Ldraft_failure
+ BYTES x9,x24,x10
+ str x9,[x21,#144]
+ CONST x9,6644
+ ldrsw x10,[x25,x9]
+ cmp x10,#1
+ b.lt .Ldraft_failure
+ BYTES x9,x24,x10
+ str x9,[x21,#152]
+ CONST x9,6808
+ ldrsw x10,[x25,x9]
+ cmp x10,#1
+ b.lt .Ldraft_failure
+ BYTES x9,x24,x10
+ str x9,[x21,#184]
+ ldr x9,[x19]
+ ldrsw x27,[x9,#5156]
+ cmp x27,#0
+ b.lt .Ldraft_failure
+ cmp x27,#1024
+ b.gt .Ldraft_failure
+ mul x27,x27,x23
+ lsl x9,x27,#4
+ str x9,[x21,#160]
+ CONST x9,6500
+ ldrsw x10,[x25,x9]
+ cmp x10,#0
+ b.lt .Ldraft_failure
+ BYTES x9,x27,x10
+ str x9,[x21,#168]
+ CONST x9,6788
+ ldrsw x10,[x25,x9]
+ cmp x10,#0
+ b.lt .Ldraft_failure
+ BYTES x9,x27,x10
+ str x9,[x21,#176]
+ ldrsw x10,[x26,#1016]
+ CONST x9,8880
+ ldrsw x11,[x25,x9]
+ cmp x10,#1
+ b.lt .Ldraft_failure
+ cmp x11,#1
+ b.lt .Ldraft_failure
+ BYTES x9,x10,x11
+ str x9,[x21,#56]
+ CONST x9,9184
+ ldrsw x10,[x25,x9]
+ cmp x10,#1
+ b.lt .Ldraft_failure
+ BYTES x9,x22,x10
+ str x9,[x21,#64]
+ ldr x9,[x19,#8]
+ ldrsw x10,[x9,#248]
+ cmp x10,#0
+ b.lt .Ldraft_failure
+ BYTES x11,x24,x10
+ str x11,[x21,#192]
+ ldrsw x10,[x9,#184]
+ cmp x10,#0
+ b.lt .Ldraft_failure
+ cmp x10,#1024
+ b.gt .Ldraft_failure
+ mov x11,#368
+ mul x11,x10,x11
+ str x11,[x21,#304]
+ add x10,x9,#4032
+ str x10,[x21,#296]
+ add x0,x26,#136
+ bl .Llapinea_integer_owner
+ str x0,[x21,#264]
+ str x1,[x21,#272]
+ add x0,x26,#1736
+ bl .Llapinea_integer_owner
+ str x0,[x21,#280]
+ str x1,[x21,#288]
+ ldr w10,[x25,#216]
+ cbz w10,.Ldiagnostic_owner_done
+ ldr w10,[x25,#340]
+ cbnz w10,.Ldiagnostic_owner_needed
+ ldr w10,[x25,#3036]
+ ldr w11,[x25,#3032]
+ cmp w10,w11
+ b.ne .Ldiagnostic_owner_done
+.Ldiagnostic_owner_needed:
+ ldr x9,[x19,#8]
+ CONST x10,800840
+ add x9,x9,x10
+ ldr x10,[x9]
+ str x10,[x21,#312]
+ ldr x10,[x9,#48]
+ ldr x11,[x9,#56]
+ sub x11,x11,x10
+ add x11,x11,#1
+ cmp x11,#1
+ b.lt .Ldraft_failure
+ mov x10,#368
+ umulh x12,x11,x10
+ cbnz x12,.Ldraft_failure
+ mul x11,x11,x10
+ tbnz x11,#63,.Ldraft_failure
+ str x11,[x21,#320]
+.Ldiagnostic_owner_done:
+
+ adrp x9,:got:__yomcst_MOD_rpi
+ ldr x9,[x9,:got_lo12:__yomcst_MOD_rpi]
+ str x9,[x21,#216]
+ mov x10,#8
+ str x10,[x21,#224]
+ adrp x9,:got:__yomct0_MOD_lrplane
+ ldr x9,[x9,:got_lo12:__yomct0_MOD_lrplane]
+ str x9,[x21,#232]
+ mov x10,#4
+ str x10,[x21,#240]
+ adrp x9,:got:gpu_lapinea_actual_calls
+ ldr x9,[x9,:got_lo12:gpu_lapinea_actual_calls]
+ str x9,[x21,#248]
+ mov x10,#8
+ str x10,[x21,#256]
+ CONST x9,10240
+ add x9,sp,x9
+mov w10,#48
+.Lzero_vectors:
+ stp xzr,xzr,[x9],#16
+ subs w10,w10,#1
+ b.ne .Lzero_vectors
+ CONST x9,11008
+ add x9,sp,x9
+stp xzr,xzr,[x9]
+ stp xzr,xzr,[x9,#16]
+ str xzr,[x9,#32]
+ mov w10,#2
+ str w10,[x9,#4]
+ CONST x10,4760
+ ldr w10,[x25,x10]
+ eor w10,w10,#1
+ str w10,[x9,#12]
+ldr x9,[x19,#0]
+ str x9,[sp,#10240]
+ldr x9,[x19,#16]
+ str x9,[sp,#10256]
+ldr x9,[x19,#24]
+ str x9,[sp,#10264]
+ldr x9,[x19,#32]
+ str x9,[sp,#10272]
+ldr x9,[x19,#40]
+ str x9,[sp,#10280]
+ldr x9,[x19,#56]
+ str x9,[sp,#10296]
+ldr x9,[x19,#64]
+ str x9,[sp,#10304]
+ldr x9,[x19,#72]
+ str x9,[sp,#10312]
+ldr x9,[x19,#48]
+ str x9,[sp,#10328]
+ldr x9,[x19,#80]
+ str x9,[sp,#10336]
+ldr x9,[x19,#88]
+ str x9,[sp,#10344]
+ldr x9,[x19,#96]
+ str x9,[sp,#10352]
+ldr x9,[x19,#184]
+ str x9,[sp,#10360]
+ldr x9,[x19,#104]
+ str x9,[sp,#10376]
+ldr x9,[x19,#112]
+ str x9,[sp,#10384]
+ldr x9,[x19,#120]
+ str x9,[sp,#10392]
+ldr x9,[x19,#128]
+ str x9,[sp,#10408]
+ldr x9,[x19,#136]
+ str x9,[sp,#10416]
+ldr x9,[x19,#8]
+ CONST x10,1359320
+ add x9,x9,x10
+ str x9,[sp,#10248]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10288]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10320]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10368]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10400]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10424]
+ CONST x0,10240
+ add x0,sp,x0
+add x1,x21,#1024
+ bl md2asm_gpu_fill_cartesian_trajectory_record
+ cbnz w0,.Ldraft_failure
+ str x1,[sp,#11264]
+ldr x9,[x19,#0]
+ str x9,[sp,#10560]
+ldr x9,[x19,#16]
+ str x9,[sp,#10568]
+ldr x9,[x19,#24]
+ str x9,[sp,#10576]
+ldr x9,[x19,#32]
+ str x9,[sp,#10584]
+ldr x9,[x19,#40]
+ str x9,[sp,#10592]
+ldr x9,[x19,#48]
+ str x9,[sp,#10680]
+ldr x9,[x19,#184]
+ str x9,[sp,#10688]
+ldr x9,[x19,#80]
+ str x9,[sp,#10792]
+ldr x9,[x19,#88]
+ str x9,[sp,#10800]
+ldr x9,[x19,#104]
+ str x9,[sp,#10808]
+ldr x9,[x19,#128]
+ str x9,[sp,#10856]
+ldr x9,[x19,#136]
+ str x9,[sp,#10864]
+ldr x9,[x19,#144]
+ str x9,[sp,#10880]
+ldr x9,[x19,#152]
+ str x9,[sp,#10888]
+ldr x9,[x19,#200]
+ str x9,[sp,#10904]
+CONST x9,5024
+ add x9,x25,x9
+ str x9,[sp,#10616]
+CONST x9,76
+ add x9,x25,x9
+ str x9,[sp,#10624]
+CONST x9,108
+ add x9,x25,x9
+ str x9,[sp,#10632]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10600]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10608]
+ CONST x9,11024
+ add x9,sp,x9
+str x9,[sp,#10640]
+ CONST x9,11012
+ add x9,sp,x9
+str x9,[sp,#10648]
+ CONST x9,11020
+ add x9,sp,x9
+str x9,[sp,#10656]
+ CONST x9,11024
+ add x9,sp,x9
+str x9,[sp,#10664]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10672]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10696]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10760]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10768]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10776]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10784]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10816]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10824]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10832]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10840]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10848]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10872]
+ CONST x9,11008
+ add x9,sp,x9
+str x9,[sp,#10896]
+ldr x9,[x19,#8]
+ ldrsw x10,[x9,#184]
+ add x9,x9,#4032
+ add x9,x9,#156
+ mov w27,#0
+.Lscan_final_hvi:
+ cbz x10,.Lfinal_hvi_ready
+ ldr x11,[x9]
+ ldr w12,[x9,#8]
+ldr x13,=0x202054564849414c
+ cmp x11,x13
+ b.ne .Lhvi_label_next0
+ CONST x13,0x20202020
+ cmp w12,w13
+ b.ne .Lhvi_label_next0
+ mov w27,#1
+.Lhvi_label_next0:
+ldr x13,=0x4d5154564849414c
+ cmp x11,x13
+ b.ne .Lhvi_label_next1
+ CONST x13,0x20202020
+ cmp w12,w13
+ b.ne .Lhvi_label_next1
+ mov w27,#1
+.Lhvi_label_next1:
+ldr x13,=0x4d5154564849414c
+ cmp x11,x13
+ b.ne .Lhvi_label_next2
+ CONST x13,0x20202048
+ cmp w12,w13
+ b.ne .Lhvi_label_next2
+ mov w27,#1
+.Lhvi_label_next2:
+add x9,x9,#368
+ sub x10,x10,#1
+ b .Lscan_final_hvi
+.Lfinal_hvi_ready:
+ str w27,[sp,#11008]
+ CONST x0,10560
+ add x0,sp,x0
+add x1,x21,#1,lsl #12
+ add x1,x1,#1024
+ bl md2asm_gpu_fill_trajectory_interpolation_record
+ cbnz w0,.Ldraft_failure
+ str x1,[sp,#11272]
+ldrsw x10,[x26,#1672]
+ ldrsw x11,[x26,#1676]
+ sub x11,x11,x10
+ add x11,x11,#1
+ cmp x11,#1
+ b.lt .Ldraft_failure
+ cmp x11,#4096
+ b.gt .Ldraft_failure
+ lsl x28,x11,#4
+ mov x10,#24
+ madd x28,x24,x10,x28
+ add x28,x28,#7
+ and x28,x28,#-8
+ ldr x9,[sp,#11264]
+ adds x28,x28,x9
+ b.cs .Ldraft_failure
+ ldr x9,[sp,#11272]
+ adds x28,x28,x9
+ b.cs .Ldraft_failure
+ add x28,x28,#4,lsl #12
+ tbnz x28,#63,.Ldraft_failure
+ mov x1,x28
+ mov x0,#0
+ b .Lfiller_return
+.Ldraft_failure:
+ mov x0,#1
+ mov x1,#0
+.Lfiller_return:
+ ldr x18,[sp,#224]
+ ldp x27,x28,[sp,#208]
+ ldp x25,x26,[sp,#192]
+ ldp x23,x24,[sp,#176]
+ ldp x21,x22,[sp,#160]
+ ldp x19,x20,[sp,#144]
+ ldp x29,x30,[sp,#128]
+ add sp,sp,#16384
+ ret
+.size md2asm_gpu_fill_trajectory_weights_record,.-md2asm_gpu_fill_trajectory_weights_record
+.Llapinea_integer_owner:
+ ldr x9,[x0,#48]
+ ldr x10,[x0,#56]
+ sub x10,x10,x9
+ add x10,x10,#1
+ cmp x10,#1
+ b.lt .Ldraft_failure
+ lsl x1,x10,#2
+ tbnz x1,#63,.Ldraft_failure
+ ldr x0,[x0]
+ ret
+.section .note.GNU-stack,"",%progbits

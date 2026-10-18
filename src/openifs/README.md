@@ -2,6 +2,8 @@
 
 These direct assembly routines calculate atmospheric motion, heating, radiation and surface changes. They are grouped by physical theme. A routine body means one original function or subroutine. Each accepted body has independent critical checks and exact comparisons within its declared input range.
 
+The coverage and complete autonomy checks below describe the Arm CPU forecast. The GPU extension has a separate acceptance record.
+
 ## Coverage
 
 The table describes the audited coarse T21 global forecast. Its groups overlap and must not be added. The selected original-file forecast now has complete assembly ownership, while the broader inventories include unselected branches and configurations.
@@ -179,6 +181,21 @@ The assembly readers use the declared C ecCodes file-format library. A record co
 | Output header and names | 15 headers and 45 names, with complete associated descriptors | [Headers](../../skills/md2asm/references/openifs/output/output_header_metadata.md), [names](../../skills/md2asm/references/openifs/output/output_file_names.md) |
 
 The current [autonomous forecast contract](../../skills/md2asm/references/openifs/input/standalone_weather_forecast.md) describes assembly ownership from loading through output. The component records above show how each stage was checked.
+
+## GPU extension
+
+The PTX extension has 205 distinct component-qualified originals. Three complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. Those overlapping views do not cover the separate complete-owner and model-history gates. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
+
+These recent contracts describe complete device stages and their declared limits. Parent and child entries overlap, so their counts must not be added.
+
+| Calculation | GPU contract |
+| --- | --- |
+| Complete parcel transport | [Semi-Lagrangian transport](../../skills/md2asm-gpu/references/openifs/transport/semi_lagrangian_transport.md) |
+| Vertical mixing | [Complete mixing](../../skills/md2asm-gpu/references/openifs/physics/vertical_mixing_main.md) |
+| Mixing tendency increments | [Tendency update](../../skills/md2asm-gpu/references/openifs/physics/vertical_diffusion_tendencies.md) |
+| Interpolation boundary layers | [Boundary values](../../skills/md2asm-gpu/references/openifs/dynamics/interpolation_boundary_values.md) |
+| Gas profiles on pressure layers | [Gas interpolation](../../skills/md2asm-gpu/references/openifs/radiation/greenhouse_gas_interpolation.md) |
+| Seasonal ozone | [Ozone coefficients](../../skills/md2asm-gpu/references/openifs/physics/seasonal_ozone_coefficients.md) |
 
 ## Local records
 
