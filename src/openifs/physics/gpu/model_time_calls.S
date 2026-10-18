@@ -5550,7 +5550,13 @@ add x15,x13,x14
 cmp x10,x15
 b.hs .Ltime_host_original_pair_ok
 cmp x13,x12
-b.lo .Ltime_host_fail
+b.hs .Ltime_host_original_pair_ok
+adrp x8,.Ltime_original_writable
+add x8,x8,:lo12:.Ltime_original_writable
+ldrb w9,[x8,x23]
+ldrb w16,[x8,x24]
+orr w9,w9,w16
+cbnz w9,.Ltime_host_fail
 .Ltime_host_original_pair_ok:
 add x24,x24,#1
 b .Ltime_host_original_inner
@@ -8373,3 +8379,7 @@ ret
 .section .rodata
 .Ltime_host_entry:.asciz "md2asm_gpu_model_time_and_forcing"
 .section .note.GNU-stack,"",%progbits
+
+.section .rodata
+.Ltime_original_writable:
+.byte 0,0,1,0,0,1,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0

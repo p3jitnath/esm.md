@@ -1,0 +1,23 @@
+// Contract: skills/md2asm-gpu/references/openifs/physics/solar_zenith_geometry.md.
+// Original COS_SZA serial GPU entry. Complete numerical child remains on device.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .u32 r) md2asm_gpu_solar_zenith_admit(.param .b64 v,.param .b64 c);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_solar_zenith_values(.param .b64 v,.param .b64 r,.param .b64 s);
+.visible .entry md2asm_gpu_cos_sza(.param .b64 vector,.param .b64 context)
+{
+.reg .u64 %v,%c,%record,%scratch,%event,%prior_event;
+.reg .u32 %a,%b,%bits,%error,%raised,%flags,%version;
+.reg .pred %p;
+.param .b64 pv,pc,pr,ps;.param .u32 ar;.param .align 8 .b8 result[32];
+mov.u32 %a,%tid.x;mov.u32 %b,%tid.y;or.b32 %bits,%a,%b;mov.u32 %a,%tid.z;or.b32 %bits,%bits,%a;mov.u32 %a,%ctaid.x;or.b32 %bits,%bits,%a;mov.u32 %a,%ctaid.y;or.b32 %bits,%bits,%a;mov.u32 %a,%ctaid.z;or.b32 %bits,%bits,%a;setp.ne.u32 %p,%bits,0;@%p ret;
+ld.param.u64 %c,[context];setp.eq.u64 %p,%c,0;@%p ret;and.b64 %event,%c,7;setp.ne.u64 %p,%event,0;@%p ret;ld.global.u32 %error,[%c];setp.ne.u32 %p,%error,0;@%p ret;
+mov.u32 %error,16301;
+mov.u32 %a,%ntid.x;setp.ne.u32 %p,%a,1;@%p bra REFUSE;mov.u32 %a,%ntid.y;setp.ne.u32 %p,%a,1;@%p bra REFUSE;mov.u32 %a,%ntid.z;setp.ne.u32 %p,%a,1;@%p bra REFUSE;mov.u32 %a,%nctaid.x;setp.ne.u32 %p,%a,1;@%p bra REFUSE;mov.u32 %a,%nctaid.y;setp.ne.u32 %p,%a,1;@%p bra REFUSE;mov.u32 %a,%nctaid.z;setp.ne.u32 %p,%a,1;@%p bra REFUSE;mov.u32 %a,%dynamic_smem_size;setp.ne.u32 %p,%a,0;@%p bra REFUSE;
+ld.global.u32 %version,[%c+4];setp.ne.u32 %p,%version,1;@%p bra REFUSE;ld.global.u32 %bits,[%c+12];and.b32 %bits,%bits,1;setp.ne.u32 %p,%bits,0;@%p bra REFUSE;
+ld.param.u64 %v,[vector];st.param.b64 [pv],%v;st.param.b64 [pc],%c;call.uni (ar),md2asm_gpu_solar_zenith_admit,(pv,pc);ld.param.u32 %error,[ar];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %record,[%c+48];ld.global.u64 %scratch,[%c+32];st.param.b64 [pv],%v;st.param.b64 [pr],%record;st.param.b64 [ps],%scratch;call.uni (result),md2asm_gpu_solar_zenith_values,(pv,pr,ps);ld.param.u32 %raised,[result];ld.param.u32 %error,[result+4];ld.param.u64 %event,[result+8];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u32 %flags,[%c+8];or.b32 %flags,%flags,%raised;st.global.u32 [%c+8],%flags;setp.eq.u64 %p,%event,0;@%p ret;st.global.u64 [%c+16],%event;ret;
+REFUSE:st.global.u32 [%c],%error;ret;
+}
