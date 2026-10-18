@@ -1,0 +1,110 @@
+// Contract: skills/md2asm-gpu/references/openifs/physics/height_wind_interpolation.md.
+// VDFVINT storage-only numerical stage boundary. Original shell owns DR_HOOK.
+.text
+.p2align 4
+.global md2asm_gpu_height_wind_stage
+.type md2asm_gpu_height_wind_stage,%function
+md2asm_gpu_height_wind_stage:
+ sub sp,sp,#1024
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mov x29,sp
+ mov x19,x0
+ mrs x9,fpcr
+ cbnz x9,.Lhv_gpu_fail
+ str x9,[sp,#512]
+ mrs x10,fpsr
+ str x10,[sp,#520]
+ bl __errno_location
+ ldr x18,[sp,#96]
+ mov x22,x0
+ ldr w9,[x22]
+ str w9,[sp,#528]
+ bl __oml_mod_MOD_oml_in_parallel
+ ldr x18,[sp,#96]
+ cbnz w0,.Lhv_gpu_fail
+ bl md2asm_openifs_gpu_prepare
+ ldr x18,[sp,#96]
+ cbnz w0,.Lhv_gpu_fail
+ add x20,sp,#192
+ add x21,sp,#256
+ mov x9,#0
+.Lhv_gpu_zero:
+ add x10,x20,x9
+ stp xzr,xzr,[x10]
+ add x9,x9,#16
+ cmp x9,#192
+ b.lo .Lhv_gpu_zero
+ mov w9,#1
+ str w9,[x20,#4]
+ str x21,[x20,#48]
+ mov x9,#128
+ str x9,[x20,#56]
+ mov x9,#4
+ stp x9,x9,[x21]
+ stp x9,x9,[x21,#16]
+ mov x9,#8
+ str x9,[x21,#56]
+ ldr x9,[x19,#16]
+ ldr w23,[x9]
+ ldr x9,[x19,#24]
+ ldr w24,[x9]
+ umull x25,w23,w24
+ lsl x25,x25,#3
+ lsl x26,x23,#3
+ ldr x9,[x19]
+ ldr w10,[x9]
+ ldr x9,[x19,#8]
+ ldr w11,[x9]
+ cmp w10,w11
+ csel x25,x25,xzr,le
+ csel x26,x26,xzr,le
+ stp x25,x25,[x21,#32]
+ str x25,[x21,#48]
+ stp x26,x26,[x21,#64]
+ adrp x9,:got:__yomcst_MOD_rg
+ ldr x9,[x9,:got_lo12:__yomcst_MOD_rg]
+ ldr x10,[x9]
+ str x10,[x21,#80]
+ adrp x9,:got:__yomdyncore_MOD_rplrg
+ ldr x9,[x9,:got_lo12:__yomdyncore_MOD_rplrg]
+ ldr x10,[x9]
+ str x10,[x21,#88]
+ adrp x0,.Lhv_gpu_entry
+ add x0,x0,:lo12:.Lhv_gpu_entry
+ mov x1,x19
+ mov x2,x20
+ mov w3,#1
+ mov w4,#1
+ mov w5,#0
+ ldr x9,[sp,#512]
+ ldr x10,[sp,#520]
+ msr fpcr,x9
+ msr fpsr,x10
+ ldr w9,[sp,#528]
+ str w9,[x22]
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#96]
+ cbnz w0,.Lhv_gpu_fail
+ ldr w9,[x20]
+ cbnz w9,.Lhv_gpu_fail
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#1024
+ ret
+.Lhv_gpu_fail:
+ bl abort
+ brk #0
+.size md2asm_gpu_height_wind_stage,.-md2asm_gpu_height_wind_stage
+.section .rodata
+.Lhv_gpu_entry:.asciz "md2asm_gpu_height_wind_interpolation"
+.section .note.GNU-stack,"",%progbits

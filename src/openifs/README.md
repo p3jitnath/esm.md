@@ -184,7 +184,7 @@ The current [autonomous forecast contract](../../skills/md2asm/references/openif
 
 ## GPU extension
 
-The PTX extension has 227 distinct component-qualified originals. Five complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. The latest run also matches both complete model-history buffers across 1,882,368 bytes. The separate complete-owner GPU gate remains unfinished. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
+The PTX extension has 237 distinct component-qualified originals. Six complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. The latest run also matches both complete model-history buffers across 1,882,368 bytes. The separate complete-owner GPU gate remains unfinished. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
 
 These recent contracts describe complete device stages and their declared limits. Parent and child entries overlap, so their counts must not be added.
 
@@ -218,6 +218,16 @@ These recent contracts describe complete device stages and their declared limits
 | Methane Humidity Tendency On A GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/methane_humidity_tendency.md) |
 | Convective Cloud And Rain Diagnostics On A GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/convective_cloud_rain_diagnostics.md) |
 | Stratocumulus diffusion on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/convection/stratocumulus_diffusion.md) |
+| Height wind interpolation on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/height_wind_interpolation.md) |
+| Quadratic pressure wind interpolation on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/pressure_wind_quadratic.md) |
+| Linear pressure wind interpolation on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/pressure_wind_linear.md) |
+| Complete pressure wind interpolation on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/pressure_wind_interpolation.md) |
+| Wind pressure brackets on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/wind_pressure_brackets.md) |
+| Pressure interpolation coordinates on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/pressure_coordinates.md) |
+| Convective energy and wind shear on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/convective_wind_shear.md) |
+| Convective Column Controller On A GPU | [Contract](../../skills/md2asm-gpu/references/openifs/convection/convective_column_controller.md) |
+| Nitrogen decline on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/nitrogen_decline.md) |
+| Aerosol Visibility Extinction On A GPU | [Contract](../../skills/md2asm-gpu/references/openifs/radiation/aerosol_visibility_extinction.md) |
 
 ## Local records
 

@@ -1,0 +1,98 @@
+// Contract: skills/md2asm-gpu/references/openifs/physics/pressure_coordinates.md.
+// PPINIT storage-only numerical stage boundary. Original shell owns DR_HOOK.
+.text
+.p2align 4
+.global md2asm_gpu_pressure_coordinates_stage
+.type md2asm_gpu_pressure_coordinates_stage,%function
+md2asm_gpu_pressure_coordinates_stage:
+ sub sp,sp,#1024
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mov x29,sp
+ mov x19,x0
+ mrs x9,fpcr
+ cbnz x9,.Lpi_gpu_fail
+ str x9,[sp,#512]
+ mrs x10,fpsr
+ str x10,[sp,#520]
+ bl __errno_location
+ ldr x18,[sp,#96]
+ mov x22,x0
+ ldr w9,[x22]
+ str w9,[sp,#528]
+ bl __oml_mod_MOD_oml_in_parallel
+ ldr x18,[sp,#96]
+ cbnz w0,.Lpi_gpu_fail
+ bl md2asm_openifs_gpu_prepare
+ ldr x18,[sp,#96]
+ cbnz w0,.Lpi_gpu_fail
+ add x20,sp,#192
+ add x21,sp,#256
+ mov x9,#0
+.Lpi_gpu_zero:
+ add x10,x20,x9
+ stp xzr,xzr,[x10]
+ add x9,x9,#16
+ cmp x9,#144
+ b.lo .Lpi_gpu_zero
+ mov w9,#1
+ str w9,[x20,#4]
+ str x21,[x20,#48]
+ mov x9,#80
+ str x9,[x20,#56]
+ mov x9,#4
+ str x9,[x21,#0]
+ mov x9,#4
+ str x9,[x21,#8]
+ mov x9,#4
+ str x9,[x21,#16]
+ mov x9,#4
+ str x9,[x21,#24]
+ mov x9,#4
+ str x9,[x21,#32]
+ mov x9,#3840
+ str x9,[x21,#40]
+ mov x9,#3648
+ str x9,[x21,#48]
+ mov x9,#15360
+ str x9,[x21,#56]
+ mov x9,#15360
+ str x9,[x21,#64]
+ adrp x0,.Lpi_gpu_entry
+ add x0,x0,:lo12:.Lpi_gpu_entry
+ mov x1,x19
+ mov x2,x20
+ mov w3,#1
+ mov w4,#1
+ mov w5,#0
+ ldr x9,[sp,#512]
+ ldr x10,[sp,#520]
+ msr fpcr,x9
+ msr fpsr,x10
+ ldr w9,[sp,#528]
+ str w9,[x22]
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#96]
+ cbnz w0,.Lpi_gpu_fail
+ ldr w9,[x20]
+ cbnz w9,.Lpi_gpu_fail
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#1024
+ ret
+.Lpi_gpu_fail:
+ bl abort
+ brk #0
+.size md2asm_gpu_pressure_coordinates_stage,.-md2asm_gpu_pressure_coordinates_stage
+.section .rodata
+.Lpi_gpu_entry:.asciz "md2asm_gpu_pressure_coordinates"
+.section .note.GNU-stack,"",%progbits

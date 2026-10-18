@@ -1,0 +1,163 @@
+// Contract: skills/md2asm-gpu/references/openifs/convection/convective_column_controller.md.
+// Five complete CUCALLN local stages. Integer storage and launch only.
+.arch armv8-a
+.text
+.p2align 4
+.global md2asm_cucalln_launch_stage
+.type md2asm_cucalln_launch_stage,%function
+md2asm_cucalln_launch_stage:
+ sub sp,sp,#768
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mov x29,sp
+ mov x19,x0
+ mov w20,w1
+ str w2,[sp,#432]
+ str w3,[sp,#436]
+ str w4,[sp,#440]
+ str w5,[sp,#444]
+ mrs x9,fpcr
+ mrs x10,fpsr
+ stp x9,x10,[sp,#448]
+ cbnz x9,.Lcu_stage_fail
+ cmp w20,#1
+ b.lt .Lcu_stage_fail
+ cmp w20,#5
+ b.gt .Lcu_stage_fail
+ bl __errno_location
+ ldr x18,[sp,#96]
+ mov x21,x0
+ ldr w9,[x21]
+ str w9,[sp,#464]
+ bl __oml_mod_MOD_oml_in_parallel
+ ldr x18,[sp,#96]
+ cbnz w0,.Lcu_stage_fail
+ ldr w9,[sp,#432]
+ ldr w10,[sp,#436]
+ cmp w9,#1
+ b.lt .Lcu_stage_fail
+ cmp w9,#4096
+ b.hi .Lcu_stage_fail
+ cmp w10,#4
+ b.lt .Lcu_stage_fail
+ cmp w10,#137
+ b.hi .Lcu_stage_fail
+ umull x24,w9,w10
+ mov x11,#65536
+ cmp x24,x11
+ b.hi .Lcu_stage_fail
+ lsl x24,x24,#3
+ lsl x25,x9,#3
+ add x26,x24,x25
+ lsl x27,x24,#2
+ bl md2asm_openifs_gpu_prepare
+ ldr x18,[sp,#96]
+ cbnz w0,.Lcu_stage_fail
+ add x22,sp,#128
+ add x23,sp,#192
+ mov x9,#0
+.Lcu_stage_clear:
+ add x10,x22,x9
+ stp xzr,xzr,[x10]
+ add x9,x9,#16
+ cmp x9,#288
+ b.lo .Lcu_stage_clear
+ mov w9,#1
+ str w9,[x22,#4]
+ str x23,[x22,#48]
+ mov x9,#224
+ str x9,[x22,#56]
+ str w20,[x23]
+ ldr w9,[sp,#432]
+ ldr w10,[sp,#436]
+ stp w9,w10,[x23,#4]
+ ldr w9,[sp,#440]
+ ldr w10,[sp,#444]
+ stp w9,w10,[x23,#12]
+ adrp x9,.Lcu_stage_lengths
+ add x9,x9,:lo12:.Lcu_stage_lengths
+ sub x10,x20,#1
+ mov x11,#88
+ madd x9,x10,x11,x9
+ mov x10,#0
+.Lcu_stage_capacity:
+ ldr w11,[x9,x10,lsl #2]
+ mov x12,#0
+ cbz w11,.Lcu_stage_cap_ready
+ mov x12,#8
+ cmp w11,#1
+ b.eq .Lcu_stage_cap_ready
+ mov x12,x24
+ cmp w11,#2
+ b.eq .Lcu_stage_cap_ready
+ mov x12,x26
+ cmp w11,#3
+ b.eq .Lcu_stage_cap_ready
+ mov x12,x27
+ cmp w11,#4
+ b.eq .Lcu_stage_cap_ready
+ mov x12,x25
+.Lcu_stage_cap_ready:
+ add x13,x23,x10,lsl #3
+ str x12,[x13,#24]
+ add x10,x10,#1
+ cmp x10,#22
+ b.lo .Lcu_stage_capacity
+ adrp x9,.Lcu_stage_entries
+ add x9,x9,:lo12:.Lcu_stage_entries
+ sub x10,x20,#1
+ ldr x0,[x9,x10,lsl #3]
+ mov x1,x19
+ mov x2,x22
+ mov w3,#1
+ mov w4,#1
+ mov w5,#0
+ ldp x9,x10,[sp,#448]
+ msr fpcr,x9
+ msr fpsr,x10
+ ldr w9,[sp,#464]
+ str w9,[x21]
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#96]
+ cbnz w0,.Lcu_stage_fail
+ ldr w9,[x22]
+ cbnz w9,.Lcu_stage_fail
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#768
+ ret
+.Lcu_stage_fail:
+ bl abort
+ brk #0
+.size md2asm_cucalln_launch_stage,.-md2asm_cucalln_launch_stage
+.section .data.rel.ro,"aw",%progbits
+.p2align 3
+.Lcu_stage_entries:
+ .quad .Lcu_stage_name_0
+ .quad .Lcu_stage_name_1
+ .quad .Lcu_stage_name_2
+ .quad .Lcu_stage_name_3
+ .quad .Lcu_stage_name_4
+.section .rodata
+.p2align 3
+.Lcu_stage_lengths:
+ .word 1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+ .word 1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0
+ .word 1,1,1,3,2,2,2,2,2,2,2,2,2,3,3,3,3,0,0,0,0,0
+ .word 1,1,3,3,4,3,3,3,3,3,3,5,5,0,0,0,0,0,0,0,0,0
+ .word 2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+.Lcu_stage_name_0:.asciz "md2asm_gpu_cucalln_scalar_controls"
+.Lcu_stage_name_1:.asciz "md2asm_gpu_cucalln_provisional_state"
+.Lcu_stage_name_2:.asciz "md2asm_gpu_cucalln_pressure_fluxes"
+.Lcu_stage_name_3:.asciz "md2asm_gpu_cucalln_latent_fluxes"
+.Lcu_stage_name_4:.asciz "md2asm_gpu_cucalln_tendency_difference"
+.section .note.GNU-stack,"",%progbits
