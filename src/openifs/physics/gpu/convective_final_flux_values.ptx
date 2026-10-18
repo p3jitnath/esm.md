@@ -1,0 +1,104 @@
+// Contract: skills/md2asm-gpu/references/openifs/physics/convective_final_flux.md.
+// Unverified direct PTX batch draft. See the routine frozen contract.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sqrt_status(.param .b64 a);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_exp_original_rounding(.param .b64 a);
+.extern .func (.param .align 8 .b8 geometry[64]) md2asm_gpu_surface_descriptor_geometry(.param .u64 descriptor,.param .u32 rank,.param .u32 element_bytes,.param .u64 required0,.param .u64 required1,.param .u64 required2,.param .u32 zero_is_one);
+.extern .func (.param .align 8 .b8 elementary[16]) md2asm_gpu_exp_original_rounding(.param .b64 argument);
+.extern .func (.param .align 8 .b8 power_return[32]) md2asm_gpu_power_nonnegative(.param .b64 base,.param .b64 exponent);
+.func (.param .align 8 .b8 result[16]) md2asm_gpu_convective_final_flux_values_minmax(.param .b64 a,.param .b64 b,.param .u32 kind)
+{
+ .reg .b64 %a,%b,%aa,%ab,%value,%quiet;.reg .u32 %kind,%flags;.reg .f64 %fa,%fb;.reg .pred %an,%bn,%as,%bs,%p,%q;
+ ld.param.b64 %a,[a];ld.param.b64 %b,[b];ld.param.u32 %kind,[kind];mov.u32 %flags,0;
+ and.b64 %aa,%a,0x7fffffffffffffff;and.b64 %ab,%b,0x7fffffffffffffff;setp.gt.u64 %an,%aa,0x7ff0000000000000;setp.gt.u64 %bn,%ab,0x7ff0000000000000;
+ and.b64 %quiet,%a,0x0008000000000000;setp.eq.u64 %as,%quiet,0;and.pred %as,%as,%an;
+ and.b64 %quiet,%b,0x0008000000000000;setp.eq.u64 %bs,%quiet,0;and.pred %bs,%bs,%bn;or.pred %p,%as,%bs;selp.u32 %flags,1,0,%p;
+ @%as bra NAN_A;@%bs bra NAN_B;
+ setp.ge.u32 %p,%kind,2;@!%p bra PROPAGATE_NAN;
+ and.pred %p,%an,%bn;@%p bra NAN_A;@%an bra SELECT_B;@%bn bra SELECT_A;bra ORDERED;
+PROPAGATE_NAN:@%an bra NAN_A;@%bn bra NAN_B;
+ORDERED:or.b64 %quiet,%aa,%ab;setp.eq.u64 %p,%quiet,0;@%p bra ZERO_TIE;
+ mov.b64 %fa,%a;mov.b64 %fb,%b;and.b32 %kind,%kind,1;setp.eq.u32 %p,%kind,0;@%p bra MINIMUM;
+ setp.gt.f64 %p,%fa,%fb;selp.b64 %value,%a,%b,%p;bra MINMAX_DONE;
+MINIMUM:setp.lt.f64 %p,%fa,%fb;selp.b64 %value,%a,%b,%p;bra MINMAX_DONE;
+ZERO_TIE:and.b32 %kind,%kind,1;setp.eq.u32 %p,%kind,0;@%p bra MINIMUM_ZERO;and.b64 %value,%a,%b;bra MINMAX_DONE;
+MINIMUM_ZERO:or.b64 %value,%a,%b;bra MINMAX_DONE;
+NAN_A:or.b64 %value,%a,0x0008000000000000;bra MINMAX_DONE;
+NAN_B:or.b64 %value,%b,0x0008000000000000;bra MINMAX_DONE;
+SELECT_A:mov.b64 %value,%a;bra MINMAX_DONE;
+SELECT_B:mov.b64 %value,%b;
+MINMAX_DONE:st.param.b64 [result],%value;st.param.u32 [result+8],%flags;st.param.u32 [result+12],0;ret;
+}
+.extern .func (.param .align 8 .b8 returned[40]) md2asm_gpu_flux_initialisation_values(.param .u64 vector,.param .u64 record,.param .u64 scratch);
+.extern .func (.param .align 8 .b8 returned[40]) md2asm_gpu_flux_transport_values(.param .u64 vector,.param .u64 record,.param .u64 scratch);
+.extern .func (.param .align 8 .b8 returned[40]) md2asm_gpu_flux_precipitation_values(.param .u64 vector,.param .u64 record,.param .u64 scratch);
+.extern .func (.param .align 8 .b8 returned[40]) md2asm_gpu_flux_evaporation_values(.param .u64 vector,.param .u64 record,.param .u64 scratch);
+
+.visible .func (.param .align 8 .b8 returned[40]) md2asm_gpu_convective_final_flux_values(.param .u64 vector,.param .u64 numerical_record,.param .u64 private_work)
+{
+.reg .u64 %v<43>,%args,%record,%work,%ptr,%source,%destination,%cursor,%position,%length,%temporary,%absolute,%P64,%N64,%width,%layerbytes,%integerbytes,%facebytes,%col8,%col4,%index,%below,%above,%history,%vecbase,%maskbase,%bindex,%iindex,%bottomindex,%refindex,%snowindex,%EXP,%FAST,%WIDE,%event,%increment,%child_event,%countfast,%countwide,%midpoint;
+.reg .u32 %P,%N,%first,%last,%level,%column,%r,%r1,%r2,%kk,%base,%top,%departure,%type,%active,%workflag,%flags,%raised,%error,%new_event,%field,%logical,%mode,%liquidbit;
+.reg .pred %p,%p1,%p2;
+.reg .b64 %cp,%rg,%rtt,%rticecu,%rtwat,%rphase,%fusion,%vapor,%sublim,%r2es,%r3les,%r3ies,%r4les,%r4ies,%cons1a,%cons2,%wetb,%glac,%cov,%rhebc,%mfs,%cpcons,%rcvr,%rain,%snow,%melt,%phase,%ph,%onephase,%latent,%saturation,%temperature,%q,%pressure,%bottomp,%basep,%ratio,%mass,%sflux,%qflux,%liquid,%up,%down,%snliq,%snice,%total,%newrain,%newsnow,%fac,%drfl,%drfl1,%rnew,%rmin,%denom,%twet,%t0,%t1,%t2,%t3,%t4,%t5,%t6,%t7,%t8,%t9;
+.param .b64 ma,mb,xa,ya;.param .u32 kind;.param .align 8 .b8 math[16],elementary[16],power_return[32];
+ld.param.u64 %args,[vector];ld.param.u64 %record,[numerical_record];ld.param.u64 %work,[private_work];mov.u32 %flags,0;mov.u32 %error,0;mov.u64 %EXP,0;mov.u64 %FAST,0;mov.u64 %WIDE,0;mov.u64 %event,0;
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ld.global.u64 %v5,[%args+40];
+ld.global.u64 %v6,[%args+48];
+ld.global.u64 %v7,[%args+56];
+ld.global.u64 %v8,[%args+64];
+ld.global.u64 %v9,[%args+72];
+ld.global.u64 %v10,[%args+80];
+ld.global.u64 %v11,[%args+88];
+ld.global.u64 %v12,[%args+96];
+ld.global.u64 %v13,[%args+104];
+ld.global.u64 %v14,[%args+112];
+ld.global.u64 %v15,[%args+120];
+ld.global.u64 %v16,[%args+128];
+ld.global.u64 %v17,[%args+136];
+ld.global.u64 %v18,[%args+144];
+ld.global.u64 %v19,[%args+152];
+ld.global.u64 %v20,[%args+160];
+ld.global.u64 %v21,[%args+168];
+ld.global.u64 %v22,[%args+176];
+ld.global.u64 %v23,[%args+184];
+ld.global.u64 %v24,[%args+192];
+ld.global.u64 %v25,[%args+200];
+ld.global.u64 %v26,[%args+208];
+ld.global.u64 %v27,[%args+216];
+ld.global.u64 %v28,[%args+224];
+ld.global.u64 %v29,[%args+232];
+ld.global.u64 %v30,[%args+240];
+ld.global.u64 %v31,[%args+248];
+ld.global.u64 %v32,[%args+256];
+ld.global.u64 %v33,[%args+264];
+ld.global.u64 %v34,[%args+272];
+ld.global.u64 %v35,[%args+280];
+ld.global.u64 %v36,[%args+288];
+ld.global.u64 %v37,[%args+296];
+ld.global.u64 %v38,[%args+304];
+ld.global.u64 %v39,[%args+312];
+ld.global.u64 %v40,[%args+320];
+ld.global.u64 %v41,[%args+328];
+ld.global.u64 %v42,[%args+336];
+ld.global.u32 %first,[%v2];ld.global.u32 %last,[%v3];sub.u32 %first,%first,1;ld.global.u32 %P,[%v4];ld.global.u32 %N,[%v5];cvt.u64.u32 %P64,%P;cvt.u64.u32 %N64,%N;mul.wide.u32 %width,%P,8;mul.lo.u64 %layerbytes,%width,%N64;add.u64 %history,%work,4096;mov.u64 %vecbase,%history;mul.lo.u64 %temporary,%width,3;add.u64 %maskbase,%vecbase,%temporary;
+.param .u64 va,ra,sa;.param .align 8 .b8 child[40];
+st.param.u64 [va],%args;st.param.u64 [ra],%record;st.param.u64 [sa],%work;call.uni (child),md2asm_gpu_flux_initialisation_values,(va,ra,sa);ld.param.u32 %raised,[child];ld.param.u32 %error,[child+4];ld.param.u64 %child_event,[child+8];ld.param.u64 %increment,[child+16];ld.param.u64 %countfast,[child+24];ld.param.u64 %countwide,[child+32];or.b32 %flags,%flags,%raised;add.u64 %EXP,%EXP,%increment;add.u64 %FAST,%FAST,%countfast;add.u64 %WIDE,%WIDE,%countwide;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%child_event,0;@%p bra CHILD_EVENT_READY_0;mov.u64 %event,%child_event;CHILD_EVENT_READY_0:
+st.param.u64 [va],%work;st.param.u64 [ra],%record;st.param.u64 [sa],%work;call.uni (child),md2asm_gpu_flux_transport_values,(va,ra,sa);ld.param.u32 %raised,[child];ld.param.u32 %error,[child+4];ld.param.u64 %child_event,[child+8];ld.param.u64 %increment,[child+16];ld.param.u64 %countfast,[child+24];ld.param.u64 %countwide,[child+32];or.b32 %flags,%flags,%raised;add.u64 %EXP,%EXP,%increment;add.u64 %FAST,%FAST,%countfast;add.u64 %WIDE,%WIDE,%countwide;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%child_event,0;@%p bra CHILD_EVENT_READY_1;mov.u64 %event,%child_event;CHILD_EVENT_READY_1:
+st.param.u64 [va],%work;st.param.u64 [ra],%record;st.param.u64 [sa],%work;call.uni (child),md2asm_gpu_flux_precipitation_values,(va,ra,sa);ld.param.u32 %raised,[child];ld.param.u32 %error,[child+4];ld.param.u64 %child_event,[child+8];ld.param.u64 %increment,[child+16];ld.param.u64 %countfast,[child+24];ld.param.u64 %countwide,[child+32];or.b32 %flags,%flags,%raised;add.u64 %EXP,%EXP,%increment;add.u64 %FAST,%FAST,%countfast;add.u64 %WIDE,%WIDE,%countwide;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%child_event,0;@%p bra CHILD_EVENT_READY_2;mov.u64 %event,%child_event;CHILD_EVENT_READY_2:
+st.param.u64 [va],%work;st.param.u64 [ra],%record;st.param.u64 [sa],%work;call.uni (child),md2asm_gpu_flux_evaporation_values,(va,ra,sa);ld.param.u32 %raised,[child];ld.param.u32 %error,[child+4];ld.param.u64 %child_event,[child+8];ld.param.u64 %increment,[child+16];ld.param.u64 %countfast,[child+24];ld.param.u64 %countwide,[child+32];or.b32 %flags,%flags,%raised;add.u64 %EXP,%EXP,%increment;add.u64 %FAST,%FAST,%countfast;add.u64 %WIDE,%WIDE,%countwide;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%child_event,0;@%p bra CHILD_EVENT_READY_3;mov.u64 %event,%child_event;CHILD_EVENT_READY_3:
+bra COMPLETE;
+
+NUMERICAL_ERROR:mov.u32 %error,8604;
+COMPLETE:st.param.u32 [returned],%flags;st.param.u32 [returned+4],%error;st.param.u64 [returned+8],%event;st.param.u64 [returned+16],%EXP;st.param.u64 [returned+24],%FAST;st.param.u64 [returned+32],%WIDE;ret;
+}

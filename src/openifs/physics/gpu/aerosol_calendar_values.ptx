@@ -1,0 +1,13 @@
+// Contract: skills/md2asm-gpu/references/openifs/physics/monthly_aerosol_update.md.
+// Direct PTX from skills/md2asm-gpu/references/openifs/physics/monthly_aerosol_update.md revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.visible .func md2asm_gpu_aerosol_calendar_values(.param .u32 initial_day,.param .u32 initial_month,.param .u32 initial_year,.param .u32 increment,.param .u64 result)
+{.reg .u32 %day,%month,%year,%left,%i,%length,%feb,%r,%q;.reg .u64 %out,%p,%o;.reg .pred %a,%b;
+ld.param.u32 %day,[initial_day];ld.param.u32 %month,[initial_month];ld.param.u32 %year,[initial_year];ld.param.u32 %left,[increment];ld.param.u64 %out,[result];
+BUILD_MONTHS:mov.u32 %feb,28;and.b32 %r,%year,3;setp.ne.u32 %a,%r,0;@%a bra LEAP_READY;rem.u32 %r,%year,400;setp.eq.u32 %a,%r,100;setp.eq.u32 %b,%r,200;or.pred %a,%a,%b;setp.eq.u32 %b,%r,300;or.pred %a,%a,%b;@%a bra LEAP_READY;mov.u32 %feb,29;LEAP_READY:mov.u32 %i,0;
+MONTH_LENGTH:mov.u32 %length,31;setp.eq.u32 %a,%i,3;setp.eq.u32 %b,%i,5;or.pred %a,%a,%b;setp.eq.u32 %b,%i,8;or.pred %a,%a,%b;setp.eq.u32 %b,%i,10;or.pred %a,%a,%b;@%a mov.u32 %length,30;setp.eq.u32 %a,%i,1;@%a mov.u32 %length,%feb;mul.wide.u32 %o,%i,4;add.u64 %p,%out,%o;st.u32 [%p+12],%length;add.u32 %i,%i,1;setp.lt.u32 %a,%i,12;@%a bra MONTH_LENGTH;
+CALENDAR_DAY:setp.eq.u32 %a,%left,0;@%a bra CALENDAR_DONE;add.u32 %day,%day,1;sub.u32 %i,%month,1;mul.wide.u32 %o,%i,4;add.u64 %p,%out,%o;ld.u32 %length,[%p+12];setp.le.u32 %a,%day,%length;@%a bra CALENDAR_NEXT;mov.u32 %day,1;add.u32 %month,%month,1;setp.le.u32 %a,%month,12;@%a bra CALENDAR_NEXT;mov.u32 %month,1;add.u32 %year,%year,1;sub.u32 %left,%left,1;bra BUILD_MONTHS;
+CALENDAR_NEXT:sub.u32 %left,%left,1;bra CALENDAR_DAY;
+CALENDAR_DONE:st.u32 [%out],%day;st.u32 [%out+4],%month;st.u32 [%out+8],%year;ret;}

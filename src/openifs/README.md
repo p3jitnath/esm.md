@@ -184,7 +184,7 @@ The current [autonomous forecast contract](../../skills/md2asm/references/openif
 
 ## GPU extension
 
-The PTX extension has 213 distinct component-qualified originals. Four complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. Those overlapping views do not cover the separate complete-owner and model-history gates. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
+The PTX extension has 219 distinct component-qualified originals. Four complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. Those overlapping views do not cover the separate complete-owner and model-history gates. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
 
 These recent contracts describe complete device stages and their declared limits. Parent and child entries overlap, so their counts must not be added.
 
@@ -204,6 +204,12 @@ These recent contracts describe complete device stages and their declared limits
 | Complete convective cloud ascent | [Cloud ascent](../../skills/md2asm-gpu/references/openifs/physics/convective_cloud_ascent.md) |
 | Complete monthly gas update | [Monthly update](../../skills/md2asm-gpu/references/openifs/physics/monthly_gas_update.md) |
 | Complete monthly ozone update | [Ozone update](../../skills/md2asm-gpu/references/openifs/physics/monthly_ozone_update.md) |
+| Complete Lagrangian Grid Update on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/dynamics/lagrangian_grid_update.md) |
+| Complete Tracer Mass Correction on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/transport/tracer_mass_correction.md) |
+| Complete Aerosol Climatology Preparation on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/radiation/aerosol_climatology_preparation.md) |
+| Complete Monthly Aerosol Update on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/monthly_aerosol_update.md) |
+| Final Convective Fluxes on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/convective_final_flux.md) |
+| Convective Heat and Moisture Tendencies on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/convective_heat_moisture.md) |
 
 ## Local records
 

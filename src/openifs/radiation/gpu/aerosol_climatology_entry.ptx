@@ -1,0 +1,35 @@
+// Contract: skills/md2asm-gpu/references/openifs/radiation/aerosol_climatology_preparation.md.
+// Complete original27-slot selected RADACT entry; skills/md2asm-gpu/references/openifs/physics/aerosol_climatology_preparation.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .u32 error) md2asm_gpu_aerosol_climatology_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 result[64]) md2asm_gpu_aerosol_climatology_values(.param .u64 vector,.param .u64 record,.param .u64 scratch);
+.visible .func md2asm_gpu_aerosol_climatology_fp64(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%scratch,%record,%source,%destination,%position,%pointer,%event,%FAST,%WIDE,%LEGTRI,%SIN,%POWER,%owner,%increment,%oldcounter;
+.reg .u32 %word,%other,%error,%flags,%old;
+.reg .pred %p;
+.param .u64 a,c,s,r;.param .u32 refused;.param .align 8 .b8 returned[64];
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];
+mov.u32 %word,%tid.x;mov.u32 %other,%tid.y;or.b32 %word,%word,%other;mov.u32 %other,%tid.z;or.b32 %word,%word,%other;mov.u32 %other,%ctaid.x;or.b32 %word,%word,%other;mov.u32 %other,%ctaid.y;or.b32 %word,%word,%other;mov.u32 %other,%ctaid.z;or.b32 %word,%word,%other;setp.ne.u32 %p,%word,0;@%p ret;
+setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %scratch,%ctx,7;setp.ne.u64 %p,%scratch,0;@%p ret;ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;mov.u32 %error,7820;
+mov.u32 %word,%ntid.x;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%ntid.y;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%ntid.z;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%nctaid.x;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%nctaid.y;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%nctaid.z;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%dynamic_smem_size;setp.ne.u32 %p,%word,0;@%p bra REFUSE;ld.global.u32 %word,[%ctx+4];setp.ne.u32 %p,%word,1;@%p bra REFUSE;ld.global.u32 %word,[%ctx+12];setp.ne.u32 %p,%word,0;@%p bra REFUSE;
+st.param.u64 [a],%args;st.param.u64 [c],%ctx;call.uni (refused),md2asm_gpu_aerosol_climatology_admit,(a,c);ld.param.u32 %error,[refused];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %scratch,[%ctx+32];ld.global.u64 %record,[%ctx+48];st.param.u64 [a],%args;st.param.u64 [r],%record;st.param.u64 [s],%scratch;call.uni (returned),md2asm_gpu_aerosol_climatology_values,(a,r,s);ld.param.u32 %flags,[returned];ld.param.u32 %error,[returned+4];ld.param.u64 %event,[returned+8];ld.param.u64 %FAST,[returned+16];ld.param.u64 %WIDE,[returned+24];ld.param.u64 %LEGTRI,[returned+32];ld.param.u64 %SIN,[returned+40];ld.param.u64 %POWER,[returned+48];setp.ne.u32 %p,%error,0;@%p bra REFUSE;ld.global.u64 %destination,[%args+184];add.u64 %source,%scratch,8192;mov.u64 %position,0;COMMIT_23:setp.ge.u64 %p,%position,7296;@%p bra COMMIT_DONE_23;add.u64 %pointer,%source,%position;ld.global.u64 %increment,[%pointer];add.u64 %pointer,%destination,%position;st.global.u64 [%pointer],%increment;add.u64 %position,%position,8;bra COMMIT_23;COMMIT_DONE_23:
+ld.global.u64 %destination,[%args+192];add.u64 %source,%scratch,15488;mov.u64 %position,0;COMMIT_24:setp.ge.u64 %p,%position,14592;@%p bra COMMIT_DONE_24;add.u64 %pointer,%source,%position;ld.global.u64 %increment,[%pointer];add.u64 %pointer,%destination,%position;st.global.u64 [%pointer],%increment;add.u64 %position,%position,8;bra COMMIT_24;COMMIT_DONE_24:
+ld.global.u64 %destination,[%args+200];add.u64 %source,%scratch,30080;mov.u64 %position,0;COMMIT_25:setp.ge.u64 %p,%position,1216;@%p bra COMMIT_DONE_25;add.u64 %pointer,%source,%position;ld.global.u64 %increment,[%pointer];add.u64 %pointer,%destination,%position;st.global.u64 [%pointer],%increment;add.u64 %position,%position,8;bra COMMIT_25;COMMIT_DONE_25:
+ld.global.u64 %owner,[%record+32];setp.eq.u64 %p,%owner,0;@%p bra AFTER_FAST;ld.global.u64 %oldcounter,[%owner];add.u64 %oldcounter,%oldcounter,%FAST;st.global.u64 [%owner],%oldcounter;AFTER_FAST:
+ld.global.u64 %owner,[%record+48];setp.eq.u64 %p,%owner,0;@%p bra AFTER_WIDE;ld.global.u64 %oldcounter,[%owner];add.u64 %oldcounter,%oldcounter,%WIDE;st.global.u64 [%owner],%oldcounter;AFTER_WIDE:
+ld.global.u64 %owner,[%record+64];setp.eq.u64 %p,%owner,0;@%p bra COUNTERS_DONE;
+ld.global.u64 %oldcounter,[%owner+0];add.u64 %oldcounter,%oldcounter,%LEGTRI;st.global.u64 [%owner+0],%oldcounter;
+ld.global.u64 %oldcounter,[%owner+8];add.u64 %oldcounter,%oldcounter,%SIN;st.global.u64 [%owner+8],%oldcounter;
+ld.global.u64 %oldcounter,[%owner+16];add.u64 %oldcounter,%oldcounter,%POWER;st.global.u64 [%owner+16],%oldcounter;
+COUNTERS_DONE:ld.global.u32 %old,[%ctx+8];or.b32 %flags,%flags,%old;st.global.u32 [%ctx+8],%flags;setp.eq.u64 %p,%event,0;@%p bra NO_EVENT;st.global.u64 [%ctx+16],%event;NO_EVENT:ret;
+REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+.visible .entry md2asm_gpu_radact(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx;.param .u64 a,c;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];st.param.u64 [a],%args;st.param.u64 [c],%ctx;call.uni md2asm_gpu_aerosol_climatology_fp64,(a,c);ret;
+}

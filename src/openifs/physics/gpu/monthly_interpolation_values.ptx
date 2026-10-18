@@ -1,0 +1,18 @@
+// Contract: skills/md2asm-gpu/references/openifs/physics/monthly_aerosol_update.md.
+// Direct PTX from skills/md2asm-gpu/references/openifs/physics/monthly_aerosol_update.md revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.visible .func (.param .u32 returned) md2asm_gpu_aerosol_monthly_values(.param .u64 input,.param .u64 output,.param .u64 count,.param .u32 first_month,.param .u32 second_month,.param .b64 weight)
+{.reg .u64 %in,%out,%count,%i,%x1,%x2,%o,%p;.reg .u32 %m1,%m2,%flags,%raised;.reg .b64 %a,%b,%v,%w;.reg .pred %q;.param .b64 ma,mb;.param .align 8 .b8 mr[16];
+ld.param.u64 %in,[input];ld.param.u64 %out,[output];ld.param.u64 %count,[count];ld.param.u32 %m1,[first_month];ld.param.u32 %m2,[second_month];ld.param.b64 %w,[weight];mov.u32 %flags,0;sub.u32 %m1,%m1,1;sub.u32 %m2,%m2,1;cvt.u64.u32 %x1,%m1;cvt.u64.u32 %x2,%m2;mul.lo.u64 %x1,%x1,%count;mul.lo.u64 %x2,%x2,%count;shl.b64 %x1,%x1,3;shl.b64 %x2,%x2,3;add.u64 %x1,%in,%x1;add.u64 %x2,%in,%x2;mov.u64 %i,0;
+MONTHLY_POINT:setp.ge.u64 %q,%i,%count;@%q bra MONTHLY_DONE;shl.b64 %o,%i,3;add.u64 %p,%x1,%o;ld.global.b64 %a,[%p];add.u64 %p,%x2,%o;ld.global.b64 %b,[%p];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (mr),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %v,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%v;st.param.b64 [mb],%w;call.uni (mr),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %v,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%b;st.param.b64 [mb],%v;call.uni (mr),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %v,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+add.u64 %p,%out,%o;st.global.b64 [%p],%v;add.u64 %i,%i,1;bra MONTHLY_POINT;MONTHLY_DONE:st.param.u32 [returned],%flags;ret;
+}
