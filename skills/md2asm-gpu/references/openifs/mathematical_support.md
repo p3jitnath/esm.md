@@ -24,7 +24,7 @@ These functions change no global numerical buffer and use no shared storage, bar
 
 ## Further Finite Functions
 
-The [finite mathematical functions contract](finite_mathematical_functions.md) adds an exact integer product sum and a complete finite arctangent. Their private return objects also carry the original helper classification or actual helper-call counts. Use their stated 24-byte and 32-byte interfaces when composing a parent.
+The [finite mathematical functions contract](finite_mathematical_functions.md) adds an exact integer product sum and a complete finite arctangent. Their private return objects also carry the original helper classification or actual helper-call counts. Use their stated 24-byte and 32-byte interfaces when composing a parent. The bounded [sine and cosine](small_angle_projections.md) and [base-ten logarithm](base_ten_logarithm.md) contracts add the same complete result, status and actual-counter interface for their stated input intervals.
 
 ## Numerical Status
 
