@@ -19,11 +19,11 @@ For a complete weather forecast, use the existing theme folders and audit every 
 
 ## Own Complete Updates and Buffers
 
-Keep every numerical stage and required boundary calculation in GPU assembly. The host may load, allocate, transfer, launch, synchronise and store returned bytes. Use an ordered stream for dependencies across the whole grid. A block barrier orders threads within one block, so cross-block consumers require an ordered launch or a proof that all required inputs are already immutable.
+Keep every numerical stage and required boundary calculation in GPU assembly. Compose numerical children as functions called on the GPU. Keep their data dependencies and the declared order of error events. The host may load, allocate, transfer, launch, synchronise and store returned bytes. Use an ordered stream for dependencies across the whole grid. A block barrier orders threads within one block, so cross-block consumers require an ordered launch or a proof that all required inputs are already immutable.
 
 Document each entry’s integer dimensions, device addresses, alignment, extents, alias rules, thread bounds, shared storage and barriers. Preserve both required time stages, zero-step behaviour and the physical input/output buffers for odd and even repeated steps. When fusing a stage, retain the original rounded neighbouring expression or load its completed result. Give each boundary copy one clear owner, including corners and one-cell grids.
 
-On a device with coherent host page tables, verify ordinary host-memory access before moving an existing pointer graph. Assembly can retain its owned records and original addresses when every required device capability and complete allocation lifetime is established. Synchronise before the host reads results, and preserve caller numerical flags across nonnumerical CUDA services. Other devices need explicit device owners and pointer relocation.
+Link each shared GPU function once. When combining modules, confirm that reused function bodies and constant tables match their accepted objects. On a device with coherent host page tables, verify ordinary host-memory access before moving an existing pointer graph. Assembly can retain its owned records and original addresses when every required device capability and complete allocation lifetime is established. Synchronise before the host reads results, and preserve caller numerical flags across nonnumerical CUDA services. Other devices need explicit device owners and pointer relocation.
 
 ## Reuse Work Where Dependencies Permit
 
