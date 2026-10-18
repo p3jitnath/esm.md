@@ -1,0 +1,543 @@
+// skills/md2asm-gpu/references/openifs/radiation/greenhouse_profile_parent.md
+.version 8.5
+.target sm_90
+.address_size 64
+.func (.param .u32 error) greenhouse_owner_range(.param .u64 base,.param .u64 bytes,.param .u64 mask,.param .u64 list,.param .u32 count,.param .u32 skip)
+{
+.reg .u64 %b,%n,%mask,%list,%end,%owner,%size,%stop,%word;.reg .u32 %i,%count,%skip,%error;.reg .pred %p,%q;
+ld.param.u64 %b,[base];ld.param.u64 %n,[bytes];ld.param.u64 %mask,[mask];ld.param.u64 %list,[list];ld.param.u32 %count,[count];ld.param.u32 %skip,[skip];mov.u32 %error,7781;
+setp.eq.u64 %p,%n,0;@%p bra GOOD;setp.eq.u64 %p,%b,0;@%p bra DONE;and.b64 %word,%b,%mask;setp.ne.u64 %p,%word,0;@%p bra DONE;setp.gt.u64 %p,%b,0x7fffffffffffffff;@%p bra DONE;setp.gt.u64 %p,%n,0x7fffffffffffffff;@%p bra DONE;add.u64 %end,%b,%n;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra DONE;mov.u32 %i,0;
+SCAN:setp.ge.u32 %p,%i,%count;@%p bra GOOD;setp.eq.u32 %p,%i,%skip;@%p bra NEXT;ld.u64 %owner,[%list];ld.u64 %size,[%list+8];setp.eq.u64 %p,%size,0;@%p bra NEXT;add.u64 %stop,%owner,%size;setp.lt.u64 %p,%b,%stop;setp.lt.u64 %q,%owner,%end;and.pred %p,%p,%q;@%p bra DONE;
+NEXT:add.u64 %list,%list,16;add.u32 %i,%i,1;bra SCAN;
+GOOD:mov.u32 %error,0;
+DONE:st.param.u32 [error],%error;ret;
+}
+
+
+
+.func (.param .u64 pair) greenhouse_selected_pair(.param .b64 sine_latitude,.param .u64 latitude_table,.param .u64 latitude_count)
+{
+.reg .u64 %mu,%lat,%n,%left,%right,%mk,%lk,%rk,%ptr,%j,%tmp;.reg .pred %p;
+ld.param.b64 %mu,[sine_latitude];ld.param.u64 %lat,[latitude_table];ld.param.u64 %n,[latitude_count];
+and.b64 %tmp,%mu,0x7fffffffffffffff;setp.eq.u64 %p,%tmp,0;@%p mov.u64 %mu,0;setp.lt.s64 %p,%mu,0;@%p not.b64 %mk,%mu;@!%p xor.b64 %mk,%mu,0x8000000000000000;
+sub.u64 %j,%n,2;
+SCAN_PAIR:shl.b64 %tmp,%j,3;add.u64 %ptr,%lat,%tmp;ld.u64 %left,[%ptr];ld.u64 %right,[%ptr+8];
+and.b64 %tmp,%left,0x7fffffffffffffff;setp.eq.u64 %p,%tmp,0;@%p mov.u64 %left,0;setp.lt.s64 %p,%left,0;@%p not.b64 %lk,%left;@!%p xor.b64 %lk,%left,0x8000000000000000;
+and.b64 %tmp,%right,0x7fffffffffffffff;setp.eq.u64 %p,%tmp,0;@%p mov.u64 %right,0;setp.lt.s64 %p,%right,0;@%p not.b64 %rk,%right;@!%p xor.b64 %rk,%right,0x8000000000000000;
+setp.ge.u64 %p,%mk,%lk;@%p bra FOUND;setp.eq.u64 %p,%j,0;@%p bra FOUND;sub.u64 %j,%j,1;bra SCAN_PAIR;
+FOUND:st.param.u64 [pair],%j;ret;
+}
+.extern .func (.param .align 8 .b8 result[64]) md2asm_gpu_surface_descriptor_geometry(.param .u64 descriptor,.param .u32 rank,.param .u32 element_bytes,.param .u64 required0,.param .u64 required1,.param .u64 required2,.param .u32 zero_is_one);
+.visible .func (.param .u32 error) md2asm_gpu_greenhouse_profile_admit(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%record,%provider,%scratch,%need,%v<18>,%P,%N,%NC,%NLAT,%first,%last,%latitudes,%latbase,%latcap,%pressure,%ps,%table,%s1,%s2,%data,%low,%span,%owner,%capacity,%delta,%remain,%list,%bytes,%offset,%ptr,%word,%absolute,%previous,%key,%index,%col,%level,%j,%row,%amount,%suffix,%prefix;
+.reg .s64 %signed;
+.reg .u32 %error,%raised,%count,%contextindex,%scratchindex,%outindex<9>,%code;
+.reg .pred %p;
+.local .align 8 .b8 owners[2048];
+.param .b64 mu;.param .u64 la,ln,pair; .param .u64 rb,rn,rm,rl,gd,g0,g1,g2;.param .u32 rc,rs,rr,gr,ge,gn;.param .align 8 .b8 geometry[64];
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];mov.u64 %list,owners;cvta.local.u64 %list,%list;mov.u32 %count,0;
+
+st.param.u64 [rb],%args;st.param.u64 [rn],144;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%args;st.u64 [%ptr+8],144;add.u32 %count,%count,1;
+mov.u32 %contextindex,%count;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%ctx;st.u64 [%ptr+8],64;add.u32 %count,%count,1;
+ld.u64 %v0,[%args+0];
+st.param.u64 [rb],%v0;st.param.u64 [rn],2040;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v0;st.u64 [%ptr+8],2040;add.u32 %count,%count,1;
+ld.u64 %v2,[%args+16];
+st.param.u64 [rb],%v2;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v2;st.u64 [%ptr+8],4;add.u32 %count,%count,1;
+ld.u64 %v3,[%args+24];
+st.param.u64 [rb],%v3;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v3;st.u64 [%ptr+8],4;add.u32 %count,%count,1;
+ld.u64 %v4,[%args+32];
+st.param.u64 [rb],%v4;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v4;st.u64 [%ptr+8],4;add.u32 %count,%count,1;
+ld.u64 %v5,[%args+40];
+st.param.u64 [rb],%v5;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v5;st.u64 [%ptr+8],4;add.u32 %count,%count,1;
+ld.s32 %signed,[%v2];cvt.u64.s64 %first,%signed;
+ld.s32 %signed,[%v3];cvt.u64.s64 %last,%signed;
+ld.s32 %signed,[%v4];cvt.u64.s64 %P,%signed;
+ld.s32 %signed,[%v5];cvt.u64.s64 %N,%signed;
+mov.u32 %error,7782;setp.lt.u64 %p,%first,1;@%p bra RETURN;
+mov.u32 %error,7782;setp.gt.u64 %p,%first,4097;@%p bra RETURN;
+mov.u32 %error,7782;setp.lt.u64 %p,%last,0;@%p bra RETURN;
+mov.u32 %error,7782;setp.gt.u64 %p,%last,4096;@%p bra RETURN;
+mov.u32 %error,7782;setp.lt.u64 %p,%P,1;@%p bra RETURN;
+mov.u32 %error,7782;setp.gt.u64 %p,%P,4096;@%p bra RETURN;
+mov.u32 %error,7782;setp.lt.u64 %p,%N,0;@%p bra RETURN;
+mov.u32 %error,7782;setp.gt.u64 %p,%N,4096;@%p bra RETURN;
+add.u64 %word,%P,1;
+mov.u32 %error,7782;setp.gt.u64 %p,%first,%word;@%p bra RETURN;
+mov.u32 %error,7782;setp.gt.u64 %p,%last,%P;@%p bra RETURN;
+ld.u32 %code,[%v0+156];
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%contextindex;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+setp.eq.u64 %p,%N,0;@%p bra SUCCESS;setp.gt.u64 %p,%first,%last;@%p bra SUCCESS;ld.u64 %record,[%ctx+48];ld.u64 %bytes,[%ctx+56];
+mov.u32 %error,7783;setp.lt.u64 %p,%bytes,192;@%p bra RETURN;
+st.param.u64 [rb],%record;st.param.u64 [rn],192;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%record;st.u64 [%ptr+8],192;add.u32 %count,%count,1;
+ld.u64 %provider,[%record];ld.u64 %bytes,[%record+8];
+mov.u32 %error,7783;setp.lt.u64 %p,%bytes,928;@%p bra RETURN;
+st.param.u64 [rb],%provider;st.param.u64 [rn],928;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%provider;st.u64 [%ptr+8],928;add.u32 %count,%count,1;
+ld.u64 %latbase,[%record+16];ld.u64 %latcap,[%record+24];
+st.param.u64 [rb],%latbase;st.param.u64 [rn],%latcap;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%latbase;st.u64 [%ptr+8],%latcap;add.u32 %count,%count,1;
+ld.u64 %v8,[%args+64];shl.b64 %bytes,%P,3;
+st.param.u64 [rb],%v8;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v8;st.u64 [%ptr+8],%bytes;add.u32 %count,%count,1;
+ld.u32 %NLAT,[%provider+920];
+mov.u32 %error,7782;setp.lt.u64 %p,%NLAT,2;@%p bra RETURN;
+mov.u32 %error,7782;setp.gt.u64 %p,%NLAT,4096;@%p bra RETURN;
+mov.u64 %owner,%latbase;mov.u64 %capacity,%latcap;
+st.param.u64 [gd],%provider;st.param.u32 [gr],1;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],0;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+mov.u64 %latitudes,%data;shl.b64 %bytes,%NLAT,3;
+st.param.u64 [rb],%latitudes;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+sub.u64 %delta,%latitudes,%latbase;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%latcap;@%p bra RETURN;
+sub.u64 %remain,%latcap,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%bytes;@%p bra RETURN;
+shl.b64 %need,%P,2;add.u64 %need,%need,15;and.b64 %need,%need,0xfffffffffffffff0;shl.b64 %bytes,%P,3;add.u64 %bytes,%bytes,15;and.b64 %bytes,%bytes,0xfffffffffffffff0;add.u64 %need,%need,%bytes;add.u64 %need,%need,96;setp.lt.s32 %p,%code,1;@%p bra SCRATCH_SIZE_READY;ld.u32 %NC,[%provider+924];
+mov.u32 %error,7782;setp.lt.u64 %p,%NC,1;@%p bra RETURN;
+mov.u32 %error,7782;setp.gt.u64 %p,%NC,4096;@%p bra RETURN;
+add.u64 %bytes,%NC,1;shl.b64 %bytes,%bytes,3;add.u64 %need,%need,%bytes;
+SCRATCH_SIZE_READY:ld.u64 %scratch,[%ctx+32];ld.u64 %bytes,[%ctx+40];
+mov.u32 %error,7783;setp.lt.u64 %p,%bytes,%need;@%p bra RETURN;
+mov.u32 %scratchindex,%count;
+st.param.u64 [rb],%scratch;st.param.u64 [rn],%need;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%scratch;st.u64 [%ptr+8],%need;add.u32 %count,%count,1;
+setp.lt.s32 %p,%code,1;@%p bra OWNERS_READY;ld.u64 %v7,[%args+56];add.u64 %bytes,%N,1;mul.lo.u64 %bytes,%bytes,%P;shl.b64 %bytes,%bytes,3;
+st.param.u64 [rb],%v7;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v7;st.u64 [%ptr+8],%bytes;add.u32 %count,%count,1;
+ld.u64 %owner,[%record+32];ld.u64 %capacity,[%record+40];
+st.param.u64 [rb],%owner;st.param.u64 [rn],%capacity;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%owner;st.u64 [%ptr+8],%capacity;add.u32 %count,%count,1;
+add.u64 %table,%provider,64;add.u64 %bytes,%NC,1;
+st.param.u64 [gd],%table;st.param.u32 [gr],1;st.param.u32 [ge],8;st.param.u64 [g0],%bytes;st.param.u64 [g1],0;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+mov.u64 %pressure,%data;mov.u64 %ps,%s1;
+setp.eq.u32 %p,%code,1;@%p bra OWNER_1;setp.ge.s32 %p,%code,10;@%p bra OWNER_1;
+bra OWNER_AFTER_1;
+OWNER_1:ld.u64 %owner,[%record+48];ld.u64 %capacity,[%record+56];
+st.param.u64 [rb],%owner;st.param.u64 [rn],%capacity;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%owner;st.u64 [%ptr+8],%capacity;add.u32 %count,%count,1;
+add.u64 %table,%provider,216;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+ld.u64 %v9,[%args+72];mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;mov.u32 %outindex0,%count;
+st.param.u64 [rb],%v9;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v9;st.u64 [%ptr+8],%bytes;add.u32 %count,%count,1;
+OWNER_AFTER_1:
+setp.eq.u32 %p,%code,2;@%p bra OWNER_2;setp.ge.s32 %p,%code,11;@%p bra OWNER_2;
+bra OWNER_AFTER_2;
+OWNER_2:ld.u64 %owner,[%record+64];ld.u64 %capacity,[%record+72];
+st.param.u64 [rb],%owner;st.param.u64 [rn],%capacity;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%owner;st.u64 [%ptr+8],%capacity;add.u32 %count,%count,1;
+add.u64 %table,%provider,128;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+ld.u64 %v10,[%args+80];mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;mov.u32 %outindex1,%count;
+st.param.u64 [rb],%v10;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v10;st.u64 [%ptr+8],%bytes;add.u32 %count,%count,1;
+OWNER_AFTER_2:
+setp.eq.u32 %p,%code,3;@%p bra OWNER_3;setp.ge.s32 %p,%code,12;@%p bra OWNER_3;
+bra OWNER_AFTER_3;
+OWNER_3:ld.u64 %owner,[%record+80];ld.u64 %capacity,[%record+88];
+st.param.u64 [rb],%owner;st.param.u64 [rn],%capacity;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%owner;st.u64 [%ptr+8],%capacity;add.u32 %count,%count,1;
+add.u64 %table,%provider,304;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+ld.u64 %v11,[%args+88];mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;mov.u32 %outindex2,%count;
+st.param.u64 [rb],%v11;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v11;st.u64 [%ptr+8],%bytes;add.u32 %count,%count,1;
+OWNER_AFTER_3:
+setp.eq.u32 %p,%code,4;@%p bra OWNER_4;setp.ge.s32 %p,%code,20;@%p bra OWNER_4;
+bra OWNER_AFTER_4;
+OWNER_4:ld.u64 %owner,[%record+96];ld.u64 %capacity,[%record+104];
+st.param.u64 [rb],%owner;st.param.u64 [rn],%capacity;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%owner;st.u64 [%ptr+8],%capacity;add.u32 %count,%count,1;
+add.u64 %table,%provider,392;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+ld.u64 %v12,[%args+96];mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;mov.u32 %outindex3,%count;
+st.param.u64 [rb],%v12;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v12;st.u64 [%ptr+8],%bytes;add.u32 %count,%count,1;
+OWNER_AFTER_4:
+setp.eq.u32 %p,%code,5;@%p bra OWNER_5;setp.ge.s32 %p,%code,15;@%p bra OWNER_5;
+bra OWNER_AFTER_5;
+OWNER_5:ld.u64 %owner,[%record+112];ld.u64 %capacity,[%record+120];
+st.param.u64 [rb],%owner;st.param.u64 [rn],%capacity;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%owner;st.u64 [%ptr+8],%capacity;add.u32 %count,%count,1;
+add.u64 %table,%provider,480;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+ld.u64 %v13,[%args+104];mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;mov.u32 %outindex4,%count;
+st.param.u64 [rb],%v13;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v13;st.u64 [%ptr+8],%bytes;add.u32 %count,%count,1;
+OWNER_AFTER_5:
+setp.eq.u32 %p,%code,6;@%p bra OWNER_6;setp.ge.s32 %p,%code,16;@%p bra OWNER_6;
+bra OWNER_AFTER_6;
+OWNER_6:ld.u64 %owner,[%record+128];ld.u64 %capacity,[%record+136];
+st.param.u64 [rb],%owner;st.param.u64 [rn],%capacity;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%owner;st.u64 [%ptr+8],%capacity;add.u32 %count,%count,1;
+add.u64 %table,%provider,568;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+ld.u64 %v14,[%args+112];mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;mov.u32 %outindex5,%count;
+st.param.u64 [rb],%v14;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v14;st.u64 [%ptr+8],%bytes;add.u32 %count,%count,1;
+OWNER_AFTER_6:
+setp.eq.u32 %p,%code,7;@%p bra OWNER_7;setp.ge.s32 %p,%code,21;@%p bra OWNER_7;
+setp.eq.u32 %p,%code,17;@%p bra OWNER_7;
+bra OWNER_AFTER_7;
+OWNER_7:ld.u64 %owner,[%record+144];ld.u64 %capacity,[%record+152];
+st.param.u64 [rb],%owner;st.param.u64 [rn],%capacity;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%owner;st.u64 [%ptr+8],%capacity;add.u32 %count,%count,1;
+add.u64 %table,%provider,832;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+ld.u64 %v15,[%args+120];mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;mov.u32 %outindex6,%count;
+st.param.u64 [rb],%v15;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v15;st.u64 [%ptr+8],%bytes;add.u32 %count,%count,1;
+OWNER_AFTER_7:
+setp.eq.u32 %p,%code,8;@%p bra OWNER_8;setp.ge.s32 %p,%code,18;@%p bra OWNER_8;
+bra OWNER_AFTER_8;
+OWNER_8:ld.u64 %owner,[%record+160];ld.u64 %capacity,[%record+168];
+st.param.u64 [rb],%owner;st.param.u64 [rn],%capacity;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%owner;st.u64 [%ptr+8],%capacity;add.u32 %count,%count,1;
+add.u64 %table,%provider,744;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+ld.u64 %v16,[%args+128];mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;mov.u32 %outindex7,%count;
+st.param.u64 [rb],%v16;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v16;st.u64 [%ptr+8],%bytes;add.u32 %count,%count,1;
+OWNER_AFTER_8:
+setp.eq.u32 %p,%code,9;@%p bra OWNER_9;setp.ge.s32 %p,%code,19;@%p bra OWNER_9;
+bra OWNER_AFTER_9;
+OWNER_9:ld.u64 %owner,[%record+176];ld.u64 %capacity,[%record+184];
+st.param.u64 [rb],%owner;st.param.u64 [rn],%capacity;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%owner;st.u64 [%ptr+8],%capacity;add.u32 %count,%count,1;
+add.u64 %table,%provider,656;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+ld.u64 %v17,[%args+136];mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;mov.u32 %outindex8,%count;
+st.param.u64 [rb],%v17;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v17;st.u64 [%ptr+8],%bytes;add.u32 %count,%count,1;
+OWNER_AFTER_9:
+OWNERS_READY:
+st.param.u64 [rb],%scratch;st.param.u64 [rn],%need;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%scratchindex;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%contextindex;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+setp.eq.u32 %p,%code,1;@%p bra CHECK_OUTPUT_1;setp.ge.s32 %p,%code,10;@%p bra CHECK_OUTPUT_1;
+bra OUTPUT_AFTER_1;
+CHECK_OUTPUT_1:mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;
+st.param.u64 [rb],%v9;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%outindex0;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+OUTPUT_AFTER_1:
+setp.eq.u32 %p,%code,2;@%p bra CHECK_OUTPUT_2;setp.ge.s32 %p,%code,11;@%p bra CHECK_OUTPUT_2;
+bra OUTPUT_AFTER_2;
+CHECK_OUTPUT_2:mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;
+st.param.u64 [rb],%v10;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%outindex1;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+OUTPUT_AFTER_2:
+setp.eq.u32 %p,%code,3;@%p bra CHECK_OUTPUT_3;setp.ge.s32 %p,%code,12;@%p bra CHECK_OUTPUT_3;
+bra OUTPUT_AFTER_3;
+CHECK_OUTPUT_3:mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;
+st.param.u64 [rb],%v11;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%outindex2;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+OUTPUT_AFTER_3:
+setp.eq.u32 %p,%code,4;@%p bra CHECK_OUTPUT_4;setp.ge.s32 %p,%code,20;@%p bra CHECK_OUTPUT_4;
+bra OUTPUT_AFTER_4;
+CHECK_OUTPUT_4:mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;
+st.param.u64 [rb],%v12;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%outindex3;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+OUTPUT_AFTER_4:
+setp.eq.u32 %p,%code,5;@%p bra CHECK_OUTPUT_5;setp.ge.s32 %p,%code,15;@%p bra CHECK_OUTPUT_5;
+bra OUTPUT_AFTER_5;
+CHECK_OUTPUT_5:mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;
+st.param.u64 [rb],%v13;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%outindex4;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+OUTPUT_AFTER_5:
+setp.eq.u32 %p,%code,6;@%p bra CHECK_OUTPUT_6;setp.ge.s32 %p,%code,16;@%p bra CHECK_OUTPUT_6;
+bra OUTPUT_AFTER_6;
+CHECK_OUTPUT_6:mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;
+st.param.u64 [rb],%v14;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%outindex5;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+OUTPUT_AFTER_6:
+setp.eq.u32 %p,%code,7;@%p bra CHECK_OUTPUT_7;setp.ge.s32 %p,%code,21;@%p bra CHECK_OUTPUT_7;
+setp.eq.u32 %p,%code,17;@%p bra CHECK_OUTPUT_7;
+bra OUTPUT_AFTER_7;
+CHECK_OUTPUT_7:mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;
+st.param.u64 [rb],%v15;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%outindex6;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+OUTPUT_AFTER_7:
+setp.eq.u32 %p,%code,8;@%p bra CHECK_OUTPUT_8;setp.ge.s32 %p,%code,18;@%p bra CHECK_OUTPUT_8;
+bra OUTPUT_AFTER_8;
+CHECK_OUTPUT_8:mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;
+st.param.u64 [rb],%v16;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%outindex7;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+OUTPUT_AFTER_8:
+setp.eq.u32 %p,%code,9;@%p bra CHECK_OUTPUT_9;setp.ge.s32 %p,%code,19;@%p bra CHECK_OUTPUT_9;
+bra OUTPUT_AFTER_9;
+CHECK_OUTPUT_9:mul.lo.u64 %bytes,%P,%N;shl.b64 %bytes,%bytes,3;
+st.param.u64 [rb],%v17;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%outindex8;call.uni (rr),greenhouse_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+OUTPUT_AFTER_9:
+mov.u64 %j,0;LATITUDE_COORDINATES:shl.b64 %offset,%j,3;add.u64 %ptr,%latitudes,%offset;ld.u64 %word,[%ptr];
+and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7784;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p mov.u64 %word,0;setp.lt.s64 %p,%word,0;@%p not.b64 %key,%word;@!%p xor.b64 %key,%word,0x8000000000000000;
+setp.eq.u64 %p,%j,0;@%p bra LATITUDE_OK;
+mov.u32 %error,7784;setp.le.u64 %p,%key,%previous;@%p bra RETURN;
+LATITUDE_OK:mov.u64 %previous,%key;add.u64 %j,%j,1;setp.lt.u64 %p,%j,%NLAT;@%p bra LATITUDE_COORDINATES;sub.u64 %col,%first,1;
+LATITUDE_INPUTS:setp.ge.u64 %p,%col,%last;@%p bra AFTER_LATITUDE_INPUTS;shl.b64 %offset,%col,3;add.u64 %ptr,%v8,%offset;ld.u64 %word,[%ptr];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7784;setp.gt.u64 %p,%absolute,0x3ff0000000000000;@%p bra RETURN;
+add.u64 %col,%col,1;bra LATITUDE_INPUTS;
+AFTER_LATITUDE_INPUTS:setp.lt.s32 %p,%code,1;@%p bra SUCCESS;mov.u64 %level,0;
+CLIMATE_PRESSURES:mul.lo.u64 %offset,%level,%ps;add.u64 %ptr,%pressure,%offset;ld.u64 %word,[%ptr];
+and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7784;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p bra CLIMATE_NONNEGATIVE;
+mov.u32 %error,7784;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra RETURN;
+CLIMATE_NONNEGATIVE:
+setp.eq.u64 %p,%level,0;@%p bra CLIMATE_TOP;
+mov.u32 %error,7784;setp.le.u64 %p,%word,%previous;@%p bra RETURN;
+bra CLIMATE_OK;CLIMATE_TOP:
+mov.u32 %error,7784;setp.ne.u64 %p,%absolute,0;@%p bra RETURN;
+mov.u64 %word,0;CLIMATE_OK:mov.u64 %previous,%word;add.u64 %level,%level,1;setp.le.u64 %p,%level,%NC;@%p bra CLIMATE_PRESSURES;sub.u64 %col,%first,1;
+MODEL_COLUMN:setp.ge.u64 %p,%col,%last;@%p bra AMOUNTS;mov.u64 %level,0;
+MODEL_PRESSURE:mad.lo.u64 %index,%level,%P,%col;shl.b64 %offset,%index,3;add.u64 %ptr,%v7,%offset;ld.u64 %word,[%ptr];
+and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7784;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p bra MODEL_NONNEGATIVE;
+mov.u32 %error,7784;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra RETURN;
+MODEL_NONNEGATIVE:
+setp.eq.u64 %p,%level,0;@%p bra MODEL_TOP;
+mov.u32 %error,7784;setp.le.u64 %p,%word,%previous;@%p bra RETURN;
+bra MODEL_OK;MODEL_TOP:
+mov.u32 %error,7784;setp.ne.u64 %p,%absolute,0;@%p bra RETURN;
+mov.u64 %word,0;MODEL_OK:mov.u64 %previous,%word;add.u64 %level,%level,1;setp.le.u64 %p,%level,%N;@%p bra MODEL_PRESSURE;add.u64 %col,%col,1;bra MODEL_COLUMN;
+AMOUNTS:
+setp.eq.u32 %p,%code,1;@%p bra AMOUNT_1;setp.ge.s32 %p,%code,10;@%p bra AMOUNT_1;
+bra AMOUNT_AFTER_1;
+AMOUNT_1:ld.u64 %owner,[%record+48];ld.u64 %capacity,[%record+56];add.u64 %table,%provider,216;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+sub.u64 %col,%first,1;
+AMOUNT_COLUMN_1:shl.b64 %offset,%col,3;add.u64 %ptr,%v8,%offset;ld.u64 %word,[%ptr];st.param.b64 [mu],%word;st.param.u64 [la],%latitudes;st.param.u64 [ln],%NLAT;call.uni (pair),greenhouse_selected_pair,(mu,la,ln);ld.param.u64 %row,[pair];mov.u64 %level,0;
+AMOUNT_LEVEL_1:mov.u64 %j,0;
+AMOUNT_PAIR_1:add.u64 %index,%row,%j;mul.lo.u64 %offset,%level,%s2;mul.lo.u64 %delta,%index,%s1;add.u64 %offset,%offset,%delta;add.u64 %ptr,%data,%offset;ld.u64 %word,[%ptr];
+and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7784;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p bra AMOUNT_NONNEGATIVE_1;
+mov.u32 %error,7784;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra RETURN;
+AMOUNT_NONNEGATIVE_1:
+add.u64 %j,%j,1;setp.lt.u64 %p,%j,2;@%p bra AMOUNT_PAIR_1;add.u64 %level,%level,1;setp.lt.u64 %p,%level,%NC;@%p bra AMOUNT_LEVEL_1;add.u64 %col,%col,1;setp.lt.u64 %p,%col,%last;@%p bra AMOUNT_COLUMN_1;
+AMOUNT_AFTER_1:
+setp.eq.u32 %p,%code,2;@%p bra AMOUNT_2;setp.ge.s32 %p,%code,11;@%p bra AMOUNT_2;
+bra AMOUNT_AFTER_2;
+AMOUNT_2:ld.u64 %owner,[%record+64];ld.u64 %capacity,[%record+72];add.u64 %table,%provider,128;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+sub.u64 %col,%first,1;
+AMOUNT_COLUMN_2:shl.b64 %offset,%col,3;add.u64 %ptr,%v8,%offset;ld.u64 %word,[%ptr];st.param.b64 [mu],%word;st.param.u64 [la],%latitudes;st.param.u64 [ln],%NLAT;call.uni (pair),greenhouse_selected_pair,(mu,la,ln);ld.param.u64 %row,[pair];mov.u64 %level,0;
+AMOUNT_LEVEL_2:mov.u64 %j,0;
+AMOUNT_PAIR_2:add.u64 %index,%row,%j;mul.lo.u64 %offset,%level,%s2;mul.lo.u64 %delta,%index,%s1;add.u64 %offset,%offset,%delta;add.u64 %ptr,%data,%offset;ld.u64 %word,[%ptr];
+and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7784;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p bra AMOUNT_NONNEGATIVE_2;
+mov.u32 %error,7784;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra RETURN;
+AMOUNT_NONNEGATIVE_2:
+add.u64 %j,%j,1;setp.lt.u64 %p,%j,2;@%p bra AMOUNT_PAIR_2;add.u64 %level,%level,1;setp.lt.u64 %p,%level,%NC;@%p bra AMOUNT_LEVEL_2;add.u64 %col,%col,1;setp.lt.u64 %p,%col,%last;@%p bra AMOUNT_COLUMN_2;
+AMOUNT_AFTER_2:
+setp.eq.u32 %p,%code,3;@%p bra AMOUNT_3;setp.ge.s32 %p,%code,12;@%p bra AMOUNT_3;
+bra AMOUNT_AFTER_3;
+AMOUNT_3:ld.u64 %owner,[%record+80];ld.u64 %capacity,[%record+88];add.u64 %table,%provider,304;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+sub.u64 %col,%first,1;
+AMOUNT_COLUMN_3:shl.b64 %offset,%col,3;add.u64 %ptr,%v8,%offset;ld.u64 %word,[%ptr];st.param.b64 [mu],%word;st.param.u64 [la],%latitudes;st.param.u64 [ln],%NLAT;call.uni (pair),greenhouse_selected_pair,(mu,la,ln);ld.param.u64 %row,[pair];mov.u64 %level,0;
+AMOUNT_LEVEL_3:mov.u64 %j,0;
+AMOUNT_PAIR_3:add.u64 %index,%row,%j;mul.lo.u64 %offset,%level,%s2;mul.lo.u64 %delta,%index,%s1;add.u64 %offset,%offset,%delta;add.u64 %ptr,%data,%offset;ld.u64 %word,[%ptr];
+and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7784;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p bra AMOUNT_NONNEGATIVE_3;
+mov.u32 %error,7784;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra RETURN;
+AMOUNT_NONNEGATIVE_3:
+add.u64 %j,%j,1;setp.lt.u64 %p,%j,2;@%p bra AMOUNT_PAIR_3;add.u64 %level,%level,1;setp.lt.u64 %p,%level,%NC;@%p bra AMOUNT_LEVEL_3;add.u64 %col,%col,1;setp.lt.u64 %p,%col,%last;@%p bra AMOUNT_COLUMN_3;
+AMOUNT_AFTER_3:
+setp.eq.u32 %p,%code,4;@%p bra AMOUNT_4;setp.ge.s32 %p,%code,20;@%p bra AMOUNT_4;
+bra AMOUNT_AFTER_4;
+AMOUNT_4:ld.u64 %owner,[%record+96];ld.u64 %capacity,[%record+104];add.u64 %table,%provider,392;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+sub.u64 %col,%first,1;
+AMOUNT_COLUMN_4:shl.b64 %offset,%col,3;add.u64 %ptr,%v8,%offset;ld.u64 %word,[%ptr];st.param.b64 [mu],%word;st.param.u64 [la],%latitudes;st.param.u64 [ln],%NLAT;call.uni (pair),greenhouse_selected_pair,(mu,la,ln);ld.param.u64 %row,[pair];mov.u64 %level,0;
+AMOUNT_LEVEL_4:mov.u64 %j,0;
+AMOUNT_PAIR_4:add.u64 %index,%row,%j;mul.lo.u64 %offset,%level,%s2;mul.lo.u64 %delta,%index,%s1;add.u64 %offset,%offset,%delta;add.u64 %ptr,%data,%offset;ld.u64 %word,[%ptr];
+and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7784;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p bra AMOUNT_NONNEGATIVE_4;
+mov.u32 %error,7784;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra RETURN;
+AMOUNT_NONNEGATIVE_4:
+add.u64 %j,%j,1;setp.lt.u64 %p,%j,2;@%p bra AMOUNT_PAIR_4;add.u64 %level,%level,1;setp.lt.u64 %p,%level,%NC;@%p bra AMOUNT_LEVEL_4;add.u64 %col,%col,1;setp.lt.u64 %p,%col,%last;@%p bra AMOUNT_COLUMN_4;
+AMOUNT_AFTER_4:
+setp.eq.u32 %p,%code,5;@%p bra AMOUNT_5;setp.ge.s32 %p,%code,15;@%p bra AMOUNT_5;
+bra AMOUNT_AFTER_5;
+AMOUNT_5:ld.u64 %owner,[%record+112];ld.u64 %capacity,[%record+120];add.u64 %table,%provider,480;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+sub.u64 %col,%first,1;
+AMOUNT_COLUMN_5:shl.b64 %offset,%col,3;add.u64 %ptr,%v8,%offset;ld.u64 %word,[%ptr];st.param.b64 [mu],%word;st.param.u64 [la],%latitudes;st.param.u64 [ln],%NLAT;call.uni (pair),greenhouse_selected_pair,(mu,la,ln);ld.param.u64 %row,[pair];mov.u64 %level,0;
+AMOUNT_LEVEL_5:mov.u64 %j,0;
+AMOUNT_PAIR_5:add.u64 %index,%row,%j;mul.lo.u64 %offset,%level,%s2;mul.lo.u64 %delta,%index,%s1;add.u64 %offset,%offset,%delta;add.u64 %ptr,%data,%offset;ld.u64 %word,[%ptr];
+and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7784;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p bra AMOUNT_NONNEGATIVE_5;
+mov.u32 %error,7784;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra RETURN;
+AMOUNT_NONNEGATIVE_5:
+add.u64 %j,%j,1;setp.lt.u64 %p,%j,2;@%p bra AMOUNT_PAIR_5;add.u64 %level,%level,1;setp.lt.u64 %p,%level,%NC;@%p bra AMOUNT_LEVEL_5;add.u64 %col,%col,1;setp.lt.u64 %p,%col,%last;@%p bra AMOUNT_COLUMN_5;
+AMOUNT_AFTER_5:
+setp.eq.u32 %p,%code,6;@%p bra AMOUNT_6;setp.ge.s32 %p,%code,16;@%p bra AMOUNT_6;
+bra AMOUNT_AFTER_6;
+AMOUNT_6:ld.u64 %owner,[%record+128];ld.u64 %capacity,[%record+136];add.u64 %table,%provider,568;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+sub.u64 %col,%first,1;
+AMOUNT_COLUMN_6:shl.b64 %offset,%col,3;add.u64 %ptr,%v8,%offset;ld.u64 %word,[%ptr];st.param.b64 [mu],%word;st.param.u64 [la],%latitudes;st.param.u64 [ln],%NLAT;call.uni (pair),greenhouse_selected_pair,(mu,la,ln);ld.param.u64 %row,[pair];mov.u64 %level,0;
+AMOUNT_LEVEL_6:mov.u64 %j,0;
+AMOUNT_PAIR_6:add.u64 %index,%row,%j;mul.lo.u64 %offset,%level,%s2;mul.lo.u64 %delta,%index,%s1;add.u64 %offset,%offset,%delta;add.u64 %ptr,%data,%offset;ld.u64 %word,[%ptr];
+and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7784;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p bra AMOUNT_NONNEGATIVE_6;
+mov.u32 %error,7784;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra RETURN;
+AMOUNT_NONNEGATIVE_6:
+add.u64 %j,%j,1;setp.lt.u64 %p,%j,2;@%p bra AMOUNT_PAIR_6;add.u64 %level,%level,1;setp.lt.u64 %p,%level,%NC;@%p bra AMOUNT_LEVEL_6;add.u64 %col,%col,1;setp.lt.u64 %p,%col,%last;@%p bra AMOUNT_COLUMN_6;
+AMOUNT_AFTER_6:
+setp.eq.u32 %p,%code,7;@%p bra AMOUNT_7;setp.ge.s32 %p,%code,21;@%p bra AMOUNT_7;
+setp.eq.u32 %p,%code,17;@%p bra AMOUNT_7;
+bra AMOUNT_AFTER_7;
+AMOUNT_7:ld.u64 %owner,[%record+144];ld.u64 %capacity,[%record+152];add.u64 %table,%provider,832;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+sub.u64 %col,%first,1;
+AMOUNT_COLUMN_7:shl.b64 %offset,%col,3;add.u64 %ptr,%v8,%offset;ld.u64 %word,[%ptr];st.param.b64 [mu],%word;st.param.u64 [la],%latitudes;st.param.u64 [ln],%NLAT;call.uni (pair),greenhouse_selected_pair,(mu,la,ln);ld.param.u64 %row,[pair];mov.u64 %level,0;
+AMOUNT_LEVEL_7:mov.u64 %j,0;
+AMOUNT_PAIR_7:add.u64 %index,%row,%j;mul.lo.u64 %offset,%level,%s2;mul.lo.u64 %delta,%index,%s1;add.u64 %offset,%offset,%delta;add.u64 %ptr,%data,%offset;ld.u64 %word,[%ptr];
+and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7784;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p bra AMOUNT_NONNEGATIVE_7;
+mov.u32 %error,7784;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra RETURN;
+AMOUNT_NONNEGATIVE_7:
+add.u64 %j,%j,1;setp.lt.u64 %p,%j,2;@%p bra AMOUNT_PAIR_7;add.u64 %level,%level,1;setp.lt.u64 %p,%level,%NC;@%p bra AMOUNT_LEVEL_7;add.u64 %col,%col,1;setp.lt.u64 %p,%col,%last;@%p bra AMOUNT_COLUMN_7;
+AMOUNT_AFTER_7:
+setp.eq.u32 %p,%code,8;@%p bra AMOUNT_8;setp.ge.s32 %p,%code,18;@%p bra AMOUNT_8;
+bra AMOUNT_AFTER_8;
+AMOUNT_8:ld.u64 %owner,[%record+160];ld.u64 %capacity,[%record+168];add.u64 %table,%provider,744;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+sub.u64 %col,%first,1;
+AMOUNT_COLUMN_8:shl.b64 %offset,%col,3;add.u64 %ptr,%v8,%offset;ld.u64 %word,[%ptr];st.param.b64 [mu],%word;st.param.u64 [la],%latitudes;st.param.u64 [ln],%NLAT;call.uni (pair),greenhouse_selected_pair,(mu,la,ln);ld.param.u64 %row,[pair];mov.u64 %level,0;
+AMOUNT_LEVEL_8:mov.u64 %j,0;
+AMOUNT_PAIR_8:add.u64 %index,%row,%j;mul.lo.u64 %offset,%level,%s2;mul.lo.u64 %delta,%index,%s1;add.u64 %offset,%offset,%delta;add.u64 %ptr,%data,%offset;ld.u64 %word,[%ptr];
+and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7784;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p bra AMOUNT_NONNEGATIVE_8;
+mov.u32 %error,7784;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra RETURN;
+AMOUNT_NONNEGATIVE_8:
+add.u64 %j,%j,1;setp.lt.u64 %p,%j,2;@%p bra AMOUNT_PAIR_8;add.u64 %level,%level,1;setp.lt.u64 %p,%level,%NC;@%p bra AMOUNT_LEVEL_8;add.u64 %col,%col,1;setp.lt.u64 %p,%col,%last;@%p bra AMOUNT_COLUMN_8;
+AMOUNT_AFTER_8:
+setp.eq.u32 %p,%code,9;@%p bra AMOUNT_9;setp.ge.s32 %p,%code,19;@%p bra AMOUNT_9;
+bra AMOUNT_AFTER_9;
+AMOUNT_9:ld.u64 %owner,[%record+176];ld.u64 %capacity,[%record+184];add.u64 %table,%provider,656;
+st.param.u64 [gd],%table;st.param.u32 [gr],2;st.param.u32 [ge],8;st.param.u64 [g0],%NLAT;st.param.u64 [g1],%NC;st.param.u64 [g2],0;st.param.u32 [gn],1;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,g0,g1,g2,gn);ld.param.u64 %data,[geometry];ld.param.u64 %s1,[geometry+8];ld.param.u64 %s2,[geometry+16];ld.param.u64 %low,[geometry+32];ld.param.u64 %span,[geometry+40];ld.param.u32 %raised,[geometry+48];
+mov.u32 %error,7782;setp.ne.u32 %p,%raised,0;@%p bra RETURN;
+sub.u64 %delta,%low,%owner;
+mov.u32 %error,7783;setp.gt.u64 %p,%delta,%capacity;@%p bra RETURN;
+sub.u64 %remain,%capacity,%delta;
+mov.u32 %error,7783;setp.lt.u64 %p,%remain,%span;@%p bra RETURN;
+sub.u64 %col,%first,1;
+AMOUNT_COLUMN_9:shl.b64 %offset,%col,3;add.u64 %ptr,%v8,%offset;ld.u64 %word,[%ptr];st.param.b64 [mu],%word;st.param.u64 [la],%latitudes;st.param.u64 [ln],%NLAT;call.uni (pair),greenhouse_selected_pair,(mu,la,ln);ld.param.u64 %row,[pair];mov.u64 %level,0;
+AMOUNT_LEVEL_9:mov.u64 %j,0;
+AMOUNT_PAIR_9:add.u64 %index,%row,%j;mul.lo.u64 %offset,%level,%s2;mul.lo.u64 %delta,%index,%s1;add.u64 %offset,%offset,%delta;add.u64 %ptr,%data,%offset;ld.u64 %word,[%ptr];
+and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7784;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+setp.eq.u64 %p,%absolute,0;@%p bra AMOUNT_NONNEGATIVE_9;
+mov.u32 %error,7784;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p bra RETURN;
+AMOUNT_NONNEGATIVE_9:
+add.u64 %j,%j,1;setp.lt.u64 %p,%j,2;@%p bra AMOUNT_PAIR_9;add.u64 %level,%level,1;setp.lt.u64 %p,%level,%NC;@%p bra AMOUNT_LEVEL_9;add.u64 %col,%col,1;setp.lt.u64 %p,%col,%last;@%p bra AMOUNT_COLUMN_9;
+AMOUNT_AFTER_9:
+SUCCESS:mov.u32 %error,0;
+RETURN:st.param.u32 [error],%error;ret;
+}

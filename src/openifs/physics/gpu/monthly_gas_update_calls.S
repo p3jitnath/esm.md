@@ -1,0 +1,565 @@
+/* skills/md2asm-gpu/references/openifs/physics/monthly_gas_update.md */
+.arch armv8-a
+.text
+.p2align 4
+.macro monthly_service target
+ bl \target
+ ldr x18,[sp,#96]
+.endm
+.global md2asm_gpu_host_monthly_gas_update
+.type md2asm_gpu_host_monthly_gas_update,%function
+#ifndef MD2ASM_GPU_VERIFY_ONLY
+.global md2asm_upd_ghgclim
+.type md2asm_upd_ghgclim,%function
+md2asm_upd_ghgclim:
+#endif
+md2asm_gpu_host_monthly_gas_update:
+ sub sp,sp,#1024
+ stp x29,x30,[sp]
+ mov x29,sp
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ stp x0,x1,[sp,#128]
+ stp x2,x3,[sp,#144]
+ stp x4,x5,[sp,#160]
+ add x19,sp,#128
+ add x20,sp,#192
+ add x21,sp,#256
+ mrs x8,fpcr
+ mrs x9,fpsr
+ stp x8,x9,[sp,#104]
+ cbnz x8,.Lmonthly_failure
+ monthly_service __errno_location
+ mov x22,x0
+ ldr w8,[x22]
+ str w8,[sp,#120]
+ monthly_service omp_in_parallel
+ cbnz w0,.Lmonthly_failure
+ monthly_service md2asm_openifs_gpu_prepare
+ cbnz w0,.Lmonthly_failure
+
+stp xzr,xzr,[x20,#0]
+stp xzr,xzr,[x20,#16]
+stp xzr,xzr,[x20,#32]
+stp xzr,xzr,[x20,#48]
+stp xzr,xzr,[x21,#0]
+stp xzr,xzr,[x21,#16]
+stp xzr,xzr,[x21,#32]
+stp xzr,xzr,[x21,#48]
+stp xzr,xzr,[x21,#64]
+stp xzr,xzr,[x21,#80]
+stp xzr,xzr,[x21,#96]
+stp xzr,xzr,[x21,#112]
+stp xzr,xzr,[x21,#128]
+stp xzr,xzr,[x21,#144]
+stp xzr,xzr,[x21,#160]
+stp xzr,xzr,[x21,#176]
+stp xzr,xzr,[x21,#192]
+stp xzr,xzr,[x21,#208]
+stp xzr,xzr,[x21,#224]
+stp xzr,xzr,[x21,#240]
+stp xzr,xzr,[x21,#256]
+stp xzr,xzr,[x21,#272]
+stp xzr,xzr,[x21,#288]
+stp xzr,xzr,[x21,#304]
+stp xzr,xzr,[x21,#320]
+stp xzr,xzr,[x21,#336]
+stp xzr,xzr,[x21,#352]
+stp xzr,xzr,[x21,#368]
+mov w8,#1
+str w8,[x20,#4]
+str x21,[x20,#48]
+mov x8,#384
+str x8,[x20,#56]
+adrp x8,:got:__yomclim_MOD_yghgclim
+ldr x8,[x8,:got_lo12:__yomclim_MOD_yghgclim]
+ldr x8,[x8]
+str x8,[x21,#0]
+mov x9,#1208
+str x9,[x21,#8]
+adrp x8,:got:__yoeradghg_MOD_yradghg
+ldr x8,[x8,:got_lo12:__yoeradghg_MOD_yradghg]
+ldr x8,[x8]
+str x8,[x21,#16]
+mov x9,#928
+str x9,[x21,#24]
+adrp x8,:got:__yomcst_MOD_rmd
+ldr x8,[x8,:got_lo12:__yomcst_MOD_rmd]
+str x8,[x21,#32]
+adrp x8,:got:__yomcst_MOD_rmno2
+ldr x8,[x8,:got_lo12:__yomcst_MOD_rmno2]
+str x8,[x21,#40]
+adrp x8,:got:__yomcst_MOD_rmo3
+ldr x8,[x8,:got_lo12:__yomcst_MOD_rmo3]
+str x8,[x21,#48]
+adrp x8,:got:__yomhook_MOD_lhook
+ldr x8,[x8,:got_lo12:__yomhook_MOD_lhook]
+str x8,[x21,#360]
+mov x9,#4
+str x9,[x21,#368]
+ldr x25,[x21]
+ldr x26,[x21,#16]
+ldr x8,[x19]
+ldr w27,[x8,#156]
+mov x24,#4096
+cmp w27,#1
+b.eq .Lmonthly_gas_0_active
+cmp w27,#10
+b.lt .Lmonthly_gas_0_end
+.Lmonthly_gas_0_active:
+ldp x10,x11,[x26,#112]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+cmp x10,#512
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_0_end
+add x9,x26,#216
+ldp x10,x11,[x9,#48]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+adds x10,x10,#1
+b.vs .Lmonthly_failure
+cmp x10,#4096
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_0_end
+add x0,x26,#64
+mov x1,#1
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#56]
+add x0,x25,#128
+mov x1,#3
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#72]
+add x0,x26,#216
+mov x1,#2
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#88]
+adds x24,x24,x1
+b.cs .Lmonthly_failure
+adds x24,x24,#7
+b.cs .Lmonthly_failure
+and x24,x24,#-8
+tbnz x24,#63,.Lmonthly_failure
+.Lmonthly_gas_0_end:
+cmp w27,#2
+b.eq .Lmonthly_gas_1_active
+cmp w27,#11
+b.lt .Lmonthly_gas_1_end
+.Lmonthly_gas_1_active:
+ldp x10,x11,[x26,#112]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+cmp x10,#512
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_1_end
+add x9,x26,#128
+ldp x10,x11,[x9,#48]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+adds x10,x10,#1
+b.vs .Lmonthly_failure
+cmp x10,#4096
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_1_end
+add x0,x26,#64
+mov x1,#1
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#56]
+add x0,x25,#240
+mov x1,#3
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#104]
+add x0,x26,#128
+mov x1,#2
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#120]
+adds x24,x24,x1
+b.cs .Lmonthly_failure
+adds x24,x24,#7
+b.cs .Lmonthly_failure
+and x24,x24,#-8
+tbnz x24,#63,.Lmonthly_failure
+.Lmonthly_gas_1_end:
+cmp w27,#3
+b.eq .Lmonthly_gas_2_active
+cmp w27,#12
+b.lt .Lmonthly_gas_2_end
+.Lmonthly_gas_2_active:
+ldp x10,x11,[x26,#112]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+cmp x10,#512
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_2_end
+add x9,x26,#304
+ldp x10,x11,[x9,#48]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+adds x10,x10,#1
+b.vs .Lmonthly_failure
+cmp x10,#4096
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_2_end
+add x0,x26,#64
+mov x1,#1
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#56]
+add x0,x25,#352
+mov x1,#3
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#136]
+add x0,x26,#304
+mov x1,#2
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#152]
+adds x24,x24,x1
+b.cs .Lmonthly_failure
+adds x24,x24,#7
+b.cs .Lmonthly_failure
+and x24,x24,#-8
+tbnz x24,#63,.Lmonthly_failure
+.Lmonthly_gas_2_end:
+cmp w27,#4
+b.eq .Lmonthly_gas_3_active
+cmp w27,#20
+b.lt .Lmonthly_gas_3_end
+.Lmonthly_gas_3_active:
+ldp x10,x11,[x26,#112]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+cmp x10,#512
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_3_end
+add x9,x26,#392
+ldp x10,x11,[x9,#48]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+adds x10,x10,#1
+b.vs .Lmonthly_failure
+cmp x10,#4096
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_3_end
+add x0,x26,#64
+mov x1,#1
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#56]
+add x0,x25,#464
+mov x1,#3
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#168]
+add x0,x26,#392
+mov x1,#2
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#184]
+adds x24,x24,x1
+b.cs .Lmonthly_failure
+adds x24,x24,#7
+b.cs .Lmonthly_failure
+and x24,x24,#-8
+tbnz x24,#63,.Lmonthly_failure
+.Lmonthly_gas_3_end:
+cmp w27,#5
+b.eq .Lmonthly_gas_4_active
+cmp w27,#15
+b.lt .Lmonthly_gas_4_end
+.Lmonthly_gas_4_active:
+ldp x10,x11,[x26,#112]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+cmp x10,#512
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_4_end
+add x9,x26,#480
+ldp x10,x11,[x9,#48]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+adds x10,x10,#1
+b.vs .Lmonthly_failure
+cmp x10,#4096
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_4_end
+add x0,x26,#64
+mov x1,#1
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#56]
+add x0,x25,#576
+mov x1,#3
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#200]
+add x0,x26,#480
+mov x1,#2
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#216]
+adds x24,x24,x1
+b.cs .Lmonthly_failure
+adds x24,x24,#7
+b.cs .Lmonthly_failure
+and x24,x24,#-8
+tbnz x24,#63,.Lmonthly_failure
+.Lmonthly_gas_4_end:
+cmp w27,#6
+b.eq .Lmonthly_gas_5_active
+cmp w27,#16
+b.lt .Lmonthly_gas_5_end
+.Lmonthly_gas_5_active:
+ldp x10,x11,[x26,#112]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+cmp x10,#512
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_5_end
+add x9,x26,#568
+ldp x10,x11,[x9,#48]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+adds x10,x10,#1
+b.vs .Lmonthly_failure
+cmp x10,#4096
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_5_end
+add x0,x26,#64
+mov x1,#1
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#56]
+add x0,x25,#688
+mov x1,#3
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#232]
+add x0,x26,#568
+mov x1,#2
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#248]
+adds x24,x24,x1
+b.cs .Lmonthly_failure
+adds x24,x24,#7
+b.cs .Lmonthly_failure
+and x24,x24,#-8
+tbnz x24,#63,.Lmonthly_failure
+.Lmonthly_gas_5_end:
+cmp w27,#7
+b.eq .Lmonthly_gas_6_active
+cmp w27,#17
+b.eq .Lmonthly_gas_6_active
+cmp w27,#21
+b.lt .Lmonthly_gas_6_end
+.Lmonthly_gas_6_active:
+ldp x10,x11,[x26,#112]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+cmp x10,#512
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_6_end
+add x9,x26,#832
+ldp x10,x11,[x9,#48]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+adds x10,x10,#1
+b.vs .Lmonthly_failure
+cmp x10,#4096
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_6_end
+add x0,x26,#64
+mov x1,#1
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#56]
+add x0,x25,#800
+mov x1,#3
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#264]
+add x0,x26,#832
+mov x1,#2
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#280]
+adds x24,x24,x1
+b.cs .Lmonthly_failure
+adds x24,x24,#7
+b.cs .Lmonthly_failure
+and x24,x24,#-8
+tbnz x24,#63,.Lmonthly_failure
+.Lmonthly_gas_6_end:
+cmp w27,#8
+b.eq .Lmonthly_gas_7_active
+cmp w27,#18
+b.lt .Lmonthly_gas_7_end
+.Lmonthly_gas_7_active:
+ldp x10,x11,[x26,#112]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+cmp x10,#512
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_7_end
+add x9,x26,#744
+ldp x10,x11,[x9,#48]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+adds x10,x10,#1
+b.vs .Lmonthly_failure
+cmp x10,#4096
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_7_end
+add x0,x26,#64
+mov x1,#1
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#56]
+add x0,x25,#912
+mov x1,#3
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#296]
+add x0,x26,#744
+mov x1,#2
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#312]
+adds x24,x24,x1
+b.cs .Lmonthly_failure
+adds x24,x24,#7
+b.cs .Lmonthly_failure
+and x24,x24,#-8
+tbnz x24,#63,.Lmonthly_failure
+.Lmonthly_gas_7_end:
+cmp w27,#9
+b.eq .Lmonthly_gas_8_active
+cmp w27,#19
+b.lt .Lmonthly_gas_8_end
+.Lmonthly_gas_8_active:
+ldp x10,x11,[x26,#112]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+cmp x10,#512
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_8_end
+add x9,x26,#656
+ldp x10,x11,[x9,#48]
+subs x10,x11,x10
+b.vs .Lmonthly_failure
+adds x10,x10,#1
+b.vs .Lmonthly_failure
+cmp x10,#4096
+b.hi .Lmonthly_failure
+cbz x10,.Lmonthly_gas_8_end
+add x0,x26,#64
+mov x1,#1
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#56]
+add x0,x25,#1024
+mov x1,#3
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#328]
+add x0,x26,#656
+mov x1,#2
+bl .Lmonthly_owner_span
+stp x0,x1,[x21,#344]
+adds x24,x24,x1
+b.cs .Lmonthly_failure
+adds x24,x24,#7
+b.cs .Lmonthly_failure
+and x24,x24,#-8
+tbnz x24,#63,.Lmonthly_failure
+.Lmonthly_gas_8_end:
+mov x0,x24
+ monthly_service malloc
+ cbz x0,.Lmonthly_failure
+ mov x23,x0
+ stp x23,x24,[x20,#32]
+ ldp x8,x9,[sp,#104]
+ msr fpcr,x8
+ msr fpsr,x9
+ ldr w8,[sp,#120]
+ str w8,[x22]
+ adrp x0,.Lmonthly_entry
+ add x0,x0,:lo12:.Lmonthly_entry
+ mov x1,x19
+ mov x2,x20
+ mov w3,#1
+ mov w4,#1
+ mov w5,#0
+ monthly_service md2asm_openifs_gpu_launch
+ cbnz w0,.Lmonthly_failure
+ mrs x8,fpcr
+ mrs x9,fpsr
+ str x8,[sp,#640]
+ str x9,[sp,#648]
+ ldr w8,[x22]
+ str w8,[sp,#656]
+ mov x0,x23
+ monthly_service free
+ ldr x8,[sp,#640]
+ ldr x9,[sp,#648]
+ msr fpcr,x8
+ msr fpsr,x9
+ ldr w8,[sp,#656]
+ str w8,[x22]
+ ldr x18,[sp,#96]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#1024
+ ret
+.size md2asm_gpu_host_monthly_gas_update,.-md2asm_gpu_host_monthly_gas_update
+#ifndef MD2ASM_GPU_VERIFY_ONLY
+.size md2asm_upd_ghgclim,.-md2asm_upd_ghgclim
+#endif
+
+.Lmonthly_owner_span:
+ mov x5,x0
+ mov x2,x1
+ mov x3,#0
+ mov x4,#0
+ mov x9,x0
+.Lmonthly_span_dimension:
+ ldp x6,x7,[x9,#48]
+ subs x11,x7,x6
+ b.vs .Lmonthly_failure
+ cmp x11,#0
+ b.lt .Lmonthly_failure
+ ldr x8,[x9,#40]
+ cbz x8,.Lmonthly_failure
+ lsl x10,x8,#3
+ asr x12,x10,#3
+ cmp x12,x8
+ b.ne .Lmonthly_failure
+ smulh x12,x10,x11
+ mul x13,x10,x11
+ asr x14,x13,#63
+ cmp x12,x14
+ b.ne .Lmonthly_failure
+ tbnz x13,#63,.Lmonthly_span_negative
+ adds x4,x4,x13
+ b.vs .Lmonthly_failure
+ b .Lmonthly_span_next
+.Lmonthly_span_negative:
+ adds x3,x3,x13
+ b.vs .Lmonthly_failure
+.Lmonthly_span_next:
+ add x9,x9,#24
+ subs x2,x2,#1
+ b.ne .Lmonthly_span_dimension
+ ldr x6,[x5]
+ cbz x6,.Lmonthly_failure
+ tbnz x6,#63,.Lmonthly_failure
+ tst x6,#7
+ b.ne .Lmonthly_failure
+ adds x0,x6,x3
+ b.vs .Lmonthly_failure
+ tbnz x0,#63,.Lmonthly_failure
+ subs x1,x4,x3
+ b.vs .Lmonthly_failure
+ adds x1,x1,#8
+ b.vs .Lmonthly_failure
+ adds x6,x0,x1
+ b.cs .Lmonthly_failure
+ tbnz x6,#63,.Lmonthly_failure
+ ret
+.Lmonthly_failure:
+ bl abort
+ brk #0
+
+.section .rodata
+.Lmonthly_entry:.asciz "md2asm_gpu_monthly_gas_update"
+.section .note.GNU-stack,"",%progbits

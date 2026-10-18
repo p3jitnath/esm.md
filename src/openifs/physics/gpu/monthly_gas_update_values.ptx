@@ -1,0 +1,449 @@
+// skills/md2asm-gpu/references/openifs/physics/monthly_gas_update.md
+.version 8.5
+.target sm_90
+.address_size 64
+
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .u32 error) md2asm_gpu_monthly_layer_amount_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_monthly_layer_amount_values(.param .u64 vector);
+.visible .func (.param .align 8 .b8 result[32]) md2asm_gpu_monthly_gas_update_values(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%rec,%scratch,%clim,%rad,%cfg,%fractions,%ptr,%q,%src,%dst,%bytes,%i,%offset,%temporary,%out,%owner,%childvec,%childctx,%childrec,%clone,%point,%mass,%quotient;
+.reg .u32 %date,%minute,%month,%day,%year,%code,%m1,%m2,%index,%flags,%raised,%error,%calls,%word;
+.reg .b64 %elapsed,%dayvalue,%minvalue,%a1,%a2,%a3,%weight,%ratio,%left,%right,%truncated;
+.reg .pred %p,%qpred;
+.param .b64 a,b;.param .align 8 .b8 arithmetic[16],childresult[32];.param .u64 cv,cc;.param .u32 refused;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];ld.u64 %rec,[%ctx+48];ld.u64 %scratch,[%ctx+32];ld.u64 %clim,[%rec];ld.u64 %rad,[%rec+16];ld.u64 %cfg,[%args];ld.u64 %fractions,[%args+8];ld.u32 %code,[%cfg+156];mov.u32 %flags,0;mov.u32 %error,0;mov.u32 %calls,0;
+add.u64 %childvec,%scratch,64;add.u64 %childrec,%scratch,128;add.u64 %childctx,%scratch,192;add.u64 %clone,%scratch,320;
+mov.u64 %offset,4096;
+
+st.u64 [%scratch+512],0;st.u64 [%scratch+520],0;
+setp.eq.u32 %p,%code,1;@%p bra COPY_0_ACTIVE;
+setp.lt.s32 %p,%code,10;@%p bra COPY_0_END;
+COPY_0_ACTIVE:
+ld.u64 %i,[%rad+112];ld.u64 %temporary,[%rad+120];setp.eq.u64 %p,%i,%temporary;@%p bra COPY_0_END;
+ld.u64 %i,[%rad+264];ld.u64 %temporary,[%rad+272];setp.lt.s64 %p,%temporary,%i;@%p bra COPY_0_END;
+ld.u64 %src,[%rec+88];ld.u64 %bytes,[%rec+96];add.u64 %dst,%scratch,%offset;st.u64 [%scratch+512],%dst;st.u64 [%scratch+520],%bytes;mov.u64 %i,0;
+COPY_0_BYTES:setp.ge.u64 %p,%i,%bytes;@%p bra COPY_0_DONE;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COPY_0_BYTES;
+COPY_0_DONE:add.u64 %offset,%offset,%bytes;add.u64 %offset,%offset,7;and.b64 %offset,%offset,0xfffffffffffffff8;
+COPY_0_END:
+st.u64 [%scratch+528],0;st.u64 [%scratch+536],0;
+setp.eq.u32 %p,%code,2;@%p bra COPY_1_ACTIVE;
+setp.lt.s32 %p,%code,11;@%p bra COPY_1_END;
+COPY_1_ACTIVE:
+ld.u64 %i,[%rad+112];ld.u64 %temporary,[%rad+120];setp.eq.u64 %p,%i,%temporary;@%p bra COPY_1_END;
+ld.u64 %i,[%rad+176];ld.u64 %temporary,[%rad+184];setp.lt.s64 %p,%temporary,%i;@%p bra COPY_1_END;
+ld.u64 %src,[%rec+120];ld.u64 %bytes,[%rec+128];add.u64 %dst,%scratch,%offset;st.u64 [%scratch+528],%dst;st.u64 [%scratch+536],%bytes;mov.u64 %i,0;
+COPY_1_BYTES:setp.ge.u64 %p,%i,%bytes;@%p bra COPY_1_DONE;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COPY_1_BYTES;
+COPY_1_DONE:add.u64 %offset,%offset,%bytes;add.u64 %offset,%offset,7;and.b64 %offset,%offset,0xfffffffffffffff8;
+COPY_1_END:
+st.u64 [%scratch+544],0;st.u64 [%scratch+552],0;
+setp.eq.u32 %p,%code,3;@%p bra COPY_2_ACTIVE;
+setp.lt.s32 %p,%code,12;@%p bra COPY_2_END;
+COPY_2_ACTIVE:
+ld.u64 %i,[%rad+112];ld.u64 %temporary,[%rad+120];setp.eq.u64 %p,%i,%temporary;@%p bra COPY_2_END;
+ld.u64 %i,[%rad+352];ld.u64 %temporary,[%rad+360];setp.lt.s64 %p,%temporary,%i;@%p bra COPY_2_END;
+ld.u64 %src,[%rec+152];ld.u64 %bytes,[%rec+160];add.u64 %dst,%scratch,%offset;st.u64 [%scratch+544],%dst;st.u64 [%scratch+552],%bytes;mov.u64 %i,0;
+COPY_2_BYTES:setp.ge.u64 %p,%i,%bytes;@%p bra COPY_2_DONE;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COPY_2_BYTES;
+COPY_2_DONE:add.u64 %offset,%offset,%bytes;add.u64 %offset,%offset,7;and.b64 %offset,%offset,0xfffffffffffffff8;
+COPY_2_END:
+st.u64 [%scratch+560],0;st.u64 [%scratch+568],0;
+setp.eq.u32 %p,%code,4;@%p bra COPY_3_ACTIVE;
+setp.lt.s32 %p,%code,20;@%p bra COPY_3_END;
+COPY_3_ACTIVE:
+ld.u64 %i,[%rad+112];ld.u64 %temporary,[%rad+120];setp.eq.u64 %p,%i,%temporary;@%p bra COPY_3_END;
+ld.u64 %i,[%rad+440];ld.u64 %temporary,[%rad+448];setp.lt.s64 %p,%temporary,%i;@%p bra COPY_3_END;
+ld.u64 %src,[%rec+184];ld.u64 %bytes,[%rec+192];add.u64 %dst,%scratch,%offset;st.u64 [%scratch+560],%dst;st.u64 [%scratch+568],%bytes;mov.u64 %i,0;
+COPY_3_BYTES:setp.ge.u64 %p,%i,%bytes;@%p bra COPY_3_DONE;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COPY_3_BYTES;
+COPY_3_DONE:add.u64 %offset,%offset,%bytes;add.u64 %offset,%offset,7;and.b64 %offset,%offset,0xfffffffffffffff8;
+COPY_3_END:
+st.u64 [%scratch+576],0;st.u64 [%scratch+584],0;
+setp.eq.u32 %p,%code,5;@%p bra COPY_4_ACTIVE;
+setp.lt.s32 %p,%code,15;@%p bra COPY_4_END;
+COPY_4_ACTIVE:
+ld.u64 %i,[%rad+112];ld.u64 %temporary,[%rad+120];setp.eq.u64 %p,%i,%temporary;@%p bra COPY_4_END;
+ld.u64 %i,[%rad+528];ld.u64 %temporary,[%rad+536];setp.lt.s64 %p,%temporary,%i;@%p bra COPY_4_END;
+ld.u64 %src,[%rec+216];ld.u64 %bytes,[%rec+224];add.u64 %dst,%scratch,%offset;st.u64 [%scratch+576],%dst;st.u64 [%scratch+584],%bytes;mov.u64 %i,0;
+COPY_4_BYTES:setp.ge.u64 %p,%i,%bytes;@%p bra COPY_4_DONE;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COPY_4_BYTES;
+COPY_4_DONE:add.u64 %offset,%offset,%bytes;add.u64 %offset,%offset,7;and.b64 %offset,%offset,0xfffffffffffffff8;
+COPY_4_END:
+st.u64 [%scratch+592],0;st.u64 [%scratch+600],0;
+setp.eq.u32 %p,%code,6;@%p bra COPY_5_ACTIVE;
+setp.lt.s32 %p,%code,16;@%p bra COPY_5_END;
+COPY_5_ACTIVE:
+ld.u64 %i,[%rad+112];ld.u64 %temporary,[%rad+120];setp.eq.u64 %p,%i,%temporary;@%p bra COPY_5_END;
+ld.u64 %i,[%rad+616];ld.u64 %temporary,[%rad+624];setp.lt.s64 %p,%temporary,%i;@%p bra COPY_5_END;
+ld.u64 %src,[%rec+248];ld.u64 %bytes,[%rec+256];add.u64 %dst,%scratch,%offset;st.u64 [%scratch+592],%dst;st.u64 [%scratch+600],%bytes;mov.u64 %i,0;
+COPY_5_BYTES:setp.ge.u64 %p,%i,%bytes;@%p bra COPY_5_DONE;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COPY_5_BYTES;
+COPY_5_DONE:add.u64 %offset,%offset,%bytes;add.u64 %offset,%offset,7;and.b64 %offset,%offset,0xfffffffffffffff8;
+COPY_5_END:
+st.u64 [%scratch+608],0;st.u64 [%scratch+616],0;
+setp.eq.u32 %p,%code,7;@%p bra COPY_6_ACTIVE;
+setp.eq.u32 %p,%code,17;@%p bra COPY_6_ACTIVE;
+setp.lt.s32 %p,%code,21;@%p bra COPY_6_END;
+COPY_6_ACTIVE:
+ld.u64 %i,[%rad+112];ld.u64 %temporary,[%rad+120];setp.eq.u64 %p,%i,%temporary;@%p bra COPY_6_END;
+ld.u64 %i,[%rad+880];ld.u64 %temporary,[%rad+888];setp.lt.s64 %p,%temporary,%i;@%p bra COPY_6_END;
+ld.u64 %src,[%rec+280];ld.u64 %bytes,[%rec+288];add.u64 %dst,%scratch,%offset;st.u64 [%scratch+608],%dst;st.u64 [%scratch+616],%bytes;mov.u64 %i,0;
+COPY_6_BYTES:setp.ge.u64 %p,%i,%bytes;@%p bra COPY_6_DONE;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COPY_6_BYTES;
+COPY_6_DONE:add.u64 %offset,%offset,%bytes;add.u64 %offset,%offset,7;and.b64 %offset,%offset,0xfffffffffffffff8;
+COPY_6_END:
+st.u64 [%scratch+624],0;st.u64 [%scratch+632],0;
+setp.eq.u32 %p,%code,8;@%p bra COPY_7_ACTIVE;
+setp.lt.s32 %p,%code,18;@%p bra COPY_7_END;
+COPY_7_ACTIVE:
+ld.u64 %i,[%rad+112];ld.u64 %temporary,[%rad+120];setp.eq.u64 %p,%i,%temporary;@%p bra COPY_7_END;
+ld.u64 %i,[%rad+792];ld.u64 %temporary,[%rad+800];setp.lt.s64 %p,%temporary,%i;@%p bra COPY_7_END;
+ld.u64 %src,[%rec+312];ld.u64 %bytes,[%rec+320];add.u64 %dst,%scratch,%offset;st.u64 [%scratch+624],%dst;st.u64 [%scratch+632],%bytes;mov.u64 %i,0;
+COPY_7_BYTES:setp.ge.u64 %p,%i,%bytes;@%p bra COPY_7_DONE;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COPY_7_BYTES;
+COPY_7_DONE:add.u64 %offset,%offset,%bytes;add.u64 %offset,%offset,7;and.b64 %offset,%offset,0xfffffffffffffff8;
+COPY_7_END:
+st.u64 [%scratch+640],0;st.u64 [%scratch+648],0;
+setp.eq.u32 %p,%code,9;@%p bra COPY_8_ACTIVE;
+setp.lt.s32 %p,%code,19;@%p bra COPY_8_END;
+COPY_8_ACTIVE:
+ld.u64 %i,[%rad+112];ld.u64 %temporary,[%rad+120];setp.eq.u64 %p,%i,%temporary;@%p bra COPY_8_END;
+ld.u64 %i,[%rad+704];ld.u64 %temporary,[%rad+712];setp.lt.s64 %p,%temporary,%i;@%p bra COPY_8_END;
+ld.u64 %src,[%rec+344];ld.u64 %bytes,[%rec+352];add.u64 %dst,%scratch,%offset;st.u64 [%scratch+640],%dst;st.u64 [%scratch+648],%bytes;mov.u64 %i,0;
+COPY_8_BYTES:setp.ge.u64 %p,%i,%bytes;@%p bra COPY_8_DONE;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COPY_8_BYTES;
+COPY_8_DONE:add.u64 %offset,%offset,%bytes;add.u64 %offset,%offset,7;and.b64 %offset,%offset,0xfffffffffffffff8;
+COPY_8_END:
+ld.u64 %ptr,[%args+16];ld.u32 %date,[%ptr];ld.u64 %ptr,[%args+24];ld.u32 %minute,[%ptr];mul.wide.u32 %temporary,%date,1374389535;shr.u64 %temporary,%temporary,37;cvt.u32.u64 %month,%temporary;mul.lo.u32 %year,%month,100;sub.u32 %day,%date,%year;mul.wide.u32 %temporary,%month,1374389535;shr.u64 %temporary,%temporary,37;cvt.u32.u64 %year,%temporary;mul.lo.u32 %year,%year,100;sub.u32 %month,%month,%year;sub.u32 %day,%day,1;cvt.rn.f64.u32 %dayvalue,%day;cvt.rn.f64.u32 %minvalue,%minute;
+setp.eq.u32 %p,%month,1;@%p bra JANUARY;setp.eq.u32 %p,%month,2;@%p bra FEBRUARY;
+
+setp.eq.u32 %p,%month,3;@%p mov.b64 %a1,0x404da00000000000;
+setp.eq.u32 %p,%month,4;@%p mov.b64 %a1,0x4056900000000000;
+setp.eq.u32 %p,%month,5;@%p mov.b64 %a1,0x405e100000000000;
+setp.eq.u32 %p,%month,6;@%p mov.b64 %a1,0x4062e80000000000;
+setp.eq.u32 %p,%month,7;@%p mov.b64 %a1,0x4066a80000000000;
+setp.eq.u32 %p,%month,8;@%p mov.b64 %a1,0x406a880000000000;
+setp.eq.u32 %p,%month,9;@%p mov.b64 %a1,0x406e680000000000;
+setp.eq.u32 %p,%month,10;@%p mov.b64 %a1,0x4071140000000000;
+setp.eq.u32 %p,%month,11;@%p mov.b64 %a1,0x4073040000000000;
+setp.eq.u32 %p,%month,12;@%p mov.b64 %a1,0x4074e40000000000;
+st.param.b64 [a],%a1;st.param.b64 [b],%dayvalue;call.uni (arithmetic),md2asm_gpu_add_status,(a,b);ld.param.b64 %dayvalue,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+JANUARY:
+mov.b64 %a1,0x4096800000000000;
+st.param.b64 [a],%dayvalue;st.param.b64 [b],%a1;call.uni (arithmetic),md2asm_gpu_mul_status,(a,b);ld.param.b64 %elapsed,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a],%elapsed;st.param.b64 [b],%minvalue;call.uni (arithmetic),md2asm_gpu_add_status,(a,b);ld.param.b64 %elapsed,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+bra MODULO;
+FEBRUARY:setp.eq.u32 %p,%day,28;@%p mov.u32 %day,27;cvt.rn.f64.u32 %dayvalue,%day;
+mov.b64 %a1,0x4096b36dab9f559b;
+st.param.b64 [a],%dayvalue;st.param.b64 [b],%a1;call.uni (arithmetic),md2asm_gpu_mul_status,(a,b);ld.param.b64 %elapsed,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+mov.b64 %a1,0x40e5cc0000000000;
+st.param.b64 [a],%a1;st.param.b64 [b],%elapsed;call.uni (arithmetic),md2asm_gpu_add_status,(a,b);ld.param.b64 %elapsed,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a],%elapsed;st.param.b64 [b],%minvalue;call.uni (arithmetic),md2asm_gpu_add_status,(a,b);ld.param.b64 %elapsed,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+MODULO:
+mov.b64 %a1,0x41200d1000000000;
+st.param.b64 [a],%elapsed;st.param.b64 [b],%a1;call.uni (arithmetic),md2asm_gpu_div_status,(a,b);ld.param.b64 %a2,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+cvt.rzi.s64.f64 %quotient,%a2;cvt.rn.f64.s64 %truncated,%quotient;setp.ne.f64 %p,%a2,%truncated;@%p or.b32 %flags,%flags,16;
+st.param.b64 [a],%truncated;st.param.b64 [b],%a1;call.uni (arithmetic),md2asm_gpu_mul_status,(a,b);ld.param.b64 %a2,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a],%elapsed;st.param.b64 [b],%a2;call.uni (arithmetic),md2asm_gpu_sub_status,(a,b);ld.param.b64 %elapsed,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+setp.ge.f64 %p,%elapsed,0d0000000000000000;@%p bra CHOOSE;
+st.param.b64 [a],%elapsed;st.param.b64 [b],%a1;call.uni (arithmetic),md2asm_gpu_add_status,(a,b);ld.param.b64 %elapsed,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+CHOOSE:
+mov.b64 %a1,0x40d5cc0000000000;setp.le.f64 %p,%elapsed,%a1;@%p bra EARLY;mov.b64 %a1,0x411ebd6000000000;setp.gt.f64 %p,%elapsed,%a1;@%p bra LATE;
+mov.b64 %a1,0x40d5cc0000000000;mov.b64 %a2,0x40efba8000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %qpred,%elapsed,%a2;and.pred %p,%p,%qpred;@%p mov.u32 %m1,1;@%p mov.u32 %m2,2;@%p bra INTERIOR;
+mov.b64 %a1,0x40efba8000000000;mov.b64 %a2,0x40fa478000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %qpred,%elapsed,%a2;and.pred %p,%p,%qpred;@%p mov.u32 %m1,2;@%p mov.u32 %m2,3;@%p bra INTERIOR;
+mov.b64 %a1,0x40fa478000000000;mov.b64 %a2,0x4102804000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %qpred,%elapsed,%a2;and.pred %p,%p,%qpred;@%p mov.u32 %m1,3;@%p mov.u32 %m2,4;@%p bra INTERIOR;
+mov.b64 %a1,0x4102804000000000;mov.b64 %a2,0x4107dcc000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %qpred,%elapsed,%a2;and.pred %p,%p,%qpred;@%p mov.u32 %m1,4;@%p mov.u32 %m2,5;@%p bra INTERIOR;
+mov.b64 %a1,0x4107dcc000000000;mov.b64 %a2,0x410d394000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %qpred,%elapsed,%a2;and.pred %p,%p,%qpred;@%p mov.u32 %m1,5;@%p mov.u32 %m2,6;@%p bra INTERIOR;
+mov.b64 %a1,0x410d394000000000;mov.b64 %a2,0x41114ae000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %qpred,%elapsed,%a2;and.pred %p,%p,%qpred;@%p mov.u32 %m1,6;@%p mov.u32 %m2,7;@%p bra INTERIOR;
+mov.b64 %a1,0x41114ae000000000;mov.b64 %a2,0x4114046000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %qpred,%elapsed,%a2;and.pred %p,%p,%qpred;@%p mov.u32 %m1,7;@%p mov.u32 %m2,8;@%p bra INTERIOR;
+mov.b64 %a1,0x4114046000000000;mov.b64 %a2,0x4116b2a000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %qpred,%elapsed,%a2;and.pred %p,%p,%qpred;@%p mov.u32 %m1,8;@%p mov.u32 %m2,9;@%p bra INTERIOR;
+mov.b64 %a1,0x4116b2a000000000;mov.b64 %a2,0x411960e000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %qpred,%elapsed,%a2;and.pred %p,%p,%qpred;@%p mov.u32 %m1,9;@%p mov.u32 %m2,10;@%p bra INTERIOR;
+mov.b64 %a1,0x411960e000000000;mov.b64 %a2,0x411c0f2000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %qpred,%elapsed,%a2;and.pred %p,%p,%qpred;@%p mov.u32 %m1,10;@%p mov.u32 %m2,11;@%p bra INTERIOR;
+mov.b64 %a1,0x411c0f2000000000;mov.b64 %a2,0x411ebd6000000000;setp.gt.f64 %p,%elapsed,%a1;setp.le.f64 %qpred,%elapsed,%a2;and.pred %p,%p,%qpred;@%p mov.u32 %m1,11;@%p mov.u32 %m2,12;@%p bra INTERIOR;
+mov.u32 %error,15844;bra RETURN;
+INTERIOR:
+st.param.b64 [a],%elapsed;st.param.b64 [b],%a2;call.uni (arithmetic),md2asm_gpu_sub_status,(a,b);ld.param.b64 %a3,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a],%a1;st.param.b64 [b],%a2;call.uni (arithmetic),md2asm_gpu_sub_status,(a,b);ld.param.b64 %a1,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a],%a3;st.param.b64 [b],%a1;call.uni (arithmetic),md2asm_gpu_div_status,(a,b);ld.param.b64 %weight,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+bra WEIGHTS;
+EARLY:
+st.param.b64 [a],%a1;st.param.b64 [b],%elapsed;call.uni (arithmetic),md2asm_gpu_sub_status,(a,b);ld.param.b64 %a3,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+bra WRAP;
+LATE:
+mov.b64 %a1,0x4120bb7000000000;
+st.param.b64 [a],%a1;st.param.b64 [b],%elapsed;call.uni (arithmetic),md2asm_gpu_sub_status,(a,b);ld.param.b64 %a3,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+WRAP:
+mov.b64 %a1,0x40e5cc0000000000;
+st.param.b64 [a],%a3;st.param.b64 [b],%a1;call.uni (arithmetic),md2asm_gpu_div_status,(a,b);ld.param.b64 %weight,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+mov.u32 %m1,12;mov.u32 %m2,1;
+WEIGHTS:st.u32 [%scratch],%m1;st.u32 [%scratch+4],%m2;st.b64 [%scratch+8],%weight;
+st.u64 [%childctx+0],0;
+st.u64 [%childctx+8],0;
+st.u64 [%childctx+16],0;
+st.u64 [%childctx+24],0;
+st.u64 [%childctx+32],0;
+st.u64 [%childctx+40],0;
+st.u64 [%childctx+48],0;
+st.u64 [%childctx+56],0;
+st.u32 [%childctx+4],1;st.u64 [%childctx+48],%childrec;st.u64 [%childctx+56],48;st.u64 [%childvec],%scratch;add.u64 %ptr,%scratch,4;st.u64 [%childvec+8],%ptr;add.u64 %ptr,%scratch,8;st.u64 [%childvec+16],%ptr;add.u64 %ptr,%rad,64;st.u64 [%childvec+24],%ptr;add.u64 %ptr,%scratch,16;st.u64 [%childvec+32],%ptr;
+setp.eq.u32 %p,%code,1;@%p bra GAS_0_ACTIVE;
+setp.lt.s32 %p,%code,10;@%p bra GAS_0_END;
+GAS_0_ACTIVE:
+ld.b64 %left,[%fractions+16];ld.b64 %right,[%clim+1136];
+st.param.b64 [a],%left;st.param.b64 [b],%right;call.uni (arithmetic),md2asm_gpu_div_status,(a,b);ld.param.b64 %ratio,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.b64 [%scratch+16],%ratio;add.u64 %ptr,%clim,128;st.u64 [%childvec+40],%ptr;add.u64 %out,%rad,216;ld.u64 %dst,[%scratch+512];setp.eq.u64 %p,%dst,0;@%p bra GAS_0_EMPTY;
+ld.u64 %temporary,[%out+0];st.u64 [%clone+0],%temporary;
+ld.u64 %temporary,[%out+8];st.u64 [%clone+8],%temporary;
+ld.u64 %temporary,[%out+16];st.u64 [%clone+16],%temporary;
+ld.u64 %temporary,[%out+24];st.u64 [%clone+24],%temporary;
+ld.u64 %temporary,[%out+32];st.u64 [%clone+32],%temporary;
+ld.u64 %temporary,[%out+40];st.u64 [%clone+40],%temporary;
+ld.u64 %temporary,[%out+48];st.u64 [%clone+48],%temporary;
+ld.u64 %temporary,[%out+56];st.u64 [%clone+56],%temporary;
+ld.u64 %temporary,[%out+64];st.u64 [%clone+64],%temporary;
+ld.u64 %temporary,[%out+72];st.u64 [%clone+72],%temporary;
+ld.u64 %temporary,[%out+80];st.u64 [%clone+80],%temporary;
+ld.u64 %point,[%out];ld.u64 %owner,[%rec+88];sub.u64 %point,%point,%owner;add.u64 %point,%dst,%point;st.u64 [%clone],%point;st.u64 [%childvec+48],%clone;bra GAS_0_READY;
+GAS_0_EMPTY:st.u64 [%childvec+48],%out;
+GAS_0_READY:
+ld.u64 %temporary,[%rec+56];st.u64 [%childrec+0],%temporary;
+ld.u64 %temporary,[%rec+64];st.u64 [%childrec+8],%temporary;
+ld.u64 %temporary,[%rec+72];st.u64 [%childrec+16],%temporary;
+ld.u64 %temporary,[%rec+80];st.u64 [%childrec+24],%temporary;
+st.u64 [%childrec+32],%dst;ld.u64 %bytes,[%scratch+520];st.u64 [%childrec+40],%bytes;st.param.u64 [cv],%childvec;st.param.u64 [cc],%childctx;call.uni (refused),md2asm_gpu_monthly_layer_amount_admit,(cv,cc);ld.param.u32 %error,[refused];setp.ne.u32 %p,%error,0;@%p bra RETURN;st.param.u64 [cv],%childvec;call.uni (childresult),md2asm_gpu_monthly_layer_amount_values,(cv);ld.param.u32 %raised,[childresult];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[childresult+4];setp.ne.u32 %p,%error,0;@%p bra RETURN;add.u32 %calls,%calls,1;
+GAS_0_END:
+setp.eq.u32 %p,%code,2;@%p bra GAS_1_ACTIVE;
+setp.lt.s32 %p,%code,11;@%p bra GAS_1_END;
+GAS_1_ACTIVE:
+ld.b64 %left,[%fractions+24];ld.b64 %right,[%clim+1144];
+st.param.b64 [a],%left;st.param.b64 [b],%right;call.uni (arithmetic),md2asm_gpu_div_status,(a,b);ld.param.b64 %ratio,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.b64 [%scratch+16],%ratio;add.u64 %ptr,%clim,240;st.u64 [%childvec+40],%ptr;add.u64 %out,%rad,128;ld.u64 %dst,[%scratch+528];setp.eq.u64 %p,%dst,0;@%p bra GAS_1_EMPTY;
+ld.u64 %temporary,[%out+0];st.u64 [%clone+0],%temporary;
+ld.u64 %temporary,[%out+8];st.u64 [%clone+8],%temporary;
+ld.u64 %temporary,[%out+16];st.u64 [%clone+16],%temporary;
+ld.u64 %temporary,[%out+24];st.u64 [%clone+24],%temporary;
+ld.u64 %temporary,[%out+32];st.u64 [%clone+32],%temporary;
+ld.u64 %temporary,[%out+40];st.u64 [%clone+40],%temporary;
+ld.u64 %temporary,[%out+48];st.u64 [%clone+48],%temporary;
+ld.u64 %temporary,[%out+56];st.u64 [%clone+56],%temporary;
+ld.u64 %temporary,[%out+64];st.u64 [%clone+64],%temporary;
+ld.u64 %temporary,[%out+72];st.u64 [%clone+72],%temporary;
+ld.u64 %temporary,[%out+80];st.u64 [%clone+80],%temporary;
+ld.u64 %point,[%out];ld.u64 %owner,[%rec+120];sub.u64 %point,%point,%owner;add.u64 %point,%dst,%point;st.u64 [%clone],%point;st.u64 [%childvec+48],%clone;bra GAS_1_READY;
+GAS_1_EMPTY:st.u64 [%childvec+48],%out;
+GAS_1_READY:
+ld.u64 %temporary,[%rec+56];st.u64 [%childrec+0],%temporary;
+ld.u64 %temporary,[%rec+64];st.u64 [%childrec+8],%temporary;
+ld.u64 %temporary,[%rec+104];st.u64 [%childrec+16],%temporary;
+ld.u64 %temporary,[%rec+112];st.u64 [%childrec+24],%temporary;
+st.u64 [%childrec+32],%dst;ld.u64 %bytes,[%scratch+536];st.u64 [%childrec+40],%bytes;st.param.u64 [cv],%childvec;st.param.u64 [cc],%childctx;call.uni (refused),md2asm_gpu_monthly_layer_amount_admit,(cv,cc);ld.param.u32 %error,[refused];setp.ne.u32 %p,%error,0;@%p bra RETURN;st.param.u64 [cv],%childvec;call.uni (childresult),md2asm_gpu_monthly_layer_amount_values,(cv);ld.param.u32 %raised,[childresult];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[childresult+4];setp.ne.u32 %p,%error,0;@%p bra RETURN;add.u32 %calls,%calls,1;
+GAS_1_END:
+setp.eq.u32 %p,%code,3;@%p bra GAS_2_ACTIVE;
+setp.lt.s32 %p,%code,12;@%p bra GAS_2_END;
+GAS_2_ACTIVE:
+ld.b64 %left,[%fractions+32];ld.b64 %right,[%clim+1152];
+st.param.b64 [a],%left;st.param.b64 [b],%right;call.uni (arithmetic),md2asm_gpu_div_status,(a,b);ld.param.b64 %ratio,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.b64 [%scratch+16],%ratio;add.u64 %ptr,%clim,352;st.u64 [%childvec+40],%ptr;add.u64 %out,%rad,304;ld.u64 %dst,[%scratch+544];setp.eq.u64 %p,%dst,0;@%p bra GAS_2_EMPTY;
+ld.u64 %temporary,[%out+0];st.u64 [%clone+0],%temporary;
+ld.u64 %temporary,[%out+8];st.u64 [%clone+8],%temporary;
+ld.u64 %temporary,[%out+16];st.u64 [%clone+16],%temporary;
+ld.u64 %temporary,[%out+24];st.u64 [%clone+24],%temporary;
+ld.u64 %temporary,[%out+32];st.u64 [%clone+32],%temporary;
+ld.u64 %temporary,[%out+40];st.u64 [%clone+40],%temporary;
+ld.u64 %temporary,[%out+48];st.u64 [%clone+48],%temporary;
+ld.u64 %temporary,[%out+56];st.u64 [%clone+56],%temporary;
+ld.u64 %temporary,[%out+64];st.u64 [%clone+64],%temporary;
+ld.u64 %temporary,[%out+72];st.u64 [%clone+72],%temporary;
+ld.u64 %temporary,[%out+80];st.u64 [%clone+80],%temporary;
+ld.u64 %point,[%out];ld.u64 %owner,[%rec+152];sub.u64 %point,%point,%owner;add.u64 %point,%dst,%point;st.u64 [%clone],%point;st.u64 [%childvec+48],%clone;bra GAS_2_READY;
+GAS_2_EMPTY:st.u64 [%childvec+48],%out;
+GAS_2_READY:
+ld.u64 %temporary,[%rec+56];st.u64 [%childrec+0],%temporary;
+ld.u64 %temporary,[%rec+64];st.u64 [%childrec+8],%temporary;
+ld.u64 %temporary,[%rec+136];st.u64 [%childrec+16],%temporary;
+ld.u64 %temporary,[%rec+144];st.u64 [%childrec+24],%temporary;
+st.u64 [%childrec+32],%dst;ld.u64 %bytes,[%scratch+552];st.u64 [%childrec+40],%bytes;st.param.u64 [cv],%childvec;st.param.u64 [cc],%childctx;call.uni (refused),md2asm_gpu_monthly_layer_amount_admit,(cv,cc);ld.param.u32 %error,[refused];setp.ne.u32 %p,%error,0;@%p bra RETURN;st.param.u64 [cv],%childvec;call.uni (childresult),md2asm_gpu_monthly_layer_amount_values,(cv);ld.param.u32 %raised,[childresult];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[childresult+4];setp.ne.u32 %p,%error,0;@%p bra RETURN;add.u32 %calls,%calls,1;
+GAS_2_END:
+setp.eq.u32 %p,%code,4;@%p bra GAS_3_ACTIVE;
+setp.lt.s32 %p,%code,20;@%p bra GAS_3_END;
+GAS_3_ACTIVE:
+ld.u64 %ptr,[%rec+40];ld.b64 %left,[%ptr];ld.u64 %ptr,[%rec+32];ld.b64 %right,[%ptr];
+st.param.b64 [a],%left;st.param.b64 [b],%right;call.uni (arithmetic),md2asm_gpu_div_status,(a,b);ld.param.b64 %ratio,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.b64 [%scratch+16],%ratio;add.u64 %ptr,%clim,464;st.u64 [%childvec+40],%ptr;add.u64 %out,%rad,392;ld.u64 %dst,[%scratch+560];setp.eq.u64 %p,%dst,0;@%p bra GAS_3_EMPTY;
+ld.u64 %temporary,[%out+0];st.u64 [%clone+0],%temporary;
+ld.u64 %temporary,[%out+8];st.u64 [%clone+8],%temporary;
+ld.u64 %temporary,[%out+16];st.u64 [%clone+16],%temporary;
+ld.u64 %temporary,[%out+24];st.u64 [%clone+24],%temporary;
+ld.u64 %temporary,[%out+32];st.u64 [%clone+32],%temporary;
+ld.u64 %temporary,[%out+40];st.u64 [%clone+40],%temporary;
+ld.u64 %temporary,[%out+48];st.u64 [%clone+48],%temporary;
+ld.u64 %temporary,[%out+56];st.u64 [%clone+56],%temporary;
+ld.u64 %temporary,[%out+64];st.u64 [%clone+64],%temporary;
+ld.u64 %temporary,[%out+72];st.u64 [%clone+72],%temporary;
+ld.u64 %temporary,[%out+80];st.u64 [%clone+80],%temporary;
+ld.u64 %point,[%out];ld.u64 %owner,[%rec+184];sub.u64 %point,%point,%owner;add.u64 %point,%dst,%point;st.u64 [%clone],%point;st.u64 [%childvec+48],%clone;bra GAS_3_READY;
+GAS_3_EMPTY:st.u64 [%childvec+48],%out;
+GAS_3_READY:
+ld.u64 %temporary,[%rec+56];st.u64 [%childrec+0],%temporary;
+ld.u64 %temporary,[%rec+64];st.u64 [%childrec+8],%temporary;
+ld.u64 %temporary,[%rec+168];st.u64 [%childrec+16],%temporary;
+ld.u64 %temporary,[%rec+176];st.u64 [%childrec+24],%temporary;
+st.u64 [%childrec+32],%dst;ld.u64 %bytes,[%scratch+568];st.u64 [%childrec+40],%bytes;st.param.u64 [cv],%childvec;st.param.u64 [cc],%childctx;call.uni (refused),md2asm_gpu_monthly_layer_amount_admit,(cv,cc);ld.param.u32 %error,[refused];setp.ne.u32 %p,%error,0;@%p bra RETURN;st.param.u64 [cv],%childvec;call.uni (childresult),md2asm_gpu_monthly_layer_amount_values,(cv);ld.param.u32 %raised,[childresult];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[childresult+4];setp.ne.u32 %p,%error,0;@%p bra RETURN;add.u32 %calls,%calls,1;
+GAS_3_END:
+setp.eq.u32 %p,%code,5;@%p bra GAS_4_ACTIVE;
+setp.lt.s32 %p,%code,15;@%p bra GAS_4_END;
+GAS_4_ACTIVE:
+ld.b64 %left,[%fractions+64];ld.b64 %right,[%clim+1168];
+st.param.b64 [a],%left;st.param.b64 [b],%right;call.uni (arithmetic),md2asm_gpu_div_status,(a,b);ld.param.b64 %ratio,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.b64 [%scratch+16],%ratio;add.u64 %ptr,%clim,576;st.u64 [%childvec+40],%ptr;add.u64 %out,%rad,480;ld.u64 %dst,[%scratch+576];setp.eq.u64 %p,%dst,0;@%p bra GAS_4_EMPTY;
+ld.u64 %temporary,[%out+0];st.u64 [%clone+0],%temporary;
+ld.u64 %temporary,[%out+8];st.u64 [%clone+8],%temporary;
+ld.u64 %temporary,[%out+16];st.u64 [%clone+16],%temporary;
+ld.u64 %temporary,[%out+24];st.u64 [%clone+24],%temporary;
+ld.u64 %temporary,[%out+32];st.u64 [%clone+32],%temporary;
+ld.u64 %temporary,[%out+40];st.u64 [%clone+40],%temporary;
+ld.u64 %temporary,[%out+48];st.u64 [%clone+48],%temporary;
+ld.u64 %temporary,[%out+56];st.u64 [%clone+56],%temporary;
+ld.u64 %temporary,[%out+64];st.u64 [%clone+64],%temporary;
+ld.u64 %temporary,[%out+72];st.u64 [%clone+72],%temporary;
+ld.u64 %temporary,[%out+80];st.u64 [%clone+80],%temporary;
+ld.u64 %point,[%out];ld.u64 %owner,[%rec+216];sub.u64 %point,%point,%owner;add.u64 %point,%dst,%point;st.u64 [%clone],%point;st.u64 [%childvec+48],%clone;bra GAS_4_READY;
+GAS_4_EMPTY:st.u64 [%childvec+48],%out;
+GAS_4_READY:
+ld.u64 %temporary,[%rec+56];st.u64 [%childrec+0],%temporary;
+ld.u64 %temporary,[%rec+64];st.u64 [%childrec+8],%temporary;
+ld.u64 %temporary,[%rec+200];st.u64 [%childrec+16],%temporary;
+ld.u64 %temporary,[%rec+208];st.u64 [%childrec+24],%temporary;
+st.u64 [%childrec+32],%dst;ld.u64 %bytes,[%scratch+584];st.u64 [%childrec+40],%bytes;st.param.u64 [cv],%childvec;st.param.u64 [cc],%childctx;call.uni (refused),md2asm_gpu_monthly_layer_amount_admit,(cv,cc);ld.param.u32 %error,[refused];setp.ne.u32 %p,%error,0;@%p bra RETURN;st.param.u64 [cv],%childvec;call.uni (childresult),md2asm_gpu_monthly_layer_amount_values,(cv);ld.param.u32 %raised,[childresult];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[childresult+4];setp.ne.u32 %p,%error,0;@%p bra RETURN;add.u32 %calls,%calls,1;
+GAS_4_END:
+setp.eq.u32 %p,%code,6;@%p bra GAS_5_ACTIVE;
+setp.lt.s32 %p,%code,16;@%p bra GAS_5_END;
+GAS_5_ACTIVE:
+ld.b64 %left,[%fractions+72];ld.b64 %right,[%clim+1176];
+st.param.b64 [a],%left;st.param.b64 [b],%right;call.uni (arithmetic),md2asm_gpu_div_status,(a,b);ld.param.b64 %ratio,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.b64 [%scratch+16],%ratio;add.u64 %ptr,%clim,688;st.u64 [%childvec+40],%ptr;add.u64 %out,%rad,568;ld.u64 %dst,[%scratch+592];setp.eq.u64 %p,%dst,0;@%p bra GAS_5_EMPTY;
+ld.u64 %temporary,[%out+0];st.u64 [%clone+0],%temporary;
+ld.u64 %temporary,[%out+8];st.u64 [%clone+8],%temporary;
+ld.u64 %temporary,[%out+16];st.u64 [%clone+16],%temporary;
+ld.u64 %temporary,[%out+24];st.u64 [%clone+24],%temporary;
+ld.u64 %temporary,[%out+32];st.u64 [%clone+32],%temporary;
+ld.u64 %temporary,[%out+40];st.u64 [%clone+40],%temporary;
+ld.u64 %temporary,[%out+48];st.u64 [%clone+48],%temporary;
+ld.u64 %temporary,[%out+56];st.u64 [%clone+56],%temporary;
+ld.u64 %temporary,[%out+64];st.u64 [%clone+64],%temporary;
+ld.u64 %temporary,[%out+72];st.u64 [%clone+72],%temporary;
+ld.u64 %temporary,[%out+80];st.u64 [%clone+80],%temporary;
+ld.u64 %point,[%out];ld.u64 %owner,[%rec+248];sub.u64 %point,%point,%owner;add.u64 %point,%dst,%point;st.u64 [%clone],%point;st.u64 [%childvec+48],%clone;bra GAS_5_READY;
+GAS_5_EMPTY:st.u64 [%childvec+48],%out;
+GAS_5_READY:
+ld.u64 %temporary,[%rec+56];st.u64 [%childrec+0],%temporary;
+ld.u64 %temporary,[%rec+64];st.u64 [%childrec+8],%temporary;
+ld.u64 %temporary,[%rec+232];st.u64 [%childrec+16],%temporary;
+ld.u64 %temporary,[%rec+240];st.u64 [%childrec+24],%temporary;
+st.u64 [%childrec+32],%dst;ld.u64 %bytes,[%scratch+600];st.u64 [%childrec+40],%bytes;st.param.u64 [cv],%childvec;st.param.u64 [cc],%childctx;call.uni (refused),md2asm_gpu_monthly_layer_amount_admit,(cv,cc);ld.param.u32 %error,[refused];setp.ne.u32 %p,%error,0;@%p bra RETURN;st.param.u64 [cv],%childvec;call.uni (childresult),md2asm_gpu_monthly_layer_amount_values,(cv);ld.param.u32 %raised,[childresult];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[childresult+4];setp.ne.u32 %p,%error,0;@%p bra RETURN;add.u32 %calls,%calls,1;
+GAS_5_END:
+setp.eq.u32 %p,%code,7;@%p bra GAS_6_ACTIVE;
+setp.eq.u32 %p,%code,17;@%p bra GAS_6_ACTIVE;
+setp.lt.s32 %p,%code,21;@%p bra GAS_6_END;
+GAS_6_ACTIVE:
+ld.u64 %ptr,[%rec+48];ld.b64 %left,[%ptr];ld.u64 %ptr,[%rec+32];ld.b64 %right,[%ptr];
+st.param.b64 [a],%left;st.param.b64 [b],%right;call.uni (arithmetic),md2asm_gpu_div_status,(a,b);ld.param.b64 %ratio,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.b64 [%scratch+16],%ratio;add.u64 %ptr,%clim,800;st.u64 [%childvec+40],%ptr;add.u64 %out,%rad,832;ld.u64 %dst,[%scratch+608];setp.eq.u64 %p,%dst,0;@%p bra GAS_6_EMPTY;
+ld.u64 %temporary,[%out+0];st.u64 [%clone+0],%temporary;
+ld.u64 %temporary,[%out+8];st.u64 [%clone+8],%temporary;
+ld.u64 %temporary,[%out+16];st.u64 [%clone+16],%temporary;
+ld.u64 %temporary,[%out+24];st.u64 [%clone+24],%temporary;
+ld.u64 %temporary,[%out+32];st.u64 [%clone+32],%temporary;
+ld.u64 %temporary,[%out+40];st.u64 [%clone+40],%temporary;
+ld.u64 %temporary,[%out+48];st.u64 [%clone+48],%temporary;
+ld.u64 %temporary,[%out+56];st.u64 [%clone+56],%temporary;
+ld.u64 %temporary,[%out+64];st.u64 [%clone+64],%temporary;
+ld.u64 %temporary,[%out+72];st.u64 [%clone+72],%temporary;
+ld.u64 %temporary,[%out+80];st.u64 [%clone+80],%temporary;
+ld.u64 %point,[%out];ld.u64 %owner,[%rec+280];sub.u64 %point,%point,%owner;add.u64 %point,%dst,%point;st.u64 [%clone],%point;st.u64 [%childvec+48],%clone;bra GAS_6_READY;
+GAS_6_EMPTY:st.u64 [%childvec+48],%out;
+GAS_6_READY:
+ld.u64 %temporary,[%rec+56];st.u64 [%childrec+0],%temporary;
+ld.u64 %temporary,[%rec+64];st.u64 [%childrec+8],%temporary;
+ld.u64 %temporary,[%rec+264];st.u64 [%childrec+16],%temporary;
+ld.u64 %temporary,[%rec+272];st.u64 [%childrec+24],%temporary;
+st.u64 [%childrec+32],%dst;ld.u64 %bytes,[%scratch+616];st.u64 [%childrec+40],%bytes;st.param.u64 [cv],%childvec;st.param.u64 [cc],%childctx;call.uni (refused),md2asm_gpu_monthly_layer_amount_admit,(cv,cc);ld.param.u32 %error,[refused];setp.ne.u32 %p,%error,0;@%p bra RETURN;st.param.u64 [cv],%childvec;call.uni (childresult),md2asm_gpu_monthly_layer_amount_values,(cv);ld.param.u32 %raised,[childresult];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[childresult+4];setp.ne.u32 %p,%error,0;@%p bra RETURN;add.u32 %calls,%calls,1;
+GAS_6_END:
+setp.eq.u32 %p,%code,8;@%p bra GAS_7_ACTIVE;
+setp.lt.s32 %p,%code,18;@%p bra GAS_7_END;
+GAS_7_ACTIVE:
+ld.b64 %left,[%fractions+80];ld.b64 %right,[%clim+1184];
+st.param.b64 [a],%left;st.param.b64 [b],%right;call.uni (arithmetic),md2asm_gpu_div_status,(a,b);ld.param.b64 %ratio,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.b64 [%scratch+16],%ratio;add.u64 %ptr,%clim,912;st.u64 [%childvec+40],%ptr;add.u64 %out,%rad,744;ld.u64 %dst,[%scratch+624];setp.eq.u64 %p,%dst,0;@%p bra GAS_7_EMPTY;
+ld.u64 %temporary,[%out+0];st.u64 [%clone+0],%temporary;
+ld.u64 %temporary,[%out+8];st.u64 [%clone+8],%temporary;
+ld.u64 %temporary,[%out+16];st.u64 [%clone+16],%temporary;
+ld.u64 %temporary,[%out+24];st.u64 [%clone+24],%temporary;
+ld.u64 %temporary,[%out+32];st.u64 [%clone+32],%temporary;
+ld.u64 %temporary,[%out+40];st.u64 [%clone+40],%temporary;
+ld.u64 %temporary,[%out+48];st.u64 [%clone+48],%temporary;
+ld.u64 %temporary,[%out+56];st.u64 [%clone+56],%temporary;
+ld.u64 %temporary,[%out+64];st.u64 [%clone+64],%temporary;
+ld.u64 %temporary,[%out+72];st.u64 [%clone+72],%temporary;
+ld.u64 %temporary,[%out+80];st.u64 [%clone+80],%temporary;
+ld.u64 %point,[%out];ld.u64 %owner,[%rec+312];sub.u64 %point,%point,%owner;add.u64 %point,%dst,%point;st.u64 [%clone],%point;st.u64 [%childvec+48],%clone;bra GAS_7_READY;
+GAS_7_EMPTY:st.u64 [%childvec+48],%out;
+GAS_7_READY:
+ld.u64 %temporary,[%rec+56];st.u64 [%childrec+0],%temporary;
+ld.u64 %temporary,[%rec+64];st.u64 [%childrec+8],%temporary;
+ld.u64 %temporary,[%rec+296];st.u64 [%childrec+16],%temporary;
+ld.u64 %temporary,[%rec+304];st.u64 [%childrec+24],%temporary;
+st.u64 [%childrec+32],%dst;ld.u64 %bytes,[%scratch+632];st.u64 [%childrec+40],%bytes;st.param.u64 [cv],%childvec;st.param.u64 [cc],%childctx;call.uni (refused),md2asm_gpu_monthly_layer_amount_admit,(cv,cc);ld.param.u32 %error,[refused];setp.ne.u32 %p,%error,0;@%p bra RETURN;st.param.u64 [cv],%childvec;call.uni (childresult),md2asm_gpu_monthly_layer_amount_values,(cv);ld.param.u32 %raised,[childresult];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[childresult+4];setp.ne.u32 %p,%error,0;@%p bra RETURN;add.u32 %calls,%calls,1;
+GAS_7_END:
+setp.eq.u32 %p,%code,9;@%p bra GAS_8_ACTIVE;
+setp.lt.s32 %p,%code,19;@%p bra GAS_8_END;
+GAS_8_ACTIVE:
+ld.b64 %left,[%fractions+56];ld.b64 %right,[%clim+1192];
+st.param.b64 [a],%left;st.param.b64 [b],%right;call.uni (arithmetic),md2asm_gpu_div_status,(a,b);ld.param.b64 %ratio,[arithmetic];ld.param.u32 %raised,[arithmetic+8];or.b32 %flags,%flags,%raised;
+st.b64 [%scratch+16],%ratio;add.u64 %ptr,%clim,1024;st.u64 [%childvec+40],%ptr;add.u64 %out,%rad,656;ld.u64 %dst,[%scratch+640];setp.eq.u64 %p,%dst,0;@%p bra GAS_8_EMPTY;
+ld.u64 %temporary,[%out+0];st.u64 [%clone+0],%temporary;
+ld.u64 %temporary,[%out+8];st.u64 [%clone+8],%temporary;
+ld.u64 %temporary,[%out+16];st.u64 [%clone+16],%temporary;
+ld.u64 %temporary,[%out+24];st.u64 [%clone+24],%temporary;
+ld.u64 %temporary,[%out+32];st.u64 [%clone+32],%temporary;
+ld.u64 %temporary,[%out+40];st.u64 [%clone+40],%temporary;
+ld.u64 %temporary,[%out+48];st.u64 [%clone+48],%temporary;
+ld.u64 %temporary,[%out+56];st.u64 [%clone+56],%temporary;
+ld.u64 %temporary,[%out+64];st.u64 [%clone+64],%temporary;
+ld.u64 %temporary,[%out+72];st.u64 [%clone+72],%temporary;
+ld.u64 %temporary,[%out+80];st.u64 [%clone+80],%temporary;
+ld.u64 %point,[%out];ld.u64 %owner,[%rec+344];sub.u64 %point,%point,%owner;add.u64 %point,%dst,%point;st.u64 [%clone],%point;st.u64 [%childvec+48],%clone;bra GAS_8_READY;
+GAS_8_EMPTY:st.u64 [%childvec+48],%out;
+GAS_8_READY:
+ld.u64 %temporary,[%rec+56];st.u64 [%childrec+0],%temporary;
+ld.u64 %temporary,[%rec+64];st.u64 [%childrec+8],%temporary;
+ld.u64 %temporary,[%rec+328];st.u64 [%childrec+16],%temporary;
+ld.u64 %temporary,[%rec+336];st.u64 [%childrec+24],%temporary;
+st.u64 [%childrec+32],%dst;ld.u64 %bytes,[%scratch+648];st.u64 [%childrec+40],%bytes;st.param.u64 [cv],%childvec;st.param.u64 [cc],%childctx;call.uni (refused),md2asm_gpu_monthly_layer_amount_admit,(cv,cc);ld.param.u32 %error,[refused];setp.ne.u32 %p,%error,0;@%p bra RETURN;st.param.u64 [cv],%childvec;call.uni (childresult),md2asm_gpu_monthly_layer_amount_values,(cv);ld.param.u32 %raised,[childresult];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[childresult+4];setp.ne.u32 %p,%error,0;@%p bra RETURN;add.u32 %calls,%calls,1;
+GAS_8_END:
+ld.u64 %src,[%scratch+512];setp.eq.u64 %p,%src,0;@%p bra COMMIT_0_END;ld.u64 %dst,[%rec+88];ld.u64 %bytes,[%scratch+520];mov.u64 %i,0;
+COMMIT_0:setp.ge.u64 %p,%i,%bytes;@%p bra COMMIT_0_END;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COMMIT_0;
+COMMIT_0_END:
+ld.u64 %src,[%scratch+528];setp.eq.u64 %p,%src,0;@%p bra COMMIT_1_END;ld.u64 %dst,[%rec+120];ld.u64 %bytes,[%scratch+536];mov.u64 %i,0;
+COMMIT_1:setp.ge.u64 %p,%i,%bytes;@%p bra COMMIT_1_END;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COMMIT_1;
+COMMIT_1_END:
+ld.u64 %src,[%scratch+544];setp.eq.u64 %p,%src,0;@%p bra COMMIT_2_END;ld.u64 %dst,[%rec+152];ld.u64 %bytes,[%scratch+552];mov.u64 %i,0;
+COMMIT_2:setp.ge.u64 %p,%i,%bytes;@%p bra COMMIT_2_END;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COMMIT_2;
+COMMIT_2_END:
+ld.u64 %src,[%scratch+560];setp.eq.u64 %p,%src,0;@%p bra COMMIT_3_END;ld.u64 %dst,[%rec+184];ld.u64 %bytes,[%scratch+568];mov.u64 %i,0;
+COMMIT_3:setp.ge.u64 %p,%i,%bytes;@%p bra COMMIT_3_END;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COMMIT_3;
+COMMIT_3_END:
+ld.u64 %src,[%scratch+576];setp.eq.u64 %p,%src,0;@%p bra COMMIT_4_END;ld.u64 %dst,[%rec+216];ld.u64 %bytes,[%scratch+584];mov.u64 %i,0;
+COMMIT_4:setp.ge.u64 %p,%i,%bytes;@%p bra COMMIT_4_END;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COMMIT_4;
+COMMIT_4_END:
+ld.u64 %src,[%scratch+592];setp.eq.u64 %p,%src,0;@%p bra COMMIT_5_END;ld.u64 %dst,[%rec+248];ld.u64 %bytes,[%scratch+600];mov.u64 %i,0;
+COMMIT_5:setp.ge.u64 %p,%i,%bytes;@%p bra COMMIT_5_END;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COMMIT_5;
+COMMIT_5_END:
+ld.u64 %src,[%scratch+608];setp.eq.u64 %p,%src,0;@%p bra COMMIT_6_END;ld.u64 %dst,[%rec+280];ld.u64 %bytes,[%scratch+616];mov.u64 %i,0;
+COMMIT_6:setp.ge.u64 %p,%i,%bytes;@%p bra COMMIT_6_END;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COMMIT_6;
+COMMIT_6_END:
+ld.u64 %src,[%scratch+624];setp.eq.u64 %p,%src,0;@%p bra COMMIT_7_END;ld.u64 %dst,[%rec+312];ld.u64 %bytes,[%scratch+632];mov.u64 %i,0;
+COMMIT_7:setp.ge.u64 %p,%i,%bytes;@%p bra COMMIT_7_END;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COMMIT_7;
+COMMIT_7_END:
+ld.u64 %src,[%scratch+640];setp.eq.u64 %p,%src,0;@%p bra COMMIT_8_END;ld.u64 %dst,[%rec+344];ld.u64 %bytes,[%scratch+648];mov.u64 %i,0;
+COMMIT_8:setp.ge.u64 %p,%i,%bytes;@%p bra COMMIT_8_END;add.u64 %ptr,%src,%i;ld.u8 %word,[%ptr];add.u64 %ptr,%dst,%i;st.u8 [%ptr],%word;add.u64 %i,%i,1;bra COMMIT_8;
+COMMIT_8_END:
+RETURN:st.param.u32 [result],%flags;st.param.u32 [result+4],%error;st.param.u64 [result+8],0;st.param.u64 [result+16],1;cvt.u64.u32 %temporary,%calls;st.param.u64 [result+24],%temporary;ret;
+}

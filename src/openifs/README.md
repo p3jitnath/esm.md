@@ -184,7 +184,7 @@ The current [autonomous forecast contract](../../skills/md2asm/references/openif
 
 ## GPU extension
 
-The PTX extension has 208 distinct component-qualified originals. Three complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. Those overlapping views do not cover the separate complete-owner and model-history gates. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
+The PTX extension has 212 distinct component-qualified originals. Four complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. Those overlapping views do not cover the separate complete-owner and model-history gates. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
 
 These recent contracts describe complete device stages and their declared limits. Parent and child entries overlap, so their counts must not be added.
 
@@ -199,6 +199,10 @@ These recent contracts describe complete device stages and their declared limits
 | Ozone on model pressure layers | [Ozone mapping](../../skills/md2asm-gpu/references/openifs/radiation/ozone_pressure_layers.md) |
 | Monthly pressure-weighted gas amounts | [Monthly layers](../../skills/md2asm-gpu/references/openifs/physics/monthly_gas_layer_amounts.md) |
 | Complete convective downdraft | [Downdraft descent](../../skills/md2asm-gpu/references/openifs/physics/convective_downdraft_descent.md) |
+| Complete greenhouse gas profiles | [Gas-profile parent](../../skills/md2asm-gpu/references/openifs/radiation/greenhouse_profile_parent.md) |
+| Wind for parcel trajectories | [Trajectory wind](../../skills/md2asm-gpu/references/openifs/trajectories/trajectory_wind_preparation.md) |
+| Complete convective cloud ascent | [Cloud ascent](../../skills/md2asm-gpu/references/openifs/physics/convective_cloud_ascent.md) |
+| Complete monthly gas update | [Monthly update](../../skills/md2asm-gpu/references/openifs/physics/monthly_gas_update.md) |
 
 ## Local records
 
