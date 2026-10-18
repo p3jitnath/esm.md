@@ -1,0 +1,183 @@
+// Contract: skills/md2asm-gpu/references/openifs/physics/methane_humidity_tendency.md.
+// METHOX original seven-address storage boundary. No weather arithmetic.
+.text
+.p2align 4
+.global md2asm_gpu_host_methox
+.type md2asm_gpu_host_methox,%function
+md2asm_gpu_host_methox:
+ sub sp,sp,#1024
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mov x29,sp
+ stp x0,x1,[sp,#128]
+ stp x2,x3,[sp,#144]
+ stp x4,x5,[sp,#160]
+ str x6,[sp,#176]
+ mrs x9,fpcr
+ cbnz x9,.Lmeth_gpu_fail
+ ldr w19,[x0]
+ ldr w20,[x1]
+ ldr w21,[x2]
+ ldr w22,[x3]
+ cmp w21,#4096
+ b.hi .Lmeth_gpu_fail
+ cmp w22,#512
+ b.hi .Lmeth_gpu_fail
+ cmp w19,#1
+ b.lt .Lmeth_gpu_fail
+ add w9,w21,#1
+ cmp w19,w9
+ b.hi .Lmeth_gpu_fail
+ cmp w20,w21
+ b.hi .Lmeth_gpu_fail
+ cmp w19,w20
+ b.gt .Lmeth_gpu_return
+ cbz w22,.Lmeth_gpu_return
+ mrs x9,fpcr
+ mrs x10,fpsr
+ str x9,[sp,#704]
+ str x10,[sp,#712]
+ bl __errno_location
+ ldr x18,[sp,#96]
+ mov x23,x0
+ ldr w9,[x23]
+ str w9,[sp,#720]
+ bl __oml_mod_MOD_oml_in_parallel
+ ldr x18,[sp,#96]
+ cbnz w0,.Lmeth_gpu_fail
+ bl md2asm_openifs_gpu_prepare
+ ldr x18,[sp,#96]
+ cbnz w0,.Lmeth_gpu_fail
+ add x24,sp,#256
+ add x25,sp,#320
+ mov x9,#0
+.Lmeth_gpu_zero:
+ add x10,x24,x9
+ stp xzr,xzr,[x10]
+ add x9,x9,#16
+ cmp x9,#320
+ b.lo .Lmeth_gpu_zero
+ mov w9,#1
+ str w9,[x24,#4]
+ str x25,[x24,#48]
+ mov x9,#256
+ str x9,[x24,#56]
+ mov x9,#4
+ stp x9,x9,[x25]
+ stp x9,x9,[x25,#16]
+ umull x9,w21,w22
+ lsl x9,x9,#3
+ str x9,[x25,#32]
+ stp x9,x9,[x25,#40]
+ adrp x9,:got:__yoemeth_MOD_ralpha1
+ ldr x9,[x9,:got_lo12:__yoemeth_MOD_ralpha1]
+ ldr x10,[x9]
+ str x10,[x25,#56]
+ adrp x9,:got:__yoemeth_MOD_ralpha2
+ ldr x9,[x9,:got_lo12:__yoemeth_MOD_ralpha2]
+ ldr x10,[x9]
+ str x10,[x25,#64]
+ adrp x9,:got:__yoemeth_MOD_ralpha3
+ ldr x9,[x9,:got_lo12:__yoemeth_MOD_ralpha3]
+ ldr x10,[x9]
+ str x10,[x25,#72]
+ adrp x9,:got:__yoemeth_MOD_rqlim
+ ldr x9,[x9,:got_lo12:__yoemeth_MOD_rqlim]
+ ldr x10,[x9]
+ str x10,[x25,#80]
+ adrp x9,:got:__yoemeth_MOD_rpbotox
+ ldr x9,[x9,:got_lo12:__yoemeth_MOD_rpbotox]
+ ldr x10,[x9]
+ str x10,[x25,#88]
+ adrp x9,:got:__yoemeth_MOD_rpbotph
+ ldr x9,[x9,:got_lo12:__yoemeth_MOD_rpbotph]
+ ldr x10,[x9]
+ str x10,[x25,#96]
+ adrp x9,:got:__yoemeth_MOD_rptopox
+ ldr x9,[x9,:got_lo12:__yoemeth_MOD_rptopox]
+ ldr x10,[x9]
+ str x10,[x25,#104]
+ adrp x9,:got:__yoemeth_MOD_rptopph
+ ldr x9,[x9,:got_lo12:__yoemeth_MOD_rptopph]
+ ldr x10,[x9]
+ str x10,[x25,#112]
+ adrp x9,:got:__yoemeth_MOD_rlogpph
+ ldr x9,[x9,:got_lo12:__yoemeth_MOD_rlogpph]
+ ldr x10,[x9]
+ str x10,[x25,#120]
+ adrp x9,:got:__yomcst_MOD_rpi
+ ldr x9,[x9,:got_lo12:__yomcst_MOD_rpi]
+ ldr x10,[x9]
+ str x10,[x25,#128]
+ adrp x9,:got:__yomcst_MOD_rdayi
+ ldr x9,[x9,:got_lo12:__yomcst_MOD_rdayi]
+ ldr x10,[x9]
+ str x10,[x25,#136]
+ adrp x9,:got:md2asm_exponential_native_calls_storage
+ ldr x9,[x9,:got_lo12:md2asm_exponential_native_calls_storage]
+ str x9,[x25,#144]
+ cmp x9,#0
+ mov x10,#8
+ csel x10,x10,xzr,ne
+ str x10,[x25,#152]
+ adrp x9,:got:md2asm_product_sum_fast_calls
+ ldr x9,[x9,:got_lo12:md2asm_product_sum_fast_calls]
+ str x9,[x25,#160]
+ cmp x9,#0
+ mov x10,#8
+ csel x10,x10,xzr,ne
+ str x10,[x25,#168]
+ adrp x9,:got:md2asm_product_sum_wide_calls
+ ldr x9,[x9,:got_lo12:md2asm_product_sum_wide_calls]
+ str x9,[x25,#176]
+ cmp x9,#0
+ mov x10,#8
+ csel x10,x10,xzr,ne
+ str x10,[x25,#184]
+ adrp x0,.Lmeth_gpu_entry
+ add x0,x0,:lo12:.Lmeth_gpu_entry
+ add x1,sp,#128
+ mov x2,x24
+ mov w3,#1
+ mov w4,#1
+ mov w5,#0
+ ldr x9,[sp,#704]
+ ldr x10,[sp,#712]
+ msr fpcr,x9
+ msr fpsr,x10
+ ldr w9,[sp,#720]
+ str w9,[x23]
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#96]
+ cbnz w0,.Lmeth_gpu_fail
+ ldr w9,[x24]
+ cbnz w9,.Lmeth_gpu_fail
+.Lmeth_gpu_return:
+ ldr x18,[sp,#96]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#1024
+ ret
+.Lmeth_gpu_fail:
+ bl abort
+ brk #0
+.size md2asm_gpu_host_methox,.-md2asm_gpu_host_methox
+.ifndef MD2ASM_GPU_VERIFY_ONLY
+.global md2asm_methox
+.set md2asm_methox,md2asm_gpu_host_methox
+.endif
+.weak md2asm_exponential_native_calls_storage
+.weak md2asm_product_sum_fast_calls
+.weak md2asm_product_sum_wide_calls
+.section .rodata
+.Lmeth_gpu_entry:.asciz "md2asm_gpu_methane_tendency"
+.section .note.GNU-stack,"",%progbits

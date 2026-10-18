@@ -1,0 +1,177 @@
+// Contract: skills/md2asm-gpu/references/openifs/physics/convective_cloud_rain_diagnostics.md.
+// CUCCDIA original eighteen-address boundary. Integer storage only.
+.text
+.p2align 4
+.global md2asm_gpu_host_cuccdia
+.type md2asm_gpu_host_cuccdia,%function
+md2asm_gpu_host_cuccdia:
+ sub sp,sp,#1024
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mov x29,sp
+ stp x0,x1,[sp,#128]
+ stp x2,x3,[sp,#144]
+ stp x4,x5,[sp,#160]
+ stp x6,x7,[sp,#176]
+ add x9,sp,#1024
+ add x10,sp,#192
+ mov w11,#10
+.Lccd_host_copy:
+ ldr x12,[x9],#8
+ str x12,[x10],#8
+ subs w11,w11,#1
+ b.ne .Lccd_host_copy
+ mrs x9,fpcr
+ cbnz x9,.Lccd_host_fail
+ str x9,[sp,#704]
+ mrs x10,fpsr
+ str x10,[sp,#712]
+ bl __errno_location
+ ldr x18,[sp,#96]
+ mov x19,x0
+ ldr w9,[x19]
+ str w9,[sp,#720]
+ bl __oml_mod_MOD_oml_in_parallel
+ ldr x18,[sp,#96]
+ cbnz w0,.Lccd_host_fail
+ bl md2asm_openifs_gpu_prepare
+ ldr x18,[sp,#96]
+ cbnz w0,.Lccd_host_fail
+ add x20,sp,#128
+ add x21,sp,#320
+ add x22,sp,#384
+ mov x9,#0
+.Lccd_host_zero:
+ add x10,x21,x9
+ stp xzr,xzr,[x10]
+ add x9,x9,#16
+ cmp x9,#256
+ b.lo .Lccd_host_zero
+ mov w9,#1
+ str w9,[x21,#4]
+ str x22,[x21,#48]
+ mov x9,#192
+ str x9,[x21,#56]
+ mov x9,#2040
+ str x9,[x22]
+ mov x9,#120
+ str x9,[x22,#8]
+ mov x9,#448
+ str x9,[x22,#16]
+ mov x9,#4
+ stp x9,x9,[x22,#24]
+ stp x9,x9,[x22,#40]
+ str x9,[x22,#56]
+ ldr x9,[x20,#40]
+ ldr w23,[x9]
+ cmp w23,#4096
+ b.hi .Lccd_host_fail
+ ldr x9,[x20,#16]
+ ldr w10,[x9,#8]
+ cbz w10,.Lccd_host_launch
+ ldr x10,[x20,#8]
+ ldr w10,[x10,#4]
+ cbnz w10,.Lccd_host_data
+ ldr x10,[x20]
+ ldr w11,[x10,#12]
+ cmp w11,#1
+ b.eq .Lccd_host_data
+ cbz w11,.Lccd_host_fail
+ ldr w10,[x9,#36]
+ cbz w10,.Lccd_host_launch
+ ldr x10,[x20,#56]
+ ldr w10,[x10]
+ add w10,w10,#1
+ sdiv w12,w10,w11
+ msub w10,w12,w11,w10
+ cbz w10,.Lccd_host_launch
+.Lccd_host_data:
+ ldr x9,[x20,#24]
+ ldr w10,[x9]
+ ldr x9,[x20,#32]
+ ldr w11,[x9]
+ cmp w10,#1
+ b.lt .Lccd_host_fail
+ add w12,w23,#1
+ cmp w10,w12
+ b.hi .Lccd_host_fail
+ cmp w11,w23
+ b.hi .Lccd_host_fail
+ sub w12,w10,#1
+ cmp w11,w12
+ b.lt .Lccd_host_fail
+ cmp w10,w11
+ b.gt .Lccd_host_launch
+ lsl x9,x23,#2
+ str x9,[x22,#80]
+ ldr x9,[x20,#80]
+ cbz x9,.Lccd_host_fail
+ sub w12,w10,#1
+ mov w13,#0
+.Lccd_host_flags:
+ ldr w14,[x9,x12,lsl #2]
+ orr w13,w13,w14
+ add w12,w12,#1
+ cmp w12,w11
+ b.lt .Lccd_host_flags
+ cbz w13,.Lccd_host_launch
+ ldr x9,[x20,#48]
+ cbz x9,.Lccd_host_fail
+ ldr w24,[x9]
+ cmp w24,#512
+ b.hi .Lccd_host_fail
+ lsl x9,x23,#2
+ str x9,[x22,#64]
+ str x9,[x22,#72]
+ str x9,[x22,#80]
+ str x9,[x22,#128]
+ str x9,[x22,#136]
+ lsl x9,x23,#3
+ stp x9,x9,[x22,#112]
+ umull x9,w23,w24
+ lsl x9,x9,#3
+ str x9,[x22,#88]
+ stp x9,x9,[x22,#96]
+.Lccd_host_launch:
+ adrp x0,.Lccd_host_entry
+ add x0,x0,:lo12:.Lccd_host_entry
+ mov x1,x20
+ mov x2,x21
+ mov w3,#1
+ mov w4,#1
+ mov w5,#0
+ ldr x9,[sp,#704]
+ ldr x10,[sp,#712]
+ msr fpcr,x9
+ msr fpsr,x10
+ ldr w9,[sp,#720]
+ str w9,[x19]
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#96]
+ cbnz w0,.Lccd_host_fail
+ ldr w9,[x21]
+ cbnz w9,.Lccd_host_fail
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#1024
+ ret
+.Lccd_host_fail:
+ bl abort
+ brk #0
+.size md2asm_gpu_host_cuccdia,.-md2asm_gpu_host_cuccdia
+.ifndef MD2ASM_GPU_VERIFY_ONLY
+.global md2asm_cuccdia
+.set md2asm_cuccdia,md2asm_gpu_host_cuccdia
+.endif
+.section .rodata
+.Lccd_host_entry:.asciz "md2asm_gpu_cloud_rain_diagnostics"
+.section .note.GNU-stack,"",%progbits

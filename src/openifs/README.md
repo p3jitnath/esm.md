@@ -184,7 +184,7 @@ The current [autonomous forecast contract](../../skills/md2asm/references/openif
 
 ## GPU extension
 
-The PTX extension has 224 distinct component-qualified originals. Five complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. The latest run also matches both complete model-history buffers across 1,882,368 bytes. The separate complete-owner GPU gate remains unfinished. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
+The PTX extension has 227 distinct component-qualified originals. Five complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. The latest run also matches both complete model-history buffers across 1,882,368 bytes. The separate complete-owner GPU gate remains unfinished. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
 
 These recent contracts describe complete device stages and their declared limits. Parent and child entries overlap, so their counts must not be added.
 
@@ -210,13 +210,14 @@ These recent contracts describe complete device stages and their declared limits
 | Complete Monthly Aerosol Update on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/monthly_aerosol_update.md) |
 | Final Convective Fluxes on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/convective_final_flux.md) |
 | Convective Heat and Moisture Tendencies on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/convective_heat_moisture.md) |
-
 | Complete Slow-Physics Interval Controller on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/physics_interval_controller.md) |
 | Complete Convective Column Update on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/convective_column_update.md) |
 | Complete Model Clock and Forcing on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/model_time_and_forcing.md) |
-
 | Complete Radiation Grid on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/radiation/radiation_grid_parent.md) |
 | Solar Zenith Geometry on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/solar_zenith_geometry.md) |
+| Methane Humidity Tendency On A GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/methane_humidity_tendency.md) |
+| Convective Cloud And Rain Diagnostics On A GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/convective_cloud_rain_diagnostics.md) |
+| Stratocumulus diffusion on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/convection/stratocumulus_diffusion.md) |
 
 ## Local records
 
