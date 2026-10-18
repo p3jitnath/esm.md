@@ -20,7 +20,7 @@ The callable `md2asm_gpu_atan2_finite` receives two PTX `.param.b64` words in `y
 | 16 | 64-bit FAST count | Actual exact product-sum calls using the shorter integer path |
 | 24 | 64-bit WIDE count | Actual calls using the wider integer path |
 
-A zero event preserves the caller's `errno` error value. Event 34 records an actual error-slot write even when the incoming value is already 34. The parent preserves its position in the original operation order. Combine returned flags with incoming flags by integer OR, and add the actual helper counts with wrapping integer arithmetic. Store child arguments immediately before each call and consume returned values immediately afterward. The [mathematical support contract](../mathematical_support.md) defines the shared status rules.
+A zero event preserves the caller's `errno` error value. Event 34 records an actual error-slot write even when the incoming value is already 34. The parent preserves its position in the original operation order. Combine returned flags with incoming flags by integer OR. Returned totals for helper paths use wrapping integer arithmetic and remain separate from stored counters, whose updates follow the selected source call sites. Store child arguments immediately before each call and consume returned values immediately afterward. The [mathematical support contract](../mathematical_support.md) defines the shared status rules.
 
 The target is PTX 8.5 and `sm_90`. Assemble with `ptxas -c -arch=sm_90 --fmad=false` and link the accepted operator and exact product-sum objects once with `nvlink`. A parent owns the launch, complete input checks and storage lifetime.
 

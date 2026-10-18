@@ -22,7 +22,7 @@ The callable name is `md2asm_gpu_asin_unit_interval`. Its one PTX `.param.b64` a
 | 16 | 64-bit FAST count | Actual exact product-sum calls using the shorter integer path |
 | 24 | 64-bit WIDE count | Actual calls using the wider integer path |
 
-Each call owns its parameter storage and temporary registers. It needs no input buffer, shared memory or barrier. The caller combines new flags with incoming flags by integer OR and adds the actual helper counts with wrapping integer arithmetic. Store arguments immediately before each child call and consume its return words immediately afterward. The [mathematical support contract](../mathematical_support.md) defines the flag positions and shared helper interfaces.
+Each call owns its parameter storage and temporary registers. It needs no input buffer, shared memory or barrier. The caller combines new flags with incoming flags by integer OR. Returned totals for helper paths use wrapping integer arithmetic and remain separate from stored counters, whose updates follow the selected source call sites. Store arguments immediately before each child call and consume its return words immediately afterward. The [mathematical support contract](../mathematical_support.md) defines the flag positions and shared helper interfaces.
 
 The source targets PTX 8.5 and `sm_90`. Assemble with `ptxas -c -arch=sm_90 --fmad=false`, then link the accepted operator and exact product-sum objects once with `nvlink`. The function is a device callable, so a parent supplies its launch and complete input checks.
 
