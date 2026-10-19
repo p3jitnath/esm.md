@@ -184,7 +184,7 @@ The current [autonomous forecast contract](../../skills/md2asm/references/openif
 
 ## GPU extension
 
-The PTX extension has 247 distinct component-qualified originals. Six complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. The latest run also matches both complete model-history buffers across 1,882,368 bytes. The separate complete-owner GPU gate remains unfinished. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
+The PTX extension has 252 distinct component-qualified originals. Six complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. The latest run also matches both complete model-history buffers across 1,882,368 bytes. The separate complete-owner GPU gate remains unfinished. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
 
 These recent contracts describe complete device stages and their declared limits. Parent and child entries overlap, so their counts must not be added.
 
@@ -242,6 +242,12 @@ These recent contracts describe complete device stages and their declared limits
 | Lake Energy Profile Update on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/lake_energy_profile_update.md) |
 | Aerosol and Ozone Visibility Climatology on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/aerosol_visibility_climatology.md) |
 | Complete cloud weather diagnostics on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/cloud_weather_diagnostics.md) |
+| Snow Mass Adjustment on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/snow_mass_adjustment.md) |
+| Snow Warm Start on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/snow_warm_start.md) |
+| Multilayer Snow Driver on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/multilayer_snow_driver.md) |
+| Convective Energy Diagnostics on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/convective_energy_diagnostics.md) |
+| Climatological Aerosol Visibility Layer on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/climatological_aerosol_visibility_layer.md) |
+| Surface Boundary Adapter on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/surface_boundary_adapter.md) |
 
 ## Local records
 

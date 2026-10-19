@@ -1,0 +1,7 @@
+# Surface Boundary Adapter on the GPU
+
+The complete 42-address SURFBC adapter keeps its 16,384-byte frame, parameter lookup, original bounds, storage, hooks and 45-address tile-child call. The application binary interface (ABI) retains the original aligned stack, saved registers, immediate status and complete-owner bounds. Seven local operations use the unchanged qualified scalar GPU route. Tile sums, both bare-cover subtractions, the rounded `1+0.01` limit and all comparison ties stay ordered. Cover fractions and category limits are dimensionless. The shared-source remainder preserves all accepted snow and turbulence siblings.
+
+Forty-eight original Fortran, selected Arm and GPU-adapter calls agree over 90,528 output bytes, with 3,600 independent area and classification relations and 68,064 unchanged inactive bytes. Immediate status, seeded state and actual counters match the selected Arm route. Eight inherited structural refusals preserve 312 output bytes each. Complete provider, source, remainder and both independent reviews pass.
+
+Both compared parents reuse the same accepted Arm tile child. These results qualify the seven adapter operations and add zero original routines or complete GPU-tile credit. The dependent tile GPU route requires separate acceptance. Original Fortran can return floating-point status zero where selected Arm reports inexact conversion for fractional categories. This inherited distinction remains visible, and the new route matches the exact selected Arm status. Complete forecast and performance acceptance remain separate.

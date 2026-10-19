@@ -1,0 +1,7100 @@
+// Contract: skills/md2asm-gpu/references/openifs/surface/snow_warm_start.md.
+/* Snow warm start from formulations/openifs/surface/snow_warm_start.md.
+ * Complete mode-two controller and its four native numerical children. */
+#ifndef ORIGINAL_SYMBOL
+#define ORIGINAL_SYMBOL md2asm_snow_warm_start
+#endif
+.text
+.p2align 4
+.global ORIGINAL_SYMBOL
+.type ORIGINAL_SYMBOL,%function
+.macro ARG reg,index
+ ldr \reg,[x28,#(512+8*\index)]
+.endm
+.macro CONST reg,name
+ adrp x16,.Lctl_\name
+ ldr \reg,[x16,:lo12:.Lctl_\name]
+.endm
+.macro INPUT1 reg,index
+ ldr x9,[x28,#(768+80*\index)]
+ ldr x10,[x28,#(776+80*\index)]
+ mul x10,x10,x19
+ ldr \reg,[x9,x10]
+.endm
+.macro INPUT2 reg,index
+ ldr x9,[x28,#(768+80*\index)]
+ ldr x10,[x28,#(776+80*\index)]
+ ldr x11,[x28,#(784+80*\index)]
+ mul x10,x10,x19
+ madd x10,x11,x24,x10
+ ldr \reg,[x9,x10]
+.endm
+.macro PUTINPUT2 reg,index
+ ldr x9,[x28,#(768+80*\index)]
+ ldr x10,[x28,#(776+80*\index)]
+ ldr x11,[x28,#(784+80*\index)]
+ mul x10,x10,x19
+ madd x10,x11,x24,x10
+ str \reg,[x9,x10]
+.endm
+.macro LOCAL1 reg,index
+ ldr x9,[x28,#(1664+8*\index)]
+ ldr \reg,[x9,x19,lsl #3]
+.endm
+.macro PUTLOCAL1 reg,index
+ ldr x9,[x28,#(1664+8*\index)]
+ str \reg,[x9,x19,lsl #3]
+.endm
+.macro LOCAL2 reg,index
+ ldr x9,[x28,#(1664+8*\index)]
+ madd x10,x24,x20,x19
+ ldr \reg,[x9,x10,lsl #3]
+.endm
+.macro PUTLOCAL2 reg,index
+ ldr x9,[x28,#(1664+8*\index)]
+ madd x10,x24,x20,x19
+ str \reg,[x9,x10,lsl #3]
+.endm
+ORIGINAL_SYMBOL:
+ mov x17,sp
+ sub sp,sp,#8192
+ stp x19,x20,[sp,#320]
+ stp x21,x22,[sp,#336]
+ stp x23,x24,[sp,#352]
+ stp x25,x26,[sp,#368]
+ stp x27,x28,[sp,#384]
+ stp x29,x30,[sp,#400]
+ stp d8,d9,[sp,#416]
+ stp d10,d11,[sp,#432]
+ stp d12,d13,[sp,#448]
+ stp d14,d15,[sp,#464]
+ mov x28,sp
+str x0,[x28,#512]
+str x1,[x28,#520]
+str x2,[x28,#528]
+str x3,[x28,#536]
+str x4,[x28,#544]
+str x5,[x28,#552]
+str x6,[x28,#560]
+str x7,[x28,#568]
+ldr x9,[x17,#0]
+str x9,[x28,#576]
+ldr x9,[x17,#8]
+str x9,[x28,#584]
+ldr x9,[x17,#16]
+str x9,[x28,#592]
+ldr x9,[x17,#24]
+str x9,[x28,#600]
+ldr x9,[x17,#32]
+str x9,[x28,#608]
+ldr x9,[x17,#40]
+str x9,[x28,#616]
+ldr x9,[x17,#48]
+str x9,[x28,#624]
+ldr x9,[x17,#56]
+str x9,[x28,#632]
+ldr x9,[x17,#64]
+str x9,[x28,#640]
+ARG x9,0
+cbz x9,.Lctl_invalid
+tst x9,#3
+b.ne .Lctl_invalid
+ARG x9,1
+cbz x9,.Lctl_invalid
+tst x9,#3
+b.ne .Lctl_invalid
+ARG x9,2
+cbz x9,.Lctl_invalid
+tst x9,#3
+b.ne .Lctl_invalid
+ARG x9,3
+cbz x9,.Lctl_invalid
+tst x9,#3
+b.ne .Lctl_invalid
+ARG x9,4
+cbz x9,.Lctl_invalid
+tst x9,#7
+b.ne .Lctl_invalid
+ARG x9,5
+cbz x9,.Lctl_invalid
+tst x9,#7
+b.ne .Lctl_invalid
+ARG x9,6
+cbz x9,.Lctl_invalid
+tst x9,#7
+b.ne .Lctl_invalid
+ARG x9,7
+cbz x9,.Lctl_invalid
+tst x9,#7
+b.ne .Lctl_invalid
+ARG x9,8
+cbz x9,.Lctl_invalid
+tst x9,#7
+b.ne .Lctl_invalid
+ARG x9,9
+cbz x9,.Lctl_invalid
+tst x9,#7
+b.ne .Lctl_invalid
+ARG x9,10
+cbz x9,.Lctl_invalid
+tst x9,#7
+b.ne .Lctl_invalid
+ARG x9,11
+cbz x9,.Lctl_invalid
+tst x9,#7
+b.ne .Lctl_invalid
+ARG x9,12
+cbz x9,.Lctl_invalid
+tst x9,#7
+b.ne .Lctl_invalid
+ARG x9,13
+cbz x9,.Lctl_invalid
+tst x9,#7
+b.ne .Lctl_invalid
+ARG x9,14
+cbz x9,.Lctl_invalid
+tst x9,#7
+b.ne .Lctl_invalid
+ARG x9,15
+cbz x9,.Lctl_invalid
+tst x9,#7
+b.ne .Lctl_invalid
+ARG x9,16
+cbz x9,.Lctl_invalid
+tst x9,#7
+b.ne .Lctl_invalid
+mrs x9,fpcr
+cbnz x9,.Lctl_invalid
+ARG x9,0
+ldrsw x22,[x9]
+sub x22,x22,#1
+ARG x9,1
+ldrsw x23,[x9]
+ARG x9,2
+ldrsw x20,[x9]
+ARG x9,3
+ldrsw x21,[x9]
+cmp x20,#1
+b.lt .Lctl_invalid
+cmp x20,#4096
+b.gt .Lctl_invalid
+cmp x21,#5
+b.lt .Lctl_invalid
+cmp x21,#512
+b.gt .Lctl_invalid
+cmp x22,#0
+b.lt .Lctl_invalid
+cmp x22,x20
+b.ge .Lctl_invalid
+cmp x23,x20
+b.gt .Lctl_invalid
+cmp x23,x22
+b.lt .Lctl_invalid
+ARG x9,16
+ldr w10,[x9,#488]
+cmp w10,#2
+b.ne .Lctl_invalid
+ARG x0,4
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,#1
+add x6,x28,#768
+bl .Lctl_decode
+ARG x0,5
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,#1
+add x6,x28,#848
+bl .Lctl_decode
+ARG x0,6
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,#7
+add x6,x28,#928
+bl .Lctl_decode
+ARG x0,7
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,#1
+add x6,x28,#1008
+bl .Lctl_decode
+ARG x0,8
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,#1
+add x6,x28,#1088
+bl .Lctl_decode
+ARG x0,9
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,#1
+add x6,x28,#1168
+bl .Lctl_decode
+ARG x0,10
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,#1
+add x6,x28,#1248
+bl .Lctl_decode
+ARG x0,11
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#1328
+bl .Lctl_decode
+ARG x0,12
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#1408
+bl .Lctl_decode
+ARG x0,13
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#1488
+bl .Lctl_decode
+ARG x0,14
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#1568
+bl .Lctl_decode
+ARG x0,16
+add x0,x0,#2120
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,x21
+mov x5,#1
+mov x16,#5480
+add x6,x28,x16
+bl .Lctl_decode
+ARG x9,16
+add x9,x9,#2120
+ldr x10,[x9,#40]
+cmp x10,#1
+b.ne .Lctl_invalid
+ldr x10,[x9,#48]
+cmp x10,#1
+b.ne .Lctl_invalid
+ldr x10,[x9,#8]
+cmn x10,#1
+b.ne .Lctl_invalid
+ARG x0,16
+add x0,x0,#2184
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,x21
+mov x5,#1
+mov x16,#5560
+add x6,x28,x16
+bl .Lctl_decode
+ARG x9,16
+add x9,x9,#2184
+ldr x10,[x9,#40]
+cmp x10,#1
+b.ne .Lctl_invalid
+ldr x10,[x9,#48]
+cmp x10,#1
+b.ne .Lctl_invalid
+ldr x10,[x9,#8]
+cmn x10,#1
+b.ne .Lctl_invalid
+ARG x0,16
+add x0,x0,#2248
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,x21
+mov x5,#1
+mov x16,#5640
+add x6,x28,x16
+bl .Lctl_decode
+ARG x9,16
+add x9,x9,#2248
+ldr x10,[x9,#40]
+cmp x10,#1
+b.ne .Lctl_invalid
+ldr x10,[x9,#48]
+cmp x10,#1
+b.ne .Lctl_invalid
+ldr x10,[x9,#8]
+cmn x10,#1
+b.ne .Lctl_invalid
+ARG x0,16
+add x0,x0,#2312
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,x21
+mov x5,#1
+mov x16,#5720
+add x6,x28,x16
+bl .Lctl_decode
+ARG x9,16
+add x9,x9,#2312
+ldr x10,[x9,#40]
+cmp x10,#1
+b.ne .Lctl_invalid
+ldr x10,[x9,#48]
+cmp x10,#1
+b.ne .Lctl_invalid
+ldr x10,[x9,#8]
+cmn x10,#1
+b.ne .Lctl_invalid
+ARG x0,16
+add x0,x0,#1584
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,#1
+mov x5,#1
+mov x16,#5800
+add x6,x28,x16
+bl .Lctl_decode
+ARG x9,16
+add x9,x9,#1584
+ldr x10,[x9,#40]
+cmp x10,#1
+b.ne .Lctl_invalid
+ldr x10,[x9,#48]
+cmp x10,#1
+b.ne .Lctl_invalid
+ldr x10,[x9,#8]
+cmn x10,#1
+b.ne .Lctl_invalid
+ldr x0,[x28,#1360]
+ldr x1,[x28,#1368]
+str x0,[x28,#6072]
+str x1,[x28,#6080]
+ARG x2,0
+adds x3,x2,#4
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,1
+adds x3,x2,#4
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,2
+adds x3,x2,#4
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,3
+adds x3,x2,#4
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,4
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,5
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,6
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,7
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,8
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,9
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,10
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,11
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,12
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,13
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,14
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,15
+adds x3,x2,#128
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,16
+adds x3,x2,#2416
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#800]
+ldr x3,[x28,#808]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#880]
+ldr x3,[x28,#888]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#960]
+ldr x3,[x28,#968]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1040]
+ldr x3,[x28,#1048]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1120]
+ldr x3,[x28,#1128]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1200]
+ldr x3,[x28,#1208]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1280]
+ldr x3,[x28,#1288]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1440]
+ldr x3,[x28,#1448]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1520]
+ldr x3,[x28,#1528]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1600]
+ldr x3,[x28,#1608]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5512]
+ldr x3,[x28,#5520]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5592]
+ldr x3,[x28,#5600]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5672]
+ldr x3,[x28,#5680]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5752]
+ldr x3,[x28,#5760]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5832]
+ldr x3,[x28,#5840]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x0,[x28,#1440]
+ldr x1,[x28,#1448]
+str x0,[x28,#6072]
+str x1,[x28,#6080]
+ARG x2,0
+adds x3,x2,#4
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,1
+adds x3,x2,#4
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,2
+adds x3,x2,#4
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,3
+adds x3,x2,#4
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,4
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,5
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,6
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,7
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,8
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,9
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,10
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,11
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,12
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,13
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,14
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,15
+adds x3,x2,#128
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,16
+adds x3,x2,#2416
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#800]
+ldr x3,[x28,#808]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#880]
+ldr x3,[x28,#888]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#960]
+ldr x3,[x28,#968]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1040]
+ldr x3,[x28,#1048]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1120]
+ldr x3,[x28,#1128]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1200]
+ldr x3,[x28,#1208]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1280]
+ldr x3,[x28,#1288]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1360]
+ldr x3,[x28,#1368]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1520]
+ldr x3,[x28,#1528]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1600]
+ldr x3,[x28,#1608]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5512]
+ldr x3,[x28,#5520]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5592]
+ldr x3,[x28,#5600]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5672]
+ldr x3,[x28,#5680]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5752]
+ldr x3,[x28,#5760]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5832]
+ldr x3,[x28,#5840]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x0,[x28,#1520]
+ldr x1,[x28,#1528]
+str x0,[x28,#6072]
+str x1,[x28,#6080]
+ARG x2,0
+adds x3,x2,#4
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,1
+adds x3,x2,#4
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,2
+adds x3,x2,#4
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,3
+adds x3,x2,#4
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,4
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,5
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,6
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,7
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,8
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,9
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,10
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,11
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,12
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,13
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,14
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,15
+adds x3,x2,#128
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,16
+adds x3,x2,#2416
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#800]
+ldr x3,[x28,#808]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#880]
+ldr x3,[x28,#888]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#960]
+ldr x3,[x28,#968]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1040]
+ldr x3,[x28,#1048]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1120]
+ldr x3,[x28,#1128]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1200]
+ldr x3,[x28,#1208]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1280]
+ldr x3,[x28,#1288]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1360]
+ldr x3,[x28,#1368]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1440]
+ldr x3,[x28,#1448]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1600]
+ldr x3,[x28,#1608]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5512]
+ldr x3,[x28,#5520]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5592]
+ldr x3,[x28,#5600]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5672]
+ldr x3,[x28,#5680]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5752]
+ldr x3,[x28,#5760]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5832]
+ldr x3,[x28,#5840]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x0,[x28,#1600]
+ldr x1,[x28,#1608]
+str x0,[x28,#6072]
+str x1,[x28,#6080]
+ARG x2,0
+adds x3,x2,#4
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,1
+adds x3,x2,#4
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,2
+adds x3,x2,#4
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,3
+adds x3,x2,#4
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,4
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,5
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,6
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,7
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,8
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,9
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,10
+adds x3,x2,#64
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,11
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,12
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,13
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,14
+adds x3,x2,#88
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,15
+adds x3,x2,#128
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x2,16
+adds x3,x2,#2416
+b.cs .Lctl_invalid
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#800]
+ldr x3,[x28,#808]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#880]
+ldr x3,[x28,#888]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#960]
+ldr x3,[x28,#968]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1040]
+ldr x3,[x28,#1048]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1120]
+ldr x3,[x28,#1128]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1200]
+ldr x3,[x28,#1208]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1280]
+ldr x3,[x28,#1288]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1360]
+ldr x3,[x28,#1368]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1440]
+ldr x3,[x28,#1448]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#1520]
+ldr x3,[x28,#1528]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5512]
+ldr x3,[x28,#5520]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5592]
+ldr x3,[x28,#5600]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5672]
+ldr x3,[x28,#5680]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5752]
+ldr x3,[x28,#5760]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ldr x2,[x28,#5832]
+ldr x3,[x28,#5840]
+ldr x0,[x28,#6072]
+ldr x1,[x28,#6080]
+bl .Lctl_separate
+ARG x9,15
+ldr d8,[x9]
+CONST d1,c0
+ // Complete warm-start numerical region 0.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d8,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.ne .Lctl_invalid
+ldr d0,[x9,#8]
+CONST d1,c1
+ // Complete warm-start numerical region 1.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.ne .Lctl_invalid
+ldr d10,[x9,#64]
+ // Complete warm-start numerical region 2.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d10,[sp,#0]
+ str d10,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c2
+ // Complete warm-start numerical region 3.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d10,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c3
+ // Complete warm-start numerical region 4.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d10,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ARG x9,16
+ldr d0,[x9,#312]
+str d0,[x28,#6088]
+ldr d0,[x9,#296]
+str d0,[x28,#6096]
+ldr d0,[x28,#6088]
+ // Complete warm-start numerical region 5.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c2
+ // Complete warm-start numerical region 6.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c4
+ // Complete warm-start numerical region 7.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ldr d0,[x28,#6096]
+ // Complete warm-start numerical region 8.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c2
+ // Complete warm-start numerical region 9.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c4
+ // Complete warm-start numerical region 10.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ldr d0,[x28,#6088]
+ldr d1,[x28,#6096]
+ // Complete warm-start numerical region 11.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#3
+ bl md2asm_gpu_soil_water_cell_host
+ fmov d9,d0
+ ldr d0,[sp,#96]
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+ARG x9,16
+ldr d0,[x9,#392]
+ // Complete warm-start numerical region 12.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 13.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c2
+ // Complete warm-start numerical region 14.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ARG x9,16
+ldr d0,[x9,#400]
+ // Complete warm-start numerical region 15.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 16.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c2
+ // Complete warm-start numerical region 17.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ARG x9,16
+ldr d0,[x9,#1832]
+ // Complete warm-start numerical region 18.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c2
+ // Complete warm-start numerical region 19.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c6
+ // Complete warm-start numerical region 20.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ARG x9,16
+ldr d0,[x9,#1960]
+ // Complete warm-start numerical region 21.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c2
+ // Complete warm-start numerical region 22.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c6
+ // Complete warm-start numerical region 23.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ARG x9,16
+ldr d0,[x9,#1800]
+ // Complete warm-start numerical region 24.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c7
+ // Complete warm-start numerical region 25.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c8
+ // Complete warm-start numerical region 26.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ARG x9,16
+ldr d0,[x9,#1776]
+ // Complete warm-start numerical region 27.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c2
+ // Complete warm-start numerical region 28.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c6
+ // Complete warm-start numerical region 29.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ARG x9,16
+ldr d0,[x9,#1784]
+ // Complete warm-start numerical region 30.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 31.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c2
+ // Complete warm-start numerical region 32.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ARG x9,16
+ldr d0,[x9,#1792]
+ // Complete warm-start numerical region 33.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 34.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c2
+ // Complete warm-start numerical region 35.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ARG x9,16
+ldr d0,[x9,#400]
+ldr d1,[x9,#392]
+ // Complete warm-start numerical region 36.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ldr d0,[x9,#1784]
+ldr d1,[x9,#1792]
+ // Complete warm-start numerical region 37.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ldr d0,[x9,#1832]
+ldr d1,[x9,#1960]
+ // Complete warm-start numerical region 38.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+mov x24,#0
+mov x25,#0
+mov x26,#0
+.Lctl_bound_loop:
+ldr x9,[x28,#5480]
+ldr d0,[x9,x24,lsl #3]
+ // Complete warm-start numerical region 39.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 40.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c9
+ // Complete warm-start numerical region 41.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ldr x9,[x28,#5560]
+ldr d0,[x9,x24,lsl #3]
+ // Complete warm-start numerical region 42.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c10
+ // Complete warm-start numerical region 43.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c9
+ // Complete warm-start numerical region 44.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ // Complete warm-start numerical region 45.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str xzr,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+cset x9,le
+orr x25,x25,x9
+ldr x9,[x28,#5640]
+ldr d0,[x9,x24,lsl #3]
+ // Complete warm-start numerical region 46.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 47.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c9
+ // Complete warm-start numerical region 48.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ldr x9,[x28,#5720]
+ldr d0,[x9,x24,lsl #3]
+ // Complete warm-start numerical region 49.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c10
+ // Complete warm-start numerical region 50.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c9
+ // Complete warm-start numerical region 51.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ // Complete warm-start numerical region 52.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str xzr,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+cset x9,le
+orr x26,x26,x9
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lctl_bound_loop
+cbz x25,.Lctl_invalid
+cbz x26,.Lctl_invalid
+ldr x9,[x28,#5800]
+ldr d0,[x9]
+ // Complete warm-start numerical region 53.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c11
+ // Complete warm-start numerical region 54.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c9
+ // Complete warm-start numerical region 55.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+mov x19,x22
+.Lctl_input_loop:
+cmp x19,x23
+b.ge .Lctl_input_done
+INPUT1 d0,0
+ // Complete warm-start numerical region 56.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 57.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c9
+ // Complete warm-start numerical region 58.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+INPUT1 d0,1
+ // Complete warm-start numerical region 59.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 60.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c2
+ // Complete warm-start numerical region 61.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+INPUT1 d0,3
+ // Complete warm-start numerical region 62.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c12
+ // Complete warm-start numerical region 63.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c2
+ // Complete warm-start numerical region 64.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+INPUT1 d0,5
+ // Complete warm-start numerical region 65.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c8
+ // Complete warm-start numerical region 66.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c13
+ // Complete warm-start numerical region 67.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+INPUT1 d0,6
+ // Complete warm-start numerical region 68.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 69.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c2
+ // Complete warm-start numerical region 70.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+mov x24,#0
+INPUT2 d0,4
+ // Complete warm-start numerical region 71.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c8
+ // Complete warm-start numerical region 72.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c13
+ // Complete warm-start numerical region 73.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+mov x24,#4
+INPUT2 d0,2
+ // Complete warm-start numerical region 74.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 75.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c2
+ // Complete warm-start numerical region 76.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+mov x24,#6
+INPUT2 d0,2
+ // Complete warm-start numerical region 77.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 78.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c2
+ // Complete warm-start numerical region 79.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+mov x24,#0
+.Lctl_layer_inputs:
+INPUT2 d0,7
+ // Complete warm-start numerical region 80.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c8
+ // Complete warm-start numerical region 81.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c0
+ // Complete warm-start numerical region 82.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+INPUT2 d0,8
+ // Complete warm-start numerical region 83.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 84.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c14
+ // Complete warm-start numerical region 85.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+str d0,[x28,#6104]
+INPUT2 d0,9
+ // Complete warm-start numerical region 86.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c2
+ // Complete warm-start numerical region 87.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c6
+ // Complete warm-start numerical region 88.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+INPUT2 d0,10
+ // Complete warm-start numerical region 89.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 90.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c14
+ // Complete warm-start numerical region 91.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ldr d1,[x28,#6104]
+ // Complete warm-start numerical region 92.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lctl_layer_inputs
+add x19,x19,#1
+b .Lctl_input_loop
+.Lctl_input_done:
+lsl x9,x21,#6
+add x9,x9,#1152
+mul x1,x9,x20
+lsl x9,x21,#5
+add x1,x1,x9
+mov x0,#1
+bl calloc
+cbz x0,.Lctl_invalid
+str x0,[x28,#6024]
+str x0,[x28,#6032]
+add x0,x28,#2048
+ldr x1,[x28,#6032]
+str x1,[x28,#1664]
+mov x2,x20
+mov x3,x21
+mov x4,#8
+mov x5,#3
+mov x6,#2
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mul x10,x20,x21
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#2136
+ldr x1,[x28,#6032]
+str x1,[x28,#1672]
+mov x2,x20
+mov x3,x21
+mov x4,#8
+mov x5,#3
+mov x6,#2
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mul x10,x20,x21
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#2224
+ldr x1,[x28,#6032]
+str x1,[x28,#1680]
+mov x2,x20
+mov x3,x21
+mov x4,#8
+mov x5,#3
+mov x6,#2
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mul x10,x20,x21
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#2312
+ldr x1,[x28,#6032]
+str x1,[x28,#1688]
+mov x2,x20
+mov x3,x21
+mov x4,#8
+mov x5,#3
+mov x6,#2
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mul x10,x20,x21
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#2400
+ldr x1,[x28,#6032]
+str x1,[x28,#1696]
+mov x2,x20
+mov x3,x21
+mov x4,#8
+mov x5,#3
+mov x6,#2
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mul x10,x20,x21
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#2488
+ldr x1,[x28,#6032]
+str x1,[x28,#1704]
+mov x2,x20
+mov x3,x21
+mov x4,#8
+mov x5,#3
+mov x6,#2
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mul x10,x20,x21
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#2576
+ldr x1,[x28,#6032]
+str x1,[x28,#1712]
+mov x2,x20
+mov x3,x21
+mov x4,#8
+mov x5,#3
+mov x6,#2
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mul x10,x20,x21
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#2664
+ldr x1,[x28,#6032]
+str x1,[x28,#1720]
+mov x2,x20
+mov x3,x21
+mov x4,#8
+mov x5,#3
+mov x6,#2
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mul x10,x20,x21
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#2752
+ldr x1,[x28,#6032]
+str x1,[x28,#1728]
+mov x2,x20
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#2840
+ldr x1,[x28,#6032]
+str x1,[x28,#1736]
+mov x2,x20
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#2928
+ldr x1,[x28,#6032]
+str x1,[x28,#1744]
+mov x2,x20
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#3016
+ldr x1,[x28,#6032]
+str x1,[x28,#1752]
+mov x2,x20
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#3104
+ldr x1,[x28,#6032]
+str x1,[x28,#1760]
+mov x2,x20
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#3192
+ldr x1,[x28,#6032]
+str x1,[x28,#1768]
+mov x2,x20
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#3280
+ldr x1,[x28,#6032]
+str x1,[x28,#1776]
+mov x2,x20
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#3368
+ldr x1,[x28,#6032]
+str x1,[x28,#1784]
+mov x2,x20
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#3456
+ldr x1,[x28,#6032]
+str x1,[x28,#1792]
+mov x2,x20
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#3544
+ldr x1,[x28,#6032]
+str x1,[x28,#1800]
+mov x2,x20
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#3632
+ldr x1,[x28,#6032]
+str x1,[x28,#1808]
+mov x2,x20
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#3720
+ldr x1,[x28,#6032]
+str x1,[x28,#1816]
+mov x2,x20
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#3808
+ldr x1,[x28,#6032]
+str x1,[x28,#1824]
+mov x2,x20
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#3896
+ldr x1,[x28,#6032]
+str x1,[x28,#1832]
+mov x2,x20
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#3984
+ldr x1,[x28,#6032]
+str x1,[x28,#1840]
+mov x2,x20
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+add x0,x28,#4072
+ldr x1,[x28,#6032]
+str x1,[x28,#1848]
+mov x2,x20
+mov x3,#1
+mov x4,#4
+mov x5,#1
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #2
+str x9,[x28,#6032]
+mov x16,#4160
+add x0,x28,x16
+ldr x1,[x28,#6032]
+str x1,[x28,#1856]
+mov x2,x20
+mov x3,#1
+mov x4,#4
+mov x5,#1
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #2
+str x9,[x28,#6032]
+mov x16,#4248
+add x0,x28,x16
+ldr x1,[x28,#6032]
+str x1,[x28,#1864]
+mov x2,x20
+mov x3,#1
+mov x4,#4
+mov x5,#1
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #2
+str x9,[x28,#6032]
+mov x16,#4336
+add x0,x28,x16
+ldr x1,[x28,#6032]
+str x1,[x28,#1872]
+mov x2,x20
+mov x3,#1
+mov x4,#4
+mov x5,#1
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #2
+str x9,[x28,#6032]
+mov x16,#4424
+add x0,x28,x16
+ldr x1,[x28,#6032]
+str x1,[x28,#1880]
+mov x2,x20
+mov x3,#1
+mov x4,#4
+mov x5,#2
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #2
+str x9,[x28,#6032]
+mov x16,#4512
+add x0,x28,x16
+ldr x1,[x28,#6032]
+str x1,[x28,#1888]
+mov x2,x20
+mov x3,#1
+mov x4,#4
+mov x5,#2
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x20
+add x9,x9,x10,lsl #2
+str x9,[x28,#6032]
+mov x16,#4600
+add x0,x28,x16
+ldr x1,[x28,#6032]
+str x1,[x28,#1896]
+mov x2,x20
+mov x3,#27
+mov x4,#8
+mov x5,#3
+mov x6,#2
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,#27
+mul x10,x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+mov x16,#4688
+add x0,x28,x16
+ldr x1,[x28,#6032]
+str x1,[x28,#1904]
+mov x2,x20
+mov x3,#27
+mov x4,#8
+mov x5,#3
+mov x6,#2
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,#27
+mul x10,x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+mov x16,#4776
+add x0,x28,x16
+ldr x1,[x28,#6032]
+str x1,[x28,#1912]
+mov x2,x20
+mov x3,#27
+mov x4,#8
+mov x5,#3
+mov x6,#2
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,#27
+mul x10,x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+mov x16,#4864
+add x0,x28,x16
+ldr x1,[x28,#6032]
+str x1,[x28,#1920]
+mov x2,x20
+mov x3,#27
+mov x4,#8
+mov x5,#3
+mov x6,#2
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,#27
+mul x10,x10,x20
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+mov x16,#4952
+add x0,x28,x16
+ldr x1,[x28,#6032]
+str x1,[x28,#1928]
+mov x2,x21
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x21
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+mov x16,#5040
+add x0,x28,x16
+ldr x1,[x28,#6032]
+str x1,[x28,#1936]
+mov x2,x21
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x21
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+mov x16,#5128
+add x0,x28,x16
+ldr x1,[x28,#6032]
+str x1,[x28,#1944]
+mov x2,x21
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x21
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+mov x16,#5216
+add x0,x28,x16
+ldr x1,[x28,#6032]
+str x1,[x28,#1952]
+mov x2,x21
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+ldr x9,[x28,#6032]
+mov x10,x21
+add x9,x9,x10,lsl #3
+str x9,[x28,#6032]
+mov x16,#5304
+add x0,x28,x16
+ldr x1,[x28,#1088]
+mov x2,x20
+mov x3,#1
+mov x4,#8
+mov x5,#3
+mov x6,#1
+bl .Lctl_descriptor
+mov x16,#5304
+add x9,x28,x16
+ldr x10,[x28,#1096]
+asr x10,x10,#3
+str x10,[x9,#40]
+neg x10,x10
+str x10,[x9,#8]
+ldr x10,[x28,#1088]
+str x10,[x28,#1960]
+mov w9,#27
+str w9,[x28,#6004]
+CONST d0,c15
+str d0,[x28,#6008]
+CONST d0,c16
+str d0,[x28,#6016]
+mov x24,#0
+.Lctl_copy_bounds:
+ldr x9,[x28,#5480]
+ldr d0,[x9,x24,lsl #3]
+ldr x9,[x28,#1928]
+str d0,[x9,x24,lsl #3]
+ldr x9,[x28,#5560]
+ldr d0,[x9,x24,lsl #3]
+ldr x9,[x28,#1936]
+str d0,[x9,x24,lsl #3]
+ldr x9,[x28,#5640]
+ldr d0,[x9,x24,lsl #3]
+ldr x9,[x28,#1944]
+str d0,[x9,x24,lsl #3]
+ldr x9,[x28,#5720]
+ldr d0,[x9,x24,lsl #3]
+ldr x9,[x28,#1952]
+str d0,[x9,x24,lsl #3]
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lctl_copy_bounds
+mov x19,x22
+.Lctl_snow_mask:
+cmp x19,x23
+b.ge .Lctl_grid
+mov x24,#4
+INPUT2 d0,2
+fmov d2,d0
+mov x24,#6
+INPUT2 d0,2
+ // Complete warm-start numerical region 93.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d2,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#0
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+ARG x9,16
+ldr d1,[x9,#400]
+ // Complete warm-start numerical region 94.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#5
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+PUTLOCAL1 d0,15
+ldr d1,[x9,#392]
+ // Complete warm-start numerical region 95.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+cset w10,lt
+ldr x9,[x28,#1880]
+str w10,[x9,x19,lsl #2]
+INPUT1 d0,1
+CONST d1,c2
+ // Complete warm-start numerical region 96.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+cset w10,eq
+ldr x9,[x28,#1888]
+str w10,[x9,x19,lsl #2]
+add x19,x19,#1
+b .Lctl_snow_mask
+.Lctl_grid:
+ARG x0,0
+ARG x1,1
+ARG x2,2
+ARG x3,3
+mov x16,#4424
+add x4,x28,x16
+ARG x5,4
+ARG x6,12
+ARG x7,13
+mov x16,#4952
+add x9,x28,x16
+str x9,[sp,#0]
+mov x16,#5040
+add x9,x28,x16
+str x9,[sp,#8]
+mov x16,#5128
+add x9,x28,x16
+str x9,[sp,#16]
+mov x16,#5216
+add x9,x28,x16
+str x9,[sp,#24]
+add x9,x28,#2048
+str x9,[sp,#32]
+add x9,x28,#4072
+str x9,[sp,#40]
+mov x9,#0
+str x9,[sp,#48]
+bl md2asm_snow_grid
+mov x19,x22
+.Lctl_means:
+cmp x19,x23
+b.ge .Lctl_initialize
+fmov d11,xzr
+fmov d12,xzr
+fmov d13,xzr
+mov x24,#0
+.Lctl_mean_layers:
+LOCAL2 d0,0
+PUTLOCAL2 d0,1
+ // Complete warm-start numerical region 97.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d12,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#0
+ bl md2asm_gpu_soil_water_cell_host
+ fmov d12,d0
+ ldr d0,[sp,#96]
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+CONST d1,c2
+ // Complete warm-start numerical region 98.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#14
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+PUTLOCAL2 d0,0
+ // Complete warm-start numerical region 99.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d11,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#0
+ bl md2asm_gpu_soil_water_cell_host
+ fmov d11,d0
+ ldr d0,[sp,#96]
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+INPUT2 d0,8
+ // Complete warm-start numerical region 100.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d13,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#0
+ bl md2asm_gpu_soil_water_cell_host
+ fmov d13,d0
+ ldr d0,[sp,#96]
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lctl_mean_layers
+PUTLOCAL1 d11,12
+PUTLOCAL1 d12,13
+PUTLOCAL1 d13,10
+fmov d0,xzr
+PUTLOCAL1 d0,11
+mov x24,#0
+INPUT2 d0,7
+PUTLOCAL1 d0,8
+ // Complete warm-start numerical region 101.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d8,[sp,#8]
+ mov x0,sp
+ mov w1,#1
+ bl md2asm_gpu_soil_water_cell_host
+ fmov d11,d0
+ ldr d0,[sp,#96]
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+INPUT2 d0,8
+ // Complete warm-start numerical region 102.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d9,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#2
+ bl md2asm_gpu_soil_water_cell_host
+ fmov d12,d0
+ ldr d0,[sp,#96]
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+ // Complete warm-start numerical region 103.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d12,[sp,#0]
+ str d11,[sp,#8]
+ mov x0,sp
+ mov w1,#2
+ bl md2asm_gpu_soil_water_cell_host
+ fmov d12,d0
+ ldr d0,[sp,#96]
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+fmov d11,d0
+INPUT2 d0,10
+ // Complete warm-start numerical region 104.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d11,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#1
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+ // Complete warm-start numerical region 105.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d10,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#2
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+ // Complete warm-start numerical region 106.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d12,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#1
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+PUTLOCAL1 d0,14
+INPUT2 d0,9
+PUTLOCAL1 d0,9
+fmov d0,xzr
+PUTLOCAL2 d0,2
+PUTLOCAL2 d0,3
+mov x24,#1
+.Lctl_midpoint_loop:
+LOCAL2 d0,0
+fmov d2,d0
+sub x24,x24,#1
+LOCAL2 d0,0
+ // Complete warm-start numerical region 107.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d2,[sp,#8]
+ mov x0,sp
+ mov w1,#0
+ bl md2asm_gpu_soil_water_cell_host
+ fmov d2,d0
+ ldr d0,[sp,#96]
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+fmov d1,#0.5
+ // Complete warm-start numerical region 108.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d1,[sp,#0]
+ str d2,[sp,#8]
+ mov x0,sp
+ mov w1,#2
+ bl md2asm_gpu_soil_water_cell_host
+ fmov d2,d0
+ ldr d0,[sp,#96]
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+LOCAL2 d0,2
+ // Complete warm-start numerical region 109.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d2,[sp,#8]
+ mov x0,sp
+ mov w1,#0
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+add x24,x24,#1
+PUTLOCAL2 d0,2
+LOCAL2 d0,1
+fmov d2,d0
+sub x24,x24,#1
+LOCAL2 d0,1
+ // Complete warm-start numerical region 110.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d2,[sp,#8]
+ mov x0,sp
+ mov w1,#0
+ bl md2asm_gpu_soil_water_cell_host
+ fmov d2,d0
+ ldr d0,[sp,#96]
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+fmov d1,#0.5
+ // Complete warm-start numerical region 111.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d1,[sp,#0]
+ str d2,[sp,#8]
+ mov x0,sp
+ mov w1,#2
+ bl md2asm_gpu_soil_water_cell_host
+ fmov d2,d0
+ ldr d0,[sp,#96]
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+LOCAL2 d0,3
+ // Complete warm-start numerical region 112.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d2,[sp,#8]
+ mov x0,sp
+ mov w1,#0
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+add x24,x24,#1
+PUTLOCAL2 d0,3
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lctl_midpoint_loop
+add x19,x19,#1
+b .Lctl_means
+.Lctl_initialize:
+mov x19,x22
+.Lctl_initial_column:
+cmp x19,x23
+b.ge .Lctl_initial_indices
+mov x24,#0
+.Lctl_initial_layer:
+LOCAL1 d0,8
+PUTLOCAL2 d0,4
+LOCAL1 d0,9
+PUTLOCAL2 d0,5
+fmov d0,xzr
+cbnz x24,.Lctl_initial_mass_zero
+LOCAL1 d0,10
+.Lctl_initial_mass_zero:
+PUTLOCAL2 d0,6
+fmov d0,xzr
+PUTLOCAL2 d0,7
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lctl_initial_layer
+add x19,x19,#1
+b .Lctl_initial_column
+.Lctl_initial_indices:
+mov x19,#0
+mov w10,#1
+.Lctl_index_loop:
+ldr x9,[x28,#1864]
+str w10,[x9,x19,lsl #2]
+ldr x9,[x28,#1872]
+str w10,[x9,x19,lsl #2]
+add x19,x19,#1
+cmp x19,x20
+b.lt .Lctl_index_loop
+ARG x0,0
+ARG x1,1
+ARG x2,2
+ARG x3,3
+mov x16,#6004
+add x4,x28,x16
+ARG x5,7
+ARG x6,4
+mov x16,#5304
+add x7,x28,x16
+ARG x9,9
+str x9,[sp,#0]
+add x9,x28,#3104
+str x9,[sp,#8]
+add x9,x28,#2224
+str x9,[sp,#16]
+mov x16,#6016
+add x9,x28,x16
+str x9,[sp,#24]
+add x9,x28,#2136
+str x9,[sp,#32]
+add x9,x28,#2752
+str x9,[sp,#40]
+add x9,x28,#2840
+str x9,[sp,#48]
+add x9,x28,#2928
+str x9,[sp,#56]
+add x9,x28,#3016
+str x9,[sp,#64]
+ARG x9,10
+str x9,[sp,#72]
+add x9,x28,#2400
+str x9,[sp,#80]
+add x9,x28,#2576
+str x9,[sp,#88]
+add x9,x28,#2488
+str x9,[sp,#96]
+add x9,x28,#2664
+str x9,[sp,#104]
+add x9,x28,#3456
+str x9,[sp,#112]
+add x9,x28,#3544
+str x9,[sp,#120]
+add x9,x28,#3632
+str x9,[sp,#128]
+add x9,x28,#3720
+str x9,[sp,#136]
+add x9,x28,#3808
+str x9,[sp,#144]
+add x9,x28,#4072
+str x9,[sp,#152]
+mov x16,#4160
+add x9,x28,x16
+str x9,[sp,#160]
+add x9,x28,#3984
+str x9,[sp,#168]
+mov x16,#4248
+add x9,x28,x16
+str x9,[sp,#176]
+mov x16,#4336
+add x9,x28,x16
+str x9,[sp,#184]
+mov x16,#4600
+add x9,x28,x16
+str x9,[sp,#192]
+mov x16,#4688
+add x9,x28,x16
+str x9,[sp,#200]
+mov x16,#4776
+add x9,x28,x16
+str x9,[sp,#208]
+mov x16,#4864
+add x9,x28,x16
+str x9,[sp,#216]
+add x9,x28,#3896
+str x9,[sp,#224]
+ARG x9,15
+str x9,[sp,#232]
+ARG x9,16
+str x9,[sp,#240]
+bl md2asm_snow_profile_initialisation
+mov x19,x22
+.Lctl_child_domain:
+cmp x19,x23
+b.ge .Lctl_child_domain_done
+LOCAL1 d11,12
+CONST d0,c15
+ // Complete warm-start numerical region 113.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d11,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_child_domain_next
+ldr x9,[x28,#1848]
+ldr w25,[x9,x19,lsl #2]
+ldr x9,[x28,#1872]
+ldr w24,[x9,x19,lsl #2]
+sub x24,x24,#1
+LOCAL2 d13,31
+ // Complete warm-start numerical region 114.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d13,[sp,#0]
+ str d13,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c10
+ // Complete warm-start numerical region 115.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d13,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c9
+ // Complete warm-start numerical region 116.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d13,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ // Complete warm-start numerical region 117.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d11,[sp,#0]
+ str d13,[sp,#8]
+ mov x0,sp
+ mov w1,#2
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+ // Complete warm-start numerical region 118.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ mov x0,sp
+ mov w1,#16
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+ // Complete warm-start numerical region 119.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 120.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c17
+ // Complete warm-start numerical region 121.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+mov x24,#0
+.Lctl_density_operand_loop:
+LOCAL2 d0,3
+ // Complete warm-start numerical region 122.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d13,[sp,#8]
+ mov x0,sp
+ mov w1,#2
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+ // Complete warm-start numerical region 123.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ mov x0,sp
+ mov w1,#16
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+ // Complete warm-start numerical region 124.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 125.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c17
+ // Complete warm-start numerical region 126.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+add x24,x24,#1
+cmp x24,x25
+b.lt .Lctl_density_operand_loop
+ldr x9,[x28,#1880]
+ldr w9,[x9,x19,lsl #2]
+cbnz w9,.Lctl_child_domain_next
+cmp w25,#1
+b.le .Lctl_child_domain_next
+ldr x9,[x28,#1864]
+ldr w24,[x9,x19,lsl #2]
+sub x24,x24,#1
+LOCAL2 d12,29
+ // Complete warm-start numerical region 127.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d12,[sp,#0]
+ str d12,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c10
+ // Complete warm-start numerical region 128.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d12,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c9
+ // Complete warm-start numerical region 129.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d12,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+CONST d0,c18
+ // Complete warm-start numerical region 130.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d11,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_temperature_anchor_total
+LOCAL1 d0,16
+LOCAL1 d2,18
+ // Complete warm-start numerical region 131.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d2,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.ge .Lctl_temperature_anchor_active
+LOCAL1 d0,22
+LOCAL1 d2,20
+ // Complete warm-start numerical region 132.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d2,[sp,#8]
+ mov x0,sp
+ mov w1,#0
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b .Lctl_temperature_anchor_check
+.Lctl_temperature_anchor_active:
+LOCAL1 d0,22
+b .Lctl_temperature_anchor_check
+.Lctl_temperature_anchor_total:
+fmov d0,d11
+.Lctl_temperature_anchor_check:
+ // Complete warm-start numerical region 133.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d12,[sp,#8]
+ mov x0,sp
+ mov w1,#2
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+ // Complete warm-start numerical region 134.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ mov x0,sp
+ mov w1,#16
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+ // Complete warm-start numerical region 135.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 136.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c17
+ // Complete warm-start numerical region 137.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+mov x24,#0
+.Lctl_temperature_operand_loop:
+LOCAL2 d0,2
+ // Complete warm-start numerical region 138.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d12,[sp,#8]
+ mov x0,sp
+ mov w1,#2
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+ // Complete warm-start numerical region 139.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ mov x0,sp
+ mov w1,#16
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+ // Complete warm-start numerical region 140.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 141.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c17
+ // Complete warm-start numerical region 142.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+add x24,x24,#1
+cmp x24,x25
+b.lt .Lctl_temperature_operand_loop
+.Lctl_child_domain_next:
+add x19,x19,#1
+b .Lctl_child_domain
+.Lctl_child_domain_done:
+ARG x0,0
+ARG x1,1
+ARG x2,2
+ARG x3,3
+add x4,x28,#4072
+mov x16,#4160
+add x5,x28,x16
+mov x16,#6008
+add x6,x28,x16
+mov x16,#6016
+add x7,x28,x16
+mov x16,#4424
+add x9,x28,x16
+str x9,[sp,#0]
+add x9,x28,#2752
+str x9,[sp,#8]
+add x9,x28,#2928
+str x9,[sp,#16]
+add x9,x28,#2840
+str x9,[sp,#24]
+mov x16,#5304
+add x9,x28,x16
+str x9,[sp,#32]
+add x9,x28,#3104
+str x9,[sp,#40]
+add x9,x28,#3984
+str x9,[sp,#48]
+add x9,x28,#2224
+str x9,[sp,#56]
+add x9,x28,#2312
+str x9,[sp,#64]
+add x9,x28,#3808
+str x9,[sp,#72]
+add x9,x28,#3544
+str x9,[sp,#80]
+add x9,x28,#3456
+str x9,[sp,#88]
+add x9,x28,#3632
+str x9,[sp,#96]
+add x9,x28,#3896
+str x9,[sp,#104]
+add x9,x28,#3720
+str x9,[sp,#112]
+mov x16,#4600
+add x9,x28,x16
+str x9,[sp,#120]
+mov x16,#4248
+add x9,x28,x16
+str x9,[sp,#128]
+mov x16,#4776
+add x9,x28,x16
+str x9,[sp,#136]
+mov x16,#4336
+add x9,x28,x16
+str x9,[sp,#144]
+add x9,x28,#2400
+str x9,[sp,#152]
+add x9,x28,#2488
+str x9,[sp,#160]
+ARG x9,15
+str x9,[sp,#168]
+ARG x9,16
+str x9,[sp,#176]
+bl md2asm_snow_exponential_profile
+ARG x0,0
+ARG x1,1
+ARG x2,2
+ARG x3,3
+add x4,x28,#4072
+mov x16,#6008
+add x5,x28,x16
+add x6,x28,#2048
+add x7,x28,#2136
+add x9,x28,#2224
+str x9,[sp,#0]
+add x9,x28,#2312
+str x9,[sp,#8]
+add x9,x28,#2840
+str x9,[sp,#16]
+add x9,x28,#2928
+str x9,[sp,#24]
+add x9,x28,#3720
+str x9,[sp,#32]
+add x9,x28,#3104
+str x9,[sp,#40]
+mov x16,#4776
+add x9,x28,x16
+str x9,[sp,#48]
+mov x16,#4336
+add x9,x28,x16
+str x9,[sp,#56]
+mov x16,#6016
+add x9,x28,x16
+str x9,[sp,#64]
+add x9,x28,#2400
+str x9,[sp,#72]
+add x9,x28,#2488
+str x9,[sp,#80]
+add x9,x28,#2576
+str x9,[sp,#88]
+add x9,x28,#2664
+str x9,[sp,#96]
+add x9,x28,#3896
+str x9,[sp,#104]
+ARG x9,15
+str x9,[sp,#112]
+ARG x9,16
+str x9,[sp,#120]
+bl md2asm_snow_mass_private_entry
+mov x19,x22
+.Lctl_result_column:
+cmp x19,x23
+b.ge .Lctl_copy_start
+ldr x9,[x28,#1880]
+ldr w9,[x9,x19,lsl #2]
+cbnz w9,.Lctl_result_next
+ldr x9,[x28,#1848]
+ldr w9,[x9,x19,lsl #2]
+cmp w9,#1
+b.le .Lctl_result_next
+mov x24,#0
+.Lctl_result_temperature:
+LOCAL2 d0,4
+ // Complete warm-start numerical region 143.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c8
+ // Complete warm-start numerical region 144.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_result_next
+ // Complete warm-start numerical region 145.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d8,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_result_next
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lctl_result_temperature
+mov x24,#0
+.Lctl_result_state:
+LOCAL2 d0,5
+ // Complete warm-start numerical region 146.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c11
+ // Complete warm-start numerical region 147.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c6
+ // Complete warm-start numerical region 148.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+LOCAL2 d0,6
+ // Complete warm-start numerical region 149.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 150.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c14
+ // Complete warm-start numerical region 151.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+str d0,[x28,#6112]
+LOCAL2 d0,7
+ // Complete warm-start numerical region 152.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d0,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.vs .Lctl_invalid
+CONST d1,c5
+ // Complete warm-start numerical region 153.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_invalid
+CONST d1,c14
+ // Complete warm-start numerical region 154.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+ldr d1,[x28,#6112]
+ // Complete warm-start numerical region 155.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_invalid
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lctl_result_state
+.Lctl_result_next:
+add x19,x19,#1
+b .Lctl_result_column
+.Lctl_copy_start:
+mov x19,x22
+.Lctl_copy_column:
+cmp x19,x23
+b.ge .Lctl_done
+ldr x9,[x28,#1880]
+ldr w9,[x9,x19,lsl #2]
+cbnz w9,.Lctl_copy_next
+ldr x9,[x28,#1848]
+ldr w9,[x9,x19,lsl #2]
+cmp w9,#1
+b.le .Lctl_copy_next
+mov x24,#0
+.Lctl_copy_temperature:
+LOCAL2 d0,4
+CONST d1,c8
+ // Complete warm-start numerical region 156.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d1,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.lt .Lctl_copy_next
+ // Complete warm-start numerical region 157.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str x30,[sp,#120]
+ str xzr,[sp,#0]
+ str xzr,[sp,#8]
+ str xzr,[sp,#16]
+ str xzr,[sp,#24]
+ str xzr,[sp,#32]
+ str xzr,[sp,#40]
+ str xzr,[sp,#48]
+ str xzr,[sp,#56]
+ str xzr,[sp,#64]
+ str d0,[sp,#0]
+ str d8,[sp,#8]
+ mov x0,sp
+ mov w1,#4
+ bl md2asm_gpu_soil_water_cell_host
+ msr nzcv,x0
+ ldr d0,[sp,#96]
+ ldr x30,[sp,#120]
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
+b.gt .Lctl_copy_next
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lctl_copy_temperature
+mov x24,#0
+.Lctl_copy_layer:
+LOCAL2 d0,4
+PUTINPUT2 d0,7
+LOCAL2 d0,6
+PUTINPUT2 d0,8
+LOCAL2 d0,5
+PUTINPUT2 d0,9
+LOCAL2 d0,7
+PUTINPUT2 d0,10
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lctl_copy_layer
+.Lctl_copy_next:
+add x19,x19,#1
+b .Lctl_copy_column
+.Lctl_done:
+ldr x0,[x28,#6024]
+bl free
+ldp d8,d9,[sp,#416]
+ldp d10,d11,[sp,#432]
+ldp d12,d13,[sp,#448]
+ldp d14,d15,[sp,#464]
+ldp x19,x20,[sp,#320]
+ldp x21,x22,[sp,#336]
+ldp x23,x24,[sp,#352]
+ldp x25,x26,[sp,#368]
+ldp x27,x28,[sp,#384]
+ldp x29,x30,[sp,#400]
+add sp,sp,#8192
+ret
+.Lctl_descriptor:
+ stp x1,xzr,[x0]
+ str x4,[x0,#16]
+ str wzr,[x0,#24]
+ strb w6,[x0,#28]
+ strb w5,[x0,#29]
+ strh wzr,[x0,#30]
+ str x4,[x0,#32]
+ mov x9,#1
+ stp x9,x9,[x0,#40]
+ str x2,[x0,#56]
+ stp x2,x9,[x0,#64]
+ str x3,[x0,#80]
+ neg x9,x9
+ cmp x6,#1
+ b.eq .Lctl_descriptor_offset
+ sub x9,x9,x2
+.Lctl_descriptor_offset:
+ str x9,[x0,#8]
+ ret
+.Lctl_decode:
+ ldr x8,[x0,#16]
+ cmp x8,x3
+ b.ne .Lctl_invalid
+ ldr w8,[x0,#24]
+ cbnz w8,.Lctl_invalid
+ ldrb w8,[x0,#28]
+ cmp x8,x1
+ b.ne .Lctl_invalid
+ ldrb w8,[x0,#29]
+ cmp x8,x2
+ b.ne .Lctl_invalid
+ ldrh w8,[x0,#30]
+ cbnz w8,.Lctl_invalid
+ ldr x8,[x0,#32]
+ cmp x8,x3
+ b.ne .Lctl_invalid
+ ldr x10,[x0,#48]
+ ldr x11,[x0,#56]
+ subs x11,x11,x10
+ b.vs .Lctl_invalid
+ adds x11,x11,#1
+ b.vs .Lctl_invalid
+ mov x14,#1
+ mov x15,#1
+ cmp x1,#1
+ b.eq .Lctl_shape_counts
+ ldr x8,[x0,#72]
+ ldr x14,[x0,#80]
+ subs x14,x14,x8
+ b.vs .Lctl_invalid
+ adds x14,x14,#1
+ b.vs .Lctl_invalid
+ cmp x1,#3
+ b.ne .Lctl_shape_counts
+ ldr x8,[x0,#96]
+ ldr x15,[x0,#104]
+ subs x15,x15,x8
+ b.vs .Lctl_invalid
+ adds x15,x15,#1
+ b.vs .Lctl_invalid
+ cmp x11,#0
+ b.lt .Lctl_invalid
+ cmp x14,#0
+ b.lt .Lctl_invalid
+ cmp x15,#0
+ b.lt .Lctl_invalid
+ cbz x11,.Lctl_empty_descriptor
+ cbz x14,.Lctl_empty_descriptor
+ cbz x15,.Lctl_empty_descriptor
+ cmp x15,#15
+ b.lt .Lctl_invalid
+ cmp x15,#32
+ b.gt .Lctl_invalid
+.Lctl_shape_counts:
+ cmp x11,x4
+ b.lt .Lctl_invalid
+ cmp x11,#4096
+ b.gt .Lctl_invalid
+ cmp x14,x5
+ b.lt .Lctl_invalid
+ cmp x14,#512
+ b.gt .Lctl_invalid
+ str x10,[x6,#64]
+ str x11,[x6,#48]
+ str x14,[x6,#56]
+ str x15,[x6,#72]
+ ldr x7,[x0]
+ cbz x7,.Lctl_invalid
+ sub x8,x3,#1
+ tst x7,x8
+ b.ne .Lctl_invalid
+ ldr x8,[x0,#40]
+ cmp x8,#0
+ cneg x9,x8,lt
+ cmp x9,#1
+ b.lt .Lctl_invalid
+ cmp x9,#4096
+ b.gt .Lctl_invalid
+ sub x10,x11,#1
+ mul x10,x10,x9
+ add x10,x10,#1
+ str x7,[x6]
+ mul x9,x8,x3
+ str x9,[x6,#8]
+ sub x11,x11,#1
+ mul x11,x11,x8
+ mov x12,#0
+ mov x13,#0
+ cmp x11,#0
+ csel x12,x11,x12,lt
+ csel x13,x11,x13,gt
+ str xzr,[x6,#16]
+ str xzr,[x6,#24]
+ cmp x1,#1
+ b.eq .Lctl_descriptor_bounds
+ ldr x8,[x0,#64]
+ cmp x8,#0
+ cneg x9,x8,lt
+ cmp x9,x10
+ b.lt .Lctl_invalid
+ mov x16,#1048576
+ cmp x9,x16
+ b.gt .Lctl_invalid
+ sub x14,x14,#1
+ mul x16,x14,x9
+ add x10,x10,x16
+ mul x9,x8,x3
+ str x9,[x6,#16]
+ mul x14,x14,x8
+ mov x9,#0
+ cmp x14,#0
+ csel x9,x14,x9,lt
+ add x12,x12,x9
+ mov x9,#0
+ cmp x14,#0
+ csel x9,x14,x9,gt
+ add x13,x13,x9
+ cmp x1,#2
+ b.eq .Lctl_descriptor_bounds
+ ldr x8,[x0,#88]
+ cmp x8,#0
+ cneg x9,x8,lt
+ cmp x9,x10
+ b.lt .Lctl_invalid
+ mov x16,#268435456
+ cmp x9,x16
+ b.gt .Lctl_invalid
+ mul x9,x8,x3
+ str x9,[x6,#24]
+ sub x15,x15,#1
+ mul x15,x15,x8
+ mov x9,#0
+ cmp x15,#0
+ csel x9,x15,x9,lt
+ add x12,x12,x9
+ mov x9,#0
+ cmp x15,#0
+ csel x9,x15,x9,gt
+ add x13,x13,x9
+.Lctl_descriptor_bounds:
+ mul x12,x12,x3
+ mul x13,x13,x3
+ add x9,x7,x12
+ cmp x9,x7
+ b.hi .Lctl_invalid
+ adds x10,x7,x13
+ b.cs .Lctl_invalid
+ adds x10,x10,x3
+ b.cs .Lctl_invalid
+ cmp x9,x10
+ b.hs .Lctl_invalid
+ str x9,[x6,#32]
+ str x10,[x6,#40]
+ ret
+.Lctl_empty_descriptor:
+ mov x7,#0
+.Lctl_clear_record:
+ str xzr,[x6,x7]
+ add x7,x7,#8
+ cmp x7,#80
+ b.lt .Lctl_clear_record
+ ret
+.Lctl_separate:
+ cmp x0,x1
+ b.eq .Lctl_separate_return
+ cmp x2,x3
+ b.eq .Lctl_separate_return
+ cmp x0,x3
+ b.hs .Lctl_separate_return
+ cmp x2,x1
+ b.lo .Lctl_invalid
+.Lctl_separate_return:
+ ret
+.Lctl_invalid:
+bl abort
+brk #0
+.size ORIGINAL_SYMBOL,.-ORIGINAL_SYMBOL
+.section .rodata
+.p2align 3
+.Lctl_c0:
+.quad 0x4071128f5c28f5c3
+.Lctl_c1:
+.quad 0x400921fb54442d18
+.Lctl_c2:
+.quad 0x3ff0000000000000
+.Lctl_c3:
+.quad 0x416312d000000000
+.Lctl_c4:
+.quad 0x41cdcd6500000000
+.Lctl_c5:
+.quad 0x0000000000000000
+.Lctl_c6:
+.quad 0x408f400000000000
+.Lctl_c7:
+.quad 0x3fb999999999999a
+.Lctl_c8:
+.quad 0x4059000000000000
+.Lctl_c9:
+.quad 0x412e848000000000
+.Lctl_c10:
+.quad 0xc12e848000000000
+.Lctl_c11:
+.quad 0x3e112e0be826d695
+.Lctl_c12:
+.quad 0xbff0000000000000
+.Lctl_c13:
+.quad 0x4075e00000000000
+.Lctl_c14:
+.quad 0x426d1a94a2000000
+.Lctl_c15:
+.quad 0x3fc0000000000000
+.Lctl_c16:
+.quad 0x40c1940000000000
+.Lctl_c17:
+.quad 0x4085e00000000000
+.Lctl_c18:
+.quad 0x3fc999999999999a
+.section .note.GNU-stack,"",%progbits

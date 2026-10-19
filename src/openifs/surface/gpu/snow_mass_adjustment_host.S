@@ -1,0 +1,1514 @@
+// Contract: skills/md2asm-gpu/references/openifs/surface/snow_mass_adjustment.md.
+/* Snow initialization from formulations/openifs/surface/snow_mass_adjustment.md.
+ * Complete ordered contract is skills/md2asm/references/openifs/surface/surfws_massadj.md. */
+#ifndef ORIGINAL_SYMBOL
+#define ORIGINAL_SYMBOL md2asm_snow_mass_adjustment
+#endif
+.text
+.p2align 4
+.global ORIGINAL_SYMBOL
+.type ORIGINAL_SYMBOL,%function
+.macro ARG reg,index
+ ldr \reg,[x28,#(224+8*\index)]
+.endm
+.macro CONST reg,name
+ adrp x16,.Lmass_\name
+ ldr \reg,[x16,:lo12:.Lmass_\name]
+.endm
+.macro VECTOR reg,index
+ ldr x9,[x28,#(512+80*\index)]
+ ldr x10,[x28,#(520+80*\index)]
+ mul x10,x10,x19
+ ldr \reg,[x9,x10]
+.endm
+.macro MATRIX reg,index
+ ldr x9,[x28,#(512+80*\index)]
+ ldr x10,[x28,#(520+80*\index)]
+ ldr x11,[x28,#(528+80*\index)]
+ mul x10,x10,x19
+ madd x10,x11,x24,x10
+ ldr \reg,[x9,x10]
+.endm
+.macro PUT reg,index
+ ldr x9,[x28,#(512+80*\index)]
+ ldr x10,[x28,#(520+80*\index)]
+ ldr x11,[x28,#(528+80*\index)]
+ mul x10,x10,x19
+ madd x10,x11,x24,x10
+ str \reg,[x9,x10]
+.endm
+.macro LOADBUF reg,slot
+ ldr x9,[x28,#\slot]
+ madd x10,x24,x20,x19
+ ldr \reg,[x9,x10,lsl #3]
+.endm
+.macro STOREBUF reg,slot
+ ldr x9,[x28,#\slot]
+ madd x10,x24,x20,x19
+ str \reg,[x9,x10,lsl #3]
+.endm
+ORIGINAL_SYMBOL:
+ mov x17,sp
+ sub sp,sp,#4096
+ stp x19,x20,[sp,#64]
+ stp x21,x22,[sp,#80]
+ stp x23,x24,[sp,#96]
+ stp x25,x26,[sp,#112]
+ stp x27,x28,[sp,#128]
+ stp x29,x30,[sp,#144]
+ stp d8,d9,[sp,#160]
+ stp d10,d11,[sp,#176]
+ stp d12,d13,[sp,#192]
+ stp d14,d15,[sp,#208]
+ mov x28,sp
+ str x18,[sp,#2400]
+ stp x0,x1,[sp,#224]
+ stp x2,x3,[sp,#240]
+ stp x4,x5,[sp,#256]
+ stp x6,x7,[sp,#272]
+ add x9,sp,#288
+ mov x10,#16
+.Lmass_copy_arguments:
+ ldr x11,[x17],#8
+ str x11,[x9],#8
+ subs x10,x10,#1
+ b.ne .Lmass_copy_arguments
+ mrs x9,fpcr
+ cbnz x9,.Lmass_invalid
+ mov x10,#0
+.Lmass_argument_addresses:
+ add x9,x28,#224
+ ldr x11,[x9,x10,lsl #3]
+ cbz x11,.Lmass_invalid
+ mov x12,#7
+ cmp x10,#4
+ b.hs .Lmass_address_alignment
+ mov x12,#3
+.Lmass_address_alignment:
+ tst x11,x12
+ b.ne .Lmass_invalid
+ add x10,x10,#1
+ cmp x10,#24
+ b.lt .Lmass_argument_addresses
+ARG x9,2
+ldrsw x20,[x9]
+cmp x20,#1
+b.lt .Lmass_invalid
+cmp x20,#4096
+b.gt .Lmass_invalid
+ARG x9,3
+ldrsw x21,[x9]
+cmp x21,#1
+b.lt .Lmass_invalid
+cmp x21,#512
+b.gt .Lmass_invalid
+ARG x9,0
+ldrsw x22,[x9]
+cmp x22,#1
+b.lt .Lmass_invalid
+cmp x22,#4096
+b.gt .Lmass_invalid
+ARG x9,1
+ldrsw x23,[x9]
+cmp x23,#0
+b.lt .Lmass_invalid
+cmp x23,#4096
+b.gt .Lmass_invalid
+cmp x22,x20
+b.gt .Lmass_invalid
+cmp x23,x20
+b.gt .Lmass_invalid
+sub x9,x22,#1
+cmp x23,x9
+b.lt .Lmass_invalid
+sub x22,x22,#1
+ARG x0,4
+mov x1,#1
+mov x2,#1
+mov x3,#4
+mov x4,x20
+mov x5,#1
+add x6,x28,#512
+bl .Lmass_decode
+ldr x18,[sp,#2400]
+ARG x0,6
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#592
+bl .Lmass_decode
+ldr x18,[sp,#2400]
+ARG x0,7
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#672
+bl .Lmass_decode
+ldr x18,[sp,#2400]
+ARG x0,8
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#752
+bl .Lmass_decode
+ldr x18,[sp,#2400]
+ARG x0,9
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#832
+bl .Lmass_decode
+ldr x18,[sp,#2400]
+ARG x0,10
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,#1
+add x6,x28,#912
+bl .Lmass_decode
+ldr x18,[sp,#2400]
+ARG x0,11
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,#1
+add x6,x28,#992
+bl .Lmass_decode
+ldr x18,[sp,#2400]
+ARG x0,12
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,#1
+add x6,x28,#1072
+bl .Lmass_decode
+ldr x18,[sp,#2400]
+ARG x0,13
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,#1
+add x6,x28,#1152
+bl .Lmass_decode
+ldr x18,[sp,#2400]
+ARG x0,14
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,#1
+add x6,x28,#1232
+bl .Lmass_decode
+ldr x18,[sp,#2400]
+ARG x0,15
+mov x1,#1
+mov x2,#1
+mov x3,#4
+mov x4,x20
+mov x5,#1
+add x6,x28,#1312
+bl .Lmass_decode
+ldr x18,[sp,#2400]
+ARG x0,17
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#1392
+bl .Lmass_decode
+ldr x18,[sp,#2400]
+ARG x0,18
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#1472
+bl .Lmass_decode
+ldr x18,[sp,#2400]
+ARG x0,19
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#1552
+bl .Lmass_decode
+ldr x18,[sp,#2400]
+ARG x0,20
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#1632
+bl .Lmass_decode
+ldr x18,[sp,#2400]
+ARG x0,21
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,#1
+add x6,x28,#1712
+bl .Lmass_decode
+ldr x18,[sp,#2400]
+ldr x0,[x28,#1504]
+ldr x1,[x28,#1512]
+str x0,[x28,#2176]
+str x1,[x28,#2184]
+ARG x2,0
+adds x3,x2,#4
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,1
+adds x3,x2,#4
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,2
+adds x3,x2,#4
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,3
+adds x3,x2,#4
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,4
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,5
+adds x3,x2,#8
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,6
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,7
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,8
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,9
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,10
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,11
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,12
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,13
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,14
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,15
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,16
+adds x3,x2,#8
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,17
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,18
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,19
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,20
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,21
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,22
+adds x3,x2,#128
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,23
+adds x3,x2,#2416
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#544]
+ldr x3,[x28,#552]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#624]
+ldr x3,[x28,#632]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#704]
+ldr x3,[x28,#712]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#784]
+ldr x3,[x28,#792]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#864]
+ldr x3,[x28,#872]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#944]
+ldr x3,[x28,#952]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1024]
+ldr x3,[x28,#1032]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1104]
+ldr x3,[x28,#1112]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1184]
+ldr x3,[x28,#1192]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1264]
+ldr x3,[x28,#1272]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1344]
+ldr x3,[x28,#1352]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1424]
+ldr x3,[x28,#1432]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1584]
+ldr x3,[x28,#1592]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1664]
+ldr x3,[x28,#1672]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1744]
+ldr x3,[x28,#1752]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x0,[x28,#1584]
+ldr x1,[x28,#1592]
+str x0,[x28,#2176]
+str x1,[x28,#2184]
+ARG x2,0
+adds x3,x2,#4
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,1
+adds x3,x2,#4
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,2
+adds x3,x2,#4
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,3
+adds x3,x2,#4
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,4
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,5
+adds x3,x2,#8
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,6
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,7
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,8
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,9
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,10
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,11
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,12
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,13
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,14
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,15
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,16
+adds x3,x2,#8
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,17
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,18
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,19
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,20
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,21
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,22
+adds x3,x2,#128
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,23
+adds x3,x2,#2416
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#544]
+ldr x3,[x28,#552]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#624]
+ldr x3,[x28,#632]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#704]
+ldr x3,[x28,#712]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#784]
+ldr x3,[x28,#792]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#864]
+ldr x3,[x28,#872]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#944]
+ldr x3,[x28,#952]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1024]
+ldr x3,[x28,#1032]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1104]
+ldr x3,[x28,#1112]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1184]
+ldr x3,[x28,#1192]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1264]
+ldr x3,[x28,#1272]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1344]
+ldr x3,[x28,#1352]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1424]
+ldr x3,[x28,#1432]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1504]
+ldr x3,[x28,#1512]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1664]
+ldr x3,[x28,#1672]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1744]
+ldr x3,[x28,#1752]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x0,[x28,#1664]
+ldr x1,[x28,#1672]
+str x0,[x28,#2176]
+str x1,[x28,#2184]
+ARG x2,0
+adds x3,x2,#4
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,1
+adds x3,x2,#4
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,2
+adds x3,x2,#4
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,3
+adds x3,x2,#4
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,4
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,5
+adds x3,x2,#8
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,6
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,7
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,8
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,9
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,10
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,11
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,12
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,13
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,14
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,15
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,16
+adds x3,x2,#8
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,17
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,18
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,19
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,20
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,21
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,22
+adds x3,x2,#128
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,23
+adds x3,x2,#2416
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#544]
+ldr x3,[x28,#552]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#624]
+ldr x3,[x28,#632]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#704]
+ldr x3,[x28,#712]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#784]
+ldr x3,[x28,#792]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#864]
+ldr x3,[x28,#872]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#944]
+ldr x3,[x28,#952]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1024]
+ldr x3,[x28,#1032]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1104]
+ldr x3,[x28,#1112]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1184]
+ldr x3,[x28,#1192]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1264]
+ldr x3,[x28,#1272]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1344]
+ldr x3,[x28,#1352]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1424]
+ldr x3,[x28,#1432]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1504]
+ldr x3,[x28,#1512]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1584]
+ldr x3,[x28,#1592]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1744]
+ldr x3,[x28,#1752]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x0,[x28,#1744]
+ldr x1,[x28,#1752]
+str x0,[x28,#2176]
+str x1,[x28,#2184]
+ARG x2,0
+adds x3,x2,#4
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,1
+adds x3,x2,#4
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,2
+adds x3,x2,#4
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,3
+adds x3,x2,#4
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,4
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,5
+adds x3,x2,#8
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,6
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,7
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,8
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,9
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,10
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,11
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,12
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,13
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,14
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,15
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,16
+adds x3,x2,#8
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,17
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,18
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,19
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,20
+adds x3,x2,#88
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,21
+adds x3,x2,#64
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,22
+adds x3,x2,#128
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ARG x2,23
+adds x3,x2,#2416
+b.cs .Lmass_invalid
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#544]
+ldr x3,[x28,#552]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#624]
+ldr x3,[x28,#632]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#704]
+ldr x3,[x28,#712]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#784]
+ldr x3,[x28,#792]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#864]
+ldr x3,[x28,#872]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#944]
+ldr x3,[x28,#952]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1024]
+ldr x3,[x28,#1032]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1104]
+ldr x3,[x28,#1112]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1184]
+ldr x3,[x28,#1192]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1264]
+ldr x3,[x28,#1272]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1344]
+ldr x3,[x28,#1352]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1424]
+ldr x3,[x28,#1432]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1504]
+ldr x3,[x28,#1512]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1584]
+ldr x3,[x28,#1592]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+ldr x2,[x28,#1664]
+ldr x3,[x28,#1672]
+ldr x0,[x28,#2176]
+ldr x1,[x28,#2184]
+bl .Lmass_separate
+ldr x18,[sp,#2400]
+str x20,[x28,#2408]
+str x21,[x28,#2416]
+str x22,[x28,#2424]
+str x23,[x28,#2432]
+mov x0,x28
+bl md2asm_gpu_snow_mass_host
+ldr x18,[sp,#2400]
+ldp d8,d9,[x28,#160]
+ldp d10,d11,[x28,#176]
+ldp d12,d13,[x28,#192]
+ldp d14,d15,[x28,#208]
+ldp x19,x20,[x28,#64]
+ldp x21,x22,[x28,#80]
+ldp x23,x24,[x28,#96]
+ldp x25,x26,[x28,#112]
+ldp x29,x30,[x28,#144]
+ldp x27,x28,[x28,#128]
+add sp,sp,#4096
+ret
+.Lmass_decode:
+ ldr x8,[x0,#16]
+ cmp x8,x3
+ b.ne .Lmass_invalid
+ ldr w8,[x0,#24]
+ cbnz w8,.Lmass_invalid
+ ldrb w8,[x0,#28]
+ cmp x8,x1
+ b.ne .Lmass_invalid
+ ldrb w8,[x0,#29]
+ cmp x8,x2
+ b.ne .Lmass_invalid
+ ldrh w8,[x0,#30]
+ cbnz w8,.Lmass_invalid
+ ldr x8,[x0,#32]
+ cmp x8,x3
+ b.ne .Lmass_invalid
+ ldr x10,[x0,#48]
+ ldr x11,[x0,#56]
+ subs x11,x11,x10
+ b.vs .Lmass_invalid
+ adds x11,x11,#1
+ b.vs .Lmass_invalid
+ mov x14,#1
+ mov x15,#1
+ cmp x1,#1
+ b.eq .Lmass_shape_counts
+ ldr x8,[x0,#72]
+ ldr x14,[x0,#80]
+ subs x14,x14,x8
+ b.vs .Lmass_invalid
+ adds x14,x14,#1
+ b.vs .Lmass_invalid
+ cmp x1,#3
+ b.ne .Lmass_shape_counts
+ ldr x8,[x0,#96]
+ ldr x15,[x0,#104]
+ subs x15,x15,x8
+ b.vs .Lmass_invalid
+ adds x15,x15,#1
+ b.vs .Lmass_invalid
+ cmp x11,#0
+ b.lt .Lmass_invalid
+ cmp x14,#0
+ b.lt .Lmass_invalid
+ cmp x15,#0
+ b.lt .Lmass_invalid
+ cbz x11,.Lmass_empty_descriptor
+ cbz x14,.Lmass_empty_descriptor
+ cbz x15,.Lmass_empty_descriptor
+ cmp x15,#15
+ b.lt .Lmass_invalid
+ cmp x15,#32
+ b.gt .Lmass_invalid
+.Lmass_shape_counts:
+ cmp x11,x4
+ b.lt .Lmass_invalid
+ cmp x11,#4096
+ b.gt .Lmass_invalid
+ cmp x14,x5
+ b.lt .Lmass_invalid
+ cmp x14,#512
+ b.gt .Lmass_invalid
+ str x10,[x6,#64]
+ str x11,[x6,#48]
+ str x14,[x6,#56]
+ str x15,[x6,#72]
+ ldr x7,[x0]
+ cbz x7,.Lmass_invalid
+ sub x8,x3,#1
+ tst x7,x8
+ b.ne .Lmass_invalid
+ ldr x8,[x0,#40]
+ cmp x8,#0
+ cneg x9,x8,lt
+ cmp x9,#1
+ b.lt .Lmass_invalid
+ cmp x9,#4096
+ b.gt .Lmass_invalid
+ sub x10,x11,#1
+ mul x10,x10,x9
+ add x10,x10,#1
+ str x7,[x6]
+ mul x9,x8,x3
+ str x9,[x6,#8]
+ sub x11,x11,#1
+ mul x11,x11,x8
+ mov x12,#0
+ mov x13,#0
+ cmp x11,#0
+ csel x12,x11,x12,lt
+ csel x13,x11,x13,gt
+ str xzr,[x6,#16]
+ str xzr,[x6,#24]
+ cmp x1,#1
+ b.eq .Lmass_descriptor_bounds
+ ldr x8,[x0,#64]
+ cmp x8,#0
+ cneg x9,x8,lt
+ cmp x9,x10
+ b.lt .Lmass_invalid
+ mov x16,#1048576
+ cmp x9,x16
+ b.gt .Lmass_invalid
+ sub x14,x14,#1
+ mul x16,x14,x9
+ add x10,x10,x16
+ mul x9,x8,x3
+ str x9,[x6,#16]
+ mul x14,x14,x8
+ mov x9,#0
+ cmp x14,#0
+ csel x9,x14,x9,lt
+ add x12,x12,x9
+ mov x9,#0
+ cmp x14,#0
+ csel x9,x14,x9,gt
+ add x13,x13,x9
+ cmp x1,#2
+ b.eq .Lmass_descriptor_bounds
+ ldr x8,[x0,#88]
+ cmp x8,#0
+ cneg x9,x8,lt
+ cmp x9,x10
+ b.lt .Lmass_invalid
+ mov x16,#268435456
+ cmp x9,x16
+ b.gt .Lmass_invalid
+ mul x9,x8,x3
+ str x9,[x6,#24]
+ sub x15,x15,#1
+ mul x15,x15,x8
+ mov x9,#0
+ cmp x15,#0
+ csel x9,x15,x9,lt
+ add x12,x12,x9
+ mov x9,#0
+ cmp x15,#0
+ csel x9,x15,x9,gt
+ add x13,x13,x9
+.Lmass_descriptor_bounds:
+ mul x12,x12,x3
+ mul x13,x13,x3
+ add x9,x7,x12
+ cmp x9,x7
+ b.hi .Lmass_invalid
+ adds x10,x7,x13
+ b.cs .Lmass_invalid
+ adds x10,x10,x3
+ b.cs .Lmass_invalid
+ cmp x9,x10
+ b.hs .Lmass_invalid
+ str x9,[x6,#32]
+ str x10,[x6,#40]
+ ret
+.Lmass_empty_descriptor:
+ mov x7,#0
+.Lmass_clear_record:
+ str xzr,[x6,x7]
+ add x7,x7,#8
+ cmp x7,#80
+ b.lt .Lmass_clear_record
+ ret
+.Lmass_separate:
+ cmp x0,x1
+ b.eq .Lmass_separate_return
+ cmp x2,x3
+ b.eq .Lmass_separate_return
+ cmp x0,x3
+ b.hs .Lmass_separate_return
+ cmp x2,x1
+ b.lo .Lmass_invalid
+.Lmass_separate_return:
+ ret
+.Lmass_invalid:
+bl abort
+brk #0
+.size ORIGINAL_SYMBOL,.-ORIGINAL_SYMBOL
+.section .note.GNU-stack,"",%progbits
