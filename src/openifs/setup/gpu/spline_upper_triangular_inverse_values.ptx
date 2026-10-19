@@ -1,0 +1,75 @@
+// Complete ordered upper inverse; skills/md2asm-gpu/references/openifs/setup/spline_upper_triangular_inverse_complete_contract.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[24]) md2asm_gpu_exact_product_sum(.param .b64 a,.param .b64 b,.param .b64 c);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.visible .func (.param .align 8 .b8 result[32]) md2asm_gpu_spline_upper_inverse_values(.param .u32 dimension,.param .u64 matrix)
+{
+ .reg .u32 %n,%cells,%j,%k,%i,%flags,%raised,%class,%code,%info;
+ .reg .u64 %matrix,%offset,%column,%block,%pointer,%fast,%wide,%word,%exponent;
+ .reg .b64 %diagonal,%scale,%temporary,%left,%addend,%value;
+ .reg .pred %p;
+ .param .b64 a,b,c;
+ .param .align 8 .b8 scalar[16],exact[24];
+ ld.param.u32 %n,[dimension];ld.param.u64 %matrix,[matrix];
+ mov.u32 %flags,0;mov.u64 %fast,0;mov.u64 %wide,0;mov.u32 %code,2;mov.u32 %info,0;
+ setp.lt.u32 %p,%n,1;@%p bra COMPLETE;setp.gt.u32 %p,%n,24;@%p bra COMPLETE;
+ setp.eq.u64 %p,%matrix,0;@%p bra COMPLETE;and.b64 %word,%matrix,7;setp.ne.u64 %p,%word,0;@%p bra COMPLETE;
+ mul.lo.u32 %cells,%n,%n;mov.u32 %i,0;
+FINITE_INPUT:
+ mul.wide.u32 %offset,%i,8;add.u64 %pointer,%matrix,%offset;ld.global.u64 %word,[%pointer];
+ shr.u64 %exponent,%word,52;and.b64 %exponent,%exponent,2047;setp.eq.u64 %p,%exponent,2047;@%p bra COMPLETE;
+ add.u32 %i,%i,1;setp.lt.u32 %p,%i,%cells;@%p bra FINITE_INPUT;
+ mov.u32 %code,0;mov.u32 %j,0;
+SINGULAR_SCAN:
+ mul.lo.u32 %i,%j,%n;add.u32 %i,%i,%j;mul.wide.u32 %offset,%i,8;add.u64 %pointer,%matrix,%offset;
+ ld.global.b64 %diagonal,[%pointer];setp.eq.f64 %p,%diagonal,0d0000000000000000;@%p bra SINGULAR;
+ add.u32 %j,%j,1;setp.lt.u32 %p,%j,%n;@%p bra SINGULAR_SCAN;
+ mov.u32 %j,0;
+COLUMN:
+ mul.lo.u32 %i,%j,%n;mul.wide.u32 %offset,%i,8;add.u64 %column,%matrix,%offset;
+ mul.wide.u32 %offset,%j,8;add.u64 %pointer,%column,%offset;ld.global.b64 %diagonal,[%pointer];
+ st.param.b64 [a],0x3ff0000000000000;st.param.b64 [b],%diagonal;
+ call.uni (scalar),md2asm_gpu_div_status,(a,b);
+ ld.param.b64 %value,[scalar];ld.param.u32 %raised,[scalar+8];or.b32 %flags,%flags,%raised;
+ st.global.b64 [%pointer],%value;xor.b64 %scale,%value,0x8000000000000000;
+ setp.eq.u32 %p,%j,0;@%p bra NEXT_COLUMN;mov.u32 %k,0;
+TRIANGULAR_PRODUCT:
+ mul.wide.u32 %offset,%k,8;add.u64 %pointer,%column,%offset;ld.global.b64 %temporary,[%pointer];
+ setp.eq.f64 %p,%temporary,0d0000000000000000;@%p bra NEXT_PRODUCT;
+ mul.lo.u32 %i,%k,%n;mul.wide.u32 %offset,%i,8;add.u64 %block,%matrix,%offset;
+ setp.eq.u32 %p,%k,0;@%p bra PRODUCT_DIAGONAL;mov.u32 %i,0;
+PRODUCT_ROW:
+ mul.wide.u32 %offset,%i,8;add.u64 %pointer,%block,%offset;ld.global.b64 %left,[%pointer];
+ add.u64 %pointer,%column,%offset;ld.global.b64 %addend,[%pointer];
+ st.param.b64 [a],%left;st.param.b64 [b],%temporary;st.param.b64 [c],%addend;
+ call.uni (exact),md2asm_gpu_exact_product_sum,(a,b,c);
+ ld.param.b64 %value,[exact];ld.param.u32 %raised,[exact+8];ld.param.u32 %class,[exact+16];
+ or.b32 %flags,%flags,%raised;setp.eq.u32 %p,%class,0;@%p add.u64 %fast,%fast,1;@!%p add.u64 %wide,%wide,1;
+ st.global.b64 [%pointer],%value;
+ add.u32 %i,%i,1;setp.lt.u32 %p,%i,%k;@%p bra PRODUCT_ROW;
+PRODUCT_DIAGONAL:
+ mul.wide.u32 %offset,%k,8;add.u64 %pointer,%block,%offset;ld.global.b64 %diagonal,[%pointer];
+ st.param.b64 [a],%temporary;st.param.b64 [b],%diagonal;
+ call.uni (scalar),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %value,[scalar];ld.param.u32 %raised,[scalar+8];or.b32 %flags,%flags,%raised;
+ add.u64 %pointer,%column,%offset;st.global.b64 [%pointer],%value;
+NEXT_PRODUCT:
+ add.u32 %k,%k,1;setp.lt.u32 %p,%k,%j;@%p bra TRIANGULAR_PRODUCT;mov.u32 %i,0;
+SCALE_COLUMN:
+ mul.wide.u32 %offset,%i,8;add.u64 %pointer,%column,%offset;ld.global.b64 %left,[%pointer];
+ st.param.b64 [a],%scale;st.param.b64 [b],%left;
+ call.uni (scalar),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %value,[scalar];ld.param.u32 %raised,[scalar+8];or.b32 %flags,%flags,%raised;
+ st.global.b64 [%pointer],%value;
+ add.u32 %i,%i,1;setp.lt.u32 %p,%i,%j;@%p bra SCALE_COLUMN;
+NEXT_COLUMN:
+ add.u32 %j,%j,1;setp.lt.u32 %p,%j,%n;@%p bra COLUMN;bra COMPLETE;
+SINGULAR:
+ add.u32 %info,%j,1;
+COMPLETE:
+ st.param.u32 [result],%code;st.param.u32 [result+4],%info;st.param.u32 [result+8],%flags;st.param.u32 [result+12],0;
+ st.param.u64 [result+16],%fast;st.param.u64 [result+24],%wide;ret;
+}
