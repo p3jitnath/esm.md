@@ -184,7 +184,7 @@ The current [autonomous forecast contract](../../skills/md2asm/references/openif
 
 ## GPU extension
 
-The PTX extension has 252 distinct component-qualified originals. Six complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. The latest run also matches both complete model-history buffers across 1,882,368 bytes. The separate complete-owner GPU gate remains unfinished. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
+The PTX extension has 257 distinct component-qualified originals. Six complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. The latest run also matches both complete model-history buffers across 1,882,368 bytes. The separate complete-owner GPU gate remains unfinished. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
 
 These recent contracts describe complete device stages and their declared limits. Parent and child entries overlap, so their counts must not be added.
 
@@ -248,6 +248,15 @@ These recent contracts describe complete device stages and their declared limits
 | Convective Energy Diagnostics on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/convective_energy_diagnostics.md) |
 | Climatological Aerosol Visibility Layer on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/climatological_aerosol_visibility_layer.md) |
 | Surface Boundary Adapter on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/surface_boundary_adapter.md) |
+| Surface Temperature Extrapolation on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/surface_temperature_extrapolation.md) |
+| Mean Sea Level Pressure on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/mean_sea_level_pressure.md) |
+| Complete Physics Diagnostics on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/complete_physics_diagnostics.md) |
+| Surface Tile Boundary on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/surface_tile_boundary.md) |
+| Complete surface radiation layer on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/surface_radiation_layer.md) |
+| Complete private urban canyon light on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/private_canopy_light.md) |
+| Private surface radiation controllers on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/private_radiation_controller.md) |
+| Bounded original-compatible tangent on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/support/bounded_tangent.md) |
+| Radiation base-ten logarithm on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/support/radiation_base_ten_logarithm.md) |
 
 ## Local records
 
