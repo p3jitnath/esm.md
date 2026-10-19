@@ -1,0 +1,145 @@
+// Contract: skills/md2asm-gpu/references/openifs/radiation/radiation_grid_parent.md.
+// No arithmetic, control, owner, status or counter operation is removed.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .u32 r) md2asm_gpu_liquid_optics_socrates_values(.param .u32 n,.param .u64 table,.param .s64 row,.param .s64 column,.param .b64 water,.param .b64 radius,.param .u64 total,.param .u64 scatter,.param .u64 asym);
+.extern .func (.param .u32 r) md2asm_gpu_ice_optics_fu_lw_values(.param .u32 n,.param .u64 table,.param .s64 row,.param .s64 column,.param .b64 water,.param .b64 radius,.param .u64 total,.param .u64 scatter,.param .u64 asym);
+.extern .func (.param .u32 r) md2asm_gpu_ice_optics_fu_sw_values(.param .u32 n,.param .u64 table,.param .s64 row,.param .s64 column,.param .b64 water,.param .b64 radius,.param .u64 total,.param .u64 scatter,.param .u64 asym);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_delta_eddington_scat_od_values(.param .b64 total,.param .b64 scatter,.param .b64 asym);
+.extern .func (.param .align 8 .b8 r[64]) md2asm_gpu_surface_descriptor_geometry(.param .u64 d,.param .u32 rank,.param .u32 bytes,.param .u64 n0,.param .u64 n1,.param .u64 n2,.param .u32 normalize);
+.extern .func (.param .u32 result) md2asm_gpu_cloud_optics_values(.param .u64 original_vector,.param .u64 private_scratch);
+.func (.param .u32 result) radintg_worker_2_cloud_optics_range(.param .u64 base,.param .u64 bytes,.param .u64 mask,.param .u64 owners,.param .u32 count)
+{
+ .reg .u64 %b,%n,%m,%list,%t,%end,%o,%on,%oe; .reg .u32 %i,%count,%e; .reg .pred %p,%q;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %m,[mask]; ld.param.u64 %list,[owners]; ld.param.u32 %count,[count];
+ mov.u32 %e,0; setp.eq.u64 %p,%n,0; @%p bra RANGE_DONE;
+ mov.u32 %e,503; setp.eq.u64 %p,%b,0; @%p bra RANGE_DONE; and.b64 %t,%b,%m; setp.ne.u64 %p,%t,0; @%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra RANGE_DONE; setp.gt.u64 %p,%n,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ add.u64 %end,%b,%n; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ mov.u32 %i,0;
+RANGE_OWNERS:
+ setp.ge.u32 %p,%i,%count; @%p bra RANGE_OK; ld.u64 %o,[%list]; ld.u64 %on,[%list+8]; setp.eq.u64 %p,%on,0; @%p bra RANGE_NEXT;
+ add.u64 %oe,%o,%on; setp.lt.u64 %p,%b,%oe; setp.lt.u64 %q,%o,%end; and.pred %p,%p,%q; @%p bra RANGE_DONE;
+RANGE_NEXT: add.u64 %list,%list,16; add.u32 %i,%i,1; bra RANGE_OWNERS;
+RANGE_OK: mov.u32 %e,0;
+RANGE_DONE: st.param.u32 [result],%e; ret;
+}
+.func (.param .align 8 .b8 result[16]) radintg_worker_2_cloud_optics_descriptor(.param .u64 descriptor,.param .u32 extent1,.param .u32 extent2,.param .u32 rank,.param .u32 element)
+{
+ .reg .u64 %d,%data,%word,%expected,%empty;.reg .u32 %n1,%n2,%rank,%elem,%v,%error;.reg .pred %p;
+ ld.param.u64 %d,[descriptor];ld.param.u32 %n1,[extent1];ld.param.u32 %n2,[extent2];ld.param.u32 %rank,[rank];ld.param.u32 %elem,[element];mov.u32 %error,503;ld.global.u64 %data,[%d];
+ setp.eq.u32 %p,%rank,1;selp.u32 %v,1,%n2,%p;mul.wide.u32 %empty,%n1,%v;setp.eq.u64 %p,%empty,0;@%p bra DESC_HEADER;
+ setp.eq.u64 %p,%data,0;@%p bra DESC_DONE;sub.u32 %v,%elem,1;cvt.u64.u32 %expected,%v;and.b64 %word,%data,%expected;setp.ne.u64 %p,%word,0;@%p bra DESC_DONE;
+DESC_HEADER:ld.global.u64 %word,[%d+16];cvt.u64.u32 %expected,%elem;setp.ne.u64 %p,%word,%expected;@%p bra DESC_DONE;ld.global.u64 %word,[%d+32];setp.ne.u64 %p,%word,%expected;@%p bra DESC_DONE;
+ ld.global.u32 %v,[%d+24];setp.ne.u32 %p,%v,0;@%p bra DESC_DONE;ld.global.u8 %v,[%d+28];setp.ne.u32 %p,%v,%rank;@%p bra DESC_DONE;ld.global.u8 %v,[%d+29];setp.eq.u32 %p,%elem,4;selp.u32 %elem,1,3,%p;setp.ne.u32 %p,%v,%elem;@%p bra DESC_DONE;
+ ld.global.u64 %word,[%d+40];setp.ne.u64 %p,%word,1;@%p bra DESC_DONE;ld.global.u64 %word,[%d+48];setp.ne.u64 %p,%word,1;@%p bra DESC_DONE;ld.global.u64 %word,[%d+56];cvt.u64.u32 %expected,%n1;setp.ne.u64 %p,%word,%expected;@%p bra DESC_DONE;
+ setp.eq.u32 %p,%rank,1;@%p bra DESC_RANK1;ld.global.u64 %word,[%d+64];setp.ne.u64 %p,%word,%expected;@%p bra DESC_DONE;ld.global.u64 %word,[%d+72];setp.ne.u64 %p,%word,1;@%p bra DESC_DONE;ld.global.u64 %word,[%d+80];cvt.u64.u32 %expected,%n2;setp.ne.u64 %p,%word,%expected;@%p bra DESC_DONE;cvt.u64.u32 %expected,%n1;add.u64 %expected,%expected,1;neg.s64 %expected,%expected;bra DESC_OFFSET;
+DESC_RANK1:mov.u64 %expected,0xffffffffffffffff;
+DESC_OFFSET:ld.global.u64 %word,[%d+8];setp.ne.u64 %p,%word,%expected;@%p bra DESC_DONE;mov.u32 %error,0;
+DESC_DONE:st.param.u64 [result],%data;st.param.u32 [result+8],%error;st.param.u32 [result+12],0;ret;
+}
+.visible .func md2asm_gpu_radintg_worker_cloud_optics_fp64(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%arg<12>,%outbytes<6>,%input<6>,%coflow<4>,%cofbytes<4>,%list,%scratch,%capacity,%size,%needed,%address,%tmp,%base,%P64,%rowbytes,%pressurebytes,%active64;
+ .reg .u32 %N,%NF,%P,%LW,%SW,%SC,%first,%last,%active,%error,%rt,%unique,%i,%flags;
+ .reg .pred %pred;
+ .local .align 8 .b8 spans[128];
+ .param .u64 rb,rn,rm,rl,dd;.param .u32 rc,rr,d1,d2,dr,de;.param .align 8 .b8 desc[16];
+ .param .u64 gd,gn0,gn1,gn2;.param .u32 gr,ge,gz;.param .align 8 .b8 geometry[64];
+ .param .u64 ca,cs;.param .u32 cr;
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %pred,%ctx,0;@%pred ret;and.b64 %tmp,%ctx,7;setp.ne.u64 %pred,%tmp,0;@%pred ret;
+ mov.u32 %unique,0;mov.u32 %rt,0;or.b32 %unique,%unique,%rt;mov.u32 %rt,0;or.b32 %unique,%unique,%rt;mov.u32 %rt,0;or.b32 %unique,%unique,%rt;mov.u32 %rt,0;or.b32 %unique,%unique,%rt;mov.u32 %rt,0;or.b32 %unique,%unique,%rt;setp.ne.u32 %pred,%unique,0;@%pred ret;ld.global.u32 %error,[%ctx];setp.ne.u32 %pred,%error,0;@%pred ret;mov.u32 %error,501;
+mov.u32 %rt,1;setp.ne.u32 %pred,%rt,1;@%pred bra REFUSE;
+mov.u32 %rt,1;setp.ne.u32 %pred,%rt,1;@%pred bra REFUSE;
+mov.u32 %rt,1;setp.ne.u32 %pred,%rt,1;@%pred bra REFUSE;
+mov.u32 %rt,1;setp.ne.u32 %pred,%rt,1;@%pred bra REFUSE;
+mov.u32 %rt,1;setp.ne.u32 %pred,%rt,1;@%pred bra REFUSE;
+mov.u32 %rt,1;setp.ne.u32 %pred,%rt,1;@%pred bra REFUSE;
+mov.u32 %rt,0;setp.ne.u32 %pred,%rt,0;@%pred bra REFUSE;ld.global.u32 %rt,[%ctx+4];setp.ne.u32 %pred,%rt,1;@%pred bra REFUSE;mov.u64 %list,spans;cvta.local.u64 %list,%list;st.u64 [%list],%ctx;st.u64 [%list+8],64;
+st.param.u64 [rb],%args;st.param.u64 [rn],96;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+ld.global.u64 %arg0,[%args+0];
+ld.global.u64 %arg1,[%args+8];
+ld.global.u64 %arg2,[%args+16];
+ld.global.u64 %arg3,[%args+24];
+ld.global.u64 %arg4,[%args+32];
+ld.global.u64 %arg5,[%args+40];
+ld.global.u64 %arg6,[%args+48];
+ld.global.u64 %arg7,[%args+56];
+ld.global.u64 %arg8,[%args+64];
+ld.global.u64 %arg9,[%args+72];
+ld.global.u64 %arg10,[%args+80];
+ld.global.u64 %arg11,[%args+88];
+st.param.u64 [rb],%arg0;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%arg1;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%arg2;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%arg3;st.param.u64 [rn],20040;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+ld.global.u32 %N,[%arg0];ld.global.u32 %first,[%arg1];ld.global.u32 %last,[%arg2];mov.u32 %error,502;setp.gt.u32 %pred,%N,1024;@%pred bra REFUSE;setp.lt.s32 %pred,%first,1;@%pred bra REFUSE;setp.gt.u32 %pred,%first,4097;@%pred bra REFUSE;sub.u32 %rt,%first,1;setp.lt.s32 %pred,%last,%rt;@%pred bra REFUSE;setp.gt.u32 %pred,%last,4096;@%pred bra REFUSE;
+ ld.global.u32 %LW,[%arg3+20008];ld.global.u32 %SW,[%arg3+20004];ld.global.u32 %SC,[%arg3+608];setp.lt.s32 %pred,%LW,1;@%pred bra REFUSE;setp.gt.u32 %pred,%LW,4096;@%pred bra REFUSE;setp.lt.s32 %pred,%SW,1;@%pred bra REFUSE;setp.gt.u32 %pred,%SW,4096;@%pred bra REFUSE;setp.gt.u32 %pred,%SC,1;@%pred bra REFUSE;
+ ld.global.u32 %rt,[%arg3+696];setp.ne.u32 %pred,%rt,2;@%pred bra REFUSE;ld.global.u32 %rt,[%arg3+700];setp.ne.u32 %pred,%rt,2;@%pred bra REFUSE;ld.global.s32 %rt,[%arg3+7972];setp.ge.s32 %pred,%rt,2;@%pred bra REFUSE;
+ld.global.u32 %rt,[%arg3+628];setp.gt.u32 %pred,%rt,1;@%pred bra REFUSE;
+ld.global.u32 %rt,[%arg3+7964];setp.gt.u32 %pred,%rt,1;@%pred bra REFUSE;
+ld.global.u32 %rt,[%arg3+20028];setp.gt.u32 %pred,%rt,1;@%pred bra REFUSE;
+ld.global.u32 %rt,[%arg3+20024];setp.ne.u32 %pred,%SC,0;selp.u32 %P,%LW,0,%pred;setp.ne.u32 %pred,%rt,%P;@%pred bra REFUSE;setp.eq.u32 %pred,%N,0;@%pred ret;setp.gt.u32 %pred,%first,%last;@%pred ret;
+st.param.u64 [rb],%arg4;st.param.u64 [rn],264;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%arg5;st.param.u64 [rn],792;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+ld.global.u64 %tmp,[%arg5+408];mov.u32 %error,502;setp.lt.u64 %pred,%tmp,1;@%pred bra REFUSE;setp.gt.u64 %pred,%tmp,4096;@%pred bra REFUSE;cvt.u32.u64 %P,%tmp;setp.gt.u32 %pred,%last,%P;@%pred bra REFUSE;add.u32 %NF,%N,1;
+add.u64 %address,%arg4,0;st.param.u64 [dd],%address;st.param.u32 [d1],%P;st.param.u32 [d2],%NF;st.param.u32 [dr],2;st.param.u32 [de],8;call.uni (desc),radintg_worker_2_cloud_optics_descriptor,(dd,d1,d2,dr,de);ld.param.u32 %error,[desc+8];ld.param.u64 %input0,[desc];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+add.u64 %address,%arg5,0;st.param.u64 [dd],%address;st.param.u32 [d1],%P;st.param.u32 [d2],%N;st.param.u32 [dr],2;st.param.u32 [de],8;call.uni (desc),radintg_worker_2_cloud_optics_descriptor,(dd,d1,d2,dr,de);ld.param.u32 %error,[desc+8];ld.param.u64 %input1,[desc];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+add.u64 %address,%arg5,88;st.param.u64 [dd],%address;st.param.u32 [d1],%P;st.param.u32 [d2],%N;st.param.u32 [dr],2;st.param.u32 [de],8;call.uni (desc),radintg_worker_2_cloud_optics_descriptor,(dd,d1,d2,dr,de);ld.param.u32 %error,[desc+8];ld.param.u64 %input2,[desc];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+add.u64 %address,%arg5,176;st.param.u64 [dd],%address;st.param.u32 [d1],%P;st.param.u32 [d2],%N;st.param.u32 [dr],2;st.param.u32 [de],8;call.uni (desc),radintg_worker_2_cloud_optics_descriptor,(dd,d1,d2,dr,de);ld.param.u32 %error,[desc+8];ld.param.u64 %input3,[desc];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+add.u64 %address,%arg5,264;st.param.u64 [dd],%address;st.param.u32 [d1],%P;st.param.u32 [d2],%N;st.param.u32 [dr],2;st.param.u32 [de],8;call.uni (desc),radintg_worker_2_cloud_optics_descriptor,(dd,d1,d2,dr,de);ld.param.u32 %error,[desc+8];ld.param.u64 %input4,[desc];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+add.u64 %address,%arg5,352;st.param.u64 [dd],%address;st.param.u32 [d1],%P;st.param.u32 [d2],%N;st.param.u32 [dr],2;st.param.u32 [de],8;call.uni (desc),radintg_worker_2_cloud_optics_descriptor,(dd,d1,d2,dr,de);ld.param.u32 %error,[desc+8];ld.param.u64 %input5,[desc];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+add.u64 %address,%arg3,11128;mov.u32 %error,502;ld.global.s64 %tmp,[%address+40];setp.ne.u64 %pred,%tmp,0;@%pred bra TABLE_STRIDE_0_40;ld.global.s64 %size,[%address+48];ld.global.s64 %base,[%address+56];setp.gt.s64 %pred,%base,%size;@%pred bra REFUSE;TABLE_STRIDE_0_40:
+add.u64 %address,%arg3,11128;mov.u32 %error,502;ld.global.s64 %tmp,[%address+64];setp.ne.u64 %pred,%tmp,0;@%pred bra TABLE_STRIDE_0_64;ld.global.s64 %size,[%address+72];ld.global.s64 %base,[%address+80];setp.gt.s64 %pred,%base,%size;@%pred bra REFUSE;TABLE_STRIDE_0_64:
+add.u64 %address,%arg3,11128;mov.u32 %error,502;ld.global.u64 %tmp,[%address+16];setp.ne.u64 %pred,%tmp,8;@%pred bra REFUSE;ld.global.u64 %tmp,[%address+24];setp.ne.u64 %pred,%tmp,0x0000030200000000;@%pred bra REFUSE;ld.global.u64 %tmp,[%address+32];setp.ne.u64 %pred,%tmp,8;@%pred bra REFUSE;st.param.u64 [gd],%address;st.param.u32 [gr],2;st.param.u32 [ge],8;
+cvt.u64.u32 %tmp,%LW;st.param.u64 [gn0],%tmp;st.param.u64 [gn1],16;st.param.u64 [gn2],0;st.param.u32 [gz],0;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,gn0,gn1,gn2,gz);ld.param.u32 %rt,[geometry+48];ld.param.u64 %coflow0,[geometry+32];ld.param.u64 %cofbytes0,[geometry+40];setp.ne.u32 %pred,%rt,0;@%pred bra REFUSE;
+add.u64 %address,%arg3,11216;mov.u32 %error,502;ld.global.s64 %tmp,[%address+40];setp.ne.u64 %pred,%tmp,0;@%pred bra TABLE_STRIDE_1_40;ld.global.s64 %size,[%address+48];ld.global.s64 %base,[%address+56];setp.gt.s64 %pred,%base,%size;@%pred bra REFUSE;TABLE_STRIDE_1_40:
+add.u64 %address,%arg3,11216;mov.u32 %error,502;ld.global.s64 %tmp,[%address+64];setp.ne.u64 %pred,%tmp,0;@%pred bra TABLE_STRIDE_1_64;ld.global.s64 %size,[%address+72];ld.global.s64 %base,[%address+80];setp.gt.s64 %pred,%base,%size;@%pred bra REFUSE;TABLE_STRIDE_1_64:
+add.u64 %address,%arg3,11216;mov.u32 %error,502;ld.global.u64 %tmp,[%address+16];setp.ne.u64 %pred,%tmp,8;@%pred bra REFUSE;ld.global.u64 %tmp,[%address+24];setp.ne.u64 %pred,%tmp,0x0000030200000000;@%pred bra REFUSE;ld.global.u64 %tmp,[%address+32];setp.ne.u64 %pred,%tmp,8;@%pred bra REFUSE;st.param.u64 [gd],%address;st.param.u32 [gr],2;st.param.u32 [ge],8;
+cvt.u64.u32 %tmp,%SW;st.param.u64 [gn0],%tmp;st.param.u64 [gn1],16;st.param.u64 [gn2],0;st.param.u32 [gz],0;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,gn0,gn1,gn2,gz);ld.param.u32 %rt,[geometry+48];ld.param.u64 %coflow1,[geometry+32];ld.param.u64 %cofbytes1,[geometry+40];setp.ne.u32 %pred,%rt,0;@%pred bra REFUSE;
+add.u64 %address,%arg3,11304;mov.u32 %error,502;ld.global.s64 %tmp,[%address+40];setp.ne.u64 %pred,%tmp,0;@%pred bra TABLE_STRIDE_2_40;ld.global.s64 %size,[%address+48];ld.global.s64 %base,[%address+56];setp.gt.s64 %pred,%base,%size;@%pred bra REFUSE;TABLE_STRIDE_2_40:
+add.u64 %address,%arg3,11304;mov.u32 %error,502;ld.global.s64 %tmp,[%address+64];setp.ne.u64 %pred,%tmp,0;@%pred bra TABLE_STRIDE_2_64;ld.global.s64 %size,[%address+72];ld.global.s64 %base,[%address+80];setp.gt.s64 %pred,%base,%size;@%pred bra REFUSE;TABLE_STRIDE_2_64:
+add.u64 %address,%arg3,11304;mov.u32 %error,502;ld.global.u64 %tmp,[%address+16];setp.ne.u64 %pred,%tmp,8;@%pred bra REFUSE;ld.global.u64 %tmp,[%address+24];setp.ne.u64 %pred,%tmp,0x0000030200000000;@%pred bra REFUSE;ld.global.u64 %tmp,[%address+32];setp.ne.u64 %pred,%tmp,8;@%pred bra REFUSE;st.param.u64 [gd],%address;st.param.u32 [gr],2;st.param.u32 [ge],8;
+cvt.u64.u32 %tmp,%LW;st.param.u64 [gn0],%tmp;st.param.u64 [gn1],11;st.param.u64 [gn2],0;st.param.u32 [gz],0;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,gn0,gn1,gn2,gz);ld.param.u32 %rt,[geometry+48];ld.param.u64 %coflow2,[geometry+32];ld.param.u64 %cofbytes2,[geometry+40];setp.ne.u32 %pred,%rt,0;@%pred bra REFUSE;
+add.u64 %address,%arg3,11392;mov.u32 %error,502;ld.global.s64 %tmp,[%address+40];setp.ne.u64 %pred,%tmp,0;@%pred bra TABLE_STRIDE_3_40;ld.global.s64 %size,[%address+48];ld.global.s64 %base,[%address+56];setp.gt.s64 %pred,%base,%size;@%pred bra REFUSE;TABLE_STRIDE_3_40:
+add.u64 %address,%arg3,11392;mov.u32 %error,502;ld.global.s64 %tmp,[%address+64];setp.ne.u64 %pred,%tmp,0;@%pred bra TABLE_STRIDE_3_64;ld.global.s64 %size,[%address+72];ld.global.s64 %base,[%address+80];setp.gt.s64 %pred,%base,%size;@%pred bra REFUSE;TABLE_STRIDE_3_64:
+add.u64 %address,%arg3,11392;mov.u32 %error,502;ld.global.u64 %tmp,[%address+16];setp.ne.u64 %pred,%tmp,8;@%pred bra REFUSE;ld.global.u64 %tmp,[%address+24];setp.ne.u64 %pred,%tmp,0x0000030200000000;@%pred bra REFUSE;ld.global.u64 %tmp,[%address+32];setp.ne.u64 %pred,%tmp,8;@%pred bra REFUSE;st.param.u64 [gd],%address;st.param.u32 [gr],2;st.param.u32 [ge],8;
+cvt.u64.u32 %tmp,%SW;st.param.u64 [gn0],%tmp;st.param.u64 [gn1],10;st.param.u64 [gn2],0;st.param.u32 [gz],0;call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gr,ge,gn0,gn1,gn2,gz);ld.param.u32 %rt,[geometry+48];ld.param.u64 %coflow3,[geometry+32];ld.param.u64 %cofbytes3,[geometry+40];setp.ne.u32 %pred,%rt,0;@%pred bra REFUSE;
+sub.u32 %active,%last,%first;add.u32 %active,%active,1;mul.wide.u32 %size,%N,%active;mul.wide.u32 %tmp,%LW,8;mul.lo.u64 %outbytes0,%tmp,%size;mov.u64 %outbytes1,%outbytes0;mov.u64 %outbytes2,%outbytes0;setp.ne.u32 %pred,%SC,0;@%pred bra SCATTER_SIZE_READY;mov.u64 %outbytes1,0;mov.u64 %outbytes2,0;
+SCATTER_SIZE_READY:mul.wide.u32 %tmp,%SW,8;mul.lo.u64 %outbytes3,%tmp,%size;mov.u64 %outbytes4,%outbytes3;mov.u64 %outbytes5,%outbytes3;add.u32 %rt,%LW,%SW;mul.wide.u32 %needed,%rt,48;ld.global.u64 %scratch,[%ctx+32];ld.global.u64 %capacity,[%ctx+40];mov.u32 %error,503;setp.lt.u64 %pred,%capacity,%needed;@%pred bra REFUSE;
+st.u64 [%list+0],%arg6;st.u64 [%list+8],%outbytes0;
+st.u64 [%list+16],%arg7;st.u64 [%list+24],%outbytes1;
+st.u64 [%list+32],%arg8;st.u64 [%list+40],%outbytes2;
+st.u64 [%list+48],%arg9;st.u64 [%list+56],%outbytes3;
+st.u64 [%list+64],%arg10;st.u64 [%list+72],%outbytes4;
+st.u64 [%list+80],%arg11;st.u64 [%list+88],%outbytes5;
+st.u64 [%list+96],%scratch;st.u64 [%list+104],%needed;st.u64 [%list+112],%ctx;st.u64 [%list+120],64;mov.u32 %i,0;
+MUTABLE:mul.wide.u32 %address,%i,16;add.u64 %address,%list,%address;ld.u64 %base,[%address];ld.u64 %size,[%address+8];
+st.param.u64 [rb],%base;st.param.u64 [rn],%size;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%i;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+add.u32 %i,%i,1;setp.lt.u32 %pred,%i,8;@%pred bra MUTABLE;
+st.param.u64 [rb],%args;st.param.u64 [rn],96;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%arg0;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%arg1;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%arg2;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%arg3;st.param.u64 [rn],20040;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%arg4;st.param.u64 [rn],264;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%arg5;st.param.u64 [rn],792;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+mul.wide.u32 %rowbytes,%P,%N;shl.b64 %rowbytes,%rowbytes,3;mul.wide.u32 %pressurebytes,%P,%NF;shl.b64 %pressurebytes,%pressurebytes,3;
+st.param.u64 [rb],%input0;st.param.u64 [rn],%pressurebytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%input1;st.param.u64 [rn],%rowbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%input2;st.param.u64 [rn],%rowbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%input3;st.param.u64 [rn],%rowbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%input4;st.param.u64 [rn],%rowbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%input5;st.param.u64 [rn],%rowbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%coflow0;st.param.u64 [rn],%cofbytes0;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%coflow1;st.param.u64 [rn],%cofbytes1;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%coflow2;st.param.u64 [rn],%cofbytes2;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [rb],%coflow3;st.param.u64 [rn],%cofbytes3;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),radintg_worker_2_cloud_optics_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %pred,%error,0;@%pred bra REFUSE;
+st.param.u64 [ca],%args;st.param.u64 [cs],%scratch;call.uni (cr),md2asm_gpu_cloud_optics_values,(ca,cs);ld.param.u32 %flags,[cr];atom.global.or.b32 %rt,[%ctx+8],%flags;ret;
+REFUSE:st.global.u32 [%ctx],%error;ret;
+}

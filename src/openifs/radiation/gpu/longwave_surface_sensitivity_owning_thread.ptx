@@ -1,0 +1,195 @@
+// Contract: skills/md2asm-gpu/references/openifs/radiation/radiation_grid_parent.md.
+// No arithmetic, control, owner, status or counter operation is removed.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.func (.param .u32 error) radintg_worker_7_sensitivity_range(.param .u64 base,.param .u64 bytes,.param .u64 mask)
+{
+ .reg .u64 %b,%n,%m,%end; .reg .u32 %e; .reg .pred %p;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %m,[mask]; mov.u32 %e,382;
+ setp.eq.u64 %p,%b,0; @%p bra RANGE_DONE; and.b64 %end,%b,%m; setp.ne.u64 %p,%end,0; @%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra RANGE_DONE; setp.gt.u64 %p,%n,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ add.u64 %end,%b,%n; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ mov.u32 %e,0;
+RANGE_DONE: st.param.u32 [error],%e; ret;
+}
+.func (.param .u32 error) radintg_worker_7_sensitivity_disjoint(.param .u64 first,.param .u64 first_bytes,.param .u64 second,.param .u64 second_bytes)
+{
+ .reg .u64 %a,%an,%b,%bn,%ae,%be; .reg .u32 %e; .reg .pred %p,%q;
+ ld.param.u64 %a,[first]; ld.param.u64 %an,[first_bytes]; ld.param.u64 %b,[second]; ld.param.u64 %bn,[second_bytes];
+ add.u64 %ae,%a,%an; add.u64 %be,%b,%bn; setp.lt.u64 %p,%a,%be; setp.lt.u64 %q,%b,%ae; and.pred %p,%p,%q; selp.u32 %e,382,0,%p; st.param.u32 [error],%e; ret;
+}
+.func (.param .u32 error) radintg_worker_7_sensitivity_word(.param .b64 word,.param .u64 maximum)
+{
+ .reg .u64 %w,%m,%abs; .reg .u32 %e; .reg .pred %p;
+ ld.param.b64 %w,[word]; ld.param.u64 %m,[maximum]; mov.u32 %e,383;
+ and.b64 %abs,%w,0x7fffffffffffffff; setp.gt.u64 %p,%abs,%m; @%p bra WORD_DONE;
+ setp.eq.u64 %p,%abs,0; @%p bra WORD_OK; setp.lt.s64 %p,%w,0; @%p bra WORD_DONE;
+WORD_OK: mov.u32 %e,0;
+WORD_DONE: st.param.u32 [error],%e; ret;
+}
+.func (.param .align 8 .b8 geometry[40]) radintg_worker_7_sensitivity_geometry(.param .u64 descriptor,.param .u32 column,.param .u32 layers)
+{
+ .reg .u64 %d,%base,%cs,%ls,%nc,%nl,%cg,%lg,%mag,%high,%tmp,%negative,%sum,%low,%span,%selected,%step;
+ .reg .u32 %c,%n,%e; .reg .pred %p;
+ ld.param.u64 %d,[descriptor]; ld.param.u32 %c,[column]; ld.param.u32 %n,[layers]; mov.u32 %e,382;
+ ld.global.u64 %base,[%d]; ld.global.s64 %cs,[%d+40]; ld.global.s64 %ls,[%d+64];
+ ld.global.s64 %tmp,[%d+48]; setp.ne.u64 %p,%tmp,1; @%p bra GEOMETRY_DONE;
+ ld.global.s64 %tmp,[%d+72]; setp.ne.u64 %p,%tmp,1; @%p bra GEOMETRY_DONE;
+ ld.global.s64 %nc,[%d+56]; setp.lt.s64 %p,%nc,1; @%p bra GEOMETRY_DONE;
+ cvt.u64.u32 %tmp,%c; setp.gt.u64 %p,%tmp,%nc; @%p bra GEOMETRY_DONE;
+ ld.global.s64 %nl,[%d+80]; setp.lt.s64 %p,%nl,1; @%p bra GEOMETRY_DONE;
+ cvt.u64.u32 %tmp,%n; add.u64 %tmp,%tmp,1; setp.lt.u64 %p,%nl,%tmp; @%p bra GEOMETRY_DONE;
+ setp.eq.u64 %p,%base,0; @%p bra GEOMETRY_DONE; and.b64 %tmp,%base,7; setp.ne.u64 %p,%tmp,0; @%p bra GEOMETRY_DONE;
+ setp.gt.u64 %p,%base,0x7fffffffffffffff; @%p bra GEOMETRY_DONE;
+ setp.eq.u64 %p,%cs,0; @%p mov.u64 %cs,1;
+ sub.u64 %nc,%nc,1; sub.u64 %nl,%nl,1;
+ mov.u64 %mag,%cs; setp.lt.s64 %p,%cs,0; @%p neg.s64 %mag,%cs;
+ mul.hi.u64 %high,%nc,%mag; setp.ne.u64 %p,%high,0; @%p bra GEOMETRY_DONE; mul.lo.u64 %cg,%nc,%mag; setp.gt.u64 %p,%cg,0x0ffffffffffffffe; @%p bra GEOMETRY_DONE;
+ mov.u64 %mag,%ls; setp.lt.s64 %p,%ls,0; @%p neg.s64 %mag,%ls;
+ mul.hi.u64 %high,%nl,%mag; setp.ne.u64 %p,%high,0; @%p bra GEOMETRY_DONE; mul.lo.u64 %lg,%nl,%mag; setp.gt.u64 %p,%lg,0x0ffffffffffffffe; @%p bra GEOMETRY_DONE;
+ add.u64 %sum,%cg,%lg; setp.gt.u64 %p,%sum,0x0ffffffffffffffe; @%p bra GEOMETRY_DONE;
+ mov.u64 %negative,0; setp.lt.s64 %p,%cs,0; @%p add.u64 %negative,%negative,%cg; setp.lt.s64 %p,%ls,0; @%p add.u64 %negative,%negative,%lg;
+ shl.b64 %negative,%negative,3; setp.le.u64 %p,%base,%negative; @%p bra GEOMETRY_DONE; sub.u64 %low,%base,%negative;
+ shl.b64 %span,%sum,3; add.u64 %span,%span,8; add.u64 %tmp,%low,%span; setp.gt.u64 %p,%tmp,0x7fffffffffffffff; @%p bra GEOMETRY_DONE;
+ sub.u32 %c,%c,1; mul.wide.u32 %tmp,%c,8; mul.lo.u64 %tmp,%tmp,%cs; add.u64 %selected,%base,%tmp; shl.b64 %step,%ls,3; mov.u32 %e,0;
+GEOMETRY_DONE:
+ st.param.u64 [geometry],%selected; st.param.u64 [geometry+8],%step; st.param.u64 [geometry+16],%low; st.param.u64 [geometry+24],%span; st.param.u32 [geometry+32],%e; st.param.u32 [geometry+36],0; ret;
+}
+.visible .func md2asm_gpu_radintg_worker_longwave_sensitivity_fp64(.param .u64 original_vector,.param .u64 context,.param .u32 modify_mode)
+{
+ .reg .u64 %args,%ctx,%ptr<7>,%vecbytes,%desc,%scratch,%scratchbytes,%fluxbytes,%transbytes,%output,%outlow,%outspan,%levelstep,%temp,%addr,%qaddr,%taddr,%current,%offset,%ng64,%n64;
+ .reg .b64 %total,%value,%q,%response,%weight,%factor,%oldvalue,%leftvalue,%rightvalue;
+ .reg .u32 %mode,%g,%n,%column,%r,%unique,%error,%flags,%raised,%i,%layer; .reg .pred %p<2>;
+ .param .u64 rb,rn,rm,da,dn,db,dm; .param .u32 rr,gcol,gn,gr;
+ .param .b64 wa,ma,mb; .param .u64 wm; .param .align 8 .b8 geo[40],math[16]; .param .u64 gd;
+ ld.param.u64 %args,[original_vector]; ld.param.u64 %ctx,[context]; ld.param.u32 %mode,[modify_mode];
+ setp.eq.u64 %p0,%ctx,0; @%p0 ret; and.b64 %temp,%ctx,7; setp.ne.u64 %p0,%temp,0; @%p0 ret;
+ mov.u32 %unique,0; mov.u32 %r,0; or.b32 %unique,%unique,%r; mov.u32 %r,0; or.b32 %unique,%unique,%r;
+ mov.u32 %r,0; or.b32 %unique,%unique,%r; mov.u32 %r,0; or.b32 %unique,%unique,%r; mov.u32 %r,0; or.b32 %unique,%unique,%r;
+ setp.ne.u32 %p0,%unique,0; @%p0 ret;
+ ld.global.u32 %error,[%ctx]; setp.ne.u32 %p0,%error,0; @%p0 ret;
+ mov.u32 %r,1; setp.ne.u32 %p0,%r,1; @%p0 bra REFUSE_LAUNCH; mov.u32 %r,1; setp.ne.u32 %p0,%r,1; @%p0 bra REFUSE_LAUNCH; mov.u32 %r,1; setp.ne.u32 %p0,%r,1; @%p0 bra REFUSE_LAUNCH;
+ mov.u32 %r,1; setp.ne.u32 %p0,%r,1; @%p0 bra REFUSE_LAUNCH; mov.u32 %r,1; setp.ne.u32 %p0,%r,1; @%p0 bra REFUSE_LAUNCH; mov.u32 %r,1; setp.ne.u32 %p0,%r,1; @%p0 bra REFUSE_LAUNCH;
+ ld.global.u32 %r,[%ctx+4]; setp.ne.u32 %p0,%r,1; @%p0 bra REFUSE_LAUNCH;
+ setp.gt.u32 %p0,%mode,1; @%p0 bra REFUSE_LAUNCH;
+ setp.eq.u32 %p0,%mode,0; selp.u64 %vecbytes,48,56,%p0;
+ st.param.u64 [rb],%args; st.param.u64 [rn],%vecbytes; st.param.u64 [rm],7; call.uni (rr),radintg_worker_7_sensitivity_range,(rb,rn,rm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%args; st.param.u64 [dn],%vecbytes; st.param.u64 [db],%ctx; st.param.u64 [dm],64; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.global.u64 %ptr0,[%args+0];
+ ld.global.u64 %ptr1,[%args+8];
+ ld.global.u64 %ptr2,[%args+16];
+ ld.global.u64 %ptr3,[%args+24];
+ ld.global.u64 %ptr4,[%args+32];
+ ld.global.u64 %ptr5,[%args+40];
+ st.param.u64 [rb],%ptr0; st.param.u64 [rn],4; st.param.u64 [rm],3; call.uni (rr),radintg_worker_7_sensitivity_range,(rb,rn,rm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%ptr0; st.param.u64 [dn],4; st.param.u64 [db],%ctx; st.param.u64 [dm],64; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [rb],%ptr1; st.param.u64 [rn],4; st.param.u64 [rm],3; call.uni (rr),radintg_worker_7_sensitivity_range,(rb,rn,rm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%ptr1; st.param.u64 [dn],4; st.param.u64 [db],%ctx; st.param.u64 [dm],64; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [rb],%ptr2; st.param.u64 [rn],4; st.param.u64 [rm],3; call.uni (rr),radintg_worker_7_sensitivity_range,(rb,rn,rm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%ptr2; st.param.u64 [dn],4; st.param.u64 [db],%ctx; st.param.u64 [dm],64; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.global.s32 %g,[%ptr0]; ld.global.s32 %n,[%ptr1]; ld.global.s32 %column,[%ptr2];
+ setp.gt.s32 %p0,%g,4096; @%p0 bra REFUSE_META; setp.lt.s32 %p0,%n,0; @%p0 bra REFUSE_META; setp.gt.u32 %p0,%n,1024; @%p0 bra REFUSE_META; setp.lt.s32 %p0,%column,1; @%p0 bra REFUSE_META;
+ mov.u64 %desc,%ptr5; setp.eq.u32 %p0,%mode,0; @%p0 bra DESCRIPTOR_SELECTED;
+ ld.global.u64 %desc,[%args+48];
+DESCRIPTOR_SELECTED:
+ st.param.u64 [rb],%desc; st.param.u64 [rn],88; st.param.u64 [rm],7; call.uni (rr),radintg_worker_7_sensitivity_range,(rb,rn,rm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%desc; st.param.u64 [dn],88; st.param.u64 [db],%ctx; st.param.u64 [dm],64; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [gd],%desc; st.param.u32 [gcol],%column; st.param.u32 [gn],%n; call.uni (geo),radintg_worker_7_sensitivity_geometry,(gd,gcol,gn);
+ ld.param.u32 %error,[geo+32]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.param.u64 %output,[geo]; ld.param.u64 %levelstep,[geo+8]; ld.param.u64 %outlow,[geo+16]; ld.param.u64 %outspan,[geo+24];
+ st.param.u64 [da],%outlow; st.param.u64 [dn],%outspan; st.param.u64 [db],%args; st.param.u64 [dm],%vecbytes; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%outlow; st.param.u64 [dn],%outspan; st.param.u64 [db],%ctx; st.param.u64 [dm],64; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%outlow; st.param.u64 [dn],%outspan; st.param.u64 [db],%desc; st.param.u64 [dm],88; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%outlow; st.param.u64 [dn],%outspan; st.param.u64 [db],%ptr0; st.param.u64 [dm],4; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%outlow; st.param.u64 [dn],%outspan; st.param.u64 [db],%ptr1; st.param.u64 [dm],4; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%outlow; st.param.u64 [dn],%outspan; st.param.u64 [db],%ptr2; st.param.u64 [dm],4; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ mov.u64 %scratch,0; mov.u64 %fluxbytes,0; mov.u64 %transbytes,0; cvt.u64.u32 %n64,%n;
+ setp.le.s32 %p0,%g,0; @%p0 bra ARRAY_OWNERS_READY; cvt.u64.u32 %ng64,%g; shl.b64 %fluxbytes,%ng64,3; mul.lo.u64 %transbytes,%fluxbytes,%n64;
+ ld.global.u64 %scratch,[%ctx+32]; ld.global.u64 %scratchbytes,[%ctx+40]; setp.lt.u64 %p0,%scratchbytes,%fluxbytes; @%p0 bra REFUSE_META;
+ st.param.u64 [rb],%scratch; st.param.u64 [rn],%fluxbytes; st.param.u64 [rm],7; call.uni (rr),radintg_worker_7_sensitivity_range,(rb,rn,rm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [rb],%ptr4; st.param.u64 [rn],%fluxbytes; st.param.u64 [rm],7; call.uni (rr),radintg_worker_7_sensitivity_range,(rb,rn,rm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%ptr4; st.param.u64 [dn],%fluxbytes; st.param.u64 [db],%ctx; st.param.u64 [dm],64; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%ptr4; st.param.u64 [dn],%fluxbytes; st.param.u64 [db],%outlow; st.param.u64 [dm],%outspan; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%scratch; st.param.u64 [dn],%fluxbytes; st.param.u64 [db],%args; st.param.u64 [dm],%vecbytes; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%scratch; st.param.u64 [dn],%fluxbytes; st.param.u64 [db],%ctx; st.param.u64 [dm],64; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%scratch; st.param.u64 [dn],%fluxbytes; st.param.u64 [db],%desc; st.param.u64 [dm],88; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%scratch; st.param.u64 [dn],%fluxbytes; st.param.u64 [db],%outlow; st.param.u64 [dm],%outspan; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%scratch; st.param.u64 [dn],%fluxbytes; st.param.u64 [db],%ptr4; st.param.u64 [dm],%fluxbytes; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%scratch; st.param.u64 [dn],%fluxbytes; st.param.u64 [db],%ptr0; st.param.u64 [dm],4; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%scratch; st.param.u64 [dn],%fluxbytes; st.param.u64 [db],%ptr1; st.param.u64 [dm],4; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%scratch; st.param.u64 [dn],%fluxbytes; st.param.u64 [db],%ptr2; st.param.u64 [dm],4; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ setp.eq.u32 %p0,%n,0; @%p0 bra ARRAY_OWNERS_READY;
+ st.param.u64 [rb],%ptr3; st.param.u64 [rn],%transbytes; st.param.u64 [rm],7; call.uni (rr),radintg_worker_7_sensitivity_range,(rb,rn,rm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%ptr3; st.param.u64 [dn],%transbytes; st.param.u64 [db],%ctx; st.param.u64 [dm],64; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%ptr3; st.param.u64 [dn],%transbytes; st.param.u64 [db],%outlow; st.param.u64 [dm],%outspan; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%ptr3; st.param.u64 [dn],%transbytes; st.param.u64 [db],%scratch; st.param.u64 [dm],%fluxbytes; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ARRAY_OWNERS_READY:
+ setp.eq.u32 %p0,%mode,0; @%p0 bra WEIGHT_READY; setp.eq.u32 %p0,%n,0; @%p0 bra WEIGHT_READY;
+ st.param.u64 [rb],%ptr5; st.param.u64 [rn],8; st.param.u64 [rm],7; call.uni (rr),radintg_worker_7_sensitivity_range,(rb,rn,rm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%ptr5; st.param.u64 [dn],8; st.param.u64 [db],%ctx; st.param.u64 [dm],64; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [da],%ptr5; st.param.u64 [dn],8; st.param.u64 [db],%outlow; st.param.u64 [dm],%outspan; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ setp.le.s32 %p0,%g,0; @%p0 bra WEIGHT_NO_SCRATCH;
+ st.param.u64 [da],%ptr5; st.param.u64 [dn],8; st.param.u64 [db],%scratch; st.param.u64 [dm],%fluxbytes; call.uni (rr),radintg_worker_7_sensitivity_disjoint,(da,dn,db,dm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+WEIGHT_NO_SCRATCH:
+ ld.global.b64 %weight,[%ptr5];
+ st.param.b64 [wa],%weight; st.param.u64 [wm],0x3ff0000000000000; call.uni (rr),radintg_worker_7_sensitivity_word,(wa,wm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_INPUT;
+ cvt.u64.u32 %temp,%n; mul.lo.u64 %temp,%temp,%levelstep; add.u64 %current,%output,%temp; mov.u32 %i,%n;
+OLD_ADMISSION:
+ sub.u64 %current,%current,%levelstep; ld.global.b64 %value,[%current];
+ st.param.b64 [wa],%value; st.param.u64 [wm],0x3ff0000000000000; call.uni (rr),radintg_worker_7_sensitivity_word,(wa,wm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_INPUT;
+ sub.u32 %i,%i,1; setp.ne.u32 %p0,%i,0; @%p0 bra OLD_ADMISSION;
+WEIGHT_READY:
+ mov.u32 %flags,0; mov.b64 %total,0; setp.le.s32 %p0,%g,0; @%p0 bra SURFACE;
+ mov.u32 %i,0;
+FLUX_ADMISSION:
+ mul.wide.u32 %offset,%i,8; add.u64 %addr,%ptr4,%offset; ld.global.b64 %value,[%addr];
+ st.param.b64 [wa],%value; st.param.u64 [wm],0x7fefffffffffffff; call.uni (rr),radintg_worker_7_sensitivity_word,(wa,wm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_INPUT;
+ st.param.b64 [ma],%total; st.param.b64 [mb],%value; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %total,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%g; @%p0 bra FLUX_ADMISSION;
+ setp.eq.u64 %p0,%total,0; @%p0 bra REFUSE_INPUT; setp.ge.u64 %p0,%total,0x7ff0000000000000; @%p0 bra REFUSE_INPUT;
+ mov.u64 %offset,0;
+TRANS_ADMISSION:
+ setp.ge.u64 %p0,%offset,%transbytes; @%p0 bra NORMALIZE_START; add.u64 %addr,%ptr3,%offset; ld.global.b64 %value,[%addr];
+ st.param.b64 [wa],%value; st.param.u64 [wm],0x3ff0000000000000; call.uni (rr),radintg_worker_7_sensitivity_word,(wa,wm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_INPUT;
+ add.u64 %offset,%offset,8; bra TRANS_ADMISSION;
+NORMALIZE_START:
+ mov.u32 %i,0;
+NORMALIZE:
+ mul.wide.u32 %offset,%i,8; add.u64 %addr,%ptr4,%offset; ld.global.b64 %value,[%addr];
+ st.param.b64 [ma],%value; st.param.b64 [mb],%total; call.uni (math),md2asm_gpu_div_status,(ma,mb); ld.param.b64 %q,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %qaddr,%scratch,%offset; st.global.b64 [%qaddr],%q; add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%g; @%p0 bra NORMALIZE;
+SURFACE:
+ mul.lo.u64 %temp,%n64,%levelstep; add.u64 %current,%output,%temp; mov.b64 %value,0x3ff0000000000000; st.global.b64 [%current],%value;
+ setp.eq.u32 %p0,%n,0; @%p0 bra COMPLETE; setp.eq.u32 %p0,%mode,0; @%p0 bra LAYERS_READY;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%weight; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %factor,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+LAYERS_READY:
+ mov.u32 %layer,%n;
+LAYER:
+ sub.u32 %layer,%layer,1; mov.b64 %response,0; mov.u32 %i,0;
+ setp.le.s32 %p0,%g,0; @%p0 bra STORE_RESPONSE;
+ mul.wide.u32 %temp,%layer,8; mul.lo.u64 %temp,%temp,%ng64; add.u64 %taddr,%ptr3,%temp;
+SPECTRUM:
+ mul.wide.u32 %offset,%i,8; add.u64 %qaddr,%scratch,%offset; ld.global.b64 %q,[%qaddr]; add.u64 %addr,%taddr,%offset; ld.global.b64 %value,[%addr];
+ st.param.b64 [ma],%q; st.param.b64 [mb],%value; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %q,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.global.b64 [%qaddr],%q;
+ st.param.b64 [ma],%response; st.param.b64 [mb],%q; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %response,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%g; @%p0 bra SPECTRUM;
+STORE_RESPONSE:
+ sub.u64 %current,%current,%levelstep; setp.eq.u32 %p0,%mode,0; @%p0 bra STORE;
+ ld.global.b64 %oldvalue,[%current];
+ st.param.b64 [ma],%factor; st.param.b64 [mb],%oldvalue; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %leftvalue,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%weight; st.param.b64 [mb],%response; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %rightvalue,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%leftvalue; st.param.b64 [mb],%rightvalue; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %response,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+STORE:
+ st.global.b64 [%current],%response; setp.ne.u32 %p0,%layer,0; @%p0 bra LAYER;
+COMPLETE:
+ atom.global.or.b32 %raised,[%ctx+8],%flags; ret;
+REFUSE_LAUNCH: st.global.u32 [%ctx],381; ret;
+REFUSE_META: st.global.u32 [%ctx],382; ret;
+REFUSE_INPUT: st.global.u32 [%ctx],383; ret;
+}

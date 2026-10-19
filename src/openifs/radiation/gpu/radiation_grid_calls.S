@@ -1658,8 +1658,8 @@ ldr x8,[x8,:got_lo12:__yomhook_MOD_lhook]
 cbz x8,.Lgrid_host_failure
 movz x9,#4
 stp x8,x9,[x27,#144]
-movz x26,#43552
-movk x26,#388,lsl #16
+movz x26,#64960
+movk x26,#6863,lsl #16
 mov x0,x26
 grid_host_call malloc
 cbz x0,.Lgrid_host_failure
@@ -1786,6 +1786,33 @@ mov w4,#1
 mov w5,#0
 grid_host_call md2asm_openifs_gpu_launch
 cbnz w0,.Lgrid_host_failure
+ldr w8,[x20]
+cbnz w8,.Lgrid_host_failure
+ldr x8,[x20,#24]
+cmp x8,#260
+b.ne .Lgrid_host_failure
+adrp x0,.Lgrid_worker_entry
+add x0,x0,:lo12:.Lgrid_worker_entry
+mov x1,x19
+mov x2,x20
+mov w3,#128
+mov w4,#1
+mov w5,#0
+grid_host_call md2asm_openifs_gpu_launch
+cbnz w0,.Lgrid_host_failure
+ldr w8,[x20]
+cbnz w8,.Lgrid_host_failure
+adrp x0,.Lgrid_join_entry
+add x0,x0,:lo12:.Lgrid_join_entry
+mov x1,x19
+mov x2,x20
+mov w3,#1
+mov w4,#1
+mov w5,#0
+grid_host_call md2asm_openifs_gpu_launch
+cbnz w0,.Lgrid_host_failure
+ldr w8,[x20]
+cbnz w8,.Lgrid_host_failure
 ldr x8,[x20,#24]
 cmp x8,#5
 b.ne .Lgrid_host_failure
@@ -1897,6 +1924,8 @@ md2asm_gpu_grid_child_counts_storage:.skip 64
 .size md2asm_gpu_grid_child_counts_storage,64
 .section .rodata
 .Lgrid_host_entry:.asciz "md2asm_gpu_radintg"
+.Lgrid_worker_entry:.asciz "md2asm_gpu_radintg_phase4_workers"
+.Lgrid_join_entry:.asciz "md2asm_gpu_radintg_phase4_join"
 .Lgrid_host_start_message:.asciz "Calling radiation scheme (RADINTG)"
 .Lgrid_host_fields_message:.asciz "RADINTG: IFLDSIN   =         295\nRADINTG: IFLDSOUT  =         125\nRADINTG: IFLDSTOT  =         933"
 .Lgrid_host_integer_0:.word 0

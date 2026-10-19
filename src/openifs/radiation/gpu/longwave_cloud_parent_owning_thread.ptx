@@ -1,0 +1,561 @@
+// Contract: skills/md2asm-gpu/references/openifs/radiation/radiation_grid_parent.md.
+// No arithmetic, control, owner, status or counter operation is removed.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_clear_longwave_layer_values(.param .b64 depth,.param .b64 top,.param .b64 bottom);
+.extern .func md2asm_gpu_radintg_worker_clear_longwave_transport_fp64(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_two_stream_gammas_lw_values(.param .b64 omega,.param .b64 asymmetry);
+.extern .func (.param .align 8 .b8 r[40]) md2asm_gpu_scattering_longwave_layer_values(.param .b64 tau,.param .b64 a,.param .b64 b,.param .b64 top,.param .b64 bottom);
+.extern .func (.param .u32 flags) md2asm_gpu_fast_longwave_column_values(.param .u64 vector,.param .u64 scratch,.param .u32 G,.param .u32 N,.param .u32 H,.param .u32 column);
+.extern .func md2asm_gpu_radintg_worker_longwave_sensitivity_fp64(.param .u64 vector,.param .u64 context,.param .u32 mode);
+.extern .func (.param .align 8 .b8 r[24]) md2asm_gpu_cloud_pdf_geometry(.param .u64 object);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_cloud_generator_values(.param .u32 a0,.param .u32 a1,.param .u32 a2,.param .b64 a3,.param .u64 a4,.param .u64 a5,.param .b64 a6,.param .u64 a7,.param .u64 a8,.param .u64 a9,.param .u64 a10,.param .u32 a11,.param .u64 a12);
+.func (.param .u32 result) radintg_worker_4_lw_parent_range(.param .u64 base,.param .u64 bytes,.param .u64 mask,.param .u64 owners,.param .u32 count)
+{
+ .reg .u64 %b,%n,%m,%list,%t,%end,%o,%on,%oe; .reg .u32 %i,%count,%e; .reg .pred %p,%q;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %m,[mask]; ld.param.u64 %list,[owners]; ld.param.u32 %count,[count];
+ mov.u32 %e,0; setp.eq.u64 %p,%n,0; @%p bra RANGE_DONE;
+ mov.u32 %e,452; setp.eq.u64 %p,%b,0; @%p bra RANGE_DONE; and.b64 %t,%b,%m; setp.ne.u64 %p,%t,0; @%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra RANGE_DONE; setp.gt.u64 %p,%n,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ add.u64 %end,%b,%n; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ mov.u32 %i,0;
+RANGE_OWNERS:
+ setp.ge.u32 %p,%i,%count; @%p bra RANGE_OK; ld.u64 %o,[%list]; ld.u64 %on,[%list+8]; setp.eq.u64 %p,%on,0; @%p bra RANGE_NEXT;
+ add.u64 %oe,%o,%on; setp.lt.u64 %p,%b,%oe; setp.lt.u64 %q,%o,%end; and.pred %p,%p,%q; @%p bra RANGE_DONE;
+RANGE_NEXT: add.u64 %list,%list,16; add.u32 %i,%i,1; bra RANGE_OWNERS;
+RANGE_OK: mov.u32 %e,0;
+RANGE_DONE: st.param.u32 [result],%e; ret;
+}
+.func (.param .align 8 .b8 result[16]) radintg_worker_4_lw_parent_descriptor(.param .u64 descriptor,.param .u32 first_extent,.param .u32 second_extent,.param .u32 rank,.param .u32 element)
+{
+ .reg .u64 %d,%data,%tmp,%expected; .reg .u32 %n1,%n2,%rank,%elem,%v,%e; .reg .pred %p;
+ ld.param.u64 %d,[descriptor]; ld.param.u32 %n1,[first_extent]; ld.param.u32 %n2,[second_extent]; ld.param.u32 %rank,[rank]; ld.param.u32 %elem,[element]; mov.u32 %e,452;
+ ld.global.u64 %data,[%d]; setp.eq.u64 %p,%data,0; @%p bra DESC_DONE; sub.u32 %v,%elem,1; cvt.u64.u32 %tmp,%v; and.b64 %tmp,%data,%tmp; setp.ne.u64 %p,%tmp,0; @%p bra DESC_DONE;
+ ld.global.u64 %tmp,[%d+16]; cvt.u64.u32 %expected,%elem; setp.ne.u64 %p,%tmp,%expected; @%p bra DESC_DONE;
+ ld.global.u32 %v,[%d+24]; setp.ne.u32 %p,%v,0; @%p bra DESC_DONE; ld.global.u8 %v,[%d+28]; setp.ne.u32 %p,%v,%rank; @%p bra DESC_DONE;
+ ld.global.u8 %v,[%d+29]; setp.eq.u32 %p,%elem,4; selp.u32 %elem,1,3,%p; setp.ne.u32 %p,%v,%elem; @%p bra DESC_DONE;
+ ld.global.u64 %tmp,[%d+32]; setp.ne.u64 %p,%tmp,%expected; @%p bra DESC_DONE;
+ ld.global.u64 %tmp,[%d+40]; setp.ne.u64 %p,%tmp,1; @%p bra DESC_DONE; ld.global.u64 %tmp,[%d+48]; setp.ne.u64 %p,%tmp,1; @%p bra DESC_DONE;
+ ld.global.u64 %tmp,[%d+56]; cvt.u64.u32 %expected,%n1; setp.ne.u64 %p,%tmp,%expected; @%p bra DESC_DONE;
+ setp.eq.u32 %p,%rank,1; @%p bra DESC_RANK1;
+ ld.global.u64 %tmp,[%d+64]; setp.ne.u64 %p,%tmp,%expected; @%p bra DESC_DONE; ld.global.u64 %tmp,[%d+72]; setp.ne.u64 %p,%tmp,1; @%p bra DESC_DONE;
+ ld.global.u64 %tmp,[%d+80]; cvt.u64.u32 %expected,%n2; setp.ne.u64 %p,%tmp,%expected; @%p bra DESC_DONE; cvt.u64.u32 %expected,%n1; add.u64 %expected,%expected,1; neg.s64 %expected,%expected; bra DESC_OFFSET;
+DESC_RANK1: mov.u64 %expected,0xffffffffffffffff;
+DESC_OFFSET: ld.global.u64 %tmp,[%d+8]; setp.ne.u64 %p,%tmp,%expected; @%p bra DESC_DONE; mov.u32 %e,0;
+DESC_DONE: st.param.u64 [result],%data; st.param.u32 [result+8],%e; st.param.u32 [result+12],0; ret;
+}
+.visible .func md2asm_gpu_radintg_worker_longwave_cloud_parent_fp64(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%arg<16>,%out<8>,%pout<8>,%counter<12>,%counts<12>,%list,%scratch,%capacity,%record,%address,%tmp,%base,%size,%span,%low,%offset,%index,%raw_offset,%face_offset,%band_offset,%col_layer,%col_face,%col_surface,%private_offset;
+ .reg .u64 %band,%seeds,%fraction_base,%spread_base,%overlap_base,%sampler,%vector,%childctx,%derivdesc,%scalars,%weightptr,%Gptr,%Nptr,%colptr,%Hptr,%emission,%albedo,%totalptr;
+ .reg .u64 %trc,%suc,%sdc,%rcl,%tcl,%sucl,%sdcl,%uc,%dc,%ucl,%dcl,%scaling,%fastscratch,%samplingscratch,%qscratch,%frow,%srow,%orow,%clearflags,%metadata;
+ .reg .u64 %event64,%increment,%old;
+ .reg .u32 %unique,%rt,%error,%last,%col,%j,%g,%H,%seed,%bandindex,%enabled,%i,%flags,%raised,%event,%new_event;
+ .reg .pred %pred;
+ .reg .b64 %value,%tau,%top,%bottom,%trans,%su,%sd,%reflection,%total,%one_minus,%threshold,%decorrelation,%cloud_depth,%omega,%asymmetry,%band_ssa,%band_asymmetry,%denominator,%a,%b,%left,%right,%sum_up,%sum_down,%clear_up,%clear_down,%complement;
+ .local .align 8 .b8 spans[352];
+ .param .u64 rb,rn,rm,rl,dd,pobject,cv,cc,fs; .param .u32 rc,rr,d1,d2,dr,de,mode,G,N,HH,GG;
+ .param .b64 ma,mb,x0,x1,x2,x3,x4; .param .align 8 .b8 math[16],descriptor[16],geometry[24],layer[32],gammas[32],scattering[40],cloud[32];
+ .param .u32 cloud0;
+ .param .u32 cloud1;
+ .param .u32 cloud2;
+ .param .b64 cloud3;
+ .param .u64 cloud4;
+ .param .u64 cloud5;
+ .param .b64 cloud6;
+ .param .u64 cloud7;
+ .param .u64 cloud8;
+ .param .u64 cloud9;
+ .param .u64 cloud10;
+ .param .u32 cloud11;
+ .param .u64 cloud12;
+ ld.param.u64 %args,[original_vector]; ld.param.u64 %ctx,[context]; setp.eq.u64 %pred,%ctx,0; @%pred ret; and.b64 %tmp,%ctx,7; setp.ne.u64 %pred,%tmp,0; @%pred ret;
+ mov.u32 %unique,0; mov.u32 %rt,0; or.b32 %unique,%unique,%rt; mov.u32 %rt,0; or.b32 %unique,%unique,%rt; mov.u32 %rt,0; or.b32 %unique,%unique,%rt; mov.u32 %rt,0; or.b32 %unique,%unique,%rt; mov.u32 %rt,0; or.b32 %unique,%unique,%rt; setp.ne.u32 %pred,%unique,0; @%pred ret;
+ ld.global.u32 %error,[%ctx]; setp.ne.u32 %pred,%error,0; @%pred ret; mov.u32 %error,451;
+ mov.u32 %rt,1; setp.ne.u32 %pred,%rt,1; @%pred bra REFUSE;
+ mov.u32 %rt,1; setp.ne.u32 %pred,%rt,1; @%pred bra REFUSE;
+ mov.u32 %rt,1; setp.ne.u32 %pred,%rt,1; @%pred bra REFUSE;
+ mov.u32 %rt,1; setp.ne.u32 %pred,%rt,1; @%pred bra REFUSE;
+ mov.u32 %rt,1; setp.ne.u32 %pred,%rt,1; @%pred bra REFUSE;
+ mov.u32 %rt,1; setp.ne.u32 %pred,%rt,1; @%pred bra REFUSE;
+ ld.global.u32 %rt,[%ctx+4]; setp.ne.u32 %pred,%rt,1; @%pred bra REFUSE;
+ mov.u32 %rt,0; setp.ne.u32 %pred,%rt,0; @%pred bra REFUSE;
+ mov.u64 %list,spans; cvta.local.u64 %list,%list;
+ st.param.u64 [rb],%args; st.param.u64 [rn],128; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ ld.global.u64 %arg0,[%args+0];
+ ld.global.u64 %arg1,[%args+8];
+ ld.global.u64 %arg2,[%args+16];
+ ld.global.u64 %arg3,[%args+24];
+ ld.global.u64 %arg4,[%args+32];
+ ld.global.u64 %arg5,[%args+40];
+ ld.global.u64 %arg6,[%args+48];
+ ld.global.u64 %arg7,[%args+56];
+ ld.global.u64 %arg8,[%args+64];
+ ld.global.u64 %arg9,[%args+72];
+ ld.global.u64 %arg10,[%args+80];
+ ld.global.u64 %arg11,[%args+88];
+ ld.global.u64 %arg12,[%args+96];
+ ld.global.u64 %arg13,[%args+104];
+ ld.global.u64 %arg14,[%args+112];
+ ld.global.u64 %arg15,[%args+120];
+ st.param.u64 [rb],%arg0; st.param.u64 [rn],4; st.param.u64 [rm],3; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg1; st.param.u64 [rn],4; st.param.u64 [rm],3; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg2; st.param.u64 [rn],4; st.param.u64 [rm],3; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg3; st.param.u64 [rn],20040; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ mov.u32 %error,453; ld.global.u32 %rt,[%arg0]; setp.ne.u32 %pred,%rt,19; @%pred bra REFUSE; ld.global.u32 %rt,[%arg1]; setp.ne.u32 %pred,%rt,1; @%pred bra REFUSE; ld.global.s32 %last,[%arg2]; setp.lt.s32 %pred,%last,0; @%pred bra REFUSE; setp.gt.s32 %pred,%last,8; @%pred bra REFUSE;
+ ld.global.u32 %rt,[%arg3+6856]; setp.ne.u32 %pred,%rt,1; @%pred bra REFUSE;
+ ld.global.u32 %rt,[%arg3+608]; setp.ne.u32 %pred,%rt,1; @%pred bra REFUSE;
+ ld.global.u32 %rt,[%arg3+612]; setp.ne.u32 %pred,%rt,0; @%pred bra REFUSE;
+ ld.global.u32 %rt,[%arg3+7952]; setp.ne.u32 %pred,%rt,1; @%pred bra REFUSE;
+ ld.global.u32 %rt,[%arg3+536]; setp.ne.u32 %pred,%rt,1; @%pred bra REFUSE;
+ ld.global.u32 %rt,[%arg3+540]; setp.ne.u32 %pred,%rt,0; @%pred bra REFUSE;
+ ld.global.u32 %rt,[%arg3+20000]; setp.ne.u32 %pred,%rt,140; @%pred bra REFUSE;
+ ld.global.u32 %rt,[%arg3+20008]; setp.ne.u32 %pred,%rt,16; @%pred bra REFUSE;
+ ld.global.u32 %rt,[%arg3+20020]; setp.ne.u32 %pred,%rt,140; @%pred bra REFUSE;
+ ld.global.u32 %rt,[%arg3+20024]; setp.ne.u32 %pred,%rt,16; @%pred bra REFUSE;
+ ld.global.b64 %threshold,[%arg3+520]; setp.ne.u64 %pred,%threshold,0x3eb0c6f7a0b5ed8d; @%pred bra REFUSE; ld.global.b64 %decorrelation,[%arg3+552]; setp.ne.u64 %pred,%decorrelation,0x3fe0000000000000; @%pred bra REFUSE; setp.eq.u32 %pred,%last,0; @%pred ret;
+ st.param.u64 [rb],%arg4; st.param.u64 [rn],624; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg5; st.param.u64 [rn],792; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg6; st.param.u64 [rn],170240; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg7; st.param.u64 [rn],170240; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg8; st.param.u64 [rn],170240; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg9; st.param.u64 [rn],19456; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg10; st.param.u64 [rn],19456; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg11; st.param.u64 [rn],19456; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg12; st.param.u64 [rn],179200; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg13; st.param.u64 [rn],8960; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg14; st.param.u64 [rn],8960; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg15; st.param.u64 [rn],3360; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ add.u64 %address,%arg15,0; st.param.u64 [dd],%address; st.param.u32 [d1],8; st.param.u32 [d2],20; st.param.u32 [dr],2; st.param.u32 [de],8; call.uni (descriptor),radintg_worker_4_lw_parent_descriptor,(dd,d1,d2,dr,de); ld.param.u64 %out0,[descriptor]; ld.param.u32 %error,[descriptor+8]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ add.u64 %address,%arg15,88; st.param.u64 [dd],%address; st.param.u32 [d1],8; st.param.u32 [d2],20; st.param.u32 [dr],2; st.param.u32 [de],8; call.uni (descriptor),radintg_worker_4_lw_parent_descriptor,(dd,d1,d2,dr,de); ld.param.u64 %out1,[descriptor]; ld.param.u32 %error,[descriptor+8]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ add.u64 %address,%arg15,440; st.param.u64 [dd],%address; st.param.u32 [d1],8; st.param.u32 [d2],20; st.param.u32 [dr],2; st.param.u32 [de],8; call.uni (descriptor),radintg_worker_4_lw_parent_descriptor,(dd,d1,d2,dr,de); ld.param.u64 %out2,[descriptor]; ld.param.u32 %error,[descriptor+8]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ add.u64 %address,%arg15,528; st.param.u64 [dd],%address; st.param.u32 [d1],8; st.param.u32 [d2],20; st.param.u32 [dr],2; st.param.u32 [de],8; call.uni (descriptor),radintg_worker_4_lw_parent_descriptor,(dd,d1,d2,dr,de); ld.param.u64 %out3,[descriptor]; ld.param.u32 %error,[descriptor+8]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ add.u64 %address,%arg15,2000; st.param.u64 [dd],%address; st.param.u32 [d1],140; st.param.u32 [d2],8; st.param.u32 [dr],2; st.param.u32 [de],8; call.uni (descriptor),radintg_worker_4_lw_parent_descriptor,(dd,d1,d2,dr,de); ld.param.u64 %out4,[descriptor]; ld.param.u32 %error,[descriptor+8]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ add.u64 %address,%arg15,2088; st.param.u64 [dd],%address; st.param.u32 [d1],140; st.param.u32 [d2],8; st.param.u32 [dr],2; st.param.u32 [de],8; call.uni (descriptor),radintg_worker_4_lw_parent_descriptor,(dd,d1,d2,dr,de); ld.param.u64 %out5,[descriptor]; ld.param.u32 %error,[descriptor+8]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ add.u64 %address,%arg15,3144; st.param.u64 [dd],%address; st.param.u32 [d1],8; st.param.u32 [d2],0; st.param.u32 [dr],1; st.param.u32 [de],8; call.uni (descriptor),radintg_worker_4_lw_parent_descriptor,(dd,d1,d2,dr,de); ld.param.u64 %out6,[descriptor]; ld.param.u32 %error,[descriptor+8]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ add.u64 %address,%arg15,3272; st.param.u64 [dd],%address; st.param.u32 [d1],8; st.param.u32 [d2],20; st.param.u32 [dr],2; st.param.u32 [de],8; call.uni (descriptor),radintg_worker_4_lw_parent_descriptor,(dd,d1,d2,dr,de); ld.param.u64 %out7,[descriptor]; ld.param.u32 %error,[descriptor+8]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ add.u64 %address,%arg3,10864; st.param.u64 [dd],%address; st.param.u32 [d1],140; st.param.u32 [d2],0; st.param.u32 [dr],1; st.param.u32 [de],4; call.uni (descriptor),radintg_worker_4_lw_parent_descriptor,(dd,d1,d2,dr,de); ld.param.u64 %band,[descriptor]; ld.param.u32 %error,[descriptor+8]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ add.u64 %address,%arg4,552; st.param.u64 [dd],%address; st.param.u32 [d1],8; st.param.u32 [d2],0; st.param.u32 [dr],1; st.param.u32 [de],4; call.uni (descriptor),radintg_worker_4_lw_parent_descriptor,(dd,d1,d2,dr,de); ld.param.u64 %seeds,[descriptor]; ld.param.u32 %error,[descriptor+8]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ add.u64 %address,%arg5,352; st.param.u64 [dd],%address; st.param.u32 [d1],8; st.param.u32 [d2],19; st.param.u32 [dr],2; st.param.u32 [de],8; call.uni (descriptor),radintg_worker_4_lw_parent_descriptor,(dd,d1,d2,dr,de); ld.param.u64 %fraction_base,[descriptor]; ld.param.u32 %error,[descriptor+8]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ add.u64 %address,%arg5,440; st.param.u64 [dd],%address; st.param.u32 [d1],8; st.param.u32 [d2],19; st.param.u32 [dr],2; st.param.u32 [de],8; call.uni (descriptor),radintg_worker_4_lw_parent_descriptor,(dd,d1,d2,dr,de); ld.param.u64 %spread_base,[descriptor]; ld.param.u32 %error,[descriptor+8]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ add.u64 %address,%arg5,704; st.param.u64 [dd],%address; st.param.u32 [d1],8; st.param.u32 [d2],18; st.param.u32 [dr],2; st.param.u32 [de],8; call.uni (descriptor),radintg_worker_4_lw_parent_descriptor,(dd,d1,d2,dr,de); ld.param.u64 %overlap_base,[descriptor]; ld.param.u32 %error,[descriptor+8]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ add.u64 %sampler,%arg3,17840; st.param.u64 [pobject],%sampler; call.uni (geometry),md2asm_gpu_cloud_pdf_geometry,(pobject); ld.param.u64 %low,[geometry]; ld.param.u64 %span,[geometry+8]; ld.param.u32 %error,[geometry+16]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META; ld.global.u64 %scratch,[%ctx+32]; ld.global.u64 %capacity,[%ctx+40]; setp.lt.u64 %pred,%capacity,357584; @%pred bra REFUSE_META; ld.global.u64 %record,[%ctx+48]; mov.u32 %enabled,0;
+ mov.u64 %counter0,0; mov.u64 %counts0,0;
+ mov.u64 %counter1,0; mov.u64 %counts1,0;
+ mov.u64 %counter2,0; mov.u64 %counts2,0;
+ mov.u64 %counter3,0; mov.u64 %counts3,0;
+ mov.u64 %counter4,0; mov.u64 %counts4,0;
+ mov.u64 %counter5,0; mov.u64 %counts5,0;
+ mov.u64 %counter6,0; mov.u64 %counts6,0;
+ mov.u64 %counter7,0; mov.u64 %counts7,0;
+ mov.u64 %counter8,0; mov.u64 %counts8,0;
+ mov.u64 %counter9,0; mov.u64 %counts9,0;
+ mov.u64 %counter10,0; mov.u64 %counts10,0;
+ mov.u64 %counter11,0; mov.u64 %counts11,0;
+ setp.eq.u64 %pred,%record,0; @%pred bra RECORD_READY; ld.global.u64 %capacity,[%ctx+56]; setp.lt.u64 %pred,%capacity,96; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%record; st.param.u64 [rn],96; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],0; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ ld.global.u64 %counter0,[%record+0];
+ ld.global.u64 %counter1,[%record+8];
+ ld.global.u64 %counter2,[%record+16];
+ ld.global.u64 %counter3,[%record+24];
+ ld.global.u64 %counter4,[%record+32];
+ ld.global.u64 %counter5,[%record+40];
+ ld.global.u64 %counter6,[%record+48];
+ ld.global.u64 %counter7,[%record+56];
+ ld.global.u64 %counter8,[%record+64];
+ ld.global.u64 %counter9,[%record+72];
+ ld.global.u64 %counter10,[%record+80];
+ ld.global.u64 %counter11,[%record+88];
+ mov.u32 %enabled,1;
+RECORD_READY:
+ st.u64 [%list+0],%out0; st.u64 [%list+8],1280;
+ st.u64 [%list+16],%out1; st.u64 [%list+24],1280;
+ st.u64 [%list+32],%out2; st.u64 [%list+40],1280;
+ st.u64 [%list+48],%out3; st.u64 [%list+56],1280;
+ st.u64 [%list+64],%out4; st.u64 [%list+72],8960;
+ st.u64 [%list+80],%out5; st.u64 [%list+88],8960;
+ st.u64 [%list+96],%out6; st.u64 [%list+104],64;
+ st.u64 [%list+112],%out7; st.u64 [%list+120],1280;
+ st.u64 [%list+128],%scratch; st.u64 [%list+136],357584; st.u64 [%list+144],%ctx; st.u64 [%list+152],64;
+ st.u64 [%list+160],%counter0; setp.ne.u32 %pred,%enabled,0; selp.u64 %size,8,0,%pred; st.u64 [%list+168],%size;
+ st.u64 [%list+176],%counter1; setp.ne.u32 %pred,%enabled,0; selp.u64 %size,8,0,%pred; st.u64 [%list+184],%size;
+ st.u64 [%list+192],%counter2; setp.ne.u32 %pred,%enabled,0; selp.u64 %size,8,0,%pred; st.u64 [%list+200],%size;
+ st.u64 [%list+208],%counter3; setp.ne.u32 %pred,%enabled,0; selp.u64 %size,8,0,%pred; st.u64 [%list+216],%size;
+ st.u64 [%list+224],%counter4; setp.ne.u32 %pred,%enabled,0; selp.u64 %size,8,0,%pred; st.u64 [%list+232],%size;
+ st.u64 [%list+240],%counter5; setp.ne.u32 %pred,%enabled,0; selp.u64 %size,8,0,%pred; st.u64 [%list+248],%size;
+ st.u64 [%list+256],%counter6; setp.ne.u32 %pred,%enabled,0; selp.u64 %size,8,0,%pred; st.u64 [%list+264],%size;
+ st.u64 [%list+272],%counter7; setp.ne.u32 %pred,%enabled,0; selp.u64 %size,8,0,%pred; st.u64 [%list+280],%size;
+ st.u64 [%list+288],%counter8; setp.ne.u32 %pred,%enabled,0; selp.u64 %size,8,0,%pred; st.u64 [%list+296],%size;
+ st.u64 [%list+304],%counter9; setp.ne.u32 %pred,%enabled,0; selp.u64 %size,8,0,%pred; st.u64 [%list+312],%size;
+ st.u64 [%list+320],%counter10; setp.ne.u32 %pred,%enabled,0; selp.u64 %size,8,0,%pred; st.u64 [%list+328],%size;
+ st.u64 [%list+336],%counter11; setp.ne.u32 %pred,%enabled,0; selp.u64 %size,8,0,%pred; st.u64 [%list+344],%size;
+ mov.u32 %i,0;
+MUTABLE_RANGE:
+ mul.wide.u32 %address,%i,16; add.u64 %address,%list,%address; ld.u64 %base,[%address]; ld.u64 %size,[%address+8];
+ st.param.u64 [rb],%base; st.param.u64 [rn],%size; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],%i; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ add.u32 %i,%i,1; setp.lt.u32 %pred,%i,22; @%pred bra MUTABLE_RANGE;
+ st.param.u64 [rb],%args; st.param.u64 [rn],128; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg0; st.param.u64 [rn],4; st.param.u64 [rm],3; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg1; st.param.u64 [rn],4; st.param.u64 [rm],3; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg2; st.param.u64 [rn],4; st.param.u64 [rm],3; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg3; st.param.u64 [rn],20040; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg4; st.param.u64 [rn],624; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg5; st.param.u64 [rn],792; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg6; st.param.u64 [rn],170240; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg7; st.param.u64 [rn],170240; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg8; st.param.u64 [rn],170240; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg9; st.param.u64 [rn],19456; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg10; st.param.u64 [rn],19456; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg11; st.param.u64 [rn],19456; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg12; st.param.u64 [rn],179200; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg13; st.param.u64 [rn],8960; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg14; st.param.u64 [rn],8960; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%arg15; st.param.u64 [rn],3360; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%band; st.param.u64 [rn],560; st.param.u64 [rm],3; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%seeds; st.param.u64 [rn],32; st.param.u64 [rm],3; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%fraction_base; st.param.u64 [rn],1216; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%spread_base; st.param.u64 [rn],1216; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%overlap_base; st.param.u64 [rn],1152; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ st.param.u64 [rb],%low; st.param.u64 [rn],%span; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ setp.eq.u64 %pred,%record,0; @%pred bra ADMISSION_BAND;
+ st.param.u64 [rb],%record; st.param.u64 [rn],96; st.param.u64 [rm],7; st.param.u64 [rl],%list; st.param.u32 [rc],22; call.uni (rr),radintg_worker_4_lw_parent_range,(rb,rn,rm,rl,rc); ld.param.u32 %error,[rr]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_META;
+ADMISSION_BAND: mov.u32 %g,0;
+BAND_CHECK:
+ mul.wide.u32 %address,%g,4; add.u64 %address,%band,%address; ld.global.s32 %bandindex,[%address]; setp.lt.s32 %pred,%bandindex,1; @%pred bra REFUSE_META; setp.gt.s32 %pred,%bandindex,16; @%pred bra REFUSE_META; add.u32 %g,%g,1; setp.lt.u32 %pred,%g,140; @%pred bra BAND_CHECK;
+ add.u64 %trc,%scratch,0;
+ add.u64 %suc,%scratch,21280;
+ add.u64 %sdc,%scratch,42560;
+ add.u64 %rcl,%scratch,63840;
+ add.u64 %tcl,%scratch,85120;
+ add.u64 %sucl,%scratch,106400;
+ add.u64 %sdcl,%scratch,127680;
+ add.u64 %uc,%scratch,148960;
+ add.u64 %dc,%scratch,171360;
+ add.u64 %ucl,%scratch,193760;
+ add.u64 %dcl,%scratch,216160;
+ add.u64 %scaling,%scratch,238560;
+ add.u64 %fastscratch,%scratch,259840;
+ add.u64 %samplingscratch,%scratch,325920;
+ add.u64 %qscratch,%scratch,330528;
+ add.u64 %frow,%scratch,331648;
+ add.u64 %srow,%scratch,331800;
+ add.u64 %orow,%scratch,331952;
+ add.u64 %clearflags,%scratch,332096;
+ add.u64 %metadata,%scratch,332176;
+ add.u64 %pout0,%scratch,333200;
+ add.u64 %pout1,%scratch,334480;
+ add.u64 %pout2,%scratch,335760;
+ add.u64 %pout3,%scratch,337040;
+ add.u64 %pout4,%scratch,338320;
+ add.u64 %pout5,%scratch,347280;
+ add.u64 %pout6,%scratch,356240;
+ add.u64 %pout7,%scratch,356304;
+ mov.u64 %offset,0;
+COPY_INPUT_0:
+ setp.ge.u64 %pred,%offset,1280; @%pred bra COPY_INPUT_0_DONE; add.u64 %address,%out0,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%pout0,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COPY_INPUT_0;
+COPY_INPUT_0_DONE:
+ mov.u64 %offset,0;
+COPY_INPUT_1:
+ setp.ge.u64 %pred,%offset,1280; @%pred bra COPY_INPUT_1_DONE; add.u64 %address,%out1,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%pout1,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COPY_INPUT_1;
+COPY_INPUT_1_DONE:
+ mov.u64 %offset,0;
+COPY_INPUT_2:
+ setp.ge.u64 %pred,%offset,1280; @%pred bra COPY_INPUT_2_DONE; add.u64 %address,%out2,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%pout2,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COPY_INPUT_2;
+COPY_INPUT_2_DONE:
+ mov.u64 %offset,0;
+COPY_INPUT_3:
+ setp.ge.u64 %pred,%offset,1280; @%pred bra COPY_INPUT_3_DONE; add.u64 %address,%out3,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%pout3,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COPY_INPUT_3;
+COPY_INPUT_3_DONE:
+ mov.u64 %offset,0;
+COPY_INPUT_4:
+ setp.ge.u64 %pred,%offset,8960; @%pred bra COPY_INPUT_4_DONE; add.u64 %address,%out4,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%pout4,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COPY_INPUT_4;
+COPY_INPUT_4_DONE:
+ mov.u64 %offset,0;
+COPY_INPUT_5:
+ setp.ge.u64 %pred,%offset,8960; @%pred bra COPY_INPUT_5_DONE; add.u64 %address,%out5,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%pout5,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COPY_INPUT_5;
+COPY_INPUT_5_DONE:
+ mov.u64 %offset,0;
+COPY_INPUT_6:
+ setp.ge.u64 %pred,%offset,64; @%pred bra COPY_INPUT_6_DONE; add.u64 %address,%out6,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%pout6,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COPY_INPUT_6;
+COPY_INPUT_6_DONE:
+ mov.u64 %offset,0;
+COPY_INPUT_7:
+ setp.ge.u64 %pred,%offset,1280; @%pred bra COPY_INPUT_7_DONE; add.u64 %address,%out7,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%pout7,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COPY_INPUT_7;
+COPY_INPUT_7_DONE:
+ mov.u64 %vector,%metadata; add.u64 %childctx,%metadata,104; add.u64 %derivdesc,%metadata,168; add.u64 %scalars,%metadata,256; add.u64 %weightptr,%metadata,288;
+ mov.u64 %Gptr,%scalars; add.u64 %Nptr,%scalars,4; add.u64 %colptr,%scalars,8; add.u64 %Hptr,%scalars,12; st.global.u32 [%Gptr],140; st.global.u32 [%Nptr],19;
+ st.global.u64 [%childctx],0x0000000100000000; st.global.u64 [%childctx+8],0; st.global.u64 [%childctx+16],0; st.global.u64 [%childctx+24],0; st.global.u64 [%childctx+32],%qscratch; st.global.u64 [%childctx+40],1120; st.global.u64 [%childctx+48],0; st.global.u64 [%childctx+56],0;
+ add.u64 %base,%arg15,3272;
+ mov.u64 %offset,0;
+COPY_DERIVATIVE_DESCRIPTOR:
+ setp.ge.u64 %pred,%offset,88; @%pred bra COPY_DERIVATIVE_DESCRIPTOR_DONE; add.u64 %address,%base,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%derivdesc,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COPY_DERIVATIVE_DESCRIPTOR;
+COPY_DERIVATIVE_DESCRIPTOR_DONE:
+ st.global.u64 [%derivdesc],%pout7; mov.u32 %flags,0; mov.u32 %event,0; mov.u32 %col,0;
+PHYSICAL_COLUMN:
+ mul.wide.u32 %col_layer,%col,21280; mul.wide.u32 %col_face,%col,22400; mul.wide.u32 %col_surface,%col,1120; add.u64 %emission,%arg13,%col_surface; add.u64 %albedo,%arg14,%col_surface; mov.u32 %j,0;
+CLEAR_LAYER: mov.u32 %g,0;
+CLEAR_POINT:
+ mul.wide.u32 %index,%j,140; cvt.u64.u32 %offset,%g; add.u64 %index,%index,%offset; shl.b64 %index,%index,3; add.u64 %raw_offset,%col_layer,%index; add.u64 %face_offset,%col_face,%index;
+ add.u64 %address,%arg6,%raw_offset; ld.global.b64 %tau,[%address];
+ setp.gt.f64 %pred,%tau,0d3f50624de0000000; @%pred add.u64 %counts2,%counts2,1;
+ add.u64 %address,%arg12,%face_offset; ld.global.b64 %top,[%address];
+ add.u64 %face_offset,%face_offset,1120;
+ add.u64 %address,%arg12,%face_offset; ld.global.b64 %bottom,[%address];
+ st.param.b64 [x0],%tau; st.param.b64 [x1],%top; st.param.b64 [x2],%bottom; call.uni (layer),md2asm_gpu_clear_longwave_layer_values,(x0,x1,x2); ld.param.b64 %trans,[layer]; ld.param.b64 %su,[layer+8]; ld.param.b64 %sd,[layer+16];
+ ld.param.u32 %raised,[layer+24]; or.b32 %flags,%flags,%raised;
+ ld.param.u32 %new_event,[layer+28]; setp.ne.u32 %pred,%new_event,0; @%pred mov.u32 %event,%new_event;
+ add.u64 %address,%trc,%index; st.global.b64 [%address],%trans;
+ add.u64 %address,%suc,%index; st.global.b64 [%address],%su;
+ add.u64 %address,%sdc,%index; st.global.b64 [%address],%sd;
+ add.u32 %g,%g,1; setp.lt.u32 %pred,%g,140; @%pred bra CLEAR_POINT; add.u64 %counts4,%counts4,1; add.u32 %j,%j,1; setp.lt.u32 %pred,%j,19; @%pred bra CLEAR_LAYER;
+ st.global.u64 [%vector+0],%Gptr;
+ st.global.u64 [%vector+8],%Nptr;
+ st.global.u64 [%vector+16],%trc;
+ st.global.u64 [%vector+24],%suc;
+ st.global.u64 [%vector+32],%sdc;
+ st.global.u64 [%vector+40],%emission;
+ st.global.u64 [%vector+48],%albedo;
+ st.global.u64 [%vector+56],%uc;
+ st.global.u64 [%vector+64],%dc;
+ st.global.u64 [%childctx+8],0; st.param.u64 [cv],%vector; st.param.u64 [cc],%childctx; call.uni md2asm_gpu_radintg_worker_clear_longwave_transport_fp64,(cv,cc);
+ ld.global.u32 %error,[%childctx]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_CHILD; ld.global.u32 %raised,[%childctx+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %counts5,%counts5,1; mov.u32 %j,0;
+CLEAR_SUM_BOUNDARY:
+ mov.b64 %sum_up,0; mov.b64 %sum_down,0; mov.u32 %g,0; mul.wide.u32 %index,%j,1120;
+CLEAR_SUM_POINT:
+ add.u64 %address,%uc,%index; ld.global.b64 %value,[%address];
+ st.param.b64 [ma],%sum_up; st.param.b64 [mb],%value; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %sum_up,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %address,%dc,%index; ld.global.b64 %value,[%address];
+ st.param.b64 [ma],%sum_down; st.param.b64 [mb],%value; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %sum_down,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %index,%index,8; add.u32 %g,%g,1; setp.lt.u32 %pred,%g,140; @%pred bra CLEAR_SUM_POINT; mul.wide.u32 %offset,%j,8; cvt.u64.u32 %tmp,%col; add.u64 %offset,%offset,%tmp; shl.b64 %offset,%offset,3;
+ add.u64 %address,%pout2,%offset; st.global.b64 [%address],%sum_up;
+ add.u64 %address,%pout3,%offset; st.global.b64 [%address],%sum_down;
+ add.u32 %j,%j,1; setp.lt.u32 %pred,%j,20; @%pred bra CLEAR_SUM_BOUNDARY; mov.u32 %g,0;
+CLEAR_SURFACE_POINT:
+ mul.wide.u32 %index,%g,8; add.u64 %index,%index,21280;
+ add.u64 %address,%dc,%index; ld.global.b64 %value,[%address];
+ mul.wide.u32 %offset,%g,8; add.u64 %offset,%offset,%col_surface;
+ add.u64 %address,%pout5,%offset; st.global.b64 [%address],%value;
+ add.u32 %g,%g,1; setp.lt.u32 %pred,%g,140; @%pred bra CLEAR_SURFACE_POINT; mov.u32 %j,0;
+COPY_CLOUD_ROW:
+ mul.wide.u32 %offset,%j,8; cvt.u64.u32 %tmp,%col; add.u64 %offset,%offset,%tmp; shl.b64 %offset,%offset,3; mul.wide.u32 %private_offset,%j,8;
+ add.u64 %address,%fraction_base,%offset; ld.global.b64 %value,[%address];
+ add.u64 %address,%frow,%private_offset; st.global.b64 [%address],%value;
+ add.u64 %address,%spread_base,%offset; ld.global.b64 %value,[%address];
+ add.u64 %address,%srow,%private_offset; st.global.b64 [%address],%value;
+ setp.ge.u32 %pred,%j,18; @%pred bra ROW_NEXT;
+ add.u64 %address,%overlap_base,%offset; ld.global.b64 %value,[%address];
+ add.u64 %address,%orow,%private_offset; st.global.b64 [%address],%value;
+ROW_NEXT: add.u32 %j,%j,1; setp.lt.u32 %pred,%j,19; @%pred bra COPY_CLOUD_ROW; mul.wide.u32 %address,%col,4; add.u64 %address,%seeds,%address; ld.global.u32 %seed,[%address]; add.u32 %seed,%seed,997; mul.wide.u32 %offset,%col,8; add.u64 %totalptr,%pout6,%offset;
+ st.param.u32 [cloud0],140;
+ st.param.u32 [cloud1],19;
+ st.param.u32 [cloud2],%seed;
+ st.param.b64 [cloud3],%threshold;
+ st.param.u64 [cloud4],%frow;
+ st.param.u64 [cloud5],%orow;
+ st.param.b64 [cloud6],%decorrelation;
+ st.param.u64 [cloud7],%srow;
+ st.param.u64 [cloud8],%sampler;
+ st.param.u64 [cloud9],%scaling;
+ st.param.u64 [cloud10],%totalptr;
+ st.param.u32 [cloud11],0;
+ st.param.u64 [cloud12],%samplingscratch;
+ call.uni (cloud),md2asm_gpu_cloud_generator_values,(cloud0,cloud1,cloud2,cloud3,cloud4,cloud5,cloud6,cloud7,cloud8,cloud9,cloud10,cloud11,cloud12); ld.param.b64 %total,[cloud];
+ ld.param.u32 %raised,[cloud+8]; or.b32 %flags,%flags,%raised;
+ ld.param.u32 %new_event,[cloud+12]; setp.ne.u32 %pred,%new_event,0; @%pred mov.u32 %event,%new_event;
+ ld.param.u64 %increment,[cloud+16]; add.u64 %counts0,%counts0,%increment; ld.param.u64 %increment,[cloud+24]; add.u64 %counts1,%counts1,%increment; add.u64 %counts6,%counts6,1; setp.lt.f64 %pred,%total,%threshold; @%pred bra CLEAR_COLUMN; mov.u32 %H,20; mov.u32 %j,0;
+CLOUD_LAYER:
+ mul.wide.u32 %private_offset,%j,8;
+ add.u64 %address,%frow,%private_offset; ld.global.b64 %value,[%address];
+ mul.wide.u32 %address,%j,4; add.u64 %address,%clearflags,%address; setp.lt.f64 %pred,%value,%threshold; @%pred bra COPY_CLEAR_LAYER; st.global.u32 [%address],0; add.u32 %rt,%j,1; min.u32 %H,%H,%rt; mov.u32 %g,0;
+MIXED_POINT:
+ mul.wide.u32 %index,%j,140; cvt.u64.u32 %tmp,%g; add.u64 %index,%index,%tmp; shl.b64 %index,%index,3; add.u64 %raw_offset,%col_layer,%index; add.u64 %face_offset,%col_face,%index; mul.wide.u32 %address,%g,4; add.u64 %address,%band,%address; ld.global.u32 %bandindex,[%address]; sub.u32 %bandindex,%bandindex,1; mul.wide.u32 %band_offset,%col,304; mul.wide.u32 %tmp,%j,16; add.u64 %band_offset,%band_offset,%tmp; cvt.u64.u32 %tmp,%bandindex; add.u64 %band_offset,%band_offset,%tmp; shl.b64 %band_offset,%band_offset,3;
+ add.u64 %address,%scaling,%index; ld.global.b64 %value,[%address];
+ add.u64 %address,%arg9,%band_offset; ld.global.b64 %cloud_depth,[%address];
+ st.param.b64 [ma],%value; st.param.b64 [mb],%cloud_depth; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %cloud_depth,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %address,%arg6,%raw_offset; ld.global.b64 %tau,[%address];
+ st.param.b64 [ma],%tau; st.param.b64 [mb],%cloud_depth; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %tau,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ mov.b64 %omega,0; mov.b64 %asymmetry,0; setp.le.f64 %pred,%tau,0d0000000000000000; @%pred bra SCATTERING_READY;
+ add.u64 %address,%arg10,%band_offset; ld.global.b64 %band_ssa,[%address];
+ st.param.b64 [ma],%band_ssa; st.param.b64 [mb],%cloud_depth; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %omega,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%omega; st.param.b64 [mb],%tau; call.uni (math),md2asm_gpu_div_status,(ma,mb); ld.param.b64 %omega,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+SCATTERING_READY:
+ st.param.b64 [ma],%omega; st.param.b64 [mb],%tau; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %denominator,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ setp.le.f64 %pred,%denominator,0d0000000000000000; @%pred bra ASYMMETRY_READY;
+ add.u64 %address,%arg11,%band_offset; ld.global.b64 %band_asymmetry,[%address];
+ st.param.b64 [ma],%band_asymmetry; st.param.b64 [mb],%band_ssa; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %asymmetry,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%asymmetry; st.param.b64 [mb],%cloud_depth; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %asymmetry,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%asymmetry; st.param.b64 [mb],%denominator; call.uni (math),md2asm_gpu_div_status,(ma,mb); ld.param.b64 %asymmetry,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ASYMMETRY_READY:
+ st.param.b64 [x0],%omega; st.param.b64 [x1],%asymmetry; call.uni (gammas),md2asm_gpu_two_stream_gammas_lw_values,(x0,x1); ld.param.b64 %a,[gammas]; ld.param.b64 %b,[gammas+8];
+ ld.param.u32 %raised,[gammas+24]; or.b32 %flags,%flags,%raised;
+ add.u64 %address,%arg12,%face_offset; ld.global.b64 %top,[%address];
+ add.u64 %face_offset,%face_offset,1120;
+ add.u64 %address,%arg12,%face_offset; ld.global.b64 %bottom,[%address];
+ st.param.b64 [x0],%tau; st.param.b64 [x1],%a; st.param.b64 [x2],%b; st.param.b64 [x3],%top; st.param.b64 [x4],%bottom; call.uni (scattering),md2asm_gpu_scattering_longwave_layer_values,(x0,x1,x2,x3,x4); ld.param.b64 %reflection,[scattering]; ld.param.b64 %trans,[scattering+8]; ld.param.b64 %su,[scattering+16]; ld.param.b64 %sd,[scattering+24];
+ ld.param.u32 %raised,[scattering+32]; or.b32 %flags,%flags,%raised;
+ ld.param.u32 %new_event,[scattering+36]; setp.ne.u32 %pred,%new_event,0; @%pred mov.u32 %event,%new_event;
+ add.u64 %address,%rcl,%index; st.global.b64 [%address],%reflection;
+ add.u64 %address,%tcl,%index; st.global.b64 [%address],%trans;
+ add.u64 %address,%sucl,%index; st.global.b64 [%address],%su;
+ add.u64 %address,%sdcl,%index; st.global.b64 [%address],%sd;
+ setp.le.f64 %pred,%tau,0d3f50624dd2f1a9fc; @%pred bra NO_LAYER_EXP; add.u64 %counts2,%counts2,1; add.u64 %counts3,%counts3,1;
+NO_LAYER_EXP: add.u32 %g,%g,1; setp.lt.u32 %pred,%g,140; @%pred bra MIXED_POINT; add.u64 %counts7,%counts7,1; add.u64 %counts8,%counts8,1; bra NEXT_CLOUD_LAYER;
+COPY_CLEAR_LAYER: st.global.u32 [%address],1; mov.u32 %g,0; mul.wide.u32 %index,%j,1120;
+COPY_CLEAR_POINT:
+ add.u64 %address,%rcl,%index; st.global.b64 [%address],0;
+ add.u64 %address,%trc,%index; ld.global.b64 %value,[%address];
+ add.u64 %address,%tcl,%index; st.global.b64 [%address],%value;
+ add.u64 %address,%suc,%index; ld.global.b64 %value,[%address];
+ add.u64 %address,%sucl,%index; st.global.b64 [%address],%value;
+ add.u64 %address,%sdc,%index; ld.global.b64 %value,[%address];
+ add.u64 %address,%sdcl,%index; st.global.b64 [%address],%value;
+ add.u64 %index,%index,8; add.u32 %g,%g,1; setp.lt.u32 %pred,%g,140; @%pred bra COPY_CLEAR_POINT;
+NEXT_CLOUD_LAYER: add.u32 %j,%j,1; setp.lt.u32 %pred,%j,19; @%pred bra CLOUD_LAYER; st.global.u32 [%Hptr],%H;
+ st.global.u64 [%vector+0],%Gptr;
+ st.global.u64 [%vector+8],%Nptr;
+ st.global.u64 [%vector+16],%rcl;
+ st.global.u64 [%vector+24],%tcl;
+ st.global.u64 [%vector+32],%sucl;
+ st.global.u64 [%vector+40],%sdcl;
+ st.global.u64 [%vector+48],%emission;
+ st.global.u64 [%vector+56],%albedo;
+ st.global.u64 [%vector+64],%clearflags;
+ st.global.u64 [%vector+72],%Hptr;
+ st.global.u64 [%vector+80],%dc;
+ st.global.u64 [%vector+88],%ucl;
+ st.global.u64 [%vector+96],%dcl;
+ mov.u32 %g,0;
+FAST_COLUMN:
+ st.param.u64 [cv],%vector; st.param.u64 [fs],%fastscratch; st.param.u32 [G],140; st.param.u32 [N],19; st.param.u32 [HH],%H; st.param.u32 [GG],%g; call.uni (rr),md2asm_gpu_fast_longwave_column_values,(cv,fs,G,N,HH,GG); ld.param.u32 %raised,[rr]; or.b32 %flags,%flags,%raised; add.u32 %g,%g,1; setp.lt.u32 %pred,%g,140; @%pred bra FAST_COLUMN; add.u64 %counts9,%counts9,1;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%total; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %one_minus,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ mov.u32 %j,0;
+CLOUD_SUM_BOUNDARY:
+ mov.b64 %sum_up,0; mov.b64 %sum_down,0; mov.u32 %g,0; mul.wide.u32 %index,%j,1120;
+CLOUD_SUM_POINT:
+ add.u64 %address,%ucl,%index; ld.global.b64 %value,[%address];
+ st.param.b64 [ma],%sum_up; st.param.b64 [mb],%value; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %sum_up,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %address,%dcl,%index; ld.global.b64 %value,[%address];
+ st.param.b64 [ma],%sum_down; st.param.b64 [mb],%value; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %sum_down,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %index,%index,8; add.u32 %g,%g,1; setp.lt.u32 %pred,%g,140; @%pred bra CLOUD_SUM_POINT; mul.wide.u32 %offset,%j,8; cvt.u64.u32 %tmp,%col; add.u64 %offset,%offset,%tmp; shl.b64 %offset,%offset,3;
+ add.u64 %address,%pout2,%offset; ld.global.b64 %value,[%address];
+ st.param.b64 [ma],%total; st.param.b64 [mb],%sum_up; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %left,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%one_minus; st.param.b64 [mb],%value; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %right,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%left; st.param.b64 [mb],%right; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %value,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %address,%pout0,%offset; st.global.b64 [%address],%value;
+ add.u64 %address,%pout3,%offset; ld.global.b64 %value,[%address];
+ st.param.b64 [ma],%total; st.param.b64 [mb],%sum_down; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %left,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%one_minus; st.param.b64 [mb],%value; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %right,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%left; st.param.b64 [mb],%right; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %value,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %address,%pout1,%offset; st.global.b64 [%address],%value;
+ add.u32 %j,%j,1; setp.lt.u32 %pred,%j,20; @%pred bra CLOUD_SUM_BOUNDARY; mov.u32 %g,0;
+CLOUD_SURFACE_POINT:
+ mul.wide.u32 %index,%g,8; add.u64 %index,%index,21280;
+ add.u64 %address,%dcl,%index; ld.global.b64 %value,[%address];
+ st.param.b64 [ma],%total; st.param.b64 [mb],%value; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %left,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ mul.wide.u32 %offset,%g,8; add.u64 %offset,%offset,%col_surface;
+ add.u64 %address,%pout5,%offset; ld.global.b64 %value,[%address];
+ st.param.b64 [ma],%one_minus; st.param.b64 [mb],%value; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %right,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%left; st.param.b64 [mb],%right; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %value,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %address,%pout4,%offset; st.global.b64 [%address],%value;
+ add.u32 %g,%g,1; setp.lt.u32 %pred,%g,140; @%pred bra CLOUD_SURFACE_POINT; add.u32 %rt,%col,1; st.global.u32 [%colptr],%rt; add.u64 %base,%ucl,21280;
+ st.global.u64 [%vector+0],%Gptr;
+ st.global.u64 [%vector+8],%Nptr;
+ st.global.u64 [%vector+16],%colptr;
+ st.global.u64 [%vector+24],%tcl;
+ st.global.u64 [%vector+32],%base;
+ st.global.u64 [%vector+40],%derivdesc;
+ st.global.u64 [%childctx+8],0; st.param.u64 [cv],%vector; st.param.u64 [cc],%childctx; st.param.u32 [mode],0; call.uni md2asm_gpu_radintg_worker_longwave_sensitivity_fp64,(cv,cc,mode);
+ ld.global.u32 %error,[%childctx]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_CHILD; ld.global.u32 %raised,[%childctx+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %counts10,%counts10,1;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%threshold; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %complement,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ setp.ge.f64 %pred,%total,%complement; @%pred bra NEXT_PHYSICAL_COLUMN; st.global.b64 [%weightptr],%one_minus; add.u64 %base,%uc,21280;
+ st.global.u64 [%vector+0],%Gptr;
+ st.global.u64 [%vector+8],%Nptr;
+ st.global.u64 [%vector+16],%colptr;
+ st.global.u64 [%vector+24],%trc;
+ st.global.u64 [%vector+32],%base;
+ st.global.u64 [%vector+40],%weightptr;
+ st.global.u64 [%vector+48],%derivdesc;
+ st.global.u64 [%childctx+8],0; st.param.u64 [cv],%vector; st.param.u64 [cc],%childctx; st.param.u32 [mode],1; call.uni md2asm_gpu_radintg_worker_longwave_sensitivity_fp64,(cv,cc,mode);
+ ld.global.u32 %error,[%childctx]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_CHILD; ld.global.u32 %raised,[%childctx+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %counts11,%counts11,1; bra NEXT_PHYSICAL_COLUMN;
+CLEAR_COLUMN: mov.u32 %j,0;
+COPY_CLEAR_PROFILE:
+ mul.wide.u32 %offset,%j,8; cvt.u64.u32 %tmp,%col; add.u64 %offset,%offset,%tmp; shl.b64 %offset,%offset,3;
+ add.u64 %address,%pout2,%offset; ld.global.b64 %value,[%address];
+ add.u64 %address,%pout0,%offset; st.global.b64 [%address],%value;
+ add.u64 %address,%pout3,%offset; ld.global.b64 %value,[%address];
+ add.u64 %address,%pout1,%offset; st.global.b64 [%address],%value;
+ add.u32 %j,%j,1; setp.lt.u32 %pred,%j,20; @%pred bra COPY_CLEAR_PROFILE; mov.u32 %g,0;
+COPY_CLEAR_SURFACE:
+ mul.wide.u32 %offset,%g,8; add.u64 %offset,%offset,%col_surface;
+ add.u64 %address,%pout5,%offset; ld.global.b64 %value,[%address];
+ add.u64 %address,%pout4,%offset; st.global.b64 [%address],%value;
+ add.u32 %g,%g,1; setp.lt.u32 %pred,%g,140; @%pred bra COPY_CLEAR_SURFACE; add.u32 %rt,%col,1; st.global.u32 [%colptr],%rt; add.u64 %base,%uc,21280;
+ st.global.u64 [%vector+0],%Gptr;
+ st.global.u64 [%vector+8],%Nptr;
+ st.global.u64 [%vector+16],%colptr;
+ st.global.u64 [%vector+24],%trc;
+ st.global.u64 [%vector+32],%base;
+ st.global.u64 [%vector+40],%derivdesc;
+ st.global.u64 [%childctx+8],0; st.param.u64 [cv],%vector; st.param.u64 [cc],%childctx; st.param.u32 [mode],0; call.uni md2asm_gpu_radintg_worker_longwave_sensitivity_fp64,(cv,cc,mode);
+ ld.global.u32 %error,[%childctx]; setp.ne.u32 %pred,%error,0; @%pred bra REFUSE_CHILD; ld.global.u32 %raised,[%childctx+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %counts10,%counts10,1;
+NEXT_PHYSICAL_COLUMN: add.u32 %col,%col,1; setp.lt.u32 %pred,%col,%last; @%pred bra PHYSICAL_COLUMN;
+ mov.u64 %offset,0;
+COMMIT_OUTPUT_0:
+ setp.ge.u64 %pred,%offset,1280; @%pred bra COMMIT_OUTPUT_0_DONE; add.u64 %address,%pout0,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%out0,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COMMIT_OUTPUT_0;
+COMMIT_OUTPUT_0_DONE:
+ mov.u64 %offset,0;
+COMMIT_OUTPUT_1:
+ setp.ge.u64 %pred,%offset,1280; @%pred bra COMMIT_OUTPUT_1_DONE; add.u64 %address,%pout1,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%out1,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COMMIT_OUTPUT_1;
+COMMIT_OUTPUT_1_DONE:
+ mov.u64 %offset,0;
+COMMIT_OUTPUT_2:
+ setp.ge.u64 %pred,%offset,1280; @%pred bra COMMIT_OUTPUT_2_DONE; add.u64 %address,%pout2,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%out2,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COMMIT_OUTPUT_2;
+COMMIT_OUTPUT_2_DONE:
+ mov.u64 %offset,0;
+COMMIT_OUTPUT_3:
+ setp.ge.u64 %pred,%offset,1280; @%pred bra COMMIT_OUTPUT_3_DONE; add.u64 %address,%pout3,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%out3,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COMMIT_OUTPUT_3;
+COMMIT_OUTPUT_3_DONE:
+ mov.u64 %offset,0;
+COMMIT_OUTPUT_4:
+ setp.ge.u64 %pred,%offset,8960; @%pred bra COMMIT_OUTPUT_4_DONE; add.u64 %address,%pout4,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%out4,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COMMIT_OUTPUT_4;
+COMMIT_OUTPUT_4_DONE:
+ mov.u64 %offset,0;
+COMMIT_OUTPUT_5:
+ setp.ge.u64 %pred,%offset,8960; @%pred bra COMMIT_OUTPUT_5_DONE; add.u64 %address,%pout5,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%out5,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COMMIT_OUTPUT_5;
+COMMIT_OUTPUT_5_DONE:
+ mov.u64 %offset,0;
+COMMIT_OUTPUT_6:
+ setp.ge.u64 %pred,%offset,64; @%pred bra COMMIT_OUTPUT_6_DONE; add.u64 %address,%pout6,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%out6,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COMMIT_OUTPUT_6;
+COMMIT_OUTPUT_6_DONE:
+ mov.u64 %offset,0;
+COMMIT_OUTPUT_7:
+ setp.ge.u64 %pred,%offset,1280; @%pred bra COMMIT_OUTPUT_7_DONE; add.u64 %address,%pout7,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%out7,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COMMIT_OUTPUT_7;
+COMMIT_OUTPUT_7_DONE:
+ atom.global.or.b32 %raised,[%ctx+8],%flags; setp.eq.u32 %pred,%event,0; @%pred bra FINAL_EVENT; cvt.u64.u32 %event64,%event; st.global.u64 [%ctx+16],%event64;
+FINAL_EVENT: setp.eq.u32 %pred,%enabled,0; @%pred ret;
+ atom.global.add.u64 %old,[%counter0],%counts0;
+ atom.global.add.u64 %old,[%counter1],%counts1;
+ atom.global.add.u64 %old,[%counter2],%counts2;
+ atom.global.add.u64 %old,[%counter3],%counts3;
+ atom.global.add.u64 %old,[%counter4],%counts4;
+ atom.global.add.u64 %old,[%counter5],%counts5;
+ atom.global.add.u64 %old,[%counter6],%counts6;
+ atom.global.add.u64 %old,[%counter7],%counts7;
+ atom.global.add.u64 %old,[%counter8],%counts8;
+ atom.global.add.u64 %old,[%counter9],%counts9;
+ atom.global.add.u64 %old,[%counter10],%counts10;
+ atom.global.add.u64 %old,[%counter11],%counts11;
+ ret;
+REFUSE_CHILD: mov.u32 %error,454; bra REFUSE;
+REFUSE_META: mov.u32 %error,452;
+REFUSE: st.global.u32 [%ctx],%error; ret;
+}

@@ -1,0 +1,698 @@
+// Contract: skills/md2asm-gpu/references/openifs/radiation/radiation_grid_parent.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[32]) md2asm_gpu_asin_unit_interval(.param .b64 x);
+.extern .func (.param .align 8 .b8 result[8]) md2asm_gpu_radiation_nearest_integer(.param .b64 x);
+.extern .func (.param .align 8 .b8 result[32]) md2asm_gpu_normal_saturation_values(.param .b64 T,.param .b64 P,.param .u64 record);
+.extern .func (.param .align 8 .b8 result[40]) md2asm_gpu_liquid_radius_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .align 8 .b8 result[40]) md2asm_gpu_ice_radius_values(.param .u64 vector,.param .u64 record,.param .u64 work);
+.extern .func (.param .align 8 .b8 result[40]) md2asm_gpu_cloud_decorrelation_values(.param .u64 vector,.param .u64 rpi);
+.extern .func (.param .align 8 .b8 result[40]) md2asm_gpu_set_overlap_values(.param .u64 vector,.param .u64 fresh);
+.extern .func (.param .align 8 .b8 result[40]) md2asm_gpu_layer_mass_values(.param .u64 vector);
+.extern .func (.param .align 8 .b8 result[40]) md2asm_gpu_set_units_gas_values(.param .u64 vector,.param .u64 molar);
+.extern .func md2asm_gpu_radintg_worker_radiation_column_fp64(.param .u64 vector,.param .u64 context);
+.extern .global .align 8 .b8 md2asm_gpu_field_object_template[6272];
+.func radintg_worker_field_copy_active(.param .u64 destination,.param .u64 source,.param .u32 rows,.param .u32 last)
+{
+.reg .u64 %d,%s,%offset,%dp,%sp,%word;.reg .u32 %r,%c,%rows,%last;.reg .pred %p;
+ld.param.u64 %d,[destination];ld.param.u64 %s,[source];ld.param.u32 %rows,[rows];ld.param.u32 %last,[last];mov.u32 %r,0;
+ROW:mov.u32 %c,0;CELL:setp.ge.u32 %p,%c,%last;@%p bra NEXT_ROW;mul.wide.u32 %offset,%c,8;add.u64 %dp,%d,%offset;add.u64 %sp,%s,%offset;ld.global.u64 %word,[%sp];st.global.u64 [%dp],%word;add.u32 %c,%c,1;bra CELL;
+NEXT_ROW:add.u64 %d,%d,64;add.u64 %s,%s,64;add.u32 %r,%r,1;setp.lt.u32 %p,%r,%rows;@%p bra ROW;ret;
+}
+.visible .func (.param .align 8 .b8 result[32]) md2asm_gpu_radintg_worker_radiation_field_values(.param .u64 original_vector,.param .u64 specific_record,.param .u64 private_scratch)
+{
+.reg .u64 %args,%record,%scratch,%model,%state,%v<59>,%childvec,%childctx,%innervec,%satrec,%physics,%molar,%stagevec,%countervec,%innerrecord,%arena,%rpi,%pointer,%src,%dst,%q,%q2,%offset,%index,%cell,%i,%j,%plane,%copydst,%copysrc,%copyi,%copyaddr,%copyword,%exp,%fast,%wide,%newexp,%newfast,%newwide,%event,%sevent,%old,%ordinal,%increment,%word,%word2,%minimumwork;
+.reg .u32 %last,%k,%c,%band,%time,%integer,%flags,%raised,%sflags,%serror,%error,%new_event;
+.reg .b64 %a,%b,%d,%temperature,%pressure,%value,%ratio,%mass,%coefficient,%uv,%par,%clearpar,%weight,%sum,%skin,%rsigma;
+.reg .pred %p;
+.param .u64 p0,p1,p2;.param .u32 rows,activecols;.param .b64 ma,mb,xa,xb;
+.param .align 8 .b8 math[16],child40[40],scalar32[32],integer8[8];
+ld.param.u64 %args,[original_vector];ld.param.u64 %record,[specific_record];ld.param.u64 %scratch,[private_scratch];mov.u64 %state,%scratch;mov.u32 %flags,0;mov.u32 %error,0;mov.u64 %event,0;mov.u64 %exp,0;mov.u64 %fast,0;mov.u64 %wide,0;
+ld.global.u64 %v0,[%args+0];st.global.u64 [%scratch+280160],%v0;
+ld.global.u64 %v1,[%args+8];st.global.u64 [%scratch+280168],%v1;
+ld.global.u64 %v2,[%args+16];st.global.u64 [%scratch+280176],%v2;
+ld.global.u64 %v3,[%args+24];st.global.u64 [%scratch+280184],%v3;
+ld.global.u64 %v4,[%args+32];st.global.u64 [%scratch+280192],%v4;
+ld.global.u64 %v5,[%args+40];st.global.u64 [%scratch+280200],%v5;
+ld.global.u64 %v6,[%args+48];st.global.u64 [%scratch+280208],%v6;
+ld.global.u64 %v7,[%args+56];st.global.u64 [%scratch+280216],%v7;
+ld.global.u64 %v8,[%args+64];st.global.u64 [%scratch+280224],%v8;
+ld.global.u64 %v9,[%args+72];st.global.u64 [%scratch+280232],%v9;
+ld.global.u64 %v10,[%args+80];st.global.u64 [%scratch+280240],%v10;
+ld.global.u64 %v11,[%args+88];st.global.u64 [%scratch+280248],%v11;
+ld.global.u64 %v12,[%args+96];st.global.u64 [%scratch+280256],%v12;
+ld.global.u64 %v13,[%args+104];st.global.u64 [%scratch+280264],%v13;
+ld.global.u64 %v14,[%args+112];st.global.u64 [%scratch+280272],%v14;
+ld.global.u64 %v15,[%args+120];st.global.u64 [%scratch+280280],%v15;
+ld.global.u64 %v16,[%args+128];st.global.u64 [%scratch+280288],%v16;
+ld.global.u64 %v17,[%args+136];st.global.u64 [%scratch+280296],%v17;
+ld.global.u64 %v18,[%args+144];st.global.u64 [%scratch+280304],%v18;
+ld.global.u64 %v19,[%args+152];st.global.u64 [%scratch+280312],%v19;
+ld.global.u64 %v20,[%args+160];st.global.u64 [%scratch+280320],%v20;
+ld.global.u64 %v21,[%args+168];st.global.u64 [%scratch+280328],%v21;
+ld.global.u64 %v22,[%args+176];st.global.u64 [%scratch+280336],%v22;
+ld.global.u64 %v23,[%args+184];st.global.u64 [%scratch+280344],%v23;
+ld.global.u64 %v24,[%args+192];st.global.u64 [%scratch+280352],%v24;
+ld.global.u64 %v25,[%args+200];st.global.u64 [%scratch+280360],%v25;
+ld.global.u64 %v26,[%args+208];st.global.u64 [%scratch+280368],%v26;
+ld.global.u64 %v27,[%args+216];st.global.u64 [%scratch+280376],%v27;
+ld.global.u64 %v28,[%args+224];st.global.u64 [%scratch+280384],%v28;
+ld.global.u64 %v29,[%args+232];st.global.u64 [%scratch+280392],%v29;
+ld.global.u64 %v30,[%args+240];st.global.u64 [%scratch+280400],%v30;
+ld.global.u64 %v31,[%args+248];st.global.u64 [%scratch+280408],%v31;
+ld.global.u64 %v32,[%args+256];st.global.u64 [%scratch+280416],%v32;
+ld.global.u64 %v33,[%args+264];st.global.u64 [%scratch+280424],%v33;
+ld.global.u64 %v34,[%args+272];st.global.u64 [%scratch+280432],%v34;
+ld.global.u64 %v35,[%args+280];st.global.u64 [%scratch+280440],%v35;
+ld.global.u64 %v36,[%args+288];st.global.u64 [%scratch+280448],%v36;
+ld.global.u64 %v37,[%args+296];st.global.u64 [%scratch+280456],%v37;
+ld.global.u64 %v38,[%args+304];st.global.u64 [%scratch+280464],%v38;
+ld.global.u64 %v39,[%args+312];st.global.u64 [%scratch+280472],%v39;
+ld.global.u64 %v40,[%args+320];st.global.u64 [%scratch+280480],%v40;
+ld.global.u64 %v41,[%args+328];st.global.u64 [%scratch+280488],%v41;
+ld.global.u64 %v42,[%args+336];st.global.u64 [%scratch+280496],%v42;
+ld.global.u64 %v43,[%args+344];st.global.u64 [%scratch+280504],%v43;
+ld.global.u64 %v44,[%args+352];st.global.u64 [%scratch+280512],%v44;
+ld.global.u64 %v45,[%args+360];st.global.u64 [%scratch+280520],%v45;
+ld.global.u64 %v46,[%args+368];st.global.u64 [%scratch+280528],%v46;
+ld.global.u64 %v47,[%args+376];st.global.u64 [%scratch+280536],%v47;
+ld.global.u64 %v48,[%args+384];st.global.u64 [%scratch+280544],%v48;
+ld.global.u64 %v49,[%args+392];st.global.u64 [%scratch+280552],%v49;
+ld.global.u64 %v50,[%args+400];st.global.u64 [%scratch+280560],%v50;
+ld.global.u64 %v51,[%args+408];st.global.u64 [%scratch+280568],%v51;
+ld.global.u64 %v52,[%args+416];st.global.u64 [%scratch+280576],%v52;
+ld.global.u64 %v53,[%args+424];st.global.u64 [%scratch+280584],%v53;
+ld.global.u64 %v54,[%args+432];st.global.u64 [%scratch+280592],%v54;
+ld.global.u64 %v55,[%args+440];st.global.u64 [%scratch+280600],%v55;
+ld.global.u64 %v56,[%args+448];st.global.u64 [%scratch+280608],%v56;
+ld.global.u64 %v57,[%args+456];st.global.u64 [%scratch+280616],%v57;
+ld.global.u64 %v58,[%args+464];st.global.u64 [%scratch+280624],%v58;
+mov.u64 %model,%v0;ld.global.u32 %last,[%v2];ld.global.u64 %innerrecord,[%record];ld.global.u64 %satrec,[%record+16];ld.global.u64 %physics,[%record+32];ld.global.u64 %molar,[%record+48];ld.global.u64 %countervec,[%record+88];ld.global.u64 %stagevec,[%record+104];add.u64 %childvec,%scratch,280672;add.u64 %childctx,%scratch,280864;add.u64 %innervec,%scratch,281248;add.u64 %arena,%scratch,296288;add.u64 %minimumwork,%scratch,281160;mov.u64 %copyi,0;
+ZERO_STATE:setp.ge.u64 %p,%copyi,140080;@%p bra STATE_ZEROED;add.u64 %copyaddr,%state,%copyi;st.global.u64 [%copyaddr],0;add.u64 %copyi,%copyi,8;bra ZERO_STATE;
+STATE_ZEROED:add.u64 %dst,%state,20048;mov.u64 %src,md2asm_gpu_field_object_template;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_1:setp.ge.u64 %p,%copyi,6272;@%p bra COPIED_1;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_1;COPIED_1:
+mov.u64 %dst,%state;add.u64 %src,%model,4100096;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_2:setp.ge.u64 %p,%copyi,20040;@%p bra COPIED_2;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_2;COPIED_2:
+add.u64 %q,%state,26320;st.global.u64 [%state+20048],%q;
+add.u64 %q,%state,26384;st.global.u64 [%state+20112],%q;
+add.u64 %q,%state,26448;st.global.u64 [%state+20176],%q;
+add.u64 %q,%state,26832;st.global.u64 [%state+20264],%q;
+add.u64 %q,%state,27216;st.global.u64 [%state+20352],%q;
+add.u64 %q,%state,27344;st.global.u64 [%state+20600],%q;
+add.u64 %q,%state,27376;st.global.u64 [%state+20672],%q;
+add.u64 %q,%state,28656;st.global.u64 [%state+20760],%q;
+add.u64 %q,%state,29936;st.global.u64 [%state+20848],%q;
+add.u64 %q,%state,31152;st.global.u64 [%state+21088],%q;
+add.u64 %q,%state,45744;st.global.u64 [%state+21360],%q;
+add.u64 %q,%state,46960;st.global.u64 [%state+21448],%q;
+add.u64 %q,%state,48176;st.global.u64 [%state+21536],%q;
+add.u64 %q,%state,49392;st.global.u64 [%state+21624],%q;
+add.u64 %q,%state,50608;st.global.u64 [%state+21712],%q;
+add.u64 %q,%state,51824;st.global.u64 [%state+21800],%q;
+add.u64 %q,%state,53040;st.global.u64 [%state+21888],%q;
+add.u64 %q,%state,54256;st.global.u64 [%state+22064],%q;
+add.u64 %q,%state,55408;st.global.u64 [%state+22160],%q;
+add.u64 %q,%state,70000;st.global.u64 [%state+22960],%q;
+add.u64 %q,%state,71280;st.global.u64 [%state+23048],%q;
+add.u64 %q,%state,72560;st.global.u64 [%state+23136],%q;
+add.u64 %q,%state,73840;st.global.u64 [%state+23224],%q;
+add.u64 %q,%state,75120;st.global.u64 [%state+23312],%q;
+add.u64 %q,%state,76400;st.global.u64 [%state+23400],%q;
+add.u64 %q,%state,77680;st.global.u64 [%state+23488],%q;
+add.u64 %q,%state,78960;st.global.u64 [%state+23576],%q;
+add.u64 %q,%state,80240;st.global.u64 [%state+23664],%q;
+add.u64 %q,%state,81520;st.global.u64 [%state+23752],%q;
+add.u64 %q,%state,82800;st.global.u64 [%state+24960],%q;
+add.u64 %q,%state,91760;st.global.u64 [%state+25048],%q;
+add.u64 %q,%state,100720;st.global.u64 [%state+25136],%q;
+add.u64 %q,%state,107888;st.global.u64 [%state+25224],%q;
+add.u64 %q,%state,115056;st.global.u64 [%state+25312],%q;
+add.u64 %q,%state,122224;st.global.u64 [%state+25400],%q;
+add.u64 %q,%state,129392;st.global.u64 [%state+25488],%q;
+add.u64 %q,%state,130288;st.global.u64 [%state+25576],%q;
+add.u64 %q,%state,131184;st.global.u64 [%state+25664],%q;
+add.u64 %q,%state,132080;st.global.u64 [%state+25752],%q;
+add.u64 %q,%state,132976;st.global.u64 [%state+25928],%q;
+add.u64 %q,%state,133360;st.global.u64 [%state+26016],%q;
+add.u64 %q,%state,133744;st.global.u64 [%state+26104],%q;
+add.u64 %q,%state,133808;st.global.u64 [%state+26168],%q;
+add.u64 %q,%state,133872;st.global.u64 [%state+26232],%q;
+add.u64 %q,%state,20048;st.global.u64 [%scratch+281024],%q;st.global.u64 [%scratch+281032],0;
+add.u64 %q,%state,20672;st.global.u64 [%scratch+281040],%q;st.global.u64 [%scratch+281048],0;
+add.u64 %q,%state,20944;st.global.u64 [%scratch+281056],%q;st.global.u64 [%scratch+281064],0;
+add.u64 %q,%state,21360;st.global.u64 [%scratch+281072],%q;st.global.u64 [%scratch+281080],0;
+add.u64 %q,%state,22160;st.global.u64 [%scratch+281088],%q;st.global.u64 [%scratch+281096],0;
+add.u64 %q,%state,22960;st.global.u64 [%scratch+281104],%q;st.global.u64 [%scratch+281112],0;
+st.global.u32 [%scratch+281120],0;st.global.u32 [%scratch+281124],1;st.global.u32 [%scratch+281128],2;
+add.u64 %dst,%scratch,288352;mov.u64 %src,%v38;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_3:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_3;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_3;COPIED_3:
+mov.u64 %v38,%dst;
+add.u64 %dst,%scratch,289632;mov.u64 %src,%v39;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_4:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_4;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_4;COPIED_4:
+mov.u64 %v39,%dst;
+add.u64 %dst,%scratch,290912;mov.u64 %src,%v40;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_5:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_5;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_5;COPIED_5:
+mov.u64 %v40,%dst;
+add.u64 %dst,%scratch,292192;mov.u64 %src,%v41;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_6:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_6;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_6;COPIED_6:
+mov.u64 %v41,%dst;
+add.u64 %dst,%scratch,293472;mov.u64 %src,%v42;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_7:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_7;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_7;COPIED_7:
+mov.u64 %v42,%dst;
+add.u64 %dst,%scratch,293536;mov.u64 %src,%v43;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_8:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_8;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_8;COPIED_8:
+mov.u64 %v43,%dst;
+add.u64 %dst,%scratch,293600;mov.u64 %src,%v44;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_9:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_9;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_9;COPIED_9:
+mov.u64 %v44,%dst;
+add.u64 %dst,%scratch,293664;mov.u64 %src,%v45;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_10:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_10;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_10;COPIED_10:
+mov.u64 %v45,%dst;
+add.u64 %dst,%scratch,293728;mov.u64 %src,%v46;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_11:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_11;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_11;COPIED_11:
+mov.u64 %v46,%dst;
+add.u64 %dst,%scratch,293792;mov.u64 %src,%v47;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_12:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_12;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_12;COPIED_12:
+mov.u64 %v47,%dst;
+add.u64 %dst,%scratch,293856;mov.u64 %src,%v48;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_13:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_13;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_13;COPIED_13:
+mov.u64 %v48,%dst;
+add.u64 %dst,%scratch,293920;mov.u64 %src,%v49;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_14:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_14;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_14;COPIED_14:
+mov.u64 %v49,%dst;
+add.u64 %dst,%scratch,293984;mov.u64 %src,%v50;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_15:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_15;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_15;COPIED_15:
+mov.u64 %v50,%dst;
+add.u64 %dst,%scratch,294048;mov.u64 %src,%v51;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_16:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_16;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_16;COPIED_16:
+mov.u64 %v51,%dst;
+add.u64 %dst,%scratch,294112;mov.u64 %src,%v52;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_17:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_17;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_17;COPIED_17:
+mov.u64 %v52,%dst;
+add.u64 %dst,%scratch,294176;mov.u64 %src,%v53;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_18:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_18;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_18;COPIED_18:
+mov.u64 %v53,%dst;
+add.u64 %dst,%scratch,294240;mov.u64 %src,%v54;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_19:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_19;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_19;COPIED_19:
+mov.u64 %v54,%dst;
+add.u64 %dst,%scratch,295520;mov.u64 %src,%v55;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_20:setp.ge.u64 %p,%copyi,384;@%p bra COPIED_20;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_20;COPIED_20:
+mov.u64 %v55,%dst;
+add.u64 %dst,%scratch,295904;mov.u64 %src,%v56;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_21:setp.ge.u64 %p,%copyi,384;@%p bra COPIED_21;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_21;COPIED_21:
+mov.u64 %v56,%dst;
+add.u64 %dst,%state,27376;
+mov.u64 %src,%v19;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],20;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+add.u64 %dst,%state,28656;
+mov.u64 %src,%v20;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],20;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+mov.u32 %c,0;
+BOTTOM_T:mul.wide.u32 %offset,%c,8;add.u64 %index,%offset,1216;add.u64 %pointer,%v20,%index;ld.global.b64 %a,[%pointer];sub.u64 %index,%index,64;add.u64 %pointer,%v20,%index;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],0x3fe0000000000000;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v18,%index;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%b;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %index,%offset,29872;add.u64 %pointer,%state,%index;st.global.b64 [%pointer],%a;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra BOTTOM_T;mov.u32 %k,0;
+SATUR_LEVEL:mov.u32 %c,0;
+SATUR_CELL:mul.wide.u32 %index,%k,8;cvt.u64.u32 %offset,%c;add.u64 %cell,%index,%offset;shl.b64 %offset,%cell,3;add.u64 %pointer,%v18,%offset;ld.global.b64 %temperature,[%pointer];add.u64 %pointer,%v17,%offset;ld.global.b64 %pressure,[%pointer];st.param.b64 [xa],%temperature;st.param.b64 [xb],%pressure;st.param.u64 [p0],%satrec;call.uni (scalar32),md2asm_gpu_normal_saturation_values,(xa,xb,p0);ld.param.b64 %value,[scalar32];ld.param.u32 %sflags,[scalar32+8];ld.param.u32 %new_event,[scalar32+12];ld.param.u64 %newexp,[scalar32+16];ld.param.u64 %word,[scalar32+24];or.b32 %flags,%flags,%sflags;add.u64 %exp,%exp,%newexp;setp.eq.u32 %p,%new_event,0;@%p bra SATUR_NO_EVENT;shl.b64 %sevent,%cell,9;cvt.u64.u32 %word,%new_event;add.u64 %sevent,%sevent,%word;or.b64 %event,%sevent,72057594037927936;
+SATUR_NO_EVENT:add.u64 %index,%offset,29936;add.u64 %pointer,%state,%index;st.global.b64 [%pointer],%value;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra SATUR_CELL;add.u32 %k,%k,1;setp.lt.u32 %p,%k,19;@%p bra SATUR_LEVEL;
+setp.eq.u64 %p,%stagevec,0;@%p bra STAGE_DONE_22;ld.global.u64 %q,[%stagevec+0];atom.global.add.u64 %old,[%q],1;STAGE_DONE_22:
+ld.global.u64 %word,[%v6];st.global.u64 [%state+20528],%word;
+add.u64 %dst,%state,26320;
+mov.u64 %src,%v7;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],1;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+add.u64 %dst,%state,26384;
+mov.u64 %src,%v8;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],1;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+add.u64 %dst,%state,26448;
+mov.u64 %src,%v9;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],6;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+add.u64 %dst,%state,26832;
+mov.u64 %src,%v10;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],6;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+add.u64 %dst,%state,27216;
+mov.u64 %src,%v11;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],2;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+ld.global.u64 %pointer,[%record+64];ld.global.s32 %integer,[%pointer];cvt.rn.f64.s32 %a,%integer;ld.global.b64 %b,[%model+1359528];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%a;st.param.b64 [mb],0x404e000000000000;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [xa],%a;call.uni (integer8),md2asm_gpu_radiation_nearest_integer,(xa);ld.param.u32 %time,[integer8];ld.param.u32 %raised,[integer8+4];or.b32 %flags,%flags,%raised;add.u32 %time,%time,15;mov.u32 %c,0;
+SEED_CELL:mul.wide.u32 %offset,%c,8;add.u64 %pointer,%v15,%offset;ld.global.b64 %a,[%pointer];st.param.b64 [xa],%a;call.uni (scalar32),md2asm_gpu_asin_unit_interval,(xa);ld.param.b64 %a,[scalar32];ld.param.u32 %raised,[scalar32+8];ld.param.u32 %new_event,[scalar32+12];ld.param.u64 %word,[scalar32+16];ld.param.u64 %word2,[scalar32+24];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%a;st.param.b64 [mb],0x40b7700000000000;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v14,%offset;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%b;st.param.b64 [mb],0x4199bfcc00000000;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%b;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [xa],%a;call.uni (integer8),md2asm_gpu_radiation_nearest_integer,(xa);ld.param.u32 %integer,[integer8];ld.param.u32 %raised,[integer8+4];or.b32 %flags,%flags,%raised;add.u32 %integer,%integer,%time;mul.wide.u32 %offset,%c,4;add.u64 %index,%offset,27344;add.u64 %pointer,%state,%index;st.global.u32 [%pointer],%integer;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra SEED_CELL;
+add.u64 %dst,%state,45744;
+mov.u64 %src,%v32;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],19;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+add.u64 %dst,%state,50608;
+mov.u64 %src,%v31;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],19;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+mov.u32 %k,0;
+ICE_SUM_LEVEL:mov.u32 %c,0;
+ICE_SUM_CELL:mul.wide.u32 %index,%k,8;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %pointer,%v33,%offset;ld.global.b64 %a,[%pointer];add.u64 %pointer,%v35,%offset;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %index,%offset,46960;add.u64 %pointer,%state,%index;st.global.b64 [%pointer],%a;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra ICE_SUM_CELL;add.u32 %k,%k,1;setp.lt.u32 %p,%k,19;@%p bra ICE_SUM_LEVEL;
+add.u64 %q,%model,1608728;
+st.global.u64 [%childvec+0],%q;
+add.u64 %q,%model,1578600;
+st.global.u64 [%childvec+8],%q;
+add.u64 %q,%model,1552928;
+st.global.u64 [%childvec+16],%q;
+add.u64 %q,%model,192;
+st.global.u64 [%childvec+24],%q;
+mov.u64 %q,%v1;
+st.global.u64 [%childvec+32],%q;
+mov.u64 %q,%v2;
+st.global.u64 [%childvec+40],%q;
+mov.u64 %q,%v3;
+st.global.u64 [%childvec+48],%q;
+mov.u64 %q,%v4;
+st.global.u64 [%childvec+56],%q;
+mov.u64 %q,%v17;
+st.global.u64 [%childvec+64],%q;
+mov.u64 %q,%v18;
+st.global.u64 [%childvec+72],%q;
+mov.u64 %q,%v31;
+st.global.u64 [%childvec+80],%q;
+mov.u64 %q,%v32;
+st.global.u64 [%childvec+88],%q;
+mov.u64 %q,%v34;
+st.global.u64 [%childvec+96],%q;
+mov.u64 %q,%v16;
+st.global.u64 [%childvec+104],%q;
+mov.u64 %q,%v12;
+st.global.u64 [%childvec+112],%q;
+mov.u64 %q,%v13;
+st.global.u64 [%childvec+120],%q;
+add.u64 %q,%state,135152;
+st.global.u64 [%childvec+128],%q;
+mov.u64 %q,%v57;
+st.global.u64 [%childvec+136],%q;
+st.param.u64 [p0],%childvec;
+st.param.u64 [p1],%physics;
+call.uni (child40),md2asm_gpu_liquid_radius_values,(p0,p1);ld.param.u32 %sflags,[child40];ld.param.u32 %serror,[child40+4];ld.param.u64 %sevent,[child40+8];ld.param.u64 %newexp,[child40+16];ld.param.u64 %newfast,[child40+24];ld.param.u64 %newwide,[child40+32];or.b32 %flags,%flags,%sflags;add.u64 %exp,%exp,%newexp;add.u64 %fast,%fast,%newfast;add.u64 %wide,%wide,%newwide;setp.ne.u32 %p,%serror,0;@%p bra CHILD_ERROR;setp.eq.u64 %p,%sevent,0;@%p bra CHILD_EVENT_23;or.b64 %event,%sevent,144115188075855872;CHILD_EVENT_23:
+setp.eq.u64 %p,%stagevec,0;@%p bra STAGE_DONE_24;ld.global.u64 %q,[%stagevec+8];atom.global.add.u64 %old,[%q],1;STAGE_DONE_24:
+mov.u32 %k,0;
+CONVERT_LIQUID_LEVEL:mov.u32 %c,0;
+CONVERT_LIQUID_CELL:mul.wide.u32 %index,%k,8;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %index,%offset,135152;add.u64 %pointer,%state,%index;ld.global.b64 %a,[%pointer];
+st.param.b64 [ma],%a;st.param.b64 [mb],0x3eb0c6f7a0b5ed8d;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %index,%offset,48176;add.u64 %pointer,%state,%index;st.global.b64 [%pointer],%a;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra CONVERT_LIQUID_CELL;add.u32 %k,%k,1;setp.lt.u32 %p,%k,19;@%p bra CONVERT_LIQUID_LEVEL;
+add.u64 %q,%model,1608728;
+st.global.u64 [%childvec+0],%q;
+add.u64 %q,%model,1552928;
+st.global.u64 [%childvec+8],%q;
+mov.u64 %q,%v1;
+st.global.u64 [%childvec+16],%q;
+mov.u64 %q,%v2;
+st.global.u64 [%childvec+24],%q;
+mov.u64 %q,%v3;
+st.global.u64 [%childvec+32],%q;
+mov.u64 %q,%v4;
+st.global.u64 [%childvec+40],%q;
+mov.u64 %q,%v17;
+st.global.u64 [%childvec+48],%q;
+mov.u64 %q,%v18;
+st.global.u64 [%childvec+56],%q;
+mov.u64 %q,%v31;
+st.global.u64 [%childvec+64],%q;
+mov.u64 %q,%v33;
+st.global.u64 [%childvec+72],%q;
+mov.u64 %q,%v35;
+st.global.u64 [%childvec+80],%q;
+mov.u64 %q,%v15;
+st.global.u64 [%childvec+88],%q;
+add.u64 %q,%state,136368;
+st.global.u64 [%childvec+96],%q;
+mov.u64 %q,%v57;
+st.global.u64 [%childvec+104],%q;
+st.param.u64 [p0],%childvec;
+st.param.u64 [p1],%physics;
+st.param.u64 [p2],%minimumwork;
+call.uni (child40),md2asm_gpu_ice_radius_values,(p0,p1,p2);ld.param.u32 %sflags,[child40];ld.param.u32 %serror,[child40+4];ld.param.u64 %sevent,[child40+8];ld.param.u64 %newexp,[child40+16];ld.param.u64 %newfast,[child40+24];ld.param.u64 %newwide,[child40+32];or.b32 %flags,%flags,%sflags;add.u64 %exp,%exp,%newexp;add.u64 %fast,%fast,%newfast;add.u64 %wide,%wide,%newwide;setp.ne.u32 %p,%serror,0;@%p bra CHILD_ERROR;setp.eq.u64 %p,%sevent,0;@%p bra CHILD_EVENT_25;or.b64 %event,%sevent,216172782113783808;CHILD_EVENT_25:
+setp.eq.u64 %p,%stagevec,0;@%p bra STAGE_DONE_26;ld.global.u64 %q,[%stagevec+16];atom.global.add.u64 %old,[%q],1;STAGE_DONE_26:
+mov.u32 %k,0;
+CONVERT_ICE_LEVEL:mov.u32 %c,0;
+CONVERT_ICE_CELL:mul.wide.u32 %index,%k,8;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %index,%offset,136368;add.u64 %pointer,%state,%index;ld.global.b64 %a,[%pointer];
+st.param.b64 [ma],%a;st.param.b64 [mb],0x3eb0c6f7a0b5ed8d;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %index,%offset,49392;add.u64 %pointer,%state,%index;st.global.b64 [%pointer],%a;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra CONVERT_ICE_CELL;add.u32 %k,%k,1;setp.lt.u32 %p,%k,19;@%p bra CONVERT_ICE_LEVEL;
+add.u64 %q,%model,1578336;
+st.global.u64 [%childvec+0],%q;
+mov.u64 %q,%v1;
+st.global.u64 [%childvec+8],%q;
+mov.u64 %q,%v2;
+st.global.u64 [%childvec+16],%q;
+mov.u64 %q,%v3;
+st.global.u64 [%childvec+24],%q;
+mov.u64 %q,%v15;
+st.global.u64 [%childvec+32],%q;
+add.u64 %q,%model,1608888;
+st.global.u64 [%childvec+40],%q;
+add.u64 %q,%state,137584;
+st.global.u64 [%childvec+48],%q;
+mov.u64 %q,0;
+st.global.u64 [%childvec+56],%q;
+add.u64 %q,%scratch,281144;
+st.global.u64 [%childvec+64],%q;
+ld.global.u64 %rpi,[%physics+8];
+st.param.u64 [p0],%childvec;
+st.param.u64 [p1],%rpi;
+call.uni (child40),md2asm_gpu_cloud_decorrelation_values,(p0,p1);ld.param.u32 %sflags,[child40];ld.param.u32 %serror,[child40+4];ld.param.u64 %sevent,[child40+8];ld.param.u64 %newexp,[child40+16];ld.param.u64 %newfast,[child40+24];ld.param.u64 %newwide,[child40+32];or.b32 %flags,%flags,%sflags;add.u64 %exp,%exp,%newexp;add.u64 %fast,%fast,%newfast;add.u64 %wide,%wide,%newwide;setp.ne.u32 %p,%serror,0;@%p bra CHILD_ERROR;setp.eq.u64 %p,%sevent,0;@%p bra CHILD_EVENT_27;or.b64 %event,%sevent,288230376151711744;CHILD_EVENT_27:
+setp.eq.u64 %p,%stagevec,0;@%p bra STAGE_DONE_28;ld.global.u64 %q,[%stagevec+24];atom.global.add.u64 %old,[%q],1;STAGE_DONE_28:
+ld.global.u64 %word,[%scratch+281144];st.global.u64 [%state+552],%word;mov.u32 %c,0;
+OVERLAP_OUTER_COLUMN:add.u32 %integer,%c,1;st.global.u32 [%scratch+281132],%integer;mul.wide.u32 %offset,%c,8;add.u64 %index,%offset,137584;add.u64 %pointer,%state,%index;ld.global.b64 %a,[%pointer];
+st.param.b64 [ma],%a;st.param.b64 [mb],0x408f400000000000;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.global.b64 [%scratch+281152],%a;
+add.u64 %q,%scratch,281072;
+st.global.u64 [%childvec+0],%q;
+add.u64 %q,%state,20672;
+st.global.u64 [%childvec+8],%q;
+add.u64 %q,%scratch,281152;
+st.global.u64 [%childvec+16],%q;
+add.u64 %q,%scratch,281132;
+st.global.u64 [%childvec+24],%q;
+add.u64 %q,%scratch,281132;
+st.global.u64 [%childvec+32],%q;
+st.param.u64 [p0],%childvec;
+st.param.u64 [p1],0;
+call.uni (child40),md2asm_gpu_set_overlap_values,(p0,p1);ld.param.u32 %sflags,[child40];ld.param.u32 %serror,[child40+4];ld.param.u64 %sevent,[child40+8];ld.param.u64 %newexp,[child40+16];ld.param.u64 %newfast,[child40+24];ld.param.u64 %newwide,[child40+32];or.b32 %flags,%flags,%sflags;add.u64 %exp,%exp,%newexp;add.u64 %fast,%fast,%newfast;add.u64 %wide,%wide,%newwide;setp.ne.u32 %p,%serror,0;@%p bra CHILD_ERROR;setp.eq.u64 %p,%sevent,0;@%p bra CHILD_EVENT_29;cvt.u64.u32 %word,%c;shl.b64 %word,%word,32;or.b64 %sevent,%sevent,%word;or.b64 %event,%sevent,360287970189639680;CHILD_EVENT_29:
+setp.eq.u64 %p,%stagevec,0;@%p bra STAGE_DONE_30;ld.global.u64 %q,[%stagevec+32];atom.global.add.u64 %old,[%q],1;STAGE_DONE_30:
+add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra OVERLAP_OUTER_COLUMN;ld.global.u64 %word,[%model+1609088];mov.u64 %i,0;
+FRACTIONAL_STD:setp.ge.u64 %p,%i,152;@%p bra FRACTIONAL_STD_DONE;shl.b64 %offset,%i,3;add.u64 %index,%offset,51824;add.u64 %pointer,%state,%index;st.global.u64 [%pointer],%word;add.u64 %i,%i,1;bra FRACTIONAL_STD;
+FRACTIONAL_STD_DONE:
+add.u64 %pointer,%scratch,280928;add.u64 %q,%state,137648;st.global.u64 [%pointer],%q;cvt.u64.u32 %q,%last;sub.u64 %q,0,%q;sub.u64 %q,%q,1;st.global.u64 [%pointer+8],%q;st.global.u64 [%pointer+16],8;mov.u64 %q,0x0000030200000000;st.global.u64 [%pointer+24],%q;st.global.u64 [%pointer+32],8;st.global.u64 [%pointer+40],1;st.global.u64 [%pointer+48],1;cvt.u64.u32 %q,%last;st.global.u64 [%pointer+56],%q;st.global.u64 [%pointer+64],%q;st.global.u64 [%pointer+72],1;st.global.u64 [%pointer+80],19;
+add.u64 %q,%scratch,281040;
+st.global.u64 [%childvec+0],%q;
+mov.u64 %q,%v1;
+st.global.u64 [%childvec+8],%q;
+mov.u64 %q,%v2;
+st.global.u64 [%childvec+16],%q;
+add.u64 %q,%scratch,280928;
+st.global.u64 [%childvec+24],%q;
+st.param.u64 [p0],%childvec;
+call.uni (child40),md2asm_gpu_layer_mass_values,(p0);ld.param.u32 %sflags,[child40];ld.param.u32 %serror,[child40+4];ld.param.u64 %sevent,[child40+8];ld.param.u64 %newexp,[child40+16];ld.param.u64 %newfast,[child40+24];ld.param.u64 %newwide,[child40+32];or.b32 %flags,%flags,%sflags;add.u64 %exp,%exp,%newexp;add.u64 %fast,%fast,%newfast;add.u64 %wide,%wide,%newwide;setp.ne.u32 %p,%serror,0;@%p bra CHILD_ERROR;setp.eq.u64 %p,%sevent,0;@%p bra CHILD_EVENT_31;or.b64 %event,%sevent,432345564227567616;CHILD_EVENT_31:
+setp.eq.u64 %p,%stagevec,0;@%p bra STAGE_DONE_32;ld.global.u64 %q,[%stagevec+40];atom.global.add.u64 %old,[%q],1;STAGE_DONE_32:
+mov.u64 %plane,0;
+AEROSOL_PLANE:mov.u32 %k,0;
+AEROSOL_LEVEL:mov.u32 %c,0;
+AEROSOL_CELL:mul.lo.u64 %index,%plane,19;cvt.u64.u32 %offset,%k;add.u64 %index,%index,%offset;mul.lo.u64 %index,%index,8;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %pointer,%v37,%offset;ld.global.b64 %a,[%pointer];setp.gt.f64 %p,%a,0d0000000000000000;@!%p mov.b64 %a,0;add.u64 %index,%offset,55408;add.u64 %pointer,%state,%index;st.global.b64 [%pointer],%a;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra AEROSOL_CELL;add.u32 %k,%k,1;setp.lt.u32 %p,%k,19;@%p bra AEROSOL_LEVEL;add.u64 %plane,%plane,1;setp.lt.u64 %p,%plane,12;@%p bra AEROSOL_PLANE;
+ld.global.b64 %coefficient,[%model+4122552];mov.u32 %k,0;
+BG_TROP_LEVEL:mov.u32 %c,0;
+BG_TROP_CELL:mul.wide.u32 %index,%k,%last;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %index,%offset,137648;add.u64 %pointer,%state,%index;ld.global.b64 %mass,[%pointer];
+st.param.b64 [ma],%mass;st.param.b64 [mb],%coefficient;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+mul.wide.u32 %index,%k,6;add.u64 %index,%index,0;mul.lo.u64 %index,%index,8;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %pointer,%v36,%offset;ld.global.b64 %a,[%pointer];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+mul.wide.u32 %index,%k,8;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %index,%offset,63920;add.u64 %pointer,%state,%index;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%b;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.global.b64 [%pointer],%a;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra BG_TROP_CELL;add.u32 %k,%k,1;setp.lt.u32 %p,%k,19;@%p bra BG_TROP_LEVEL;
+ld.global.b64 %coefficient,[%model+4122560];mov.u32 %k,0;
+BG_STRAT_LEVEL:mov.u32 %c,0;
+BG_STRAT_CELL:mul.wide.u32 %index,%k,%last;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %index,%offset,137648;add.u64 %pointer,%state,%index;ld.global.b64 %mass,[%pointer];
+st.param.b64 [ma],%mass;st.param.b64 [mb],%coefficient;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+mul.wide.u32 %index,%k,6;add.u64 %index,%index,5;mul.lo.u64 %index,%index,8;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %pointer,%v36,%offset;ld.global.b64 %a,[%pointer];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+mul.wide.u32 %index,%k,8;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %index,%offset,68784;add.u64 %pointer,%state,%index;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%b;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.global.b64 [%pointer],%a;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra BG_STRAT_CELL;add.u32 %k,%k,1;setp.lt.u32 %p,%k,19;@%p bra BG_STRAT_LEVEL;
+mov.u32 %k,0;
+OZONE_LEVEL:mov.u32 %c,0;
+OZONE_CELL:mul.wide.u32 %index,%k,8;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %pointer,%v19,%offset;ld.global.b64 %a,[%pointer];ld.global.b64 %b,[%pointer+64];
+st.param.b64 [ma],%b;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v30,%offset;ld.global.b64 %a,[%pointer];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %index,%offset,138864;add.u64 %pointer,%state,%index;st.global.b64 [%pointer],%a;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra OZONE_CELL;add.u32 %k,%k,1;setp.lt.u32 %p,%k,19;@%p bra OZONE_LEVEL;
+add.u64 %dst,%state,31152;
+mov.u64 %src,%v21;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_33:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_33;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_33;COPIED_33:
+st.global.u32 [%state+21200],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+20992],%value;st.global.u32 [%state+21308],1;
+add.u64 %dst,%state,32368;
+mov.u64 %src,%v22;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_34:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_34;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_34;COPIED_34:
+st.global.u32 [%state+21204],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21000],%value;st.global.u32 [%state+21312],2;
+add.u64 %dst,%state,37232;
+mov.u64 %src,%v23;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_35:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_35;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_35;COPIED_35:
+st.global.u32 [%state+21220],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21032],%value;st.global.u32 [%state+21316],6;
+add.u64 %dst,%state,34800;
+mov.u64 %src,%v24;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_36:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_36;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_36;COPIED_36:
+st.global.u32 [%state+21212],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21016],%value;st.global.u32 [%state+21320],4;
+add.u64 %dst,%state,39664;
+mov.u64 %src,%v26;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_37:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_37;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_37;COPIED_37:
+st.global.u32 [%state+21228],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21048],%value;st.global.u32 [%state+21324],8;
+add.u64 %dst,%state,40880;
+mov.u64 %src,%v27;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_38:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_38;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_38;COPIED_38:
+st.global.u32 [%state+21232],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21056],%value;st.global.u32 [%state+21328],9;
+add.u64 %dst,%state,42096;
+mov.u64 %src,%v28;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_39:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_39;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_39;COPIED_39:
+st.global.u32 [%state+21236],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21064],%value;st.global.u32 [%state+21332],10;
+add.u64 %dst,%state,43312;
+mov.u64 %src,%v29;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_40:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_40;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_40;COPIED_40:
+st.global.u32 [%state+21240],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21072],%value;st.global.u32 [%state+21336],11;
+add.u64 %dst,%state,33584;
+add.u64 %src,%state,138864;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_41:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_41;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_41;COPIED_41:
+st.global.u32 [%state+21208],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21008],%value;st.global.u32 [%state+21340],3;
+add.u64 %dst,%state,38448;
+mov.b64 %value,0x3fcaceee0f3cb3e5;mov.u64 %i,0;
+OXYGEN_FILL:setp.ge.u64 %p,%i,152;@%p bra OXYGEN_FILLED;shl.b64 %offset,%i,3;add.u64 %pointer,%dst,%offset;st.global.b64 [%pointer],%value;add.u64 %i,%i,1;bra OXYGEN_FILL;
+OXYGEN_FILLED:
+st.global.u32 [%state+21224],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21040],%value;st.global.u32 [%state+21344],7;
+st.global.u32 [%state+20968],1;st.global.u32 [%state+21272],1;
+st.global.u32 [%state+21296],10;
+add.u64 %q,%scratch,281056;
+st.global.u64 [%childvec+0],%q;
+add.u64 %q,%scratch,281120;
+st.global.u64 [%childvec+8],%q;
+mov.u64 %q,0;
+st.global.u64 [%childvec+16],%q;
+mov.u64 %q,0;
+st.global.u64 [%childvec+24],%q;
+st.param.u64 [p0],%childvec;
+st.param.u64 [p1],%molar;
+call.uni (child40),md2asm_gpu_set_units_gas_values,(p0,p1);ld.param.u32 %sflags,[child40];ld.param.u32 %serror,[child40+4];ld.param.u64 %sevent,[child40+8];ld.param.u64 %newexp,[child40+16];ld.param.u64 %newfast,[child40+24];ld.param.u64 %newwide,[child40+32];or.b32 %flags,%flags,%sflags;add.u64 %exp,%exp,%newexp;add.u64 %fast,%fast,%newfast;add.u64 %wide,%wide,%newwide;setp.ne.u32 %p,%serror,0;@%p bra CHILD_ERROR;setp.eq.u64 %p,%sevent,0;@%p bra CHILD_EVENT_42;or.b64 %event,%sevent,504403158265495552;CHILD_EVENT_42:
+setp.eq.u64 %p,%stagevec,0;@%p bra STAGE_DONE_43;ld.global.u64 %q,[%stagevec+48];atom.global.add.u64 %old,[%q],1;STAGE_DONE_43:
+mov.u64 %i,0;mov.b64 %value,0xbff0000000000000;
+CLOUD_SENTINELS:setp.ge.u64 %p,%i,8;@%p bra CLOUD_SENTINELS_DONE;shl.b64 %offset,%i,3;add.u64 %index,%offset,133744;add.u64 %pointer,%state,%index;st.global.b64 [%pointer],%value;add.u64 %index,%offset,133808;add.u64 %pointer,%state,%index;st.global.b64 [%pointer],%value;add.u64 %i,%i,1;bra CLOUD_SENTINELS;
+CLOUD_SENTINELS_DONE:add.u64 %dst,%scratch,140080;mov.u64 %src,%state;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_44:setp.ge.u64 %p,%copyi,140080;@%p bra COPIED_44;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_44;COPIED_44:
+mov.u64 %q,%v3;
+st.global.u64 [%innervec+0],%q;
+mov.u64 %q,%v4;
+st.global.u64 [%innervec+8],%q;
+mov.u64 %q,%v1;
+st.global.u64 [%innervec+16],%q;
+mov.u64 %q,%v2;
+st.global.u64 [%innervec+24],%q;
+add.u64 %q,%state,0;
+st.global.u64 [%innervec+32],%q;
+add.u64 %q,%state,20048;
+st.global.u64 [%innervec+40],%q;
+add.u64 %q,%state,20672;
+st.global.u64 [%innervec+48],%q;
+add.u64 %q,%state,20944;
+st.global.u64 [%innervec+56],%q;
+add.u64 %q,%state,21360;
+st.global.u64 [%innervec+64],%q;
+add.u64 %q,%state,22160;
+st.global.u64 [%innervec+72],%q;
+add.u64 %q,%state,22960;
+st.global.u64 [%innervec+80],%q;
+st.global.u64 [%childctx],0;st.global.u32 [%childctx+4],1;st.global.u64 [%childctx+8],0;st.global.u64 [%childctx+16],0;st.global.u64 [%childctx+24],0;st.global.u64 [%childctx+32],%arena;st.global.u64 [%childctx+40],3044544;st.global.u64 [%childctx+48],%innerrecord;st.global.u64 [%childctx+56],64;st.param.u64 [p0],%innervec;st.param.u64 [p1],%childctx;call.uni md2asm_gpu_radintg_worker_radiation_column_fp64,(p0,p1);ld.global.u32 %serror,[%childctx];ld.global.u32 %sflags,[%childctx+8];ld.global.u64 %sevent,[%childctx+16];or.b32 %flags,%flags,%sflags;setp.ne.u32 %p,%serror,0;@%p bra CHILD_ERROR;setp.eq.u64 %p,%sevent,0;@%p bra INNER_EVENT_JOINED;and.b64 %word,%sevent,0x00ffffffffffffff;shr.u64 %word2,%sevent,56;shl.b64 %word2,%word2,48;or.b64 %word,%word,%word2;or.b64 %event,%word,576460752303423488;
+INNER_EVENT_JOINED:
+setp.eq.u64 %p,%stagevec,0;@%p bra STAGE_DONE_45;ld.global.u64 %q,[%stagevec+56];atom.global.add.u64 %old,[%q],1;STAGE_DONE_45:
+setp.eq.u64 %p,%stagevec,0;@%p bra STAGE_DONE_46;ld.global.u64 %q,[%stagevec+64];atom.global.add.u64 %old,[%q],1;STAGE_DONE_46:
+setp.eq.u64 %p,%stagevec,0;@%p bra STAGE_DONE_47;ld.global.u64 %q,[%stagevec+72];atom.global.add.u64 %old,[%q],1;STAGE_DONE_47:
+setp.eq.u64 %p,%stagevec,0;@%p bra STAGE_DONE_48;ld.global.u64 %q,[%stagevec+80];atom.global.add.u64 %old,[%q],1;STAGE_DONE_48:
+setp.eq.u64 %p,%stagevec,0;@%p bra STAGE_DONE_49;ld.global.u64 %q,[%stagevec+88];atom.global.add.u64 %old,[%q],1;STAGE_DONE_49:
+setp.eq.u64 %p,%stagevec,0;@%p bra STAGE_DONE_50;ld.global.u64 %q,[%stagevec+96];atom.global.add.u64 %old,[%q],1;STAGE_DONE_50:
+setp.eq.u64 %p,%stagevec,0;@%p bra STAGE_DONE_51;ld.global.u64 %q,[%stagevec+104];atom.global.add.u64 %old,[%q],1;STAGE_DONE_51:
+setp.eq.u64 %p,%stagevec,0;@%p bra STAGE_DONE_52;ld.global.u64 %q,[%stagevec+112];atom.global.add.u64 %old,[%q],1;STAGE_DONE_52:
+setp.eq.u64 %p,%stagevec,0;@%p bra STAGE_DONE_53;ld.global.u64 %q,[%stagevec+120];atom.global.add.u64 %old,[%q],1;STAGE_DONE_53:
+mov.u32 %k,0;
+NET_SW_LEVEL:mov.u32 %c,0;
+NET_SW_CELL:mul.wide.u32 %index,%k,8;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %index,%offset,73840;add.u64 %pointer,%state,%index;ld.global.b64 %a,[%pointer];add.u64 %index,%offset,72560;add.u64 %pointer,%state,%index;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v38,%offset;st.global.b64 [%pointer],%a;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra NET_SW_CELL;add.u32 %k,%k,1;setp.lt.u32 %p,%k,20;@%p bra NET_SW_LEVEL;
+mov.u32 %k,0;
+NET_LW_LEVEL:mov.u32 %c,0;
+NET_LW_CELL:mul.wide.u32 %index,%k,8;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %index,%offset,71280;add.u64 %pointer,%state,%index;ld.global.b64 %a,[%pointer];add.u64 %index,%offset,70000;add.u64 %pointer,%state,%index;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v39,%offset;st.global.b64 [%pointer],%a;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra NET_LW_CELL;add.u32 %k,%k,1;setp.lt.u32 %p,%k,20;@%p bra NET_LW_LEVEL;
+mov.u32 %k,0;
+NET_SW_CLEAR_LEVEL:mov.u32 %c,0;
+NET_SW_CLEAR_CELL:mul.wide.u32 %index,%k,8;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %index,%offset,80240;add.u64 %pointer,%state,%index;ld.global.b64 %a,[%pointer];add.u64 %index,%offset,78960;add.u64 %pointer,%state,%index;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v40,%offset;st.global.b64 [%pointer],%a;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra NET_SW_CLEAR_CELL;add.u32 %k,%k,1;setp.lt.u32 %p,%k,20;@%p bra NET_SW_CLEAR_LEVEL;
+mov.u32 %k,0;
+NET_LW_CLEAR_LEVEL:mov.u32 %c,0;
+NET_LW_CLEAR_CELL:mul.wide.u32 %index,%k,8;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %index,%offset,77680;add.u64 %pointer,%state,%index;ld.global.b64 %a,[%pointer];add.u64 %index,%offset,76400;add.u64 %pointer,%state,%index;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v41,%offset;st.global.b64 [%pointer],%a;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra NET_LW_CLEAR_CELL;add.u32 %k,%k,1;setp.lt.u32 %p,%k,20;@%p bra NET_LW_CLEAR_LEVEL;
+add.u64 %src,%state,75056;
+mov.u64 %dst,%v42;
+mov.u64 %src,%src;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],1;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+add.u64 %src,%state,72496;
+mov.u64 %dst,%v43;
+mov.u64 %src,%src;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],1;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+add.u64 %src,%state,81456;
+mov.u64 %dst,%v44;
+mov.u64 %src,%src;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],1;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+add.u64 %src,%state,78896;
+mov.u64 %dst,%v45;
+mov.u64 %src,%src;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],1;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+add.u64 %src,%state,76336;
+mov.u64 %dst,%v46;
+mov.u64 %src,%src;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],1;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+add.u64 %src,%state,82736;
+mov.u64 %dst,%v47;
+mov.u64 %src,%src;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],1;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+mov.u64 %dst,%v52;
+add.u64 %src,%state,73840;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],1;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+mov.u32 %c,0;
+DIRECT_NORMAL:mul.wide.u32 %offset,%c,8;add.u64 %pointer,%v7,%offset;ld.global.b64 %b,[%pointer];mov.b64 %a,0;setp.le.f64 %p,%b,0d3cb0000000000000;@%p bra DIRECT_NORMAL_STORE;add.u64 %pointer,%v46,%offset;ld.global.b64 %a,[%pointer];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+DIRECT_NORMAL_STORE:add.u64 %pointer,%v48,%offset;st.global.b64 [%pointer],%a;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra DIRECT_NORMAL;mov.u32 %c,0;
+SPECTRAL_SUMS:mov.b64 %uv,0;mov.b64 %par,0;mov.b64 %clearpar,0;mov.u32 %band,0;
+UV_BAND:mul.wide.u32 %offset,%band,4;add.u64 %pointer,%model,%offset;ld.global.u32 %integer,[%pointer+4120140];sub.u32 %integer,%integer,1;mul.wide.u32 %index,%c,14;cvt.u64.u32 %offset,%integer;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %index,%offset,129392;add.u64 %pointer,%state,%index;ld.global.b64 %a,[%pointer];mul.wide.u32 %offset,%band,8;add.u64 %pointer,%model,%offset;ld.global.b64 %weight,[%pointer+4120544];
+st.param.b64 [ma],%weight;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%uv;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %uv,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u32 %band,%band,1;setp.lt.u32 %p,%band,3;@%p bra UV_BAND;mov.u32 %band,0;
+PAR_BAND:mul.wide.u32 %offset,%band,4;add.u64 %pointer,%model,%offset;ld.global.u32 %integer,[%pointer+4121348];sub.u32 %integer,%integer,1;mul.wide.u32 %index,%c,14;cvt.u64.u32 %offset,%integer;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %index,%offset,129392;add.u64 %pointer,%state,%index;ld.global.b64 %a,[%pointer];mul.wide.u32 %q,%band,8;add.u64 %pointer,%model,%q;ld.global.b64 %weight,[%pointer+4121752];
+st.param.b64 [ma],%weight;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%par;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %par,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %index,%offset,131184;add.u64 %pointer,%state,%index;ld.global.b64 %a,[%pointer];
+st.param.b64 [ma],%weight;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%clearpar;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %clearpar,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u32 %band,%band,1;setp.lt.u32 %p,%band,3;@%p bra PAR_BAND;mul.wide.u32 %offset,%c,8;add.u64 %pointer,%v49,%offset;st.global.b64 [%pointer],%uv;add.u64 %pointer,%v50,%offset;st.global.b64 [%pointer],%par;add.u64 %pointer,%v51,%offset;st.global.b64 [%pointer],%clearpar;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra SPECTRAL_SUMS;ld.global.u64 %pointer,[%record+80];ld.global.b64 %rsigma,[%pointer];mov.u32 %c,0;
+EMISSIVITY_CELL:mul.wide.u32 %offset,%c,8;add.u64 %pointer,%v8,%offset;ld.global.b64 %skin,[%pointer];
+st.param.b64 [ma],%skin;st.param.b64 [mb],%skin;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%a;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%rsigma;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v43,%offset;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%b;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+and.b64 %word,%a,0x7fffffffffffffff;setp.le.u64 %p,%word,0x3ee4f8b580000000;@%p bra EMISSIVITY_DEFAULT;add.u64 %index,%offset,1216;add.u64 %pointer,%v39,%index;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%b;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+min.f64 %value,%value,0d3fefae147ae147ae;max.f64 %value,%value,0d3fe999999999999a;bra EMISSIVITY_STORE;
+EMISSIVITY_DEFAULT:add.u64 %pointer,%v11,%offset;ld.global.b64 %value,[%pointer];
+EMISSIVITY_STORE:add.u64 %pointer,%v53,%offset;st.global.b64 [%pointer],%value;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra EMISSIVITY_CELL;
+mov.u64 %dst,%v54;
+add.u64 %src,%state,133872;
+st.param.u64 [p0],%dst;st.param.u64 [p1],%src;st.param.u32 [rows],20;st.param.u32 [activecols],%last;call.uni radintg_worker_field_copy_active,(p0,p1,rows,activecols);
+mov.u32 %c,0;
+TRANSPOSE_DIFFUSE_COLUMN:mov.u32 %band,0;
+TRANSPOSE_DIFFUSE_BAND:mul.wide.u32 %index,%c,6;cvt.u64.u32 %offset,%band;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %index,%offset,132976;add.u64 %pointer,%state,%index;ld.global.u64 %word,[%pointer];mul.wide.u32 %index,%band,8;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %pointer,%v55,%offset;st.global.u64 [%pointer],%word;add.u32 %band,%band,1;setp.lt.u32 %p,%band,6;@%p bra TRANSPOSE_DIFFUSE_BAND;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra TRANSPOSE_DIFFUSE_COLUMN;
+mov.u32 %c,0;
+TRANSPOSE_DIRECT_COLUMN:mov.u32 %band,0;
+TRANSPOSE_DIRECT_BAND:mul.wide.u32 %index,%c,6;cvt.u64.u32 %offset,%band;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %index,%offset,133360;add.u64 %pointer,%state,%index;ld.global.u64 %word,[%pointer];mul.wide.u32 %index,%band,8;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %pointer,%v56,%offset;st.global.u64 [%pointer],%word;add.u32 %band,%band,1;setp.lt.u32 %p,%band,6;@%p bra TRANSPOSE_DIRECT_BAND;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra TRANSPOSE_DIRECT_COLUMN;
+ld.global.u64 %dst,[%args+304];mov.u64 %src,%v38;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_54:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_54;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_54;COPIED_54:
+ld.global.u64 %dst,[%args+312];mov.u64 %src,%v39;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_55:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_55;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_55;COPIED_55:
+ld.global.u64 %dst,[%args+320];mov.u64 %src,%v40;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_56:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_56;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_56;COPIED_56:
+ld.global.u64 %dst,[%args+328];mov.u64 %src,%v41;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_57:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_57;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_57;COPIED_57:
+ld.global.u64 %dst,[%args+336];mov.u64 %src,%v42;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_58:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_58;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_58;COPIED_58:
+ld.global.u64 %dst,[%args+344];mov.u64 %src,%v43;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_59:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_59;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_59;COPIED_59:
+ld.global.u64 %dst,[%args+352];mov.u64 %src,%v44;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_60:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_60;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_60;COPIED_60:
+ld.global.u64 %dst,[%args+360];mov.u64 %src,%v45;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_61:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_61;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_61;COPIED_61:
+ld.global.u64 %dst,[%args+368];mov.u64 %src,%v46;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_62:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_62;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_62;COPIED_62:
+ld.global.u64 %dst,[%args+376];mov.u64 %src,%v47;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_63:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_63;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_63;COPIED_63:
+ld.global.u64 %dst,[%args+384];mov.u64 %src,%v48;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_64:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_64;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_64;COPIED_64:
+ld.global.u64 %dst,[%args+392];mov.u64 %src,%v49;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_65:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_65;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_65;COPIED_65:
+ld.global.u64 %dst,[%args+400];mov.u64 %src,%v50;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_66:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_66;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_66;COPIED_66:
+ld.global.u64 %dst,[%args+408];mov.u64 %src,%v51;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_67:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_67;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_67;COPIED_67:
+ld.global.u64 %dst,[%args+416];mov.u64 %src,%v52;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_68:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_68;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_68;COPIED_68:
+ld.global.u64 %dst,[%args+424];mov.u64 %src,%v53;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_69:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_69;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_69;COPIED_69:
+ld.global.u64 %dst,[%args+432];mov.u64 %src,%v54;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_70:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_70;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_70;COPIED_70:
+ld.global.u64 %dst,[%args+440];mov.u64 %src,%v55;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_71:setp.ge.u64 %p,%copyi,384;@%p bra COPIED_71;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_71;COPIED_71:
+ld.global.u64 %dst,[%args+448];mov.u64 %src,%v56;
+mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
+COPY_72:setp.ge.u64 %p,%copyi,384;@%p bra COPIED_72;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_72;COPIED_72:
+ld.global.u64 %word,[%state+552];setp.eq.u64 %p,%countervec,0;@%p bra COUNTERS_DONE;ld.global.u64 %q,[%countervec];atom.global.add.u64 %old,[%q],%exp;ld.global.u64 %q,[%countervec+8];atom.global.add.u64 %old,[%q],%fast;ld.global.u64 %q,[%countervec+16];atom.global.add.u64 %old,[%q],%wide;
+COUNTERS_DONE:bra COMPLETE;
+CHILD_ERROR:mov.u32 %error,%serror;
+COMPLETE:st.param.u32 [result],%flags;st.param.u32 [result+4],%error;st.param.u64 [result+8],%event;ld.global.u64 %word,[%state+552];st.param.u64 [result+16],%word;st.param.u64 [result+24],0;ret;
+}

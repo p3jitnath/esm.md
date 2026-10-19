@@ -60,7 +60,7 @@ The timer measures replay of an already prepared sequence of GPU launches. It ex
 
 The OpenIFS GPU extension has passed six complete 24-hour forecasts with combined CPU/GPU assembly. The expanded run includes complete GPU cloud microphysics, aerosol optics and shortwave transport. These ordinary runs use the original files and run without the OpenIFS harness or verification input writes. Each matches all ten saved files across 618,140 bytes and 59 final numerical views across 18,971,680 bytes. These views overlap. The latest run also matches both complete model-history buffers, which retain previous time levels, across 1,882,368 bytes. A correction to GPU call handling passes its check against saved CPU outputs.
 
-The three slower complete GPU candidates were stopped. Further numerical processes have a 14.13-second limit, matching the accepted CPU median.
+Slower complete GPU candidates are cancelled at a 14.13-second process limit, matching the accepted CPU median. The latest combined candidate also reached that limit, so no complete GPU runtime or speedup is accepted.
 
 Separately, 257 distinct original routines have passed their component checks. The complete required-routine total and the number used on the GPU during a forecast remain under review, so these results do not give a completion percentage.
 

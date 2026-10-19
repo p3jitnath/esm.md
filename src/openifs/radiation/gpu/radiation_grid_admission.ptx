@@ -1686,10 +1686,10 @@ st.param.u64 [rb],%record;st.param.u64 [rn],160;st.param.u64 [rm],7;st.param.u64
 mov.u32 %error,7831;setp.ge.u32 %p,%count,1024;@%p bra RETURN;
 mul.wide.u32 %offset,%count,16;add.u64 %pointer,%rows,%offset;st.u64 [%pointer],%record;st.u64 [%pointer+8],160;add.u32 %count,%count,1;
 ld.u64 %scratch,[%ctx+32];ld.u64 %capacity,[%ctx+40];
-mov.u32 %error,7833;setp.lt.u64 %p,%capacity,25471520;@%p bra RETURN;
-st.param.u64 [rb],%scratch;st.param.u64 [rn],25471520;st.param.u64 [rm],7;st.param.u64 [rl],%rows;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),grid_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mov.u32 %error,7833;setp.lt.u64 %p,%capacity,449838528;@%p bra RETURN;
+st.param.u64 [rb],%scratch;st.param.u64 [rn],449838528;st.param.u64 [rm],7;st.param.u64 [rl],%rows;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),grid_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
 mov.u32 %error,7831;setp.ge.u32 %p,%count,1024;@%p bra RETURN;
-mul.wide.u32 %offset,%count,16;add.u64 %pointer,%rows,%offset;st.u64 [%pointer],%scratch;st.u64 [%pointer+8],25471520;add.u32 %count,%count,1;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%rows,%offset;st.u64 [%pointer],%scratch;st.u64 [%pointer+8],449838528;add.u32 %count,%count,1;
 st.u64 [%mutable+0],%v1;st.u64 [%mutable+8],4275088;st.u64 [%mutable+16],1;
 st.u64 [%mutable+24],%v37;st.u64 [%mutable+32],327680;st.u64 [%mutable+40],37;
 st.u64 [%mutable+48],%v38;st.u64 [%mutable+56],327680;st.u64 [%mutable+64],38;
@@ -1711,7 +1711,7 @@ st.u64 [%mutable+408],%v56;st.u64 [%mutable+416],16384;st.u64 [%mutable+424],55;
 st.u64 [%mutable+432],%v57;st.u64 [%mutable+440],16384;st.u64 [%mutable+448],56;
 st.u64 [%mutable+456],%v58;st.u64 [%mutable+464],327680;st.u64 [%mutable+472],57;
 st.u64 [%mutable+480],%ctx;st.u64 [%mutable+488],64;st.u64 [%mutable+496],136;
-st.u64 [%mutable+504],%scratch;st.u64 [%mutable+512],25471520;st.u64 [%mutable+520],138;
+st.u64 [%mutable+504],%scratch;st.u64 [%mutable+512],449838528;st.u64 [%mutable+520],138;
 st.u64 [%mutable+528],%nimp;st.u64 [%mutable+536],4;st.u64 [%mutable+544],142;
 st.u64 [%mutable+552],%nout;st.u64 [%mutable+560],4;st.u64 [%mutable+568],143;
 mov.u32 %mutablecount,24;
@@ -1995,7 +1995,7 @@ ld.u64 %activebase,[%radactrecord+48];setp.eq.u64 %p,%activebase,0;@%p bra COUNT
 st.param.u64 [rb],%base;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%rows;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),grid_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
 mov.u32 %error,7831;setp.ge.u32 %p,%countercount,64;@%p bra RETURN;
 mul.wide.u32 %offset,%countercount,8;add.u64 %pointer,%counters,%offset;st.u64 [%pointer],%base;add.u32 %countercount,%countercount,1;NEXT_WIDE:add.u32 %i,%i,1;setp.lt.u32 %p,%i,1;@%p bra COUNTERS_WIDE;COUNTERS_DONE_WIDE:
-mov.u32 %invkind,0;bra INVENTORY_START;INVENTORY_START:mov.u32 %i,0;INVENTORY_ROW:setp.ge.u32 %p,%i,%newcount;@%p bra INVENTORY_COMPLETE;mul.wide.u32 %offset,%i,16;add.u64 %pointer,%inventory,%offset;ld.u64 %base,[%pointer];ld.u64 %bytes,[%pointer+8];add.u64 %end,%base,%bytes;add.u64 %stop,%scratch,25471520;setp.ge.u64 %p,%base,%scratch;setp.le.u64 %q,%end,%stop;and.pred %p,%p,%q;@%p bra NEXT_INVENTORY_ROW;add.u64 %stop,%model,4275088;setp.ge.u64 %p,%base,%model;setp.le.u64 %q,%end,%stop;and.pred %p,%p,%q;@%p bra NEXT_INVENTORY_ROW;setp.eq.u64 %p,%base,%prospective;@%p bra NEXT_INVENTORY_ROW;setp.eq.u64 %p,%base,%childctx;@%p bra NEXT_INVENTORY_ROW;ld.u64 %owner,[%radactrecord+64];setp.eq.u64 %p,%base,%owner;setp.eq.u64 %q,%bytes,24;and.pred %p,%p,%q;@%p bra NEXT_INVENTORY_ROW;setp.eq.u64 %p,%bytes,8;@!%p bra APPEND_INVENTORY_ROW;mov.u32 %j,0;INVENTORY_COUNTER_LOOKUP:setp.ge.u32 %p,%j,%countercount;@%p bra APPEND_INVENTORY_ROW;mul.wide.u32 %offset,%j,8;add.u64 %pointer,%counters,%offset;ld.u64 %owner,[%pointer];setp.eq.u64 %p,%owner,%base;@%p bra NEXT_INVENTORY_ROW;add.u32 %j,%j,1;bra INVENTORY_COUNTER_LOOKUP;APPEND_INVENTORY_ROW:
+mov.u32 %invkind,0;bra INVENTORY_START;INVENTORY_START:mov.u32 %i,0;INVENTORY_ROW:setp.ge.u32 %p,%i,%newcount;@%p bra INVENTORY_COMPLETE;mul.wide.u32 %offset,%i,16;add.u64 %pointer,%inventory,%offset;ld.u64 %base,[%pointer];ld.u64 %bytes,[%pointer+8];add.u64 %end,%base,%bytes;add.u64 %stop,%scratch,449838528;setp.ge.u64 %p,%base,%scratch;setp.le.u64 %q,%end,%stop;and.pred %p,%p,%q;@%p bra NEXT_INVENTORY_ROW;add.u64 %stop,%model,4275088;setp.ge.u64 %p,%base,%model;setp.le.u64 %q,%end,%stop;and.pred %p,%p,%q;@%p bra NEXT_INVENTORY_ROW;setp.eq.u64 %p,%base,%prospective;@%p bra NEXT_INVENTORY_ROW;setp.eq.u64 %p,%base,%childctx;@%p bra NEXT_INVENTORY_ROW;ld.u64 %owner,[%radactrecord+64];setp.eq.u64 %p,%base,%owner;setp.eq.u64 %q,%bytes,24;and.pred %p,%p,%q;@%p bra NEXT_INVENTORY_ROW;setp.eq.u64 %p,%bytes,8;@!%p bra APPEND_INVENTORY_ROW;mov.u32 %j,0;INVENTORY_COUNTER_LOOKUP:setp.ge.u32 %p,%j,%countercount;@%p bra APPEND_INVENTORY_ROW;mul.wide.u32 %offset,%j,8;add.u64 %pointer,%counters,%offset;ld.u64 %owner,[%pointer];setp.eq.u64 %p,%owner,%base;@%p bra NEXT_INVENTORY_ROW;add.u32 %j,%j,1;bra INVENTORY_COUNTER_LOOKUP;APPEND_INVENTORY_ROW:
 st.param.u64 [rb],%base;st.param.u64 [rn],%bytes;st.param.u64 [rm],0;st.param.u64 [rl],%rows;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),grid_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
 mov.u32 %error,7831;setp.ge.u32 %p,%count,1024;@%p bra RETURN;
 mul.wide.u32 %offset,%count,16;add.u64 %pointer,%rows,%offset;st.u64 [%pointer],%base;st.u64 [%pointer+8],%bytes;add.u32 %count,%count,1;
