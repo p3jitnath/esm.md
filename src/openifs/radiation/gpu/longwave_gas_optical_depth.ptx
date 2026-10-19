@@ -1,0 +1,1684 @@
+// Contract: skills/md2asm-gpu/references/openifs/radiation/longwave_gas_optical_depth.md
+// Complete RRTM_GAS_OPTICAL_DEPTH from skills/md2asm-gpu/references/openifs/radiation/longwave_gas_optical_depth.md revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol1_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol1_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol2_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol2_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_rrtm_taumol3_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol3_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol4_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol4_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol5_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol5_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_rrtm_taumol6_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol6_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_rrtm_taumol7_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol7_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_rrtm_taumol8_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol8_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_rrtm_taumol9_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol9_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol10_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol10_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol11_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol11_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol12_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol12_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_rrtm_taumol13_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol13_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol14_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol14_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol15_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol15_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol16_values(.param .u64 vector,.param .u64 record);
+.extern .func (.param .u32 r) md2asm_gpu_rrtm_taumol16_admit(.param .u64 vector,.param .u64 context);
+.func (.param .u32 result) optical_parent_range(.param .u64 base,.param .u64 bytes,.param .u64 mask,.param .u64 owners,.param .u32 count)
+{
+ .reg .u64 %b,%n,%m,%list,%t,%end,%o,%on,%oe; .reg .u32 %i,%count,%e; .reg .pred %p,%q;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %m,[mask]; ld.param.u64 %list,[owners]; ld.param.u32 %count,[count];
+ mov.u32 %e,0; setp.eq.u64 %p,%n,0; @%p bra RANGE_DONE;
+ mov.u32 %e,713; setp.eq.u64 %p,%b,0; @%p bra RANGE_DONE; and.b64 %t,%b,%m; setp.ne.u64 %p,%t,0; @%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra RANGE_DONE; setp.gt.u64 %p,%n,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ add.u64 %end,%b,%n; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ mov.u32 %i,0;
+RANGE_OWNERS:
+ setp.ge.u32 %p,%i,%count; @%p bra RANGE_OK; ld.u64 %o,[%list]; ld.u64 %on,[%list+8]; setp.eq.u64 %p,%on,0; @%p bra RANGE_NEXT;
+ add.u64 %oe,%o,%on; setp.lt.u64 %p,%b,%oe; setp.lt.u64 %q,%o,%end; and.pred %p,%p,%q; @%p bra RANGE_DONE;
+RANGE_NEXT: add.u64 %list,%list,16; add.u32 %i,%i,1; bra RANGE_OWNERS;
+RANGE_OK: mov.u32 %e,0;
+RANGE_DONE: st.param.u32 [result],%e; ret;
+}
+
+
+.visible .func (.param .align 8 .b8 result[32]) md2asm_gpu_rrtm_gas_optical_depth_values(.param .u64 original_vector,.param .u64 table_addresses,.param .u64 private_scratch)
+{
+.reg .u64 %args,%record,%scratch,%v<51>,%tau,%planck,%vector,%bytes,%row,%offset,%source,%dest,%word,%address,%tmp,%tmp2,%event,%fast,%wide,%inc,%base,%cells;
+.reg .u32 %B,%H,%V,%first,%last,%c,%g,%l,%flags,%raised;.reg .pred %p;
+.param .u64 va,vr;.param .u32 simple;.param .align 8 .b8 child[32];
+ld.param.u64 %args,[original_vector];ld.param.u64 %record,[table_addresses];ld.param.u64 %scratch,[private_scratch];
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ld.global.u64 %v5,[%args+40];
+ld.global.u64 %v6,[%args+48];
+ld.global.u64 %v7,[%args+56];
+ld.global.u64 %v8,[%args+64];
+ld.global.u64 %v9,[%args+72];
+ld.global.u64 %v10,[%args+80];
+ld.global.u64 %v11,[%args+88];
+ld.global.u64 %v12,[%args+96];
+ld.global.u64 %v13,[%args+104];
+ld.global.u64 %v14,[%args+112];
+ld.global.u64 %v15,[%args+120];
+ld.global.u64 %v16,[%args+128];
+ld.global.u64 %v17,[%args+136];
+ld.global.u64 %v18,[%args+144];
+ld.global.u64 %v19,[%args+152];
+ld.global.u64 %v20,[%args+160];
+ld.global.u64 %v21,[%args+168];
+ld.global.u64 %v22,[%args+176];
+ld.global.u64 %v23,[%args+184];
+ld.global.u64 %v24,[%args+192];
+ld.global.u64 %v25,[%args+200];
+ld.global.u64 %v26,[%args+208];
+ld.global.u64 %v27,[%args+216];
+ld.global.u64 %v28,[%args+224];
+ld.global.u64 %v29,[%args+232];
+ld.global.u64 %v30,[%args+240];
+ld.global.u64 %v31,[%args+248];
+ld.global.u64 %v32,[%args+256];
+ld.global.u64 %v33,[%args+264];
+ld.global.u64 %v34,[%args+272];
+ld.global.u64 %v35,[%args+280];
+ld.global.u64 %v36,[%args+288];
+ld.global.u64 %v37,[%args+296];
+ld.global.u64 %v38,[%args+304];
+ld.global.u64 %v39,[%args+312];
+ld.global.u64 %v40,[%args+320];
+ld.global.u64 %v41,[%args+328];
+ld.global.u64 %v42,[%args+336];
+ld.global.u64 %v43,[%args+344];
+ld.global.u64 %v44,[%args+352];
+ld.global.u64 %v45,[%args+360];
+ld.global.u64 %v46,[%args+368];
+ld.global.u64 %v47,[%args+376];
+ld.global.u64 %v48,[%args+384];
+ld.global.u64 %v49,[%args+392];
+ld.global.u64 %v50,[%args+400];
+ld.global.u32 %V,[%v0];ld.global.u32 %first,[%v1];ld.global.u32 %last,[%v2];ld.global.u32 %H,[%v3];sub.u32 %B,%last,%first;add.u32 %B,%B,1;mul.wide.u32 %bytes,%B,%V;mul.lo.u64 %bytes,%bytes,1120;add.u64 %tau,%scratch,512;add.u64 %planck,%tau,%bytes;mov.u64 %vector,%scratch;mov.u64 %offset,0;mov.u32 %flags,0;mov.u64 %event,0;mov.u64 %fast,0;mov.u64 %wide,0;mul.wide.u32 %cells,%B,%H;
+COPY_IN:setp.ge.u64 %p,%offset,%bytes;@%p bra BANDS;add.u64 %source,%v34,%offset;ld.global.b64 %word,[%source];add.u64 %dest,%planck,%offset;st.global.b64 [%dest],%word;add.u64 %offset,%offset,8;bra COPY_IN;
+BANDS:
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%tau;
+st.global.u64 [%vector+40],%v5;
+st.global.u64 [%vector+48],%v9;
+st.global.u64 [%vector+56],%v10;
+st.global.u64 [%vector+64],%v11;
+st.global.u64 [%vector+72],%v12;
+st.global.u64 [%vector+80],%v13;
+st.global.u64 [%vector+88],%v14;
+st.global.u64 [%vector+96],%v15;
+st.global.u64 [%vector+104],%v16;
+st.global.u64 [%vector+112],%v17;
+st.global.u64 [%vector+120],%v18;
+st.global.u64 [%vector+128],%v19;
+st.global.u64 [%vector+136],%v21;
+st.global.u64 [%vector+144],%v28;
+st.global.u64 [%vector+152],%v31;
+st.global.u64 [%vector+160],%v32;
+st.global.u64 [%vector+168],%v33;
+st.global.u64 [%vector+176],%planck;
+st.global.u64 [%vector+184],%v38;
+st.global.u64 [%vector+192],%v35;
+st.global.u64 [%vector+200],%v37;
+st.global.u64 [%vector+208],%v7;
+add.u64 %address,%record,0;st.param.u64 [va],%vector;st.param.u64 [vr],%address;call.uni (simple),md2asm_gpu_rrtm_taumol1_values, (va,vr);
+ld.param.u32 %raised,[simple];or.b32 %flags,%flags,%raised;
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%tau;
+st.global.u64 [%vector+40],%v5;
+st.global.u64 [%vector+48],%v6;
+st.global.u64 [%vector+56],%v9;
+st.global.u64 [%vector+64],%v10;
+st.global.u64 [%vector+72],%v11;
+st.global.u64 [%vector+80],%v12;
+st.global.u64 [%vector+88],%v13;
+st.global.u64 [%vector+96],%v14;
+st.global.u64 [%vector+104],%v15;
+st.global.u64 [%vector+112],%v16;
+st.global.u64 [%vector+120],%v17;
+st.global.u64 [%vector+128],%v18;
+st.global.u64 [%vector+136],%v19;
+st.global.u64 [%vector+144],%v21;
+st.global.u64 [%vector+152],%v28;
+st.global.u64 [%vector+160],%v31;
+st.global.u64 [%vector+168],%v32;
+st.global.u64 [%vector+176],%v33;
+st.global.u64 [%vector+184],%planck;
+add.u64 %address,%record,80;st.param.u64 [va],%vector;st.param.u64 [vr],%address;call.uni (simple),md2asm_gpu_rrtm_taumol2_values, (va,vr);
+ld.param.u32 %raised,[simple];or.b32 %flags,%flags,%raised;
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%tau;
+st.global.u64 [%vector+40],%v9;
+st.global.u64 [%vector+48],%v10;
+st.global.u64 [%vector+56],%v11;
+st.global.u64 [%vector+64],%v12;
+st.global.u64 [%vector+72],%v13;
+st.global.u64 [%vector+80],%v14;
+st.global.u64 [%vector+88],%v15;
+st.global.u64 [%vector+96],%v16;
+st.global.u64 [%vector+104],%v17;
+st.global.u64 [%vector+112],%v18;
+st.global.u64 [%vector+120],%v19;
+st.global.u64 [%vector+128],%v20;
+st.global.u64 [%vector+136],%v21;
+st.global.u64 [%vector+144],%v22;
+st.global.u64 [%vector+152],%v24;
+st.global.u64 [%vector+160],%v6;
+st.global.u64 [%vector+168],%v28;
+st.global.u64 [%vector+176],%v31;
+st.global.u64 [%vector+184],%v32;
+st.global.u64 [%vector+192],%v33;
+st.global.u64 [%vector+200],%planck;
+st.global.u64 [%vector+208],%v39;
+st.global.u64 [%vector+216],%v40;
+st.global.u64 [%vector+224],%v38;
+st.global.u64 [%vector+232],%v35;
+add.u64 %address,%record,144;st.param.u64 [va],%vector;st.param.u64 [vr],%address;call.uni (child),md2asm_gpu_rrtm_taumol3_values, (va,vr);
+ld.param.u32 %raised,[child];or.b32 %flags,%flags,%raised;ld.param.u64 %inc,[child+16];add.u64 %fast,%fast,%inc;ld.param.u64 %inc,[child+24];add.u64 %wide,%wide,%inc;ld.param.u64 %tmp,[child+8];setp.eq.u64 %p,%tmp,0;@%p bra NO_EVENT_3;mul.lo.u64 %base,%cells,2;shl.b64 %base,%base,8;add.u64 %event,%base,%tmp;
+NO_EVENT_3:
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%tau;
+st.global.u64 [%vector+40],%v9;
+st.global.u64 [%vector+48],%v10;
+st.global.u64 [%vector+56],%v11;
+st.global.u64 [%vector+64],%v12;
+st.global.u64 [%vector+72],%v13;
+st.global.u64 [%vector+80],%v14;
+st.global.u64 [%vector+88],%v15;
+st.global.u64 [%vector+96],%v16;
+st.global.u64 [%vector+104],%v17;
+st.global.u64 [%vector+112],%v18;
+st.global.u64 [%vector+120],%v19;
+st.global.u64 [%vector+128],%v20;
+st.global.u64 [%vector+136],%v21;
+st.global.u64 [%vector+144],%v22;
+st.global.u64 [%vector+152],%v23;
+st.global.u64 [%vector+160],%v28;
+st.global.u64 [%vector+168],%v31;
+st.global.u64 [%vector+176],%v32;
+st.global.u64 [%vector+184],%v33;
+st.global.u64 [%vector+192],%planck;
+st.global.u64 [%vector+200],%v39;
+st.global.u64 [%vector+208],%v40;
+st.global.u64 [%vector+216],%v49;
+st.global.u64 [%vector+224],%v50;
+add.u64 %address,%record,232;st.param.u64 [va],%vector;st.param.u64 [vr],%address;call.uni (simple),md2asm_gpu_rrtm_taumol4_values, (va,vr);
+ld.param.u32 %raised,[simple];or.b32 %flags,%flags,%raised;
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%tau;
+st.global.u64 [%vector+40],%v8;
+st.global.u64 [%vector+48],%v9;
+st.global.u64 [%vector+56],%v10;
+st.global.u64 [%vector+64],%v11;
+st.global.u64 [%vector+72],%v12;
+st.global.u64 [%vector+80],%v13;
+st.global.u64 [%vector+88],%v14;
+st.global.u64 [%vector+96],%v15;
+st.global.u64 [%vector+104],%v16;
+st.global.u64 [%vector+112],%v17;
+st.global.u64 [%vector+120],%v18;
+st.global.u64 [%vector+128],%v19;
+st.global.u64 [%vector+136],%v20;
+st.global.u64 [%vector+144],%v21;
+st.global.u64 [%vector+152],%v22;
+st.global.u64 [%vector+160],%v23;
+st.global.u64 [%vector+168],%v28;
+st.global.u64 [%vector+176],%v31;
+st.global.u64 [%vector+184],%v32;
+st.global.u64 [%vector+192],%v33;
+st.global.u64 [%vector+200],%planck;
+st.global.u64 [%vector+208],%v39;
+st.global.u64 [%vector+216],%v40;
+st.global.u64 [%vector+224],%v49;
+st.global.u64 [%vector+232],%v50;
+st.global.u64 [%vector+240],%v38;
+st.global.u64 [%vector+248],%v35;
+add.u64 %address,%record,304;st.param.u64 [va],%vector;st.param.u64 [vr],%address;call.uni (simple),md2asm_gpu_rrtm_taumol5_values, (va,vr);
+ld.param.u32 %raised,[simple];or.b32 %flags,%flags,%raised;
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%tau;
+st.global.u64 [%vector+40],%v8;
+st.global.u64 [%vector+48],%v9;
+st.global.u64 [%vector+56],%v10;
+st.global.u64 [%vector+64],%v11;
+st.global.u64 [%vector+72],%v12;
+st.global.u64 [%vector+80],%v13;
+st.global.u64 [%vector+88],%v14;
+st.global.u64 [%vector+96],%v15;
+st.global.u64 [%vector+104],%v16;
+st.global.u64 [%vector+112],%v17;
+st.global.u64 [%vector+120],%v18;
+st.global.u64 [%vector+128],%v19;
+st.global.u64 [%vector+136],%v21;
+st.global.u64 [%vector+144],%v22;
+st.global.u64 [%vector+152],%v6;
+st.global.u64 [%vector+160],%v28;
+st.global.u64 [%vector+168],%v31;
+st.global.u64 [%vector+176],%v32;
+st.global.u64 [%vector+184],%v33;
+st.global.u64 [%vector+192],%planck;
+st.global.u64 [%vector+200],%v38;
+st.global.u64 [%vector+208],%v35;
+add.u64 %address,%record,392;st.param.u64 [va],%vector;st.param.u64 [vr],%address;call.uni (child),md2asm_gpu_rrtm_taumol6_values, (va,vr);
+ld.param.u32 %raised,[child];or.b32 %flags,%flags,%raised;ld.param.u64 %inc,[child+16];add.u64 %fast,%fast,%inc;ld.param.u64 %inc,[child+24];add.u64 %wide,%wide,%inc;ld.param.u64 %tmp,[child+8];setp.eq.u64 %p,%tmp,0;@%p bra NO_EVENT_6;mul.lo.u64 %base,%cells,5;shl.b64 %base,%base,8;add.u64 %event,%base,%tmp;
+NO_EVENT_6:
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%tau;
+st.global.u64 [%vector+40],%v9;
+st.global.u64 [%vector+48],%v10;
+st.global.u64 [%vector+56],%v11;
+st.global.u64 [%vector+64],%v12;
+st.global.u64 [%vector+72],%v13;
+st.global.u64 [%vector+80],%v14;
+st.global.u64 [%vector+88],%v15;
+st.global.u64 [%vector+96],%v16;
+st.global.u64 [%vector+104],%v17;
+st.global.u64 [%vector+112],%v18;
+st.global.u64 [%vector+120],%v19;
+st.global.u64 [%vector+128],%v20;
+st.global.u64 [%vector+136],%v21;
+st.global.u64 [%vector+144],%v23;
+st.global.u64 [%vector+152],%v22;
+st.global.u64 [%vector+160],%v6;
+st.global.u64 [%vector+168],%v28;
+st.global.u64 [%vector+176],%v31;
+st.global.u64 [%vector+184],%v32;
+st.global.u64 [%vector+192],%v33;
+st.global.u64 [%vector+200],%planck;
+st.global.u64 [%vector+208],%v41;
+st.global.u64 [%vector+216],%v42;
+st.global.u64 [%vector+224],%v38;
+st.global.u64 [%vector+232],%v35;
+add.u64 %address,%record,464;st.param.u64 [va],%vector;st.param.u64 [vr],%address;call.uni (child),md2asm_gpu_rrtm_taumol7_values, (va,vr);
+ld.param.u32 %raised,[child];or.b32 %flags,%flags,%raised;ld.param.u64 %inc,[child+16];add.u64 %fast,%fast,%inc;ld.param.u64 %inc,[child+24];add.u64 %wide,%wide,%inc;ld.param.u64 %tmp,[child+8];setp.eq.u64 %p,%tmp,0;@%p bra NO_EVENT_7;mul.lo.u64 %base,%cells,6;shl.b64 %base,%base,8;add.u64 %event,%base,%tmp;
+NO_EVENT_7:
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%tau;
+st.global.u64 [%vector+40],%v8;
+st.global.u64 [%vector+48],%v9;
+st.global.u64 [%vector+56],%v10;
+st.global.u64 [%vector+64],%v11;
+st.global.u64 [%vector+72],%v12;
+st.global.u64 [%vector+80],%v13;
+st.global.u64 [%vector+88],%v14;
+st.global.u64 [%vector+96],%v15;
+st.global.u64 [%vector+104],%v16;
+st.global.u64 [%vector+112],%v17;
+st.global.u64 [%vector+120],%v18;
+st.global.u64 [%vector+128],%v19;
+st.global.u64 [%vector+136],%v21;
+st.global.u64 [%vector+144],%v23;
+st.global.u64 [%vector+152],%v24;
+st.global.u64 [%vector+160],%v22;
+st.global.u64 [%vector+168],%v6;
+st.global.u64 [%vector+176],%v28;
+st.global.u64 [%vector+184],%v31;
+st.global.u64 [%vector+192],%v32;
+st.global.u64 [%vector+200],%v33;
+st.global.u64 [%vector+208],%planck;
+st.global.u64 [%vector+216],%v38;
+st.global.u64 [%vector+224],%v35;
+add.u64 %address,%record,552;st.param.u64 [va],%vector;st.param.u64 [vr],%address;call.uni (child),md2asm_gpu_rrtm_taumol8_values, (va,vr);
+ld.param.u32 %raised,[child];or.b32 %flags,%flags,%raised;ld.param.u64 %inc,[child+16];add.u64 %fast,%fast,%inc;ld.param.u64 %inc,[child+24];add.u64 %wide,%wide,%inc;ld.param.u64 %tmp,[child+8];setp.eq.u64 %p,%tmp,0;@%p bra NO_EVENT_8;mul.lo.u64 %base,%cells,7;shl.b64 %base,%base,8;add.u64 %event,%base,%tmp;
+NO_EVENT_8:
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%tau;
+st.global.u64 [%vector+40],%v9;
+st.global.u64 [%vector+48],%v10;
+st.global.u64 [%vector+56],%v11;
+st.global.u64 [%vector+64],%v12;
+st.global.u64 [%vector+72],%v13;
+st.global.u64 [%vector+80],%v14;
+st.global.u64 [%vector+88],%v15;
+st.global.u64 [%vector+96],%v16;
+st.global.u64 [%vector+104],%v17;
+st.global.u64 [%vector+112],%v18;
+st.global.u64 [%vector+120],%v19;
+st.global.u64 [%vector+128],%v20;
+st.global.u64 [%vector+136],%v21;
+st.global.u64 [%vector+144],%v24;
+st.global.u64 [%vector+152],%v25;
+st.global.u64 [%vector+160],%v6;
+st.global.u64 [%vector+168],%v28;
+st.global.u64 [%vector+176],%v29;
+st.global.u64 [%vector+184],%v30;
+st.global.u64 [%vector+192],%v31;
+st.global.u64 [%vector+200],%v32;
+st.global.u64 [%vector+208],%v33;
+st.global.u64 [%vector+216],%planck;
+st.global.u64 [%vector+224],%v45;
+st.global.u64 [%vector+232],%v46;
+st.global.u64 [%vector+240],%v38;
+st.global.u64 [%vector+248],%v35;
+add.u64 %address,%record,680;st.param.u64 [va],%vector;st.param.u64 [vr],%address;call.uni (child),md2asm_gpu_rrtm_taumol9_values, (va,vr);
+ld.param.u32 %raised,[child];or.b32 %flags,%flags,%raised;ld.param.u64 %inc,[child+16];add.u64 %fast,%fast,%inc;ld.param.u64 %inc,[child+24];add.u64 %wide,%wide,%inc;ld.param.u64 %tmp,[child+8];setp.eq.u64 %p,%tmp,0;@%p bra NO_EVENT_9;mul.lo.u64 %base,%cells,8;shl.b64 %base,%base,8;add.u64 %event,%base,%tmp;
+NO_EVENT_9:
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%tau;
+st.global.u64 [%vector+40],%v9;
+st.global.u64 [%vector+48],%v10;
+st.global.u64 [%vector+56],%v11;
+st.global.u64 [%vector+64],%v12;
+st.global.u64 [%vector+72],%v13;
+st.global.u64 [%vector+80],%v14;
+st.global.u64 [%vector+88],%v15;
+st.global.u64 [%vector+96],%v16;
+st.global.u64 [%vector+104],%v17;
+st.global.u64 [%vector+112],%v18;
+st.global.u64 [%vector+120],%v19;
+st.global.u64 [%vector+128],%v21;
+st.global.u64 [%vector+136],%v28;
+st.global.u64 [%vector+144],%v31;
+st.global.u64 [%vector+152],%v32;
+st.global.u64 [%vector+160],%v33;
+st.global.u64 [%vector+168],%planck;
+add.u64 %address,%record,768;st.param.u64 [va],%vector;st.param.u64 [vr],%address;call.uni (simple),md2asm_gpu_rrtm_taumol10_values, (va,vr);
+ld.param.u32 %raised,[simple];or.b32 %flags,%flags,%raised;
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%tau;
+st.global.u64 [%vector+40],%v9;
+st.global.u64 [%vector+48],%v10;
+st.global.u64 [%vector+56],%v11;
+st.global.u64 [%vector+64],%v12;
+st.global.u64 [%vector+72],%v13;
+st.global.u64 [%vector+80],%v14;
+st.global.u64 [%vector+88],%v15;
+st.global.u64 [%vector+96],%v16;
+st.global.u64 [%vector+104],%v17;
+st.global.u64 [%vector+112],%v18;
+st.global.u64 [%vector+120],%v19;
+st.global.u64 [%vector+128],%v21;
+st.global.u64 [%vector+136],%v26;
+st.global.u64 [%vector+144],%v28;
+st.global.u64 [%vector+152],%v31;
+st.global.u64 [%vector+160],%v32;
+st.global.u64 [%vector+168],%v33;
+st.global.u64 [%vector+176],%planck;
+st.global.u64 [%vector+184],%v38;
+st.global.u64 [%vector+192],%v35;
+st.global.u64 [%vector+200],%v36;
+add.u64 %address,%record,832;st.param.u64 [va],%vector;st.param.u64 [vr],%address;call.uni (simple),md2asm_gpu_rrtm_taumol11_values, (va,vr);
+ld.param.u32 %raised,[simple];or.b32 %flags,%flags,%raised;
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%tau;
+st.global.u64 [%vector+40],%v9;
+st.global.u64 [%vector+48],%v10;
+st.global.u64 [%vector+56],%v11;
+st.global.u64 [%vector+64],%v12;
+st.global.u64 [%vector+72],%v13;
+st.global.u64 [%vector+80],%v14;
+st.global.u64 [%vector+88],%v15;
+st.global.u64 [%vector+96],%v16;
+st.global.u64 [%vector+104],%v17;
+st.global.u64 [%vector+112],%v18;
+st.global.u64 [%vector+120],%v19;
+st.global.u64 [%vector+128],%v20;
+st.global.u64 [%vector+136],%v21;
+st.global.u64 [%vector+144],%v22;
+st.global.u64 [%vector+152],%v28;
+st.global.u64 [%vector+160],%v31;
+st.global.u64 [%vector+168],%v32;
+st.global.u64 [%vector+176],%v33;
+st.global.u64 [%vector+184],%planck;
+st.global.u64 [%vector+192],%v39;
+st.global.u64 [%vector+200],%v40;
+add.u64 %address,%record,912;st.param.u64 [va],%vector;st.param.u64 [vr],%address;call.uni (simple),md2asm_gpu_rrtm_taumol12_values, (va,vr);
+ld.param.u32 %raised,[simple];or.b32 %flags,%flags,%raised;
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%tau;
+st.global.u64 [%vector+40],%v9;
+st.global.u64 [%vector+48],%v10;
+st.global.u64 [%vector+56],%v11;
+st.global.u64 [%vector+64],%v12;
+st.global.u64 [%vector+72],%v13;
+st.global.u64 [%vector+80],%v14;
+st.global.u64 [%vector+88],%v15;
+st.global.u64 [%vector+96],%v16;
+st.global.u64 [%vector+104],%v17;
+st.global.u64 [%vector+112],%v18;
+st.global.u64 [%vector+120],%v19;
+st.global.u64 [%vector+128],%v20;
+st.global.u64 [%vector+136],%v21;
+st.global.u64 [%vector+144],%v24;
+st.global.u64 [%vector+152],%v22;
+st.global.u64 [%vector+160],%v23;
+st.global.u64 [%vector+168],%v6;
+st.global.u64 [%vector+176],%v28;
+st.global.u64 [%vector+184],%v31;
+st.global.u64 [%vector+192],%v32;
+st.global.u64 [%vector+200],%v33;
+st.global.u64 [%vector+208],%planck;
+st.global.u64 [%vector+216],%v43;
+st.global.u64 [%vector+224],%v44;
+st.global.u64 [%vector+232],%v38;
+st.global.u64 [%vector+240],%v35;
+add.u64 %address,%record,960;st.param.u64 [va],%vector;st.param.u64 [vr],%address;call.uni (child),md2asm_gpu_rrtm_taumol13_values, (va,vr);
+ld.param.u32 %raised,[child];or.b32 %flags,%flags,%raised;ld.param.u64 %inc,[child+16];add.u64 %fast,%fast,%inc;ld.param.u64 %inc,[child+24];add.u64 %wide,%wide,%inc;ld.param.u64 %tmp,[child+8];setp.eq.u64 %p,%tmp,0;@%p bra NO_EVENT_13;mul.lo.u64 %base,%cells,12;shl.b64 %base,%base,8;add.u64 %event,%base,%tmp;
+NO_EVENT_13:
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%tau;
+st.global.u64 [%vector+40],%v9;
+st.global.u64 [%vector+48],%v10;
+st.global.u64 [%vector+56],%v11;
+st.global.u64 [%vector+64],%v12;
+st.global.u64 [%vector+72],%v13;
+st.global.u64 [%vector+80],%v14;
+st.global.u64 [%vector+88],%v15;
+st.global.u64 [%vector+96],%v16;
+st.global.u64 [%vector+104],%v17;
+st.global.u64 [%vector+112],%v18;
+st.global.u64 [%vector+120],%v19;
+st.global.u64 [%vector+128],%v22;
+st.global.u64 [%vector+136],%v28;
+st.global.u64 [%vector+144],%v31;
+st.global.u64 [%vector+152],%v32;
+st.global.u64 [%vector+160],%v33;
+st.global.u64 [%vector+168],%planck;
+add.u64 %address,%record,1040;st.param.u64 [va],%vector;st.param.u64 [vr],%address;call.uni (simple),md2asm_gpu_rrtm_taumol14_values, (va,vr);
+ld.param.u32 %raised,[simple];or.b32 %flags,%flags,%raised;
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%tau;
+st.global.u64 [%vector+40],%v9;
+st.global.u64 [%vector+48],%v10;
+st.global.u64 [%vector+56],%v11;
+st.global.u64 [%vector+64],%v12;
+st.global.u64 [%vector+72],%v13;
+st.global.u64 [%vector+80],%v14;
+st.global.u64 [%vector+88],%v15;
+st.global.u64 [%vector+96],%v16;
+st.global.u64 [%vector+104],%v17;
+st.global.u64 [%vector+112],%v18;
+st.global.u64 [%vector+120],%v19;
+st.global.u64 [%vector+128],%v20;
+st.global.u64 [%vector+136],%v21;
+st.global.u64 [%vector+144],%v22;
+st.global.u64 [%vector+152],%v24;
+st.global.u64 [%vector+160],%v28;
+st.global.u64 [%vector+168],%v31;
+st.global.u64 [%vector+176],%v32;
+st.global.u64 [%vector+184],%v33;
+st.global.u64 [%vector+192],%planck;
+st.global.u64 [%vector+200],%v47;
+st.global.u64 [%vector+208],%v48;
+st.global.u64 [%vector+216],%v38;
+st.global.u64 [%vector+224],%v35;
+st.global.u64 [%vector+232],%v36;
+st.global.u64 [%vector+240],%v7;
+add.u64 %address,%record,1104;st.param.u64 [va],%vector;st.param.u64 [vr],%address;call.uni (simple),md2asm_gpu_rrtm_taumol15_values, (va,vr);
+ld.param.u32 %raised,[simple];or.b32 %flags,%flags,%raised;
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%tau;
+st.global.u64 [%vector+40],%v9;
+st.global.u64 [%vector+48],%v10;
+st.global.u64 [%vector+56],%v11;
+st.global.u64 [%vector+64],%v12;
+st.global.u64 [%vector+72],%v13;
+st.global.u64 [%vector+80],%v14;
+st.global.u64 [%vector+88],%v15;
+st.global.u64 [%vector+96],%v16;
+st.global.u64 [%vector+104],%v17;
+st.global.u64 [%vector+112],%v18;
+st.global.u64 [%vector+120],%v19;
+st.global.u64 [%vector+128],%v20;
+st.global.u64 [%vector+136],%v21;
+st.global.u64 [%vector+144],%v25;
+st.global.u64 [%vector+152],%v28;
+st.global.u64 [%vector+160],%v31;
+st.global.u64 [%vector+168],%v32;
+st.global.u64 [%vector+176],%v33;
+st.global.u64 [%vector+184],%planck;
+st.global.u64 [%vector+192],%v45;
+st.global.u64 [%vector+200],%v46;
+add.u64 %address,%record,1160;st.param.u64 [va],%vector;st.param.u64 [vr],%address;call.uni (simple),md2asm_gpu_rrtm_taumol16_values, (va,vr);
+ld.param.u32 %raised,[simple];or.b32 %flags,%flags,%raised;
+setp.eq.u32 %p,%B,0;@%p bra FINISH;setp.eq.u32 %p,%H,0;@%p bra COPY_BACK_START;mov.u32 %l,0;
+COPY_LAYER:mov.u32 %g,0;
+COPY_POINT:mov.u32 %c,0;
+COPY_COLUMN:mul.wide.u32 %row,%l,140;cvt.u64.u32 %tmp,%g;add.u64 %row,%row,%tmp;cvt.u64.u32 %tmp,%B;mul.lo.u64 %row,%row,%tmp;cvt.u64.u32 %tmp,%c;add.u64 %row,%row,%tmp;shl.b64 %row,%row,3;add.u64 %source,%tau,%row;ld.global.b64 %word,[%source];mul.wide.u32 %row,%c,%V;cvt.u64.u32 %tmp,%l;add.u64 %row,%row,%tmp;mul.lo.u64 %row,%row,140;cvt.u64.u32 %tmp,%g;add.u64 %row,%row,%tmp;shl.b64 %row,%row,3;add.u64 %dest,%v4,%row;st.global.b64 [%dest],%word;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%B;@%p bra COPY_COLUMN;add.u32 %g,%g,1;setp.lt.u32 %p,%g,140;@%p bra COPY_POINT;add.u32 %l,%l,1;setp.lt.u32 %p,%l,%H;@%p bra COPY_LAYER;
+COPY_BACK_START:mov.u64 %offset,0;
+COPY_BACK:setp.ge.u64 %p,%offset,%bytes;@%p bra FINISH;add.u64 %source,%planck,%offset;ld.global.b64 %word,[%source];add.u64 %dest,%v34,%offset;st.global.b64 [%dest],%word;add.u64 %offset,%offset,8;bra COPY_BACK;
+FINISH:st.param.u32 [result],%flags;st.param.u32 [result+4],0;st.param.u64 [result+8],%event;st.param.u64 [result+16],%fast;st.param.u64 [result+24],%wide;ret;
+}
+.visible .func (.param .u32 result) md2asm_gpu_rrtm_gas_optical_depth_admit(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u64 %args,%ctx,%v<51>,%record,%recordbytes,%scratch,%scratchbytes,%need,%bytes,%realbytes,%intbytes,%columns,%tracebytes,%aerbytes,%list,%vector,%childctx,%tau,%planck,%pointer,%size,%tmp,%address,%fastowner,%wideowner,%fastbytes,%widebytes,%cap;
+.reg .u32 %error,%rt,%B,%H,%V,%first,%last,%j,%trop,%lower,%upper;.reg .pred %p;
+.local .align 8 .b8 owners[96],prospective_vector[256],prospective_context[64];
+.param .u64 rb,rn,rm,rl,ca,cc;.param .u32 rc,rr,admission;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];mov.u32 %error,711;setp.eq.u64 %p,%ctx,0;@%p bra REFUSE;and.b64 %tmp,%ctx,7;setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;mov.u64 %list,owners;cvta.local.u64 %list,%list;st.u64 [%list],%ctx;st.u64 [%list+8],64;
+st.param.u64 [rb],%args;st.param.u64 [rn],408;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ld.global.u64 %v5,[%args+40];
+ld.global.u64 %v6,[%args+48];
+ld.global.u64 %v7,[%args+56];
+ld.global.u64 %v8,[%args+64];
+ld.global.u64 %v9,[%args+72];
+ld.global.u64 %v10,[%args+80];
+ld.global.u64 %v11,[%args+88];
+ld.global.u64 %v12,[%args+96];
+ld.global.u64 %v13,[%args+104];
+ld.global.u64 %v14,[%args+112];
+ld.global.u64 %v15,[%args+120];
+ld.global.u64 %v16,[%args+128];
+ld.global.u64 %v17,[%args+136];
+ld.global.u64 %v18,[%args+144];
+ld.global.u64 %v19,[%args+152];
+ld.global.u64 %v20,[%args+160];
+ld.global.u64 %v21,[%args+168];
+ld.global.u64 %v22,[%args+176];
+ld.global.u64 %v23,[%args+184];
+ld.global.u64 %v24,[%args+192];
+ld.global.u64 %v25,[%args+200];
+ld.global.u64 %v26,[%args+208];
+ld.global.u64 %v27,[%args+216];
+ld.global.u64 %v28,[%args+224];
+ld.global.u64 %v29,[%args+232];
+ld.global.u64 %v30,[%args+240];
+ld.global.u64 %v31,[%args+248];
+ld.global.u64 %v32,[%args+256];
+ld.global.u64 %v33,[%args+264];
+ld.global.u64 %v34,[%args+272];
+ld.global.u64 %v35,[%args+280];
+ld.global.u64 %v36,[%args+288];
+ld.global.u64 %v37,[%args+296];
+ld.global.u64 %v38,[%args+304];
+ld.global.u64 %v39,[%args+312];
+ld.global.u64 %v40,[%args+320];
+ld.global.u64 %v41,[%args+328];
+ld.global.u64 %v42,[%args+336];
+ld.global.u64 %v43,[%args+344];
+ld.global.u64 %v44,[%args+352];
+ld.global.u64 %v45,[%args+360];
+ld.global.u64 %v46,[%args+368];
+ld.global.u64 %v47,[%args+376];
+ld.global.u64 %v48,[%args+384];
+ld.global.u64 %v49,[%args+392];
+ld.global.u64 %v50,[%args+400];
+st.param.u64 [rb],%v0;st.param.u64 [rn],32;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v1;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v2;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v3;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u32 %V,[%v0];ld.global.u32 %first,[%v1];ld.global.u32 %last,[%v2];ld.global.u32 %H,[%v3];mov.u32 %error,712;setp.lt.s32 %p,%first,1;@%p bra REFUSE;sub.u32 %rt,%first,1;setp.lt.s32 %p,%last,%rt;@%p bra REFUSE;sub.u32 %B,%last,%first;add.u32 %B,%B,1;setp.gt.u32 %p,%B,4096;@%p bra REFUSE;setp.gt.u32 %p,%V,512;@%p bra REFUSE;setp.gt.u32 %p,%H,%V;@%p bra REFUSE;mul.wide.u32 %realbytes,%B,%V;shl.b64 %intbytes,%realbytes,2;shl.b64 %realbytes,%realbytes,3;mul.lo.u64 %bytes,%realbytes,140;mul.wide.u32 %columns,%B,4;mul.lo.u64 %tracebytes,%realbytes,4;mul.lo.u64 %aerbytes,%realbytes,16;mul.lo.u64 %need,%bytes,2;add.u64 %need,%need,512;ld.global.u64 %scratch,[%ctx+32];ld.global.u64 %scratchbytes,[%ctx+40];setp.lt.u64 %p,%scratchbytes,%need;@%p bra REFUSE;ld.global.u64 %record,[%ctx+48];ld.global.u64 %recordbytes,[%ctx+56];setp.eq.u64 %p,%recordbytes,1232;@%p bra RECORD_VALID;setp.ne.u64 %p,%recordbytes,1264;@%p bra REFUSE;
+RECORD_VALID:st.u64 [%list],%v4;st.u64 [%list+8],%bytes;st.u64 [%list+16],%v34;st.u64 [%list+24],%bytes;st.u64 [%list+32],%scratch;st.u64 [%list+40],%scratchbytes;st.u64 [%list+48],%ctx;st.u64 [%list+56],64;st.u64 [%list+64],0;st.u64 [%list+72],0;st.u64 [%list+80],0;st.u64 [%list+88],0;mov.u64 %fastowner,0;mov.u64 %wideowner,0;
+st.param.u64 [rb],%v4;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v34;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%scratch;st.param.u64 [rn],%scratchbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],2;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],3;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%record;st.param.u64 [rn],%recordbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],4;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.eq.u64 %p,%recordbytes,1232;@%p bra COUNTERS_READY;
+ld.global.u64 %fastowner,[%record+1232];ld.global.u64 %cap,[%record+1240];mov.u32 %error,712;setp.eq.u64 %p,%fastowner,0;@%p bra FAST_ABSENT;setp.lt.u64 %p,%cap,8;@%p bra REFUSE;mov.u64 %fastbytes,8;bra FAST_SIZE;
+FAST_ABSENT:setp.ne.u64 %p,%cap,0;@%p bra REFUSE;mov.u64 %fastbytes,0;
+FAST_SIZE:
+st.param.u64 [rb],%fastowner;st.param.u64 [rn],%fastbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],4;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%list+64],%fastowner;st.u64 [%list+72],%fastbytes;
+ld.global.u64 %wideowner,[%record+1248];ld.global.u64 %cap,[%record+1256];mov.u32 %error,712;setp.eq.u64 %p,%wideowner,0;@%p bra WIDE_ABSENT;setp.lt.u64 %p,%cap,8;@%p bra REFUSE;mov.u64 %widebytes,8;bra WIDE_SIZE;
+WIDE_ABSENT:setp.ne.u64 %p,%cap,0;@%p bra REFUSE;mov.u64 %widebytes,0;
+WIDE_SIZE:
+st.param.u64 [rb],%wideowner;st.param.u64 [rn],%widebytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],5;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%list+80],%wideowner;st.u64 [%list+88],%widebytes;
+COUNTERS_READY:
+st.param.u64 [rb],%args;st.param.u64 [rn],408;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%record;st.param.u64 [rn],%recordbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v0;st.param.u64 [rn],32;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v1;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v2;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v3;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %pointer,[%record+0];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_1_0;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],5200;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_1_0:
+ld.global.u64 %pointer,[%record+8];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_1_1;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],18800;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_1_1:
+ld.global.u64 %pointer,[%record+16];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_1_2;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],800;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_1_2:
+ld.global.u64 %pointer,[%record+24];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_1_3;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],320;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_1_3:
+ld.global.u64 %pointer,[%record+32];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_1_4;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],80;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_1_4:
+ld.global.u64 %pointer,[%record+40];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_1_5;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],80;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_1_5:
+ld.global.u64 %pointer,[%record+48];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_1_6;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_1_6:
+ld.global.u64 %pointer,[%record+56];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_1_7;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_1_7:
+ld.global.u64 %pointer,[%record+64];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_1_8;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1520;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_1_8:
+ld.global.u64 %pointer,[%record+72];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_1_9;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1520;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_1_9:
+ld.global.u64 %pointer,[%record+80];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_2_0;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],6240;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_2_0:
+ld.global.u64 %pointer,[%record+88];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_2_1;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],22560;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_2_1:
+ld.global.u64 %pointer,[%record+96];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_2_2;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],960;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_2_2:
+ld.global.u64 %pointer,[%record+104];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_2_3;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],384;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_2_3:
+ld.global.u64 %pointer,[%record+112];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_2_4;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],96;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_2_4:
+ld.global.u64 %pointer,[%record+120];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_2_5;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],96;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_2_5:
+ld.global.u64 %pointer,[%record+128];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_2_6;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_2_6:
+ld.global.u64 %pointer,[%record+136];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_2_7;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_2_7:
+ld.global.u64 %pointer,[%record+144];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_3_0;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],74880;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_3_0:
+ld.global.u64 %pointer,[%record+152];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_3_1;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],150400;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_3_1:
+ld.global.u64 %pointer,[%record+160];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_3_2;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1280;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_3_2:
+ld.global.u64 %pointer,[%record+168];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_3_3;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],512;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_3_3:
+ld.global.u64 %pointer,[%record+176];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_3_4;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1152;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_3_4:
+ld.global.u64 %pointer,[%record+184];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_3_5;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],640;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_3_5:
+ld.global.u64 %pointer,[%record+192];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_3_6;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_3_6:
+ld.global.u64 %pointer,[%record+200];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_3_7;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_3_7:
+ld.global.u64 %pointer,[%record+208];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_3_8;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],3304;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_3_8:
+ld.global.u64 %pointer,[%record+216];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_3_9;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],21888;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_3_9:
+ld.global.u64 %pointer,[%record+224];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_3_10;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],12160;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_3_10:
+ld.global.u64 %pointer,[%record+232];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_4_0;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],65520;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_4_0:
+ld.global.u64 %pointer,[%record+240];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_4_1;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],131600;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_4_1:
+ld.global.u64 %pointer,[%record+248];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_4_2;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1120;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_4_2:
+ld.global.u64 %pointer,[%record+256];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_4_3;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],448;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_4_3:
+ld.global.u64 %pointer,[%record+264];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_4_4;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1008;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_4_4:
+ld.global.u64 %pointer,[%record+272];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_4_5;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],560;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_4_5:
+ld.global.u64 %pointer,[%record+280];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_4_6;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_4_6:
+ld.global.u64 %pointer,[%record+288];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_4_7;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_4_7:
+ld.global.u64 %pointer,[%record+296];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_4_8;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],3304;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_4_8:
+ld.global.u64 %pointer,[%record+304];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_5_0;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],74880;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_5_0:
+ld.global.u64 %pointer,[%record+312];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_5_1;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],150400;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_5_1:
+ld.global.u64 %pointer,[%record+320];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_5_2;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1280;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_5_2:
+ld.global.u64 %pointer,[%record+328];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_5_3;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],512;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_5_3:
+ld.global.u64 %pointer,[%record+336];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_5_4;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1152;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_5_4:
+ld.global.u64 %pointer,[%record+344];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_5_5;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],640;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_5_5:
+ld.global.u64 %pointer,[%record+352];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_5_6;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_5_6:
+ld.global.u64 %pointer,[%record+360];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_5_7;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_5_7:
+ld.global.u64 %pointer,[%record+368];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_5_8;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],3304;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_5_8:
+ld.global.u64 %pointer,[%record+376];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_5_9;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],21888;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_5_9:
+ld.global.u64 %pointer,[%record+384];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_5_10;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],128;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_5_10:
+ld.global.u64 %pointer,[%record+392];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_6_0;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],4160;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_6_0:
+ld.global.u64 %pointer,[%record+400];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_6_1;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],640;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_6_1:
+ld.global.u64 %pointer,[%record+408];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_6_2;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],256;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_6_2:
+ld.global.u64 %pointer,[%record+416];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_6_3;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1216;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_6_3:
+ld.global.u64 %pointer,[%record+424];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_6_4;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_6_4:
+ld.global.u64 %pointer,[%record+432];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_6_5;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_6_5:
+ld.global.u64 %pointer,[%record+440];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_6_6;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_6_6:
+ld.global.u64 %pointer,[%record+448];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_6_7;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_6_7:
+ld.global.u64 %pointer,[%record+456];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_6_8;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],3304;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_6_8:
+ld.global.u64 %pointer,[%record+464];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_7_0;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],56160;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_7_0:
+ld.global.u64 %pointer,[%record+472];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_7_1;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],22560;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_7_1:
+ld.global.u64 %pointer,[%record+480];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_7_2;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],960;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_7_2:
+ld.global.u64 %pointer,[%record+488];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_7_3;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],384;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_7_3:
+ld.global.u64 %pointer,[%record+496];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_7_4;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],864;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_7_4:
+ld.global.u64 %pointer,[%record+504];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_7_5;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],96;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_7_5:
+ld.global.u64 %pointer,[%record+512];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_7_6;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_7_6:
+ld.global.u64 %pointer,[%record+520];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_7_7;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_7_7:
+ld.global.u64 %pointer,[%record+528];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_7_8;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],3304;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_7_8:
+ld.global.u64 %pointer,[%record+536];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_7_9;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],16416;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_7_9:
+ld.global.u64 %pointer,[%record+544];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_7_10;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1824;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_7_10:
+ld.global.u64 %pointer,[%record+552];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_8_0;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],4160;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_8_0:
+ld.global.u64 %pointer,[%record+560];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_8_1;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],15040;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_8_1:
+ld.global.u64 %pointer,[%record+568];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_8_2;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],640;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_8_2:
+ld.global.u64 %pointer,[%record+576];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_8_3;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],256;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_8_3:
+ld.global.u64 %pointer,[%record+584];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_8_4;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_8_4:
+ld.global.u64 %pointer,[%record+592];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_8_5;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_8_5:
+ld.global.u64 %pointer,[%record+600];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_8_6;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_8_6:
+ld.global.u64 %pointer,[%record+608];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_8_7;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_8_7:
+ld.global.u64 %pointer,[%record+616];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_8_8;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],3304;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_8_8:
+ld.global.u64 %pointer,[%record+624];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_8_9;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1216;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_8_9:
+ld.global.u64 %pointer,[%record+632];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_8_10;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1216;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_8_10:
+ld.global.u64 %pointer,[%record+640];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_8_11;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1216;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_8_11:
+ld.global.u64 %pointer,[%record+648];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_8_12;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1216;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_8_12:
+ld.global.u64 %pointer,[%record+656];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_8_13;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1216;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_8_13:
+ld.global.u64 %pointer,[%record+664];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_8_14;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_8_14:
+ld.global.u64 %pointer,[%record+672];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_8_15;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_8_15:
+ld.global.u64 %pointer,[%record+680];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_9_0;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],56160;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_9_0:
+ld.global.u64 %pointer,[%record+688];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_9_1;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],22560;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_9_1:
+ld.global.u64 %pointer,[%record+696];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_9_2;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],960;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_9_2:
+ld.global.u64 %pointer,[%record+704];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_9_3;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],384;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_9_3:
+ld.global.u64 %pointer,[%record+712];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_9_4;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],864;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_9_4:
+ld.global.u64 %pointer,[%record+720];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_9_5;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],96;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_9_5:
+ld.global.u64 %pointer,[%record+728];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_9_6;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_9_6:
+ld.global.u64 %pointer,[%record+736];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_9_7;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_9_7:
+ld.global.u64 %pointer,[%record+744];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_9_8;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],3304;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_9_8:
+ld.global.u64 %pointer,[%record+752];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_9_9;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],16416;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_9_9:
+ld.global.u64 %pointer,[%record+760];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_9_10;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1824;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_9_10:
+ld.global.u64 %pointer,[%record+768];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_10_0;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],3120;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_10_0:
+ld.global.u64 %pointer,[%record+776];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_10_1;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],11280;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_10_1:
+ld.global.u64 %pointer,[%record+784];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_10_2;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],480;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_10_2:
+ld.global.u64 %pointer,[%record+792];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_10_3;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],192;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_10_3:
+ld.global.u64 %pointer,[%record+800];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_10_4;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],48;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_10_4:
+ld.global.u64 %pointer,[%record+808];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_10_5;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],48;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_10_5:
+ld.global.u64 %pointer,[%record+816];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_10_6;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_10_6:
+ld.global.u64 %pointer,[%record+824];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_10_7;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_10_7:
+ld.global.u64 %pointer,[%record+832];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_11_0;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],4160;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_11_0:
+ld.global.u64 %pointer,[%record+840];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_11_1;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],15040;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_11_1:
+ld.global.u64 %pointer,[%record+848];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_11_2;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],640;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_11_2:
+ld.global.u64 %pointer,[%record+856];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_11_3;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],256;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_11_3:
+ld.global.u64 %pointer,[%record+864];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_11_4;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_11_4:
+ld.global.u64 %pointer,[%record+872];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_11_5;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_11_5:
+ld.global.u64 %pointer,[%record+880];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_11_6;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_11_6:
+ld.global.u64 %pointer,[%record+888];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_11_7;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_11_7:
+ld.global.u64 %pointer,[%record+896];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_11_8;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1216;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_11_8:
+ld.global.u64 %pointer,[%record+904];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_11_9;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1216;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_11_9:
+ld.global.u64 %pointer,[%record+912];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_12_0;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],37440;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_12_0:
+ld.global.u64 %pointer,[%record+920];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_12_1;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],640;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_12_1:
+ld.global.u64 %pointer,[%record+928];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_12_2;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],256;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_12_2:
+ld.global.u64 %pointer,[%record+936];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_12_3;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],576;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_12_3:
+ld.global.u64 %pointer,[%record+944];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_12_4;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_12_4:
+ld.global.u64 %pointer,[%record+952];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_12_5;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],3304;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_12_5:
+ld.global.u64 %pointer,[%record+960];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_13_0;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],18720;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_13_0:
+ld.global.u64 %pointer,[%record+968];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_13_1;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],320;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_13_1:
+ld.global.u64 %pointer,[%record+976];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_13_2;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],128;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_13_2:
+ld.global.u64 %pointer,[%record+984];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_13_3;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],288;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_13_3:
+ld.global.u64 %pointer,[%record+992];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_13_4;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],32;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_13_4:
+ld.global.u64 %pointer,[%record+1000];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_13_5;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],5472;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_13_5:
+ld.global.u64 %pointer,[%record+1008];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_13_6;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],5472;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_13_6:
+ld.global.u64 %pointer,[%record+1016];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_13_7;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],608;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_13_7:
+ld.global.u64 %pointer,[%record+1024];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_13_8;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_13_8:
+ld.global.u64 %pointer,[%record+1032];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_13_9;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],3304;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_13_9:
+ld.global.u64 %pointer,[%record+1040];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_14_0;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],1040;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_14_0:
+ld.global.u64 %pointer,[%record+1048];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_14_1;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],3760;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_14_1:
+ld.global.u64 %pointer,[%record+1056];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_14_2;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],160;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_14_2:
+ld.global.u64 %pointer,[%record+1064];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_14_3;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_14_3:
+ld.global.u64 %pointer,[%record+1072];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_14_4;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],16;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_14_4:
+ld.global.u64 %pointer,[%record+1080];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_14_5;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],16;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_14_5:
+ld.global.u64 %pointer,[%record+1088];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_14_6;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_14_6:
+ld.global.u64 %pointer,[%record+1096];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_14_7;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_14_7:
+ld.global.u64 %pointer,[%record+1104];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_15_0;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],9360;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_15_0:
+ld.global.u64 %pointer,[%record+1112];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_15_1;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],160;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_15_1:
+ld.global.u64 %pointer,[%record+1120];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_15_2;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_15_2:
+ld.global.u64 %pointer,[%record+1128];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_15_3;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],144;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_15_3:
+ld.global.u64 %pointer,[%record+1136];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_15_4;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_15_4:
+ld.global.u64 %pointer,[%record+1144];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_15_5;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],3304;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_15_5:
+ld.global.u64 %pointer,[%record+1152];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_15_6;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],2736;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_15_6:
+ld.global.u64 %pointer,[%record+1160];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_16_0;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],9360;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_16_0:
+ld.global.u64 %pointer,[%record+1168];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_16_1;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],3760;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_16_1:
+ld.global.u64 %pointer,[%record+1176];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_16_2;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],160;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_16_2:
+ld.global.u64 %pointer,[%record+1184];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_16_3;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_16_3:
+ld.global.u64 %pointer,[%record+1192];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_16_4;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],144;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_16_4:
+ld.global.u64 %pointer,[%record+1200];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_16_5;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],16;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_16_5:
+ld.global.u64 %pointer,[%record+1208];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_16_6;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_16_6:
+ld.global.u64 %pointer,[%record+1216];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_16_7;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],64;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_16_7:
+ld.global.u64 %pointer,[%record+1224];setp.eq.u64 %p,%pointer,0;@%p bra TABLE_16_8;
+st.param.u64 [rb],%pointer;st.param.u64 [rn],3304;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+TABLE_16_8:
+setp.eq.u32 %p,%B,0;@%p bra CHILDREN;setp.eq.u32 %p,%H,0;@%p bra CHILDREN;
+st.param.u64 [rb],%v28;st.param.u64 [rn],%columns;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v20;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v5;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v6;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v7;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v10;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v11;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v12;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v13;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v14;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v15;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v21;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v22;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v23;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v24;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v25;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v26;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v36;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v37;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v38;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v39;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v40;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v16;st.param.u64 [rn],%intbytes;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v17;st.param.u64 [rn],%intbytes;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v18;st.param.u64 [rn],%intbytes;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v19;st.param.u64 [rn],%intbytes;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v35;st.param.u64 [rn],%intbytes;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v8;st.param.u64 [rn],%tracebytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v9;st.param.u64 [rn],%aerbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %lower,0;mov.u32 %upper,0;mov.u32 %j,0;
+TROP:mul.wide.u32 %tmp,%j,4;add.u64 %address,%v28,%tmp;ld.global.u32 %trop,[%address];mov.u32 %error,714;setp.gt.u32 %p,%trop,%H;@%p bra REFUSE;setp.ne.u32 %p,%trop,0;@%p mov.u32 %lower,1;setp.lt.u32 %p,%trop,%H;@%p mov.u32 %upper,1;add.u32 %j,%j,1;setp.lt.u32 %p,%j,%B;@%p bra TROP;setp.eq.u32 %p,%lower,0;@%p bra NO_LOWER;
+st.param.u64 [rb],%v31;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v32;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v41;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v42;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v43;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v44;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v45;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v46;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v47;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v48;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v33;st.param.u64 [rn],%intbytes;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+NO_LOWER:setp.eq.u32 %p,%upper,0;@%p bra CHILDREN;
+st.param.u64 [rb],%v49;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v50;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],6;call.uni (rr),optical_parent_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+CHILDREN:mov.u64 %vector,prospective_vector;cvta.local.u64 %vector,%vector;mov.u64 %childctx,prospective_context;cvta.local.u64 %childctx,%childctx;st.u64 [%childctx],0;st.u64 [%childctx+8],0;st.u64 [%childctx+16],0;st.u64 [%childctx+24],0;st.u64 [%childctx+32],0;st.u64 [%childctx+40],0;st.u32 [%childctx+4],1;add.u64 %tau,%scratch,512;add.u64 %planck,%tau,%bytes;
+st.u64 [%vector+0],%v0;
+st.u64 [%vector+8],%v1;
+st.u64 [%vector+16],%v2;
+st.u64 [%vector+24],%v3;
+st.u64 [%vector+32],%tau;
+st.u64 [%vector+40],%v5;
+st.u64 [%vector+48],%v9;
+st.u64 [%vector+56],%v10;
+st.u64 [%vector+64],%v11;
+st.u64 [%vector+72],%v12;
+st.u64 [%vector+80],%v13;
+st.u64 [%vector+88],%v14;
+st.u64 [%vector+96],%v15;
+st.u64 [%vector+104],%v16;
+st.u64 [%vector+112],%v17;
+st.u64 [%vector+120],%v18;
+st.u64 [%vector+128],%v19;
+st.u64 [%vector+136],%v21;
+st.u64 [%vector+144],%v28;
+st.u64 [%vector+152],%v31;
+st.u64 [%vector+160],%v32;
+st.u64 [%vector+168],%v33;
+st.u64 [%vector+176],%planck;
+st.u64 [%vector+184],%v38;
+st.u64 [%vector+192],%v35;
+st.u64 [%vector+200],%v37;
+st.u64 [%vector+208],%v7;
+add.u64 %pointer,%record,0;st.u64 [%childctx+48],%pointer;st.u64 [%childctx+56],80;st.param.u64 [ca],%vector;st.param.u64 [cc],%childctx;call.uni (admission),md2asm_gpu_rrtm_taumol1_admit,(ca,cc);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%vector+0],%v0;
+st.u64 [%vector+8],%v1;
+st.u64 [%vector+16],%v2;
+st.u64 [%vector+24],%v3;
+st.u64 [%vector+32],%tau;
+st.u64 [%vector+40],%v5;
+st.u64 [%vector+48],%v6;
+st.u64 [%vector+56],%v9;
+st.u64 [%vector+64],%v10;
+st.u64 [%vector+72],%v11;
+st.u64 [%vector+80],%v12;
+st.u64 [%vector+88],%v13;
+st.u64 [%vector+96],%v14;
+st.u64 [%vector+104],%v15;
+st.u64 [%vector+112],%v16;
+st.u64 [%vector+120],%v17;
+st.u64 [%vector+128],%v18;
+st.u64 [%vector+136],%v19;
+st.u64 [%vector+144],%v21;
+st.u64 [%vector+152],%v28;
+st.u64 [%vector+160],%v31;
+st.u64 [%vector+168],%v32;
+st.u64 [%vector+176],%v33;
+st.u64 [%vector+184],%planck;
+add.u64 %pointer,%record,80;st.u64 [%childctx+48],%pointer;st.u64 [%childctx+56],64;st.param.u64 [ca],%vector;st.param.u64 [cc],%childctx;call.uni (admission),md2asm_gpu_rrtm_taumol2_admit,(ca,cc);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%vector+0],%v0;
+st.u64 [%vector+8],%v1;
+st.u64 [%vector+16],%v2;
+st.u64 [%vector+24],%v3;
+st.u64 [%vector+32],%tau;
+st.u64 [%vector+40],%v9;
+st.u64 [%vector+48],%v10;
+st.u64 [%vector+56],%v11;
+st.u64 [%vector+64],%v12;
+st.u64 [%vector+72],%v13;
+st.u64 [%vector+80],%v14;
+st.u64 [%vector+88],%v15;
+st.u64 [%vector+96],%v16;
+st.u64 [%vector+104],%v17;
+st.u64 [%vector+112],%v18;
+st.u64 [%vector+120],%v19;
+st.u64 [%vector+128],%v20;
+st.u64 [%vector+136],%v21;
+st.u64 [%vector+144],%v22;
+st.u64 [%vector+152],%v24;
+st.u64 [%vector+160],%v6;
+st.u64 [%vector+168],%v28;
+st.u64 [%vector+176],%v31;
+st.u64 [%vector+184],%v32;
+st.u64 [%vector+192],%v33;
+st.u64 [%vector+200],%planck;
+st.u64 [%vector+208],%v39;
+st.u64 [%vector+216],%v40;
+st.u64 [%vector+224],%v38;
+st.u64 [%vector+232],%v35;
+add.u64 %pointer,%record,144;st.u64 [%childctx+48],%pointer;st.u64 [%childctx+56],88;st.param.u64 [ca],%vector;st.param.u64 [cc],%childctx;call.uni (admission),md2asm_gpu_rrtm_taumol3_admit,(ca,cc);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%vector+0],%v0;
+st.u64 [%vector+8],%v1;
+st.u64 [%vector+16],%v2;
+st.u64 [%vector+24],%v3;
+st.u64 [%vector+32],%tau;
+st.u64 [%vector+40],%v9;
+st.u64 [%vector+48],%v10;
+st.u64 [%vector+56],%v11;
+st.u64 [%vector+64],%v12;
+st.u64 [%vector+72],%v13;
+st.u64 [%vector+80],%v14;
+st.u64 [%vector+88],%v15;
+st.u64 [%vector+96],%v16;
+st.u64 [%vector+104],%v17;
+st.u64 [%vector+112],%v18;
+st.u64 [%vector+120],%v19;
+st.u64 [%vector+128],%v20;
+st.u64 [%vector+136],%v21;
+st.u64 [%vector+144],%v22;
+st.u64 [%vector+152],%v23;
+st.u64 [%vector+160],%v28;
+st.u64 [%vector+168],%v31;
+st.u64 [%vector+176],%v32;
+st.u64 [%vector+184],%v33;
+st.u64 [%vector+192],%planck;
+st.u64 [%vector+200],%v39;
+st.u64 [%vector+208],%v40;
+st.u64 [%vector+216],%v49;
+st.u64 [%vector+224],%v50;
+add.u64 %pointer,%record,232;st.u64 [%childctx+48],%pointer;st.u64 [%childctx+56],72;st.param.u64 [ca],%vector;st.param.u64 [cc],%childctx;call.uni (admission),md2asm_gpu_rrtm_taumol4_admit,(ca,cc);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%vector+0],%v0;
+st.u64 [%vector+8],%v1;
+st.u64 [%vector+16],%v2;
+st.u64 [%vector+24],%v3;
+st.u64 [%vector+32],%tau;
+st.u64 [%vector+40],%v8;
+st.u64 [%vector+48],%v9;
+st.u64 [%vector+56],%v10;
+st.u64 [%vector+64],%v11;
+st.u64 [%vector+72],%v12;
+st.u64 [%vector+80],%v13;
+st.u64 [%vector+88],%v14;
+st.u64 [%vector+96],%v15;
+st.u64 [%vector+104],%v16;
+st.u64 [%vector+112],%v17;
+st.u64 [%vector+120],%v18;
+st.u64 [%vector+128],%v19;
+st.u64 [%vector+136],%v20;
+st.u64 [%vector+144],%v21;
+st.u64 [%vector+152],%v22;
+st.u64 [%vector+160],%v23;
+st.u64 [%vector+168],%v28;
+st.u64 [%vector+176],%v31;
+st.u64 [%vector+184],%v32;
+st.u64 [%vector+192],%v33;
+st.u64 [%vector+200],%planck;
+st.u64 [%vector+208],%v39;
+st.u64 [%vector+216],%v40;
+st.u64 [%vector+224],%v49;
+st.u64 [%vector+232],%v50;
+st.u64 [%vector+240],%v38;
+st.u64 [%vector+248],%v35;
+add.u64 %pointer,%record,304;st.u64 [%childctx+48],%pointer;st.u64 [%childctx+56],88;st.param.u64 [ca],%vector;st.param.u64 [cc],%childctx;call.uni (admission),md2asm_gpu_rrtm_taumol5_admit,(ca,cc);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%vector+0],%v0;
+st.u64 [%vector+8],%v1;
+st.u64 [%vector+16],%v2;
+st.u64 [%vector+24],%v3;
+st.u64 [%vector+32],%tau;
+st.u64 [%vector+40],%v8;
+st.u64 [%vector+48],%v9;
+st.u64 [%vector+56],%v10;
+st.u64 [%vector+64],%v11;
+st.u64 [%vector+72],%v12;
+st.u64 [%vector+80],%v13;
+st.u64 [%vector+88],%v14;
+st.u64 [%vector+96],%v15;
+st.u64 [%vector+104],%v16;
+st.u64 [%vector+112],%v17;
+st.u64 [%vector+120],%v18;
+st.u64 [%vector+128],%v19;
+st.u64 [%vector+136],%v21;
+st.u64 [%vector+144],%v22;
+st.u64 [%vector+152],%v6;
+st.u64 [%vector+160],%v28;
+st.u64 [%vector+168],%v31;
+st.u64 [%vector+176],%v32;
+st.u64 [%vector+184],%v33;
+st.u64 [%vector+192],%planck;
+st.u64 [%vector+200],%v38;
+st.u64 [%vector+208],%v35;
+add.u64 %pointer,%record,392;st.u64 [%childctx+48],%pointer;st.u64 [%childctx+56],72;st.param.u64 [ca],%vector;st.param.u64 [cc],%childctx;call.uni (admission),md2asm_gpu_rrtm_taumol6_admit,(ca,cc);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%vector+0],%v0;
+st.u64 [%vector+8],%v1;
+st.u64 [%vector+16],%v2;
+st.u64 [%vector+24],%v3;
+st.u64 [%vector+32],%tau;
+st.u64 [%vector+40],%v9;
+st.u64 [%vector+48],%v10;
+st.u64 [%vector+56],%v11;
+st.u64 [%vector+64],%v12;
+st.u64 [%vector+72],%v13;
+st.u64 [%vector+80],%v14;
+st.u64 [%vector+88],%v15;
+st.u64 [%vector+96],%v16;
+st.u64 [%vector+104],%v17;
+st.u64 [%vector+112],%v18;
+st.u64 [%vector+120],%v19;
+st.u64 [%vector+128],%v20;
+st.u64 [%vector+136],%v21;
+st.u64 [%vector+144],%v23;
+st.u64 [%vector+152],%v22;
+st.u64 [%vector+160],%v6;
+st.u64 [%vector+168],%v28;
+st.u64 [%vector+176],%v31;
+st.u64 [%vector+184],%v32;
+st.u64 [%vector+192],%v33;
+st.u64 [%vector+200],%planck;
+st.u64 [%vector+208],%v41;
+st.u64 [%vector+216],%v42;
+st.u64 [%vector+224],%v38;
+st.u64 [%vector+232],%v35;
+add.u64 %pointer,%record,464;st.u64 [%childctx+48],%pointer;st.u64 [%childctx+56],88;st.param.u64 [ca],%vector;st.param.u64 [cc],%childctx;call.uni (admission),md2asm_gpu_rrtm_taumol7_admit,(ca,cc);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%vector+0],%v0;
+st.u64 [%vector+8],%v1;
+st.u64 [%vector+16],%v2;
+st.u64 [%vector+24],%v3;
+st.u64 [%vector+32],%tau;
+st.u64 [%vector+40],%v8;
+st.u64 [%vector+48],%v9;
+st.u64 [%vector+56],%v10;
+st.u64 [%vector+64],%v11;
+st.u64 [%vector+72],%v12;
+st.u64 [%vector+80],%v13;
+st.u64 [%vector+88],%v14;
+st.u64 [%vector+96],%v15;
+st.u64 [%vector+104],%v16;
+st.u64 [%vector+112],%v17;
+st.u64 [%vector+120],%v18;
+st.u64 [%vector+128],%v19;
+st.u64 [%vector+136],%v21;
+st.u64 [%vector+144],%v23;
+st.u64 [%vector+152],%v24;
+st.u64 [%vector+160],%v22;
+st.u64 [%vector+168],%v6;
+st.u64 [%vector+176],%v28;
+st.u64 [%vector+184],%v31;
+st.u64 [%vector+192],%v32;
+st.u64 [%vector+200],%v33;
+st.u64 [%vector+208],%planck;
+st.u64 [%vector+216],%v38;
+st.u64 [%vector+224],%v35;
+add.u64 %pointer,%record,552;st.u64 [%childctx+48],%pointer;st.u64 [%childctx+56],128;st.param.u64 [ca],%vector;st.param.u64 [cc],%childctx;call.uni (admission),md2asm_gpu_rrtm_taumol8_admit,(ca,cc);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%vector+0],%v0;
+st.u64 [%vector+8],%v1;
+st.u64 [%vector+16],%v2;
+st.u64 [%vector+24],%v3;
+st.u64 [%vector+32],%tau;
+st.u64 [%vector+40],%v9;
+st.u64 [%vector+48],%v10;
+st.u64 [%vector+56],%v11;
+st.u64 [%vector+64],%v12;
+st.u64 [%vector+72],%v13;
+st.u64 [%vector+80],%v14;
+st.u64 [%vector+88],%v15;
+st.u64 [%vector+96],%v16;
+st.u64 [%vector+104],%v17;
+st.u64 [%vector+112],%v18;
+st.u64 [%vector+120],%v19;
+st.u64 [%vector+128],%v20;
+st.u64 [%vector+136],%v21;
+st.u64 [%vector+144],%v24;
+st.u64 [%vector+152],%v25;
+st.u64 [%vector+160],%v6;
+st.u64 [%vector+168],%v28;
+st.u64 [%vector+176],%v29;
+st.u64 [%vector+184],%v30;
+st.u64 [%vector+192],%v31;
+st.u64 [%vector+200],%v32;
+st.u64 [%vector+208],%v33;
+st.u64 [%vector+216],%planck;
+st.u64 [%vector+224],%v45;
+st.u64 [%vector+232],%v46;
+st.u64 [%vector+240],%v38;
+st.u64 [%vector+248],%v35;
+add.u64 %pointer,%record,680;st.u64 [%childctx+48],%pointer;st.u64 [%childctx+56],88;st.param.u64 [ca],%vector;st.param.u64 [cc],%childctx;call.uni (admission),md2asm_gpu_rrtm_taumol9_admit,(ca,cc);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%vector+0],%v0;
+st.u64 [%vector+8],%v1;
+st.u64 [%vector+16],%v2;
+st.u64 [%vector+24],%v3;
+st.u64 [%vector+32],%tau;
+st.u64 [%vector+40],%v9;
+st.u64 [%vector+48],%v10;
+st.u64 [%vector+56],%v11;
+st.u64 [%vector+64],%v12;
+st.u64 [%vector+72],%v13;
+st.u64 [%vector+80],%v14;
+st.u64 [%vector+88],%v15;
+st.u64 [%vector+96],%v16;
+st.u64 [%vector+104],%v17;
+st.u64 [%vector+112],%v18;
+st.u64 [%vector+120],%v19;
+st.u64 [%vector+128],%v21;
+st.u64 [%vector+136],%v28;
+st.u64 [%vector+144],%v31;
+st.u64 [%vector+152],%v32;
+st.u64 [%vector+160],%v33;
+st.u64 [%vector+168],%planck;
+add.u64 %pointer,%record,768;st.u64 [%childctx+48],%pointer;st.u64 [%childctx+56],64;st.param.u64 [ca],%vector;st.param.u64 [cc],%childctx;call.uni (admission),md2asm_gpu_rrtm_taumol10_admit,(ca,cc);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%vector+0],%v0;
+st.u64 [%vector+8],%v1;
+st.u64 [%vector+16],%v2;
+st.u64 [%vector+24],%v3;
+st.u64 [%vector+32],%tau;
+st.u64 [%vector+40],%v9;
+st.u64 [%vector+48],%v10;
+st.u64 [%vector+56],%v11;
+st.u64 [%vector+64],%v12;
+st.u64 [%vector+72],%v13;
+st.u64 [%vector+80],%v14;
+st.u64 [%vector+88],%v15;
+st.u64 [%vector+96],%v16;
+st.u64 [%vector+104],%v17;
+st.u64 [%vector+112],%v18;
+st.u64 [%vector+120],%v19;
+st.u64 [%vector+128],%v21;
+st.u64 [%vector+136],%v26;
+st.u64 [%vector+144],%v28;
+st.u64 [%vector+152],%v31;
+st.u64 [%vector+160],%v32;
+st.u64 [%vector+168],%v33;
+st.u64 [%vector+176],%planck;
+st.u64 [%vector+184],%v38;
+st.u64 [%vector+192],%v35;
+st.u64 [%vector+200],%v36;
+add.u64 %pointer,%record,832;st.u64 [%childctx+48],%pointer;st.u64 [%childctx+56],80;st.param.u64 [ca],%vector;st.param.u64 [cc],%childctx;call.uni (admission),md2asm_gpu_rrtm_taumol11_admit,(ca,cc);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%vector+0],%v0;
+st.u64 [%vector+8],%v1;
+st.u64 [%vector+16],%v2;
+st.u64 [%vector+24],%v3;
+st.u64 [%vector+32],%tau;
+st.u64 [%vector+40],%v9;
+st.u64 [%vector+48],%v10;
+st.u64 [%vector+56],%v11;
+st.u64 [%vector+64],%v12;
+st.u64 [%vector+72],%v13;
+st.u64 [%vector+80],%v14;
+st.u64 [%vector+88],%v15;
+st.u64 [%vector+96],%v16;
+st.u64 [%vector+104],%v17;
+st.u64 [%vector+112],%v18;
+st.u64 [%vector+120],%v19;
+st.u64 [%vector+128],%v20;
+st.u64 [%vector+136],%v21;
+st.u64 [%vector+144],%v22;
+st.u64 [%vector+152],%v28;
+st.u64 [%vector+160],%v31;
+st.u64 [%vector+168],%v32;
+st.u64 [%vector+176],%v33;
+st.u64 [%vector+184],%planck;
+st.u64 [%vector+192],%v39;
+st.u64 [%vector+200],%v40;
+add.u64 %pointer,%record,912;st.u64 [%childctx+48],%pointer;st.u64 [%childctx+56],48;st.param.u64 [ca],%vector;st.param.u64 [cc],%childctx;call.uni (admission),md2asm_gpu_rrtm_taumol12_admit,(ca,cc);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%vector+0],%v0;
+st.u64 [%vector+8],%v1;
+st.u64 [%vector+16],%v2;
+st.u64 [%vector+24],%v3;
+st.u64 [%vector+32],%tau;
+st.u64 [%vector+40],%v9;
+st.u64 [%vector+48],%v10;
+st.u64 [%vector+56],%v11;
+st.u64 [%vector+64],%v12;
+st.u64 [%vector+72],%v13;
+st.u64 [%vector+80],%v14;
+st.u64 [%vector+88],%v15;
+st.u64 [%vector+96],%v16;
+st.u64 [%vector+104],%v17;
+st.u64 [%vector+112],%v18;
+st.u64 [%vector+120],%v19;
+st.u64 [%vector+128],%v20;
+st.u64 [%vector+136],%v21;
+st.u64 [%vector+144],%v24;
+st.u64 [%vector+152],%v22;
+st.u64 [%vector+160],%v23;
+st.u64 [%vector+168],%v6;
+st.u64 [%vector+176],%v28;
+st.u64 [%vector+184],%v31;
+st.u64 [%vector+192],%v32;
+st.u64 [%vector+200],%v33;
+st.u64 [%vector+208],%planck;
+st.u64 [%vector+216],%v43;
+st.u64 [%vector+224],%v44;
+st.u64 [%vector+232],%v38;
+st.u64 [%vector+240],%v35;
+add.u64 %pointer,%record,960;st.u64 [%childctx+48],%pointer;st.u64 [%childctx+56],80;st.param.u64 [ca],%vector;st.param.u64 [cc],%childctx;call.uni (admission),md2asm_gpu_rrtm_taumol13_admit,(ca,cc);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%vector+0],%v0;
+st.u64 [%vector+8],%v1;
+st.u64 [%vector+16],%v2;
+st.u64 [%vector+24],%v3;
+st.u64 [%vector+32],%tau;
+st.u64 [%vector+40],%v9;
+st.u64 [%vector+48],%v10;
+st.u64 [%vector+56],%v11;
+st.u64 [%vector+64],%v12;
+st.u64 [%vector+72],%v13;
+st.u64 [%vector+80],%v14;
+st.u64 [%vector+88],%v15;
+st.u64 [%vector+96],%v16;
+st.u64 [%vector+104],%v17;
+st.u64 [%vector+112],%v18;
+st.u64 [%vector+120],%v19;
+st.u64 [%vector+128],%v22;
+st.u64 [%vector+136],%v28;
+st.u64 [%vector+144],%v31;
+st.u64 [%vector+152],%v32;
+st.u64 [%vector+160],%v33;
+st.u64 [%vector+168],%planck;
+add.u64 %pointer,%record,1040;st.u64 [%childctx+48],%pointer;st.u64 [%childctx+56],64;st.param.u64 [ca],%vector;st.param.u64 [cc],%childctx;call.uni (admission),md2asm_gpu_rrtm_taumol14_admit,(ca,cc);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%vector+0],%v0;
+st.u64 [%vector+8],%v1;
+st.u64 [%vector+16],%v2;
+st.u64 [%vector+24],%v3;
+st.u64 [%vector+32],%tau;
+st.u64 [%vector+40],%v9;
+st.u64 [%vector+48],%v10;
+st.u64 [%vector+56],%v11;
+st.u64 [%vector+64],%v12;
+st.u64 [%vector+72],%v13;
+st.u64 [%vector+80],%v14;
+st.u64 [%vector+88],%v15;
+st.u64 [%vector+96],%v16;
+st.u64 [%vector+104],%v17;
+st.u64 [%vector+112],%v18;
+st.u64 [%vector+120],%v19;
+st.u64 [%vector+128],%v20;
+st.u64 [%vector+136],%v21;
+st.u64 [%vector+144],%v22;
+st.u64 [%vector+152],%v24;
+st.u64 [%vector+160],%v28;
+st.u64 [%vector+168],%v31;
+st.u64 [%vector+176],%v32;
+st.u64 [%vector+184],%v33;
+st.u64 [%vector+192],%planck;
+st.u64 [%vector+200],%v47;
+st.u64 [%vector+208],%v48;
+st.u64 [%vector+216],%v38;
+st.u64 [%vector+224],%v35;
+st.u64 [%vector+232],%v36;
+st.u64 [%vector+240],%v7;
+add.u64 %pointer,%record,1104;st.u64 [%childctx+48],%pointer;st.u64 [%childctx+56],56;st.param.u64 [ca],%vector;st.param.u64 [cc],%childctx;call.uni (admission),md2asm_gpu_rrtm_taumol15_admit,(ca,cc);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.u64 [%vector+0],%v0;
+st.u64 [%vector+8],%v1;
+st.u64 [%vector+16],%v2;
+st.u64 [%vector+24],%v3;
+st.u64 [%vector+32],%tau;
+st.u64 [%vector+40],%v9;
+st.u64 [%vector+48],%v10;
+st.u64 [%vector+56],%v11;
+st.u64 [%vector+64],%v12;
+st.u64 [%vector+72],%v13;
+st.u64 [%vector+80],%v14;
+st.u64 [%vector+88],%v15;
+st.u64 [%vector+96],%v16;
+st.u64 [%vector+104],%v17;
+st.u64 [%vector+112],%v18;
+st.u64 [%vector+120],%v19;
+st.u64 [%vector+128],%v20;
+st.u64 [%vector+136],%v21;
+st.u64 [%vector+144],%v25;
+st.u64 [%vector+152],%v28;
+st.u64 [%vector+160],%v31;
+st.u64 [%vector+168],%v32;
+st.u64 [%vector+176],%v33;
+st.u64 [%vector+184],%planck;
+st.u64 [%vector+192],%v45;
+st.u64 [%vector+200],%v46;
+add.u64 %pointer,%record,1160;st.u64 [%childctx+48],%pointer;st.u64 [%childctx+56],72;st.param.u64 [ca],%vector;st.param.u64 [cc],%childctx;call.uni (admission),md2asm_gpu_rrtm_taumol16_admit,(ca,cc);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %error,0;
+REFUSE:st.param.u32 [result],%error;ret;
+}
+.visible .func md2asm_gpu_rrtm_gas_optical_depth_fp64(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u64 %args,%ctx,%scratch,%record,%recordbytes,%address,%event,%owner,%inc,%tmp;
+.reg .u32 %rt,%unique,%error,%flags;.reg .pred %p;.param .u64 a,c,r,s;.param .u32 admitted;.param .align 8 .b8 child[32];
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %tmp,%ctx,7;setp.ne.u64 %p,%tmp,0;@%p ret;mov.u32 %unique,%ctaid.x;mov.u32 %rt,%ctaid.y;or.b32 %unique,%unique,%rt;mov.u32 %rt,%ctaid.z;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.x;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.y;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.z;or.b32 %unique,%unique,%rt;setp.ne.u32 %p,%unique,0;@%p ret;ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;mov.u32 %error,711;
+mov.u32 %rt,%ntid.x;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%ntid.y;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%ntid.z;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%nctaid.x;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%nctaid.y;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%nctaid.z;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%dynamic_smem_size;setp.ne.u32 %p,%rt,0;@%p bra REFUSE;ld.global.u32 %rt,[%ctx+4];setp.ne.u32 %p,%rt,1;@%p bra REFUSE;st.param.u64 [a],%args;st.param.u64 [c],%ctx;call.uni (admitted),md2asm_gpu_rrtm_gas_optical_depth_admit,(a,c);ld.param.u32 %error,[admitted];setp.ne.u32 %p,%error,0;@%p bra REFUSE;ld.global.u64 %record,[%ctx+48];ld.global.u64 %recordbytes,[%ctx+56];ld.global.u64 %scratch,[%ctx+32];st.param.u64 [a],%args;st.param.u64 [r],%record;st.param.u64 [s],%scratch;call.uni (child),md2asm_gpu_rrtm_gas_optical_depth_values,(a,r,s);ld.param.u32 %flags,[child];add.u64 %address,%ctx,8;atom.global.or.b32 %rt,[%address],%flags;ld.param.u64 %event,[child+8];setp.eq.u64 %p,%event,0;@%p bra NO_EVENT;add.u64 %address,%ctx,16;atom.global.max.u64 %tmp,[%address],%event;
+NO_EVENT:setp.eq.u64 %p,%recordbytes,1232;@%p bra COMPLETE;ld.global.u64 %owner,[%record+1232];setp.eq.u64 %p,%owner,0;@%p bra NO_FAST;ld.param.u64 %inc,[child+16];atom.global.add.u64 %tmp,[%owner],%inc;
+NO_FAST:ld.global.u64 %owner,[%record+1248];setp.eq.u64 %p,%owner,0;@%p bra COMPLETE;ld.param.u64 %inc,[child+24];atom.global.add.u64 %tmp,[%owner],%inc;
+COMPLETE:ret;
+REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+.visible .entry md2asm_gpu_rrtm_gas_optical_depth(.param .u64 original_vector,.param .u64 context)
+{.reg .u64 %a,%c;.param .u64 a,c;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];st.param.u64 [a],%a;st.param.u64 [c],%c;call.uni md2asm_gpu_rrtm_gas_optical_depth_fp64,(a,c);ret;}

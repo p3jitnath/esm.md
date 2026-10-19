@@ -1,0 +1,97 @@
+// Complete source-bound OpenIFS numerical function.
+// Contract: skills/md2asm-gpu/references/openifs/radiation/radiation_field_preparation.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 left_word,.param .b64 right_word);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 left_word,.param .b64 right_word);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 left_word,.param .b64 right_word);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 left_word,.param .b64 right_word);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_log_positive_finite(.param .b64 input_word);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_exp_original_rounding(.param .b64 input_word);
+.visible .func (.param .align 8 .b8 result[40]) md2asm_gpu_set_overlap_values(.param .u64 original_vector,.param .u64 fresh_storage)
+{
+.reg .u64 %args,%v<5>,%cloud,%thermo,%desc,%P,%N,%first,%last,%j,%c,%rownum,%rowden,%poffset,%ps1,%ps2,%toffset,%ts1,%ts2,%ooffset,%os1,%os2,%base,%tbase,%obase,%ptr,%offset,%q,%fresh,%calls,%event,%exp,%increment;
+.reg .u32 %word,%flags,%raised,%new_event;
+.reg .b64 %length,%full,%half,%coefficient,%ratio,%a,%b,%temperature,%value;
+.reg .pred %p,%ascending;
+.param .b64 ma,mb,xa;.param .align 8 .b8 math[16];
+ld.param.u64 %args,[original_vector];ld.param.u64 %fresh,[fresh_storage];mov.u32 %flags,0;mov.u64 %calls,0;mov.u64 %event,0;mov.u64 %exp,0;
+ld.global.u64 %v0,[%args];ld.global.u64 %v1,[%args+8];ld.global.u64 %v2,[%args+16];ld.global.u64 %v3,[%args+24];ld.global.u64 %v4,[%args+32];ld.global.u64 %cloud,[%v0];mov.u64 %thermo,%v1;add.u64 %desc,%cloud,704;
+ld.global.u64 %a,[%thermo+48];ld.global.u64 %b,[%thermo+56];sub.u64 %P,%b,%a;add.u64 %P,%P,1;ld.global.u64 %a,[%thermo+72];ld.global.u64 %b,[%thermo+80];sub.u64 %N,%b,%a;
+mov.u64 %first,1;mov.u64 %last,%P;setp.eq.u64 %p,%v3,0;@%p bra OVERLAP_FIRST_READY;ld.global.s32 %word,[%v3];cvt.s64.s32 %first,%word;
+OVERLAP_FIRST_READY:setp.eq.u64 %p,%v4,0;@%p bra OVERLAP_BOUNDS_READY;ld.global.s32 %word,[%v4];cvt.s64.s32 %last,%word;
+OVERLAP_BOUNDS_READY:ld.global.b64 %length,[%v2];
+st.param.b64 [ma],0x403d4592b265ab8d;st.param.b64 [mb],%length;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %full,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+xor.b64 %full,%full,0x8000000000000000;
+st.param.b64 [ma],0x402d4592b265ab8d;st.param.b64 [mb],%length;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %half,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+xor.b64 %half,%half,0x8000000000000000;
+ld.global.u64 %obase,[%desc];setp.ne.u64 %p,%obase,0;@%p bra OVERLAP_ALLOCATED;
+mov.u64 %obase,%fresh;st.global.u64 [%desc],%fresh;sub.u64 %offset,0,%P;sub.u64 %offset,%offset,1;st.global.u64 [%desc+8],%offset;st.global.u64 [%desc+16],8;mov.u64 %offset,0x0000030200000000;st.global.u64 [%desc+24],%offset;st.global.u64 [%desc+32],8;st.global.u64 [%desc+40],1;st.global.u64 [%desc+48],1;st.global.u64 [%desc+56],%P;st.global.u64 [%desc+64],%P;st.global.u64 [%desc+72],1;sub.u64 %offset,%N,1;st.global.u64 [%desc+80],%offset;
+OVERLAP_ALLOCATED:ld.global.u64 %base,[%thermo];ld.global.u64 %poffset,[%thermo+8];ld.global.u64 %ps1,[%thermo+40];ld.global.u64 %ps2,[%thermo+64];ld.global.u64 %tbase,[%thermo+88];ld.global.u64 %toffset,[%thermo+96];ld.global.u64 %ts1,[%thermo+128];ld.global.u64 %ts2,[%thermo+152];ld.global.u64 %ooffset,[%desc+8];ld.global.u64 %os1,[%desc+40];ld.global.u64 %os2,[%desc+64];
+mad.lo.u64 %offset,%first,%ps1,%poffset;add.u64 %offset,%offset,%ps2;shl.b64 %offset,%offset,3;add.u64 %ptr,%base,%offset;ld.global.b64 %a,[%ptr];shl.b64 %offset,%ps2,3;add.u64 %ptr,%ptr,%offset;ld.global.b64 %b,[%ptr];setp.gt.f64 %ascending,%b,%a;mov.u64 %j,1;
+OVERLAP_LAYER:setp.ge.u64 %p,%j,%N;@%p bra OVERLAP_DONE;setp.gt.s64 %p,%first,%last;@%p bra OVERLAP_NEXT_LAYER;@!%ascending bra OVERLAP_DESCENDING;setp.ne.u64 %p,%j,1;@%p bra OVERLAP_ASCENDING_MIDDLE;mov.u64 %rownum,3;mov.u64 %rowden,2;mov.b64 %coefficient,%full;bra OVERLAP_ROWS_READY;
+OVERLAP_ASCENDING_MIDDLE:add.u64 %rownum,%j,2;mov.u64 %rowden,%j;mov.b64 %coefficient,%half;bra OVERLAP_ROWS_READY;
+OVERLAP_DESCENDING:sub.u64 %q,%N,1;setp.ne.u64 %p,%j,%q;@%p bra OVERLAP_DESCENDING_MIDDLE;sub.u64 %rownum,%N,1;mov.u64 %rowden,%N;mov.b64 %coefficient,%full;bra OVERLAP_ROWS_READY;
+OVERLAP_DESCENDING_MIDDLE:mov.u64 %rownum,%j;add.u64 %rowden,%j,2;mov.b64 %coefficient,%half;
+OVERLAP_ROWS_READY:mov.u64 %c,%first;
+OVERLAP_COLUMN:mad.lo.u64 %offset,%c,%ps1,%poffset;mad.lo.u64 %q,%rownum,%ps2,%offset;shl.b64 %q,%q,3;add.u64 %ptr,%base,%q;ld.global.b64 %a,[%ptr];mad.lo.u64 %q,%rowden,%ps2,%offset;shl.b64 %q,%q,3;add.u64 %ptr,%base,%q;ld.global.b64 %b,[%ptr];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %ratio,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+mad.lo.u64 %offset,%c,%ts1,%toffset;add.u64 %q,%j,1;mad.lo.u64 %offset,%q,%ts2,%offset;shl.b64 %offset,%offset,3;add.u64 %ptr,%tbase,%offset;ld.global.b64 %temperature,[%ptr];
+st.param.b64 [ma],%coefficient;st.param.b64 [mb],%temperature;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [xa],%ratio;call.uni (math),md2asm_gpu_log_positive_finite,(xa);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];ld.param.u32 %new_event,[math+12];or.b32 %flags,%flags,%raised;add.u64 %calls,%calls,1;setp.eq.u32 %p,%new_event,0;@%p bra OVERLAP_LOG_EVENT;shl.b64 %event,%calls,8;cvt.u64.u32 %increment,%new_event;or.b64 %event,%event,%increment;OVERLAP_LOG_EVENT:
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [xa],%a;call.uni (math),md2asm_gpu_exp_original_rounding,(xa);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];ld.param.u32 %new_event,[math+12];or.b32 %flags,%flags,%raised;add.u64 %calls,%calls,1;setp.eq.u32 %p,%new_event,0;@%p bra OVERLAP_EXP_EVENT;shl.b64 %event,%calls,8;cvt.u64.u32 %increment,%new_event;or.b64 %event,%event,%increment;OVERLAP_EXP_EVENT:
+add.u64 %exp,%exp,1;mad.lo.u64 %offset,%c,%os1,%ooffset;mad.lo.u64 %offset,%j,%os2,%offset;shl.b64 %offset,%offset,3;add.u64 %ptr,%obase,%offset;st.global.b64 [%ptr],%value;add.u64 %c,%c,1;setp.le.s64 %p,%c,%last;@%p bra OVERLAP_COLUMN;
+OVERLAP_NEXT_LAYER:add.u64 %j,%j,1;bra OVERLAP_LAYER;
+OVERLAP_DONE:st.param.u32 [result],%flags;st.param.u32 [result+4],0;st.param.u64 [result+8],%event;st.param.u64 [result+16],%exp;st.param.u64 [result+24],0;st.param.u64 [result+32],0;ret;
+}
+.const .align 8 .b64 md2asm_gpu_field_decorrelation_existing_grid[96]={0x3fefe995e70409b6,0x3ff7f2e9650529f4,0x3fb2ecb28e1b54f8,0x3fef8a212714bcdc,0x3ff66a4f3f0a78ff,0x3fc5a2a8d1292e09,0x3feedf5518053baa,0x3ff4df6394c3a8dc,0x3fd0d702773295b3,0x3fedeac0259f7f42,0x3ff353f1d9ef99b5,0x3fd6b69a82ff9e41,0x3fecaea9b4574cb9,0x3ff1c84d4f66f7f5,0x3fdc60c137bd2841,0x3feb2e04fd686a13,0x3ff03c903a9fd6d6,0x3fe0e3c06f55b060,0x3fe96c69481c4bc5,0x3fed618af8d6485b,0x3fe36ee1b06a2a4e,0x3fe76e0931d693ba,0x3fea49e4cc01ba6d,0x3fe5cba4e8c85f68,0x3fe537a89c487f89,0x3fe73233c1c07c3e,0x3fe7f45e7108d59f,0x3fe2ce9146962ca5,0x3fe41a7b5283a5a0,0x3fe9e3e17c5a9c0f,0x3fe038862866b29e,0x3fe102bdb452ba1a,0x3feb958b579e13a9,0x3fdaf76b57c6f8f1,0x3fdbd5f8c9b823e5,0x3fed054defc9ba72,0x3fd53d55ce57bdf7,0x3fd5a670e661da05,0x3fee2fb9377aabfe,0x3fcea0f7e19c0949,0x3fceedcaa7be5cb2,0x3fef120333e73813,0x3fc27e0ea717f236,0x3fc28eaea3e5e152,0x3fefaa0e8ea0d481,0x3fa8bbc8488cc499,0x3fa8be3f640a1669,0x3feff66f94ecbbbb,0xbfa8bbc8488cc499,0xbfa8be3f640a1669,0x3feff66f94ecbbbb,0xbfc27e0ea717f236,0xbfc28eaea3e5e152,0x3fefaa0e8ea0d481,0xbfcea0f7e19c0949,0xbfceedcaa7be5cb2,0x3fef120333e73813,0xbfd53d55ce57bdf7,0xbfd5a670e661da05,0x3fee2fb9377aabfe,0xbfdaf76b57c6f8f1,0xbfdbd5f8c9b823e5,0x3fed054defc9ba72,0xbfe038862866b29e,0xbfe102bdb452ba1a,0x3feb958b579e13a9,0xbfe2ce9146962ca5,0xbfe41a7b5283a5a0,0x3fe9e3e17c5a9c0f,0xbfe537a89c487f89,0xbfe73233c1c07c3e,0x3fe7f45e7108d59f,0xbfe76e0931d693ba,0xbfea49e4cc01ba6d,0x3fe5cba4e8c85f68,0xbfe96c69481c4bc5,0xbfed618af8d6485b,0x3fe36ee1b06a2a4e,0xbfeb2e04fd686a13,0xbff03c903a9fd6d6,0x3fe0e3c06f55b060,0xbfecaea9b4574cb9,0xbff1c84d4f66f7f5,0x3fdc60c137bd2841,0xbfedeac0259f7f42,0xbff353f1d9ef99b5,0x3fd6b69a82ff9e41,0xbfeedf5518053baa,0xbff4df6394c3a8dc,0x3fd0d702773295b3,0xbfef8a212714bcdc,0xbff66a4f3f0a78ff,0x3fc5a2a8d1292e09,0xbfefe995e70409b6,0xbff7f2e9650529f4,0x3fb2ecb28e1b54f8};
+.visible .func (.param .align 8 .b8 result[40]) md2asm_gpu_cloud_decorrelation_values(.param .u64 original_vector,.param .u64 rpi_address)
+{
+.reg .u64 %args,%rpi,%v<9>,%first,%last,%c,%ptr,%offset,%i,%event,%exp;
+.reg .u32 %mode,%word,%flags,%raised;
+.reg .b64 %factor,%edge,%water,%ratio,%value,%key,%sine,%a;
+.reg .pred %p;
+.param .b64 ma,mb;.param .align 8 .b8 math[16];
+ld.param.u64 %args,[original_vector];ld.param.u64 %rpi,[rpi_address];mov.u32 %flags,0;mov.u64 %event,0;mov.u64 %exp,0;
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ld.global.u64 %v5,[%args+40];
+ld.global.u64 %v6,[%args+48];
+ld.global.u64 %v7,[%args+56];
+ld.global.u64 %v8,[%args+64];
+ld.global.u32 %word,[%v1];cvt.u64.u32 %first,%word;sub.u64 %first,%first,1;ld.global.u32 %word,[%v2];cvt.u64.u32 %last,%word;ld.global.u32 %mode,[%v5];setp.ne.u32 %p,%mode,0;@%p bra DECORR_LATITUDE;
+ld.global.b64 %edge,[%v0+136];ld.global.b64 %water,[%v0+144];mov.u64 %c,%first;
+DECORR_CONSTANT_EDGE:setp.ge.u64 %p,%c,%last;@%p bra DECORR_CONSTANT_WATER;shl.b64 %offset,%c,3;add.u64 %ptr,%v6,%offset;st.global.b64 [%ptr],%edge;add.u64 %c,%c,1;bra DECORR_CONSTANT_EDGE;
+DECORR_CONSTANT_WATER:setp.eq.u64 %p,%v7,0;@%p bra DECORR_CONSTANT_RATIO;mov.u64 %c,%first;
+DECORR_WATER_FILL:setp.ge.u64 %p,%c,%last;@%p bra DECORR_CONSTANT_RATIO;shl.b64 %offset,%c,3;add.u64 %ptr,%v7,%offset;st.global.b64 [%ptr],%water;add.u64 %c,%c,1;bra DECORR_WATER_FILL;
+DECORR_CONSTANT_RATIO:setp.eq.u64 %p,%v8,0;@%p bra DECORR_DONE;
+st.param.b64 [ma],%water;st.param.b64 [mb],%edge;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %ratio,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.global.b64 [%v8],%ratio;bra DECORR_DONE;
+DECORR_LATITUDE:ld.global.b64 %value,[%rpi];
+st.param.b64 [ma],0x4066800000000000;st.param.b64 [mb],%value;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %factor,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+mov.u64 %c,%first;
+DECORR_CELL:setp.ge.u64 %p,%c,%last;@%p bra DECORR_LAT_WATER;shl.b64 %offset,%c,3;add.u64 %ptr,%v4,%offset;ld.global.b64 %sine,[%ptr];mov.u64 %ptr,md2asm_gpu_field_decorrelation_existing_grid;mov.u64 %i,0;
+DECORR_FIND:ld.const.b64 %key,[%ptr];setp.eq.b64 %p,%key,%sine;@%p bra DECORR_FOUND;add.u64 %ptr,%ptr,24;add.u64 %i,%i,1;setp.lt.u64 %p,%i,32;@%p bra DECORR_FIND;trap;
+DECORR_FOUND:setp.ne.u32 %p,%mode,1;@%p bra DECORR_SMOOTH;ld.const.b64 %value,[%ptr+8];
+st.param.b64 [ma],%value;st.param.b64 [mb],%factor;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+and.b64 %a,%a,0x7fffffffffffffff;
+st.param.b64 [ma],0x3f9c408d8ec95bff;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],0x40073126e978d4fe;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %edge,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+bra DECORR_STORE;
+DECORR_SMOOTH:ld.const.b64 %value,[%ptr+16];
+st.param.b64 [ma],0x40013126e978d4fe;st.param.b64 [mb],%value;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%a;st.param.b64 [mb],%value;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],0x3fe8000000000000;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %edge,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+DECORR_STORE:add.u64 %ptr,%v6,%offset;st.global.b64 [%ptr],%edge;add.u64 %c,%c,1;bra DECORR_CELL;
+DECORR_LAT_WATER:setp.eq.u64 %p,%v7,0;@%p bra DECORR_LAT_RATIO;mov.u64 %c,%first;
+DECORR_LAT_WATER_CELL:setp.ge.u64 %p,%c,%last;@%p bra DECORR_LAT_RATIO;shl.b64 %offset,%c,3;add.u64 %ptr,%v6,%offset;ld.global.b64 %edge,[%ptr];
+st.param.b64 [ma],%edge;st.param.b64 [mb],0x3fe0000000000000;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %water,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %ptr,%v7,%offset;st.global.b64 [%ptr],%water;add.u64 %c,%c,1;bra DECORR_LAT_WATER_CELL;
+DECORR_LAT_RATIO:setp.eq.u64 %p,%v8,0;@%p bra DECORR_DONE;mov.b64 %ratio,0x3fe0000000000000;st.global.b64 [%v8],%ratio;
+DECORR_DONE:st.param.u32 [result],%flags;st.param.u32 [result+4],0;st.param.u64 [result+8],%event;st.param.u64 [result+16],%exp;st.param.u64 [result+24],0;st.param.u64 [result+32],0;ret;
+}

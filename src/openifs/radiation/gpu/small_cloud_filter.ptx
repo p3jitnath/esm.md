@@ -1,0 +1,43 @@
+// Direct radiation PTX. Contract: skills/md2asm-gpu/references/openifs/radiation/small_cloud_filter.md
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.visible .func (.param .u32 result) md2asm_gpu_crop_cloud_fraction_values(.param .u64 original_vector,.param .u64 private_scratch)
+{
+.reg .u64 %args,%v<5>,%object,%liquid,%ice,%fraction_desc,%base,%index,%stride,%offset,%address,%fraction_address,%absolute,%quiet;
+.reg .s64 %first,%last,%column,%layer,%N,%lower;
+.reg .b64 %area_threshold,%water_threshold,%fraction,%left,%right,%water;
+.reg .u32 %flags,%raised;.reg .pred %p;
+.param .b64 ma,mb;.param .align 8 .b8 math[16];
+ld.param.u64 %args,[original_vector];mov.u32 %flags,0;
+
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ld.global.u64 %object,[%v0];add.u64 %fraction_desc,%object,352;ld.global.s64 %N,[%fraction_desc+80];ld.global.s64 %lower,[%fraction_desc+72];sub.s64 %N,%N,%lower;add.s64 %N,%N,1;setp.le.s64 %p,%N,0;@%p bra DONE;
+ld.global.s32 %first,[%v1];ld.global.s32 %last,[%v2];setp.lt.s64 %p,%last,%first;@%p bra DONE;
+ld.global.b64 %area_threshold,[%v3];ld.global.b64 %water_threshold,[%v4];mov.u64 %liquid,%object;add.u64 %ice,%object,88;
+
+and.b64 %absolute,%area_threshold,0x7fffffffffffffff;setp.le.u64 %p,%absolute,0x7ff0000000000000;@%p bra AREA_THRESHOLD_CLASSIFIED;and.b64 %quiet,%area_threshold,0x0008000000000000;setp.ne.u64 %p,%quiet,0;@%p bra AREA_THRESHOLD_CLASSIFIED;or.b32 %flags,%flags,1;AREA_THRESHOLD_CLASSIFIED:
+mov.s64 %layer,1;
+LAYER:mov.s64 %column,%first;
+COLUMN:
+ld.global.u64 %base,[%fraction_desc];ld.global.s64 %index,[%fraction_desc+8];add.s64 %index,%index,%column;ld.global.s64 %stride,[%fraction_desc+64];mad.lo.s64 %index,%layer,%stride,%index;shl.b64 %offset,%index,3;add.u64 %address,%base,%offset;
+mov.u64 %fraction_address,%address;ld.global.b64 %fraction,[%address];
+and.b64 %absolute,%fraction,0x7fffffffffffffff;setp.le.u64 %p,%absolute,0x7ff0000000000000;@%p bra FRACTION_CLASSIFIED;and.b64 %quiet,%fraction,0x0008000000000000;setp.ne.u64 %p,%quiet,0;@%p bra FRACTION_CLASSIFIED;or.b32 %flags,%flags,1;FRACTION_CLASSIFIED:
+setp.lt.f64 %p,%fraction,%area_threshold;@%p bra CLEAR;
+ld.global.u64 %base,[%liquid];ld.global.s64 %index,[%liquid+8];add.s64 %index,%index,%column;ld.global.s64 %stride,[%liquid+64];mad.lo.s64 %index,%layer,%stride,%index;shl.b64 %offset,%index,3;add.u64 %address,%base,%offset;
+ld.global.b64 %left,[%address];
+ld.global.u64 %base,[%ice];ld.global.s64 %index,[%ice+8];add.s64 %index,%index,%column;ld.global.s64 %stride,[%ice+64];mad.lo.s64 %index,%layer,%stride,%index;shl.b64 %offset,%index,3;add.u64 %address,%base,%offset;
+ld.global.b64 %right,[%address];st.param.b64 [ma],%left;st.param.b64 [mb],%right;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %water,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+and.b64 %absolute,%water,0x7fffffffffffffff;setp.le.u64 %p,%absolute,0x7ff0000000000000;@%p bra WATER_CLASSIFIED;and.b64 %quiet,%water,0x0008000000000000;setp.ne.u64 %p,%quiet,0;@%p bra WATER_CLASSIFIED;or.b32 %flags,%flags,1;WATER_CLASSIFIED:
+and.b64 %absolute,%water_threshold,0x7fffffffffffffff;setp.le.u64 %p,%absolute,0x7ff0000000000000;@%p bra WATER_THRESHOLD_CLASSIFIED;and.b64 %quiet,%water_threshold,0x0008000000000000;setp.ne.u64 %p,%quiet,0;@%p bra WATER_THRESHOLD_CLASSIFIED;or.b32 %flags,%flags,1;WATER_THRESHOLD_CLASSIFIED:
+setp.lt.f64 %p,%water,%water_threshold;@!%p bra NEXT_COLUMN;
+CLEAR:st.global.u64 [%fraction_address],0;
+NEXT_COLUMN:add.s64 %column,%column,1;setp.le.s64 %p,%column,%last;@%p bra COLUMN;
+add.s64 %layer,%layer,1;setp.le.s64 %p,%layer,%N;@%p bra LAYER;
+DONE:st.param.u32 [result],%flags;ret;
+}

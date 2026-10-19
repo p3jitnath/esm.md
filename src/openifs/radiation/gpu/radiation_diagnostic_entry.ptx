@@ -1,0 +1,33 @@
+// Complete original34-slot RADDIAG launch and software-status boundary.
+// Contract: skills/md2asm-gpu/references/openifs/radiation/radiation_diagnostic_fluxes.md. Numerical children remain on the device.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .u32 error) md2asm_gpu_radiation_diagnostic_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 result[32]) md2asm_gpu_radiation_diagnostic_values(.param .u64 vector,.param .u64 record,.param .u64 scratch);
+.visible .func md2asm_gpu_radiation_diagnostic_fp64(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%word,%record,%bytes,%scratch,%event,%fast,%wide,%owner,%old64;
+.reg .u32 %error,%r,%flags,%old;.reg .pred %p;
+.param .u64 a0,a1,a2;.param .u32 admitted;.param .align 8 .b8 result[32];
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];
+// Only the origin thread and block own launch refusal or model work.
+mov.u32 %old,%tid.x;mov.u32 %r,%tid.y;or.b32 %old,%old,%r;mov.u32 %r,%tid.z;or.b32 %old,%old,%r;mov.u32 %r,%ctaid.x;or.b32 %old,%old,%r;mov.u32 %r,%ctaid.y;or.b32 %old,%old,%r;mov.u32 %r,%ctaid.z;or.b32 %old,%old,%r;setp.ne.u32 %p,%old,0;@%p ret;
+setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %word,%ctx,7;setp.ne.u64 %p,%word,0;@%p ret;
+ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;mov.u32 %error,7750;
+mov.u32 %r,%ctaid.x;setp.ne.u32 %p,%r,0;@%p bra REFUSE;mov.u32 %r,%ctaid.y;setp.ne.u32 %p,%r,0;@%p bra REFUSE;mov.u32 %r,%ctaid.z;setp.ne.u32 %p,%r,0;@%p bra REFUSE;
+mov.u32 %r,%nctaid.x;setp.ne.u32 %p,%r,1;@%p bra REFUSE;mov.u32 %r,%nctaid.y;setp.ne.u32 %p,%r,1;@%p bra REFUSE;mov.u32 %r,%nctaid.z;setp.ne.u32 %p,%r,1;@%p bra REFUSE;
+mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra REFUSE;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra REFUSE;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra REFUSE;
+mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra REFUSE;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra REFUSE;ld.global.u32 %r,[%ctx+12];setp.ne.u32 %p,%r,0;@%p bra REFUSE;
+st.param.u64 [a0],%args;st.param.u64 [a1],%ctx;call.uni (admitted),md2asm_gpu_radiation_diagnostic_admit,(a0,a1);ld.param.u32 %error,[admitted];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];st.param.u64 [a0],%args;st.param.u64 [a1],%record;st.param.u64 [a2],%scratch;call.uni (result),md2asm_gpu_radiation_diagnostic_values,(a0,a1,a2);ld.param.u32 %flags,[result];ld.param.u32 %error,[result+4];ld.param.u64 %event,[result+8];ld.param.u64 %fast,[result+16];ld.param.u64 %wide,[result+24];
+add.u64 %owner,%ctx,8;atom.global.or.b32 %old,[%owner],%flags;setp.eq.u64 %p,%event,0;@%p bra EVENT_JOINED;add.u64 %owner,%ctx,16;atom.global.max.u64 %old64,[%owner],%event;
+EVENT_JOINED:ld.global.u64 %owner,[%record+16];setp.eq.u64 %p,%owner,0;@%p bra COUNTERS_JOINED;atom.global.add.u64 %old64,[%owner],%fast;
+COUNTERS_JOINED:setp.eq.u32 %p,%error,0;@%p ret;
+REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+.visible .entry md2asm_gpu_raddiag(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx;.param .u64 a0,a1;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];st.param.u64 [a0],%args;st.param.u64 [a1],%ctx;call.uni md2asm_gpu_radiation_diagnostic_fp64,(a0,a1);ret;
+}

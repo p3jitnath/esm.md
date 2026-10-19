@@ -1,0 +1,82 @@
+// Direct radiation PTX. Contract: skills/md2asm-gpu/references/openifs/radiation/surface_albedo_mapping.md
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.visible .func (.param .u32 result) md2asm_gpu_get_albedos_values(.param .u64 original_vector,.param .u64 private_scratch)
+{
+.reg .u64 %args,%cache,%v<7>,%object,%config,%source,%destination,%weights,%map,%nearestmap,%base,%index,%stride,%offset,%address,%tmp,%copy_source;
+.reg .s64 %first,%last,%column,%interval,%band,%point,%K,%nBand,%nG,%relative,%one;
+.reg .u32 %spectrum,%full,%nearest,%mode,%flags,%raised;
+.reg .b64 %weight,%value,%sum,%product;
+.reg .pred %p;
+.param .b64 ma,mb;.param .align 8 .b8 math[16];
+ld.param.u64 %args,[original_vector];ld.param.u64 %cache,[private_scratch];mov.u32 %flags,0;mov.s64 %one,1;
+
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ld.global.u64 %v5,[%args+40];
+ld.global.u64 %v6,[%args+48];
+ld.global.s32 %first,[%v1];ld.global.s32 %last,[%v2];setp.lt.s64 %p,%last,%first;@%p bra DONE;
+ld.global.u64 %object,[%v0];mov.u64 %config,%v3;mov.u32 %spectrum,0;
+SPECTRUM:setp.eq.u32 %p,%spectrum,2;@%p bra LONGWAVE_SETUP;
+ld.global.s32 %nG,[%config+19996];ld.global.s32 %nBand,[%config+20004];ld.global.u32 %full,[%config+7984];ld.global.u32 %nearest,[%config+708];
+add.u64 %weights,%config,10432;add.u64 %map,%config,10928;add.u64 %nearestmap,%config,10304;
+setp.eq.u32 %p,%spectrum,1;@%p bra DIRECT_SETUP;add.u64 %source,%object,128;mov.u64 %destination,%v5;bra MODE_SETUP;
+DIRECT_SETUP:add.u64 %source,%object,216;mov.u64 %destination,%v4;ld.global.u64 %base,[%source];setp.ne.u64 %p,%base,0;@%p bra MODE_SETUP;
+setp.ne.u32 %p,%full,0;@%p bra NEXT_SPECTRUM;
+sub.s64 %tmp,%last,%first;add.u64 %tmp,%tmp,1;mul.lo.u64 %tmp,%tmp,%nG;shl.b64 %tmp,%tmp,3;mov.u64 %offset,0;
+COPY_DIFFUSE:setp.ge.u64 %p,%offset,%tmp;@%p bra NEXT_SPECTRUM;add.u64 %address,%v5,%offset;ld.global.b64 %value,[%address];add.u64 %address,%v4,%offset;st.global.b64 [%address],%value;add.u64 %offset,%offset,8;bra COPY_DIFFUSE;
+LONGWAVE_SETUP:mov.u64 %destination,%v6;setp.eq.u64 %p,%destination,0;@%p bra DONE;
+ld.global.s32 %nG,[%config+20000];ld.global.s32 %nBand,[%config+20008];ld.global.u32 %full,[%config+7988];ld.global.u32 %nearest,[%config+712];
+add.u64 %weights,%config,10520;add.u64 %map,%config,10864;add.u64 %nearestmap,%config,10368;add.u64 %source,%object,304;
+MODE_SETUP:mov.u32 %mode,0;setp.ne.u32 %p,%full,0;@%p bra MODE_READY;
+mov.u32 %mode,2;setp.ne.u32 %p,%nearest,0;@%p bra MODE_READY;mov.u32 %mode,1;
+ld.global.s64 %K,[%weights+56];ld.global.s64 %tmp,[%weights+48];sub.s64 %K,%K,%tmp;add.s64 %K,%K,1;
+MODE_READY:mov.s64 %column,%first;
+COLUMN:setp.ne.u32 %p,%mode,1;@%p bra MAP_POINTS;mov.s64 %band,1;
+WEIGHTED_BAND:mov.b64 %sum,0;mov.s64 %interval,1;
+WEIGHTED_INTERVAL:
+
+ld.global.u64 %base,[%weights];ld.global.s64 %index,[%weights+8];ld.global.s64 %stride,[%weights+40];mad.lo.s64 %index,%interval,%stride,%index;
+ld.global.s64 %stride,[%weights+64];mad.lo.s64 %index,%band,%stride,%index;
+shl.b64 %offset,%index,3;add.u64 %address,%base,%offset;
+ld.global.b64 %weight,[%address];setp.eq.f64 %p,%weight,0d0000000000000000;@%p bra NEXT_INTERVAL;
+ld.global.u64 %base,[%source];ld.global.s64 %index,[%source+8];ld.global.s64 %stride,[%source+40];mad.lo.s64 %index,%column,%stride,%index;
+ld.global.s64 %stride,[%source+64];mad.lo.s64 %index,%interval,%stride,%index;
+shl.b64 %offset,%index,3;add.u64 %address,%base,%offset;
+ld.global.b64 %value,[%address];setp.ne.u32 %p,%spectrum,2;@%p bra WEIGHTED_VALUE_READY;
+st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%value;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+WEIGHTED_VALUE_READY:
+st.param.b64 [ma],%weight;st.param.b64 [mb],%value;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %product,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%sum;st.param.b64 [mb],%product;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %sum,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+NEXT_INTERVAL:add.s64 %interval,%interval,1;setp.le.s64 %p,%interval,%K;@%p bra WEIGHTED_INTERVAL;
+sub.s64 %offset,%band,1;shl.b64 %offset,%offset,3;add.u64 %address,%cache,%offset;st.global.b64 [%address],%sum;
+add.s64 %band,%band,1;setp.le.s64 %p,%band,%nBand;@%p bra WEIGHTED_BAND;
+MAP_POINTS:mov.s64 %point,1;
+POINT:mov.s64 %interval,%point;setp.eq.u32 %p,%mode,0;@%p bra INPUT_VALUE;
+
+ld.global.u64 %base,[%map];ld.global.s64 %index,[%map+8];ld.global.s64 %stride,[%map+40];mad.lo.s64 %index,%point,%stride,%index;
+shl.b64 %offset,%index,2;add.u64 %address,%base,%offset;
+ld.global.s32 %band,[%address];setp.ne.u32 %p,%mode,1;@%p bra NEAREST_INTERVAL;sub.s64 %offset,%band,1;shl.b64 %offset,%offset,3;add.u64 %address,%cache,%offset;ld.global.b64 %value,[%address];bra STORE_VALUE;
+NEAREST_INTERVAL:
+ld.global.u64 %base,[%nearestmap];ld.global.s64 %index,[%nearestmap+8];ld.global.s64 %stride,[%nearestmap+40];mad.lo.s64 %index,%band,%stride,%index;
+shl.b64 %offset,%index,2;add.u64 %address,%base,%offset;
+ld.global.s32 %interval,[%address];
+INPUT_VALUE:
+ld.global.u64 %base,[%source];ld.global.s64 %index,[%source+8];ld.global.s64 %stride,[%source+40];mad.lo.s64 %index,%column,%stride,%index;
+ld.global.s64 %stride,[%source+64];mad.lo.s64 %index,%interval,%stride,%index;
+shl.b64 %offset,%index,3;add.u64 %address,%base,%offset;
+ld.global.b64 %value,[%address];setp.ne.u32 %p,%spectrum,2;@%p bra STORE_VALUE;
+st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%value;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+STORE_VALUE:sub.s64 %relative,%column,%first;mul.lo.s64 %offset,%relative,%nG;sub.s64 %tmp,%point,1;add.s64 %offset,%offset,%tmp;shl.b64 %offset,%offset,3;add.u64 %address,%destination,%offset;st.global.b64 [%address],%value;
+add.s64 %point,%point,1;setp.le.s64 %p,%point,%nG;@%p bra POINT;
+add.s64 %column,%column,1;setp.le.s64 %p,%column,%last;@%p bra COLUMN;
+NEXT_SPECTRUM:add.u32 %spectrum,%spectrum,1;setp.le.u32 %p,%spectrum,2;@%p bra SPECTRUM;
+DONE:st.param.u32 [result],%flags;ret;
+}

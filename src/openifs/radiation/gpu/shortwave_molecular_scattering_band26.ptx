@@ -1,0 +1,104 @@
+// Contract: skills/md2asm-gpu/references/openifs/radiation/shortwave_molecular_scattering.md
+// Complete SRTM_TAUMOL26 from skills/md2asm-gpu/references/openifs/radiation/shortwave_molecular_scattering.md revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 left,.param .b64 right);
+.func (.param .u32 result) shortwave26_range(.param .u64 base,.param .u64 bytes,.param .u64 mask,.param .u64 owners,.param .u32 count)
+{
+ .reg .u64 %b,%n,%m,%list,%t,%end,%o,%on,%oe; .reg .u32 %i,%count,%e; .reg .pred %p,%q;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %m,[mask]; ld.param.u64 %list,[owners]; ld.param.u32 %count,[count];
+ mov.u32 %e,0; setp.eq.u64 %p,%n,0; @%p bra RANGE_DONE;
+ mov.u32 %e,743; setp.eq.u64 %p,%b,0; @%p bra RANGE_DONE; and.b64 %t,%b,%m; setp.ne.u64 %p,%t,0; @%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra RANGE_DONE; setp.gt.u64 %p,%n,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ add.u64 %end,%b,%n; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ mov.u32 %i,0;
+RANGE_OWNERS:
+ setp.ge.u32 %p,%i,%count; @%p bra RANGE_OK; ld.u64 %o,[%list]; ld.u64 %on,[%list+8]; setp.eq.u64 %p,%on,0; @%p bra RANGE_NEXT;
+ add.u64 %oe,%o,%on; setp.lt.u64 %p,%b,%oe; setp.lt.u64 %q,%o,%end; and.pred %p,%p,%q; @%p bra RANGE_DONE;
+RANGE_NEXT: add.u64 %list,%list,16; add.u32 %i,%i,1; bra RANGE_OWNERS;
+RANGE_OK: mov.u32 %e,0;
+RANGE_DONE: st.param.u32 [result],%e; ret;
+}
+
+.visible .func (.param .u32 result) md2asm_gpu_srtm_taumol26_values(.param .u64 original_vector,.param .u64 table_record)
+{
+.reg .u64 %args,%record,%v<10>,%ray,%solar,%address,%offset,%word,%tmp,%row,%B64,%V64;
+.reg .u32 %B,%V,%H,%first,%last,%k,%c,%g,%trop,%flags,%raised;.reg .b64 %mu,%column,%coefficient,%value;.reg .pred %p;
+.param .b64 ma,mb;.param .align 8 .b8 math[16];ld.param.u64 %args,[original_vector];ld.param.u64 %record,[table_record];mov.u32 %flags,0;
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ld.global.u64 %v5,[%args+40];
+ld.global.u64 %v6,[%args+48];
+ld.global.u64 %v7,[%args+56];
+ld.global.u64 %v8,[%args+64];
+ld.global.u64 %v9,[%args+72];
+ld.global.u32 %V,[%v0];ld.global.u32 %H,[%v3];ld.global.u32 %first,[%v1];ld.global.u32 %last,[%v2];sub.u32 %B,%last,%first;add.u32 %B,%B,1;setp.eq.u32 %p,%B,0;@%p bra DONE;setp.eq.u32 %p,%H,0;@%p bra DONE;ld.global.u64 %ray,[%record];ld.global.u64 %solar,[%record+8];cvt.u64.u32 %B64,%B;cvt.u64.u32 %V64,%V;mov.u32 %k,0;
+LAYER:mov.u32 %c,0;
+COLUMN:mul.wide.u32 %offset,%c,8;add.u64 %address,%v9,%offset;ld.global.b64 %mu,[%address];setp.gt.f64 %p,%mu,0d0000000000000000;@!%p bra NEXT_COLUMN;mul.wide.u32 %offset,%c,4;add.u64 %address,%v5,%offset;ld.global.u32 %trop,[%address];mul.wide.u32 %row,%k,%B;cvt.u64.u32 %tmp,%c;add.u64 %row,%row,%tmp;shl.b64 %row,%row,3;add.u64 %address,%v4,%row;ld.global.b64 %column,[%address];mov.u32 %g,0;
+POINT:mul.wide.u32 %offset,%g,8;add.u64 %address,%ray,%offset;ld.global.b64 %coefficient,[%address];st.param.b64 [ma],%column;st.param.b64 [mb],%coefficient;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;mul.wide.u32 %offset,%g,%V;cvt.u64.u32 %tmp,%k;add.u64 %offset,%offset,%tmp;mul.lo.u64 %offset,%offset,%B64;cvt.u64.u32 %tmp,%c;add.u64 %offset,%offset,%tmp;shl.b64 %offset,%offset,3;add.u64 %address,%v7,%offset;st.global.u64 [%address],0;add.u64 %address,%v8,%offset;st.global.b64 [%address],%value;add.u32 %g,%g,1;setp.lt.u32 %p,%g,6;@%p bra POINT;add.u32 %g,%k,1;setp.ne.u32 %p,%g,%trop;@%p bra NEXT_COLUMN;mov.u32 %g,0;
+SOLAR:mul.wide.u32 %offset,%g,8;add.u64 %address,%solar,%offset;ld.global.u64 %word,[%address];mul.wide.u32 %offset,%g,%B;cvt.u64.u32 %tmp,%c;add.u64 %offset,%offset,%tmp;shl.b64 %offset,%offset,3;add.u64 %address,%v6,%offset;st.global.u64 [%address],%word;add.u32 %g,%g,1;setp.lt.u32 %p,%g,6;@%p bra SOLAR;
+NEXT_COLUMN:add.u32 %c,%c,1;setp.lt.u32 %p,%c,%B;@%p bra COLUMN;add.u32 %k,%k,1;setp.lt.u32 %p,%k,%H;@%p bra LAYER;
+DONE:st.param.u32 [result],%flags;ret;
+}
+.visible .func md2asm_gpu_srtm_taumol26_fp64(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u64 %args,%ctx,%v<10>,%record,%recordbytes,%list,%tmp,%address,%realbytes,%opticalbytes,%solarbytes,%columnbytes,%integerbytes,%ray,%solar;
+.reg .u32 %B,%H,%V,%first,%last,%error,%rt,%unique,%c,%trop,%daylight,%solarpresent,%flags;.reg .b64 %mu;.reg .pred %p;
+.local .align 8 .b8 spans[64];.param .u64 rb,rn,rm,rl,va,vr;.param .u32 rc,rr,result;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %tmp,%ctx,7;setp.ne.u64 %p,%tmp,0;@%p ret;mov.u32 %unique,%ctaid.x;mov.u32 %rt,%ctaid.y;or.b32 %unique,%unique,%rt;mov.u32 %rt,%ctaid.z;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.x;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.y;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.z;or.b32 %unique,%unique,%rt;setp.ne.u32 %p,%unique,0;@%p ret;ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;mov.u32 %error,741;
+mov.u32 %rt,%ntid.x;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%ntid.y;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%ntid.z;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%nctaid.x;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%nctaid.y;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%nctaid.z;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%dynamic_smem_size;setp.ne.u32 %p,%rt,0;@%p bra REFUSE;ld.global.u32 %rt,[%ctx+4];setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u64 %list,spans;cvta.local.u64 %list,%list;st.u64 [%list],%ctx;st.u64 [%list+8],64;
+st.param.u64 [rb],%args;st.param.u64 [rn],80;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ld.global.u64 %v5,[%args+40];
+ld.global.u64 %v6,[%args+48];
+ld.global.u64 %v7,[%args+56];
+ld.global.u64 %v8,[%args+64];
+ld.global.u64 %v9,[%args+72];
+st.param.u64 [rb],%v0;st.param.u64 [rn],32;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v1;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v2;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v3;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u32 %V,[%v0];ld.global.u32 %first,[%v1];ld.global.u32 %last,[%v2];ld.global.u32 %H,[%v3];mov.u32 %error,742;setp.lt.s32 %p,%first,1;@%p bra REFUSE;sub.u32 %rt,%first,1;setp.lt.s32 %p,%last,%rt;@%p bra REFUSE;sub.u32 %B,%last,%first;add.u32 %B,%B,1;setp.gt.u32 %p,%B,4096;@%p bra REFUSE;setp.gt.u32 %p,%V,512;@%p bra REFUSE;setp.gt.u32 %p,%H,%V;@%p bra REFUSE;setp.eq.u32 %p,%B,0;@%p ret;setp.eq.u32 %p,%H,0;@%p ret;mul.wide.u32 %realbytes,%B,%V;shl.b64 %realbytes,%realbytes,3;shl.b64 %opticalbytes,%realbytes,4;mul.wide.u32 %columnbytes,%B,8;mul.wide.u32 %integerbytes,%B,4;shl.b64 %solarbytes,%columnbytes,4;st.u64 [%list],%v6;st.u64 [%list+8],%solarbytes;st.u64 [%list+16],%v7;st.u64 [%list+24],%opticalbytes;st.u64 [%list+32],%v8;st.u64 [%list+40],%opticalbytes;st.u64 [%list+48],%ctx;st.u64 [%list+56],64;
+st.param.u64 [rb],%v6;st.param.u64 [rn],%solarbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v7;st.param.u64 [rn],%opticalbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v8;st.param.u64 [rn],%opticalbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],2;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],3;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%args;st.param.u64 [rn],80;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],4;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v0;st.param.u64 [rn],32;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],4;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v1;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],4;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v2;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],4;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v3;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],4;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v9;st.param.u64 [rn],%columnbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],4;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v5;st.param.u64 [rn],%integerbytes;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],4;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %recordbytes,[%ctx+56];mov.u32 %error,742;setp.ne.u64 %p,%recordbytes,16;@%p bra REFUSE;
+st.param.u64 [rb],%record;st.param.u64 [rn],16;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],4;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %ray,[%record];ld.global.u64 %solar,[%record+8];setp.eq.u64 %p,%ray,0;@%p bra NO_RAY_SPAN;
+st.param.u64 [rb],%ray;st.param.u64 [rn],128;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],4;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+NO_RAY_SPAN:setp.eq.u64 %p,%solar,0;@%p bra NO_SOLAR_SPAN;
+st.param.u64 [rb],%solar;st.param.u64 [rn],128;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],4;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+NO_SOLAR_SPAN:mov.u32 %daylight,0;mov.u32 %solarpresent,0;mov.u32 %c,0;
+SCAN:mul.wide.u32 %tmp,%c,8;add.u64 %address,%v9,%tmp;ld.global.b64 %mu,[%address];setp.gt.f64 %p,%mu,0d0000000000000000;@!%p bra SCAN_NEXT;mov.u32 %daylight,1;mul.wide.u32 %tmp,%c,4;add.u64 %address,%v5,%tmp;ld.global.u32 %trop,[%address];setp.lt.s32 %p,%trop,1;@%p bra SCAN_NEXT;setp.gt.u32 %p,%trop,%H;@%p bra SCAN_NEXT;mov.u32 %solarpresent,1;
+SCAN_NEXT:add.u32 %c,%c,1;setp.lt.u32 %p,%c,%B;@%p bra SCAN;setp.eq.u32 %p,%daylight,0;@%p bra READY;
+st.param.u64 [rb],%v4;st.param.u64 [rn],%realbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],4;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%ray;st.param.u64 [rn],128;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],4;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.eq.u32 %p,%solarpresent,0;@%p bra READY;
+st.param.u64 [rb],%solar;st.param.u64 [rn],128;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],4;call.uni (rr),shortwave26_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+READY:st.param.u64 [va],%args;st.param.u64 [vr],%record;call.uni (result),md2asm_gpu_srtm_taumol26_values,(va,vr);ld.param.u32 %flags,[result];add.u64 %address,%ctx,8;atom.global.or.b32 %rt,[%address],%flags;ret;
+REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+.visible .entry md2asm_gpu_srtm_taumol26(.param .u64 original_vector,.param .u64 context)
+{.reg .u64 %a,%c;.param .u64 a,c;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];st.param.u64 [a],%a;st.param.u64 [c],%c;call.uni md2asm_gpu_srtm_taumol26_fp64,(a,c);ret;}

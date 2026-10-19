@@ -1,0 +1,302 @@
+// Complete direct clear longwave layer transmission and thermal emission.
+// Contract: skills/md2asm-gpu/references/openifs/radiation/clear_longwave_layer.md, revision 2.
+// Original radiation_two_stream::calc_no_scattering_transmittance_lw.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_exp_original_rounding(.param .b64 x);
+.visible .func (.param .align 8 .b8 values_flags_event[32]) md2asm_gpu_clear_longwave_layer_values(
+ .param .b64 depth_word,.param .b64 top_word,.param .b64 bottom_word)
+{
+ .reg .b64 %depth,%top,%bottom,%c,%q,%a,%b,%d,%e,%product,%tr,%up,%dn,%half,%sum,%nanbits;
+ .reg .u32 %flags,%raised,%event; .reg .pred %thick,%isnan;
+ ld.param.b64 %depth,[depth_word]; ld.param.b64 %top,[top_word]; ld.param.b64 %bottom,[bottom_word];
+ mov.u32 %flags,0; mov.u32 %event,0;
+ and.b64 %nanbits,%depth,0x7fffffffffffffff;
+ setp.gt.u64 %isnan,%nanbits,0x7ff0000000000000; @%isnan or.b32 %flags,%flags,1;
+ setp.gt.f64 %thick,%depth,0d3f50624de0000000;
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],0x3ffa8f5c28f5c28f; st.param.b64 [b],%depth;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %c,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ }
+ @%thick bra THICK;
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],0x3ff0000000000000; st.param.b64 [b],%c;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %tr,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%c; st.param.b64 [b],0x3fe0000000000000;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %half,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%top; st.param.b64 [b],%bottom;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %sum,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%half; st.param.b64 [b],%sum;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %up,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ }
+ mov.b64 %dn,%up; bra VALUE_RETURN;
+THICK:
+ xor.b64 %q,%c,0x8000000000000000;
+ {
+ .param .b64 x; .param .align 8 .b8 result[16];
+ st.param.b64 [x],%q; call.uni (result),md2asm_gpu_exp_original_rounding,(x);
+ ld.param.b64 %tr,[result]; ld.param.u32 %raised,[result+8]; ld.param.u32 %event,[result+12]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%bottom; st.param.b64 [b],%top;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %q,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%q; st.param.b64 [b],%c;
+ call.uni (result),md2asm_gpu_div_status,(a,b);
+ ld.param.b64 %q,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%q; st.param.b64 [b],%top;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %a,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%q; st.param.b64 [b],%bottom;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %b,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%tr; st.param.b64 [b],%b;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %product,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%a; st.param.b64 [b],%product;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %up,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%top; st.param.b64 [b],%q;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %d,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%bottom; st.param.b64 [b],%q;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %e,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%tr; st.param.b64 [b],%d;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %product,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%e; st.param.b64 [b],%product;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %dn,[result]; ld.param.u32 %raised,[result+8]; or.b32 %flags,%flags,%raised;
+ }
+VALUE_RETURN:
+ st.param.b64 [values_flags_event],%tr; st.param.b64 [values_flags_event+8],%up; st.param.b64 [values_flags_event+16],%dn;
+ st.param.u32 [values_flags_event+24],%flags; st.param.u32 [values_flags_event+28],%event; ret;
+}
+.visible .entry md2asm_gpu_calc_no_scattering_transmittance_lw(.param .u64 args_original_vector,.param .u64 context)
+{
+ .reg .b64 %args,%ctx,%countptr,%od,%top,%bottom,%tr,%up,%dn,%rec,%counter,%nbytes,%tmp,%tmp2,%end1,%end2,%cell,%step,%total,%offset,%a,%b,%c,%x,%y,%z,%ordinal,%old64;
+ .reg .u32 %r<10>,%n,%flags,%raised,%event,%old,%error,%unique; .reg .pred %p<3>;
+ ld.param.u64 %args,[args_original_vector]; ld.param.u64 %ctx,[context];
+ setp.eq.u64 %p0,%ctx,0; @%p0 ret; and.b64 %tmp,%ctx,7; setp.ne.u64 %p0,%tmp,0; @%p0 ret;
+ ld.global.u32 %old,[%ctx]; setp.ne.u32 %p0,%old,0; @%p0 ret;
+ mov.u32 %unique,%ctaid.x; mov.u32 %r0,%ctaid.y; or.b32 %unique,%unique,%r0;
+ mov.u32 %r0,%ctaid.z; or.b32 %unique,%unique,%r0; mov.u32 %r0,%tid.x; or.b32 %unique,%unique,%r0;
+ mov.u32 %r0,%tid.y; or.b32 %unique,%unique,%r0; mov.u32 %r0,%tid.z; or.b32 %unique,%unique,%r0;
+ mov.u32 %error,341;
+ ld.global.u32 %r0,[%ctx+4]; setp.ne.u32 %p0,%r0,1; @%p0 bra REFUSE;
+ mov.u32 %r0,%nctaid.y; setp.ne.u32 %p0,%r0,1; @%p0 bra REFUSE;
+ mov.u32 %r0,%nctaid.z; setp.ne.u32 %p0,%r0,1; @%p0 bra REFUSE;
+ mov.u32 %r0,%ntid.y; setp.ne.u32 %p0,%r0,1; @%p0 bra REFUSE;
+ mov.u32 %r0,%ntid.z; setp.ne.u32 %p0,%r0,1; @%p0 bra REFUSE;
+ mov.u32 %error,342;
+ setp.eq.u64 %p0,%args,0; @%p0 bra REFUSE;
+ and.b64 %tmp,%args,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra REFUSE;
+ setp.gt.u64 %p0,%args,0x7fffffffffffffff; @%p0 bra REFUSE;
+ add.u64 %tmp,%args,8; setp.gt.u64 %p0,%tmp,0x7fffffffffffffff; @%p0 bra REFUSE;
+ ld.global.u64 %countptr,[%args];
+ setp.eq.u64 %p0,%countptr,0; @%p0 bra REFUSE;
+ and.b64 %tmp,%countptr,3; setp.ne.u64 %p0,%tmp,0; @%p0 bra REFUSE;
+ setp.gt.u64 %p0,%countptr,0x7fffffffffffffff; @%p0 bra REFUSE;
+ add.u64 %tmp,%countptr,4; setp.gt.u64 %p0,%tmp,0x7fffffffffffffff; @%p0 bra REFUSE;
+ ld.global.s32 %n,[%countptr]; setp.le.s32 %p0,%n,0; @%p0 ret;
+ mul.wide.u32 %nbytes,%n,8; cvt.u64.u32 %total,%n;
+ setp.eq.u64 %p0,%args,0; @%p0 bra REFUSE;
+ and.b64 %tmp,%args,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra REFUSE;
+ setp.gt.u64 %p0,%args,0x7fffffffffffffff; @%p0 bra REFUSE;
+ add.u64 %tmp,%args,56; setp.gt.u64 %p0,%tmp,0x7fffffffffffffff; @%p0 bra REFUSE;
+ ld.global.u64 %od,[%args+8];
+ setp.eq.u64 %p0,%od,0; @%p0 bra REFUSE;
+ and.b64 %tmp,%od,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra REFUSE;
+ setp.gt.u64 %p0,%od,0x7fffffffffffffff; @%p0 bra REFUSE;
+ add.u64 %tmp,%od,%nbytes; setp.gt.u64 %p0,%tmp,0x7fffffffffffffff; @%p0 bra REFUSE;
+ ld.global.u64 %top,[%args+16];
+ setp.eq.u64 %p0,%top,0; @%p0 bra REFUSE;
+ and.b64 %tmp,%top,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra REFUSE;
+ setp.gt.u64 %p0,%top,0x7fffffffffffffff; @%p0 bra REFUSE;
+ add.u64 %tmp,%top,%nbytes; setp.gt.u64 %p0,%tmp,0x7fffffffffffffff; @%p0 bra REFUSE;
+ ld.global.u64 %bottom,[%args+24];
+ setp.eq.u64 %p0,%bottom,0; @%p0 bra REFUSE;
+ and.b64 %tmp,%bottom,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra REFUSE;
+ setp.gt.u64 %p0,%bottom,0x7fffffffffffffff; @%p0 bra REFUSE;
+ add.u64 %tmp,%bottom,%nbytes; setp.gt.u64 %p0,%tmp,0x7fffffffffffffff; @%p0 bra REFUSE;
+ ld.global.u64 %tr,[%args+32];
+ setp.eq.u64 %p0,%tr,0; @%p0 bra REFUSE;
+ and.b64 %tmp,%tr,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra REFUSE;
+ setp.gt.u64 %p0,%tr,0x7fffffffffffffff; @%p0 bra REFUSE;
+ add.u64 %tmp,%tr,%nbytes; setp.gt.u64 %p0,%tmp,0x7fffffffffffffff; @%p0 bra REFUSE;
+ ld.global.u64 %up,[%args+40];
+ setp.eq.u64 %p0,%up,0; @%p0 bra REFUSE;
+ and.b64 %tmp,%up,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra REFUSE;
+ setp.gt.u64 %p0,%up,0x7fffffffffffffff; @%p0 bra REFUSE;
+ add.u64 %tmp,%up,%nbytes; setp.gt.u64 %p0,%tmp,0x7fffffffffffffff; @%p0 bra REFUSE;
+ ld.global.u64 %dn,[%args+48];
+ setp.eq.u64 %p0,%dn,0; @%p0 bra REFUSE;
+ and.b64 %tmp,%dn,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra REFUSE;
+ setp.gt.u64 %p0,%dn,0x7fffffffffffffff; @%p0 bra REFUSE;
+ add.u64 %tmp,%dn,%nbytes; setp.gt.u64 %p0,%tmp,0x7fffffffffffffff; @%p0 bra REFUSE;
+ add.u64 %end1,%tr,%nbytes; add.u64 %end2,%od,%nbytes;
+ setp.lt.u64 %p0,%tr,%end2; setp.lt.u64 %p1,%od,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%tr,%nbytes; add.u64 %end2,%top,%nbytes;
+ setp.lt.u64 %p0,%tr,%end2; setp.lt.u64 %p1,%top,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%tr,%nbytes; add.u64 %end2,%bottom,%nbytes;
+ setp.lt.u64 %p0,%tr,%end2; setp.lt.u64 %p1,%bottom,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%tr,%nbytes; add.u64 %end2,%args,56;
+ setp.lt.u64 %p0,%tr,%end2; setp.lt.u64 %p1,%args,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%tr,%nbytes; add.u64 %end2,%ctx,64;
+ setp.lt.u64 %p0,%tr,%end2; setp.lt.u64 %p1,%ctx,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%tr,%nbytes; add.u64 %end2,%countptr,4;
+ setp.lt.u64 %p0,%tr,%end2; setp.lt.u64 %p1,%countptr,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%up,%nbytes; add.u64 %end2,%od,%nbytes;
+ setp.lt.u64 %p0,%up,%end2; setp.lt.u64 %p1,%od,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%up,%nbytes; add.u64 %end2,%top,%nbytes;
+ setp.lt.u64 %p0,%up,%end2; setp.lt.u64 %p1,%top,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%up,%nbytes; add.u64 %end2,%bottom,%nbytes;
+ setp.lt.u64 %p0,%up,%end2; setp.lt.u64 %p1,%bottom,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%up,%nbytes; add.u64 %end2,%args,56;
+ setp.lt.u64 %p0,%up,%end2; setp.lt.u64 %p1,%args,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%up,%nbytes; add.u64 %end2,%ctx,64;
+ setp.lt.u64 %p0,%up,%end2; setp.lt.u64 %p1,%ctx,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%up,%nbytes; add.u64 %end2,%countptr,4;
+ setp.lt.u64 %p0,%up,%end2; setp.lt.u64 %p1,%countptr,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%dn,%nbytes; add.u64 %end2,%od,%nbytes;
+ setp.lt.u64 %p0,%dn,%end2; setp.lt.u64 %p1,%od,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%dn,%nbytes; add.u64 %end2,%top,%nbytes;
+ setp.lt.u64 %p0,%dn,%end2; setp.lt.u64 %p1,%top,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%dn,%nbytes; add.u64 %end2,%bottom,%nbytes;
+ setp.lt.u64 %p0,%dn,%end2; setp.lt.u64 %p1,%bottom,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%dn,%nbytes; add.u64 %end2,%args,56;
+ setp.lt.u64 %p0,%dn,%end2; setp.lt.u64 %p1,%args,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%dn,%nbytes; add.u64 %end2,%ctx,64;
+ setp.lt.u64 %p0,%dn,%end2; setp.lt.u64 %p1,%ctx,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%dn,%nbytes; add.u64 %end2,%countptr,4;
+ setp.lt.u64 %p0,%dn,%end2; setp.lt.u64 %p1,%countptr,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%tr,%nbytes; add.u64 %end2,%up,%nbytes;
+ setp.lt.u64 %p0,%tr,%end2; setp.lt.u64 %p1,%up,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%tr,%nbytes; add.u64 %end2,%dn,%nbytes;
+ setp.lt.u64 %p0,%tr,%end2; setp.lt.u64 %p1,%dn,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%up,%nbytes; add.u64 %end2,%dn,%nbytes;
+ setp.lt.u64 %p0,%up,%end2; setp.lt.u64 %p1,%dn,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ mov.u64 %counter,0;
+ ld.global.u64 %rec,[%ctx+48]; ld.global.u64 %tmp2,[%ctx+56];
+ setp.ne.u64 %p0,%rec,0; @%p0 bra RECORD;
+ setp.ne.u64 %p0,%tmp2,0; @%p0 bra REFUSE; bra READY;
+RECORD:
+ setp.ne.u64 %p0,%tmp2,8; @%p0 bra REFUSE;
+ setp.eq.u64 %p0,%rec,0; @%p0 bra REFUSE;
+ and.b64 %tmp,%rec,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra REFUSE;
+ setp.gt.u64 %p0,%rec,0x7fffffffffffffff; @%p0 bra REFUSE;
+ add.u64 %tmp,%rec,8; setp.gt.u64 %p0,%tmp,0x7fffffffffffffff; @%p0 bra REFUSE;
+ ld.global.u64 %counter,[%rec];
+ setp.eq.u64 %p0,%counter,0; @%p0 bra REFUSE;
+ and.b64 %tmp,%counter,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra REFUSE;
+ setp.gt.u64 %p0,%counter,0x7fffffffffffffff; @%p0 bra REFUSE;
+ add.u64 %tmp,%counter,8; setp.gt.u64 %p0,%tmp,0x7fffffffffffffff; @%p0 bra REFUSE;
+ add.u64 %end1,%counter,8; add.u64 %end2,%od,%nbytes;
+ setp.lt.u64 %p0,%counter,%end2; setp.lt.u64 %p1,%od,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%counter,8; add.u64 %end2,%top,%nbytes;
+ setp.lt.u64 %p0,%counter,%end2; setp.lt.u64 %p1,%top,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%counter,8; add.u64 %end2,%bottom,%nbytes;
+ setp.lt.u64 %p0,%counter,%end2; setp.lt.u64 %p1,%bottom,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%counter,8; add.u64 %end2,%tr,%nbytes;
+ setp.lt.u64 %p0,%counter,%end2; setp.lt.u64 %p1,%tr,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%counter,8; add.u64 %end2,%up,%nbytes;
+ setp.lt.u64 %p0,%counter,%end2; setp.lt.u64 %p1,%up,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%counter,8; add.u64 %end2,%dn,%nbytes;
+ setp.lt.u64 %p0,%counter,%end2; setp.lt.u64 %p1,%dn,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%counter,8; add.u64 %end2,%args,56;
+ setp.lt.u64 %p0,%counter,%end2; setp.lt.u64 %p1,%args,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%counter,8; add.u64 %end2,%ctx,64;
+ setp.lt.u64 %p0,%counter,%end2; setp.lt.u64 %p1,%ctx,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%counter,8; add.u64 %end2,%countptr,4;
+ setp.lt.u64 %p0,%counter,%end2; setp.lt.u64 %p1,%countptr,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%counter,8; add.u64 %end2,%rec,8;
+ setp.lt.u64 %p0,%counter,%end2; setp.lt.u64 %p1,%rec,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%tr,%nbytes; add.u64 %end2,%rec,8;
+ setp.lt.u64 %p0,%tr,%end2; setp.lt.u64 %p1,%rec,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%up,%nbytes; add.u64 %end2,%rec,8;
+ setp.lt.u64 %p0,%up,%end2; setp.lt.u64 %p1,%rec,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u64 %end1,%dn,%nbytes; add.u64 %end2,%rec,8;
+ setp.lt.u64 %p0,%dn,%end2; setp.lt.u64 %p1,%rec,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+READY:
+ mov.u32 %flags,0;
+ mov.u32 %r0,%ctaid.x; mov.u32 %r1,%ntid.x; mov.u32 %r2,%tid.x;
+ mul.wide.u32 %cell,%r0,%r1; cvt.u64.u32 %tmp,%r2; add.u64 %cell,%cell,%tmp;
+ mov.u32 %r0,%nctaid.x; mul.wide.u32 %step,%r0,%r1;
+CELL:
+ setp.ge.u64 %p0,%cell,%total; @%p0 bra COMPLETE;
+ shl.b64 %offset,%cell,3;
+ add.u64 %a,%od,%offset; add.u64 %b,%top,%offset; add.u64 %c,%bottom,%offset;
+ ld.global.b64 %x,[%a]; ld.global.b64 %y,[%b]; ld.global.b64 %z,[%c];
+ setp.eq.u64 %p0,%counter,0; @%p0 bra CALL_VALUE;
+ setp.gt.f64 %p0,%x,0d3f50624de0000000; @!%p0 bra CALL_VALUE;
+ atom.global.add.u64 %old64,[%counter],1;
+CALL_VALUE:
+ {
+ .param .b64 a,b,c; .param .align 8 .b8 result[32];
+ st.param.b64 [a],%x; st.param.b64 [b],%y; st.param.b64 [c],%z;
+ call.uni (result),md2asm_gpu_clear_longwave_layer_values,(a,b,c);
+ ld.param.b64 %x,[result]; ld.param.b64 %y,[result+8]; ld.param.b64 %z,[result+16];
+ ld.param.u32 %raised,[result+24]; ld.param.u32 %event,[result+28]; or.b32 %flags,%flags,%raised;
+ }
+ add.u64 %a,%tr,%offset; add.u64 %b,%up,%offset; add.u64 %c,%dn,%offset;
+ st.global.b64 [%a],%x; st.global.b64 [%b],%y; st.global.b64 [%c],%z;
+ setp.eq.u32 %p0,%event,0; @%p0 bra NEXT;
+ add.u64 %ordinal,%cell,1; shl.b64 %ordinal,%ordinal,8; cvt.u64.u32 %tmp,%event; or.b64 %ordinal,%ordinal,%tmp;
+ add.u64 %tmp,%ctx,16; atom.global.max.u64 %old64,[%tmp],%ordinal;
+NEXT:
+ add.u64 %cell,%cell,%step; bra CELL;
+COMPLETE:
+ add.u64 %tmp,%ctx,8; atom.global.or.b32 %old,[%tmp],%flags; ret;
+REFUSE:
+ setp.ne.u32 %p0,%unique,0; @%p0 ret; atom.global.cas.b32 %old,[%ctx],0,%error; ret;
+}

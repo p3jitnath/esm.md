@@ -1,0 +1,29 @@
+// Complete source-bound OpenIFS numerical function.
+// Contract: skills/md2asm-gpu/references/openifs/radiation/radiation_field_preparation.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .u32 error) md2asm_gpu_radiation_field_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 result[32]) md2asm_gpu_radiation_field_values(.param .u64 vector,.param .u64 record,.param .u64 scratch);
+.visible .func md2asm_gpu_radiation_field_fp64(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%record,%scratch,%event,%old64,%pointer;
+.reg .u32 %r,%error,%flags,%old;.reg .pred %p;
+.param .u64 a0,a1,a2;.param .u32 admitted;.param .align 8 .b8 result[32];
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];setp.eq.u64 %p,%ctx,0;@%p ret;
+ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+mov.u32 %error,7610;mov.u32 %r,%ctaid.x;setp.ne.u32 %p,%r,0;@%p bra REFUSE;mov.u32 %r,%ctaid.y;setp.ne.u32 %p,%r,0;@%p bra REFUSE;mov.u32 %r,%ctaid.z;setp.ne.u32 %p,%r,0;@%p bra REFUSE;
+mov.u32 %r,%nctaid.x;setp.ne.u32 %p,%r,1;@%p bra REFUSE;mov.u32 %r,%nctaid.y;setp.ne.u32 %p,%r,1;@%p bra REFUSE;mov.u32 %r,%nctaid.z;setp.ne.u32 %p,%r,1;@%p bra REFUSE;
+mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra REFUSE;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra REFUSE;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra REFUSE;
+mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra REFUSE;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra REFUSE;
+st.param.u64 [a0],%args;st.param.u64 [a1],%ctx;call.uni (admitted),md2asm_gpu_radiation_field_admit,(a0,a1);ld.param.u32 %error,[admitted];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];st.param.u64 [a0],%args;st.param.u64 [a1],%record;st.param.u64 [a2],%scratch;call.uni (result),md2asm_gpu_radiation_field_values,(a0,a1,a2);ld.param.u32 %flags,[result];ld.param.u32 %error,[result+4];ld.param.u64 %event,[result+8];
+add.u64 %pointer,%ctx,8;atom.global.or.b32 %old,[%pointer],%flags;setp.eq.u64 %p,%event,0;@%p bra EVENT_DONE;add.u64 %pointer,%ctx,16;atom.global.max.u64 %old64,[%pointer],%event;
+EVENT_DONE:setp.eq.u32 %p,%error,0;@%p ret;
+REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+.visible .entry md2asm_gpu_radiation_field(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx;.param .u64 a0,a1;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];st.param.u64 [a0],%args;st.param.u64 [a1],%ctx;call.uni md2asm_gpu_radiation_field_fp64,(a0,a1);ret;
+}

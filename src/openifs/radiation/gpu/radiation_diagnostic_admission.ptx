@@ -1,0 +1,206 @@
+// Complete selected RADDIAG integer admission; skills/md2asm-gpu/references/openifs/radiation/radiation_diagnostic_fluxes.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.func (.param .u32 error) diagnostic_owner_range(.param .u64 base,.param .u64 bytes,.param .u64 mask,.param .u64 list,.param .u32 count,.param .u32 skip)
+{
+.reg .u64 %b,%n,%mask,%list,%end,%owner,%size,%stop,%word;.reg .u32 %i,%count,%skip,%error;.reg .pred %p,%q;
+ld.param.u64 %b,[base];ld.param.u64 %n,[bytes];ld.param.u64 %mask,[mask];ld.param.u64 %list,[list];ld.param.u32 %count,[count];ld.param.u32 %skip,[skip];mov.u32 %error,7751;
+setp.eq.u64 %p,%n,0;@%p bra GOOD;setp.eq.u64 %p,%b,0;@%p bra DONE;and.b64 %word,%b,%mask;setp.ne.u64 %p,%word,0;@%p bra DONE;setp.gt.u64 %p,%b,0x7fffffffffffffff;@%p bra DONE;setp.gt.u64 %p,%n,0x7fffffffffffffff;@%p bra DONE;add.u64 %end,%b,%n;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra DONE;mov.u32 %i,0;
+SCAN:setp.ge.u32 %p,%i,%count;@%p bra GOOD;setp.eq.u32 %p,%i,%skip;@%p bra NEXT;ld.u64 %owner,[%list];ld.u64 %size,[%list+8];setp.eq.u64 %p,%size,0;@%p bra NEXT;add.u64 %stop,%owner,%size;setp.lt.u64 %p,%b,%stop;setp.lt.u64 %q,%owner,%end;and.pred %p,%p,%q;@%p bra DONE;
+NEXT:add.u64 %list,%list,16;add.u32 %i,%i,1;bra SCAN;
+GOOD:mov.u32 %error,0;
+DONE:st.param.u32 [error],%error;ret;
+}
+
+.visible .func (.param .u32 error) md2asm_gpu_radiation_diagnostic_admit(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%record,%bytes,%scratch,%workbytes,%v<34>,%a<34>,%n<34>,%starts,%lengths,%base,%ptr,%offset,%word,%absolute,%list,%P,%N,%first,%last,%row,%begin,%end,%col,%level,%index,%field;
+.reg .u32 %error,%control,%count,%ci,%si,%counterindex,%oi<34>,%active;
+.reg .pred %p;
+.local .align 8 .b8 owners[1024];
+.param .u64 rb,rn,rm,rl;.param .u32 rc,rs,rr;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];mov.u64 %list,owners;cvta.local.u64 %list,%list;mov.u32 %count,0;
+st.param.u64 [rb],%args;st.param.u64 [rn],272;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%args;st.u64 [%ptr+8],272;add.u32 %count,%count,1;
+mov.u32 %ci,%count;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%ctx;st.u64 [%ptr+8],64;add.u32 %count,%count,1;
+ld.global.u64 %v0,[%args+0];
+st.param.u64 [rb],%v0;st.param.u64 [rn],17096;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v0;st.u64 [%ptr+8],17096;add.u32 %count,%count,1;
+ld.global.u64 %v1,[%args+8];
+st.param.u64 [rb],%v1;st.param.u64 [rn],2519680;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v1;st.u64 [%ptr+8],2519680;add.u32 %count,%count,1;
+ld.global.u64 %v3,[%args+24];
+st.param.u64 [rb],%v3;st.param.u64 [rn],5376;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v3;st.u64 [%ptr+8],5376;add.u32 %count,%count,1;
+ld.global.u64 %v4,[%args+32];
+st.param.u64 [rb],%v4;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v4;st.u64 [%ptr+8],4;add.u32 %count,%count,1;
+ld.global.u64 %v5,[%args+40];
+st.param.u64 [rb],%v5;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v5;st.u64 [%ptr+8],4;add.u32 %count,%count,1;
+ld.global.u64 %v6,[%args+48];
+st.param.u64 [rb],%v6;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v6;st.u64 [%ptr+8],4;add.u32 %count,%count,1;
+ld.global.u64 %v7,[%args+56];
+st.param.u64 [rb],%v7;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%v7;st.u64 [%ptr+8],4;add.u32 %count,%count,1;
+ld.global.u32 %P,[%v6];ld.global.u32 %N,[%v7];ld.global.u32 %first,[%v4];ld.global.u32 %last,[%v5];
+mov.u32 %error,7752;setp.lt.u64 %p,%P,1;@%p bra RETURN;
+mov.u32 %error,7752;setp.gt.u64 %p,%P,2048;@%p bra RETURN;
+mov.u32 %error,7752;setp.ne.u64 %p,%N,19;@%p bra RETURN;
+mov.u32 %error,7752;setp.lt.u64 %p,%first,1;@%p bra RETURN;
+mov.u32 %error,7752;setp.gt.u64 %p,%first,33;@%p bra RETURN;
+mov.u32 %error,7752;setp.gt.u64 %p,%last,32;@%p bra RETURN;
+ld.global.u32 %control,[%v1+2256];
+mov.u32 %error,7752;setp.ne.u32 %p,%control,0;@%p bra RETURN;
+ld.global.u32 %control,[%v0+7244];
+mov.u32 %error,7752;setp.ne.u32 %p,%control,0;@%p bra RETURN;
+ld.global.u64 %word,[%v0+7904];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,18446744073709551615;@%p bra RETURN;
+ld.global.u64 %word,[%v0+7912];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,4;@%p bra RETURN;
+ld.global.u64 %word,[%v0+7920];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,1103806595072;@%p bra RETURN;
+ld.global.u64 %word,[%v0+7928];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,4;@%p bra RETURN;
+ld.global.u64 %word,[%v0+7936];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,1;@%p bra RETURN;
+ld.global.u64 %word,[%v0+7944];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,1;@%p bra RETURN;
+ld.global.u64 %word,[%v0+7952];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,32;@%p bra RETURN;
+ld.global.u64 %starts,[%v0+7896];
+st.param.u64 [rb],%starts;st.param.u64 [rn],128;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%starts;st.u64 [%ptr+8],128;add.u32 %count,%count,1;
+ld.global.u64 %word,[%v0+6184];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,18446744073709551581;@%p bra RETURN;
+ld.global.u64 %word,[%v0+6192];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,4;@%p bra RETURN;
+ld.global.u64 %word,[%v0+6200];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,1108101562368;@%p bra RETURN;
+ld.global.u64 %word,[%v0+6208];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,4;@%p bra RETURN;
+ld.global.u64 %word,[%v0+6216];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,1;@%p bra RETURN;
+ld.global.u64 %word,[%v0+6224];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,18446744073709551615;@%p bra RETURN;
+ld.global.u64 %word,[%v0+6232];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,34;@%p bra RETURN;
+ld.global.u64 %word,[%v0+6240];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,36;@%p bra RETURN;
+ld.global.u64 %word,[%v0+6248];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,1;@%p bra RETURN;
+ld.global.u64 %word,[%v0+6256];
+mov.u32 %error,7752;setp.ne.u64 %p,%word,1;@%p bra RETURN;
+ld.global.u64 %lengths,[%v0+6176];
+st.param.u64 [rb],%lengths;st.param.u64 [rn],144;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%lengths;st.u64 [%ptr+8],144;add.u32 %count,%count,1;
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %bytes,[%ctx+56];
+mov.u32 %error,7753;setp.lt.u64 %p,%bytes,32;@%p bra RETURN;
+st.param.u64 [rb],%record;st.param.u64 [rn],32;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%record;st.u64 [%ptr+8],32;add.u32 %count,%count,1;
+ld.global.u64 %base,[%record];add.u64 %word,%v1,249912;
+mov.u32 %error,7753;setp.ne.u64 %p,%base,%word;@%p bra RETURN;
+ld.global.u64 %base,[%record+8];
+st.param.u64 [rb],%base;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%base;st.u64 [%ptr+8],4;add.u32 %count,%count,1;
+ld.global.u32 %control,[%base];
+mov.u32 %error,7752;setp.ne.u32 %p,%control,1;@%p bra RETURN;
+ld.global.u64 %word,[%v1+249912];
+mov.u32 %error,7754;setp.eq.u64 %p,%word,0;@%p bra RETURN;
+mov.u32 %error,7754;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra RETURN;
+ld.global.u64 %word,[%v3+616];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7754;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+mov.u32 %active,0;mov.u64 %row,%first;
+SCAN_ROW:setp.gt.u64 %p,%row,%last;@%p bra ROWS_READY;sub.u64 %index,%row,1;shl.b64 %offset,%index,2;add.u64 %ptr,%starts,%offset;ld.global.u32 %begin,[%ptr];setp.eq.u64 %p,%begin,0;@%p bra SCAN_NEXT;
+mov.u32 %error,7752;setp.gt.u64 %p,%begin,%P;@%p bra RETURN;
+add.u64 %index,%row,1;shl.b64 %offset,%index,2;add.u64 %ptr,%lengths,%offset;ld.global.u32 %end,[%ptr];
+mov.u32 %error,7752;setp.lt.u64 %p,%end,1;@%p bra RETURN;
+mov.u32 %error,7752;setp.gt.u64 %p,%end,%P;@%p bra RETURN;
+add.u64 %end,%begin,%end;sub.u64 %end,%end,1;
+mov.u32 %error,7752;setp.gt.u64 %p,%end,%P;@%p bra RETURN;
+mov.u32 %active,1;
+SCAN_NEXT:add.u64 %row,%row,1;bra SCAN_ROW;
+ROWS_READY:
+ld.global.u64 %a21,[%args+168];mov.u64 %n21,0;setp.eq.u32 %p,%active,0;@%p bra ARRAY_READY_21;mul.lo.u64 %n21,%P,8;
+ARRAY_READY_21:
+st.param.u64 [rb],%a21;st.param.u64 [rn],%n21;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%a21;st.u64 [%ptr+8],%n21;add.u32 %count,%count,1;
+ld.global.u64 %a25,[%args+200];mov.u64 %n25,0;setp.eq.u32 %p,%active,0;@%p bra ARRAY_READY_25;mul.lo.u64 %n25,%P,160;
+ARRAY_READY_25:
+st.param.u64 [rb],%a25;st.param.u64 [rn],%n25;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%a25;st.u64 [%ptr+8],%n25;add.u32 %count,%count,1;
+ld.global.u64 %a26,[%args+208];mov.u64 %n26,0;setp.eq.u32 %p,%active,0;@%p bra ARRAY_READY_26;mul.lo.u64 %n26,%P,160;
+ARRAY_READY_26:
+st.param.u64 [rb],%a26;st.param.u64 [rn],%n26;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%a26;st.u64 [%ptr+8],%n26;add.u32 %count,%count,1;
+ld.global.u64 %a27,[%args+216];mov.u64 %n27,0;setp.eq.u32 %p,%active,0;@%p bra ARRAY_READY_27;mul.lo.u64 %n27,%P,16;
+ARRAY_READY_27:
+mov.u32 %oi27,%count;
+st.param.u64 [rb],%a27;st.param.u64 [rn],%n27;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%a27;st.u64 [%ptr+8],%n27;add.u32 %count,%count,1;
+ld.global.u64 %a28,[%args+224];mov.u64 %n28,0;setp.eq.u32 %p,%active,0;@%p bra ARRAY_READY_28;mul.lo.u64 %n28,%P,160;
+ARRAY_READY_28:
+mov.u32 %oi28,%count;
+st.param.u64 [rb],%a28;st.param.u64 [rn],%n28;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%a28;st.u64 [%ptr+8],%n28;add.u32 %count,%count,1;
+ld.global.u64 %a29,[%args+232];mov.u64 %n29,0;setp.eq.u32 %p,%active,0;@%p bra ARRAY_READY_29;mul.lo.u64 %n29,%P,16;
+ARRAY_READY_29:
+mov.u32 %oi29,%count;
+st.param.u64 [rb],%a29;st.param.u64 [rn],%n29;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%a29;st.u64 [%ptr+8],%n29;add.u32 %count,%count,1;
+ld.global.u64 %a30,[%args+240];mov.u64 %n30,0;setp.eq.u32 %p,%active,0;@%p bra ARRAY_READY_30;mul.lo.u64 %n30,%P,160;
+ARRAY_READY_30:
+mov.u32 %oi30,%count;
+st.param.u64 [rb],%a30;st.param.u64 [rn],%n30;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%a30;st.u64 [%ptr+8],%n30;add.u32 %count,%count,1;
+ld.global.u64 %a32,[%args+256];mov.u64 %n32,0;setp.eq.u32 %p,%active,0;@%p bra ARRAY_READY_32;mul.lo.u64 %n32,%P,160;
+ARRAY_READY_32:
+st.param.u64 [rb],%a32;st.param.u64 [rn],%n32;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%a32;st.u64 [%ptr+8],%n32;add.u32 %count,%count,1;
+ld.global.u64 %a33,[%args+264];mov.u64 %n33,0;setp.eq.u32 %p,%active,0;@%p bra ARRAY_READY_33;mul.lo.u64 %n33,%P,160;
+ARRAY_READY_33:
+st.param.u64 [rb],%a33;st.param.u64 [rn],%n33;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%a33;st.u64 [%ptr+8],%n33;add.u32 %count,%count,1;
+ld.global.u64 %scratch,[%ctx+32];ld.global.u64 %bytes,[%ctx+40];mul.lo.u64 %workbytes,%P,8;
+mov.u32 %error,7753;setp.lt.u64 %p,%bytes,%workbytes;@%p bra RETURN;
+mov.u32 %si,%count;
+st.param.u64 [rb],%scratch;st.param.u64 [rn],%workbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%scratch;st.u64 [%ptr+8],%workbytes;add.u32 %count,%count,1;
+ld.global.u64 %base,[%record+16];ld.global.u64 %bytes,[%record+24];setp.eq.u64 %p,%base,0;@%p bra NULL_COUNTER;
+mov.u32 %error,7753;setp.lt.u64 %p,%bytes,8;@%p bra RETURN;
+st.param.u64 [rb],%base;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+st.param.u64 [rb],%base;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %offset,%count,16;add.u64 %ptr,%list,%offset;st.u64 [%ptr],%base;st.u64 [%ptr+8],8;add.u32 %count,%count,1;
+bra COUNTER_READY;
+NULL_COUNTER:
+mov.u32 %error,7753;setp.ne.u64 %p,%bytes,0;@%p bra RETURN;
+COUNTER_READY:
+st.param.u64 [rb],%a27;st.param.u64 [rn],%n27;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi27;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+st.param.u64 [rb],%a28;st.param.u64 [rn],%n28;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi28;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+st.param.u64 [rb],%a29;st.param.u64 [rn],%n29;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi29;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+st.param.u64 [rb],%a30;st.param.u64 [rn],%n30;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi30;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%ci;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+st.param.u64 [rb],%scratch;st.param.u64 [rn],%workbytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%si;call.uni (rr),diagnostic_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mov.u64 %row,%first;
+FINITE_ROW:setp.gt.u64 %p,%row,%last;@%p bra SUCCESS;sub.u64 %index,%row,1;shl.b64 %offset,%index,2;add.u64 %ptr,%starts,%offset;ld.global.u32 %begin,[%ptr];setp.eq.u64 %p,%begin,0;@%p bra FINITE_NEXT_ROW;add.u64 %index,%row,1;shl.b64 %offset,%index,2;add.u64 %ptr,%lengths,%offset;ld.global.u32 %end,[%ptr];add.u64 %end,%begin,%end;sub.u64 %end,%end,1;sub.u64 %begin,%begin,1;mov.u64 %col,%begin;
+FINITE_COLUMN:shl.b64 %offset,%col,3;add.u64 %ptr,%a21,%offset;ld.global.u64 %word,[%ptr];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7754;setp.gt.u64 %p,%absolute,0x3ff0000000000000;@%p bra RETURN;
+mov.u64 %level,0;
+FINITE_LEVEL:mul.lo.u64 %index,%level,%P;add.u64 %index,%index,%col;shl.b64 %offset,%index,3;
+add.u64 %ptr,%a25,%offset;ld.global.u64 %word,[%ptr];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7754;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+add.u64 %ptr,%a26,%offset;ld.global.u64 %word,[%ptr];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7754;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+add.u64 %ptr,%a32,%offset;ld.global.u64 %word,[%ptr];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7754;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+add.u64 %ptr,%a33,%offset;ld.global.u64 %word,[%ptr];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7754;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra RETURN;
+add.u64 %level,%level,1;setp.lt.u64 %p,%level,20;@%p bra FINITE_LEVEL;add.u64 %col,%col,1;setp.lt.u64 %p,%col,%end;@%p bra FINITE_COLUMN;
+FINITE_NEXT_ROW:add.u64 %row,%row,1;bra FINITE_ROW;
+SUCCESS:mov.u32 %error,0;
+RETURN:st.param.u32 [error],%error;ret;
+}

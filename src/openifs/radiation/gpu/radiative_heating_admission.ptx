@@ -1,0 +1,742 @@
+// Complete RADHEATN admission; skills/md2asm-gpu/references/openifs/radiation/radiative_heating.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.func (.param .u32 error) heating_owner_range(.param .u64 base,.param .u64 bytes,.param .u64 mask,.param .u64 list,.param .u32 count,.param .u32 skip)
+{
+.reg .u64 %b,%n,%mask,%list,%end,%owner,%size,%stop,%word;.reg .u32 %i,%count,%skip,%error;.reg .pred %p,%q;
+ld.param.u64 %b,[base];ld.param.u64 %n,[bytes];ld.param.u64 %mask,[mask];ld.param.u64 %list,[list];ld.param.u32 %count,[count];ld.param.u32 %skip,[skip];mov.u32 %error,7732;
+setp.eq.u64 %p,%b,0;@%p bra DONE;and.b64 %word,%b,%mask;setp.ne.u64 %p,%word,0;@%p bra DONE;setp.gt.u64 %p,%b,0x7fffffffffffffff;@%p bra DONE;setp.gt.u64 %p,%n,0x7fffffffffffffff;@%p bra DONE;add.u64 %end,%b,%n;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra DONE;mov.u32 %i,0;
+SCAN:setp.ge.u32 %p,%i,%count;@%p bra GOOD;setp.eq.u32 %p,%i,%skip;@%p bra NEXT;ld.u64 %owner,[%list];ld.u64 %size,[%list+8];add.u64 %stop,%owner,%size;setp.lt.u64 %p,%b,%stop;setp.lt.u64 %q,%owner,%end;and.pred %p,%p,%q;@%p bra DONE;
+NEXT:add.u64 %list,%list,16;add.u32 %i,%i,1;bra SCAN;
+GOOD:mov.u32 %error,0;
+DONE:st.param.u32 [error],%error;ret;
+}
+.visible .func (.param .u32 error) md2asm_gpu_radiative_heating_admit(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%record,%bytes,%scratch,%base,%pointer,%offset,%list,%word,%absolute,%previous,%P,%N,%first,%last,%full,%half,%surface,%boundary,%work,%extent,%col,%lev,%index;
+.reg .u64 %v<57>;.reg .u32 %oi<57>,%count,%ctxindex,%scratchindex,%error,%w,%approx,%manners,%i;
+.reg .pred %p,%q,%empty;
+.local .align 8 .b8 owner_spans[4096];
+.param .u64 rb,rn,rm,rl;.param .u32 rc,rs,rr;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];mov.u64 %list,owner_spans;cvta.local.u64 %list,%list;mov.u32 %count,0;
+st.param.u64 [rb],%args;st.param.u64 [rn],456;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%args;st.u64 [%pointer+8],456;add.u32 %count,%count,1;
+mov.u32 %ctxindex,%count;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%ctx;st.u64 [%pointer+8],64;add.u32 %count,%count,1;
+ld.global.u64 %v0,[%args+0];mov.u32 %oi0,4294967295;
+ld.global.u64 %v1,[%args+8];mov.u32 %oi1,4294967295;
+ld.global.u64 %v2,[%args+16];mov.u32 %oi2,4294967295;
+ld.global.u64 %v3,[%args+24];mov.u32 %oi3,4294967295;
+ld.global.u64 %v4,[%args+32];mov.u32 %oi4,4294967295;
+ld.global.u64 %v5,[%args+40];mov.u32 %oi5,4294967295;
+ld.global.u64 %v6,[%args+48];mov.u32 %oi6,4294967295;
+ld.global.u64 %v7,[%args+56];mov.u32 %oi7,4294967295;
+ld.global.u64 %v8,[%args+64];mov.u32 %oi8,4294967295;
+ld.global.u64 %v9,[%args+72];mov.u32 %oi9,4294967295;
+ld.global.u64 %v10,[%args+80];mov.u32 %oi10,4294967295;
+ld.global.u64 %v11,[%args+88];mov.u32 %oi11,4294967295;
+ld.global.u64 %v12,[%args+96];mov.u32 %oi12,4294967295;
+ld.global.u64 %v13,[%args+104];mov.u32 %oi13,4294967295;
+ld.global.u64 %v14,[%args+112];mov.u32 %oi14,4294967295;
+ld.global.u64 %v15,[%args+120];mov.u32 %oi15,4294967295;
+ld.global.u64 %v16,[%args+128];mov.u32 %oi16,4294967295;
+ld.global.u64 %v17,[%args+136];mov.u32 %oi17,4294967295;
+ld.global.u64 %v18,[%args+144];mov.u32 %oi18,4294967295;
+ld.global.u64 %v19,[%args+152];mov.u32 %oi19,4294967295;
+ld.global.u64 %v20,[%args+160];mov.u32 %oi20,4294967295;
+ld.global.u64 %v21,[%args+168];mov.u32 %oi21,4294967295;
+ld.global.u64 %v22,[%args+176];mov.u32 %oi22,4294967295;
+ld.global.u64 %v23,[%args+184];mov.u32 %oi23,4294967295;
+ld.global.u64 %v24,[%args+192];mov.u32 %oi24,4294967295;
+ld.global.u64 %v25,[%args+200];mov.u32 %oi25,4294967295;
+ld.global.u64 %v26,[%args+208];mov.u32 %oi26,4294967295;
+ld.global.u64 %v27,[%args+216];mov.u32 %oi27,4294967295;
+ld.global.u64 %v28,[%args+224];mov.u32 %oi28,4294967295;
+ld.global.u64 %v29,[%args+232];mov.u32 %oi29,4294967295;
+ld.global.u64 %v30,[%args+240];mov.u32 %oi30,4294967295;
+ld.global.u64 %v31,[%args+248];mov.u32 %oi31,4294967295;
+ld.global.u64 %v32,[%args+256];mov.u32 %oi32,4294967295;
+ld.global.u64 %v33,[%args+264];mov.u32 %oi33,4294967295;
+ld.global.u64 %v34,[%args+272];mov.u32 %oi34,4294967295;
+ld.global.u64 %v35,[%args+280];mov.u32 %oi35,4294967295;
+ld.global.u64 %v36,[%args+288];mov.u32 %oi36,4294967295;
+ld.global.u64 %v37,[%args+296];mov.u32 %oi37,4294967295;
+ld.global.u64 %v38,[%args+304];mov.u32 %oi38,4294967295;
+ld.global.u64 %v39,[%args+312];mov.u32 %oi39,4294967295;
+ld.global.u64 %v40,[%args+320];mov.u32 %oi40,4294967295;
+ld.global.u64 %v41,[%args+328];mov.u32 %oi41,4294967295;
+ld.global.u64 %v42,[%args+336];mov.u32 %oi42,4294967295;
+ld.global.u64 %v43,[%args+344];mov.u32 %oi43,4294967295;
+ld.global.u64 %v44,[%args+352];mov.u32 %oi44,4294967295;
+ld.global.u64 %v45,[%args+360];mov.u32 %oi45,4294967295;
+ld.global.u64 %v46,[%args+368];mov.u32 %oi46,4294967295;
+ld.global.u64 %v47,[%args+376];mov.u32 %oi47,4294967295;
+ld.global.u64 %v48,[%args+384];mov.u32 %oi48,4294967295;
+ld.global.u64 %v49,[%args+392];mov.u32 %oi49,4294967295;
+ld.global.u64 %v50,[%args+400];mov.u32 %oi50,4294967295;
+ld.global.u64 %v51,[%args+408];mov.u32 %oi51,4294967295;
+ld.global.u64 %v52,[%args+416];mov.u32 %oi52,4294967295;
+ld.global.u64 %v53,[%args+424];mov.u32 %oi53,4294967295;
+ld.global.u64 %v54,[%args+432];mov.u32 %oi54,4294967295;
+ld.global.u64 %v55,[%args+440];mov.u32 %oi55,4294967295;
+ld.global.u64 %v56,[%args+448];mov.u32 %oi56,4294967295;
+st.param.u64 [rb],%v0;st.param.u64 [rn],2040;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v0;st.u64 [%pointer+8],2040;add.u32 %count,%count,1;
+st.param.u64 [rb],%v1;st.param.u64 [rn],176;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v1;st.u64 [%pointer+8],176;add.u32 %count,%count,1;
+st.param.u64 [rb],%v2;st.param.u64 [rn],160;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v2;st.u64 [%pointer+8],160;add.u32 %count,%count,1;
+st.param.u64 [rb],%v3;st.param.u64 [rn],5376;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v3;st.u64 [%pointer+8],5376;add.u32 %count,%count,1;
+st.param.u64 [rb],%v4;st.param.u64 [rn],3192;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v4;st.u64 [%pointer+8],3192;add.u32 %count,%count,1;
+st.param.u64 [rb],%v5;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v5;st.u64 [%pointer+8],4;add.u32 %count,%count,1;
+st.param.u64 [rb],%v6;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v6;st.u64 [%pointer+8],4;add.u32 %count,%count,1;
+st.param.u64 [rb],%v7;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v7;st.u64 [%pointer+8],4;add.u32 %count,%count,1;
+st.param.u64 [rb],%v8;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v8;st.u64 [%pointer+8],4;add.u32 %count,%count,1;
+ld.global.u32 %w,[%v5];cvt.u64.u32 %first,%w;
+ld.global.u32 %w,[%v6];cvt.u64.u32 %last,%w;
+ld.global.u32 %w,[%v7];cvt.u64.u32 %P,%w;
+ld.global.u32 %w,[%v8];cvt.u64.u32 %N,%w;
+mov.u32 %error,7733;setp.lt.u64 %p,%P,1;@%p bra REFUSE;
+mov.u32 %error,7733;setp.gt.u64 %p,%P,2048;@%p bra REFUSE;
+mov.u32 %error,7733;setp.lt.u64 %p,%N,1;@%p bra REFUSE;
+mov.u32 %error,7733;setp.gt.u64 %p,%N,512;@%p bra REFUSE;
+mov.u32 %error,7733;setp.lt.u64 %p,%first,1;@%p bra REFUSE;
+add.u64 %word,%P,1;
+mov.u32 %error,7733;setp.gt.u64 %p,%first,%word;@%p bra REFUSE;
+mov.u32 %error,7733;setp.gt.u64 %p,%last,%P;@%p bra REFUSE;
+sub.u64 %first,%first,1;setp.ge.u64 %empty,%first,%last;ld.global.u32 %w,[%v0+76];
+mov.u32 %error,7733;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+ld.global.u32 %approx,[%v0+488];
+mov.u32 %error,7733;setp.gt.u32 %p,%approx,1;@%p bra REFUSE;
+ld.global.u32 %manners,[%v0+496];
+mov.u32 %error,7733;setp.gt.u32 %p,%manners,1;@%p bra REFUSE;
+ld.global.u32 %w,[%v4];
+mov.u32 %error,7733;setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+shl.b64 %surface,%P,3;mul.lo.u64 %full,%surface,%N;add.u64 %half,%full,%surface;shl.b64 %boundary,%surface,1;mul.lo.u64 %work,%P,72;
+setp.ne.u64 %p,%v9,0;@%p bra PRESENT_9;@%empty bra OWNER_DONE_9;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_9:
+st.param.u64 [rb],%v9;st.param.u64 [rn],%half;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v9;st.u64 [%pointer+8],%half;add.u32 %count,%count,1;
+OWNER_DONE_9:
+setp.ne.u64 %p,%v10,0;@%p bra PRESENT_10;@%empty bra OWNER_DONE_10;
+setp.eq.u32 %p,%approx,0;@%p bra OWNER_DONE_10;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_10:
+st.param.u64 [rb],%v10;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v10;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_10:
+setp.ne.u64 %p,%v11,0;@%p bra PRESENT_11;@%empty bra OWNER_DONE_11;
+bra OWNER_DONE_11;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_11:
+st.param.u64 [rb],%v11;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v11;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_11:
+setp.ne.u64 %p,%v12,0;@%p bra PRESENT_12;@%empty bra OWNER_DONE_12;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_12:
+st.param.u64 [rb],%v12;st.param.u64 [rn],%half;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v12;st.u64 [%pointer+8],%half;add.u32 %count,%count,1;
+OWNER_DONE_12:
+setp.ne.u64 %p,%v13,0;@%p bra PRESENT_13;@%empty bra OWNER_DONE_13;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_13:
+st.param.u64 [rb],%v13;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v13;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_13:
+setp.ne.u64 %p,%v14,0;@%p bra PRESENT_14;@%empty bra OWNER_DONE_14;
+setp.eq.u32 %p,%manners,0;@%p bra OWNER_DONE_14;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_14:
+st.param.u64 [rb],%v14;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v14;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_14:
+setp.ne.u64 %p,%v15,0;@%p bra PRESENT_15;@%empty bra OWNER_DONE_15;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_15:
+st.param.u64 [rb],%v15;st.param.u64 [rn],%full;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v15;st.u64 [%pointer+8],%full;add.u32 %count,%count,1;
+OWNER_DONE_15:
+setp.ne.u64 %p,%v16,0;@%p bra PRESENT_16;@%empty bra OWNER_DONE_16;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_16:
+mov.u32 %oi16,%count;
+st.param.u64 [rb],%v16;st.param.u64 [rn],%full;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v16;st.u64 [%pointer+8],%full;add.u32 %count,%count,1;
+OWNER_DONE_16:
+setp.ne.u64 %p,%v17,0;@%p bra PRESENT_17;@%empty bra OWNER_DONE_17;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_17:
+st.param.u64 [rb],%v17;st.param.u64 [rn],%half;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v17;st.u64 [%pointer+8],%half;add.u32 %count,%count,1;
+OWNER_DONE_17:
+setp.ne.u64 %p,%v18,0;@%p bra PRESENT_18;@%empty bra OWNER_DONE_18;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_18:
+st.param.u64 [rb],%v18;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v18;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_18:
+setp.ne.u64 %p,%v19,0;@%p bra PRESENT_19;@%empty bra OWNER_DONE_19;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_19:
+st.param.u64 [rb],%v19;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v19;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_19:
+setp.ne.u64 %p,%v20,0;@%p bra PRESENT_20;@%empty bra OWNER_DONE_20;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_20:
+st.param.u64 [rb],%v20;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v20;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_20:
+setp.ne.u64 %p,%v21,0;@%p bra PRESENT_21;@%empty bra OWNER_DONE_21;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_21:
+st.param.u64 [rb],%v21;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v21;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_21:
+setp.ne.u64 %p,%v22,0;@%p bra PRESENT_22;@%empty bra OWNER_DONE_22;
+setp.eq.u32 %p,%approx,0;@%p bra OWNER_DONE_22;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_22:
+st.param.u64 [rb],%v22;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v22;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_22:
+setp.ne.u64 %p,%v23,0;@%p bra PRESENT_23;@%empty bra OWNER_DONE_23;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_23:
+mov.u32 %oi23,%count;
+st.param.u64 [rb],%v23;st.param.u64 [rn],%full;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v23;st.u64 [%pointer+8],%full;add.u32 %count,%count,1;
+OWNER_DONE_23:
+setp.ne.u64 %p,%v24,0;@%p bra PRESENT_24;@%empty bra OWNER_DONE_24;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_24:
+mov.u32 %oi24,%count;
+st.param.u64 [rb],%v24;st.param.u64 [rn],%full;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v24;st.u64 [%pointer+8],%full;add.u32 %count,%count,1;
+OWNER_DONE_24:
+setp.ne.u64 %p,%v25,0;@%p bra PRESENT_25;@%empty bra OWNER_DONE_25;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_25:
+mov.u32 %oi25,%count;
+st.param.u64 [rb],%v25;st.param.u64 [rn],%full;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v25;st.u64 [%pointer+8],%full;add.u32 %count,%count,1;
+OWNER_DONE_25:
+setp.ne.u64 %p,%v26,0;@%p bra PRESENT_26;@%empty bra OWNER_DONE_26;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_26:
+mov.u32 %oi26,%count;
+st.param.u64 [rb],%v26;st.param.u64 [rn],%full;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v26;st.u64 [%pointer+8],%full;add.u32 %count,%count,1;
+OWNER_DONE_26:
+setp.ne.u64 %p,%v27,0;@%p bra PRESENT_27;@%empty bra OWNER_DONE_27;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_27:
+mov.u32 %oi27,%count;
+st.param.u64 [rb],%v27;st.param.u64 [rn],%half;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v27;st.u64 [%pointer+8],%half;add.u32 %count,%count,1;
+OWNER_DONE_27:
+setp.ne.u64 %p,%v28,0;@%p bra PRESENT_28;@%empty bra OWNER_DONE_28;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_28:
+mov.u32 %oi28,%count;
+st.param.u64 [rb],%v28;st.param.u64 [rn],%half;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v28;st.u64 [%pointer+8],%half;add.u32 %count,%count,1;
+OWNER_DONE_28:
+setp.ne.u64 %p,%v29,0;@%p bra PRESENT_29;@%empty bra OWNER_DONE_29;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_29:
+mov.u32 %oi29,%count;
+st.param.u64 [rb],%v29;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v29;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_29:
+setp.ne.u64 %p,%v30,0;@%p bra PRESENT_30;@%empty bra OWNER_DONE_30;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_30:
+mov.u32 %oi30,%count;
+st.param.u64 [rb],%v30;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v30;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_30:
+setp.ne.u64 %p,%v31,0;@%p bra PRESENT_31;@%empty bra OWNER_DONE_31;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_31:
+mov.u32 %oi31,%count;
+st.param.u64 [rb],%v31;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v31;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_31:
+setp.ne.u64 %p,%v32,0;@%p bra PRESENT_32;@%empty bra OWNER_DONE_32;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_32:
+mov.u32 %oi32,%count;
+st.param.u64 [rb],%v32;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v32;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_32:
+setp.ne.u64 %p,%v33,0;@%p bra PRESENT_33;@%empty bra OWNER_DONE_33;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_33:
+st.param.u64 [rb],%v33;st.param.u64 [rn],%half;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v33;st.u64 [%pointer+8],%half;add.u32 %count,%count,1;
+OWNER_DONE_33:
+setp.ne.u64 %p,%v34,0;@%p bra PRESENT_34;@%empty bra OWNER_DONE_34;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_34:
+st.param.u64 [rb],%v34;st.param.u64 [rn],%half;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v34;st.u64 [%pointer+8],%half;add.u32 %count,%count,1;
+OWNER_DONE_34:
+setp.ne.u64 %p,%v35,0;@%p bra PRESENT_35;@%empty bra OWNER_DONE_35;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_35:
+mov.u32 %oi35,%count;
+st.param.u64 [rb],%v35;st.param.u64 [rn],%boundary;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v35;st.u64 [%pointer+8],%boundary;add.u32 %count,%count,1;
+OWNER_DONE_35:
+setp.ne.u64 %p,%v36,0;@%p bra PRESENT_36;@%empty bra OWNER_DONE_36;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_36:
+mov.u32 %oi36,%count;
+st.param.u64 [rb],%v36;st.param.u64 [rn],%boundary;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v36;st.u64 [%pointer+8],%boundary;add.u32 %count,%count,1;
+OWNER_DONE_36:
+setp.ne.u64 %p,%v37,0;@%p bra PRESENT_37;@%empty bra OWNER_DONE_37;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_37:
+mov.u32 %oi37,%count;
+st.param.u64 [rb],%v37;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v37;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_37:
+setp.ne.u64 %p,%v38,0;@%p bra PRESENT_38;@%empty bra OWNER_DONE_38;
+bra OWNER_DONE_38;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_38:
+st.param.u64 [rb],%v38;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v38;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_38:
+setp.ne.u64 %p,%v39,0;@%p bra PRESENT_39;@%empty bra OWNER_DONE_39;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_39:
+mov.u32 %oi39,%count;
+st.param.u64 [rb],%v39;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v39;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_39:
+setp.ne.u64 %p,%v40,0;@%p bra PRESENT_40;@%empty bra OWNER_DONE_40;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_40:
+mov.u32 %oi40,%count;
+st.param.u64 [rb],%v40;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v40;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_40:
+setp.ne.u64 %p,%v41,0;@%p bra PRESENT_41;@%empty bra OWNER_DONE_41;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_41:
+st.param.u64 [rb],%v41;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v41;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_41:
+setp.ne.u64 %p,%v42,0;@%p bra PRESENT_42;@%empty bra OWNER_DONE_42;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_42:
+st.param.u64 [rb],%v42;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v42;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_42:
+setp.ne.u64 %p,%v43,0;@%p bra PRESENT_43;@%empty bra OWNER_DONE_43;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_43:
+st.param.u64 [rb],%v43;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v43;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_43:
+setp.ne.u64 %p,%v44,0;@%p bra PRESENT_44;@%empty bra OWNER_DONE_44;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_44:
+st.param.u64 [rb],%v44;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v44;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_44:
+setp.ne.u64 %p,%v45,0;@%p bra PRESENT_45;@%empty bra OWNER_DONE_45;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_45:
+st.param.u64 [rb],%v45;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v45;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_45:
+setp.ne.u64 %p,%v46,0;@%p bra PRESENT_46;@%empty bra OWNER_DONE_46;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_46:
+st.param.u64 [rb],%v46;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v46;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_46:
+setp.ne.u64 %p,%v47,0;@%p bra PRESENT_47;@%empty bra OWNER_DONE_47;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_47:
+mov.u32 %oi47,%count;
+st.param.u64 [rb],%v47;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v47;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_47:
+setp.ne.u64 %p,%v48,0;@%p bra PRESENT_48;@%empty bra OWNER_DONE_48;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_48:
+mov.u32 %oi48,%count;
+st.param.u64 [rb],%v48;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v48;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_48:
+setp.ne.u64 %p,%v49,0;@%p bra PRESENT_49;@%empty bra OWNER_DONE_49;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_49:
+mov.u32 %oi49,%count;
+st.param.u64 [rb],%v49;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v49;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_49:
+setp.ne.u64 %p,%v50,0;@%p bra PRESENT_50;@%empty bra OWNER_DONE_50;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_50:
+mov.u32 %oi50,%count;
+st.param.u64 [rb],%v50;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v50;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_50:
+setp.ne.u64 %p,%v51,0;@%p bra PRESENT_51;@%empty bra OWNER_DONE_51;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_51:
+mov.u32 %oi51,%count;
+st.param.u64 [rb],%v51;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v51;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_51:
+setp.ne.u64 %p,%v52,0;@%p bra PRESENT_52;@%empty bra OWNER_DONE_52;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_52:
+mov.u32 %oi52,%count;
+st.param.u64 [rb],%v52;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v52;st.u64 [%pointer+8],%surface;add.u32 %count,%count,1;
+OWNER_DONE_52:
+setp.ne.u64 %p,%v53,0;@%p bra PRESENT_53;@%empty bra OWNER_DONE_53;
+setp.eq.u32 %p,%approx,0;@%p bra OWNER_DONE_53;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_53:
+st.param.u64 [rb],%v53;st.param.u64 [rn],%half;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v53;st.u64 [%pointer+8],%half;add.u32 %count,%count,1;
+OWNER_DONE_53:
+setp.ne.u64 %p,%v54,0;@%p bra PRESENT_54;@%empty bra OWNER_DONE_54;
+bra OWNER_DONE_54;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_54:
+st.param.u64 [rb],%v54;st.param.u64 [rn],%full;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v54;st.u64 [%pointer+8],%full;add.u32 %count,%count,1;
+OWNER_DONE_54:
+setp.ne.u64 %p,%v55,0;@%p bra PRESENT_55;@%empty bra OWNER_DONE_55;
+bra OWNER_DONE_55;
+mov.u32 %error,7732;bra REFUSE;
+PRESENT_55:
+st.param.u64 [rb],%v55;st.param.u64 [rn],%full;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%v55;st.u64 [%pointer+8],%full;add.u32 %count,%count,1;
+OWNER_DONE_55:
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %bytes,[%ctx+56];setp.eq.u64 %p,%bytes,40;@%p bra RECORD_SIZE_READY;
+mov.u32 %error,7734;setp.ne.u64 %p,%bytes,72;@%p bra REFUSE;
+RECORD_SIZE_READY:
+st.param.u64 [rb],%record;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%record;st.u64 [%pointer+8],%bytes;add.u32 %count,%count,1;
+ld.global.u64 %base,[%record+0];
+st.param.u64 [rb],%base;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%base;st.u64 [%pointer+8],8;add.u32 %count,%count,1;
+ld.global.u64 %word,[%base];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+mov.u32 %error,7735;setp.eq.u64 %p,%absolute,0;@%p bra REFUSE;
+mov.u32 %error,7735;setp.ne.u64 %p,%word,%absolute;@%p bra REFUSE;
+ld.global.u64 %base,[%record+8];
+st.param.u64 [rb],%base;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%base;st.u64 [%pointer+8],8;add.u32 %count,%count,1;
+ld.global.u64 %word,[%base];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+mov.u32 %error,7735;setp.eq.u64 %p,%absolute,0;@%p bra REFUSE;
+mov.u32 %error,7735;setp.ne.u64 %p,%word,%absolute;@%p bra REFUSE;
+ld.global.u64 %base,[%record+16];
+st.param.u64 [rb],%base;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%base;st.u64 [%pointer+8],8;add.u32 %count,%count,1;
+ld.global.u64 %word,[%base];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+mov.u32 %error,7735;setp.eq.u64 %p,%absolute,0;@%p bra REFUSE;
+mov.u32 %error,7735;setp.ne.u64 %p,%word,%absolute;@%p bra REFUSE;
+ld.global.u64 %base,[%record+24];
+st.param.u64 [rb],%base;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%base;st.u64 [%pointer+8],8;add.u32 %count,%count,1;
+ld.global.u64 %word,[%base];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+ld.global.u64 %base,[%record+32];
+st.param.u64 [rb],%base;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%base;st.u64 [%pointer+8],8;add.u32 %count,%count,1;
+ld.global.u64 %word,[%base];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+mov.u32 %error,7735;setp.eq.u64 %p,%absolute,0;@%p bra REFUSE;
+mov.u32 %error,7735;setp.ne.u64 %p,%word,%absolute;@%p bra REFUSE;
+ld.global.u64 %word,[%v1];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+mov.u32 %error,7735;setp.eq.u64 %p,%absolute,0;@%p bra REFUSE;
+mov.u32 %error,7735;setp.ne.u64 %p,%word,%absolute;@%p bra REFUSE;
+ld.global.u64 %word,[%v1+8];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+ld.global.u64 %word,[%v3+616];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+mov.u32 %error,7735;setp.eq.u64 %p,%absolute,0;@%p bra REFUSE;
+mov.u32 %error,7735;setp.ne.u64 %p,%word,%absolute;@%p bra REFUSE;
+ld.global.u64 %scratch,[%ctx+32];ld.global.u64 %extent,[%ctx+40];mov.u32 %scratchindex,%count;@%empty bra EMPTY_WORK;
+mov.u32 %error,7734;setp.lt.u64 %p,%extent,%work;@%p bra REFUSE;
+st.param.u64 [rb],%scratch;st.param.u64 [rn],%work;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%scratch;st.u64 [%pointer+8],%work;add.u32 %count,%count,1;
+bra WORK_READY;
+EMPTY_WORK:setp.eq.u64 %p,%scratch,0;@%p bra WORK_READY;
+st.param.u64 [rb],%scratch;st.param.u64 [rn],%work;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%scratch;st.u64 [%pointer+8],%work;add.u32 %count,%count,1;
+WORK_READY:setp.eq.u64 %p,%bytes,40;@%p bra COUNTERS_READY;
+ld.global.u64 %base,[%record+40];ld.global.u64 %extent,[%record+48];setp.eq.u64 %p,%base,0;@%p bra COUNTER_NULL_40;
+mov.u32 %error,7734;setp.lt.u64 %p,%extent,8;@%p bra REFUSE;
+st.param.u64 [rb],%base;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%base;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%base;st.u64 [%pointer+8],8;add.u32 %count,%count,1;
+bra COUNTER_DONE_40;
+COUNTER_NULL_40:
+mov.u32 %error,7734;setp.ne.u64 %p,%extent,0;@%p bra REFUSE;
+COUNTER_DONE_40:
+ld.global.u64 %base,[%record+56];ld.global.u64 %extent,[%record+64];setp.eq.u64 %p,%base,0;@%p bra COUNTER_NULL_56;
+mov.u32 %error,7734;setp.lt.u64 %p,%extent,8;@%p bra REFUSE;
+st.param.u64 [rb],%base;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%base;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%list,%offset;st.u64 [%pointer],%base;st.u64 [%pointer+8],8;add.u32 %count,%count,1;
+bra COUNTER_DONE_56;
+COUNTER_NULL_56:
+mov.u32 %error,7734;setp.ne.u64 %p,%extent,0;@%p bra REFUSE;
+COUNTER_DONE_56:
+COUNTERS_READY:
+setp.eq.u64 %p,%v16,0;@%p bra OUTPUT_DONE_16;
+st.param.u64 [rb],%v16;st.param.u64 [rn],%full;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi16;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_16:
+setp.eq.u64 %p,%v23,0;@%p bra OUTPUT_DONE_23;
+st.param.u64 [rb],%v23;st.param.u64 [rn],%full;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi23;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_23:
+setp.eq.u64 %p,%v24,0;@%p bra OUTPUT_DONE_24;
+st.param.u64 [rb],%v24;st.param.u64 [rn],%full;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi24;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_24:
+setp.eq.u64 %p,%v25,0;@%p bra OUTPUT_DONE_25;
+st.param.u64 [rb],%v25;st.param.u64 [rn],%full;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi25;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_25:
+setp.eq.u64 %p,%v26,0;@%p bra OUTPUT_DONE_26;
+st.param.u64 [rb],%v26;st.param.u64 [rn],%full;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi26;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_26:
+setp.eq.u64 %p,%v27,0;@%p bra OUTPUT_DONE_27;
+st.param.u64 [rb],%v27;st.param.u64 [rn],%half;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi27;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_27:
+setp.eq.u64 %p,%v28,0;@%p bra OUTPUT_DONE_28;
+st.param.u64 [rb],%v28;st.param.u64 [rn],%half;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi28;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_28:
+setp.eq.u64 %p,%v29,0;@%p bra OUTPUT_DONE_29;
+st.param.u64 [rb],%v29;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi29;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_29:
+setp.eq.u64 %p,%v30,0;@%p bra OUTPUT_DONE_30;
+st.param.u64 [rb],%v30;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi30;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_30:
+setp.eq.u64 %p,%v31,0;@%p bra OUTPUT_DONE_31;
+st.param.u64 [rb],%v31;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi31;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_31:
+setp.eq.u64 %p,%v32,0;@%p bra OUTPUT_DONE_32;
+st.param.u64 [rb],%v32;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi32;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_32:
+setp.eq.u64 %p,%v35,0;@%p bra OUTPUT_DONE_35;
+st.param.u64 [rb],%v35;st.param.u64 [rn],%boundary;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi35;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_35:
+setp.eq.u64 %p,%v36,0;@%p bra OUTPUT_DONE_36;
+st.param.u64 [rb],%v36;st.param.u64 [rn],%boundary;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi36;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_36:
+setp.eq.u64 %p,%v37,0;@%p bra OUTPUT_DONE_37;
+st.param.u64 [rb],%v37;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi37;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_37:
+setp.eq.u64 %p,%v39,0;@%p bra OUTPUT_DONE_39;
+st.param.u64 [rb],%v39;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi39;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_39:
+setp.eq.u64 %p,%v40,0;@%p bra OUTPUT_DONE_40;
+st.param.u64 [rb],%v40;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi40;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_40:
+setp.eq.u64 %p,%v47,0;@%p bra OUTPUT_DONE_47;
+st.param.u64 [rb],%v47;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi47;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_47:
+setp.eq.u64 %p,%v48,0;@%p bra OUTPUT_DONE_48;
+st.param.u64 [rb],%v48;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi48;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_48:
+setp.eq.u64 %p,%v49,0;@%p bra OUTPUT_DONE_49;
+st.param.u64 [rb],%v49;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi49;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_49:
+setp.eq.u64 %p,%v50,0;@%p bra OUTPUT_DONE_50;
+st.param.u64 [rb],%v50;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi50;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_50:
+setp.eq.u64 %p,%v51,0;@%p bra OUTPUT_DONE_51;
+st.param.u64 [rb],%v51;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi51;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_51:
+setp.eq.u64 %p,%v52,0;@%p bra OUTPUT_DONE_52;
+st.param.u64 [rb],%v52;st.param.u64 [rn],%surface;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%oi52;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+OUTPUT_DONE_52:
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%ctxindex;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.eq.u64 %p,%scratch,0;@%p bra SCRATCH_CHECKED;
+st.param.u64 [rb],%scratch;st.param.u64 [rn],%work;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%count;st.param.u32 [rs],%scratchindex;call.uni (rr),heating_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+SCRATCH_CHECKED:@%empty bra ADMITTED;
+mov.u64 %lev,0;
+FINITE_LEVEL_9:setp.gt.u64 %p,%lev,%N;@%p bra FINITE_DONE_9;mov.u64 %col,%first;
+FINITE_COLUMN_9:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_9;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v9,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_9;
+FINITE_NEXT_LEVEL_9:add.u64 %lev,%lev,1;bra FINITE_LEVEL_9;
+FINITE_DONE_9:
+mov.u64 %lev,0;
+FINITE_LEVEL_12:setp.gt.u64 %p,%lev,%N;@%p bra FINITE_DONE_12;mov.u64 %col,%first;
+FINITE_COLUMN_12:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_12;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v12,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_12;
+FINITE_NEXT_LEVEL_12:add.u64 %lev,%lev,1;bra FINITE_LEVEL_12;
+FINITE_DONE_12:
+mov.u64 %lev,0;
+FINITE_LEVEL_13:setp.gt.u64 %p,%lev,0;@%p bra FINITE_DONE_13;mov.u64 %col,%first;
+FINITE_COLUMN_13:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_13;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v13,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_13;
+FINITE_NEXT_LEVEL_13:add.u64 %lev,%lev,1;bra FINITE_LEVEL_13;
+FINITE_DONE_13:
+setp.eq.u32 %p,%manners,0;@%p bra FINITE_DONE_14;
+mov.u64 %lev,0;
+FINITE_LEVEL_14:setp.gt.u64 %p,%lev,0;@%p bra FINITE_DONE_14;mov.u64 %col,%first;
+FINITE_COLUMN_14:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_14;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v14,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_14;
+FINITE_NEXT_LEVEL_14:add.u64 %lev,%lev,1;bra FINITE_LEVEL_14;
+FINITE_DONE_14:
+mov.u64 %lev,0;
+FINITE_LEVEL_15:setp.ge.u64 %p,%lev,%N;@%p bra FINITE_DONE_15;mov.u64 %col,%first;
+FINITE_COLUMN_15:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_15;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v15,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_15;
+FINITE_NEXT_LEVEL_15:add.u64 %lev,%lev,1;bra FINITE_LEVEL_15;
+FINITE_DONE_15:
+mov.u64 %lev,0;
+FINITE_LEVEL_16:setp.ge.u64 %p,%lev,%N;@%p bra FINITE_DONE_16;mov.u64 %col,%first;
+FINITE_COLUMN_16:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_16;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v16,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_16;
+FINITE_NEXT_LEVEL_16:add.u64 %lev,%lev,1;bra FINITE_LEVEL_16;
+FINITE_DONE_16:
+mov.u64 %lev,0;
+FINITE_LEVEL_17:setp.gt.u64 %p,%lev,%N;@%p bra FINITE_DONE_17;mov.u64 %col,%first;
+FINITE_COLUMN_17:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_17;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v17,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_17;
+FINITE_NEXT_LEVEL_17:add.u64 %lev,%lev,1;bra FINITE_LEVEL_17;
+FINITE_DONE_17:
+mov.u64 %lev,0;
+FINITE_LEVEL_18:setp.gt.u64 %p,%lev,0;@%p bra FINITE_DONE_18;mov.u64 %col,%first;
+FINITE_COLUMN_18:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_18;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v18,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_18;
+FINITE_NEXT_LEVEL_18:add.u64 %lev,%lev,1;bra FINITE_LEVEL_18;
+FINITE_DONE_18:
+mov.u64 %lev,0;
+FINITE_LEVEL_19:setp.gt.u64 %p,%lev,0;@%p bra FINITE_DONE_19;mov.u64 %col,%first;
+FINITE_COLUMN_19:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_19;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v19,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_19;
+FINITE_NEXT_LEVEL_19:add.u64 %lev,%lev,1;bra FINITE_LEVEL_19;
+FINITE_DONE_19:
+mov.u64 %lev,0;
+FINITE_LEVEL_20:setp.gt.u64 %p,%lev,0;@%p bra FINITE_DONE_20;mov.u64 %col,%first;
+FINITE_COLUMN_20:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_20;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v20,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_20;
+FINITE_NEXT_LEVEL_20:add.u64 %lev,%lev,1;bra FINITE_LEVEL_20;
+FINITE_DONE_20:
+mov.u64 %lev,0;
+FINITE_LEVEL_21:setp.gt.u64 %p,%lev,0;@%p bra FINITE_DONE_21;mov.u64 %col,%first;
+FINITE_COLUMN_21:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_21;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v21,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_21;
+FINITE_NEXT_LEVEL_21:add.u64 %lev,%lev,1;bra FINITE_LEVEL_21;
+FINITE_DONE_21:
+setp.eq.u32 %p,%approx,0;@%p bra FINITE_DONE_22;
+mov.u64 %lev,0;
+FINITE_LEVEL_22:setp.gt.u64 %p,%lev,0;@%p bra FINITE_DONE_22;mov.u64 %col,%first;
+FINITE_COLUMN_22:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_22;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v22,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_22;
+FINITE_NEXT_LEVEL_22:add.u64 %lev,%lev,1;bra FINITE_LEVEL_22;
+FINITE_DONE_22:
+setp.eq.u32 %p,%approx,0;@%p bra FINITE_DONE_10;
+mov.u64 %lev,0;
+FINITE_LEVEL_10:setp.gt.u64 %p,%lev,0;@%p bra FINITE_DONE_10;mov.u64 %col,%first;
+FINITE_COLUMN_10:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_10;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v10,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_10;
+FINITE_NEXT_LEVEL_10:add.u64 %lev,%lev,1;bra FINITE_LEVEL_10;
+FINITE_DONE_10:
+mov.u64 %lev,0;
+FINITE_LEVEL_33:setp.gt.u64 %p,%lev,%N;@%p bra FINITE_DONE_33;mov.u64 %col,%first;
+FINITE_COLUMN_33:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_33;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v33,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_33;
+FINITE_NEXT_LEVEL_33:add.u64 %lev,%lev,1;bra FINITE_LEVEL_33;
+FINITE_DONE_33:
+mov.u64 %lev,0;
+FINITE_LEVEL_34:setp.gt.u64 %p,%lev,%N;@%p bra FINITE_DONE_34;mov.u64 %col,%first;
+FINITE_COLUMN_34:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_34;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v34,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_34;
+FINITE_NEXT_LEVEL_34:add.u64 %lev,%lev,1;bra FINITE_LEVEL_34;
+FINITE_DONE_34:
+mov.u64 %lev,0;
+FINITE_LEVEL_41:setp.gt.u64 %p,%lev,0;@%p bra FINITE_DONE_41;mov.u64 %col,%first;
+FINITE_COLUMN_41:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_41;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v41,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_41;
+FINITE_NEXT_LEVEL_41:add.u64 %lev,%lev,1;bra FINITE_LEVEL_41;
+FINITE_DONE_41:
+mov.u64 %lev,0;
+FINITE_LEVEL_42:setp.gt.u64 %p,%lev,0;@%p bra FINITE_DONE_42;mov.u64 %col,%first;
+FINITE_COLUMN_42:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_42;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v42,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_42;
+FINITE_NEXT_LEVEL_42:add.u64 %lev,%lev,1;bra FINITE_LEVEL_42;
+FINITE_DONE_42:
+mov.u64 %lev,0;
+FINITE_LEVEL_43:setp.gt.u64 %p,%lev,0;@%p bra FINITE_DONE_43;mov.u64 %col,%first;
+FINITE_COLUMN_43:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_43;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v43,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_43;
+FINITE_NEXT_LEVEL_43:add.u64 %lev,%lev,1;bra FINITE_LEVEL_43;
+FINITE_DONE_43:
+mov.u64 %lev,0;
+FINITE_LEVEL_44:setp.gt.u64 %p,%lev,0;@%p bra FINITE_DONE_44;mov.u64 %col,%first;
+FINITE_COLUMN_44:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_44;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v44,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_44;
+FINITE_NEXT_LEVEL_44:add.u64 %lev,%lev,1;bra FINITE_LEVEL_44;
+FINITE_DONE_44:
+mov.u64 %lev,0;
+FINITE_LEVEL_45:setp.gt.u64 %p,%lev,0;@%p bra FINITE_DONE_45;mov.u64 %col,%first;
+FINITE_COLUMN_45:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_45;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v45,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_45;
+FINITE_NEXT_LEVEL_45:add.u64 %lev,%lev,1;bra FINITE_LEVEL_45;
+FINITE_DONE_45:
+mov.u64 %lev,0;
+FINITE_LEVEL_46:setp.gt.u64 %p,%lev,0;@%p bra FINITE_DONE_46;mov.u64 %col,%first;
+FINITE_COLUMN_46:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_46;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v46,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_46;
+FINITE_NEXT_LEVEL_46:add.u64 %lev,%lev,1;bra FINITE_LEVEL_46;
+FINITE_DONE_46:
+setp.eq.u32 %p,%approx,0;@%p bra FINITE_DONE_53;
+mov.u64 %lev,0;
+FINITE_LEVEL_53:setp.gt.u64 %p,%lev,%N;@%p bra FINITE_DONE_53;mov.u64 %col,%first;
+FINITE_COLUMN_53:setp.ge.u64 %p,%col,%last;@%p bra FINITE_NEXT_LEVEL_53;mad.lo.u64 %index,%lev,%P,%col;shl.b64 %offset,%index,3;add.u64 %pointer,%v53,%offset;ld.global.u64 %word,[%pointer];and.b64 %absolute,%word,0x7fffffffffffffff;
+mov.u32 %error,7735;setp.gt.u64 %p,%absolute,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %col,%col,1;bra FINITE_COLUMN_53;
+FINITE_NEXT_LEVEL_53:add.u64 %lev,%lev,1;bra FINITE_LEVEL_53;
+FINITE_DONE_53:
+ADMITTED:mov.u32 %error,0;
+REFUSE:st.param.u32 [error],%error;ret;
+}

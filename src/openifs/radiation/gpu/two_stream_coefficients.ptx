@@ -1,0 +1,274 @@
+// Complete direct two-stream coefficients.
+// Contract: skills/md2asm-gpu/references/openifs/radiation/two_stream_coefficients.md
+// Physical input: formulations/openifs/physics/two_stream_gammas_sw.md and formulations/openifs/physics/two_stream_gammas_lw.md
+// Ordered FP64 operations call qualified skills/md2asm-gpu/references/openifs/mathematical_support.md helpers.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+
+.visible .func (.param .align 8 .b8 values_flags_event[32]) md2asm_gpu_two_stream_gammas_sw_values(.param .b64 omega_word,.param .b64 asymmetry_word,.param .b64 solar_word)
+{
+ .reg .b64 %w,%g,%mu,%f,%a,%b,%c,%d,%v0,%v1,%v2; .reg .u32 %flags,%raised;
+ ld.param.b64 %w,[omega_word]; ld.param.b64 %g,[asymmetry_word]; mov.u32 %flags,0; mov.b64 %v2,0;
+ ld.param.b64 %mu,[solar_word];
+ {
+ .param .b64 a,b; .param .align 8 .b8 r[16];
+ st.param.b64 [a],0x3fe8000000000000; st.param.b64 [b],%g; call.uni (r),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %f,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 r[16];
+ st.param.b64 [a],0x3ff4000000000000; st.param.b64 [b],%f; call.uni (r),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %a,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 r[16];
+ st.param.b64 [a],%a; st.param.b64 [b],%w; call.uni (r),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %b,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 r[16];
+ st.param.b64 [a],0x4000000000000000; st.param.b64 [b],%b; call.uni (r),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %v0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 r[16];
+ st.param.b64 [a],0x3fe8000000000000; st.param.b64 [b],%f; call.uni (r),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %c,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 r[16];
+ st.param.b64 [a],%c; st.param.b64 [b],%w; call.uni (r),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %v1,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 r[16];
+ st.param.b64 [a],%mu; st.param.b64 [b],%f; call.uni (r),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %d,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 r[16];
+ st.param.b64 [a],0x3fe0000000000000; st.param.b64 [b],%d; call.uni (r),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %v2,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ }
+ st.param.b64 [values_flags_event],%v0; st.param.b64 [values_flags_event+8],%v1; st.param.b64 [values_flags_event+16],%v2;
+ st.param.u32 [values_flags_event+24],%flags; st.param.u32 [values_flags_event+28],0; ret;
+}
+
+.visible .func (.param .align 8 .b8 values_flags_event[32]) md2asm_gpu_two_stream_gammas_lw_values(.param .b64 omega_word,.param .b64 asymmetry_word)
+{
+ .reg .b64 %w,%g,%mu,%f,%a,%b,%c,%d,%v0,%v1,%v2; .reg .u32 %flags,%raised;
+ ld.param.b64 %w,[omega_word]; ld.param.b64 %g,[asymmetry_word]; mov.u32 %flags,0; mov.b64 %v2,0;
+ {
+ .param .b64 a,b; .param .align 8 .b8 r[16];
+ st.param.b64 [a],0x3fea8f5c28f5c28f; st.param.b64 [b],%w; call.uni (r),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %f,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 r[16];
+ st.param.b64 [a],0x3ff0000000000000; st.param.b64 [b],%g; call.uni (r),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %a,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 r[16];
+ st.param.b64 [a],%a; st.param.b64 [b],%f; call.uni (r),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %b,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 r[16];
+ st.param.b64 [a],0x3ffa8f5c28f5c28f; st.param.b64 [b],%b; call.uni (r),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %v0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 r[16];
+ st.param.b64 [a],0x3ff0000000000000; st.param.b64 [b],%g; call.uni (r),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %c,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 r[16];
+ st.param.b64 [a],%c; st.param.b64 [b],%f; call.uni (r),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %v1,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ }
+ st.param.b64 [values_flags_event],%v0; st.param.b64 [values_flags_event+8],%v1; st.param.b64 [values_flags_event+16],%v2;
+ st.param.u32 [values_flags_event+24],%flags; st.param.u32 [values_flags_event+28],0; ret;
+}
+
+// Return first cell, element stride, reached owner low/span and integer error.
+.func (.param .align 8 .b8 result[40]) two_stream_descriptor_span(.param .u64 descriptor,.param .u32 count)
+{
+ .reg .u64 %d,%base,%stride,%mag,%n,%high,%gap,%low,%span,%tmp; .reg .u32 %n32,%error; .reg .pred %p;
+ ld.param.u64 %d,[descriptor]; ld.param.u32 %n32,[count]; mov.u32 %error,362;
+ setp.eq.u64 %p,%d,0; @%p bra SPAN_RETURN;
+ and.b64 %tmp,%d,7; setp.ne.u64 %p,%tmp,0; @%p bra SPAN_RETURN;
+ setp.gt.u64 %p,%d,0x7fffffffffffffbf; @%p bra SPAN_RETURN;
+ ld.global.u64 %base,[%d]; ld.global.s64 %stride,[%d+40];
+ setp.eq.u64 %p,%base,0; @%p bra SPAN_RETURN;
+ and.b64 %tmp,%base,7; setp.ne.u64 %p,%tmp,0; @%p bra SPAN_RETURN;
+ setp.gt.u64 %p,%base,0x7fffffffffffffff; @%p bra SPAN_RETURN;
+ setp.eq.u64 %p,%stride,0; @%p mov.u64 %stride,1;
+ mov.u64 %mag,%stride; setp.lt.s64 %p,%stride,0; @%p neg.s64 %mag,%stride;
+ sub.u32 %n32,%n32,1; cvt.u64.u32 %n,%n32;
+ mul.hi.u64 %high,%mag,%n; setp.ne.u64 %p,%high,0; @%p bra SPAN_RETURN;
+ mul.lo.u64 %gap,%mag,%n; setp.gt.u64 %p,%gap,0x0ffffffffffffffe; @%p bra SPAN_RETURN;
+ shl.b64 %gap,%gap,3; add.u64 %span,%gap,8; mov.u64 %low,%base;
+ setp.ge.s64 %p,%stride,0; @%p bra SPAN_END;
+ setp.le.u64 %p,%base,%gap; @%p bra SPAN_RETURN;
+ sub.u64 %low,%base,%gap;
+SPAN_END:
+ add.u64 %tmp,%low,%span; setp.gt.u64 %p,%tmp,0x7fffffffffffffff; @%p bra SPAN_RETURN;
+ mov.u32 %error,0;
+SPAN_RETURN:
+ st.param.u64 [result],%base; st.param.u64 [result+8],%stride;
+ st.param.u64 [result+16],%low; st.param.u64 [result+24],%span; st.param.u32 [result+32],%error; st.param.u32 [result+36],0; ret;
+}
+.func (.param .u32 result) two_stream_range(.param .u64 base,.param .u64 bytes,.param .u64 mask)
+{
+ .reg .u64 %b,%n,%m,%tmp; .reg .u32 %error; .reg .pred %p;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %m,[mask]; mov.u32 %error,362;
+ setp.eq.u64 %p,%b,0; @%p bra R_RETURN; and.b64 %tmp,%b,%m; setp.ne.u64 %p,%tmp,0; @%p bra R_RETURN;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra R_RETURN;
+ add.u64 %tmp,%b,%n; setp.gt.u64 %p,%tmp,0x7fffffffffffffff; @%p bra R_RETURN;
+ mov.u32 %error,0;
+R_RETURN: st.param.u32 [result],%error; ret;
+}
+.func two_stream_array_call(.param .u64 original_vector,.param .u64 context,.param .u32 shortwave)
+{
+ .reg .u64 %args,%ctx,%countptr,%solarptr,%fieldoffset,%vecbytes,%desc,%info,%dpointers,%ptr,%ptr2,%tmp,%base,%stride,%low,%span,%end1,%end2,%other,%otherspan;
+ .reg .u64 %cell,%total,%step,%offset,%w,%g,%mu,%v0,%v1,%v2,%value;
+ .reg .u32 %mode,%n,%fields,%i,%j,%error,%old,%unique,%flags,%raised,%r<8>; .reg .pred %p<3>;
+ .local .align 8 .b8 fields_info[160]; .local .align 8 .b8 descriptor_pointers[40];
+ .param .u64 rb,rn,rm; .param .u32 rr;
+ ld.param.u64 %args,[original_vector]; ld.param.u64 %ctx,[context]; ld.param.u32 %mode,[shortwave];
+ setp.eq.u64 %p0,%ctx,0; @%p0 ret; and.b64 %tmp,%ctx,7; setp.ne.u64 %p0,%tmp,0; @%p0 ret;
+ ld.global.u32 %old,[%ctx]; setp.ne.u32 %p0,%old,0; @%p0 ret;
+ mov.u32 %unique,%ctaid.x; mov.u32 %r0,%ctaid.y; or.b32 %unique,%unique,%r0;
+ mov.u32 %r0,%ctaid.z; or.b32 %unique,%unique,%r0; mov.u32 %r0,%tid.x; or.b32 %unique,%unique,%r0;
+ mov.u32 %r0,%tid.y; or.b32 %unique,%unique,%r0; mov.u32 %r0,%tid.z; or.b32 %unique,%unique,%r0;
+ mov.u32 %error,361; ld.global.u32 %r0,[%ctx+4]; setp.ne.u32 %p0,%r0,1; @%p0 bra REFUSE;
+ mov.u32 %r0,%ntid.y; setp.ne.u32 %p0,%r0,1; @%p0 bra REFUSE;
+ mov.u32 %r0,%ntid.z; setp.ne.u32 %p0,%r0,1; @%p0 bra REFUSE;
+ mov.u32 %r0,%nctaid.y; setp.ne.u32 %p0,%r0,1; @%p0 bra REFUSE;
+ mov.u32 %r0,%nctaid.z; setp.ne.u32 %p0,%r0,1; @%p0 bra REFUSE;
+ mov.u64 %vecbytes,40; mov.u64 %fieldoffset,8; mov.u32 %fields,4; mov.u64 %solarptr,0; mov.b64 %mu,0;
+ setp.eq.u32 %p0,%mode,0; @%p0 bra VECTOR_SIZE;
+ mov.u64 %vecbytes,56; mov.u64 %fieldoffset,16; mov.u32 %fields,5;
+VECTOR_SIZE:
+ st.param.u64 [rb],%args; st.param.u64 [rn],%vecbytes; st.param.u64 [rm],7;
+ call.uni (rr),two_stream_range,(rb,rn,rm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %countptr,[%args];
+ st.param.u64 [rb],%countptr; st.param.u64 [rn],4; st.param.u64 [rm],3;
+ call.uni (rr),two_stream_range,(rb,rn,rm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.s32 %n,[%countptr]; setp.le.s32 %p0,%n,0; @%p0 ret;
+ cvt.u64.u32 %total,%n; setp.eq.u32 %p0,%mode,0; @%p0 bra SOLAR_READY;
+ ld.global.u64 %solarptr,[%args+8];
+ st.param.u64 [rb],%solarptr; st.param.u64 [rn],8; st.param.u64 [rm],7;
+ call.uni (rr),two_stream_range,(rb,rn,rm); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.b64 %mu,[%solarptr];
+SOLAR_READY:
+ mov.u64 %info,fields_info; mov.u64 %dpointers,descriptor_pointers; mov.u32 %i,0;
+DESCRIPTOR:
+ mul.wide.u32 %tmp,%i,8; add.u64 %ptr,%args,%fieldoffset; add.u64 %ptr,%ptr,%tmp;
+ ld.global.u64 %desc,[%ptr]; add.u64 %ptr,%dpointers,%tmp; st.local.u64 [%ptr],%desc;
+ {
+ .param .u64 d; .param .u32 n; .param .align 8 .b8 result[40];
+ st.param.u64 [d],%desc; st.param.u32 [n],%n; call.uni (result),two_stream_descriptor_span,(d,n);
+ ld.param.u32 %error,[result+32]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.param.u64 %base,[result]; ld.param.u64 %stride,[result+8]; ld.param.u64 %low,[result+16]; ld.param.u64 %span,[result+24];
+ }
+ mul.wide.u32 %tmp,%i,32; add.u64 %ptr,%info,%tmp;
+ st.local.u64 [%ptr],%base; st.local.u64 [%ptr+8],%stride; st.local.u64 [%ptr+16],%low; st.local.u64 [%ptr+24],%span;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%fields; @%p0 bra DESCRIPTOR;
+ mov.u32 %i,2;
+OUTPUT_VALIDATION:
+ mul.wide.u32 %tmp,%i,32; add.u64 %ptr,%info,%tmp; ld.local.u64 %low,[%ptr+16]; ld.local.u64 %span,[%ptr+24];
+ mov.u32 %error,362; add.u64 %end1,%low,%span; add.u64 %end2,%args,%vecbytes;
+ setp.lt.u64 %p0,%low,%end2; setp.lt.u64 %p1,%args,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ mov.u32 %error,362; add.u64 %end1,%low,%span; add.u64 %end2,%ctx,64;
+ setp.lt.u64 %p0,%low,%end2; setp.lt.u64 %p1,%ctx,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ mov.u32 %error,362; add.u64 %end1,%low,%span; add.u64 %end2,%countptr,4;
+ setp.lt.u64 %p0,%low,%end2; setp.lt.u64 %p1,%countptr,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ setp.eq.u32 %p0,%mode,0; @%p0 bra OUTPUT_SOLAR_DONE;
+ mov.u32 %error,362; add.u64 %end1,%low,%span; add.u64 %end2,%solarptr,8;
+ setp.lt.u64 %p0,%low,%end2; setp.lt.u64 %p1,%solarptr,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+OUTPUT_SOLAR_DONE:
+ mov.u32 %j,0;
+ALL_DESCRIPTORS:
+ mul.wide.u32 %tmp,%j,8; add.u64 %ptr,%dpointers,%tmp; ld.local.u64 %other,[%ptr];
+ mov.u32 %error,362; add.u64 %end1,%low,%span; add.u64 %end2,%other,64;
+ setp.lt.u64 %p0,%low,%end2; setp.lt.u64 %p1,%other,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+ add.u32 %j,%j,1; setp.lt.u32 %p0,%j,%fields; @%p0 bra ALL_DESCRIPTORS;
+ mov.u32 %j,0;
+OWNER_PAIRS:
+ setp.eq.u32 %p0,%j,%i; @%p0 bra PAIR_NEXT;
+ mul.wide.u32 %tmp,%j,32; add.u64 %ptr,%info,%tmp; ld.local.u64 %other,[%ptr+16]; ld.local.u64 %otherspan,[%ptr+24];
+ mov.u32 %error,362; add.u64 %end1,%low,%span; add.u64 %end2,%other,%otherspan;
+ setp.lt.u64 %p0,%low,%end2; setp.lt.u64 %p1,%other,%end1; and.pred %p2,%p0,%p1; @%p2 bra REFUSE;
+PAIR_NEXT:
+ add.u32 %j,%j,1; setp.lt.u32 %p0,%j,%fields; @%p0 bra OWNER_PAIRS;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%fields; @%p0 bra OUTPUT_VALIDATION;
+ mov.u32 %flags,0;
+ mov.u32 %r0,%ctaid.x; mov.u32 %r1,%ntid.x; mov.u32 %r2,%tid.x;
+ mul.wide.u32 %cell,%r0,%r1; cvt.u64.u32 %tmp,%r2; add.u64 %cell,%cell,%tmp;
+ mov.u32 %r0,%nctaid.x; mul.wide.u32 %step,%r0,%r1;
+CELL:
+ setp.ge.u64 %p0,%cell,%total; @%p0 bra COMPLETE;
+ ld.local.u64 %base,[%info]; ld.local.u64 %stride,[%info+8]; mul.lo.u64 %offset,%cell,%stride; shl.b64 %offset,%offset,3;
+ add.u64 %ptr,%base,%offset; ld.global.b64 %w,[%ptr];
+ ld.local.u64 %base,[%info+32]; ld.local.u64 %stride,[%info+40]; mul.lo.u64 %offset,%cell,%stride; shl.b64 %offset,%offset,3;
+ add.u64 %ptr,%base,%offset; ld.global.b64 %g,[%ptr];
+ setp.eq.u32 %p0,%mode,0; @%p0 bra CALL_LW;
+ {
+ .param .b64 w,g,mu; .param .align 8 .b8 result[32];
+ st.param.b64 [w],%w; st.param.b64 [g],%g; st.param.b64 [mu],%mu;
+ call.uni (result),md2asm_gpu_two_stream_gammas_sw_values,(w,g,mu);
+ ld.param.b64 %v0,[result]; ld.param.b64 %v1,[result+8]; ld.param.b64 %v2,[result+16]; ld.param.u32 %raised,[result+24]; or.b32 %flags,%flags,%raised;
+ }
+ bra STORE_VALUES;
+CALL_LW:
+ {
+ .param .b64 w,g; .param .align 8 .b8 result[32];
+ st.param.b64 [w],%w; st.param.b64 [g],%g; call.uni (result),md2asm_gpu_two_stream_gammas_lw_values,(w,g);
+ ld.param.b64 %v0,[result]; ld.param.b64 %v1,[result+8]; ld.param.b64 %v2,[result+16]; ld.param.u32 %raised,[result+24]; or.b32 %flags,%flags,%raised;
+ }
+STORE_VALUES:
+ mov.u32 %i,2;
+STORE_FIELD:
+ mov.b64 %value,%v2; setp.eq.u32 %p0,%i,2; @%p0 mov.b64 %value,%v0; setp.eq.u32 %p0,%i,3; @%p0 mov.b64 %value,%v1;
+ mul.wide.u32 %tmp,%i,32; add.u64 %ptr,%info,%tmp; ld.local.u64 %base,[%ptr]; ld.local.u64 %stride,[%ptr+8];
+ mul.lo.u64 %offset,%cell,%stride; shl.b64 %offset,%offset,3; add.u64 %ptr,%base,%offset; st.global.b64 [%ptr],%value;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%fields; @%p0 bra STORE_FIELD;
+ add.u64 %cell,%cell,%step; bra CELL;
+COMPLETE:
+ add.u64 %tmp,%ctx,8; atom.global.or.b32 %old,[%tmp],%flags; ret;
+REFUSE:
+ setp.ne.u32 %p0,%unique,0; @%p0 ret; atom.global.cas.b32 %old,[%ctx],0,%error; ret;
+}
+
+.visible .func md2asm_gpu_calc_two_stream_gammas_sw_fp64(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %a,%c; .param .u64 a,c; .param .u32 mode;
+ ld.param.u64 %a,[original_vector]; ld.param.u64 %c,[context]; st.param.u64 [a],%a; st.param.u64 [c],%c; st.param.u32 [mode],1;
+ call.uni two_stream_array_call,(a,c,mode); ret;
+}
+.visible .entry md2asm_gpu_calc_two_stream_gammas_sw(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %a,%c; .param .u64 a,c;
+ ld.param.u64 %a,[original_vector]; ld.param.u64 %c,[context]; st.param.u64 [a],%a; st.param.u64 [c],%c;
+ call.uni md2asm_gpu_calc_two_stream_gammas_sw_fp64,(a,c); ret;
+}
+
+.visible .func md2asm_gpu_calc_two_stream_gammas_lw_fp64(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %a,%c; .param .u64 a,c; .param .u32 mode;
+ ld.param.u64 %a,[original_vector]; ld.param.u64 %c,[context]; st.param.u64 [a],%a; st.param.u64 [c],%c; st.param.u32 [mode],0;
+ call.uni two_stream_array_call,(a,c,mode); ret;
+}
+.visible .entry md2asm_gpu_calc_two_stream_gammas_lw(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %a,%c; .param .u64 a,c;
+ ld.param.u64 %a,[original_vector]; ld.param.u64 %c,[context]; st.param.u64 [a],%a; st.param.u64 [c],%c;
+ call.uni md2asm_gpu_calc_two_stream_gammas_lw_fp64,(a,c); ret;
+}

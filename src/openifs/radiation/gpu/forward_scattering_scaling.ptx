@@ -1,0 +1,257 @@
+// Complete direct forward-scattering scaling.
+// Contract: skills/md2asm-gpu/references/openifs/radiation/forward_scattering_scaling.md, revision 1.
+// Original radiation_aerosol_optics::delta_eddington_extensive and
+// radiation_cloud_optics::delta_eddington_scat_od.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_add_status(.param .b64 word_a,.param .b64 word_b);
+.extern .func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_sub_status(.param .b64 word_a,.param .b64 word_b);
+.extern .func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_mul_status(.param .b64 word_a,.param .b64 word_b);
+.extern .func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_div_status(.param .b64 word_a,.param .b64 word_b);
+
+.visible .func (.param .align 8 .b8 values_flags_event[32]) md2asm_gpu_delta_eddington_extensive_values(
+ .param .b64 total_word,.param .b64 scatter_word,.param .b64 direction_word)
+{
+ .reg .b64 %t,%s,%q,%g,%f,%a,%h,%b,%d,%out0,%out1,%out2,%one;
+ .reg .u32 %flags,%raised; .reg .pred %p;
+ ld.param.b64 %t,[total_word]; ld.param.b64 %s,[scatter_word]; ld.param.b64 %q,[direction_word];
+ mov.b64 %one,0x3ff0000000000000; mov.u32 %flags,0;
+ mov.b64 %g,0;
+ setp.gt.f64 %p,%s,0d0000000000000000; @!%p bra FACTOR_READY;
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%q; st.param.b64 [b],%s;
+ call.uni (result),md2asm_gpu_div_status,(a,b);
+ ld.param.b64 %g,[result]; ld.param.u32 %raised,[result+8];
+ or.b32 %flags,%flags,%raised;
+ }
+FACTOR_READY:
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%g; st.param.b64 [b],%g;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %f,[result]; ld.param.u32 %raised,[result+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%s; st.param.b64 [b],%f;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %a,[result]; ld.param.u32 %raised,[result+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%t; st.param.b64 [b],%a;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %out0,[result]; ld.param.u32 %raised,[result+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%one; st.param.b64 [b],%f;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %h,[result]; ld.param.u32 %raised,[result+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%s; st.param.b64 [b],%h;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %out1,[result]; ld.param.u32 %raised,[result+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%out1; st.param.b64 [b],%g;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %b,[result]; ld.param.u32 %raised,[result+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%one; st.param.b64 [b],%g;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %d,[result]; ld.param.u32 %raised,[result+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%b; st.param.b64 [b],%d;
+ call.uni (result),md2asm_gpu_div_status,(a,b);
+ ld.param.b64 %out2,[result]; ld.param.u32 %raised,[result+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ st.param.b64 [values_flags_event],%out0;
+ st.param.b64 [values_flags_event+8],%out1;
+ st.param.b64 [values_flags_event+16],%out2;
+ st.param.u32 [values_flags_event+24],%flags;
+ st.param.u32 [values_flags_event+28],0;
+ ret;
+}
+
+.visible .entry md2asm_gpu_delta_eddington_extensive(.param .u64 args_original_vector,.param .u64 context)
+{
+ .reg .b64 %args,%ctx,%a,%b,%c,%x,%y,%z,%tmp,%distance;
+ .reg .u32 %r<8>,%flags,%old,%error; .reg .pred %p;
+ // Only the first global thread handles refusal or a scalar call.
+ mov.u32 %r0,%ctaid.x; mov.u32 %r1,%ctaid.y; or.b32 %r0,%r0,%r1;
+ mov.u32 %r1,%ctaid.z; or.b32 %r0,%r0,%r1;
+ mov.u32 %r1,%tid.x; or.b32 %r0,%r0,%r1;
+ mov.u32 %r1,%tid.y; or.b32 %r0,%r0,%r1;
+ mov.u32 %r1,%tid.z; or.b32 %r0,%r0,%r1;
+ setp.ne.u32 %p,%r0,0; @%p ret;
+ ld.param.u64 %ctx,[context]; setp.eq.u64 %p,%ctx,0; @%p ret;
+ and.b64 %tmp,%ctx,7; setp.ne.u64 %p,%tmp,0; @%p ret;
+ ld.global.u32 %old,[%ctx]; setp.ne.u32 %p,%old,0; @%p ret;
+ mov.u32 %error,331;
+ mov.u32 %r0,%nctaid.x; mov.u32 %r1,%nctaid.y; mov.u32 %r2,%nctaid.z;
+ mov.u32 %r3,%ntid.x; mov.u32 %r4,%ntid.y; mov.u32 %r5,%ntid.z;
+ setp.ne.u32 %p,%r0,1; @%p bra REFUSE;
+ setp.ne.u32 %p,%r1,1; @%p bra REFUSE;
+ setp.ne.u32 %p,%r2,1; @%p bra REFUSE;
+ setp.ne.u32 %p,%r3,1; @%p bra REFUSE;
+ setp.ne.u32 %p,%r4,1; @%p bra REFUSE;
+ setp.ne.u32 %p,%r5,1; @%p bra REFUSE;
+ mov.u32 %error,332;
+ ld.global.u32 %r0,[%ctx+4]; setp.ne.u32 %p,%r0,1; @%p bra REFUSE;
+ ld.param.u64 %args,[args_original_vector]; setp.eq.u64 %p,%args,0; @%p bra REFUSE;
+ and.b64 %tmp,%args,7; setp.ne.u64 %p,%tmp,0; @%p bra REFUSE;
+ ld.global.u64 %a,[%args]; ld.global.u64 %b,[%args+8]; ld.global.u64 %c,[%args+16];
+ setp.eq.u64 %p,%a,0; @%p bra REFUSE;
+ setp.eq.u64 %p,%b,0; @%p bra REFUSE;
+ setp.eq.u64 %p,%c,0; @%p bra REFUSE;
+ or.b64 %tmp,%a,%b; or.b64 %tmp,%tmp,%c; and.b64 %tmp,%tmp,7;
+ setp.ne.u64 %p,%tmp,0; @%p bra REFUSE;
+ setp.eq.u64 %p,%a,%b; @%p bra REFUSE;
+ setp.eq.u64 %p,%a,%c; @%p bra REFUSE;
+ setp.eq.u64 %p,%b,%c; @%p bra REFUSE;
+ ld.global.b64 %x,[%a]; ld.global.b64 %y,[%b]; ld.global.b64 %z,[%c];
+ {
+ .param .b64 a,b,c; .param .align 8 .b8 result[32];
+ st.param.b64 [a],%x; st.param.b64 [b],%y; st.param.b64 [c],%z;
+ call.uni (result),md2asm_gpu_delta_eddington_extensive_values,(a,b,c);
+ ld.param.b64 %x,[result]; ld.param.b64 %y,[result+8]; ld.param.b64 %z,[result+16];
+ ld.param.u32 %flags,[result+24];
+ }
+ st.global.b64 [%a],%x; st.global.b64 [%b],%y; st.global.b64 [%c],%z;
+ add.u64 %tmp,%ctx,8; atom.global.or.b32 %old,[%tmp],%flags; ret;
+REFUSE:
+ atom.global.cas.b32 %old,[%ctx],0,%error; ret;
+}
+
+.visible .func (.param .align 8 .b8 values_flags_event[32]) md2asm_gpu_delta_eddington_scat_od_values(
+ .param .b64 total_word,.param .b64 scatter_word,.param .b64 direction_word)
+{
+ .reg .b64 %t,%s,%q,%g,%f,%a,%h,%b,%d,%out0,%out1,%out2,%one;
+ .reg .u32 %flags,%raised; .reg .pred %p;
+ ld.param.b64 %t,[total_word]; ld.param.b64 %s,[scatter_word]; ld.param.b64 %q,[direction_word];
+ mov.b64 %one,0x3ff0000000000000; mov.u32 %flags,0;
+ mov.b64 %g,%q;
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%g; st.param.b64 [b],%g;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %f,[result]; ld.param.u32 %raised,[result+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%s; st.param.b64 [b],%f;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %a,[result]; ld.param.u32 %raised,[result+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%t; st.param.b64 [b],%a;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %out0,[result]; ld.param.u32 %raised,[result+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%one; st.param.b64 [b],%f;
+ call.uni (result),md2asm_gpu_sub_status,(a,b);
+ ld.param.b64 %h,[result]; ld.param.u32 %raised,[result+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%s; st.param.b64 [b],%h;
+ call.uni (result),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %out1,[result]; ld.param.u32 %raised,[result+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%one; st.param.b64 [b],%g;
+ call.uni (result),md2asm_gpu_add_status,(a,b);
+ ld.param.b64 %d,[result]; ld.param.u32 %raised,[result+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b; .param .align 8 .b8 result[16];
+ st.param.b64 [a],%g; st.param.b64 [b],%d;
+ call.uni (result),md2asm_gpu_div_status,(a,b);
+ ld.param.b64 %out2,[result]; ld.param.u32 %raised,[result+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ st.param.b64 [values_flags_event],%out0;
+ st.param.b64 [values_flags_event+8],%out1;
+ st.param.b64 [values_flags_event+16],%out2;
+ st.param.u32 [values_flags_event+24],%flags;
+ st.param.u32 [values_flags_event+28],0;
+ ret;
+}
+
+.visible .entry md2asm_gpu_delta_eddington_scat_od(.param .u64 args_original_vector,.param .u64 context)
+{
+ .reg .b64 %args,%ctx,%a,%b,%c,%x,%y,%z,%tmp,%distance;
+ .reg .u32 %r<8>,%flags,%old,%error; .reg .pred %p;
+ // Only the first global thread handles refusal or a scalar call.
+ mov.u32 %r0,%ctaid.x; mov.u32 %r1,%ctaid.y; or.b32 %r0,%r0,%r1;
+ mov.u32 %r1,%ctaid.z; or.b32 %r0,%r0,%r1;
+ mov.u32 %r1,%tid.x; or.b32 %r0,%r0,%r1;
+ mov.u32 %r1,%tid.y; or.b32 %r0,%r0,%r1;
+ mov.u32 %r1,%tid.z; or.b32 %r0,%r0,%r1;
+ setp.ne.u32 %p,%r0,0; @%p ret;
+ ld.param.u64 %ctx,[context]; setp.eq.u64 %p,%ctx,0; @%p ret;
+ and.b64 %tmp,%ctx,7; setp.ne.u64 %p,%tmp,0; @%p ret;
+ ld.global.u32 %old,[%ctx]; setp.ne.u32 %p,%old,0; @%p ret;
+ mov.u32 %error,331;
+ mov.u32 %r0,%nctaid.x; mov.u32 %r1,%nctaid.y; mov.u32 %r2,%nctaid.z;
+ mov.u32 %r3,%ntid.x; mov.u32 %r4,%ntid.y; mov.u32 %r5,%ntid.z;
+ setp.ne.u32 %p,%r0,1; @%p bra REFUSE;
+ setp.ne.u32 %p,%r1,1; @%p bra REFUSE;
+ setp.ne.u32 %p,%r2,1; @%p bra REFUSE;
+ setp.ne.u32 %p,%r3,1; @%p bra REFUSE;
+ setp.ne.u32 %p,%r4,1; @%p bra REFUSE;
+ setp.ne.u32 %p,%r5,1; @%p bra REFUSE;
+ mov.u32 %error,332;
+ ld.global.u32 %r0,[%ctx+4]; setp.ne.u32 %p,%r0,1; @%p bra REFUSE;
+ ld.param.u64 %args,[args_original_vector]; setp.eq.u64 %p,%args,0; @%p bra REFUSE;
+ and.b64 %tmp,%args,7; setp.ne.u64 %p,%tmp,0; @%p bra REFUSE;
+ ld.global.u64 %a,[%args]; ld.global.u64 %b,[%args+8]; ld.global.u64 %c,[%args+16];
+ setp.eq.u64 %p,%a,0; @%p bra REFUSE;
+ setp.eq.u64 %p,%b,0; @%p bra REFUSE;
+ setp.eq.u64 %p,%c,0; @%p bra REFUSE;
+ or.b64 %tmp,%a,%b; or.b64 %tmp,%tmp,%c; and.b64 %tmp,%tmp,7;
+ setp.ne.u64 %p,%tmp,0; @%p bra REFUSE;
+ setp.eq.u64 %p,%a,%b; @%p bra REFUSE;
+ setp.eq.u64 %p,%a,%c; @%p bra REFUSE;
+ setp.eq.u64 %p,%b,%c; @%p bra REFUSE;
+ ld.global.b64 %x,[%a]; ld.global.b64 %y,[%b]; ld.global.b64 %z,[%c];
+ {
+ .param .b64 a,b,c; .param .align 8 .b8 result[32];
+ st.param.b64 [a],%x; st.param.b64 [b],%y; st.param.b64 [c],%z;
+ call.uni (result),md2asm_gpu_delta_eddington_scat_od_values,(a,b,c);
+ ld.param.b64 %x,[result]; ld.param.b64 %y,[result+8]; ld.param.b64 %z,[result+16];
+ ld.param.u32 %flags,[result+24];
+ }
+ st.global.b64 [%a],%x; st.global.b64 [%b],%y; st.global.b64 [%c],%z;
+ add.u64 %tmp,%ctx,8; atom.global.or.b32 %old,[%tmp],%flags; ret;
+REFUSE:
+ atom.global.cas.b32 %old,[%ctx],0,%error; ret;
+}

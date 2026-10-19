@@ -1,0 +1,28 @@
+// Direct radiation PTX. Contract: skills/md2asm-gpu/references/openifs/radiation/radiation_column_pipeline.md
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .u32 r) md2asm_gpu_radiation_column_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_radiation_column_values(.param .u64 vector,.param .u64 record,.param .u64 scratch);
+.visible .func md2asm_gpu_radiation_column_fp64(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u64 %args,%ctx,%scratch,%record,%tmp,%address,%event;
+.reg .u32 %error,%flags,%rt,%unique;
+.reg .pred %p;
+.param .u64 a,c,r,s;
+.param .u32 admitted;
+.param .align 8 .b8 values[32];
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %tmp,%ctx,7;setp.ne.u64 %p,%tmp,0;@%p ret;setp.gt.u64 %p,%ctx,0x7fffffffffffffff;@%p ret;add.u64 %tmp,%ctx,64;setp.gt.u64 %p,%tmp,0x7fffffffffffffff;@%p ret;
+mov.u32 %unique,%ctaid.x;mov.u32 %rt,%ctaid.y;or.b32 %unique,%unique,%rt;mov.u32 %rt,%ctaid.z;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.x;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.y;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.z;or.b32 %unique,%unique,%rt;setp.ne.u32 %p,%unique,0;@%p ret;
+ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;mov.u32 %error,7511;
+mov.u32 %rt,%nctaid.x;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%nctaid.y;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%nctaid.z;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%ntid.x;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%ntid.y;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%ntid.z;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%dynamic_smem_size;setp.ne.u32 %p,%rt,0;@%p bra REFUSE;ld.global.u32 %rt,[%ctx+4];setp.ne.u32 %p,%rt,1;@%p bra REFUSE;ld.global.u32 %rt,[%ctx+12];and.b32 %rt,%rt,1;setp.ne.u32 %p,%rt,0;@%p bra REFUSE;
+st.param.u64 [a],%args;st.param.u64 [c],%ctx;call.uni (admitted),md2asm_gpu_radiation_column_admit,(a,c);ld.param.u32 %error,[admitted];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];st.param.u64 [a],%args;st.param.u64 [r],%record;st.param.u64 [s],%scratch;call.uni (values),md2asm_gpu_radiation_column_values,(a,r,s);ld.param.u32 %flags,[values];ld.param.u32 %error,[values+4];ld.param.u64 %event,[values+8];setp.ne.u32 %p,%error,0;@%p bra REFUSE;add.u64 %address,%ctx,8;atom.global.or.b32 %rt,[%address],%flags;setp.eq.u64 %p,%event,0;@%p ret;add.u64 %address,%ctx,16;atom.global.max.u64 %tmp,[%address],%event;ret;
+REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+.visible .entry md2asm_gpu_radiation_column(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u64 %v,%c;
+.param .u64 v,c;
+ld.param.u64 %v,[original_vector];ld.param.u64 %c,[context];st.param.u64 [v],%v;st.param.u64 [c],%c;call.uni md2asm_gpu_radiation_column_fp64,(v,c);ret;
+}

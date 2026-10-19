@@ -1,0 +1,388 @@
+// Direct PTX for complete gas reading and unit conversion.
+// Contract: skills/md2asm-gpu/references/openifs/radiation/gas_reading.md, revision 1.
+// Original names: md2asm_get_gas and __radiation_gas_MOD_get_gas.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_mul_status(.param .b64 word_a,.param .b64 word_b);
+.extern .func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_div_status(.param .b64 word_a,.param .b64 word_b);
+.const .align 8 .b64 md2asm_gpu_gas_molar_mass[13] = {
+ 0x0000000000000000, 0x403203e99b39acca, 0x4046016872b020c5, 0x4047ffc504816f00,
+ 0x404601a9fbe76c8b, 0x403c0295e9e1b08a, 0x40300b020c49ba5e, 0x403fffb15b573eab,
+ 0x40612bcb923a29c7, 0x405e3a7ef9db22d1, 0x40559e04189374bc, 0x40633a5604189375,
+ 0x404700b439581062
+};
+
+.func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_gas_read_factor(
+ .param .u64 base_object,.param .u32 gas_index,.param .u32 desired_units,.param .b64 starting_factor)
+{
+ .reg .b64 %object,%factor,%gas_mass,%air_mass,%stored_scale,%at,%tmp,%table;
+ .reg .b32 %gas,%target,%stored,%flags,%raised;
+ .reg .pred %p,%q;
+ ld.param.u64 %object,[base_object];
+ ld.param.u32 %gas,[gas_index];
+ ld.param.u32 %target,[desired_units];
+ ld.param.b64 %factor,[starting_factor];
+ mov.u32 %flags,0;
+ mul.wide.u32 %tmp,%gas,4;
+ add.u64 %at,%object,%tmp;
+ ld.global.u32 %stored,[%at];
+ setp.eq.u32 %p,%target,%stored;
+ @%p bra FACTOR_STORED_SCALE;
+ mov.b64 %air_mass,0x403cf851e0000000;
+ add.u32 %stored,%gas,1;
+ mul.wide.u32 %tmp,%stored,8;
+ mov.u64 %table,md2asm_gpu_gas_molar_mass;
+ add.u64 %at,%table,%tmp;
+ ld.const.b64 %gas_mass,[%at];
+ setp.eq.u32 %p,%target,0;
+ @%p bra FACTOR_TO_MASS;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%factor;
+ st.param.b64 [b],%air_mass;
+ call.uni (ret),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %factor,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%factor;
+ st.param.b64 [b],%gas_mass;
+ call.uni (ret),md2asm_gpu_div_status,(a,b);
+ ld.param.b64 %factor,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ bra FACTOR_STORED_SCALE;
+FACTOR_TO_MASS:
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%factor;
+ st.param.b64 [b],%gas_mass;
+ call.uni (ret),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %factor,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%factor;
+ st.param.b64 [b],%air_mass;
+ call.uni (ret),md2asm_gpu_div_status,(a,b);
+ ld.param.b64 %factor,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+FACTOR_STORED_SCALE:
+ mul.wide.u32 %tmp,%gas,8;
+ add.u64 %tmp,%tmp,48;
+ add.u64 %at,%object,%tmp;
+ ld.global.b64 %stored_scale,[%at];
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%factor;
+ st.param.b64 [b],%stored_scale;
+ call.uni (ret),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %factor,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ st.param.b64 [result_flags_event],%factor;
+ st.param.b32 [result_flags_event+8],%flags;
+ st.param.b32 [result_flags_event+12],0;
+ ret;
+}
+.visible .entry md2asm_gpu_get_gas(.param .u64 original_arguments,.param .u64 context)
+{
+ .reg .b64 %args,%ctx,%class,%object,%gas_pointer,%unit_pointer,%descriptor,%scale_pointer,%start_pointer,%input,%output,%at,%tmp,%tmp2,%width,%height,%cols,%levels,%cells,%first,%last,%stride,%level_stride,%lower,%upper,%factor,%value,%one,%word,%row,%column,%source_at,%output_at,%plane_offset;
+ .reg .b32 %index,%launch,%q,%gas,%units,%present,%nc,%nl,%flags,%raised,%old,%error;
+ .reg .pred %p;
+ ld.param.u64 %args,[original_arguments];
+ ld.param.u64 %ctx,[context];
+ mov.u32 %index,%ctaid.x;
+ mov.u32 %q,%ctaid.y;
+ or.b32 %index,%index,%q;
+ mov.u32 %q,%ctaid.z;
+ or.b32 %index,%index,%q;
+ mov.u32 %q,%tid.x;
+ or.b32 %index,%index,%q;
+ mov.u32 %q,%tid.y;
+ or.b32 %index,%index,%q;
+ mov.u32 %q,%tid.z;
+ or.b32 %index,%index,%q;
+ setp.ne.u32 %p,%index,0;
+ @%p ret;
+ setp.eq.u64 %p,%ctx,0;
+ @%p ret;
+ ld.global.u32 %old,[%ctx];
+ setp.ne.u32 %p,%old,0;
+ @%p ret;
+ mov.u32 %error,321;
+ mov.u32 %launch,%ntid.x;
+ mov.u32 %q,%ntid.y;
+ or.b32 %launch,%launch,%q;
+ mov.u32 %q,%ntid.z;
+ or.b32 %launch,%launch,%q;
+ mov.u32 %q,%nctaid.x;
+ or.b32 %launch,%launch,%q;
+ mov.u32 %q,%nctaid.y;
+ or.b32 %launch,%launch,%q;
+ mov.u32 %q,%nctaid.z;
+ or.b32 %launch,%launch,%q;
+ setp.ne.u32 %p,%launch,1;
+ @%p bra GET_REFUSE;
+ mov.u32 %error,322;
+ ld.global.u32 %q,[%ctx+4];
+ setp.ne.u32 %p,%q,1;
+ @%p bra GET_REFUSE;
+ setp.eq.u64 %p,%args,0;
+ @%p bra GET_REFUSE;
+ and.b64 %tmp,%args,7;
+ setp.ne.u64 %p,%tmp,0;
+ @%p bra GET_REFUSE;
+ ld.global.u64 %class,[%args];
+ ld.global.u64 %gas_pointer,[%args+8];
+ ld.global.u64 %unit_pointer,[%args+16];
+ ld.global.u64 %descriptor,[%args+24];
+ ld.global.u64 %scale_pointer,[%args+32];
+ ld.global.u64 %start_pointer,[%args+40];
+ setp.eq.u64 %p,%class,0;
+ @%p bra GET_REFUSE;
+ setp.eq.u64 %p,%gas_pointer,0;
+ @%p bra GET_REFUSE;
+ setp.eq.u64 %p,%unit_pointer,0;
+ @%p bra GET_REFUSE;
+ setp.eq.u64 %p,%descriptor,0;
+ @%p bra GET_REFUSE;
+ or.b64 %tmp,%class,%descriptor;
+ and.b64 %tmp,%tmp,7;
+ setp.ne.u64 %p,%tmp,0;
+ @%p bra GET_REFUSE;
+ or.b64 %tmp,%gas_pointer,%unit_pointer;
+ and.b64 %tmp,%tmp,3;
+ setp.ne.u64 %p,%tmp,0;
+ @%p bra GET_REFUSE;
+ ld.global.u64 %object,[%class];
+ setp.eq.u64 %p,%object,0;
+ @%p bra GET_REFUSE;
+ and.b64 %tmp,%object,7;
+ setp.ne.u64 %p,%tmp,0;
+ @%p bra GET_REFUSE;
+ ld.global.u32 %nc,[%object+356];
+ ld.global.u32 %nl,[%object+360];
+ setp.lt.s32 %p,%nc,1;
+ @%p bra GET_REFUSE;
+ setp.lt.s32 %p,%nl,0;
+ @%p bra GET_REFUSE;
+ cvt.u64.u32 %cols,%nc;
+ cvt.u64.u32 %levels,%nl;
+ mul.wide.u32 %cells,%nc,%nl;
+ setp.gt.u64 %p,%cells,0x0155555555555555;
+ @%p bra GET_REFUSE;
+ ld.global.u64 %word,[%descriptor+16];
+ setp.ne.u64 %p,%word,8;
+ @%p bra GET_REFUSE;
+ ld.global.s64 %lower,[%descriptor+48];
+ ld.global.s64 %upper,[%descriptor+56];
+ sub.s64 %width,%upper,%lower;
+ add.s64 %width,%width,1;
+ setp.le.s64 %p,%width,0;
+ @%p bra GET_REFUSE;
+ ld.global.s64 %lower,[%descriptor+72];
+ ld.global.s64 %upper,[%descriptor+80];
+ sub.s64 %height,%upper,%lower;
+ add.s64 %height,%height,1;
+ max.s64 %height,%height,0;
+ setp.ne.u64 %p,%height,%levels;
+ @%p bra GET_REFUSE;
+ ld.global.s64 %stride,[%descriptor+40];
+ setp.eq.s64 %p,%stride,0;
+ @%p mov.s64 %stride,1;
+ ld.global.s64 %level_stride,[%descriptor+64];
+ mov.u64 %first,1;
+ setp.eq.u64 %p,%start_pointer,0;
+ @%p bra GET_FIRST_READY;
+ and.b64 %tmp,%start_pointer,3;
+ setp.ne.u64 %p,%tmp,0;
+ @%p bra GET_REFUSE;
+ ld.global.s32 %q,[%start_pointer];
+ cvt.s64.s32 %first,%q;
+GET_FIRST_READY:
+ setp.lt.s64 %p,%first,1;
+ @%p bra GET_REFUSE;
+ add.s64 %last,%first,%width;
+ sub.s64 %last,%last,1;
+ setp.gt.s64 %p,%last,%cols;
+ @%p bra GET_REFUSE;
+ ld.global.u64 %output,[%descriptor];
+ setp.eq.u64 %p,%levels,0;
+ @%p bra GET_OUTPUT_READY;
+ setp.eq.u64 %p,%output,0;
+ @%p bra GET_REFUSE;
+ and.b64 %tmp,%output,7;
+ setp.ne.u64 %p,%tmp,0;
+ @%p bra GET_REFUSE;
+GET_OUTPUT_READY:
+ ld.global.u32 %gas,[%gas_pointer];
+ ld.global.u32 %units,[%unit_pointer];
+ mov.u32 %error,323;
+ setp.lt.s32 %p,%gas,1;
+ @%p bra GET_REFUSE;
+ setp.gt.u32 %p,%gas,12;
+ @%p bra GET_REFUSE;
+ setp.gt.u32 %p,%units,1;
+ @%p bra GET_REFUSE;
+ sub.u32 %gas,%gas,1;
+ mov.b64 %one,0x3ff0000000000000;
+ mov.b64 %factor,%one;
+ setp.eq.u64 %p,%scale_pointer,0;
+ @%p bra GET_SCALE_READY;
+ and.b64 %tmp,%scale_pointer,7;
+ setp.ne.u64 %p,%tmp,0;
+ @%p bra GET_REFUSE;
+ ld.global.b64 %factor,[%scale_pointer];
+ setp.eq.u64 %p,%factor,0;
+ @%p bra GET_REFUSE;
+ setp.ge.u64 %p,%factor,0x7ff0000000000000;
+ @%p bra GET_REFUSE;
+GET_SCALE_READY:
+ mul.wide.u32 %tmp,%gas,4;
+ add.u64 %tmp,%tmp,256;
+ add.u64 %at,%object,%tmp;
+ ld.global.u32 %present,[%at];
+ mov.u32 %flags,0;
+ mov.u64 %input,0;
+ setp.eq.u32 %p,%present,0;
+ @%p bra GET_VALUES;
+ mul.wide.u32 %tmp,%gas,4;
+ add.u64 %at,%object,%tmp;
+ ld.global.u32 %q,[%at];
+ setp.gt.u32 %p,%q,1;
+ @%p bra GET_REFUSE;
+ mul.wide.u32 %tmp,%gas,8;
+ add.u64 %tmp,%tmp,48;
+ add.u64 %at,%object,%tmp;
+ ld.global.b64 %word,[%at];
+ setp.eq.u64 %p,%word,0;
+ @%p bra GET_REFUSE;
+ setp.ge.u64 %p,%word,0x7ff0000000000000;
+ @%p bra GET_REFUSE;
+ mov.u32 %error,322;
+ ld.global.s64 %word,[%object+152];
+ add.u64 %tmp,%cols,%cells;
+ add.u64 %tmp,%tmp,1;
+ neg.s64 %tmp,%tmp;
+ setp.ne.s64 %p,%word,%tmp;
+ @%p bra GET_REFUSE;
+ ld.global.u64 %word,[%object+160];
+ setp.ne.u64 %p,%word,8;
+ @%p bra GET_REFUSE;
+ ld.global.s64 %word,[%object+184];
+ setp.ne.s64 %p,%word,1;
+ @%p bra GET_REFUSE;
+ ld.global.s64 %word,[%object+192];
+ setp.ne.s64 %p,%word,1;
+ @%p bra GET_REFUSE;
+ ld.global.s64 %word,[%object+200];
+ setp.ne.u64 %p,%word,%cols;
+ @%p bra GET_REFUSE;
+ ld.global.s64 %word,[%object+208];
+ setp.ne.u64 %p,%word,%cols;
+ @%p bra GET_REFUSE;
+ ld.global.s64 %word,[%object+216];
+ setp.ne.s64 %p,%word,1;
+ @%p bra GET_REFUSE;
+ ld.global.s64 %word,[%object+224];
+ setp.ne.u64 %p,%word,%levels;
+ @%p bra GET_REFUSE;
+ ld.global.s64 %word,[%object+232];
+ setp.ne.u64 %p,%word,%cells;
+ @%p bra GET_REFUSE;
+ ld.global.s64 %word,[%object+240];
+ setp.ne.s64 %p,%word,1;
+ @%p bra GET_REFUSE;
+ ld.global.s64 %word,[%object+248];
+ setp.ne.s64 %p,%word,12;
+ @%p bra GET_REFUSE;
+ ld.global.u64 %input,[%object+144];
+ setp.eq.u64 %p,%cells,0;
+ @%p bra GET_INPUT_READY;
+ setp.eq.u64 %p,%input,0;
+ @%p bra GET_REFUSE;
+ and.b64 %tmp,%input,7;
+ setp.ne.u64 %p,%tmp,0;
+ @%p bra GET_REFUSE;
+GET_INPUT_READY:
+ {
+ .param .u64 obj;
+ .param .u32 gas,unit;
+ .param .b64 factor;
+ .param .align 8 .b8 ret[16];
+ st.param.u64 [obj],%object;
+ st.param.u32 [gas],%gas;
+ st.param.u32 [unit],%units;
+ st.param.b64 [factor],%factor;
+ call.uni (ret),md2asm_gpu_gas_read_factor,(obj,gas,unit,factor);
+ ld.param.b64 %factor,[ret];
+ ld.param.b32 %flags,[ret+8];
+ }
+ cvt.u64.u32 %tmp,%gas;
+ mul.lo.u64 %plane_offset,%tmp,%cells;
+ sub.u64 %tmp,%first,1;
+ add.u64 %plane_offset,%plane_offset,%tmp;
+ shl.b64 %plane_offset,%plane_offset,3;
+ add.u64 %input,%input,%plane_offset;
+GET_VALUES:
+ mov.u64 %row,0;
+ shl.b64 %stride,%stride,3;
+ shl.b64 %level_stride,%level_stride,3;
+GET_LEVEL:
+ setp.ge.u64 %p,%row,%height;
+ @%p bra GET_COMPLETE;
+ mov.u64 %column,0;
+ mul.lo.u64 %tmp,%row,%level_stride;
+ add.u64 %output_at,%output,%tmp;
+ mul.lo.u64 %tmp,%row,%cols;
+ shl.b64 %tmp,%tmp,3;
+ add.u64 %source_at,%input,%tmp;
+GET_CELL:
+ mov.b64 %value,0;
+ setp.eq.u32 %p,%present,0;
+ @%p bra GET_STORE;
+ ld.global.b64 %value,[%source_at];
+ setp.eq.u64 %p,%factor,%one;
+ @%p bra GET_STORE;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%value;
+ st.param.b64 [b],%factor;
+ call.uni (ret),md2asm_gpu_mul_status,(a,b);
+ ld.param.b64 %value,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+GET_STORE:
+ st.global.b64 [%output_at],%value;
+ add.u64 %source_at,%source_at,8;
+ add.u64 %output_at,%output_at,%stride;
+ add.u64 %column,%column,1;
+ setp.lt.u64 %p,%column,%width;
+ @%p bra GET_CELL;
+ add.u64 %row,%row,1;
+ bra GET_LEVEL;
+GET_COMPLETE:
+ add.u64 %at,%ctx,8;
+ atom.global.or.b32 %old,[%at],%flags;
+ ret;
+GET_REFUSE:
+ st.global.u32 [%ctx],%error;
+ ret;
+}
