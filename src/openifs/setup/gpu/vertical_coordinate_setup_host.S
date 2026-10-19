@@ -1,3 +1,4 @@
+// Contract: skills/md2asm-gpu/references/openifs/setup/vertical_coordinate_setup.md.
 #include "../../support/gpu/preserved_weather_calls.inc.S"
 .arch armv8.2-a
 .text
@@ -76,20 +77,11 @@ md2asm_initialize_vertical_coordinate_setup:
  add x9,x9,#1
  cmp x9,#20
  b.lo .Lvertical_input_finite
- ldr d0,.Lvertical_epsilon
- ldr d1,[x1,#152]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,16,d1,d1 // fabs d1,d1
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,4,none,d1,d0,comparison // fcmp d1,d0
- b.gt .Lvertical_reject
- ldr d1,[x2]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,16,d1,d1 // fabs d1,d1
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,4,none,d1,d0,comparison // fcmp d1,d0
- b.gt .Lvertical_reject
- ldr d1,[x2,#152]
- fmov d2,#1.0
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,1,d1,d1,d2 // fsub d1,d1,d2
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,16,d1,d1 // fabs d1,d1
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,4,none,d1,d0,comparison // fcmp d1,d0
+ sub sp,sp,#16
+ str x30,[sp]
+ bl md2asm_vertical_setup_preflight_gpu_phase
+ ldr x30,[sp]
+ add sp,sp,#16
  b.gt .Lvertical_reject
  sub sp,sp,#448
  stp x29,x30,[sp]
@@ -212,54 +204,7 @@ md2asm_initialize_vertical_coordinate_setup:
  add x9,x9,#1
  cmp x9,#20
  b.lo .Lvertical_select_file
- ldr d0,.Lvertical_epsilon
- mov x9,#0
-.Lvertical_source_checks_a:
- ldr d1,[x4,x9,lsl#3]
- ldr d2,[x20,x9,lsl#3]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,1,d1,d1,d2 // fsub d1,d1,d2
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,16,d1,d1 // fabs d1,d1
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,4,none,d1,d0,comparison // fcmp d1,d0
- add x9,x9,#1
- cmp x9,#20
- b.lo .Lvertical_source_checks_a
- mov x9,#0
-.Lvertical_source_checks_b:
- ldr d1,[x5,x9,lsl#3]
- ldr d2,[x21,x9,lsl#3]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,1,d1,d1,d2 // fsub d1,d1,d2
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,16,d1,d1 // fabs d1,d1
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,4,none,d1,d0,comparison // fcmp d1,d0
- add x9,x9,#1
- cmp x9,#20
- b.lo .Lvertical_source_checks_b
- ldr d1,[x4,#152]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,16,d1,d1 // fabs d1,d1
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,4,none,d1,d0,comparison // fcmp d1,d0
- ldr d1,[x5]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,16,d1,d1 // fabs d1,d1
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,4,none,d1,d0,comparison // fcmp d1,d0
- ldr d1,[x5,#152]
- fmov d2,#1.0
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,1,d1,d1,d2 // fsub d1,d1,d2
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,16,d1,d1 // fabs d1,d1
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,4,none,d1,d0,comparison // fcmp d1,d0
- ldr x6,[x19,#144]
- ldr x7,[x19,#16]
- ldr x8,[x19,#80]
- ldr x9,[x22,#24]
- ldr d0,[x9]
- mov x9,#0
-.Lvertical_main_interfaces:
- ldr d1,[x4,x9,lsl#3]
- str d1,[x6,x9,lsl#3]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,3,d1,d1,d0 // fdiv d1,d1,d0
- str d1,[x7,x9,lsl#3]
- ldr d1,[x5,x9,lsl#3]
- str d1,[x8,x9,lsl#3]
- add x9,x9,#1
- cmp x9,#20
- b.lo .Lvertical_main_interfaces
+ bl md2asm_vertical_setup_finish_gpu_phase
  mov x9,#0
 .Lvertical_io_private:
  ldr x10,[x4,x9,lsl#3]

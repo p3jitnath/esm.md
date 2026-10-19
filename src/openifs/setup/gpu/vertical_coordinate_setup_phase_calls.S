@@ -1,0 +1,366 @@
+// Contract: skills/md2asm-gpu/references/openifs/setup/vertical_coordinate_setup.md.
+.arch armv8-a
+.text
+.p2align 4
+.macro vertical_setup_preflight_service target
+ bl \target
+ ldr x18,[sp,#144]
+.endm
+.global md2asm_vertical_setup_preflight_gpu_phase
+.type md2asm_vertical_setup_preflight_gpu_phase,%function
+md2asm_vertical_setup_preflight_gpu_phase:
+ sub sp,sp,#2048
+ stp x0,x1,[sp,#0]
+ stp x2,x3,[sp,#16]
+ stp x4,x5,[sp,#32]
+ stp x6,x7,[sp,#48]
+ stp x8,x9,[sp,#64]
+ stp x10,x11,[sp,#80]
+ stp x12,x13,[sp,#96]
+ stp x14,x15,[sp,#112]
+ stp x16,x17,[sp,#128]
+ stp x18,x19,[sp,#144]
+ stp x20,x21,[sp,#160]
+ stp x22,x23,[sp,#176]
+ stp x24,x25,[sp,#192]
+ stp x26,x27,[sp,#208]
+ stp x28,x29,[sp,#224]
+ str x30,[sp,#240]
+ stp q0,q1,[sp,#256]
+ stp q2,q3,[sp,#288]
+ stp q4,q5,[sp,#320]
+ stp q6,q7,[sp,#352]
+ stp q8,q9,[sp,#384]
+ stp q10,q11,[sp,#416]
+ stp q12,q13,[sp,#448]
+ stp q14,q15,[sp,#480]
+ stp q16,q17,[sp,#512]
+ stp q18,q19,[sp,#544]
+ stp q20,q21,[sp,#576]
+ stp q22,q23,[sp,#608]
+ stp q24,q25,[sp,#640]
+ stp q26,q27,[sp,#672]
+ stp q28,q29,[sp,#704]
+ stp q30,q31,[sp,#736]
+ mrs x9,fpcr
+ mrs x10,fpsr
+ mrs x11,nzcv
+ str x9,[sp,#768]
+ str x10,[sp,#776]
+ str x11,[sp,#784]
+ cbnz x9,.Lvertical_setup_preflight_fatal
+ vertical_setup_preflight_service __errno_location
+ str x0,[sp,#792]
+ ldr w9,[x0]
+ str w9,[sp,#800]
+ vertical_setup_preflight_service omp_in_parallel
+ cbnz w0,.Lvertical_setup_preflight_fatal
+ vertical_setup_preflight_service md2asm_openifs_gpu_prepare
+ cbnz w0,.Lvertical_setup_preflight_fatal
+ add x19,sp,#832
+ mov x9,#0
+.Lvertical_setup_preflight_zero:
+ str xzr,[x19,x9,lsl #3]
+ add x9,x9,#1
+ cmp x9,#56
+ b.lo .Lvertical_setup_preflight_zero
+ mov x10,#0
+ str x10,[x19]
+ ldr x10,[sp,#8]
+ str x10,[x19,#8]
+ ldr x10,[sp,#16]
+ str x10,[x19,#16]
+ add x20,sp,#1120
+ mov w14,#1
+ str w14,[x20,#4]
+ ldr w14,[sp,#776]
+ str w14,[x20,#8]
+ add x16,sp,#1184
+ str x16,[x20,#48]
+ mov x15,#16
+ str x15,[x20,#56]
+ mov x14,#128
+ mov x15,#64
+ stp x14,x15,[x16]
+ add x14,sp,#1024
+ add x17,sp,#1248
+ stp x19,x14,[x17]
+ ldr x9,[sp,#768]
+ ldr x10,[sp,#776]
+ msr fpcr,x9
+ msr fpsr,x10
+ ldr x9,[sp,#792]
+ ldr w10,[sp,#800]
+ str w10,[x9]
+ adrp x0,.Lvertical_setup_preflight_entry
+ add x0,x0,:lo12:.Lvertical_setup_preflight_entry
+ add x1,sp,#1248
+ mov x2,x20
+ mov w3,#1
+ mov w4,#1
+ mov w5,#0
+ vertical_setup_preflight_service md2asm_openifs_gpu_launch
+ cbnz w0,.Lvertical_setup_preflight_fatal
+ ldr w9,[x20]
+ cbnz w9,.Lvertical_setup_preflight_fatal
+ ldr x9,[sp,#768]
+ msr fpcr,x9
+ ldr x9,[sp,#776]
+ ldr w10,[x20,#8]
+ orr x9,x9,x10
+ msr fpsr,x9
+ ldr x9,[sp,#792]
+ ldr w10,[sp,#800]
+.Lvertical_setup_preflight_errno:
+ str w10,[x9]
+ ldr x9,[sp,#1040]
+ str x9,[sp,#256]
+ str xzr,[sp,#264]
+ ldr x9,[sp,#1048]
+ str x9,[sp,#272]
+ str xzr,[sp,#280]
+ ldr x9,[sp,#1064]
+ cbz x9,.Lvertical_setup_preflight_no_d2
+ ldr x9,[sp,#1056]
+ str x9,[sp,#288]
+ str xzr,[sp,#296]
+.Lvertical_setup_preflight_no_d2:
+ ldr w9,[sp,#1036]
+ msr nzcv,x9
+ ldp q0,q1,[sp,#256]
+ ldp q2,q3,[sp,#288]
+ ldp q4,q5,[sp,#320]
+ ldp q6,q7,[sp,#352]
+ ldp q8,q9,[sp,#384]
+ ldp q10,q11,[sp,#416]
+ ldp q12,q13,[sp,#448]
+ ldp q14,q15,[sp,#480]
+ ldp q16,q17,[sp,#512]
+ ldp q18,q19,[sp,#544]
+ ldp q20,q21,[sp,#576]
+ ldp q22,q23,[sp,#608]
+ ldp q24,q25,[sp,#640]
+ ldp q26,q27,[sp,#672]
+ ldp q28,q29,[sp,#704]
+ ldp q30,q31,[sp,#736]
+ ldp x0,x1,[sp,#0]
+ ldp x2,x3,[sp,#16]
+ ldp x4,x5,[sp,#32]
+ ldp x6,x7,[sp,#48]
+ ldp x8,x9,[sp,#64]
+ ldp x10,x11,[sp,#80]
+ ldp x12,x13,[sp,#96]
+ ldp x14,x15,[sp,#112]
+ ldp x16,x17,[sp,#128]
+ ldp x18,x19,[sp,#144]
+ ldp x20,x21,[sp,#160]
+ ldp x22,x23,[sp,#176]
+ ldp x24,x25,[sp,#192]
+ ldp x26,x27,[sp,#208]
+ ldp x28,x29,[sp,#224]
+ ldr x30,[sp,#240]
+ add sp,sp,#2048
+ ret
+.Lvertical_setup_preflight_fatal:
+ bl abort
+ brk #0
+.size md2asm_vertical_setup_preflight_gpu_phase,.-md2asm_vertical_setup_preflight_gpu_phase
+
+/* Complete vertical_setup_finishdynamic phase; frozen_contract.md. Temporary frame 2048. */
+.arch armv8-a
+.text
+.p2align 4
+.macro vertical_setup_finish_service target
+ bl \target
+ ldr x18,[sp,#144]
+.endm
+.global md2asm_vertical_setup_finish_gpu_phase
+.type md2asm_vertical_setup_finish_gpu_phase,%function
+md2asm_vertical_setup_finish_gpu_phase:
+ sub sp,sp,#2048
+ stp x0,x1,[sp,#0]
+ stp x2,x3,[sp,#16]
+ stp x4,x5,[sp,#32]
+ stp x6,x7,[sp,#48]
+ stp x8,x9,[sp,#64]
+ stp x10,x11,[sp,#80]
+ stp x12,x13,[sp,#96]
+ stp x14,x15,[sp,#112]
+ stp x16,x17,[sp,#128]
+ stp x18,x19,[sp,#144]
+ stp x20,x21,[sp,#160]
+ stp x22,x23,[sp,#176]
+ stp x24,x25,[sp,#192]
+ stp x26,x27,[sp,#208]
+ stp x28,x29,[sp,#224]
+ str x30,[sp,#240]
+ stp q0,q1,[sp,#256]
+ stp q2,q3,[sp,#288]
+ stp q4,q5,[sp,#320]
+ stp q6,q7,[sp,#352]
+ stp q8,q9,[sp,#384]
+ stp q10,q11,[sp,#416]
+ stp q12,q13,[sp,#448]
+ stp q14,q15,[sp,#480]
+ stp q16,q17,[sp,#512]
+ stp q18,q19,[sp,#544]
+ stp q20,q21,[sp,#576]
+ stp q22,q23,[sp,#608]
+ stp q24,q25,[sp,#640]
+ stp q26,q27,[sp,#672]
+ stp q28,q29,[sp,#704]
+ stp q30,q31,[sp,#736]
+ mrs x9,fpcr
+ mrs x10,fpsr
+ mrs x11,nzcv
+ str x9,[sp,#768]
+ str x10,[sp,#776]
+ str x11,[sp,#784]
+ cbnz x9,.Lvertical_setup_finish_fatal
+ vertical_setup_finish_service __errno_location
+ str x0,[sp,#792]
+ ldr w9,[x0]
+ str w9,[sp,#800]
+ vertical_setup_finish_service omp_in_parallel
+ cbnz w0,.Lvertical_setup_finish_fatal
+ vertical_setup_finish_service md2asm_openifs_gpu_prepare
+ cbnz w0,.Lvertical_setup_finish_fatal
+ add x19,sp,#832
+ mov x9,#0
+.Lvertical_setup_finish_zero:
+ str xzr,[x19,x9,lsl #3]
+ add x9,x9,#1
+ cmp x9,#56
+ b.lo .Lvertical_setup_finish_zero
+ mov x10,#1
+ str x10,[x19]
+ ldr x10,[sp,#160]
+ str x10,[x19,#8]
+ ldr x10,[sp,#168]
+ str x10,[x19,#16]
+ ldr x10,[sp,#152]
+ str x10,[x19,#24]
+ ldr x10,[sp,#176]
+ str x10,[x19,#32]
+ ldr x10,[sp,#32]
+ str x10,[x19,#40]
+ ldr x10,[sp,#40]
+ str x10,[x19,#48]
+ ldr x9,[sp,#152]
+ ldr x10,[x9,#144]
+ str x10,[x19,#56]
+ ldr x10,[x9,#16]
+ str x10,[x19,#64]
+ ldr x10,[x9,#80]
+ str x10,[x19,#72]
+ ldr x9,[sp,#176]
+ ldr x10,[x9,#24]
+ str x10,[x19,#80]
+ add x20,sp,#1120
+ mov w14,#1
+ str w14,[x20,#4]
+ ldr w14,[sp,#776]
+ str w14,[x20,#8]
+ add x16,sp,#1184
+ str x16,[x20,#48]
+ mov x15,#16
+ str x15,[x20,#56]
+ mov x14,#128
+ mov x15,#64
+ stp x14,x15,[x16]
+ add x14,sp,#1024
+ add x17,sp,#1248
+ stp x19,x14,[x17]
+ ldr x9,[sp,#768]
+ ldr x10,[sp,#776]
+ msr fpcr,x9
+ msr fpsr,x10
+ ldr x9,[sp,#792]
+ ldr w10,[sp,#800]
+ str w10,[x9]
+ adrp x0,.Lvertical_setup_finish_entry
+ add x0,x0,:lo12:.Lvertical_setup_finish_entry
+ add x1,sp,#1248
+ mov x2,x20
+ mov w3,#1
+ mov w4,#1
+ mov w5,#0
+ vertical_setup_finish_service md2asm_openifs_gpu_launch
+ cbnz w0,.Lvertical_setup_finish_fatal
+ ldr w9,[x20]
+ cbnz w9,.Lvertical_setup_finish_fatal
+ ldr x9,[sp,#768]
+ msr fpcr,x9
+ ldr x9,[sp,#776]
+ ldr w10,[x20,#8]
+ orr x9,x9,x10
+ msr fpsr,x9
+ ldr x9,[sp,#792]
+ ldr w10,[sp,#800]
+.Lvertical_setup_finish_errno:
+ str w10,[x9]
+ ldr x9,[sp,#888]
+ str x9,[sp,#48]
+ ldr x9,[sp,#896]
+ str x9,[sp,#56]
+ ldr x9,[sp,#904]
+ str x9,[sp,#64]
+ mov x9,#20
+ str x9,[sp,#72]
+ ldr x9,[sp,#1040]
+ str x9,[sp,#256]
+ str xzr,[sp,#264]
+ ldr x9,[sp,#1048]
+ str x9,[sp,#272]
+ str xzr,[sp,#280]
+ ldr x9,[sp,#1064]
+ cbz x9,.Lvertical_setup_finish_no_d2
+ ldr x9,[sp,#1056]
+ str x9,[sp,#288]
+ str xzr,[sp,#296]
+.Lvertical_setup_finish_no_d2:
+ ldr w9,[sp,#1036]
+ msr nzcv,x9
+ ldp q0,q1,[sp,#256]
+ ldp q2,q3,[sp,#288]
+ ldp q4,q5,[sp,#320]
+ ldp q6,q7,[sp,#352]
+ ldp q8,q9,[sp,#384]
+ ldp q10,q11,[sp,#416]
+ ldp q12,q13,[sp,#448]
+ ldp q14,q15,[sp,#480]
+ ldp q16,q17,[sp,#512]
+ ldp q18,q19,[sp,#544]
+ ldp q20,q21,[sp,#576]
+ ldp q22,q23,[sp,#608]
+ ldp q24,q25,[sp,#640]
+ ldp q26,q27,[sp,#672]
+ ldp q28,q29,[sp,#704]
+ ldp q30,q31,[sp,#736]
+ ldp x0,x1,[sp,#0]
+ ldp x2,x3,[sp,#16]
+ ldp x4,x5,[sp,#32]
+ ldp x6,x7,[sp,#48]
+ ldp x8,x9,[sp,#64]
+ ldp x10,x11,[sp,#80]
+ ldp x12,x13,[sp,#96]
+ ldp x14,x15,[sp,#112]
+ ldp x16,x17,[sp,#128]
+ ldp x18,x19,[sp,#144]
+ ldp x20,x21,[sp,#160]
+ ldp x22,x23,[sp,#176]
+ ldp x24,x25,[sp,#192]
+ ldp x26,x27,[sp,#208]
+ ldp x28,x29,[sp,#224]
+ ldr x30,[sp,#240]
+ add sp,sp,#2048
+ ret
+.Lvertical_setup_finish_fatal:
+ bl abort
+ brk #0
+.size md2asm_vertical_setup_finish_gpu_phase,.-md2asm_vertical_setup_finish_gpu_phase
+
+.section .rodata
+.Lvertical_setup_preflight_entry:.asciz "md2asm_gpu_vertical_coordinate_setup"
+.Lvertical_setup_finish_entry:.asciz "md2asm_gpu_vertical_coordinate_setup"
+.section .note.GNU-stack,"",%progbits
