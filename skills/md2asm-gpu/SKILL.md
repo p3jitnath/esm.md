@@ -31,6 +31,8 @@ Separate independent work across GPU blocks into preparation, workers and an ord
 
 Check the linked module’s constant-memory budget before combining large coefficient tables. When needed, store tables that stay unchanged in global memory, preserve every coefficient word, and prove that each calculated table index stays within its complete row.
 
+Use accumulated numerical flags to reduce repeated status reconstruction when a proof shows that an operation can add only flags already present. Keep the accumulated state local to its declared calculation, classify operand and result bits conservatively, and retain the complete qualified helper for all other cases. Preserve helper side effects and the original error-event and counter calls.
+
 ## Reuse Work Where Dependencies Permit
 
 Neighbouring threads should access neighbouring values when this reduces memory transactions. Compare thread-block sizes, one-field and whole-cell threads, and flat or multidimensional grids on their intended workloads. Cache a repeated rounded value outside a component loop when its operands stay unchanged. Place workload-specific dispatch thresholds in the execution contract and local measurement records.

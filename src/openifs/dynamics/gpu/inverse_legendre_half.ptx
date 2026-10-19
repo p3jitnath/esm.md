@@ -1,4 +1,4 @@
-// GPU contract: skills/md2asm-gpu/references/openifs/dynamics/inverse_legendre_reconstruction.md
+// Contract: skills/md2asm-gpu/references/openifs/dynamics/inverse_legendre_reconstruction.md.
 .version 8.5
 .target sm_90
 .address_size 64
@@ -19,6 +19,7 @@
 .reg .u32 %lane,%width,%step,%terms,%firstrow,%fields,%total,%grid,%block,%linear,%fieldid,%latitude,%degree;
 .reg .u64 %basis,%spectral,%resultbase,%basisbytes,%spectralbytes,%outputbytes,%outpitch,%inpitch,%required,%apos,%bpos,%dst,%ix;
 .reg .b64 %accumulator,%product,%basisword,%spectralword;
+.reg .u32 %li_status;.reg .u64 %li_mag,%li_exp;.reg .b64 %li_candidate;.reg .pred %li_guard;
 .shared .align 4 .u32 block_error;
 .param .b64 ml,mr,al,arhs;.param .align 8 .b8 rm[16],ra[16];
 mov.u32 %lane,%tid.x;setp.ne.u32 %p,%lane,0;@%p bra ADMISSION_BARRIER;
@@ -66,8 +67,36 @@ mul.wide.u32 %ix,%latitude,8;add.u64 %apos,%basis,%ix;
 cvt.u64.u32 %ix,%latitude;mul.lo.u64 %ix,%ix,%outpitch;add.u64 %dst,%resultbase,%ix;mul.wide.u32 %ix,%fieldid,8;add.u64 %dst,%dst,%ix;
 mov.b64 %accumulator,0;mov.u32 %degree,0;mov.u32 %flags,0;
 DEGREE:ld.global.b64 %basisword,[%apos];ld.global.b64 %spectralword,[%bpos];
+// LI_MUL BEGIN
+and.b32 %li_status,%flags,16;setp.eq.u32 %li_guard,%li_status,0;@%li_guard bra LI_MUL_FALLBACK;
+and.b64 %li_mag,%basisword,0x7fffffffffffffff;setp.eq.u64 %li_guard,%li_mag,0;@%li_guard bra LI_MUL_OPERAND0_OK;
+shr.u64 %li_exp,%li_mag,52;setp.eq.u64 %li_guard,%li_exp,0;@%li_guard bra LI_MUL_FALLBACK;setp.eq.u64 %li_guard,%li_exp,2047;@%li_guard bra LI_MUL_FALLBACK;
+LI_MUL_OPERAND0_OK:
+and.b64 %li_mag,%spectralword,0x7fffffffffffffff;setp.eq.u64 %li_guard,%li_mag,0;@%li_guard bra LI_MUL_OPERAND1_OK;
+shr.u64 %li_exp,%li_mag,52;setp.eq.u64 %li_guard,%li_exp,0;@%li_guard bra LI_MUL_FALLBACK;setp.eq.u64 %li_guard,%li_exp,2047;@%li_guard bra LI_MUL_FALLBACK;
+LI_MUL_OPERAND1_OK:
+mul.rn.f64 %li_candidate,%basisword,%spectralword;
+shr.u64 %li_exp,%li_candidate,52;and.b64 %li_exp,%li_exp,2047;setp.lt.u64 %li_guard,%li_exp,2;@%li_guard bra LI_MUL_FALLBACK;setp.gt.u64 %li_guard,%li_exp,2045;@%li_guard bra LI_MUL_FALLBACK;
+LI_MUL_FAST_COMMIT:mov.b64 %product,%li_candidate;bra LI_MUL_DONE;
+LI_MUL_FALLBACK:
 st.param.b64 [ml],%basisword;st.param.b64 [mr],%spectralword;call.uni (rm),md2asm_gpu_mul_status,(ml,mr);ld.param.b64 %product,[rm];ld.param.u32 %raised,[rm+8];or.b32 %flags,%flags,%raised;
+LI_MUL_DONE:
+// LI_MUL END
+// LI_ADD BEGIN
+and.b32 %li_status,%flags,16;setp.eq.u32 %li_guard,%li_status,0;@%li_guard bra LI_ADD_FALLBACK;
+and.b64 %li_mag,%accumulator,0x7fffffffffffffff;setp.eq.u64 %li_guard,%li_mag,0;@%li_guard bra LI_ADD_OPERAND0_OK;
+shr.u64 %li_exp,%li_mag,52;setp.eq.u64 %li_guard,%li_exp,0;@%li_guard bra LI_ADD_FALLBACK;setp.eq.u64 %li_guard,%li_exp,2047;@%li_guard bra LI_ADD_FALLBACK;
+LI_ADD_OPERAND0_OK:
+and.b64 %li_mag,%product,0x7fffffffffffffff;setp.eq.u64 %li_guard,%li_mag,0;@%li_guard bra LI_ADD_OPERAND1_OK;
+shr.u64 %li_exp,%li_mag,52;setp.eq.u64 %li_guard,%li_exp,0;@%li_guard bra LI_ADD_FALLBACK;setp.eq.u64 %li_guard,%li_exp,2047;@%li_guard bra LI_ADD_FALLBACK;
+LI_ADD_OPERAND1_OK:
+add.rn.f64 %li_candidate,%accumulator,%product;
+shr.u64 %li_exp,%li_candidate,52;and.b64 %li_exp,%li_exp,2047;setp.lt.u64 %li_guard,%li_exp,2;@%li_guard bra LI_ADD_FALLBACK;setp.gt.u64 %li_guard,%li_exp,2045;@%li_guard bra LI_ADD_FALLBACK;
+LI_ADD_FAST_COMMIT:mov.b64 %accumulator,%li_candidate;bra LI_ADD_DONE;
+LI_ADD_FALLBACK:
 st.param.b64 [al],%accumulator;st.param.b64 [arhs],%product;call.uni (ra),md2asm_gpu_add_status,(al,arhs);ld.param.b64 %accumulator,[ra];ld.param.u32 %raised,[ra+8];or.b32 %flags,%flags,%raised;
+LI_ADD_DONE:
+// LI_ADD END
 add.u64 %apos,%apos,128;add.u64 %bpos,%bpos,16;add.u32 %degree,%degree,1;setp.lt.u32 %p,%degree,%terms;@%p bra DEGREE;
 st.global.b64 [%dst],%accumulator;atom.global.or.b32 %raised,[%ctx+8],%flags;
 setp.ne.u32 %p,%linear,0;@%p ret;st.global.u64 [%output],0;st.global.u64 [%output+8],0;st.global.u64 [%output+16],0;st.global.u64 [%output+24],0;ret;
