@@ -1,6 +1,7 @@
 // Source ABI: the PTX parameter declarations and guard code define this component interface.
 // Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
 // Complete SPCSI arithmetic revision2, from the retained component contract revision1.
+// Component contract: skills/md2asm-gpu/references/openifs/dynamics/spectral_semi_implicit_update.md.
 .version 8.5
 .target sm_90
 .address_size 64
@@ -55,7 +56,7 @@ DONE: st.param.u64 [result],%data; st.param.u32 [result+8],%error; st.param.u32 
  .local .align 8 .b8 mutable_spans[80],prospective_vector[72],prospective_context[64],prospective_record[256],prospective_ints[16],prospective_desc0[88],prospective_desc1[88];
  .param .u64 rb,rn,rc,rm,rl; .param .u32 rct,rr;
  .param .u64 rd; .param .u32 rncols,rankn; .param .align 8 .b8 rankr[16];
- .param .u64 ca,cc; .param .u32 admission;
+ .param .u64 ca,cc; .param .u32 admission_sigam,admission_solve,admission_sitnu;
  .param .b64 ma,mb; .param .align 8 .b8 mr[16];
  .param .u32 dk,dz; .param .u64 da,db,dlda,dldb; .param .align 8 .b8 dot[16];
  ld.param.u64 %argv,[original_vector]; ld.param.u64 %ctx,[context]; mov.u32 %unique,%ctaid.x; mov.u32 %rt,%ctaid.y; or.b32 %unique,%unique,%rt; mov.u32 %rt,%ctaid.z; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.x; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.y; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.z; or.b32 %unique,%unique,%rt; setp.ne.u32 %p0,%unique,0; @%p0 ret; ld.global.u32 %error,[%ctx]; setp.ne.u32 %p0,%error,0; @%p0 ret; mov.u32 %error,11520;
@@ -333,10 +334,10 @@ SOLVE_METADATA:
  st.u64 [%lrec+48],88;
  st.u64 [%lrec+56],88;
  st.u64 [%lrec+64],64; st.u64 [%lrec+72],%modes; st.u64 [%lrec+80],%solved; st.u64 [%lrec+88],76912; st.u64 [%lrec+96],76912;
-CHILD_CONTEXT: st.u64 [%lctx],0x0000000100000000; st.u64 [%lctx+8],0; ld.global.u32 %rt,[%ctx+12]; st.u32 [%lctx+12],%rt; ld.global.u64 %tmp,[%ctx+16]; st.u64 [%lctx+16],%tmp; ld.global.u64 %tmp,[%ctx+24]; st.u64 [%lctx+24],%tmp; st.u64 [%lctx+32],%work; st.u64 [%lctx+40],165968; st.u64 [%lctx+48],%lrec; st.u64 [%lctx+56],256; setp.ne.u32 %p0,%phase,0; @%p0 bra EXECUTE_CHILD; setp.eq.u32 %p0,%which,1; @%p0 bra ADMIT_SOLVE; setp.eq.u32 %p0,%which,2; @%p0 bra ADMIT_SITNU; st.param.u64 [ca],%largv; st.param.u64 [cc],%lctx; call.uni (admission),openifs_sigam_admit,(ca,cc); bra ADMIT_RESULT;
-ADMIT_SOLVE: st.param.u64 [ca],%largv; st.param.u64 [cc],%lctx; call.uni (admission),openifs_spcimpfsolve_admit,(ca,cc); bra ADMIT_RESULT;
-ADMIT_SITNU: st.param.u64 [ca],%largv; st.param.u64 [cc],%lctx; call.uni (admission),openifs_sitnu_admit,(ca,cc);
-ADMIT_RESULT: ld.param.u32 %code,[admission]; mov.u32 %error,11525; setp.ne.u32 %p0,%code,0; @%p0 bra REFUSE; add.u32 %which,%which,1; setp.lt.u32 %p0,%which,3; @%p0 bra CHILD_SETUP; bra ALL_ADMITTED;
+CHILD_CONTEXT: st.u64 [%lctx],0x0000000100000000; st.u64 [%lctx+8],0; ld.global.u32 %rt,[%ctx+12]; st.u32 [%lctx+12],%rt; ld.global.u64 %tmp,[%ctx+16]; st.u64 [%lctx+16],%tmp; ld.global.u64 %tmp,[%ctx+24]; st.u64 [%lctx+24],%tmp; st.u64 [%lctx+32],%work; st.u64 [%lctx+40],165968; st.u64 [%lctx+48],%lrec; st.u64 [%lctx+56],256; setp.ne.u32 %p0,%phase,0; @%p0 bra EXECUTE_CHILD; setp.eq.u32 %p0,%which,1; @%p0 bra ADMIT_SOLVE; setp.eq.u32 %p0,%which,2; @%p0 bra ADMIT_SITNU; st.param.u64 [ca],%largv; st.param.u64 [cc],%lctx; call.uni (admission_sigam),openifs_sigam_admit,(ca,cc); ld.param.u32 %code,[admission_sigam]; bra ADMIT_RESULT;
+ADMIT_SOLVE: st.param.u64 [ca],%largv; st.param.u64 [cc],%lctx; call.uni (admission_solve),openifs_spcimpfsolve_admit,(ca,cc); ld.param.u32 %code,[admission_solve]; bra ADMIT_RESULT;
+ADMIT_SITNU: st.param.u64 [ca],%largv; st.param.u64 [cc],%lctx; call.uni (admission_sitnu),openifs_sitnu_admit,(ca,cc); ld.param.u32 %code,[admission_sitnu];
+ADMIT_RESULT: mov.u32 %error,11525; setp.ne.u32 %p0,%code,0; @%p0 bra REFUSE; add.u32 %which,%which,1; setp.lt.u32 %p0,%which,3; @%p0 bra CHILD_SETUP; bra ALL_ADMITTED;
 EXECUTE_CHILD:
  mov.u32 %i,0;
 COPY_GLOBAL_RECORD: cvt.u64.u32 %tmp,%i; add.u64 %ptr,%lrec,%tmp; ld.u64 %tmp2,[%ptr]; add.u64 %ptr,%grec,%tmp; st.global.u64 [%ptr],%tmp2; add.u32 %i,%i,8; setp.lt.u32 %p0,%i,256; @%p0 bra COPY_GLOBAL_RECORD;
