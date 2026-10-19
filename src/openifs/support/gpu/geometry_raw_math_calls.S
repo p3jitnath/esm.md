@@ -1,4 +1,4 @@
-/* Soil water expression. Input72-byte address in x0, mode in w1; GPU FP64 in d0 and comparison condition in w0.
+/* Raw geometry scalar host. Complete eta counter-owner interface: skills/md2asm-gpu/references/openifs/setup/vertical_eta_coordinates.md.
  * Frame768, vector128..143, context192..255, record256..319, result384..415.
  * No model floating-point operation remains in this host.
  */
@@ -150,3 +150,16 @@ ret
 md2asm_geometry_raw_math_private_fast_work: .zero 8
 .local md2asm_geometry_raw_math_private_wide_work
 md2asm_geometry_raw_math_private_wide_work: .zero 8
+
+/* Return the existing private work owners without changing their contents. */
+.text
+.p2align 2
+.global md2asm_geometry_raw_math_work_counter_addresses
+.type md2asm_geometry_raw_math_work_counter_addresses,%function
+md2asm_geometry_raw_math_work_counter_addresses:
+ adrp x0,md2asm_geometry_raw_math_private_fast_work
+ add x0,x0,:lo12:md2asm_geometry_raw_math_private_fast_work
+ adrp x1,md2asm_geometry_raw_math_private_wide_work
+ add x1,x1,:lo12:md2asm_geometry_raw_math_private_wide_work
+ ret
+.size md2asm_geometry_raw_math_work_counter_addresses,.-md2asm_geometry_raw_math_work_counter_addresses
