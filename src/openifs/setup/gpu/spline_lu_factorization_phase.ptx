@@ -1,0 +1,105 @@
+// GPU contract: skills/md2asm-gpu/references/openifs/setup/spline_lu_factorization_complete_contract.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 out[32]) md2asm_gpu_spline_lu_factor_values(.param .u32 n,.param .u64 mat,.param .u64 piv,.param .u64 info);
+.func (.param .u32 out) lu_range(.param .u64 base,.param .u64 size,.param .u64 capacity,.param .u64 mask)
+{
+.reg .u64 %b,%s,%c,%m,%e,%v;.reg .pred %p;
+ld.param.u64 %b,[base];ld.param.u64 %s,[size];ld.param.u64 %c,[capacity];ld.param.u64 %m,[mask];
+setp.eq.u64 %p,%b,0;@%p bra BAD;and.b64 %v,%b,%m;setp.ne.u64 %p,%v,0;@%p bra BAD;
+setp.lt.u64 %p,%c,%s;@%p bra BAD;add.u64 %e,%b,%c;setp.lt.u64 %p,%e,%b;@%p bra BAD;
+st.param.u32 [out],0;ret;
+BAD:st.param.u32 [out],29201;ret;
+}
+.visible .entry md2asm_gpu_spline_lu_factor(.param .u64 vector,.param .u64 context)
+{
+.reg .u64 %args,%ctx,%record,%header,%completion,%cap,%v,%pointer,%dim,%mat,%piv,%infoptr,%fast,%wide,%matcap,%pivcap,%n64,%matrixbytes,%pivotbytes,%i,%j,%off,%rows,%a,%asize,%ae,%b,%bs,%be,%flags64,%nf,%nw,%oldcount;
+.reg .u32 %w,%origin,%error,%n,%actualn,%rc,%sourceinfo,%flags,%oldflags;
+.reg .pred %p,%q;
+.local .align 8 .b8 owners[176];
+.param .u64 rb,rs,rcap,rm,am,ap,ai;.param .u32 rr,an;.param .align 8 .b8 returned[32];
+ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;
+and.b64 %v,%ctx,7;setp.ne.u64 %p,%v,0;@%p ret;
+ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;mov.u32 %error,29200;
+mov.u32 %origin,%tid.x;mov.u32 %w,%tid.y;or.b32 %origin,%origin,%w;mov.u32 %w,%tid.z;or.b32 %origin,%origin,%w;
+mov.u32 %w,%ctaid.x;or.b32 %origin,%origin,%w;mov.u32 %w,%ctaid.y;or.b32 %origin,%origin,%w;mov.u32 %w,%ctaid.z;or.b32 %origin,%origin,%w;
+setp.ne.u32 %p,%origin,0;@%p ret;
+mov.u32 %w,%ntid.x;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.y;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.z;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.x;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.y;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.z;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%dynamic_smem_size;setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+ld.global.u32 %w,[%ctx+4];setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+ld.global.u32 %w,[%ctx+12];setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+ld.global.u64 %v,[%ctx+24];setp.ne.u64 %p,%v,0;@%p bra REFUSE;
+ld.global.u64 %v,[%ctx+32];setp.ne.u64 %p,%v,0;@%p bra REFUSE;
+ld.global.u64 %v,[%ctx+40];setp.ne.u64 %p,%v,0;@%p bra REFUSE;
+ld.param.u64 %args,[vector];
+st.param.u64 [rb],%args;st.param.u64 [rs],16;st.param.u64 [rcap],16;st.param.u64 [rm],7;
+call.uni (rr),lu_range,(rb,rs,rcap,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%ctx;st.param.u64 [rs],64;st.param.u64 [rcap],64;st.param.u64 [rm],7;
+call.uni (rr),lu_range,(rb,rs,rcap,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %cap,[%ctx+56];
+st.param.u64 [rb],%record;st.param.u64 [rs],16;st.param.u64 [rcap],%cap;st.param.u64 [rm],7;
+call.uni (rr),lu_range,(rb,rs,rcap,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %header,[%args];ld.global.u64 %completion,[%args+8];
+ld.global.u64 %cap,[%record];mov.u32 %error,29202;setp.ne.u64 %p,%cap,128;@%p bra REFUSE;
+st.param.u64 [rb],%header;st.param.u64 [rs],128;st.param.u64 [rcap],%cap;st.param.u64 [rm],7;
+call.uni (rr),lu_range,(rb,rs,rcap,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %cap,[%record+8];mov.u32 %error,29202;setp.ne.u64 %p,%cap,32;@%p bra REFUSE;
+st.param.u64 [rb],%completion;st.param.u64 [rs],32;st.param.u64 [rcap],%cap;st.param.u64 [rm],7;
+call.uni (rr),lu_range,(rb,rs,rcap,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %dim,[%header];ld.global.u64 %mat,[%header+8];ld.global.u64 %piv,[%header+16];ld.global.u64 %infoptr,[%header+24];
+ld.global.u64 %fast,[%header+32];ld.global.u64 %wide,[%header+40];ld.global.u64 %matcap,[%header+48];ld.global.u64 %pivcap,[%header+56];
+ld.global.u32 %n,[%header+64];mov.u32 %error,29202;setp.lt.u32 %p,%n,1;@%p bra REFUSE;setp.gt.u32 %p,%n,24;@%p bra REFUSE;
+ld.global.u32 %w,[%header+68];setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+mov.u64 %i,72;
+RESERVED:add.u64 %pointer,%header,%i;ld.global.u64 %v,[%pointer];setp.ne.u64 %p,%v,0;@%p bra REFUSE;add.u64 %i,%i,8;setp.lt.u64 %p,%i,128;@%p bra RESERVED;
+cvt.u64.u32 %n64,%n;mul.lo.u64 %matrixbytes,%n64,%n64;shl.b64 %matrixbytes,%matrixbytes,3;shl.b64 %pivotbytes,%n64,2;
+st.param.u64 [rb],%dim;st.param.u64 [rs],4;st.param.u64 [rcap],4;st.param.u64 [rm],3;
+call.uni (rr),lu_range,(rb,rs,rcap,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%mat;st.param.u64 [rs],%matrixbytes;st.param.u64 [rcap],%matcap;st.param.u64 [rm],7;
+call.uni (rr),lu_range,(rb,rs,rcap,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%piv;st.param.u64 [rs],%pivotbytes;st.param.u64 [rcap],%pivcap;st.param.u64 [rm],3;
+call.uni (rr),lu_range,(rb,rs,rcap,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%infoptr;st.param.u64 [rs],4;st.param.u64 [rcap],4;st.param.u64 [rm],3;
+call.uni (rr),lu_range,(rb,rs,rcap,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%fast;st.param.u64 [rs],8;st.param.u64 [rcap],8;st.param.u64 [rm],7;
+call.uni (rr),lu_range,(rb,rs,rcap,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%wide;st.param.u64 [rs],8;st.param.u64 [rcap],8;st.param.u64 [rm],7;
+call.uni (rr),lu_range,(rb,rs,rcap,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u32 %actualn,[%dim];mov.u32 %error,29202;setp.ne.u32 %p,%actualn,%n;@%p bra REFUSE;
+st.local.u64 [owners+0],%header;st.local.u64 [owners+8],128;
+st.local.u64 [owners+16],%completion;st.local.u64 [owners+24],32;
+st.local.u64 [owners+32],%args;st.local.u64 [owners+40],16;
+st.local.u64 [owners+48],%ctx;st.local.u64 [owners+56],64;
+st.local.u64 [owners+64],%record;st.local.u64 [owners+72],16;
+st.local.u64 [owners+80],%dim;st.local.u64 [owners+88],4;
+st.local.u64 [owners+96],%mat;st.local.u64 [owners+104],%matcap;
+st.local.u64 [owners+112],%piv;st.local.u64 [owners+120],%pivcap;
+st.local.u64 [owners+128],%infoptr;st.local.u64 [owners+136],4;
+st.local.u64 [owners+144],%fast;st.local.u64 [owners+152],8;
+st.local.u64 [owners+160],%wide;st.local.u64 [owners+168],8;
+cvta.local.u64 %rows,owners;mov.u64 %i,1;
+PAIR_LEFT:shl.b64 %off,%i,4;add.u64 %pointer,%rows,%off;ld.u64 %a,[%pointer];ld.u64 %asize,[%pointer+8];add.u64 %ae,%a,%asize;mov.u64 %j,0;
+PAIR_RIGHT:shl.b64 %off,%j,4;add.u64 %pointer,%rows,%off;ld.u64 %b,[%pointer];ld.u64 %bs,[%pointer+8];add.u64 %be,%b,%bs;
+setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;mov.u32 %error,29201;@%p bra REFUSE;
+add.u64 %j,%j,1;setp.lt.u64 %p,%j,%i;@%p bra PAIR_RIGHT;
+add.u64 %i,%i,1;setp.lt.u64 %p,%i,11;@%p bra PAIR_LEFT;
+mov.u64 %i,0;
+FINITE_INPUT:shl.b64 %off,%i,3;add.u64 %pointer,%mat,%off;ld.global.u64 %v,[%pointer];shr.u64 %v,%v,52;and.b64 %v,%v,2047;
+mov.u32 %error,29202;setp.eq.u64 %p,%v,2047;@%p bra REFUSE;
+add.u64 %i,%i,1;shl.b64 %off,%i,3;setp.lt.u64 %p,%off,%matrixbytes;@%p bra FINITE_INPUT;
+st.param.u32 [an],%n;st.param.u64 [am],%mat;st.param.u64 [ap],%piv;st.param.u64 [ai],%infoptr;
+call.uni (returned),md2asm_gpu_spline_lu_factor_values,(an,am,ap,ai);
+ld.param.u32 %rc,[returned];ld.param.u32 %sourceinfo,[returned+4];ld.param.u32 %flags,[returned+8];
+ld.param.u64 %nf,[returned+16];ld.param.u64 %nw,[returned+24];
+st.global.u32 [%completion],%rc;st.global.u32 [%completion+4],%sourceinfo;st.global.u32 [%completion+8],%flags;st.global.u32 [%completion+12],0;
+st.global.u64 [%completion+16],%nf;st.global.u64 [%completion+24],%nw;
+atom.global.add.u64 %oldcount,[%fast],%nf;atom.global.add.u64 %oldcount,[%wide],%nw;
+ld.global.u32 %oldflags,[%ctx+8];or.b32 %flags,%flags,%oldflags;st.global.u32 [%ctx+8],%flags;ret;
+REFUSE:st.global.u32 [%ctx],%error;ret;
+}

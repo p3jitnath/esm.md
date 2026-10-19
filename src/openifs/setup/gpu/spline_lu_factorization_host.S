@@ -1,3 +1,4 @@
+/* GPU contract: skills/md2asm-gpu/references/openifs/setup/spline_lu_factorization_complete_contract.md */
 #include "../../support/gpu/preserved_weather_calls.inc.S"
 .arch armv8-a
 .text
@@ -51,102 +52,7 @@ md2asm_spline_lu_factor:
     fmov d13,x9
     fmov d14,xzr
     fmov d15,#1.0
-.Lcolumn:
-    mul x9,x23,x22
-    add x24,x19,x9,lsl #3
-    mov x26,x23
-    ldr d8,[x24,x23,lsl #3]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,16,d9,d8 // fabs d9,d8
-    add x25,x23,#1
-    cmp x25,x22
-    b.ge .Lpivot_ready
-.Lpivot_scan:
-    ldr d10,[x24,x25,lsl #3]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,16,d11,d10 // fabs d11,d10
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,4,none,d11,d9,comparison // fcmp d11,d9
-    b.le .Lpivot_next
-    mov x26,x25
-    fmov d8,d10
-    fmov d9,d11
-.Lpivot_next:
-    add x25,x25,#1
-    cmp x25,x22
-    b.lt .Lpivot_scan
-.Lpivot_ready:
-    add w9,w26,#1
-    str w9,[x20,x23,lsl #2]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,4,none,d8,d14,comparison // fcmp d8,d14
-    b.eq .Lzero_pivot
-    cmp x26,x23
-    b.eq .Lscale
-    mov x25,#0
-.Lswap:
-    mul x9,x25,x22
-    add x9,x19,x9,lsl #3
-    ldr d10,[x9,x23,lsl #3]
-    ldr d11,[x9,x26,lsl #3]
-    str d11,[x9,x23,lsl #3]
-    str d10,[x9,x26,lsl #3]
-    add x25,x25,#1
-    cmp x25,x22
-    b.lt .Lswap
-.Lscale:
-    add x25,x23,#1
-    cmp x25,x22
-    b.ge .Lupdate
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,4,none,d9,d13,comparison // fcmp d9,d13
-    b.lt .Ldivide_lower
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,3,d9,d15,d8 // fdiv d9,d15,d8
-.Lmultiply_lower:
-    ldr d10,[x24,x25,lsl #3]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,2,d10,d9,d10 // fmul d10,d9,d10
-    str d10,[x24,x25,lsl #3]
-    add x25,x25,#1
-    cmp x25,x22
-    b.lt .Lmultiply_lower
-    b .Lupdate
-.Ldivide_lower:
-    ldr d10,[x24,x25,lsl #3]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,3,d10,d10,d8 // fdiv d10,d10,d8
-    str d10,[x24,x25,lsl #3]
-    add x25,x25,#1
-    cmp x25,x22
-    b.lt .Ldivide_lower
-    b .Lupdate
-.Lzero_pivot:
-    ldr w9,[x21]
-    cbnz w9,.Lupdate
-    add w9,w23,#1
-    str w9,[x21]
-.Lupdate:
-    add x27,x23,#1
-    cmp x27,x22
-    b.ge .Lnext_column
-.Lupdate_column:
-    mul x9,x27,x22
-    add x25,x19,x9,lsl #3
-    ldr d10,[x25,x23,lsl #3]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,4,none,d10,d14,comparison // fcmp d10,d14
-    b.eq .Lnext_update_column
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,2,d10,d12,d10 // fmul d10,d12,d10
-    add x28,x23,#1
-.Lupdate_row:
-    ldr d0,[x24,x28,lsl #3]
-    fmov d1,d10
-    ldr d2,[x25,x28,lsl #3]
-    bl md2asm_round_product_sum_candidate
-    str d0,[x25,x28,lsl #3]
-    add x28,x28,#1
-    cmp x28,x22
-    b.lt .Lupdate_row
-.Lnext_update_column:
-    add x27,x27,#1
-    cmp x27,x22
-    b.lt .Lupdate_column
-.Lnext_column:
-    add x23,x23,#1
-    cmp x23,x22
-    b.lt .Lcolumn
+    bl md2asm_spline_lu_gpu_phase
     ldp x19,x20,[sp,#16]
     ldp x21,x22,[sp,#32]
     ldp x23,x24,[sp,#48]
