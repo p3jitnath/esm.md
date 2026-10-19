@@ -1,0 +1,885 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Complete supported aerosol optical mixture; the retained component contract revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_delta_eddington_extensive_values(.param .b64 t,.param .b64 s,.param .b64 m);
+.func (.param .u32 result) aerosol_range(.param .u64 base,.param .u64 bytes,.param .u64 mask,.param .u64 owners,.param .u32 count)
+{
+ .reg .u64 %b,%n,%m,%list,%t,%end,%o,%on,%oe; .reg .u32 %i,%count,%e; .reg .pred %p,%q;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %m,[mask]; ld.param.u64 %list,[owners]; ld.param.u32 %count,[count];
+ mov.u32 %e,0; setp.eq.u64 %p,%n,0; @%p bra RANGE_DONE;
+ mov.u32 %e,513; setp.eq.u64 %p,%b,0; @%p bra RANGE_DONE; and.b64 %t,%b,%m; setp.ne.u64 %p,%t,0; @%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra RANGE_DONE; setp.gt.u64 %p,%n,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ add.u64 %end,%b,%n; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ mov.u32 %i,0;
+RANGE_OWNERS:
+ setp.ge.u32 %p,%i,%count; @%p bra RANGE_OK; ld.u64 %o,[%list]; ld.u64 %on,[%list+8]; setp.eq.u64 %p,%on,0; @%p bra RANGE_NEXT;
+ add.u64 %oe,%o,%on; setp.lt.u64 %p,%b,%oe; setp.lt.u64 %q,%o,%end; and.pred %p,%p,%q; @%p bra RANGE_DONE;
+RANGE_NEXT: add.u64 %list,%list,16; add.u32 %i,%i,1; bra RANGE_OWNERS;
+RANGE_OK: mov.u32 %e,0;
+RANGE_DONE: st.param.u32 [result],%e; ret;
+}
+
+.func (.param .u64 result) aerosol_address(.param .u64 descriptor,.param .s64 i,.param .s64 j,.param .s64 k,.param .u32 rank,.param .u32 element)
+{
+ .reg .u64 %d,%sum,%s,%v,%a,%i,%j,%k;.reg .u32 %r,%e;.reg .pred %p;
+ ld.param.u64 %d,[descriptor];ld.param.s64 %i,[i];ld.param.s64 %j,[j];ld.param.s64 %k,[k];ld.param.u32 %r,[rank];ld.param.u32 %e,[element];ld.global.u64 %a,[%d];ld.global.s64 %sum,[%d+8];ld.global.s64 %s,[%d+40];mul.lo.u64 %v,%s,%i;add.u64 %sum,%sum,%v;setp.lt.u32 %p,%r,2;@%p bra FINISH;ld.global.s64 %s,[%d+64];mul.lo.u64 %v,%s,%j;add.u64 %sum,%sum,%v;setp.lt.u32 %p,%r,3;@%p bra FINISH;ld.global.s64 %s,[%d+88];mul.lo.u64 %v,%s,%k;add.u64 %sum,%sum,%v;
+FINISH:cvt.u64.u32 %v,%e;mul.lo.u64 %sum,%sum,%v;add.u64 %a,%a,%sum;st.param.u64 [result],%a;ret;
+}
+.func (.param .align 8 .b8 result[128]) aerosol_geometry(.param .u64 descriptor,.param .u32 rank,.param .u32 element)
+{
+ .reg .u64 %d,%base,%offset,%sum,%address,%s,%lo,%hi,%extent,%v,%vh,%sign,%a,%b,%bad,%negative,%total,%last,%mag,%low,%span,%end,%step<3>,%lower<3>,%upper<3>,%limit;
+ .reg .u32 %r,%e,%dim,%error,%empty,%word;.reg .pred %p;
+ ld.param.u64 %d,[descriptor];ld.param.u32 %r,[rank];ld.param.u32 %e,[element];mov.u32 %error,512;mov.u64 %base,0;mov.u64 %offset,0;mov.u64 %low,0;mov.u64 %span,0;
+mov.u64 %step0,0;
+mov.u64 %step1,0;
+mov.u64 %step2,0;
+mov.u64 %lower0,0;
+mov.u64 %lower1,0;
+mov.u64 %lower2,0;
+mov.u64 %upper0,0;
+mov.u64 %upper1,0;
+mov.u64 %upper2,0;
+setp.lt.u32 %p,%r,1;@%p bra DONE;setp.gt.u32 %p,%r,3;@%p bra DONE;setp.eq.u32 %p,%e,4;@%p bra E4;setp.ne.u32 %p,%e,8;@%p bra DONE;mov.u64 %limit,0x0ffffffffffffffe;bra HEADER;
+E4:mov.u64 %limit,0x1ffffffffffffffe;
+HEADER:cvt.u64.u32 %v,%e;ld.global.u64 %a,[%d+16];setp.ne.u64 %p,%a,%v;@%p bra DONE;ld.global.u64 %a,[%d+32];setp.ne.u64 %p,%a,%v;@%p bra DONE;ld.global.u32 %word,[%d+24];setp.ne.u32 %p,%word,0;@%p bra DONE;ld.global.u32 %word,[%d+28];mov.u32 %dim,768;setp.eq.u32 %p,%e,4;@%p mov.u32 %dim,256;or.b32 %dim,%dim,%r;setp.ne.u32 %p,%word,%dim;@%p bra DONE;
+ ld.global.u64 %base,[%d];ld.global.s64 %offset,[%d+8];mov.u64 %sum,%offset;mov.u64 %negative,0;mov.u64 %total,0;mov.u32 %empty,0;mov.u32 %dim,0;
+DIM:mul.wide.u32 %address,%dim,24;add.u64 %address,%address,40;add.u64 %address,%d,%address;ld.global.s64 %s,[%address];ld.global.s64 %lo,[%address+8];ld.global.s64 %hi,[%address+16];setp.ge.s64 %p,%hi,%lo;@%p bra NONEMPTY;setp.eq.u64 %p,%lo,0x8000000000000000;@%p bra DONE;sub.u64 %v,%lo,1;setp.ne.u64 %p,%hi,%v;@%p bra DONE;mov.u64 %extent,0;mov.u32 %empty,1;bra EXTENT;
+NONEMPTY:sub.u64 %extent,%hi,%lo;setp.gt.u64 %p,%extent,0x7ffffffffffffffe;@%p bra DONE;add.u64 %extent,%extent,1;
+EXTENT:mul.lo.u64 %v,%s,%lo;mul.hi.s64 %vh,%s,%lo;shr.s64 %sign,%v,63;setp.ne.u64 %p,%vh,%sign;@%p bra DONE;add.u64 %a,%sum,%v;xor.b64 %b,%a,%sum;xor.b64 %bad,%a,%v;and.b64 %bad,%bad,%b;setp.lt.s64 %p,%bad,0;@%p bra DONE;mov.u64 %sum,%a;
+ cvt.u64.u32 %v,%e;mul.lo.u64 %a,%s,%v;mul.hi.s64 %vh,%s,%v;shr.s64 %sign,%a,63;setp.ne.u64 %p,%vh,%sign;@%p bra DONE;
+ setp.eq.u32 %p,%dim,0;@%p mov.u64 %step0,%a;@%p mov.u64 %lower0,%lo;@%p mov.u64 %upper0,%hi;setp.eq.u32 %p,%dim,1;@%p mov.u64 %step1,%a;@%p mov.u64 %lower1,%lo;@%p mov.u64 %upper1,%hi;setp.eq.u32 %p,%dim,2;@%p mov.u64 %step2,%a;@%p mov.u64 %lower2,%lo;@%p mov.u64 %upper2,%hi;
+ setp.eq.u64 %p,%extent,0;@%p bra NEXT;sub.u64 %last,%extent,1;mov.u64 %mag,%s;setp.lt.s64 %p,%s,0;@%p neg.s64 %mag,%s;mul.hi.u64 %vh,%last,%mag;setp.ne.u64 %p,%vh,0;@%p bra DONE;mul.lo.u64 %v,%last,%mag;setp.gt.u64 %p,%v,%limit;@%p bra DONE;add.u64 %total,%total,%v;setp.gt.u64 %p,%total,%limit;@%p bra DONE;setp.lt.s64 %p,%s,0;@%p add.u64 %negative,%negative,%v;
+NEXT:add.u32 %dim,%dim,1;setp.lt.u32 %p,%dim,%r;@%p bra DIM;setp.ne.u32 %p,%empty,0;@%p bra EMPTY;
+ cvt.u64.u32 %v,%e;mul.lo.u64 %a,%sum,%v;mul.hi.s64 %vh,%sum,%v;shr.s64 %sign,%a,63;setp.ne.u64 %p,%vh,%sign;@%p bra DONE;setp.ge.s64 %p,%a,0;@%p bra POSITIVE;neg.s64 %b,%a;setp.le.u64 %p,%base,%b;@%p bra DONE;sub.u64 %address,%base,%b;bra FIRST_READY;
+POSITIVE:add.u64 %address,%base,%a;setp.gt.u64 %p,%address,0x7fffffffffffffff;@%p bra DONE;
+FIRST_READY:setp.eq.u64 %p,%base,0;@%p bra DONE;setp.gt.u64 %p,%base,0x7fffffffffffffff;@%p bra DONE;sub.u64 %b,%v,1;and.b64 %b,%address,%b;setp.ne.u64 %p,%b,0;@%p bra DONE;mul.lo.u64 %negative,%negative,%v;setp.le.u64 %p,%address,%negative;@%p bra DONE;sub.u64 %low,%address,%negative;mul.lo.u64 %span,%total,%v;add.u64 %span,%span,%v;add.u64 %end,%low,%span;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra DONE;mov.u32 %error,0;bra DONE;
+EMPTY:mov.u64 %low,%base;mov.u64 %span,0;mov.u32 %error,0;
+DONE:st.param.u64 [result],%base;st.param.u64 [result+8],%offset;
+st.param.u64 [result+16],%step0;st.param.u64 [result+56],%lower0;st.param.u64 [result+64],%upper0;
+st.param.u64 [result+24],%step1;st.param.u64 [result+72],%lower1;st.param.u64 [result+80],%upper1;
+st.param.u64 [result+32],%step2;st.param.u64 [result+88],%lower2;st.param.u64 [result+96],%upper2;
+st.param.u64 [result+40],%low;st.param.u64 [result+48],%span;st.param.u32 [result+104],%error;st.param.u32 [result+108],0;st.param.u64 [result+112],0;st.param.u64 [result+120],0;ret;
+}
+.const .align 8 .b64 aerosol_gas_molar_mass[13]={0x0000000000000000,0x403203e99b39acca,0x4046016872b020c5,0x4047ffc504816f00,0x404601a9fbe76c8b,0x403c0295e9e1b08a,0x40300b020c49ba5e,0x403fffb15b573eab,0x40612bcb923a29c7,0x405e3a7ef9db22d1,0x40559e04189374bc,0x40633a5604189375,0x404700b439581062};
+.visible .func (.param .u32 result) md2asm_gpu_get_gas_values(.param .u64 original_vector)
+{
+ .reg .u64 %argv,%class,%object,%gp,%up,%d,%scale,%start,%address,%tmp,%nc,%nl,%cells,%first,%width,%height,%lo,%hi,%step,%levelstep,%input,%output,%src,%dst,%i,%j,%factor,%value,%mass,%air,%table,%plane;
+ .reg .u32 %gas,%unit,%stored,%present,%flags,%raised,%word;.reg .pred %p;
+ .param .b64 ma,mb;.param .align 8 .b8 math[16];
+ ld.param.u64 %argv,[original_vector];ld.global.u64 %class,[%argv];ld.global.u64 %object,[%class];ld.global.u64 %gp,[%argv+8];ld.global.u64 %up,[%argv+16];ld.global.u64 %d,[%argv+24];ld.global.u64 %scale,[%argv+32];ld.global.u64 %start,[%argv+40];ld.global.u32 %gas,[%gp];sub.u32 %gas,%gas,1;ld.global.u32 %unit,[%up];ld.global.s64 %lo,[%d+48];ld.global.s64 %hi,[%d+56];sub.u64 %width,%hi,%lo;add.u64 %width,%width,1;ld.global.s64 %lo,[%d+72];ld.global.s64 %hi,[%d+80];sub.u64 %height,%hi,%lo;add.u64 %height,%height,1;ld.global.u64 %output,[%d];ld.global.s64 %step,[%d+40];setp.eq.u64 %p,%step,0;@%p mov.u64 %step,1;shl.b64 %step,%step,3;ld.global.s64 %levelstep,[%d+64];shl.b64 %levelstep,%levelstep,3;mov.u64 %first,1;setp.eq.u64 %p,%start,0;@%p bra START_READY;ld.global.u32 %word,[%start];cvt.u64.u32 %first,%word;
+START_READY:mov.u32 %flags,0;mul.wide.u32 %tmp,%gas,4;add.u64 %address,%object,%tmp;ld.global.u32 %present,[%address+256];mov.b64 %factor,0x3ff0000000000000;setp.eq.u32 %p,%present,0;@%p bra VALUES;setp.eq.u64 %p,%scale,0;@%p bra SCALE_READY;ld.global.b64 %factor,[%scale];
+SCALE_READY:ld.global.u32 %stored,[%address];setp.eq.u32 %p,%unit,%stored;@%p bra STORED_SCALE;mov.b64 %air,0x403cf851e0000000;add.u32 %stored,%gas,1;mul.wide.u32 %tmp,%stored,8;mov.u64 %table,aerosol_gas_molar_mass;add.u64 %table,%table,%tmp;ld.const.b64 %mass,[%table];setp.eq.u32 %p,%unit,0;@%p bra TO_MASS;
+st.param.b64 [ma],%factor;st.param.b64 [mb],%air;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %factor,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%factor;st.param.b64 [mb],%mass;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %factor,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+bra STORED_SCALE;
+TO_MASS:
+st.param.b64 [ma],%factor;st.param.b64 [mb],%mass;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %factor,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%factor;st.param.b64 [mb],%air;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %factor,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+STORED_SCALE:mul.wide.u32 %tmp,%gas,8;add.u64 %address,%object,%tmp;ld.global.b64 %value,[%address+48];
+st.param.b64 [ma],%factor;st.param.b64 [mb],%value;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %factor,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+VALUES:setp.eq.u64 %p,%width,0;@%p bra COMPLETE;setp.eq.u64 %p,%height,0;@%p bra COMPLETE;ld.global.u32 %word,[%object+356];cvt.u64.u32 %nc,%word;ld.global.u32 %word,[%object+360];cvt.u64.u32 %nl,%word;mul.lo.u64 %cells,%nc,%nl;mul.wide.u32 %plane,%gas,1;mul.lo.u64 %plane,%plane,%cells;add.u64 %plane,%plane,%first;sub.u64 %plane,%plane,1;shl.b64 %plane,%plane,3;ld.global.u64 %input,[%object+144];add.u64 %input,%input,%plane;mov.u64 %j,0;
+LEVEL:mul.lo.u64 %tmp,%j,%levelstep;add.u64 %dst,%output,%tmp;mul.lo.u64 %tmp,%j,%nc;shl.b64 %tmp,%tmp,3;add.u64 %src,%input,%tmp;mov.u64 %i,0;
+COLUMN:mov.b64 %value,0;setp.eq.u32 %p,%present,0;@%p bra STORE;ld.global.b64 %value,[%src];setp.eq.u64 %p,%factor,0x3ff0000000000000;@%p bra STORE;
+st.param.b64 [ma],%value;st.param.b64 [mb],%factor;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+STORE:st.global.b64 [%dst],%value;add.u64 %dst,%dst,%step;add.u64 %src,%src,8;add.u64 %i,%i,1;setp.lt.u64 %p,%i,%width;@%p bra COLUMN;add.u64 %j,%j,1;setp.lt.u64 %p,%j,%height;@%p bra LEVEL;
+COMPLETE:st.param.u32 [result],%flags;ret;
+}
+.visible .func (.param .u32 result) md2asm_gpu_aerosol_rh_index_values(.param .u64 table_object,.param .b64 humidity)
+{
+ .reg .u64 %ao,%d,%data,%offset,%stride,%address,%tmp,%i64;.reg .u32 %nrh,%enabled,%index,%next;.reg .f64 %rh,%bound;.reg .pred %p;
+ ld.param.u64 %ao,[table_object];ld.param.f64 %rh,[humidity];mov.u32 %index,0;ld.global.u32 %enabled,[%ao+6220];setp.eq.u32 %p,%enabled,0;@%p bra DONE;ld.global.u32 %nrh,[%ao+6204];add.u64 %d,%ao,2128;ld.global.u64 %data,[%d];ld.global.s64 %offset,[%d+8];ld.global.s64 %stride,[%d+40];cvt.u64.u32 %i64,%nrh;mul.lo.u64 %tmp,%i64,%stride;add.u64 %tmp,%tmp,%offset;shl.b64 %tmp,%tmp,3;add.u64 %address,%data,%tmp;ld.global.f64 %bound,[%address];setp.gt.f64 %p,%rh,%bound;@%p mov.u32 %index,%nrh;@%p bra DONE;mov.u32 %index,1;
+NEXT:add.u32 %next,%index,1;cvt.u64.u32 %i64,%next;mul.lo.u64 %tmp,%i64,%stride;add.u64 %tmp,%tmp,%offset;shl.b64 %tmp,%tmp,3;add.u64 %address,%data,%tmp;ld.global.f64 %bound,[%address];setp.gt.f64 %p,%rh,%bound;@!%p bra DONE;add.u32 %index,%index,1;bra NEXT;
+DONE:st.param.u32 [result],%index;ret;
+}
+.visible .func (.param .u32 result) md2asm_gpu_aerosol_optics_values(.param .u64 original_vector,.param .u64 private_scratch)
+{
+ .reg .u64 %argv,%scratch,%v<13>,%sw<3>,%lw<3>,%water,%ao,%descriptor,%map,%address,%offset,%cell,%tmp,%index,%i64,%j64,%k64,%d<3>,%step,%base,%size,%gasargs,%gasdesc,%gasclass;
+ .reg .u32 %N,%first,%last,%active,%SW,%LW,%GS,%GL,%scatter,%deferred,%direct,%doSW,%doLW,%types,%j,%col,%t,%b,%g,%klass,%itype,%irh,%nrh,%philic,%lolev,%hilev,%flags,%raised;
+ .reg .b64 %factor,%mix,%ext,%ssa,%asym,%value,%value2,%total,%scat,%moment,%localod,%localscat,%rh,%bound,%one;
+ .reg .f64 %fv,%fw;.reg .pred %p;
+ .param .b64 ma,mb,dt,ds,dm;.param .align 8 .b8 math[16],delta[32];
+ .param .u64 ad,aa,ga,gr;.param .s64 ai,aj,ak;.param .u32 ar,ae,gf;
+ ld.param.u64 %argv,[original_vector];ld.param.u64 %scratch,[private_scratch];
+ld.global.u64 %v0,[%argv+0];
+ld.global.u64 %v1,[%argv+8];
+ld.global.u64 %v2,[%argv+16];
+ld.global.u64 %v3,[%argv+24];
+ld.global.u64 %v4,[%argv+32];
+ld.global.u64 %v5,[%argv+40];
+ld.global.u64 %v6,[%argv+48];
+ld.global.u64 %v7,[%argv+56];
+ld.global.u64 %v8,[%argv+64];
+ld.global.u64 %v9,[%argv+72];
+ld.global.u64 %v10,[%argv+80];
+ld.global.u64 %v11,[%argv+88];
+ld.global.u64 %v12,[%argv+96];
+ld.global.u32 %N,[%v0];ld.global.u32 %first,[%v1];ld.global.u32 %last,[%v2];sub.u32 %active,%last,%first;add.u32 %active,%active,1;ld.global.u32 %SW,[%v3+20004];ld.global.u32 %LW,[%v3+20008];ld.global.u32 %GS,[%v3+19996];ld.global.u32 %GL,[%v3+20000];ld.global.u32 %scatter,[%v3+612];ld.global.u32 %deferred,[%v3+628];ld.global.u32 %direct,[%v6+792];ld.global.u32 %doSW,[%v3+6852];ld.global.u32 %doLW,[%v3+6848];add.u64 %ao,%v3,11608;mov.u32 %flags,0;mov.b64 %one,0x3ff0000000000000;
+ add.u64 %water,%scratch,1280;mul.wide.u32 %size,%active,%N;shl.b64 %size,%size,3;add.u64 %base,%water,%size;mul.wide.u32 %size,%SW,8;
+mov.u64 %sw0,%base;add.u64 %base,%base,%size;
+mov.u64 %sw1,%base;add.u64 %base,%base,%size;
+mov.u64 %sw2,%base;add.u64 %base,%base,%size;
+mul.wide.u32 %size,%LW,8;
+mov.u64 %lw0,%base;add.u64 %base,%base,%size;
+mov.u64 %lw1,%base;add.u64 %base,%base,%size;
+mov.u64 %lw2,%base;add.u64 %base,%base,%size;
+setp.ne.u32 %p,%direct,0;@%p bra DIRECT;
+mul.wide.u32 %size,%N,%active;mul.wide.u32 %tmp,%GS,8;mul.lo.u64 %size,%size,%tmp;mov.u64 %offset,0;
+ZERO_MASS_SW:setp.ge.u64 %p,%offset,%size;@%p bra ZERO_MASS_SW_DONE;
+add.u64 %address,%v12,%offset;st.global.b64 [%address],0;
+add.u64 %offset,%offset,8;bra ZERO_MASS_SW;
+ZERO_MASS_SW_DONE:
+setp.eq.u32 %p,%scatter,0;@%p bra MASS_ZERO_DONE;
+mul.wide.u32 %size,%N,%active;mul.wide.u32 %tmp,%GL,8;mul.lo.u64 %size,%size,%tmp;mov.u64 %offset,0;
+ZERO_MASS_LWS:setp.ge.u64 %p,%offset,%size;@%p bra ZERO_MASS_LWS_DONE;
+add.u64 %address,%v8,%offset;st.global.b64 [%address],0;
+add.u64 %offset,%offset,8;bra ZERO_MASS_LWS;
+ZERO_MASS_LWS_DONE:
+mul.wide.u32 %size,%N,%active;mul.wide.u32 %tmp,%GL,8;mul.lo.u64 %size,%size,%tmp;mov.u64 %offset,0;
+ZERO_MASS_LWG:setp.ge.u64 %p,%offset,%size;@%p bra ZERO_MASS_LWG_DONE;
+add.u64 %address,%v9,%offset;st.global.b64 [%address],0;
+add.u64 %offset,%offset,8;bra ZERO_MASS_LWG;
+ZERO_MASS_LWG_DONE:
+MASS_ZERO_DONE:
+mov.u64 %gasargs,%scratch;add.u64 %gasclass,%scratch,48;add.u64 %gasdesc,%scratch,80;st.global.u64 [%scratch],%gasclass;add.u64 %tmp,%scratch,64;st.global.u64 [%scratch+8],%tmp;add.u64 %tmp,%scratch,68;st.global.u64 [%scratch+16],%tmp;st.global.u64 [%scratch+24],%gasdesc;st.global.u64 [%scratch+32],0;add.u64 %tmp,%scratch,72;st.global.u64 [%scratch+40],%tmp;st.global.u64 [%gasclass],%v5;st.global.u64 [%gasclass+8],0;st.global.u32 [%scratch+64],1;st.global.u32 [%scratch+68],0;st.global.u32 [%scratch+72],%first;st.global.u64 [%gasdesc],%water;st.global.u64 [%gasdesc+8],0;st.global.u64 [%gasdesc+16],8;st.global.u64 [%gasdesc+24],0x0000030200000000;st.global.u64 [%gasdesc+32],8;st.global.u64 [%gasdesc+40],1;st.global.u64 [%gasdesc+48],1;cvt.u64.u32 %tmp,%active;st.global.u64 [%gasdesc+56],%tmp;st.global.u64 [%gasdesc+64],%tmp;st.global.u64 [%gasdesc+72],1;cvt.u64.u32 %tmp,%N;st.global.u64 [%gasdesc+80],%tmp;st.param.u64 [ga],%gasargs;call.uni (gf),md2asm_gpu_get_gas_values,(ga);ld.param.u32 %raised,[gf];or.b32 %flags,%flags,%raised;
+ setp.eq.u32 %p,%active,0;@%p bra COMPLETE;ld.global.u32 %types,[%v3+6912];ld.global.u32 %nrh,[%ao+6204];ld.global.u32 %philic,[%ao+6220];ld.global.u32 %lolev,[%v6+72];ld.global.u32 %hilev,[%v6+80];mov.u32 %j,%lolev;
+MASS_LEVEL:setp.gt.s32 %p,%j,%hilev;@%p bra COMPLETE;mov.u32 %col,%first;
+MASS_COLUMN:sub.u32 %t,%j,1;mul.wide.u32 %offset,%t,%active;sub.u32 %t,%col,%first;cvt.u64.u32 %tmp,%t;add.u64 %offset,%offset,%tmp;shl.b64 %offset,%offset,3;
+add.u64 %address,%water,%offset;ld.global.b64 %rh,[%address];
+add.u64 %descriptor,%v4,176;cvt.u64.u32 %i64,%col;cvt.u64.u32 %j64,%j;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],0;st.param.u32 [ar],2;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.b64 %value,[%address];
+st.param.b64 [ma],%rh;st.param.b64 [mb],%value;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %rh,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.u64 [ga],%ao;st.param.b64 [ma],%rh;call.uni (gf),md2asm_gpu_aerosol_rh_index_values,(ga,ma);ld.param.u32 %irh,[gf];mov.u64 %descriptor,%v4;cvt.u64.u32 %i64,%col;cvt.u64.u32 %j64,%j;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],0;st.param.u32 [ar],2;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.b64 %value2,[%address];add.u64 %j64,%j64,1;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],0;st.param.u32 [ar],2;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.b64 %value,[%address];
+st.param.b64 [ma],%value;st.param.b64 [mb],%value2;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %factor,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%factor;st.param.b64 [mb],0x40239d013a92a305;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %factor,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+mov.u32 %b,0;
+ZERO_sw0:setp.ge.u32 %p,%b,%SW;@%p bra ZERO_sw0_DONE;mul.wide.u32 %offset,%b,8;
+add.u64 %address,%sw0,%offset;st.global.b64 [%address],0;
+add.u32 %b,%b,1;bra ZERO_sw0;
+ZERO_sw0_DONE:
+mov.u32 %b,0;
+ZERO_sw1:setp.ge.u32 %p,%b,%SW;@%p bra ZERO_sw1_DONE;mul.wide.u32 %offset,%b,8;
+add.u64 %address,%sw1,%offset;st.global.b64 [%address],0;
+add.u32 %b,%b,1;bra ZERO_sw1;
+ZERO_sw1_DONE:
+mov.u32 %b,0;
+ZERO_sw2:setp.ge.u32 %p,%b,%SW;@%p bra ZERO_sw2_DONE;mul.wide.u32 %offset,%b,8;
+add.u64 %address,%sw2,%offset;st.global.b64 [%address],0;
+add.u32 %b,%b,1;bra ZERO_sw2;
+ZERO_sw2_DONE:
+mov.u32 %b,0;
+ZERO_lw0:setp.ge.u32 %p,%b,%LW;@%p bra ZERO_lw0_DONE;mul.wide.u32 %offset,%b,8;
+add.u64 %address,%lw0,%offset;st.global.b64 [%address],0;
+add.u32 %b,%b,1;bra ZERO_lw0;
+ZERO_lw0_DONE:
+setp.eq.u32 %p,%scatter,0;@%p bra ZERO_lw1_DONE;
+mov.u32 %b,0;
+ZERO_lw1:setp.ge.u32 %p,%b,%LW;@%p bra ZERO_lw1_DONE;mul.wide.u32 %offset,%b,8;
+add.u64 %address,%lw1,%offset;st.global.b64 [%address],0;
+add.u32 %b,%b,1;bra ZERO_lw1;
+ZERO_lw1_DONE:
+setp.eq.u32 %p,%scatter,0;@%p bra ZERO_lw2_DONE;
+mov.u32 %b,0;
+ZERO_lw2:setp.ge.u32 %p,%b,%LW;@%p bra ZERO_lw2_DONE;mul.wide.u32 %offset,%b,8;
+add.u64 %address,%lw2,%offset;st.global.b64 [%address],0;
+add.u32 %b,%b,1;bra ZERO_lw2;
+ZERO_lw2_DONE:
+mov.u32 %t,1;
+SPECIES:setp.gt.u32 %p,%t,%types;@%p bra SPECIES_DONE;mov.u64 %descriptor,%ao;cvt.u64.u32 %i64,%t;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],0;st.param.s64 [ak],0;st.param.u32 [ar],1;st.param.u32 [ae],4;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.u32 %klass,[%address];setp.eq.u32 %p,%klass,1;@%p bra SPECIES_NEXT;add.u64 %descriptor,%ao,64;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],0;st.param.s64 [ak],0;st.param.u32 [ar],1;st.param.u32 [ae],4;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.u32 %itype,[%address];mov.u64 %descriptor,%v6;cvt.u64.u32 %i64,%col;cvt.u64.u32 %j64,%j;cvt.u64.u32 %k64,%t;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],%k64;st.param.u32 [ar],3;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.b64 %mix,[%address];
+mov.u32 %b,1;
+SPECIES_sw:setp.gt.u32 %p,%b,%SW;@%p bra SPECIES_sw_DONE;
+setp.eq.u32 %p,%klass,3;@%p bra TABLE_sw0_PHILIC;add.u64 %descriptor,%ao,128;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%itype;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],0;st.param.u32 [ar],2;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+bra TABLE_sw0_LOAD;
+TABLE_sw0_PHILIC:add.u64 %descriptor,%ao,656;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%irh;cvt.u64.u32 %k64,%itype;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],%k64;st.param.u32 [ar],3;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+TABLE_sw0_LOAD:ld.global.b64 %ext,[%address];
+setp.eq.u32 %p,%klass,3;@%p bra TABLE_sw1_PHILIC;add.u64 %descriptor,%ao,216;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%itype;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],0;st.param.u32 [ar],2;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+bra TABLE_sw1_LOAD;
+TABLE_sw1_PHILIC:add.u64 %descriptor,%ao,768;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%irh;cvt.u64.u32 %k64,%itype;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],%k64;st.param.u32 [ar],3;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+TABLE_sw1_LOAD:ld.global.b64 %ssa,[%address];
+setp.eq.u32 %p,%klass,3;@%p bra TABLE_sw2_PHILIC;add.u64 %descriptor,%ao,304;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%itype;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],0;st.param.u32 [ar],2;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+bra TABLE_sw2_LOAD;
+TABLE_sw2_PHILIC:add.u64 %descriptor,%ao,880;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%irh;cvt.u64.u32 %k64,%itype;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],%k64;st.param.u32 [ar],3;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+TABLE_sw2_LOAD:ld.global.b64 %asym,[%address];
+sub.u32 %g,%b,1;mul.wide.u32 %offset,%g,8;
+st.param.b64 [ma],%factor;st.param.b64 [mb],%mix;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%value;st.param.b64 [mb],%ext;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %total,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%sw0,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [ma],%value;st.param.b64 [mb],%total;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%sw0,%offset;st.global.b64 [%address],%value;
+st.param.b64 [ma],%total;st.param.b64 [mb],%ssa;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %scat,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%sw1,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [ma],%value;st.param.b64 [mb],%scat;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%sw1,%offset;st.global.b64 [%address],%value;
+st.param.b64 [ma],%total;st.param.b64 [mb],%ssa;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %moment,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%moment;st.param.b64 [mb],%asym;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %moment,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%sw2,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [ma],%value;st.param.b64 [mb],%moment;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%sw2,%offset;st.global.b64 [%address],%value;
+add.u32 %b,%b,1;bra SPECIES_sw;
+SPECIES_sw_DONE:
+mov.u32 %b,1;
+SPECIES_lw:setp.gt.u32 %p,%b,%LW;@%p bra SPECIES_lw_DONE;
+setp.eq.u32 %p,%klass,3;@%p bra TABLE_lw0_PHILIC;add.u64 %descriptor,%ao,392;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%itype;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],0;st.param.u32 [ar],2;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+bra TABLE_lw0_LOAD;
+TABLE_lw0_PHILIC:add.u64 %descriptor,%ao,992;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%irh;cvt.u64.u32 %k64,%itype;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],%k64;st.param.u32 [ar],3;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+TABLE_lw0_LOAD:ld.global.b64 %ext,[%address];
+setp.eq.u32 %p,%klass,3;@%p bra TABLE_lw1_PHILIC;add.u64 %descriptor,%ao,480;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%itype;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],0;st.param.u32 [ar],2;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+bra TABLE_lw1_LOAD;
+TABLE_lw1_PHILIC:add.u64 %descriptor,%ao,1104;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%irh;cvt.u64.u32 %k64,%itype;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],%k64;st.param.u32 [ar],3;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+TABLE_lw1_LOAD:ld.global.b64 %ssa,[%address];
+setp.eq.u32 %p,%scatter,0;@%p bra LW_NO_ASYM;
+setp.eq.u32 %p,%klass,3;@%p bra TABLE_lw2_PHILIC;add.u64 %descriptor,%ao,568;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%itype;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],0;st.param.u32 [ar],2;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+bra TABLE_lw2_LOAD;
+TABLE_lw2_PHILIC:add.u64 %descriptor,%ao,1216;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%irh;cvt.u64.u32 %k64,%itype;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],%k64;st.param.u32 [ar],3;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+TABLE_lw2_LOAD:ld.global.b64 %asym,[%address];
+LW_NO_ASYM:
+sub.u32 %g,%b,1;mul.wide.u32 %offset,%g,8;
+st.param.b64 [ma],%factor;st.param.b64 [mb],%mix;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%value;st.param.b64 [mb],%ext;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %total,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+setp.eq.u32 %p,%scatter,0;@%p bra SPECIES_LW_ABS;
+add.u64 %address,%lw0,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [ma],%value;st.param.b64 [mb],%total;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%lw0,%offset;st.global.b64 [%address],%value;
+st.param.b64 [ma],%total;st.param.b64 [mb],%ssa;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %scat,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%lw1,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [ma],%value;st.param.b64 [mb],%scat;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%lw1,%offset;st.global.b64 [%address],%value;
+st.param.b64 [ma],%total;st.param.b64 [mb],%ssa;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %moment,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%moment;st.param.b64 [mb],%asym;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %moment,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%lw2,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [ma],%value;st.param.b64 [mb],%moment;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%lw2,%offset;st.global.b64 [%address],%value;
+bra SPECIES_LW_BAND_DONE;
+SPECIES_LW_ABS:
+st.param.b64 [ma],%one;st.param.b64 [mb],%ssa;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%total;st.param.b64 [mb],%value;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %total,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%lw0,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [ma],%value;st.param.b64 [mb],%total;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%lw0,%offset;st.global.b64 [%address],%value;
+SPECIES_LW_BAND_DONE:
+add.u32 %b,%b,1;bra SPECIES_lw;
+SPECIES_lw_DONE:
+SPECIES_NEXT:add.u32 %t,%t,1;bra SPECIES;
+SPECIES_DONE:
+setp.ne.u32 %p,%deferred,0;@%p bra MASS_SW_DELTA_DONE;
+mov.u32 %b,0;
+DELTA_MASS_SW:setp.ge.u32 %p,%b,%SW;@%p bra DELTA_MASS_SW_DONE;mul.wide.u32 %offset,%b,8;
+add.u64 %address,%sw0,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [dt],%value;
+add.u64 %address,%sw1,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [ds],%value;
+add.u64 %address,%sw2,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [dm],%value;
+call.uni (delta),md2asm_gpu_delta_eddington_extensive_values,(dt,ds,dm);ld.param.u32 %raised,[delta+24];or.b32 %flags,%flags,%raised;
+ld.param.b64 %value,[delta+0];
+add.u64 %address,%sw0,%offset;st.global.b64 [%address],%value;
+ld.param.b64 %value,[delta+8];
+add.u64 %address,%sw1,%offset;st.global.b64 [%address],%value;
+ld.param.b64 %value,[delta+16];
+add.u64 %address,%sw2,%offset;st.global.b64 [%address],%value;
+add.u32 %b,%b,1;bra DELTA_MASS_SW;
+DELTA_MASS_SW_DONE:
+MASS_SW_DELTA_DONE:
+add.u64 %address,%sw0,0;ld.global.b64 %value,[%address];
+mov.b64 %fv,%value;setp.gt.f64 %p,%fv,0d0000000000000000;@!%p bra COMBINE_MASS_SW_DONE;
+add.u64 %map,%v3,10928;mov.u32 %g,1;
+COMBINE_MASS_SW:setp.gt.u32 %p,%g,%GS;@%p bra COMBINE_MASS_SW_DONE;cvt.u64.u32 %i64,%g;
+st.param.u64 [ad],%map;st.param.s64 [ai],%i64;st.param.s64 [aj],0;st.param.s64 [ak],0;st.param.u32 [ar],1;st.param.u32 [ae],4;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.u32 %b,[%address];sub.u32 %b,%b,1;mul.wide.u32 %offset,%b,8;
+add.u64 %address,%sw0,%offset;ld.global.b64 %total,[%address];
+add.u64 %address,%sw1,%offset;ld.global.b64 %scat,[%address];
+add.u64 %address,%sw2,%offset;ld.global.b64 %moment,[%address];
+sub.u32 %b,%col,%first;mul.wide.u32 %cell,%b,%N;sub.u32 %b,%j,1;cvt.u64.u32 %tmp,%b;add.u64 %cell,%cell,%tmp;mul.wide.u32 %tmp,%GS,8;mul.lo.u64 %cell,%cell,%tmp;sub.u32 %b,%g,1;mul.wide.u32 %tmp,%b,8;add.u64 %cell,%cell,%tmp;
+add.u64 %address,%v10,%cell;ld.global.b64 %localod,[%address];
+add.u64 %address,%v11,%cell;ld.global.b64 %localscat,[%address];
+st.param.b64 [ma],%localscat;st.param.b64 [mb],%localod;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %localscat,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%localscat;st.param.b64 [mb],%scat;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %localscat,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%localod;st.param.b64 [mb],%total;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %localod,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%moment;st.param.b64 [mb],%localscat;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%v12,%cell;st.global.b64 [%address],%value;
+st.param.b64 [ma],%localscat;st.param.b64 [mb],%localod;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%v11,%cell;st.global.b64 [%address],%value;
+add.u64 %address,%v10,%cell;st.global.b64 [%address],%localod;
+COMBINE_MASS_SW_NEXT:add.u32 %g,%g,1;bra COMBINE_MASS_SW;
+COMBINE_MASS_SW_DONE:
+setp.eq.u32 %p,%scatter,0;@%p bra MASS_LW_DELTA_DONE;
+mov.u32 %b,0;
+DELTA_MASS_LW:setp.ge.u32 %p,%b,%LW;@%p bra DELTA_MASS_LW_DONE;mul.wide.u32 %offset,%b,8;
+add.u64 %address,%lw0,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [dt],%value;
+add.u64 %address,%lw1,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [ds],%value;
+add.u64 %address,%lw2,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [dm],%value;
+call.uni (delta),md2asm_gpu_delta_eddington_extensive_values,(dt,ds,dm);ld.param.u32 %raised,[delta+24];or.b32 %flags,%flags,%raised;
+ld.param.b64 %value,[delta+0];
+add.u64 %address,%lw0,%offset;st.global.b64 [%address],%value;
+ld.param.b64 %value,[delta+8];
+add.u64 %address,%lw1,%offset;st.global.b64 [%address],%value;
+ld.param.b64 %value,[delta+16];
+add.u64 %address,%lw2,%offset;st.global.b64 [%address],%value;
+add.u32 %b,%b,1;bra DELTA_MASS_LW;
+DELTA_MASS_LW_DONE:
+MASS_LW_DELTA_DONE:
+add.u64 %map,%v3,10864;mov.u32 %g,1;
+COMBINE_MASS_LW:setp.gt.u32 %p,%g,%GL;@%p bra COMBINE_MASS_LW_DONE;cvt.u64.u32 %i64,%g;
+st.param.u64 [ad],%map;st.param.s64 [ai],%i64;st.param.s64 [aj],0;st.param.s64 [ak],0;st.param.u32 [ar],1;st.param.u32 [ae],4;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.u32 %b,[%address];sub.u32 %b,%b,1;mul.wide.u32 %offset,%b,8;
+add.u64 %address,%lw0,%offset;ld.global.b64 %total,[%address];
+setp.eq.u32 %p,%scatter,0;@%p bra COMBINE_MASS_LW_ABS;mov.b64 %fv,%total;setp.gt.f64 %p,%fv,0d0000000000000000;@!%p bra COMBINE_MASS_LW_NEXT;
+add.u64 %address,%lw1,%offset;ld.global.b64 %scat,[%address];
+add.u64 %address,%lw2,%offset;ld.global.b64 %moment,[%address];
+sub.u32 %b,%col,%first;mul.wide.u32 %cell,%b,%N;sub.u32 %b,%j,1;cvt.u64.u32 %tmp,%b;add.u64 %cell,%cell,%tmp;mul.wide.u32 %tmp,%GL,8;mul.lo.u64 %cell,%cell,%tmp;sub.u32 %b,%g,1;mul.wide.u32 %tmp,%b,8;add.u64 %cell,%cell,%tmp;
+add.u64 %address,%v7,%cell;ld.global.b64 %localod,[%address];
+mov.b64 %value,0;mov.b64 %fv,%scat;setp.gt.f64 %p,%fv,0d0000000000000000;@!%p bra COMBINE_MASS_LW_G_READY;
+st.param.b64 [ma],%moment;st.param.b64 [mb],%scat;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+COMBINE_MASS_LW_G_READY:
+st.param.b64 [ma],%localod;st.param.b64 [mb],%total;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %localod,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+mov.b64 %localscat,%scat;
+add.u64 %address,%v9,%cell;st.global.b64 [%address],%value;
+st.param.b64 [ma],%localscat;st.param.b64 [mb],%localod;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%v8,%cell;st.global.b64 [%address],%value;
+add.u64 %address,%v7,%cell;st.global.b64 [%address],%localod;
+bra COMBINE_MASS_LW_NEXT;
+COMBINE_MASS_LW_ABS:sub.u32 %b,%col,%first;mul.wide.u32 %cell,%b,%N;sub.u32 %b,%j,1;cvt.u64.u32 %tmp,%b;add.u64 %cell,%cell,%tmp;mul.wide.u32 %tmp,%GL,8;mul.lo.u64 %cell,%cell,%tmp;sub.u32 %b,%g,1;mul.wide.u32 %tmp,%b,8;add.u64 %cell,%cell,%tmp;
+add.u64 %address,%v7,%cell;ld.global.b64 %localod,[%address];
+st.param.b64 [ma],%localod;st.param.b64 [mb],%total;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %localod,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%v7,%cell;st.global.b64 [%address],%localod;
+COMBINE_MASS_LW_NEXT:add.u32 %g,%g,1;bra COMBINE_MASS_LW;
+COMBINE_MASS_LW_DONE:
+add.u32 %col,%col,1;setp.le.u32 %p,%col,%last;@%p bra MASS_COLUMN;add.u32 %j,%j,1;bra MASS_LEVEL;
+DIRECT:
+setp.eq.u32 %p,%doSW,0;@%p bra DIRECT_sw_DONE;
+mul.wide.u32 %size,%N,%active;mul.wide.u32 %tmp,%GS,8;mul.lo.u64 %size,%size,%tmp;mov.u64 %offset,0;
+ZERO_DIRECT_SW:setp.ge.u64 %p,%offset,%size;@%p bra ZERO_DIRECT_SW_DONE;
+add.u64 %address,%v12,%offset;st.global.b64 [%address],0;
+add.u64 %offset,%offset,8;bra ZERO_DIRECT_SW;
+ZERO_DIRECT_SW_DONE:
+setp.eq.u32 %p,%active,0;@%p bra DIRECT_sw_DONE;ld.global.u32 %lolev,[%v6+184];ld.global.u32 %hilev,[%v6+192];mov.u32 %col,%first;
+DIRECT_sw_COL:mov.u32 %j,%lolev;
+DIRECT_sw_LEVEL:setp.gt.s32 %p,%j,%hilev;@%p bra DIRECT_sw_COL_DONE;
+mov.u32 %b,1;
+DIRECT_sw_STAGE0:setp.gt.u32 %p,%b,%SW;@%p bra DIRECT_sw_STAGE0_DONE;sub.u32 %g,%b,1;mul.wide.u32 %offset,%g,8;
+add.u64 %descriptor,%v6,112;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%j;cvt.u64.u32 %k64,%col;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],%k64;st.param.u32 [ar],3;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.b64 %value,[%address];
+add.u64 %address,%sw0,%offset;st.global.b64 [%address],%value;
+add.u32 %b,%b,1;bra DIRECT_sw_STAGE0;
+DIRECT_sw_STAGE0_DONE:
+mov.u32 %b,1;
+DIRECT_sw_STAGE1:setp.gt.u32 %p,%b,%SW;@%p bra DIRECT_sw_STAGE1_DONE;sub.u32 %g,%b,1;mul.wide.u32 %offset,%g,8;
+add.u64 %descriptor,%v6,224;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%j;cvt.u64.u32 %k64,%col;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],%k64;st.param.u32 [ar],3;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.b64 %value,[%address];
+add.u64 %address,%sw0,%offset;ld.global.b64 %value2,[%address];
+st.param.b64 [ma],%value;st.param.b64 [mb],%value2;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%sw1,%offset;st.global.b64 [%address],%value;
+add.u32 %b,%b,1;bra DIRECT_sw_STAGE1;
+DIRECT_sw_STAGE1_DONE:
+mov.u32 %b,1;
+DIRECT_sw_STAGE2:setp.gt.u32 %p,%b,%SW;@%p bra DIRECT_sw_STAGE2_DONE;sub.u32 %g,%b,1;mul.wide.u32 %offset,%g,8;
+add.u64 %descriptor,%v6,336;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%j;cvt.u64.u32 %k64,%col;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],%k64;st.param.u32 [ar],3;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.b64 %value,[%address];
+add.u64 %address,%sw1,%offset;ld.global.b64 %value2,[%address];
+st.param.b64 [ma],%value;st.param.b64 [mb],%value2;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%sw2,%offset;st.global.b64 [%address],%value;
+add.u32 %b,%b,1;bra DIRECT_sw_STAGE2;
+DIRECT_sw_STAGE2_DONE:
+setp.ne.u32 %p,%deferred,0;@%p bra DIRECT_SW_DELTA_DONE;
+mov.u32 %b,0;
+DELTA_DIRECT_SW:setp.ge.u32 %p,%b,%SW;@%p bra DELTA_DIRECT_SW_DONE;mul.wide.u32 %offset,%b,8;
+add.u64 %address,%sw0,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [dt],%value;
+add.u64 %address,%sw1,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [ds],%value;
+add.u64 %address,%sw2,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [dm],%value;
+call.uni (delta),md2asm_gpu_delta_eddington_extensive_values,(dt,ds,dm);ld.param.u32 %raised,[delta+24];or.b32 %flags,%flags,%raised;
+ld.param.b64 %value,[delta+0];
+add.u64 %address,%sw0,%offset;st.global.b64 [%address],%value;
+ld.param.b64 %value,[delta+8];
+add.u64 %address,%sw1,%offset;st.global.b64 [%address],%value;
+ld.param.b64 %value,[delta+16];
+add.u64 %address,%sw2,%offset;st.global.b64 [%address],%value;
+add.u32 %b,%b,1;bra DELTA_DIRECT_SW;
+DELTA_DIRECT_SW_DONE:
+DIRECT_SW_DELTA_DONE:
+add.u64 %address,%sw0,0;ld.global.b64 %value,[%address];
+mov.b64 %fv,%value;setp.gt.f64 %p,%fv,0d0000000000000000;@!%p bra COMBINE_DIRECT_sw_DONE;
+add.u64 %map,%v3,10928;mov.u32 %g,1;
+COMBINE_DIRECT_sw:setp.gt.u32 %p,%g,%GS;@%p bra COMBINE_DIRECT_sw_DONE;cvt.u64.u32 %i64,%g;
+st.param.u64 [ad],%map;st.param.s64 [ai],%i64;st.param.s64 [aj],0;st.param.s64 [ak],0;st.param.u32 [ar],1;st.param.u32 [ae],4;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.u32 %b,[%address];sub.u32 %b,%b,1;mul.wide.u32 %offset,%b,8;
+add.u64 %address,%sw0,%offset;ld.global.b64 %total,[%address];
+add.u64 %address,%sw1,%offset;ld.global.b64 %scat,[%address];
+add.u64 %address,%sw2,%offset;ld.global.b64 %moment,[%address];
+sub.u32 %b,%col,%first;mul.wide.u32 %cell,%b,%N;sub.u32 %b,%j,1;cvt.u64.u32 %tmp,%b;add.u64 %cell,%cell,%tmp;mul.wide.u32 %tmp,%GS,8;mul.lo.u64 %cell,%cell,%tmp;sub.u32 %b,%g,1;mul.wide.u32 %tmp,%b,8;add.u64 %cell,%cell,%tmp;
+add.u64 %address,%v10,%cell;ld.global.b64 %localod,[%address];
+add.u64 %address,%v11,%cell;ld.global.b64 %localscat,[%address];
+st.param.b64 [ma],%localscat;st.param.b64 [mb],%localod;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %localscat,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%localscat;st.param.b64 [mb],%scat;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %localscat,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%localod;st.param.b64 [mb],%total;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %localod,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%moment;st.param.b64 [mb],%localscat;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%v12,%cell;st.global.b64 [%address],%value;
+st.param.b64 [ma],%localscat;st.param.b64 [mb],%localod;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%v11,%cell;st.global.b64 [%address],%value;
+add.u64 %address,%v10,%cell;st.global.b64 [%address],%localod;
+COMBINE_DIRECT_sw_NEXT:add.u32 %g,%g,1;bra COMBINE_DIRECT_sw;
+COMBINE_DIRECT_sw_DONE:
+add.u32 %j,%j,1;bra DIRECT_sw_LEVEL;
+DIRECT_sw_COL_DONE:add.u32 %col,%col,1;setp.le.u32 %p,%col,%last;@%p bra DIRECT_sw_COL;
+DIRECT_sw_DONE:
+setp.eq.u32 %p,%doLW,0;@%p bra DIRECT_lw_DONE;
+setp.eq.u32 %p,%scatter,0;@%p bra DIRECT_LW_ZERO_DONE;
+mul.wide.u32 %size,%N,%active;mul.wide.u32 %tmp,%GL,8;mul.lo.u64 %size,%size,%tmp;mov.u64 %offset,0;
+ZERO_DIRECT_LWS:setp.ge.u64 %p,%offset,%size;@%p bra ZERO_DIRECT_LWS_DONE;
+add.u64 %address,%v8,%offset;st.global.b64 [%address],0;
+add.u64 %offset,%offset,8;bra ZERO_DIRECT_LWS;
+ZERO_DIRECT_LWS_DONE:
+mul.wide.u32 %size,%N,%active;mul.wide.u32 %tmp,%GL,8;mul.lo.u64 %size,%size,%tmp;mov.u64 %offset,0;
+ZERO_DIRECT_LWG:setp.ge.u64 %p,%offset,%size;@%p bra ZERO_DIRECT_LWG_DONE;
+add.u64 %address,%v9,%offset;st.global.b64 [%address],0;
+add.u64 %offset,%offset,8;bra ZERO_DIRECT_LWG;
+ZERO_DIRECT_LWG_DONE:
+DIRECT_LW_ZERO_DONE:
+setp.eq.u32 %p,%active,0;@%p bra DIRECT_lw_DONE;ld.global.u32 %lolev,[%v6+520];ld.global.u32 %hilev,[%v6+528];mov.u32 %col,%first;
+DIRECT_lw_COL:mov.u32 %j,%lolev;
+DIRECT_lw_LEVEL:setp.gt.s32 %p,%j,%hilev;@%p bra DIRECT_lw_COL_DONE;
+mov.u32 %b,1;
+DIRECT_lw_STAGE0:setp.gt.u32 %p,%b,%LW;@%p bra DIRECT_lw_STAGE0_DONE;sub.u32 %g,%b,1;mul.wide.u32 %offset,%g,8;
+add.u64 %descriptor,%v6,448;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%j;cvt.u64.u32 %k64,%col;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],%k64;st.param.u32 [ar],3;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.b64 %value,[%address];
+setp.ne.u32 %p,%scatter,0;@%p bra DIRECT_LW_EXT_READY;mov.b64 %total,%value;add.u64 %descriptor,%v6,560;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%j;cvt.u64.u32 %k64,%col;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],%k64;st.param.u32 [ar],3;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.b64 %ssa,[%address];
+st.param.b64 [ma],%one;st.param.b64 [mb],%ssa;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%total;st.param.b64 [mb],%value;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+DIRECT_LW_EXT_READY:
+add.u64 %address,%lw0,%offset;st.global.b64 [%address],%value;
+add.u32 %b,%b,1;bra DIRECT_lw_STAGE0;
+DIRECT_lw_STAGE0_DONE:
+setp.eq.u32 %p,%scatter,0;@%p bra DIRECT_lw_STAGE1_DONE;
+mov.u32 %b,1;
+DIRECT_lw_STAGE1:setp.gt.u32 %p,%b,%LW;@%p bra DIRECT_lw_STAGE1_DONE;sub.u32 %g,%b,1;mul.wide.u32 %offset,%g,8;
+add.u64 %descriptor,%v6,560;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%j;cvt.u64.u32 %k64,%col;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],%k64;st.param.u32 [ar],3;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.b64 %value,[%address];
+add.u64 %address,%lw0,%offset;ld.global.b64 %value2,[%address];
+st.param.b64 [ma],%value;st.param.b64 [mb],%value2;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+setp.eq.u32 %p,%scatter,0;@%p bra DIRECT_lw_STAGE1_DONE;
+add.u64 %address,%lw1,%offset;st.global.b64 [%address],%value;
+add.u32 %b,%b,1;bra DIRECT_lw_STAGE1;
+DIRECT_lw_STAGE1_DONE:
+setp.eq.u32 %p,%scatter,0;@%p bra DIRECT_lw_STAGE2_DONE;
+mov.u32 %b,1;
+DIRECT_lw_STAGE2:setp.gt.u32 %p,%b,%LW;@%p bra DIRECT_lw_STAGE2_DONE;sub.u32 %g,%b,1;mul.wide.u32 %offset,%g,8;
+add.u64 %descriptor,%v6,672;cvt.u64.u32 %i64,%b;cvt.u64.u32 %j64,%j;cvt.u64.u32 %k64,%col;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],%j64;st.param.s64 [ak],%k64;st.param.u32 [ar],3;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.b64 %value,[%address];
+add.u64 %address,%lw1,%offset;ld.global.b64 %value2,[%address];
+st.param.b64 [ma],%value;st.param.b64 [mb],%value2;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%lw2,%offset;st.global.b64 [%address],%value;
+add.u32 %b,%b,1;bra DIRECT_lw_STAGE2;
+DIRECT_lw_STAGE2_DONE:
+setp.eq.u32 %p,%scatter,0;@%p bra DIRECT_LW_DELTA_DONE;
+mov.u32 %b,0;
+DELTA_DIRECT_LW:setp.ge.u32 %p,%b,%LW;@%p bra DELTA_DIRECT_LW_DONE;mul.wide.u32 %offset,%b,8;
+add.u64 %address,%lw0,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [dt],%value;
+add.u64 %address,%lw1,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [ds],%value;
+add.u64 %address,%lw2,%offset;ld.global.b64 %value,[%address];
+st.param.b64 [dm],%value;
+call.uni (delta),md2asm_gpu_delta_eddington_extensive_values,(dt,ds,dm);ld.param.u32 %raised,[delta+24];or.b32 %flags,%flags,%raised;
+ld.param.b64 %value,[delta+0];
+add.u64 %address,%lw0,%offset;st.global.b64 [%address],%value;
+ld.param.b64 %value,[delta+8];
+add.u64 %address,%lw1,%offset;st.global.b64 [%address],%value;
+ld.param.b64 %value,[delta+16];
+add.u64 %address,%lw2,%offset;st.global.b64 [%address],%value;
+add.u32 %b,%b,1;bra DELTA_DIRECT_LW;
+DELTA_DIRECT_LW_DONE:
+DIRECT_LW_DELTA_DONE:
+add.u64 %map,%v3,10864;mov.u32 %g,1;
+COMBINE_DIRECT_lw:setp.gt.u32 %p,%g,%GL;@%p bra COMBINE_DIRECT_lw_DONE;cvt.u64.u32 %i64,%g;
+st.param.u64 [ad],%map;st.param.s64 [ai],%i64;st.param.s64 [aj],0;st.param.s64 [ak],0;st.param.u32 [ar],1;st.param.u32 [ae],4;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.u32 %b,[%address];sub.u32 %b,%b,1;mul.wide.u32 %offset,%b,8;
+add.u64 %address,%lw0,%offset;ld.global.b64 %total,[%address];
+setp.eq.u32 %p,%scatter,0;@%p bra COMBINE_DIRECT_lw_ABS;mov.b64 %fv,%total;setp.gt.f64 %p,%fv,0d0000000000000000;@!%p bra COMBINE_DIRECT_lw_NEXT;
+add.u64 %address,%lw1,%offset;ld.global.b64 %scat,[%address];
+add.u64 %address,%lw2,%offset;ld.global.b64 %moment,[%address];
+sub.u32 %b,%col,%first;mul.wide.u32 %cell,%b,%N;sub.u32 %b,%j,1;cvt.u64.u32 %tmp,%b;add.u64 %cell,%cell,%tmp;mul.wide.u32 %tmp,%GL,8;mul.lo.u64 %cell,%cell,%tmp;sub.u32 %b,%g,1;mul.wide.u32 %tmp,%b,8;add.u64 %cell,%cell,%tmp;
+add.u64 %address,%v7,%cell;ld.global.b64 %localod,[%address];
+mov.b64 %value,0;mov.b64 %fv,%scat;setp.gt.f64 %p,%fv,0d0000000000000000;@!%p bra COMBINE_DIRECT_lw_G_READY;
+st.param.b64 [ma],%moment;st.param.b64 [mb],%scat;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+COMBINE_DIRECT_lw_G_READY:
+st.param.b64 [ma],%localod;st.param.b64 [mb],%total;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %localod,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+mov.b64 %localscat,%scat;
+add.u64 %address,%v9,%cell;st.global.b64 [%address],%value;
+st.param.b64 [ma],%localscat;st.param.b64 [mb],%localod;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%v8,%cell;st.global.b64 [%address],%value;
+add.u64 %address,%v7,%cell;st.global.b64 [%address],%localod;
+bra COMBINE_DIRECT_lw_NEXT;
+COMBINE_DIRECT_lw_ABS:sub.u32 %b,%col,%first;mul.wide.u32 %cell,%b,%N;sub.u32 %b,%j,1;cvt.u64.u32 %tmp,%b;add.u64 %cell,%cell,%tmp;mul.wide.u32 %tmp,%GL,8;mul.lo.u64 %cell,%cell,%tmp;sub.u32 %b,%g,1;mul.wide.u32 %tmp,%b,8;add.u64 %cell,%cell,%tmp;
+add.u64 %address,%v7,%cell;ld.global.b64 %localod,[%address];
+st.param.b64 [ma],%localod;st.param.b64 [mb],%total;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %localod,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %address,%v7,%cell;st.global.b64 [%address],%localod;
+COMBINE_DIRECT_lw_NEXT:add.u32 %g,%g,1;bra COMBINE_DIRECT_lw;
+COMBINE_DIRECT_lw_DONE:
+add.u32 %j,%j,1;bra DIRECT_lw_LEVEL;
+DIRECT_lw_COL_DONE:add.u32 %col,%col,1;setp.le.u32 %p,%col,%last;@%p bra DIRECT_lw_COL;
+DIRECT_lw_DONE:
+COMPLETE:st.param.u32 [result],%flags;ret;
+}
+.func (.param .u32 result) aerosol_admit_descriptor(.param .u64 descriptor,.param .u32 rank,.param .u32 element,.param .s64 lo0,.param .s64 hi0,.param .s64 lo1,.param .s64 hi1,.param .s64 lo2,.param .s64 hi2,.param .u64 owners)
+{
+ .reg .u64 %d,%list,%low,%span,%a,%lo<3>,%hi<3>,%givenlo,%givenhi;.reg .u32 %rank,%e,%error;.reg .pred %p;
+ .param .u64 gd,rb,rn,rm,rl;.param .u32 gr,ge,rc,rr;.param .align 8 .b8 geometry[128];
+ ld.param.u64 %d,[descriptor];ld.param.u32 %rank,[rank];ld.param.u32 %e,[element];ld.param.u64 %list,[owners];
+ld.param.s64 %lo0,[lo0];ld.param.s64 %hi0,[hi0];
+ld.param.s64 %lo1,[lo1];ld.param.s64 %hi1,[hi1];
+ld.param.s64 %lo2,[lo2];ld.param.s64 %hi2,[hi2];
+st.param.u64 [gd],%d;st.param.u32 [gr],%rank;st.param.u32 [ge],%e;call.uni (geometry),aerosol_geometry,(gd,gr,ge);ld.param.u32 %error,[geometry+104];setp.ne.u32 %p,%error,0;@%p bra DONE;mov.u32 %error,512;
+setp.le.u32 %p,%rank,0;@%p bra BOUNDS_DONE;setp.gt.s64 %p,%lo0,%hi0;@%p bra BOUNDS_0_DONE;ld.param.s64 %givenlo,[geometry+56];ld.param.s64 %givenhi,[geometry+64];setp.gt.s64 %p,%givenlo,%lo0;@%p bra DONE;setp.lt.s64 %p,%givenhi,%hi0;@%p bra DONE;
+BOUNDS_0_DONE:
+setp.le.u32 %p,%rank,1;@%p bra BOUNDS_DONE;setp.gt.s64 %p,%lo1,%hi1;@%p bra BOUNDS_1_DONE;ld.param.s64 %givenlo,[geometry+72];ld.param.s64 %givenhi,[geometry+80];setp.gt.s64 %p,%givenlo,%lo1;@%p bra DONE;setp.lt.s64 %p,%givenhi,%hi1;@%p bra DONE;
+BOUNDS_1_DONE:
+setp.le.u32 %p,%rank,2;@%p bra BOUNDS_DONE;setp.gt.s64 %p,%lo2,%hi2;@%p bra BOUNDS_2_DONE;ld.param.s64 %givenlo,[geometry+88];ld.param.s64 %givenhi,[geometry+96];setp.gt.s64 %p,%givenlo,%lo2;@%p bra DONE;setp.lt.s64 %p,%givenhi,%hi2;@%p bra DONE;
+BOUNDS_2_DONE:
+BOUNDS_DONE:ld.param.u64 %low,[geometry+40];ld.param.u64 %span,[geometry+48];st.param.u64 [rb],%low;st.param.u64 [rn],%span;cvt.u64.u32 %a,%e;sub.u64 %a,%a,1;st.param.u64 [rm],%a;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),aerosol_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];
+DONE:st.param.u32 [result],%error;ret;
+}
+.visible .func md2asm_gpu_aerosol_optics_fp64(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%v<13>,%list,%scratch,%capacity,%needed,%bytes<6>,%size,%tmp,%address,%base,%descriptor,%ao,%map,%first64,%last64,%N64,%types64,%SW64,%LW64,%GS64,%GL64,%nrh64,%itype64,%lolev,%hilev,%i64,%j64,%k64,%low,%high,%stride,%offset,%cells,%word,%nc64;
+ .reg .u32 %unique,%rt,%error,%N,%first,%last,%active,%SW,%LW,%GS,%GL,%scatter,%deferred,%direct,%doSW,%doLW,%types,%i,%j,%k,%klass,%itype,%nrh,%philic,%havephilic,%present,%nc,%unit,%flags;
+ .reg .b64 %previous,%current;.reg .f64 %pv,%cv;.reg .pred %p;
+ .local .align 8 .b8 spans[128];
+ .param .u64 rb,rn,rm,rl,dd,dos,ad,aa,ca,cs;.param .u32 rc,rr,dr,de,derr,ar,ae,cr;.param .s64 dl0,dh0,dl1,dh1,dl2,dh2,ai,aj,ak;
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %tmp,%ctx,7;setp.ne.u64 %p,%tmp,0;@%p ret;mov.u32 %unique,%ctaid.x;mov.u32 %rt,%ctaid.y;or.b32 %unique,%unique,%rt;mov.u32 %rt,%ctaid.z;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.x;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.y;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.z;or.b32 %unique,%unique,%rt;setp.ne.u32 %p,%unique,0;@%p ret;ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;mov.u32 %error,511;
+mov.u32 %rt,%ntid.x;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%ntid.y;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%ntid.z;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%nctaid.x;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%nctaid.y;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%nctaid.z;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%dynamic_smem_size;setp.ne.u32 %p,%rt,0;@%p bra REFUSE;ld.global.u32 %rt,[%ctx+4];setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u64 %list,spans;cvta.local.u64 %list,%list;st.u64 [%list],%ctx;st.u64 [%list+8],64;
+st.param.u64 [rb],%args;st.param.u64 [rn],104;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),aerosol_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ld.global.u64 %v5,[%args+40];
+ld.global.u64 %v6,[%args+48];
+ld.global.u64 %v7,[%args+56];
+ld.global.u64 %v8,[%args+64];
+ld.global.u64 %v9,[%args+72];
+ld.global.u64 %v10,[%args+80];
+ld.global.u64 %v11,[%args+88];
+ld.global.u64 %v12,[%args+96];
+st.param.u64 [rb],%v0;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),aerosol_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v1;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),aerosol_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v2;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),aerosol_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v3;st.param.u64 [rn],20040;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),aerosol_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v6;st.param.u64 [rn],800;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],1;call.uni (rr),aerosol_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u32 %N,[%v0];ld.global.u32 %first,[%v1];ld.global.u32 %last,[%v2];mov.u32 %error,512;setp.gt.u32 %p,%N,256;@%p bra REFUSE;setp.lt.s32 %p,%first,1;@%p bra REFUSE;setp.gt.u32 %p,%first,4097;@%p bra REFUSE;sub.u32 %rt,%first,1;setp.lt.s32 %p,%last,%rt;@%p bra REFUSE;setp.gt.u32 %p,%last,4096;@%p bra REFUSE;sub.u32 %active,%last,%first;add.u32 %active,%active,1;setp.gt.u32 %p,%active,512;@%p bra REFUSE;
+ ld.global.u32 %SW,[%v3+20004];ld.global.u32 %LW,[%v3+20008];ld.global.u32 %GS,[%v3+19996];ld.global.u32 %GL,[%v3+20000];setp.lt.s32 %p,%SW,1;@%p bra REFUSE;setp.gt.u32 %p,%SW,64;@%p bra REFUSE;setp.lt.s32 %p,%LW,1;@%p bra REFUSE;setp.gt.u32 %p,%LW,64;@%p bra REFUSE;setp.gt.u32 %p,%GS,4096;@%p bra REFUSE;setp.gt.u32 %p,%GL,4096;@%p bra REFUSE;ld.global.u32 %types,[%v3+6912];setp.gt.u32 %p,%types,256;@%p bra REFUSE;ld.global.s32 %rt,[%v3+7972];setp.ge.s32 %p,%rt,2;@%p bra REFUSE;
+ld.global.u32 %scatter,[%v3+612];setp.gt.u32 %p,%scatter,1;@%p bra REFUSE;
+ld.global.u32 %deferred,[%v3+628];setp.gt.u32 %p,%deferred,1;@%p bra REFUSE;
+ld.global.u32 %doSW,[%v3+6852];setp.gt.u32 %p,%doSW,1;@%p bra REFUSE;
+ld.global.u32 %doLW,[%v3+6848];setp.gt.u32 %p,%doLW,1;@%p bra REFUSE;
+ld.global.u32 %direct,[%v6+792];setp.gt.u32 %p,%direct,1;@%p bra REFUSE;
+ld.global.u32 %rt,[%v3+20020];setp.ne.u32 %p,%scatter,0;@%p bra REQUIRE_SCATTER_POINTS;setp.eq.u32 %p,%rt,0;@%p bra SCATTER_POINTS_READY;REQUIRE_SCATTER_POINTS:setp.ne.u32 %p,%rt,%GL;@%p bra REFUSE;SCATTER_POINTS_READY:ld.global.u32 %rt,[%v3+20024];setp.ne.u32 %p,%scatter,0;@%p bra REQUIRE_SCATTER_BANDS;setp.eq.u32 %p,%rt,0;@%p bra SCATTER_BANDS_READY;REQUIRE_SCATTER_BANDS:setp.ne.u32 %p,%rt,%LW;@%p bra REFUSE;SCATTER_BANDS_READY:
+ cvt.u64.u32 %first64,%first;cvt.u64.u32 %last64,%last;cvt.u64.u32 %N64,%N;cvt.u64.u32 %types64,%types;cvt.u64.u32 %SW64,%SW;cvt.u64.u32 %LW64,%LW;cvt.u64.u32 %GS64,%GS;cvt.u64.u32 %GL64,%GL;mul.wide.u32 %cells,%active,%N;mul.wide.u32 %tmp,%GS,8;mul.lo.u64 %bytes3,%cells,%tmp;mov.u64 %bytes4,%bytes3;mov.u64 %bytes5,%bytes3;mul.wide.u32 %tmp,%GL,8;mul.lo.u64 %bytes0,%cells,%tmp;mov.u64 %bytes1,%bytes0;mov.u64 %bytes2,%bytes0;ld.global.u32 %rt,[%v3+20020];setp.ne.u32 %p,%rt,0;@%p bra LW_SIZE_READY;mov.u64 %bytes1,0;mov.u64 %bytes2,0;
+LW_SIZE_READY:setp.eq.u32 %p,%direct,0;@%p bra OUTPUT_SIZES_READY;setp.ne.u32 %p,%doSW,0;@%p bra DIRECT_SW_SIZE;mov.u64 %bytes3,0;mov.u64 %bytes4,0;mov.u64 %bytes5,0;
+DIRECT_SW_SIZE:setp.ne.u32 %p,%doLW,0;@%p bra OUTPUT_SIZES_READY;mov.u64 %bytes0,0;mov.u64 %bytes1,0;mov.u64 %bytes2,0;
+OUTPUT_SIZES_READY:shl.b64 %needed,%cells,3;add.u32 %rt,%SW,%LW;mul.wide.u32 %tmp,%rt,24;add.u64 %needed,%needed,%tmp;add.u64 %needed,%needed,1280;ld.global.u64 %scratch,[%ctx+32];ld.global.u64 %capacity,[%ctx+40];mov.u32 %error,513;setp.lt.u64 %p,%capacity,%needed;@%p bra REFUSE;
+st.u64 [%list+0],%v7;st.u64 [%list+8],%bytes0;
+st.u64 [%list+16],%v8;st.u64 [%list+24],%bytes1;
+st.u64 [%list+32],%v9;st.u64 [%list+40],%bytes2;
+st.u64 [%list+48],%v10;st.u64 [%list+56],%bytes3;
+st.u64 [%list+64],%v11;st.u64 [%list+72],%bytes4;
+st.u64 [%list+80],%v12;st.u64 [%list+88],%bytes5;
+st.u64 [%list+96],%scratch;st.u64 [%list+104],%needed;st.u64 [%list+112],%ctx;st.u64 [%list+120],64;mov.u32 %i,0;
+MUTABLE:mul.wide.u32 %address,%i,16;add.u64 %address,%address,%list;ld.u64 %base,[%address];ld.u64 %size,[%address+8];
+st.param.u64 [rb],%base;st.param.u64 [rn],%size;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],%i;call.uni (rr),aerosol_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+add.u32 %i,%i,1;setp.lt.u32 %p,%i,8;@%p bra MUTABLE;
+st.param.u64 [rb],%args;st.param.u64 [rn],104;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),aerosol_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v0;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),aerosol_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v1;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),aerosol_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v2;st.param.u64 [rn],4;st.param.u64 [rm],3;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),aerosol_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v3;st.param.u64 [rn],20040;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),aerosol_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v6;st.param.u64 [rn],800;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),aerosol_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.ne.u32 %p,%direct,0;@%p bra DIRECT_ADMISSION;
+st.param.u64 [rb],%v4;st.param.u64 [rn],264;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),aerosol_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%v5;st.param.u64 [rn],416;st.param.u64 [rm],7;st.param.u64 [rl],%list;st.param.u32 [rc],8;call.uni (rr),aerosol_range,(rb,rn,rm,rl,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u32 %nc,[%v5+356];ld.global.u32 %rt,[%v5+360];mov.u32 %error,512;setp.ne.u32 %p,%rt,%N;@%p bra REFUSE;setp.lt.s32 %p,%nc,1;@%p bra REFUSE;setp.gt.u32 %p,%nc,4096;@%p bra REFUSE;setp.gt.u32 %p,%first,%nc;@%p bra REFUSE;setp.lt.s32 %p,%last,1;@%p bra REFUSE;setp.gt.u32 %p,%last,%nc;@%p bra REFUSE;ld.global.u32 %present,[%v5+256];setp.gt.u32 %p,%present,1;@%p bra REFUSE;setp.eq.u32 %p,%present,0;@%p bra GAS_ADMITTED;ld.global.u32 %unit,[%v5];setp.gt.u32 %p,%unit,1;@%p bra REFUSE;ld.global.b64 %word,[%v5+48];setp.eq.u64 %p,%word,0;@%p bra REFUSE;setp.ge.u64 %p,%word,0x7ff0000000000000;@%p bra REFUSE;setp.eq.u64 %p,%cells,0;@%p bra GAS_ADMITTED;
+ add.u64 %descriptor,%v5,144;cvt.u64.u32 %nc64,%nc;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],3;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%nc64;
+st.param.s64 [dl1],1;st.param.s64 [dh1],%N64;
+st.param.s64 [dl2],1;st.param.s64 [dh2],12;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %error,512;mul.wide.u32 %tmp,%nc,%N;add.u64 %word,%tmp,%nc64;add.u64 %word,%word,1;neg.s64 %word,%word;ld.global.s64 %offset,[%v5+152];setp.ne.u64 %p,%offset,%word;@%p bra REFUSE;
+ld.global.s64 %word,[%v5+184];setp.ne.u64 %p,%word,1;@%p bra REFUSE;
+ld.global.s64 %word,[%v5+192];setp.ne.u64 %p,%word,1;@%p bra REFUSE;
+ld.global.s64 %word,[%v5+200];setp.ne.u64 %p,%word,%nc64;@%p bra REFUSE;
+ld.global.s64 %word,[%v5+208];setp.ne.u64 %p,%word,%nc64;@%p bra REFUSE;
+ld.global.s64 %word,[%v5+216];setp.ne.u64 %p,%word,1;@%p bra REFUSE;
+ld.global.s64 %word,[%v5+224];setp.ne.u64 %p,%word,%N64;@%p bra REFUSE;
+ld.global.s64 %word,[%v5+232];setp.ne.u64 %p,%word,%tmp;@%p bra REFUSE;
+ld.global.s64 %word,[%v5+240];setp.ne.u64 %p,%word,1;@%p bra REFUSE;
+ld.global.s64 %word,[%v5+248];setp.ne.u64 %p,%word,12;@%p bra REFUSE;
+GAS_ADMITTED:add.u64 %ao,%v3,11608;ld.global.u32 %nrh,[%ao+6204];ld.global.u32 %philic,[%ao+6220];mov.u32 %error,512;setp.gt.u32 %p,%philic,1;@%p bra REFUSE;setp.eq.u32 %p,%types,0;@%p bra SPECIES_ADMISSION_DONE;mov.u64 %descriptor,%ao;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],1;st.param.u32 [de],4;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%types64;
+st.param.s64 [dl1],0;st.param.s64 [dh1],-1;
+st.param.s64 [dl2],0;st.param.s64 [dh2],-1;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+add.u64 %descriptor,%ao,64;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],1;st.param.u32 [de],4;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%types64;
+st.param.s64 [dl1],0;st.param.s64 [dh1],-1;
+st.param.s64 [dl2],0;st.param.s64 [dh2],-1;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %i,1;
+SPECIES_ADMISSION:mov.u64 %descriptor,%ao;cvt.u64.u32 %i64,%i;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],0;st.param.s64 [ak],0;st.param.u32 [ar],1;st.param.u32 [ae],4;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.u32 %klass,[%address];mov.u32 %error,512;setp.lt.u32 %p,%klass,1;@%p bra REFUSE;setp.gt.u32 %p,%klass,3;@%p bra REFUSE;setp.eq.u32 %p,%klass,1;@%p bra SPECIES_ADMISSION_NEXT;add.u64 %descriptor,%ao,64;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],0;st.param.s64 [ak],0;st.param.u32 [ar],1;st.param.u32 [ae],4;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.u32 %itype,[%address];cvt.u64.u32 %itype64,%itype;setp.eq.u32 %p,%klass,3;@%p bra PHILIC_TABLES;
+add.u64 %descriptor,%ao,128;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],2;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%SW64;
+st.param.s64 [dl1],%itype64;st.param.s64 [dh1],%itype64;
+st.param.s64 [dl2],0;st.param.s64 [dh2],-1;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+add.u64 %descriptor,%ao,216;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],2;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%SW64;
+st.param.s64 [dl1],%itype64;st.param.s64 [dh1],%itype64;
+st.param.s64 [dl2],0;st.param.s64 [dh2],-1;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+add.u64 %descriptor,%ao,304;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],2;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%SW64;
+st.param.s64 [dl1],%itype64;st.param.s64 [dh1],%itype64;
+st.param.s64 [dl2],0;st.param.s64 [dh2],-1;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+add.u64 %descriptor,%ao,392;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],2;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%LW64;
+st.param.s64 [dl1],%itype64;st.param.s64 [dh1],%itype64;
+st.param.s64 [dl2],0;st.param.s64 [dh2],-1;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+add.u64 %descriptor,%ao,480;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],2;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%LW64;
+st.param.s64 [dl1],%itype64;st.param.s64 [dh1],%itype64;
+st.param.s64 [dl2],0;st.param.s64 [dh2],-1;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.eq.u32 %p,%scatter,0;@%p bra PHOBIC_TABLES_DONE;
+add.u64 %descriptor,%ao,568;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],2;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%LW64;
+st.param.s64 [dl1],%itype64;st.param.s64 [dh1],%itype64;
+st.param.s64 [dl2],0;st.param.s64 [dh2],-1;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+PHOBIC_TABLES_DONE:bra SPECIES_ADMISSION_NEXT;
+PHILIC_TABLES:mov.u32 %error,512;setp.eq.u32 %p,%philic,0;@%p bra REFUSE;cvt.u64.u32 %nrh64,%nrh;
+add.u64 %descriptor,%ao,656;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],3;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%SW64;
+st.param.s64 [dl1],1;st.param.s64 [dh1],%nrh64;
+st.param.s64 [dl2],%itype64;st.param.s64 [dh2],%itype64;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+add.u64 %descriptor,%ao,768;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],3;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%SW64;
+st.param.s64 [dl1],1;st.param.s64 [dh1],%nrh64;
+st.param.s64 [dl2],%itype64;st.param.s64 [dh2],%itype64;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+add.u64 %descriptor,%ao,880;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],3;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%SW64;
+st.param.s64 [dl1],1;st.param.s64 [dh1],%nrh64;
+st.param.s64 [dl2],%itype64;st.param.s64 [dh2],%itype64;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+add.u64 %descriptor,%ao,992;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],3;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%LW64;
+st.param.s64 [dl1],1;st.param.s64 [dh1],%nrh64;
+st.param.s64 [dl2],%itype64;st.param.s64 [dh2],%itype64;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+add.u64 %descriptor,%ao,1104;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],3;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%LW64;
+st.param.s64 [dl1],1;st.param.s64 [dh1],%nrh64;
+st.param.s64 [dl2],%itype64;st.param.s64 [dh2],%itype64;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.eq.u32 %p,%scatter,0;@%p bra PHILIC_TABLES_DONE;
+add.u64 %descriptor,%ao,1216;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],3;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%LW64;
+st.param.s64 [dl1],1;st.param.s64 [dh1],%nrh64;
+st.param.s64 [dl2],%itype64;st.param.s64 [dh2],%itype64;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+PHILIC_TABLES_DONE:
+SPECIES_ADMISSION_NEXT:add.u32 %i,%i,1;setp.le.u32 %p,%i,%types;@%p bra SPECIES_ADMISSION;
+SPECIES_ADMISSION_DONE:mov.u64 %descriptor,%v6;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],3;st.param.u32 [de],8;
+st.param.s64 [dl0],%first64;st.param.s64 [dh0],%last64;
+st.param.s64 [dl1],0;st.param.s64 [dh1],-1;
+st.param.s64 [dl2],1;st.param.s64 [dh2],%types64;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %error,512;ld.global.s64 %word,[%v6+104];setp.ne.u64 %p,%word,%types64;@%p bra REFUSE;ld.global.s64 %lolev,[%v6+72];ld.global.s64 %hilev,[%v6+80];setp.lt.s64 %p,%lolev,1;@%p bra REFUSE;setp.gt.s64 %p,%hilev,%N64;@%p bra REFUSE;setp.gt.s64 %p,%lolev,%hilev;@%p bra READY;setp.eq.u32 %p,%active,0;@%p bra READY;add.u64 %descriptor,%v4,176;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],2;st.param.u32 [de],8;
+st.param.s64 [dl0],%first64;st.param.s64 [dh0],%last64;
+st.param.s64 [dl1],%lolev;st.param.s64 [dh1],%hilev;
+st.param.s64 [dl2],0;st.param.s64 [dh2],-1;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u64 %descriptor,%v4;add.u64 %tmp,%hilev,1;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],2;st.param.u32 [de],8;
+st.param.s64 [dl0],%first64;st.param.s64 [dh0],%last64;
+st.param.s64 [dl1],%lolev;st.param.s64 [dh1],%tmp;
+st.param.s64 [dl2],0;st.param.s64 [dh2],-1;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.eq.u32 %p,%philic,0;@%p bra MASS_MAPS;mov.u32 %error,512;setp.lt.s32 %p,%nrh,2;@%p bra REFUSE;setp.gt.u32 %p,%nrh,4096;@%p bra REFUSE;cvt.u64.u32 %nrh64,%nrh;add.u64 %descriptor,%ao,2128;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],1;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%nrh64;
+st.param.s64 [dl1],0;st.param.s64 [dh1],-1;
+st.param.s64 [dl2],0;st.param.s64 [dh2],-1;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %i,1;
+RH_ADMISSION:cvt.u64.u32 %i64,%i;
+st.param.u64 [ad],%descriptor;st.param.s64 [ai],%i64;st.param.s64 [aj],0;st.param.s64 [ak],0;st.param.u32 [ar],1;st.param.u32 [ae],8;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.b64 %current,[%address];and.b64 %word,%current,0x7fffffffffffffff;mov.u32 %error,512;setp.ge.u64 %p,%word,0x7ff0000000000000;@%p bra REFUSE;setp.eq.u32 %p,%i,1;@%p bra RH_ADMISSION_NEXT;mov.b64 %pv,%previous;mov.b64 %cv,%current;setp.gt.f64 %p,%cv,%pv;@!%p bra REFUSE;
+RH_ADMISSION_NEXT:mov.b64 %previous,%current;add.u32 %i,%i,1;setp.le.u32 %p,%i,%nrh;@%p bra RH_ADMISSION;
+MASS_MAPS:
+setp.eq.u64 %p,%GS64,0;@%p bra MAP_MASS_SW_DONE;add.u64 %map,%v3,10928;
+st.param.u64 [dd],%map;st.param.u32 [dr],1;st.param.u32 [de],4;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%GS64;
+st.param.s64 [dl1],0;st.param.s64 [dh1],-1;
+st.param.s64 [dl2],0;st.param.s64 [dh2],-1;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %i,1;
+MAP_MASS_SW:cvt.u64.u32 %i64,%i;setp.gt.u64 %p,%i64,%GS64;@%p bra MAP_MASS_SW_DONE;
+st.param.u64 [ad],%map;st.param.s64 [ai],%i64;st.param.s64 [aj],0;st.param.s64 [ak],0;st.param.u32 [ar],1;st.param.u32 [ae],4;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.u32 %rt,[%address];mov.u32 %error,512;setp.lt.s32 %p,%rt,1;@%p bra REFUSE;cvt.u64.u32 %word,%rt;setp.gt.u64 %p,%word,%SW64;@%p bra REFUSE;add.u32 %i,%i,1;bra MAP_MASS_SW;
+MAP_MASS_SW_DONE:
+setp.eq.u64 %p,%GL64,0;@%p bra MAP_MASS_LW_DONE;add.u64 %map,%v3,10864;
+st.param.u64 [dd],%map;st.param.u32 [dr],1;st.param.u32 [de],4;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%GL64;
+st.param.s64 [dl1],0;st.param.s64 [dh1],-1;
+st.param.s64 [dl2],0;st.param.s64 [dh2],-1;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %i,1;
+MAP_MASS_LW:cvt.u64.u32 %i64,%i;setp.gt.u64 %p,%i64,%GL64;@%p bra MAP_MASS_LW_DONE;
+st.param.u64 [ad],%map;st.param.s64 [ai],%i64;st.param.s64 [aj],0;st.param.s64 [ak],0;st.param.u32 [ar],1;st.param.u32 [ae],4;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.u32 %rt,[%address];mov.u32 %error,512;setp.lt.s32 %p,%rt,1;@%p bra REFUSE;cvt.u64.u32 %word,%rt;setp.gt.u64 %p,%word,%LW64;@%p bra REFUSE;add.u32 %i,%i,1;bra MAP_MASS_LW;
+MAP_MASS_LW_DONE:
+bra READY;
+DIRECT_ADMISSION:
+setp.eq.u32 %p,%doSW,0;@%p bra DIRECT_sw_ADMITTED;add.u64 %descriptor,%v6,112;ld.global.s64 %lolev,[%descriptor+72];ld.global.s64 %hilev,[%descriptor+80];mov.u32 %error,512;setp.lt.s64 %p,%lolev,1;@%p bra REFUSE;setp.gt.s64 %p,%hilev,%N64;@%p bra REFUSE;ld.global.s64 %word,[%descriptor+56];setp.ne.u64 %p,%word,%SW64;@%p bra REFUSE;
+add.u64 %descriptor,%v6,112;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],3;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%SW64;
+st.param.s64 [dl1],%lolev;st.param.s64 [dh1],%hilev;
+st.param.s64 [dl2],%first64;st.param.s64 [dh2],%last64;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+add.u64 %descriptor,%v6,224;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],3;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%SW64;
+st.param.s64 [dl1],%lolev;st.param.s64 [dh1],%hilev;
+st.param.s64 [dl2],%first64;st.param.s64 [dh2],%last64;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+add.u64 %descriptor,%v6,336;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],3;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%SW64;
+st.param.s64 [dl1],%lolev;st.param.s64 [dh1],%hilev;
+st.param.s64 [dl2],%first64;st.param.s64 [dh2],%last64;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.eq.u64 %p,%GS64,0;@%p bra MAP_DIRECT_sw_DONE;add.u64 %map,%v3,10928;
+st.param.u64 [dd],%map;st.param.u32 [dr],1;st.param.u32 [de],4;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%GS64;
+st.param.s64 [dl1],0;st.param.s64 [dh1],-1;
+st.param.s64 [dl2],0;st.param.s64 [dh2],-1;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %i,1;
+MAP_DIRECT_sw:cvt.u64.u32 %i64,%i;setp.gt.u64 %p,%i64,%GS64;@%p bra MAP_DIRECT_sw_DONE;
+st.param.u64 [ad],%map;st.param.s64 [ai],%i64;st.param.s64 [aj],0;st.param.s64 [ak],0;st.param.u32 [ar],1;st.param.u32 [ae],4;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.u32 %rt,[%address];mov.u32 %error,512;setp.lt.s32 %p,%rt,1;@%p bra REFUSE;cvt.u64.u32 %word,%rt;setp.gt.u64 %p,%word,%SW64;@%p bra REFUSE;add.u32 %i,%i,1;bra MAP_DIRECT_sw;
+MAP_DIRECT_sw_DONE:
+DIRECT_sw_ADMITTED:
+setp.eq.u32 %p,%doLW,0;@%p bra DIRECT_lw_ADMITTED;add.u64 %descriptor,%v6,448;ld.global.s64 %lolev,[%descriptor+72];ld.global.s64 %hilev,[%descriptor+80];mov.u32 %error,512;setp.lt.s64 %p,%lolev,1;@%p bra REFUSE;setp.gt.s64 %p,%hilev,%N64;@%p bra REFUSE;ld.global.s64 %word,[%descriptor+56];setp.ne.u64 %p,%word,%LW64;@%p bra REFUSE;
+add.u64 %descriptor,%v6,448;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],3;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%LW64;
+st.param.s64 [dl1],%lolev;st.param.s64 [dh1],%hilev;
+st.param.s64 [dl2],%first64;st.param.s64 [dh2],%last64;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+add.u64 %descriptor,%v6,560;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],3;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%LW64;
+st.param.s64 [dl1],%lolev;st.param.s64 [dh1],%hilev;
+st.param.s64 [dl2],%first64;st.param.s64 [dh2],%last64;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.eq.u32 %p,%scatter,0;@%p bra DIRECT_LW_DESCRIPTORS_DONE;
+add.u64 %descriptor,%v6,672;
+st.param.u64 [dd],%descriptor;st.param.u32 [dr],3;st.param.u32 [de],8;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%LW64;
+st.param.s64 [dl1],%lolev;st.param.s64 [dh1],%hilev;
+st.param.s64 [dl2],%first64;st.param.s64 [dh2],%last64;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+DIRECT_LW_DESCRIPTORS_DONE:
+setp.eq.u64 %p,%GL64,0;@%p bra MAP_DIRECT_lw_DONE;add.u64 %map,%v3,10864;
+st.param.u64 [dd],%map;st.param.u32 [dr],1;st.param.u32 [de],4;
+st.param.s64 [dl0],1;st.param.s64 [dh0],%GL64;
+st.param.s64 [dl1],0;st.param.s64 [dh1],-1;
+st.param.s64 [dl2],0;st.param.s64 [dh2],-1;
+st.param.u64 [dos],%list;call.uni (derr),aerosol_admit_descriptor,(dd,dr,de,dl0,dh0,dl1,dh1,dl2,dh2,dos);ld.param.u32 %error,[derr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %i,1;
+MAP_DIRECT_lw:cvt.u64.u32 %i64,%i;setp.gt.u64 %p,%i64,%GL64;@%p bra MAP_DIRECT_lw_DONE;
+st.param.u64 [ad],%map;st.param.s64 [ai],%i64;st.param.s64 [aj],0;st.param.s64 [ak],0;st.param.u32 [ar],1;st.param.u32 [ae],4;call.uni (aa),aerosol_address,(ad,ai,aj,ak,ar,ae);ld.param.u64 %address,[aa];
+ld.global.u32 %rt,[%address];mov.u32 %error,512;setp.lt.s32 %p,%rt,1;@%p bra REFUSE;cvt.u64.u32 %word,%rt;setp.gt.u64 %p,%word,%LW64;@%p bra REFUSE;add.u32 %i,%i,1;bra MAP_DIRECT_lw;
+MAP_DIRECT_lw_DONE:
+DIRECT_lw_ADMITTED:
+READY:st.param.u64 [ca],%args;st.param.u64 [cs],%scratch;call.uni (cr),md2asm_gpu_aerosol_optics_values,(ca,cs);ld.param.u32 %flags,[cr];add.u64 %address,%ctx,8;atom.global.or.b32 %rt,[%address],%flags;ret;
+REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+.visible .entry md2asm_gpu_add_aerosol_optics(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %a,%c;.param .u64 a,c;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];st.param.u64 [a],%a;st.param.u64 [c],%c;call.uni md2asm_gpu_aerosol_optics_fp64,(a,c);ret;
+}

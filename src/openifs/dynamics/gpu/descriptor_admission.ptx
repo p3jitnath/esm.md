@@ -1,0 +1,48 @@
+// Integer-only contiguous source descriptor admission.
+.version 8.5
+.target sm_90
+.address_size 64
+.func (.param .u32 result) interpolation_range(.param .u64 base,.param .u64 bytes,.param .u64 capacity,.param .u64 mask,.param .u64 owners,.param .u32 count)
+{
+ .reg .u64 %b,%n,%c,%m,%list,%t,%end,%o,%on,%oe; .reg .u32 %i,%count,%e; .reg .pred %p,%q;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %c,[capacity]; ld.param.u64 %m,[mask]; ld.param.u64 %list,[owners]; ld.param.u32 %count,[count];
+ mov.u32 %e,0; setp.eq.u64 %p,%n,0; @%p bra IR_DONE;
+ mov.u32 %e,1; setp.gt.u64 %p,%n,%c; @%p bra IR_DONE; setp.gt.u64 %p,%n,0x7fffffffffffffff; @%p bra IR_DONE; setp.eq.u64 %p,%b,0; @%p bra IR_DONE; and.b64 %t,%b,%m; setp.ne.u64 %p,%t,0; @%p bra IR_DONE; setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra IR_DONE; add.u64 %end,%b,%n; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra IR_DONE;
+ mov.u32 %i,0;
+IR_OWNERS: setp.ge.u32 %p,%i,%count; @%p bra IR_OK; ld.u64 %o,[%list]; ld.u64 %on,[%list+8]; setp.eq.u64 %p,%on,0; @%p bra IR_NEXT; add.u64 %oe,%o,%on; setp.lt.u64 %p,%b,%oe; setp.lt.u64 %q,%o,%end; and.pred %p,%p,%q; @%p bra IR_DONE;
+IR_NEXT: add.u64 %list,%list,16; add.u32 %i,%i,1; bra IR_OWNERS;
+IR_OK: mov.u32 %e,0;
+IR_DONE: st.param.u32 [result],%e; ret;
+}
+
+.visible .func (.param .align 8 .b8 result[32]) openifs_contiguous_source_owner(.param .u64 descriptor,.param .u64 capacity,.param .u32 element_bytes,.param .u32 array_rank,.param .u64 mutable_owners,.param .u32 mutable_count)
+{
+ .reg .u64 %d,%cap,%element,%rank,%owners,%ptr,%bytes,%n,%off,%stride,%extent,%tmp,%next,%high,%type,%ownerPointer,%ownerBytes;
+ .reg .s64 %lower,%upper,%expectedOffset,%recordedOffset,%product,%productHigh,%sign,%nextOffset,%test1,%test2;
+ .reg .u32 %e,%size,%rank32,%i,%count,%r,%type32; .reg .pred %p;
+ .param .u64 rb,rn,rc,rm,rl; .param .u32 rct,rr;
+ ld.param.u64 %d,[descriptor]; ld.param.u64 %cap,[capacity]; ld.param.u32 %size,[element_bytes]; ld.param.u32 %rank32,[array_rank]; ld.param.u64 %owners,[mutable_owners]; ld.param.u32 %count,[mutable_count];
+ mov.u64 %ownerPointer,0; mov.u64 %ownerBytes,0; mov.u32 %e,1;
+ setp.eq.u32 %p,%size,4; @%p bra ELEMENT_READY; setp.ne.u32 %p,%size,8; @%p bra RETURN;
+ELEMENT_READY: sub.u32 %r,%rank32,1; setp.gt.u32 %p,%r,2; @%p bra RETURN;
+ cvt.u64.u32 %element,%size; ld.global.u64 %tmp,[%d+16]; setp.ne.u64 %p,%tmp,%element; @%p bra RETURN;
+ ld.global.u64 %tmp,[%d+32]; setp.ne.u64 %p,%tmp,%element; @%p bra RETURN;
+ mov.u32 %type32,256; setp.eq.u32 %p,%size,8; @%p mov.u32 %type32,768; or.b32 %type32,%type32,%rank32;
+ ld.global.u32 %r,[%d+28]; setp.ne.u32 %p,%r,%type32; @%p bra RETURN;
+ mov.u64 %n,1; mov.s64 %expectedOffset,0; mov.u32 %i,0;
+DIMENSION: mul.wide.u32 %off,%i,24; add.u64 %ptr,%d,%off;
+ ld.global.u64 %stride,[%ptr+40]; setp.ne.u64 %p,%stride,%n; @%p bra RETURN;
+ ld.global.s64 %lower,[%ptr+48]; ld.global.s64 %upper,[%ptr+56];
+ setp.lt.s64 %p,%lower,-2147483648; @%p bra RETURN; setp.gt.s64 %p,%lower,2147483647; @%p bra RETURN;
+ setp.lt.s64 %p,%upper,-2147483648; @%p bra RETURN; setp.gt.s64 %p,%upper,2147483647; @%p bra RETURN;
+ sub.s64 %extent,%upper,%lower; add.s64 %extent,%extent,1; setp.lt.s64 %p,%extent,1; @%p bra RETURN; setp.gt.u64 %p,%extent,2000001; @%p bra RETURN;
+ mul.lo.s64 %product,%lower,%stride; mul.hi.s64 %productHigh,%lower,%stride; shr.s64 %sign,%product,63; setp.ne.s64 %p,%productHigh,%sign; @%p bra RETURN;
+ sub.s64 %nextOffset,%expectedOffset,%product; xor.b64 %test1,%expectedOffset,%product; xor.b64 %test2,%expectedOffset,%nextOffset; and.b64 %test1,%test1,%test2; setp.lt.s64 %p,%test1,0; @%p bra RETURN; mov.s64 %expectedOffset,%nextOffset;
+ mul.lo.u64 %next,%n,%extent; mul.hi.u64 %high,%n,%extent; setp.ne.u64 %p,%high,0; @%p bra RETURN; div.u64 %tmp,0x7fffffffffffffff,%element; setp.gt.u64 %p,%next,%tmp; @%p bra RETURN; mov.u64 %n,%next;
+ add.u32 %i,%i,1; setp.lt.u32 %p,%i,%rank32; @%p bra DIMENSION;
+ ld.global.s64 %recordedOffset,[%d+8]; setp.ne.s64 %p,%recordedOffset,%expectedOffset; @%p bra RETURN;
+ ld.global.u64 %ptr,[%d]; mul.lo.u64 %bytes,%n,%element; sub.u64 %tmp,%element,1;
+ st.param.u64 [rb],%ptr; st.param.u64 [rn],%bytes; st.param.u64 [rc],%cap; st.param.u64 [rm],%tmp; st.param.u64 [rl],%owners; st.param.u32 [rct],%count; call.uni (rr),interpolation_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %e,[rr]; setp.ne.u32 %p,%e,0; @%p bra RETURN;
+ mov.u64 %ownerPointer,%ptr; mov.u64 %ownerBytes,%bytes;
+RETURN: st.param.u64 [result],%ownerPointer; st.param.u64 [result+8],%ownerBytes; st.param.u32 [result+16],%e; st.param.u32 [result+20],0; st.param.u64 [result+24],0; ret;
+}

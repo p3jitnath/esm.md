@@ -1,0 +1,210 @@
+/* GPU physical setup route. Original interface and ordered arithmetic are preserved.
+ * Contract: skills/md2asm-gpu/references/openifs/setup/physical_setup.md
+ * Original source: src/openifs/setup/one_cell_carbon_assimilation.S
+ */
+// Original contract: skills/md2asm/references/openifs/setup/photosynthesis_parameter_setup.md
+#include "../../support/gpu/preserved_scalar_calls.inc.S"
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_one_cell_carbon_assimilation_fields
+.type md2asm_one_cell_carbon_assimilation_fields,%function
+md2asm_one_cell_carbon_assimilation_fields:
+ stp x29,x30,[sp,#-256]!
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ str x18,[sp,#48]
+ mov x29,sp
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ adr x22,.Lcarbon_constants
+ str xzr,[sp,#176]
+ ldr d0,[x19,#40]
+ ldr d1,[x22,#8]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x19,#8]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,5,d0,destination,d1,real,x16,0,d0
+ str d0,[sp,#64]
+ ldr d0,[x19]
+ ldr d1,[x19,#56]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d1,destination,d0,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x19,#48]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,6,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x22,#16]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,5,d0,destination,d0,real,x16,0,d1
+ str d0,[sp,#72]
+ ldr d0,[x19,#16]
+ ldr d1,[x19,#24]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x22]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,6,d0,destination,d1,real,x16,0,d0
+ str d0,[sp,#80]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d1,destination,d1,real,x16,0,d0
+ ldr d2,[x19,#48]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d2,real,x16,0,d1
+ ldr d2,[sp,#72]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d2,real,x16,0,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d1,real,x16,0,d0
+ str d0,[sp,#88]
+ ldr d1,[x22]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d1,destination,d1,real,x16,0,d0
+ ldr d2,[x19,#40]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d2
+ ldr d2,[sp,#64]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d1,destination,d1,real,x16,0,d2
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d2,real,x16,0,d0
+ ldr d1,[x19,#40]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,5,d0,destination,d0,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,6,d0,destination,d0,real,x16,0,d2
+ str d0,[sp,#96]
+ ldr d0,[x19]
+ ldr d1,[sp,#64]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x19,#56]
+ ldr d2,[x19,#40]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d2,destination,d1,real,x16,0,d2
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d2
+ ldr d2,[x19]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d1,destination,d1,real,x16,0,d2
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ str d0,[sp,#104]
+ ldr d1,[x19,#40]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x19,#56]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ str d0,[sp,#112]
+ ldr d0,[sp,#96]
+ ldr d1,[x19,#40]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d2,destination,d0,real,x16,0,d1
+ ldr d3,[x19,#64]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d2,destination,d3,real,x16,0,d2
+ ldr d3,[x22,#32]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d3,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d2,real,x16,0,d0
+ str d0,[sp,#120]
+ ldr d0,[sp,#96]
+ ldr d1,[x19,#40]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x19,#56]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,8,d0,destination,d0,real,x16,0,zero
+ ldr d1,[x19,#72]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ bl exp
+ ldr x18,[x29,#48]
+ ldr d1,[x22]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d1,real,x16,0,d0
+ ldr d1,[x19,#72]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ ldr d1,[sp,#112]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,5,d0,destination,d0,real,x16,0,d1
+ str d0,[sp,#128]
+ ldr d1,[x20,#24]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d0,real,x16,0,d1
+ str d1,[sp,#136]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
+ fmov x9,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_soil_water_cell_host,16,d0,destination,d0,real,x16,0,zero
+ ldr d1,[x22,#24]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,5,d0,destination,d0,real,x16,0,d1
+ fmov x10,d0
+ lsr x9,x9,#63
+ bfi x10,x9,#63,#1
+ fmov d0,x10
+ str d0,[sp,#208]
+ ldr d1,[sp,#120]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,8,d1,destination,d1,real,x16,0,zero
+ ldr d2,[x19,#32]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d2
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d1,real,x16,0,d0
+ bl exp
+ ldr x18,[x29,#48]
+ ldr d1,[x22]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d1,real,x16,0,d0
+ ldr d1,[sp,#128]
+ ldr d2,[sp,#136]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d1,destination,d1,real,x16,0,d2
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ str d0,[sp,#152]
+ str d0,[x21,#8]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d2
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,8,d1,destination,d2,real,x16,0,zero
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,5,d0,destination,d1,real,x16,0,d0
+ str d0,[sp,#144]
+ str d0,[x21]
+ str d2,[x21,#16]
+ mov w12,#3
+.Lcarbon_stomatal:
+ ldr d0,[sp,#144]
+ ldr d1,[sp,#136]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
+ ldr d2,[sp,#208]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d2
+ str d0,[sp,#184]
+ ldr d1,[x19,#16]
+ ldr d2,[x19,#24]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d1,destination,d1,real,x16,0,d2
+ ldr d2,[x22]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,6,d1,destination,d2,real,x16,0,d1
+ str d1,[sp,#80]
+ ldr d2,[sp,#112]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d2,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d0
+ ldr d2,[sp,#144]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d1,destination,d2,real,x16,0,d1
+ ldr d2,[x22]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d2,real,x16,0,d0
+ ldr d3,[sp,#136]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d3,real,x16,0,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d1,real,x16,0,d0
+ str d0,[sp,#192]
+ ldr d1,[x19,#8]
+ ldr d3,[sp,#96]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d4,destination,d1,real,x16,0,d3
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d2,destination,d2,real,x16,0,d4
+ str d2,[sp,#200]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d2
+ ldr d4,[x20,#16]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,5,d0,destination,d4,real,x16,0,d0
+ str d0,[sp,#160]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d1,destination,d1,real,x16,0,d3
+ ldr d3,[x22,#32]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d1,destination,d1,real,x16,0,d3
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d2
+ ldr d2,[x20]
+ ldr d3,[sp,#176]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d2,destination,d2,real,x16,0,d3
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d2,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
+ str d0,[sp,#160]
+ ldr d1,[x20,#8]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ str d0,[sp,#168]
+ ldr d1,[x19,#16]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d1
+ str d0,[sp,#176]
+ subs w12,w12,#1
+ b.ne .Lcarbon_stomatal
+ ldr d0,[x20,#8]
+ ldr d1,[sp,#160]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x19]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
+ str d0,[x21,#24]
+ ldr x18,[sp,#48]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x29,x30,[sp],#256
+ ret
+.size md2asm_one_cell_carbon_assimilation_fields,.-md2asm_one_cell_carbon_assimilation_fields
+.section .rodata
+.p2align 3
+.Lcarbon_constants:
+ .double 1.0,1e-6,1e-7
+.quad 0x3d19000000000000
+.double 2.0
+.section .note.GNU-stack,"",%progbits

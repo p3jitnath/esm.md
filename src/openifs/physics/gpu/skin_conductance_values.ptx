@@ -1,0 +1,163 @@
+// Unverified direct PTX batch draft. See the routine frozen contract.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sqrt_status(.param .b64 a);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_exp_original_rounding(.param .b64 a);
+.extern .func (.param .align 8 .b8 geometry[64]) md2asm_gpu_surface_descriptor_geometry(.param .u64 descriptor,.param .u32 rank,.param .u32 element_bytes,.param .u64 required0,.param .u64 required1,.param .u64 required2,.param .u32 zero_is_one);
+
+.extern .func (.param .align 8 .b8 result[32]) md2asm_gpu_sin_small_finite(.param .b64 x);
+.extern .func (.param .align 8 .b8 result[32]) md2asm_gpu_log10_soil(.param .b64 x);
+.extern .func (.param .align 8 .b8 result[32]) md2asm_gpu_power_nonnegative(.param .b64 x,.param .b64 y);
+.visible .func (.param .align 8 .b8 result[48]) md2asm_gpu_skin_conductance_values(.param .u64 vector)
+{
+.reg .u64 %args,%v<20>,%base<9>,%cs<9>,%ls<9>,%table<6>,%offset,%address,%temporary,%event,%calls,%fast,%wide,%increment;
+.reg .u32 %first,%last,%P,%tiles,%column,%tile,%layer,%snow_layers,%lookup,%r,%flags,%raised,%new_event,%soil_enabled,%snow_enabled,%coupled;.reg .pred %p,%unstable;
+.reg .b64 %dt,%melt,%t0,%t1,%t2,%snowmass,%density,%original,%inverse,%fraction,%porosity,%factor,%saturation,%dry;
+.param .b64 ma,mb,xa,xb;.param .align 8 .b8 math[16],elementary[32];
+ld.param.u64 %args,[vector];mov.u32 %flags,0;mov.u64 %event,0;mov.u64 %calls,0;mov.u64 %fast,0;mov.u64 %wide,0;
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ld.global.u64 %v5,[%args+40];
+ld.global.u64 %v6,[%args+48];
+ld.global.u64 %v7,[%args+56];
+ld.global.u64 %v8,[%args+64];
+ld.global.u64 %v9,[%args+72];
+ld.global.u64 %v10,[%args+80];
+ld.global.u64 %v11,[%args+88];
+ld.global.u64 %v12,[%args+96];
+ld.global.u64 %v13,[%args+104];
+ld.global.u64 %v14,[%args+112];
+ld.global.u64 %v15,[%args+120];
+ld.global.u64 %v16,[%args+128];
+ld.global.u64 %v17,[%args+136];
+ld.global.u64 %v18,[%args+144];
+ld.global.u64 %v19,[%args+152];
+ld.global.u32 %first,[%v0];ld.global.u32 %last,[%v1];ld.global.u32 %P,[%v2];ld.global.u32 %tiles,[%v3];ld.global.b64 %dt,[%v6];ld.global.b64 %melt,[%v14];
+ st.param.b64 [ma],%melt;st.param.b64 [mb],0x3fc999999999999a;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %melt,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+setp.gt.u32 %p,%first,%last;@%p bra COMPLETE;ld.global.u32 %coupled,[%v18];ld.global.u32 %snow_enabled,[%v16+2376];ld.global.u32 %soil_enabled,[%v16+2380];ld.global.s64 %offset,[%v9+72];ld.global.s64 %temporary,[%v9+80];sub.s64 %temporary,%temporary,%offset;add.s64 %temporary,%temporary,1;cvt.u32.u64 %snow_layers,%temporary;
+ld.global.u64 %base0,[%v4];ld.global.s64 %cs0,[%v4+40];shl.b64 %cs0,%cs0,2;mov.u64 %ls0,0;
+ld.global.u64 %base1,[%v5];ld.global.s64 %cs1,[%v5+40];shl.b64 %cs1,%cs1,2;mov.u64 %ls1,0;
+ld.global.u64 %base2,[%v7];ld.global.s64 %cs2,[%v7+40];shl.b64 %cs2,%cs2,3;ld.global.s64 %ls2,[%v7+64];shl.b64 %ls2,%ls2,3;
+ld.global.u64 %base3,[%v8];ld.global.s64 %cs3,[%v8+40];shl.b64 %cs3,%cs3,3;ld.global.s64 %ls3,[%v8+64];shl.b64 %ls3,%ls3,3;
+ld.global.u64 %base4,[%v9];ld.global.s64 %cs4,[%v9+40];shl.b64 %cs4,%cs4,3;ld.global.s64 %ls4,[%v9+64];shl.b64 %ls4,%ls4,3;
+ld.global.u64 %base5,[%v10];ld.global.s64 %cs5,[%v10+40];shl.b64 %cs5,%cs5,3;ld.global.s64 %ls5,[%v10+64];shl.b64 %ls5,%ls5,3;
+ld.global.u64 %base6,[%v12];ld.global.s64 %cs6,[%v12+40];shl.b64 %cs6,%cs6,3;ld.global.s64 %ls6,[%v12+64];shl.b64 %ls6,%ls6,3;
+ld.global.u64 %base7,[%v13];ld.global.s64 %cs7,[%v13+40];shl.b64 %cs7,%cs7,2;mov.u64 %ls7,0;
+ld.global.u64 %base8,[%v19];ld.global.s64 %cs8,[%v19+40];shl.b64 %cs8,%cs8,3;ld.global.s64 %ls8,[%v19+64];shl.b64 %ls8,%ls8,3;
+add.u64 %table0,%v15,224;
+add.u64 %table1,%v15,288;
+add.u64 %table2,%v16,880;
+add.u64 %table3,%v16,1392;
+add.u64 %table4,%v16,1456;
+add.u64 %table5,%v16,1648;
+mov.u32 %tile,0;DEFAULT_TILE:sub.u32 %column,%first,1;
+DEFAULT_COLUMN:setp.eq.u32 %p,%tile,0;@%p bra LARGE;setp.eq.u32 %p,%tile,8;@%p bra LARGE;setp.eq.u32 %p,%tile,2;@%p bra WATER;setp.eq.u32 %p,%tile,9;@%p bra URBAN;setp.eq.u32 %p,%tile,4;@%p bra SNOW_DEFAULT;
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs2;cvt.u64.u32 %temporary,%tile;mul.lo.u64 %temporary,%temporary,%ls2;add.u64 %offset,%offset,%temporary;add.u64 %address,%base2,%offset;ld.global.b64 %t0,[%address];
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs3;cvt.u64.u32 %temporary,%tile;mul.lo.u64 %temporary,%temporary,%ls3;add.u64 %offset,%offset,%temporary;add.u64 %address,%base3,%offset;ld.global.b64 %t1,[%address];
+setp.gt.f64 %unstable,%t0,%t1;setp.ne.u32 %p,%tile,1;@%p bra NOT_SEA_ICE;setp.ne.u32 %p,%coupled,0;@%p bra LARGE;mov.u32 %lookup,12;bra LOOKUP;
+NOT_SEA_ICE:setp.ne.u32 %p,%tile,3;@%p bra NOT_LOW;
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs0;add.u64 %address,%base0,%offset;ld.global.s32 %lookup,[%address];
+bra LOOKUP;NOT_LOW:setp.ne.u32 %p,%tile,7;@%p bra NOT_BARE;mov.u32 %lookup,8;bra LOOKUP;
+NOT_BARE:setp.ne.u32 %p,%tile,6;@%p bra HIGH_MAP;@!%unstable bra WATER;HIGH_MAP:
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs1;add.u64 %address,%base1,%offset;ld.global.s32 %lookup,[%address];
+LOOKUP:@!%unstable bra STABLE_LOOKUP;
+ld.global.u64 %address,[%table1];ld.global.s64 %temporary,[%table1+48];cvt.s64.s32 %offset,%lookup;sub.s64 %offset,%offset,%temporary;ld.global.s64 %temporary,[%table1+40];mul.lo.s64 %offset,%offset,%temporary;shl.b64 %offset,%offset,3;add.u64 %address,%address,%offset;ld.global.b64 %t0,[%address];
+bra STORE_DEFAULT;STABLE_LOOKUP:
+ld.global.u64 %address,[%table0];ld.global.s64 %temporary,[%table0+48];cvt.s64.s32 %offset,%lookup;sub.s64 %offset,%offset,%temporary;ld.global.s64 %temporary,[%table0+40];mul.lo.s64 %offset,%offset,%temporary;shl.b64 %offset,%offset,3;add.u64 %address,%address,%offset;ld.global.b64 %t0,[%address];
+bra STORE_DEFAULT;LARGE:mov.b64 %t0,0x4202a05f20000000;bra STORE_DEFAULT;WATER:mov.b64 %t0,0x4034000000000000;bra STORE_DEFAULT;URBAN:ld.global.b64 %t0,[%v17+400];bra STORE_DEFAULT;
+SNOW_DEFAULT:
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs2;cvt.u64.u32 %temporary,%tile;mul.lo.u64 %temporary,%temporary,%ls2;add.u64 %offset,%offset,%temporary;add.u64 %address,%base2,%offset;ld.global.b64 %t0,[%address];
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs3;cvt.u64.u32 %temporary,%tile;mul.lo.u64 %temporary,%temporary,%ls3;add.u64 %offset,%offset,%temporary;add.u64 %address,%base3,%offset;ld.global.b64 %t1,[%address];
+setp.lt.f64 %p,%t0,%t1;@%p bra GLACIER_SUM;setp.le.f64 %p,%t0,%melt;@%p bra GLACIER_SUM;mov.b64 %t0,0x4049000000000000;bra STORE_DEFAULT;
+GLACIER_SUM:mov.u64 %t2,0;mov.u32 %layer,0;SNOW_SUM:
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs4;cvt.u64.u32 %temporary,%layer;mul.lo.u64 %temporary,%temporary,%ls4;add.u64 %offset,%offset,%temporary;add.u64 %address,%base4,%offset;ld.global.b64 %t0,[%address];
+ st.param.b64 [ma],%t2;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u32 %layer,%layer,1;setp.lt.u32 %p,%layer,%snow_layers;@%p bra SNOW_SUM;setp.le.f64 %p,%t2,0d40c1940000000000;selp.b64 %t0,0x401c000000000000,0x4020000000000000,%p;
+STORE_DEFAULT:
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs8;cvt.u64.u32 %temporary,%tile;mul.lo.u64 %temporary,%temporary,%ls8;add.u64 %offset,%offset,%temporary;add.u64 %address,%base8,%offset;st.global.b64 [%address],%t0;
+add.u32 %column,%column,1;setp.lt.u32 %p,%column,%last;@%p bra DEFAULT_COLUMN;add.u32 %tile,%tile,1;setp.lt.u32 %p,%tile,%tiles;@%p bra DEFAULT_TILE;mov.u32 %tile,6;sub.u32 %column,%first,1;mov.u32 %layer,0;
+FOREST:
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs4;cvt.u64.u32 %temporary,%layer;mul.lo.u64 %temporary,%temporary,%ls4;add.u64 %offset,%offset,%temporary;add.u64 %address,%base4,%offset;ld.global.b64 %snowmass,[%address];
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs5;cvt.u64.u32 %temporary,%layer;mul.lo.u64 %temporary,%temporary,%ls5;add.u64 %offset,%offset,%temporary;add.u64 %address,%base5,%offset;ld.global.b64 %density,[%address];
+ st.param.b64 [ma],%snowmass;st.param.b64 [mb],%density;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ld.global.b64 %t1,[%v16+184];max.f64 %t0,%t1,%t0;ld.global.b64 %t1,[%v16+312];
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%density;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ld.global.b64 %t1,[%v16+296];
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%dt;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs8;cvt.u64.u32 %temporary,%tile;mul.lo.u64 %temporary,%temporary,%ls8;add.u64 %offset,%offset,%temporary;add.u64 %address,%base8,%offset;ld.global.b64 %original,[%address];
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%original;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%original;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs8;cvt.u64.u32 %temporary,%tile;mul.lo.u64 %temporary,%temporary,%ls8;add.u64 %offset,%offset,%temporary;add.u64 %address,%base8,%offset;st.global.b64 [%address],%t0;
+add.u32 %column,%column,1;setp.lt.u32 %p,%column,%last;@%p bra FOREST;setp.eq.u32 %p,%snow_enabled,0;@%p bra SOIL_START;mov.u32 %tile,4;sub.u32 %column,%first,1;
+SNOW_CONDUCTIVITY:
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs4;cvt.u64.u32 %temporary,%layer;mul.lo.u64 %temporary,%temporary,%ls4;add.u64 %offset,%offset,%temporary;add.u64 %address,%base4,%offset;ld.global.b64 %snowmass,[%address];
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs5;cvt.u64.u32 %temporary,%layer;mul.lo.u64 %temporary,%temporary,%ls5;add.u64 %offset,%offset,%temporary;add.u64 %address,%base5,%offset;ld.global.b64 %density,[%address];
+ st.param.b64 [ma],%snowmass;st.param.b64 [mb],%density;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+max.f64 %t0,0d3f847ae147ae147b,%t0;
+ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %inverse,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ec4f8b588e368f1;st.param.b64 [mb],%density;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%density;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3f201f31f46ed246;st.param.b64 [mb],%density;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t0;st.param.b64 [mb],0x3f989374bc6a7efa;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x4000000000000000;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%inverse;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs8;cvt.u64.u32 %temporary,%tile;mul.lo.u64 %temporary,%temporary,%ls8;add.u64 %offset,%offset,%temporary;add.u64 %address,%base8,%offset;st.global.b64 [%address],%t0;
+add.u32 %column,%column,1;setp.lt.u32 %p,%column,%last;@%p bra SNOW_CONDUCTIVITY;
+SOIL_START:setp.eq.u32 %p,%soil_enabled,0;@%p bra COMPLETE;mov.u32 %tile,7;sub.u32 %column,%first,1;
+SOIL_CONDUCTIVITY:mov.u32 %lookup,1;
+ld.global.u64 %address,[%table5];ld.global.s64 %temporary,[%table5+48];cvt.s64.s32 %offset,%lookup;sub.s64 %offset,%offset,%temporary;ld.global.s64 %temporary,[%table5+40];mul.lo.s64 %offset,%offset,%temporary;shl.b64 %offset,%offset,3;add.u64 %address,%address,%offset;ld.global.b64 %t0,[%address];
+ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %inverse,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs3;cvt.u64.u32 %temporary,%tile;mul.lo.u64 %temporary,%temporary,%ls3;add.u64 %offset,%offset,%temporary;add.u64 %address,%base3,%offset;ld.global.b64 %t0,[%address];
+ld.global.b64 %t1,[%v16+208];setp.ge.f64 %p,%t0,%t1;@%p bra UNFROZEN;ld.global.b64 %t1,[%v16+216];setp.le.f64 %p,%t0,%t1;@%p bra FROZEN;ld.global.b64 %t1,[%v16+224];
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ld.global.b64 %t1,[%v16+232];
+ st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [xa],%t0;call.uni (elementary),md2asm_gpu_sin_small_finite,(xa);ld.param.b64 %t0,[elementary];ld.param.u32 %raised,[elementary+8];or.b32 %flags,%flags,%raised;add.u64 %calls,%calls,1;ld.param.u64 %increment,[elementary+16];add.u64 %fast,%fast,%increment;ld.param.u64 %increment,[elementary+24];add.u64 %wide,%wide,%increment;ld.param.u32 %new_event,[elementary+12];setp.eq.u32 %p,%new_event,0;@%p bra MATH_JOIN_0;cvt.u64.u32 %increment,%new_event;shl.b64 %event,%calls,8;or.b64 %event,%event,%increment;MATH_JOIN_0:
+ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3fe0000000000000;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %fraction,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+bra FRACTION_READY;FROZEN:mov.b64 %fraction,0x3ff0000000000000;bra FRACTION_READY;UNFROZEN:mov.u64 %fraction,0;
+FRACTION_READY:
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs7;add.u64 %address,%base7,%offset;ld.global.s32 %lookup,[%address];
+max.s32 %lookup,%lookup,1;
+ld.global.u64 %address,[%table2];ld.global.s64 %temporary,[%table2+48];cvt.s64.s32 %offset,%lookup;sub.s64 %offset,%offset,%temporary;ld.global.s64 %temporary,[%table2+40];mul.lo.s64 %offset,%offset,%temporary;shl.b64 %offset,%offset,3;add.u64 %address,%address,%offset;ld.global.b64 %porosity,[%address];
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs6;cvt.u64.u32 %temporary,%layer;mul.lo.u64 %temporary,%temporary,%ls6;add.u64 %offset,%offset,%temporary;add.u64 %address,%base6,%offset;ld.global.b64 %t0,[%address];
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%porosity;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ld.global.b64 %t1,[%v16+48];max.f64 %t0,%t1,%t0;
+st.param.b64 [xa],%t0;call.uni (elementary),md2asm_gpu_log10_soil,(xa);ld.param.b64 %t0,[elementary];ld.param.u32 %raised,[elementary+8];or.b32 %flags,%flags,%raised;add.u64 %calls,%calls,1;ld.param.u64 %increment,[elementary+16];add.u64 %fast,%fast,%increment;ld.param.u64 %increment,[elementary+24];add.u64 %wide,%wide,%increment;ld.param.u32 %new_event,[elementary+12];setp.eq.u32 %p,%new_event,0;@%p bra MATH_JOIN_1;cvt.u64.u32 %increment,%new_event;shl.b64 %event,%calls,8;or.b64 %event,%event,%increment;MATH_JOIN_1:
+ld.global.b64 %t1,[%v16+56];
+ st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ld.global.b64 %t1,[%v16+64];
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %factor,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ld.global.b64 %t0,[%v16+32];
+ st.param.b64 [ma],%porosity;st.param.b64 [mb],%fraction;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [xa],%t0;st.param.b64 [xb],%t1;call.uni (elementary),md2asm_gpu_power_nonnegative,(xa,xb);ld.param.b64 %saturation,[elementary];ld.param.u32 %raised,[elementary+8];or.b32 %flags,%flags,%raised;add.u64 %calls,%calls,1;ld.param.u64 %increment,[elementary+16];add.u64 %fast,%fast,%increment;ld.param.u64 %increment,[elementary+24];add.u64 %wide,%wide,%increment;ld.param.u32 %new_event,[elementary+12];setp.eq.u32 %p,%new_event,0;@%p bra MATH_JOIN_2;cvt.u64.u32 %increment,%new_event;shl.b64 %event,%calls,8;or.b64 %event,%event,%increment;MATH_JOIN_2:
+ld.global.u64 %address,[%table4];ld.global.s64 %temporary,[%table4+48];cvt.s64.s32 %offset,%lookup;sub.s64 %offset,%offset,%temporary;ld.global.s64 %temporary,[%table4+40];mul.lo.s64 %offset,%offset,%temporary;shl.b64 %offset,%offset,3;add.u64 %address,%address,%offset;ld.global.b64 %t0,[%address];
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%saturation;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %saturation,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%fraction;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%porosity;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ld.global.b64 %t0,[%v16+40];
+st.param.b64 [xa],%t0;st.param.b64 [xb],%t1;call.uni (elementary),md2asm_gpu_power_nonnegative,(xa,xb);ld.param.b64 %t0,[elementary];ld.param.u32 %raised,[elementary+8];or.b32 %flags,%flags,%raised;add.u64 %calls,%calls,1;ld.param.u64 %increment,[elementary+16];add.u64 %fast,%fast,%increment;ld.param.u64 %increment,[elementary+24];add.u64 %wide,%wide,%increment;ld.param.u32 %new_event,[elementary+12];setp.eq.u32 %p,%new_event,0;@%p bra MATH_JOIN_3;cvt.u64.u32 %increment,%new_event;shl.b64 %event,%calls,8;or.b64 %event,%event,%increment;MATH_JOIN_3:
+ st.param.b64 [ma],%saturation;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %saturation,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ld.global.u64 %address,[%table3];ld.global.s64 %temporary,[%table3+48];cvt.s64.s32 %offset,%lookup;sub.s64 %offset,%offset,%temporary;ld.global.s64 %temporary,[%table3+40];mul.lo.s64 %offset,%offset,%temporary;shl.b64 %offset,%offset,3;add.u64 %address,%address,%offset;ld.global.b64 %dry,[%address];
+ st.param.b64 [ma],%saturation;st.param.b64 [mb],%dry;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%factor;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%dry;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+min.f64 %t0,0d4000000000000000,%t0;max.f64 %t0,0d3fc851eb851eb852,%t0;
+ st.param.b64 [ma],0x4000000000000000;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%inverse;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+cvt.u64.u32 %offset,%column;mul.lo.u64 %offset,%offset,%cs8;cvt.u64.u32 %temporary,%tile;mul.lo.u64 %temporary,%temporary,%ls8;add.u64 %offset,%offset,%temporary;add.u64 %address,%base8,%offset;st.global.b64 [%address],%t0;
+add.u32 %column,%column,1;setp.lt.u32 %p,%column,%last;@%p bra SOIL_CONDUCTIVITY;
+COMPLETE:st.param.u32 [result],%flags;st.param.u32 [result+4],0;st.param.u64 [result+8],%event;st.param.u64 [result+16],0;st.param.u64 [result+24],%fast;st.param.u64 [result+32],%wide;st.param.u64 [result+40],1;ret;
+}

@@ -1,0 +1,136 @@
+// Unverified direct PTX batch draft. See the routine frozen contract.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sqrt_status(.param .b64 a);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_exp_original_rounding(.param .b64 a);
+.extern .func (.param .align 8 .b8 geometry[64]) md2asm_gpu_surface_descriptor_geometry(.param .u64 descriptor,.param .u32 rank,.param .u32 element_bytes,.param .u64 required0,.param .u64 required1,.param .u64 required2,.param .u32 zero_is_one);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_log_positive_finite(.param .b64 input_word);
+
+.func (.param .u32 result) md2asm_gpu_pz0wn_range(.param .u64 base,.param .u64 bytes,.param .u64 mask)
+{
+ .reg .u64 %b,%n,%m,%end; .reg .u32 %e; .reg .pred %p;
+ ld.param.u64 %b,[base];ld.param.u64 %n,[bytes];ld.param.u64 %m,[mask];mov.u32 %e,0;
+ setp.eq.u64 %p,%n,0;@%p bra RANGE_DONE;mov.u32 %e,6626;
+ setp.eq.u64 %p,%b,0;@%p bra RANGE_DONE;and.b64 %end,%b,%m;setp.ne.u64 %p,%end,0;@%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff;@%p bra RANGE_DONE;setp.gt.u64 %p,%n,0x7fffffffffffffff;@%p bra RANGE_DONE;
+ add.u64 %end,%b,%n;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra RANGE_DONE;mov.u32 %e,0;
+RANGE_DONE:st.param.u32 [result],%e;ret;
+}
+.func (.param .u32 result) md2asm_gpu_pz0wn_disjoint(.param .u64 a,.param .u64 an,.param .u64 b,.param .u64 bn)
+{
+ .reg .u64 %a,%an,%b,%bn,%ae,%be; .reg .u32 %e; .reg .pred %p,%q;
+ ld.param.u64 %a,[a];ld.param.u64 %an,[an];ld.param.u64 %b,[b];ld.param.u64 %bn,[bn];mov.u32 %e,0;
+ setp.eq.u64 %p,%an,0;@%p bra SEPARATE_DONE;setp.eq.u64 %p,%bn,0;@%p bra SEPARATE_DONE;
+ add.u64 %ae,%a,%an;add.u64 %be,%b,%bn;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;selp.u32 %e,6626,0,%p;
+SEPARATE_DONE:st.param.u32 [result],%e;ret;
+}
+
+.visible .func (.param .align 8 .b8 result[16]) md2asm_gpu_neutral_ocean_roughness(.param .b64 wind_word,.param .b64 geopotential_word,.param .b64 charnock_word,.param .b64 gravity_word,.param .b64 viscosity_word,.param .b64 profile_word)
+{
+ .reg .u32 %iteration,%flags,%raised;.reg .pred %p;
+ .reg .b64 %wind,%geopotential,%charnock,%gravity,%viscosity,%profile,%z,%q,%s,%u,%old,%wave,%viscous,%roughness,%x,%l,%f,%derivative,%value,%t,%t2,%t3;
+ .param .b64 ma,mb,la,sa;.param .align 8 .b8 math[16],logarithm[16],root[16];
+ ld.param.b64 %wind,[wind_word];ld.param.b64 %geopotential,[geopotential_word];ld.param.b64 %charnock,[charnock_word];ld.param.b64 %gravity,[gravity_word];ld.param.b64 %viscosity,[viscosity_word];ld.param.b64 %profile,[profile_word];mov.u32 %flags,0;
+ st.param.b64 [ma],%geopotential;st.param.b64 [mb],%gravity;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %z,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ min.f64 %q,%charnock,0d3fb999999999999a;
+ st.param.b64 [ma],%q;st.param.b64 [mb],%gravity;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %q,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%profile;st.param.b64 [mb],%wind;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %s,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3f14f8b588e368f1;st.param.b64 [mb],%wind;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3f4a36e2eb1c432d;st.param.b64 [mb],%t;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [sa],%t;call.uni (root),md2asm_gpu_sqrt_status,(sa);ld.param.b64 %t,[root];ld.param.u32 %raised,[root+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%wind;st.param.b64 [mb],%t;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %u,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ mov.u32 %iteration,1;
+ITERATION:max.f64 %old,%u,0d3eb0c6f7a0b5ed8d;
+ st.param.b64 [ma],%u;st.param.b64 [mb],%u;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %wave,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%q;st.param.b64 [mb],%wave;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %wave,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%viscosity;st.param.b64 [mb],%u;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %viscous,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%wave;st.param.b64 [mb],%viscous;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %roughness,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%z;st.param.b64 [mb],%roughness;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%z;st.param.b64 [mb],%t;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %x,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%z;st.param.b64 [mb],%roughness;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [la],%t;call.uni (logarithm),md2asm_gpu_log_positive_finite,(la);ld.param.b64 %t,[logarithm];ld.param.u32 %raised,[logarithm+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %l,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%s;st.param.b64 [mb],%l;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u;st.param.b64 [mb],%t;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %f,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%l;st.param.b64 [mb],%l;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%s;st.param.b64 [mb],%t;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t;st.param.b64 [mb],%x;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x4000000000000000;st.param.b64 [mb],%wave;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t2;st.param.b64 [mb],%viscous;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t;st.param.b64 [mb],%t2;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u;st.param.b64 [mb],%roughness;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t;st.param.b64 [mb],%t2;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %derivative,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ setp.eq.f64 %p,%derivative,0d0000000000000000;@%p bra CONVERGENCE;
+ st.param.b64 [ma],%f;st.param.b64 [mb],%derivative;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u;st.param.b64 [mb],%t;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %u,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+CONVERGENCE:
+ st.param.b64 [ma],%u;st.param.b64 [mb],%old;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ and.b64 %t,%t,0x7fffffffffffffff;
+ st.param.b64 [ma],%u;st.param.b64 [mb],0x3ee4f8b588e368f1;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ setp.le.f64 %p,%t,%t2;@!%p bra NEXT_ITERATION;and.b64 %t,%f,0x7fffffffffffffff;setp.le.f64 %p,%t,0d3ee4f8b588e368f1;@%p bra CONVERGED;
+NEXT_ITERATION:add.u32 %iteration,%iteration,1;setp.le.u32 %p,%iteration,15;@%p bra ITERATION;mov.b64 %value,0x3f847ae147ae147b;bra COMPLETE;
+CONVERGED:max.f64 %u,%u,0d3eb0c6f7a0b5ed8d;
+ st.param.b64 [ma],%viscosity;st.param.b64 [mb],%u;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u;st.param.b64 [mb],%u;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%q;st.param.b64 [mb],%t;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%value;st.param.b64 [mb],%t;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+COMPLETE:st.param.b64 [result],%value;st.param.u32 [result+8],%flags;st.param.u32 [result+12],0;ret;
+}
+.func (.param .u32 result) md2asm_gpu_pz0wn_admit(.param .u64 vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%output,%word,%absword; .reg .u32 %error;.reg .pred %p;
+ .param .u64 rb,rn,rm,da,dn,db,dm;.param .u32 rr;
+ ld.param.u64 %args,[vector];ld.param.u64 %ctx,[context];
+ st.param.u64 [rb],%args;st.param.u64 [rn],56;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_pz0wn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%args;st.param.u64 [dn],56;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_pz0wn_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ ld.global.u64 %output,[%args+48];
+ st.param.u64 [rb],%output;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_pz0wn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%output;st.param.u64 [dn],8;st.param.u64 [db],%args;st.param.u64 [dm],56;call.uni (rr),md2asm_gpu_pz0wn_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%output;st.param.u64 [dn],8;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_pz0wn_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ ld.global.b64 %word,[%args+0];and.b64 %absword,%word,0x7fffffffffffffff;mov.u32 %error,6625;setp.ge.u64 %p,%absword,0x7ff0000000000000;@%p bra ADMIT_DONE;setp.eq.u64 %p,%absword,0;@%p bra ADMIT_DONE;setp.lt.s64 %p,%word,0;@%p bra ADMIT_DONE;
+ ld.global.b64 %word,[%args+8];and.b64 %absword,%word,0x7fffffffffffffff;mov.u32 %error,6625;setp.ge.u64 %p,%absword,0x7ff0000000000000;@%p bra ADMIT_DONE;setp.eq.u64 %p,%absword,0;@%p bra ADMIT_DONE;setp.lt.s64 %p,%word,0;@%p bra ADMIT_DONE;
+ ld.global.b64 %word,[%args+16];and.b64 %absword,%word,0x7fffffffffffffff;mov.u32 %error,6625;setp.ge.u64 %p,%absword,0x7ff0000000000000;@%p bra ADMIT_DONE;setp.eq.u64 %p,%absword,0;@%p bra ZERO_CHARK;setp.lt.s64 %p,%word,0;@%p bra ADMIT_DONE;ZERO_CHARK:
+ ld.global.b64 %word,[%args+24];and.b64 %absword,%word,0x7fffffffffffffff;mov.u32 %error,6625;setp.ge.u64 %p,%absword,0x7ff0000000000000;@%p bra ADMIT_DONE;setp.eq.u64 %p,%absword,0;@%p bra ADMIT_DONE;setp.lt.s64 %p,%word,0;@%p bra ADMIT_DONE;
+ ld.global.b64 %word,[%args+32];and.b64 %absword,%word,0x7fffffffffffffff;mov.u32 %error,6625;setp.ge.u64 %p,%absword,0x7ff0000000000000;@%p bra ADMIT_DONE;setp.eq.u64 %p,%absword,0;@%p bra ADMIT_DONE;setp.lt.s64 %p,%word,0;@%p bra ADMIT_DONE;
+ ld.global.b64 %word,[%args+40];and.b64 %absword,%word,0x7fffffffffffffff;mov.u32 %error,6625;setp.ge.u64 %p,%absword,0x7ff0000000000000;@%p bra ADMIT_DONE;setp.eq.u64 %p,%absword,0;@%p bra ADMIT_DONE;setp.lt.s64 %p,%word,0;@%p bra ADMIT_DONE;
+ mov.u32 %error,0;ADMIT_DONE:st.param.u32 [result],%error;ret;
+}
+
+.visible .entry md2asm_gpu_pz0wn(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%ptr;
+ .reg .u32 %thread,%unique,%r,%error,%old;
+ .reg .pred %p;
+ .shared .align 4 .b32 admission;
+ .param .u64 av,cv;.param .u32 rr;
+  .param .b64 a0,a1,a2,a3,a4,a5;.param .align 8 .b8 value[16];.reg .b64 %word;.reg .u64 %output;
+
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %ptr,%ctx,7;setp.ne.u64 %p,%ptr,0;@%p ret;
+ mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
+ mov.u32 %r,%ctaid.x;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.z;or.b32 %unique,%unique,%r;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+ mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%nctaid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ setp.ne.u32 %p,%thread,0;@%p bra WAIT;
+ st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),md2asm_gpu_pz0wn_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
+WAIT:
+ bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.b64 %word,[%args+0];st.param.b64 [a0],%word;
+ ld.global.b64 %word,[%args+8];st.param.b64 [a1],%word;
+ ld.global.b64 %word,[%args+16];st.param.b64 [a2],%word;
+ ld.global.b64 %word,[%args+24];st.param.b64 [a3],%word;
+ ld.global.b64 %word,[%args+32];st.param.b64 [a4],%word;
+ ld.global.b64 %word,[%args+40];st.param.b64 [a5],%word;
+ call.uni (value),md2asm_gpu_neutral_ocean_roughness,(a0,a1,a2,a3,a4,a5);ld.param.b64 %word,[value];ld.global.u64 %output,[%args+48];st.global.b64 [%output],%word;ld.param.u32 %r,[value+8];atom.global.or.b32 %old,[%ctx+8],%r;ret;
+
+BAD_LAUNCH:mov.u32 %error,6624;
+REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
+}

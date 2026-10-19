@@ -1,0 +1,431 @@
+/* GPU physical setup route. Original interface and ordered arithmetic are preserved.
+ * Contract: skills/md2asm-gpu/references/openifs/setup/physical_setup.md
+ * Original source: src/openifs/setup/convection_parameter_fields.S
+ */
+// Original contract: skills/md2asm/references/openifs/setup/convection_parameter_setup.md
+#include "../../support/gpu/preserved_scalar_calls.inc.S"
+.arch armv8.2-a
+.section .rodata
+.p2align 3
+.equ CM_ENTRORG,0
+.equ CM_ENTSHALP,8
+.equ CM_ENTSTPC1,16
+.equ CM_ENTSTPC2,24
+.equ CM_ENTSTPC3,32
+.equ CM_ENTRDD,40
+.equ CM_DETRPEN,48
+.equ CM_RMFCFL,56
+.equ CM_RMFLIA,64
+.equ CM_RMFSOLUV,72
+.equ CM_RMFSOLTQ,80
+.equ CM_RMFSOLCT,88
+.equ CM_RMFSOLRHS,96
+.equ CM_RMFADVW,104
+.equ CM_RMFADVWDD,112
+.equ CM_RMFCMIN,120
+.equ CM_RMFDEPS,128
+.equ CM_RDEPTHS,136
+.equ CM_RPRCON,144
+.equ CM_RTAUA,152
+.equ CM_RCAPDCYCL,160
+.equ CM_RCAPQADV,168
+.equ CM_RMINCAPE,176
+.equ CM_RCPECONS,184
+.equ CM_RCVRFACTOR,192
+.equ CM_RCUCOV,200
+.equ CM_RTAUMEL,208
+.equ CM_RHEBC,216
+.equ CM_RUVPER,224
+.equ CM_RBASE0,232
+.equ CM_RMINCIN,240
+.equ CM_LMFPEN,248
+.equ CM_LMFSCV,252
+.equ CM_LMFMID,256
+.equ CM_LMFDD,260
+.equ CM_LMFDUDV,264
+.equ CM_LMFDSNOW,268
+.equ CM_LMFWETB,272
+.equ CM_LMFGLAC,276
+.equ CM_LSCVLIQ,280
+.equ CM_LMFENTHCONS,284
+.equ CM_LMFUVDIS,288
+.equ CM_LMFSMOOTH,292
+.equ CM_LMFWSTAR,296
+.equ CM_LMFCUCA,300
+.equ CM_LMFPROFP,304
+.equ CM_NJKT1,308
+.equ CM_NJKT2,312
+.equ CM_NJKT3,316
+.equ CM_NJKT4,320
+.equ CM_NJKT5,324
+.equ CM_NJKT6,328
+.equ CM_NJKT7,332
+.equ CM_NJKT8,336
+.p2align 3
+.LCM_literal_rows:
+ .word 8,8
+ .quad 0x4000000000000000
+ .word 16,8
+ .quad 0x3fe999999999999a
+ .word 24,8
+ .quad 0x3f2a36e2eb1c432d
+ .word 32,8
+ .quad 0x4008000000000000
+ .word 120,8
+ .quad 0x3e45798ee2308c3a
+ .word 128,8
+ .quad 0x3fd3333333333333
+ .word 136,8
+ .quad 0x40d3880000000000
+ .word 200,8
+ .quad 0x3fa999999999999a
+ .word 216,8
+ .quad 0x3fed70a3d70a3d71
+ .word 152,8
+ .quad 0x3ff0000000000000
+ .word 248,4
+ .quad 0x0000000000000001
+ .word 252,4
+ .quad 0x0000000000000001
+ .word 256,4
+ .quad 0x0000000000000001
+ .word 260,4
+ .quad 0x0000000000000001
+ .word 264,4
+ .quad 0x0000000000000001
+ .word 268,4
+ .quad 0x0000000000000001
+ .word 272,4
+ .quad 0x0000000000000001
+ .word 276,4
+ .quad 0x0000000000000001
+ .word 280,4
+ .quad 0x0000000000000001
+ .word 288,4
+ .quad 0x0000000000000001
+ .word 284,4
+ .quad 0x0000000000000000
+ .word 300,4
+ .quad 0x0000000000000000
+ .word 304,4
+ .quad 0x0000000000000000
+ .word 72,8
+ .quad 0x3ff0000000000000
+ .word 80,8
+ .quad 0x3ff0000000000000
+ .word 88,8
+ .quad 0x3ff0000000000000
+ .word 96,8
+ .quad 0x0000000000000000
+ .word 104,8
+ .quad 0x0000000000000000
+ .word 112,8
+ .quad 0x0000000000000000
+ .word 292,4
+ .quad 0x0000000000000000
+ .word 296,4
+ .quad 0x0000000000000000
+ .word 160,8
+ .quad 0x4000000000000000
+ .word 168,8
+ .quad 0x3fe999999999999a
+ .word 176,8
+ .quad 0x3fa999999999999a
+ .word 224,8
+ .quad 0x3fd3333333333333
+ .word 232,8
+ .quad 0x40d86a0000000000
+ .word 240,8
+ .quad 0xc08f400000000000
+ .word -1,0
+ .quad 0
+.LCM_pressure_rows:
+ .double 35000.0
+ .word 308,0
+ .double 6000.0
+ .word 312,0
+ .double 95000.0
+ .word 316,0
+ .double 85000.0
+ .word 320,0
+ .double 50000.0
+ .word 324,0
+ .double 70000.0
+ .word 328,0
+ .double 10000.0
+ .word 332,0
+ .double 100.0
+ .word 336,0
+.equ CL_ENTRORG2,0
+.equ CL_DETRPEN2,8
+.equ CL_ENTSHALP2,16
+.equ CL_ENTSTPC12,24
+.equ CL_ENTSTPC22,32
+.equ CL_ENTSTPC32,40
+.equ CL_ENTRDD2,48
+.equ CL_RMFCMIN2,56
+.equ CL_RMFDEPS2,64
+.equ CL_RDEPTHS2,72
+.equ CL_RPRCON2,80
+.equ CL_RTAU2,88
+.equ CL_RCPECONS2,96
+.equ CL_RCUCOV2,104
+.equ CL_RTAUMEL2,112
+.equ CL_RUVPER2,120
+.equ CL_RMFSOLCT2,128
+.equ CL_RMFSOLTQ2,136
+.equ CL_RMFSOLUV2,144
+.equ CL_RMFSOLRHS2,152
+.equ CL_RMFCFL2,160
+.equ CL_RMFLIA2,168
+.equ CL_RCAPDCYCL2,176
+.equ CL_RTAU02,184
+.equ CL_LMFMID2,192
+.equ CL_LMFDD2,196
+.equ CL_LMFDUDV2,200
+.equ CL_LMFUVDIS2,204
+.equ CL_LMFWETB2,208
+.equ CL_LMFGLAC2,212
+.equ CL_NJKT12,216
+.equ CL_NJKT22,220
+.equ CL_NJKT32,224
+.equ CL_NJKT52,228
+.equ CL_NJKT62,232
+.p2align 3
+.LCL_literal_rows:
+ .word 24,8
+ .quad 0x3fe999999999999a
+ .word 32,8
+ .quad 0x3f2a36e2eb1c432d
+ .word 40,8
+ .quad 0x4008000000000000
+ .word 16,8
+ .quad 0x4000000000000000
+ .word 56,8
+ .quad 0x3e45798ee2308c3a
+ .word 64,8
+ .quad 0x3fd3333333333333
+ .word 72,8
+ .quad 0x40d3880000000000
+ .word 104,8
+ .quad 0x3fa999999999999a
+ .word 112,8
+ .quad 0x40c7340000000000
+ .word 192,4
+ .quad 0x0000000000000001
+ .word 196,4
+ .quad 0x0000000000000001
+ .word 200,4
+ .quad 0x0000000000000001
+ .word 204,4
+ .quad 0x0000000000000000
+ .word 208,4
+ .quad 0x0000000000000001
+ .word 212,4
+ .quad 0x0000000000000001
+ .word 120,8
+ .quad 0x3fd3333333333333
+ .word 144,8
+ .quad 0x3ff0000000000000
+ .word 136,8
+ .quad 0x3ff0000000000000
+ .word 128,8
+ .quad 0x3ff0000000000000
+ .word 152,8
+ .quad 0x0000000000000000
+ .word 176,8
+ .quad 0x4000000000000000
+ .word 168,8
+ .quad 0x4000000000000000
+ .word 160,8
+ .quad 0x3ff0000000000000
+ .word -1,0
+ .quad 0
+.LCL_pressure_rows:
+ .double 35000.0
+ .word 216,0
+ .double 6000.0
+ .word 220,0
+ .double 95000.0
+ .word 224,0
+ .double 50000.0
+ .word 228,0
+ .double 70000.0
+ .word 232,0
+.Lconvection_math:
+ .double 0.75e-4,1.75e-3,3.0e-4,1.4e-3,5.44e-4,5.09e-3
+ .double 2.0,18000.0,0.66,38.0,1.0,0.33
+.text
+.p2align 4
+.global md2asm_cumulus_convection_parameter_fields
+.type md2asm_cumulus_convection_parameter_fields,%function
+md2asm_cumulus_convection_parameter_fields:
+ adrp x5,.LCM_literal_rows
+ add x5,x5,:lo12:.LCM_literal_rows
+.Lcum_main_literals:
+ ldp w6,w7,[x5],#8
+ ldr x8,[x5],#8
+ cmp w6,#-1
+ b.eq .Lcum_main_math
+ cmp w7,#8
+ b.ne .Lcum_main_word
+ str x8,[x0,x6]
+ b .Lcum_main_literals
+.Lcum_main_word:
+ str w8,[x0,x6]
+ b .Lcum_main_literals
+.Lcum_main_math:
+ adrp x5,.Lconvection_math
+ add x5,x5,:lo12:.Lconvection_math
+ ldr d16,[x3]
+ ldr d17,[x3,#8]
+ ldr d18,[x2,#112]
+ ldr d0,[x5]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d16
+ str d0,[x0,#CM_DETRPEN]
+ ldr d0,[x5,#8]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d16
+ str d0,[x0,#CM_ENTRORG]
+ ldr d0,[x5,#16]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d16
+ str d0,[x0,#CM_ENTRDD]
+ ldr d0,[x5,#24]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d16
+ str d0,[x0,#CM_RPRCON]
+ ldr d0,[x5,#32]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d18
+ str d0,[x0,#CM_RCPECONS]
+ ldr d0,[x5,#40]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d16
+ str d0,[x0,#CM_RCVRFACTOR]
+ ldr d0,[x5,#56]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d16,real,x16,0,d17
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x5,#64]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d1
+ str d0,[x0,#CM_RTAUMEL]
+ ldr d0,[x5,#48]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d17
+ str d0,[x0,#CM_RMFLIA]
+ fmov d0,#3.0
+ str d0,[x0,#CM_RMFCFL]
+ ldr d0,[x2,#368]
+ str d0,[x4]
+ ldr d1,[x5,#72]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d2,destination,d0,real,x16,0,d1
+ str d2,[x4,#8]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d2,destination,d0,real,x16,0,d2
+ ldr d1,[x5,#80]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d2,destination,d1,real,x16,0,d2
+ str d2,[x4,#16]
+ mov w6,#2
+ str w6,[x0,#CM_NJKT1]
+ str w6,[x0,#CM_NJKT2]
+ str w6,[x0,#CM_NJKT8]
+ mov w6,#17
+ str w6,[x0,#CM_NJKT3]
+ mov x6,#144
+.Lcum_main_level:
+ ldr d0,[x1,x6]
+ adrp x5,.LCM_pressure_rows
+ add x5,x5,:lo12:.LCM_pressure_rows
+ mov w7,#8
+.Lcum_main_threshold:
+ ldr d1,[x5]
+ ldr w8,[x5,#8]
+ add x5,x5,#16
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,4,none,comparison,d0,real,x16,0,d1
+ b.le .Lcum_main_threshold_next
+ lsr w9,w6,#3
+ add w9,w9,#1
+ str w9,[x0,x8]
+.Lcum_main_threshold_next:
+ subs w7,w7,#1
+ b.ne .Lcum_main_threshold
+ subs x6,x6,#8
+ b.ne .Lcum_main_level
+ ldr w6,[x0,#CM_NJKT3]
+ mov w7,#17
+ cmp w6,w7
+ csel w6,w6,w7,le
+ str w6,[x0,#CM_NJKT3]
+ ret
+.size md2asm_cumulus_convection_parameter_fields,.-md2asm_cumulus_convection_parameter_fields
+.p2align 4
+.global md2asm_linearized_convection_parameter_fields
+.type md2asm_linearized_convection_parameter_fields,%function
+md2asm_linearized_convection_parameter_fields:
+ adrp x5,.LCL_literal_rows
+ add x5,x5,:lo12:.LCL_literal_rows
+.Lcum_linear_literals:
+ ldp w6,w7,[x5],#8
+ ldr x8,[x5],#8
+ cmp w6,#-1
+ b.eq .Lcum_linear_math
+ cmp w7,#8
+ b.ne .Lcum_linear_word
+ str x8,[x0,x6]
+ b .Lcum_linear_literals
+.Lcum_linear_word:
+ str w8,[x0,x6]
+ b .Lcum_linear_literals
+.Lcum_linear_math:
+ adrp x5,.Lconvection_math
+ add x5,x5,:lo12:.Lconvection_math
+ ldr d16,[x4]
+ ldr d17,[x4,#16]
+ ldr d18,[x3,#112]
+ ldr d0,[x5]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d16
+ str d0,[x0,#CL_DETRPEN2]
+ ldr d0,[x5,#8]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d16
+ str d0,[x0,#CL_ENTRORG2]
+ ldr d0,[x5,#16]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d16
+ str d0,[x0,#CL_ENTRDD2]
+ ldr d0,[x5,#24]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d16
+ str d0,[x0,#CL_RPRCON2]
+ ldr d0,[x5,#32]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d18
+ str d0,[x0,#CL_RCPECONS2]
+ ldr d0,[x5,#88]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d17
+ str d0,[x0,#CL_RTAU2]
+ mov w6,#2
+ str w6,[x0,#CL_NJKT12]
+ str w6,[x0,#CL_NJKT22]
+ mov w6,#17
+ str w6,[x0,#CL_NJKT32]
+ mov x6,#144
+.Lcum_linear_level:
+ ldr d0,[x2,x6]
+ adrp x5,.LCL_pressure_rows
+ add x5,x5,:lo12:.LCL_pressure_rows
+ mov w7,#5
+.Lcum_linear_threshold:
+ ldr d1,[x5]
+ ldr w8,[x5,#8]
+ add x5,x5,#16
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,4,none,comparison,d0,real,x16,0,d1
+ b.le .Lcum_linear_threshold_next
+ lsr w9,w6,#3
+ add w9,w9,#1
+ str w9,[x0,x8]
+.Lcum_linear_threshold_next:
+ subs w7,w7,#1
+ b.ne .Lcum_linear_threshold
+ subs x6,x6,#8
+ b.ne .Lcum_linear_level
+ ldr w6,[x0,#CL_NJKT32]
+ mov w7,#17
+ cmp w6,w7
+ csel w6,w6,w7,le
+ str w6,[x0,#CL_NJKT32]
+ str wzr,[x1]
+ str wzr,[x1,#4]
+ str wzr,[x1,#8]
+ ret
+.size md2asm_linearized_convection_parameter_fields,.-md2asm_linearized_convection_parameter_fields
+.section .note.GNU-stack,"",%progbits

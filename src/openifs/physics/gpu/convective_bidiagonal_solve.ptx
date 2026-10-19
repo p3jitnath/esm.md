@@ -1,0 +1,166 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Complete direct CUBIDIAG from the retained component contract revision1. Unverified batch draft.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.func (.param .u32 result) cubidiag_range(.param .u64 base,.param .u64 bytes,.param .u64 mask)
+{
+ .reg .u64 %b,%n,%m,%end; .reg .u32 %e; .reg .pred %p;
+ ld.param.u64 %b,[base];ld.param.u64 %n,[bytes];ld.param.u64 %m,[mask];mov.u32 %e,0;
+ setp.eq.u64 %p,%n,0;@%p bra CR_DONE;mov.u32 %e,6147;
+ setp.eq.u64 %p,%b,0;@%p bra CR_DONE;and.b64 %end,%b,%m;setp.ne.u64 %p,%end,0;@%p bra CR_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff;@%p bra CR_DONE;setp.gt.u64 %p,%n,0x7fffffffffffffff;@%p bra CR_DONE;
+ add.u64 %end,%b,%n;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra CR_DONE;mov.u32 %e,0;
+CR_DONE:st.param.u32 [result],%e;ret;
+}
+.func (.param .u32 result) cubidiag_disjoint(.param .u64 a,.param .u64 an,.param .u64 b,.param .u64 bn)
+{
+ .reg .u64 %a,%an,%b,%bn,%ae,%be; .reg .u32 %e; .reg .pred %p,%q;
+ ld.param.u64 %a,[a];ld.param.u64 %an,[an];ld.param.u64 %b,[b];ld.param.u64 %bn,[bn];mov.u32 %e,0;
+ setp.eq.u64 %p,%an,0;@%p bra CD_DONE;setp.eq.u64 %p,%bn,0;@%p bra CD_DONE;
+ add.u64 %ae,%a,%an;add.u64 %be,%b,%bn;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;selp.u32 %e,6147,0,%p;
+CD_DONE:st.param.u32 [result],%e;ret;
+}
+.visible .func (.param .u32 new_flags) md2asm_gpu_cubidiag_column(
+ .param .u32 column,.param .u32 columns,.param .u32 levels,.param .u32 first,.param .u32 last,
+ .param .u64 tops,.param .u64 masks,.param .u64 lower_diagonal,.param .u64 diagonal,.param .u64 forcing,.param .u64 solution)
+{
+ .reg .u32 %c,%P,%N,%first,%last,%j,%mask,%top,%boundary,%flags,%raised;
+ .reg .u64 %tops,%masks,%A,%B,%R,%U,%cell,%offset,%ptr,%width,%column64;
+ .reg .b64 %b,%inverse,%rhs,%a,%previous,%product,%value;
+ .reg .pred %p;
+ .param .b64 ma,mb; .param .align 8 .b8 math[16];
+ ld.param.u32 %c,[column];ld.param.u32 %P,[columns];ld.param.u32 %N,[levels];ld.param.u32 %first,[first];ld.param.u32 %last,[last];
+ ld.param.u64 %tops,[tops];ld.param.u64 %masks,[masks];ld.param.u64 %A,[lower_diagonal];ld.param.u64 %B,[diagonal];ld.param.u64 %R,[forcing];ld.param.u64 %U,[solution];
+ mov.u32 %flags,0;mov.u32 %j,0;cvt.u64.u32 %column64,%c;cvt.u64.u32 %width,%P;shl.b64 %width,%width,3;
+ZERO_COLUMN:
+ setp.ge.u32 %p,%j,%N;@%p bra ZERO_DONE;
+ mul.wide.u32 %cell,%j,%P;add.u64 %cell,%cell,%column64;shl.b64 %offset,%cell,3;add.u64 %ptr,%U,%offset;st.global.u64 [%ptr],0;
+ add.u32 %j,%j,1;bra ZERO_COLUMN;
+ZERO_DONE:
+ setp.lt.u32 %p,%N,2;@%p bra COLUMN_DONE;
+ add.u32 %boundary,%c,1;setp.lt.u32 %p,%boundary,%first;@%p bra COLUMN_DONE;setp.gt.u32 %p,%boundary,%last;@%p bra COLUMN_DONE;
+ mov.u32 %j,1;
+EQUATION:
+ mul.wide.u32 %cell,%j,%P;add.u64 %cell,%cell,%column64;shl.b64 %offset,%cell,2;add.u64 %ptr,%masks,%offset;ld.global.u32 %mask,[%ptr];
+ setp.eq.u32 %p,%mask,0;@%p bra NEXT_LEVEL;
+ mul.wide.u32 %offset,%c,4;add.u64 %ptr,%tops,%offset;ld.global.s32 %top,[%ptr];add.u32 %boundary,%j,2;
+ setp.lt.s32 %p,%boundary,%top;@%p bra NEXT_LEVEL;
+ shl.b64 %offset,%cell,3;add.u64 %ptr,%B,%offset;ld.global.b64 %b,[%ptr];
+ st.param.b64 [ma],%b;st.param.b64 [mb],0x38aa95a5b7f87a0f;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %inverse,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ add.u64 %ptr,%R,%offset;ld.global.b64 %rhs,[%ptr];setp.eq.u32 %p,%boundary,%top;@%p bra SCALE;
+ add.u64 %ptr,%A,%offset;ld.global.b64 %a,[%ptr];add.u64 %ptr,%U,%offset;sub.u64 %ptr,%ptr,%width;ld.global.b64 %previous,[%ptr];
+ st.param.b64 [ma],%a;st.param.b64 [mb],%previous;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %product,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%rhs;st.param.b64 [mb],%product;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %rhs,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+SCALE:
+ st.param.b64 [ma],%rhs;st.param.b64 [mb],%inverse;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ add.u64 %ptr,%U,%offset;st.global.b64 [%ptr],%value;
+NEXT_LEVEL:
+ add.u32 %j,%j,1;setp.lt.u32 %p,%j,%N;@%p bra EQUATION;
+COLUMN_DONE:st.param.u32 [new_flags],%flags;ret;
+}
+.func (.param .u32 result) cubidiag_admit(.param .u64 vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%v<10>,%size<10>,%a,%bytes,%cells,%outbytes,%maskbytes,%topbytes,%ptr,%offset;
+ .reg .u32 %P,%N,%first,%last,%error,%j,%c,%mask,%top,%boundary;
+ .reg .pred %p;
+ .param .u64 rb,rn,rm,da,dn,db,dm;.param .u32 rr;
+ ld.param.u64 %args,[vector];ld.param.u64 %ctx,[context];
+ st.param.u64 [rb],%args;st.param.u64 [rn],80;st.param.u64 [rm],7;call.uni (rr),cubidiag_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%args;st.param.u64 [dn],80;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ ld.global.u64 %v0,[%args+0];
+ ld.global.u64 %v1,[%args+8];
+ ld.global.u64 %v2,[%args+16];
+ ld.global.u64 %v3,[%args+24];
+ ld.global.u64 %v4,[%args+32];
+ ld.global.u64 %v5,[%args+40];
+ ld.global.u64 %v6,[%args+48];
+ ld.global.u64 %v7,[%args+56];
+ ld.global.u64 %v8,[%args+64];
+ ld.global.u64 %v9,[%args+72];
+ st.param.u64 [rb],%v0;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),cubidiag_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v0;st.param.u64 [dn],4;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v1;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),cubidiag_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v1;st.param.u64 [dn],4;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v2;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),cubidiag_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v2;st.param.u64 [dn],4;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v3;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),cubidiag_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v3;st.param.u64 [dn],4;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ ld.global.s32 %first,[%v0];ld.global.s32 %last,[%v1];ld.global.s32 %P,[%v2];ld.global.s32 %N,[%v3];mov.u32 %error,6146;
+ setp.lt.s32 %p,%P,1;@%p bra ADMIT_DONE;setp.lt.s32 %p,%N,0;@%p bra ADMIT_DONE;setp.gt.u32 %p,%N,2147483645;@%p bra ADMIT_DONE;
+ setp.lt.s32 %p,%first,1;@%p bra ADMIT_DONE;setp.gt.s32 %p,%first,%P;@%p bra ADMIT_DONE;sub.u32 %boundary,%first,1;setp.lt.s32 %p,%last,%boundary;@%p bra ADMIT_DONE;setp.gt.s32 %p,%last,%P;@%p bra ADMIT_DONE;
+ mul.wide.u32 %cells,%P,%N;shr.u64 %a,%cells,60;setp.ne.u64 %p,%a,0;@%p bra ADMIT_DONE;shl.b64 %outbytes,%cells,3;shl.b64 %maskbytes,%cells,2;mul.wide.u32 %topbytes,%P,4;
+ st.param.u64 [rb],%v9;st.param.u64 [rn],%outbytes;st.param.u64 [rm],7;call.uni (rr),cubidiag_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%outbytes;st.param.u64 [db],%args;st.param.u64 [dm],80;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%outbytes;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%outbytes;st.param.u64 [db],%v0;st.param.u64 [dm],4;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%outbytes;st.param.u64 [db],%v1;st.param.u64 [dm],4;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%outbytes;st.param.u64 [db],%v2;st.param.u64 [dm],4;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%outbytes;st.param.u64 [db],%v3;st.param.u64 [dm],4;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ setp.lt.u32 %p,%N,2;@%p bra ADMIT_OK;setp.lt.s32 %p,%last,%first;@%p bra ADMIT_OK;
+ st.param.u64 [rb],%v4;st.param.u64 [rn],%topbytes;st.param.u64 [rm],3;call.uni (rr),cubidiag_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%outbytes;st.param.u64 [db],%v4;st.param.u64 [dm],%topbytes;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v4;st.param.u64 [dn],%topbytes;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v5;st.param.u64 [rn],%maskbytes;st.param.u64 [rm],3;call.uni (rr),cubidiag_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%outbytes;st.param.u64 [db],%v5;st.param.u64 [dm],%maskbytes;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v5;st.param.u64 [dn],%maskbytes;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v6;st.param.u64 [rn],%outbytes;st.param.u64 [rm],7;call.uni (rr),cubidiag_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%outbytes;st.param.u64 [db],%v6;st.param.u64 [dm],%outbytes;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v6;st.param.u64 [dn],%outbytes;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v7;st.param.u64 [rn],%outbytes;st.param.u64 [rm],7;call.uni (rr),cubidiag_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%outbytes;st.param.u64 [db],%v7;st.param.u64 [dm],%outbytes;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v7;st.param.u64 [dn],%outbytes;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v8;st.param.u64 [rn],%outbytes;st.param.u64 [rm],7;call.uni (rr),cubidiag_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v9;st.param.u64 [dn],%outbytes;st.param.u64 [db],%v8;st.param.u64 [dm],%outbytes;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v8;st.param.u64 [dn],%outbytes;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),cubidiag_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ mov.u32 %j,1;
+ADMIT_ROW:
+ sub.u32 %c,%first,1;
+ADMIT_COLUMN:
+ mul.wide.u32 %offset,%j,%P;cvt.u64.u32 %a,%c;add.u64 %offset,%offset,%a;shl.b64 %offset,%offset,2;add.u64 %ptr,%v5,%offset;ld.global.u32 %mask,[%ptr];mov.u32 %error,6148;
+ setp.gt.u32 %p,%mask,1;@%p bra ADMIT_DONE;setp.eq.u32 %p,%mask,0;@%p bra ADMIT_NEXT;
+ mul.wide.u32 %offset,%c,4;add.u64 %ptr,%v4,%offset;ld.global.s32 %top,[%ptr];add.u32 %boundary,%j,2;setp.lt.s32 %p,%boundary,%top;@%p bra ADMIT_NEXT;setp.lt.s32 %p,%top,1;@%p bra ADMIT_DONE;
+ADMIT_NEXT:
+ add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra ADMIT_COLUMN;add.u32 %j,%j,1;setp.lt.u32 %p,%j,%N;@%p bra ADMIT_ROW;
+ADMIT_OK:mov.u32 %error,0;
+ADMIT_DONE:st.param.u32 [result],%error;ret;
+}
+.visible .entry md2asm_gpu_cubidiag(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%ptr,%tops,%mask,%A,%B,%R,%U,%column64;
+ .reg .u32 %thread,%r,%unique,%error,%P,%N,%first,%last,%column,%flags,%raised;
+ .reg .pred %p;
+ .shared .align 4 .b32 admission;
+ .param .u64 av,cv,toparg,maskarg,aarg,barg,rarg,uarg;
+ .param .u32 rr,carg,parg,narg,firstarg,lastarg;
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %ptr,%ctx,7;setp.ne.u64 %p,%ptr,0;@%p ret;
+ mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
+ mov.u32 %r,%ctaid.x;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.z;or.b32 %unique,%unique,%r;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+ mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,128;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%nctaid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ setp.ne.u32 %p,%thread,0;@%p bra WAIT;
+ st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),cubidiag_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
+WAIT:
+ bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %ptr,[%args];ld.global.u32 %first,[%ptr];ld.global.u64 %ptr,[%args+8];ld.global.u32 %last,[%ptr];ld.global.u64 %ptr,[%args+16];ld.global.u32 %P,[%ptr];ld.global.u64 %ptr,[%args+24];ld.global.u32 %N,[%ptr];
+ setp.eq.u32 %p,%N,0;@%p ret;
+ ld.global.u64 %tops,[%args+32];ld.global.u64 %mask,[%args+40];ld.global.u64 %A,[%args+48];ld.global.u64 %B,[%args+56];ld.global.u64 %R,[%args+64];ld.global.u64 %U,[%args+72];
+ mov.u32 %flags,0;cvt.u64.u32 %column64,%thread;
+COLUMN:
+ cvt.u32.u64 %column,%column64;setp.ge.u32 %p,%column,%P;@%p bra DONE;
+ st.param.u32 [carg],%column;st.param.u32 [parg],%P;st.param.u32 [narg],%N;st.param.u32 [firstarg],%first;st.param.u32 [lastarg],%last;
+ st.param.u64 [toparg],%tops;st.param.u64 [maskarg],%mask;st.param.u64 [aarg],%A;st.param.u64 [barg],%B;st.param.u64 [rarg],%R;st.param.u64 [uarg],%U;
+ call.uni (rr),md2asm_gpu_cubidiag_column,(carg,parg,narg,firstarg,lastarg,toparg,maskarg,aarg,barg,rarg,uarg);ld.param.u32 %raised,[rr];or.b32 %flags,%flags,%raised;
+ add.u64 %column64,%column64,128;bra COLUMN;
+DONE:atom.global.or.b32 %raised,[%ctx+8],%flags;ret;
+BAD_LAUNCH:mov.u32 %error,6144;
+REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
+}

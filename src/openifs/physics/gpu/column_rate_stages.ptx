@@ -1,0 +1,851 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// EC_PHYS ordered arithmetic stages. the retained component contract revision2.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sqrt_status(.param .b64 a);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_exp_original_rounding(.param .b64 a);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_sin_bounded_finite(.param .b64 a);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_cos_bounded_finite(.param .b64 a);
+.func (.param .u32 result) column_stage_range(.param .u64 base,.param .u64 size,.param .u64 capacity,.param .u64 mask)
+{.reg .u64 %a,%n,%c,%m,%end;.reg .u32 %error;.reg .pred %p;
+ld.param.u64 %a,[base];ld.param.u64 %n,[size];ld.param.u64 %c,[capacity];ld.param.u64 %m,[mask];mov.u32 %error,16201;setp.eq.u64 %p,%n,0;@%p bra OK;setp.eq.u64 %p,%a,0;@%p bra DONE;and.b64 %end,%a,%m;setp.ne.u64 %p,%end,0;@%p bra DONE;setp.gt.u64 %p,%n,%c;@%p bra DONE;add.u64 %end,%a,%n;setp.lt.u64 %p,%end,%a;@%p bra DONE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra DONE;OK:mov.u32 %error,0;DONE:st.param.u32 [result],%error;ret;}
+.visible .func md2asm_gpu_column_rate_stage(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%record,%cap,%v<16>,%n<16>,%mutable<16>,%pointer,%word,%off,%off2,%temp,%left,%right,%leftsize,%rightsize,%leftend,%rightend,%event,%actual_exp,%counter,%countercap;
+.reg .b64 %a,%b,%c,%d,%x,%y,%z,%value,%converted,%sinlat,%root,%coslon,%sinlon,%coefA,%coefB,%coefC,%coefS;
+.reg .u32 %stage,%i,%j,%first,%last,%level,%col,%cell,%flags,%raised,%error,%event32,%is_mutable;
+.reg .s32 %step,%itime,%bins,%now,%previous,%quotient,%flag,%flag2;.reg .pred %p,%q;
+.param .u64 rb,rn,rc,rm;.param .u32 rr;.param .b64 ma,mb;.param .align 8 .b8 math[16],projection[32];
+ld.param.u64 %ctx,[common_context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %word,%ctx,7;setp.ne.u64 %p,%word,0;@%p ret;
+mov.u32 %i,%tid.x;mov.u32 %j,%tid.y;or.b32 %i,%i,%j;mov.u32 %j,%tid.z;or.b32 %i,%i,%j;mov.u32 %j,%ctaid.x;or.b32 %i,%i,%j;mov.u32 %j,%ctaid.y;or.b32 %i,%i,%j;mov.u32 %j,%ctaid.z;or.b32 %i,%i,%j;setp.ne.u32 %p,%i,0;@%p ret;
+ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+
+mov.u32 %error,16202;mov.u32 %i,%ntid.x;setp.ne.u32 %p,%i,1;@%p bra REFUSE;
+mov.u32 %error,16202;mov.u32 %i,%ntid.y;setp.ne.u32 %p,%i,1;@%p bra REFUSE;
+mov.u32 %error,16202;mov.u32 %i,%ntid.z;setp.ne.u32 %p,%i,1;@%p bra REFUSE;
+mov.u32 %error,16202;mov.u32 %i,%nctaid.x;setp.ne.u32 %p,%i,1;@%p bra REFUSE;
+mov.u32 %error,16202;mov.u32 %i,%nctaid.y;setp.ne.u32 %p,%i,1;@%p bra REFUSE;
+mov.u32 %error,16202;mov.u32 %i,%nctaid.z;setp.ne.u32 %p,%i,1;@%p bra REFUSE;
+mov.u32 %error,16202;mov.u32 %i,%dynamic_smem_size;setp.ne.u32 %p,%i,0;@%p bra REFUSE;
+mov.u32 %error,16202;ld.global.u32 %i,[%ctx+4];setp.ne.u32 %p,%i,1;@%p bra REFUSE;
+mov.u32 %error,16202;ld.global.u32 %i,[%ctx+12];and.b32 %i,%i,1;setp.ne.u32 %p,%i,0;@%p bra REFUSE;
+ld.param.u64 %args,[original_vector];ld.global.u64 %record,[%ctx+48];ld.global.u64 %cap,[%ctx+56];
+st.param.u64 [rb],%args;st.param.u64 [rn],128;st.param.u64 [rc],128;st.param.u64 [rm],7;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%record;st.param.u64 [rn],160;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u32 %stage,[%record+128];
+mov.u32 %error,16202;setp.gt.u32 %p,%stage,6;@%p bra REFUSE;
+ld.global.u32 %i,[%record+132];
+mov.u32 %error,16202;setp.ne.u32 %p,%i,0;@%p bra REFUSE;
+ld.global.u64 %word,[%record+152];
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ld.global.u64 %counter,[%record+136];ld.global.u64 %countercap,[%record+144];
+st.param.u64 [rb],%counter;st.param.u64 [rn],8;st.param.u64 [rc],%countercap;st.param.u64 [rm],7;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %v0,[%args+0];mov.u64 %n0,0;mov.u64 %mutable0,0;
+ld.global.u64 %v1,[%args+8];mov.u64 %n1,0;mov.u64 %mutable1,0;
+ld.global.u64 %v2,[%args+16];mov.u64 %n2,0;mov.u64 %mutable2,0;
+ld.global.u64 %v3,[%args+24];mov.u64 %n3,0;mov.u64 %mutable3,0;
+ld.global.u64 %v4,[%args+32];mov.u64 %n4,0;mov.u64 %mutable4,0;
+ld.global.u64 %v5,[%args+40];mov.u64 %n5,0;mov.u64 %mutable5,0;
+ld.global.u64 %v6,[%args+48];mov.u64 %n6,0;mov.u64 %mutable6,0;
+ld.global.u64 %v7,[%args+56];mov.u64 %n7,0;mov.u64 %mutable7,0;
+ld.global.u64 %v8,[%args+64];mov.u64 %n8,0;mov.u64 %mutable8,0;
+ld.global.u64 %v9,[%args+72];mov.u64 %n9,0;mov.u64 %mutable9,0;
+ld.global.u64 %v10,[%args+80];mov.u64 %n10,0;mov.u64 %mutable10,0;
+ld.global.u64 %v11,[%args+88];mov.u64 %n11,0;mov.u64 %mutable11,0;
+ld.global.u64 %v12,[%args+96];mov.u64 %n12,0;mov.u64 %mutable12,0;
+ld.global.u64 %v13,[%args+104];mov.u64 %n13,0;mov.u64 %mutable13,0;
+ld.global.u64 %v14,[%args+112];mov.u64 %n14,0;mov.u64 %mutable14,0;
+ld.global.u64 %v15,[%args+120];mov.u64 %n15,0;mov.u64 %mutable15,0;
+setp.eq.u32 %p,%stage,0;@%p bra SIZE_0;
+setp.eq.u32 %p,%stage,1;@%p bra SIZE_1;
+setp.eq.u32 %p,%stage,2;@%p bra SIZE_2;
+setp.eq.u32 %p,%stage,3;@%p bra SIZE_3;
+setp.eq.u32 %p,%stage,4;@%p bra SIZE_4;
+setp.eq.u32 %p,%stage,5;@%p bra SIZE_5;
+setp.eq.u32 %p,%stage,6;@%p bra SIZE_6;
+SIZE_0:
+mov.u64 %n0,8;mov.u64 %mutable0,0;
+mov.u64 %n1,4;mov.u64 %mutable1,0;
+mov.u64 %n2,4;mov.u64 %mutable2,1;
+bra SIZES_READY;
+SIZE_1:
+mov.u64 %n0,4;mov.u64 %mutable0,0;
+mov.u64 %n1,4;mov.u64 %mutable1,0;
+mov.u64 %n2,192;mov.u64 %mutable2,0;
+mov.u64 %n3,192;mov.u64 %mutable3,1;
+bra SIZES_READY;
+SIZE_2:
+mov.u64 %n0,4;mov.u64 %mutable0,0;
+mov.u64 %n1,4;mov.u64 %mutable1,0;
+mov.u64 %n2,192;mov.u64 %mutable2,0;
+mov.u64 %n3,192;mov.u64 %mutable3,1;
+bra SIZES_READY;
+SIZE_3:
+mov.u64 %n0,4;mov.u64 %mutable0,0;
+mov.u64 %n1,4;mov.u64 %mutable1,0;
+mov.u64 %n2,3840;mov.u64 %mutable2,0;
+mov.u64 %n3,3648;mov.u64 %mutable3,0;
+mov.u64 %n4,3648;mov.u64 %mutable4,1;
+mov.u64 %n5,3840;mov.u64 %mutable5,1;
+bra SIZES_READY;
+SIZE_4:
+mov.u64 %n0,4;mov.u64 %mutable0,0;
+mov.u64 %n1,4;mov.u64 %mutable1,0;
+mov.u64 %n2,192;mov.u64 %mutable2,0;
+mov.u64 %n3,192;mov.u64 %mutable3,0;
+mov.u64 %n4,192;mov.u64 %mutable4,1;
+mov.u64 %n5,32;mov.u64 %mutable5,0;
+bra SIZES_READY;
+SIZE_5:
+mov.u64 %n0,4;mov.u64 %mutable0,0;
+mov.u64 %n1,4;mov.u64 %mutable1,0;
+mov.u64 %n2,3648;mov.u64 %mutable2,0;
+mov.u64 %n3,3648;mov.u64 %mutable3,0;
+mov.u64 %n4,3648;mov.u64 %mutable4,0;
+mov.u64 %n5,3648;mov.u64 %mutable5,1;
+mov.u64 %n6,4;mov.u64 %mutable6,0;
+mov.u64 %n7,4;mov.u64 %mutable7,0;
+bra SIZES_READY;
+SIZE_6:
+mov.u64 %n0,4;mov.u64 %mutable0,0;
+mov.u64 %n1,4;mov.u64 %mutable1,0;
+mov.u64 %n2,3648;mov.u64 %mutable2,0;
+mov.u64 %n3,3648;mov.u64 %mutable3,0;
+mov.u64 %n4,96;mov.u64 %mutable4,0;
+mov.u64 %n5,3648;mov.u64 %mutable5,1;
+mov.u64 %n6,3648;mov.u64 %mutable6,0;
+mov.u64 %n7,8;mov.u64 %mutable7,0;
+mov.u64 %n8,8;mov.u64 %mutable8,0;
+mov.u64 %n9,8;mov.u64 %mutable9,0;
+bra SIZES_READY;
+SIZES_READY:
+ld.global.u64 %cap,[%record+0];
+st.param.u64 [rb],%v0;st.param.u64 [rn],%n0;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.lt.u64 %p,%n0,8;@%p bra ALIGN_0;and.b64 %word,%v0,7;
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ALIGN_0:
+setp.ne.u64 %p,%n0,0;@%p bra USED_0;
+mov.u32 %error,16202;setp.ne.u64 %p,%cap,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ne.u64 %p,%v0,0;@%p bra REFUSE;
+USED_0:
+ld.global.u64 %cap,[%record+8];
+st.param.u64 [rb],%v1;st.param.u64 [rn],%n1;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.lt.u64 %p,%n1,8;@%p bra ALIGN_1;and.b64 %word,%v1,7;
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ALIGN_1:
+setp.ne.u64 %p,%n1,0;@%p bra USED_1;
+mov.u32 %error,16202;setp.ne.u64 %p,%cap,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ne.u64 %p,%v1,0;@%p bra REFUSE;
+USED_1:
+ld.global.u64 %cap,[%record+16];
+st.param.u64 [rb],%v2;st.param.u64 [rn],%n2;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.lt.u64 %p,%n2,8;@%p bra ALIGN_2;and.b64 %word,%v2,7;
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ALIGN_2:
+setp.ne.u64 %p,%n2,0;@%p bra USED_2;
+mov.u32 %error,16202;setp.ne.u64 %p,%cap,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ne.u64 %p,%v2,0;@%p bra REFUSE;
+USED_2:
+ld.global.u64 %cap,[%record+24];
+st.param.u64 [rb],%v3;st.param.u64 [rn],%n3;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.lt.u64 %p,%n3,8;@%p bra ALIGN_3;and.b64 %word,%v3,7;
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ALIGN_3:
+setp.ne.u64 %p,%n3,0;@%p bra USED_3;
+mov.u32 %error,16202;setp.ne.u64 %p,%cap,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ne.u64 %p,%v3,0;@%p bra REFUSE;
+USED_3:
+ld.global.u64 %cap,[%record+32];
+st.param.u64 [rb],%v4;st.param.u64 [rn],%n4;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.lt.u64 %p,%n4,8;@%p bra ALIGN_4;and.b64 %word,%v4,7;
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ALIGN_4:
+setp.ne.u64 %p,%n4,0;@%p bra USED_4;
+mov.u32 %error,16202;setp.ne.u64 %p,%cap,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ne.u64 %p,%v4,0;@%p bra REFUSE;
+USED_4:
+ld.global.u64 %cap,[%record+40];
+st.param.u64 [rb],%v5;st.param.u64 [rn],%n5;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.lt.u64 %p,%n5,8;@%p bra ALIGN_5;and.b64 %word,%v5,7;
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ALIGN_5:
+setp.ne.u64 %p,%n5,0;@%p bra USED_5;
+mov.u32 %error,16202;setp.ne.u64 %p,%cap,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ne.u64 %p,%v5,0;@%p bra REFUSE;
+USED_5:
+ld.global.u64 %cap,[%record+48];
+st.param.u64 [rb],%v6;st.param.u64 [rn],%n6;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.lt.u64 %p,%n6,8;@%p bra ALIGN_6;and.b64 %word,%v6,7;
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ALIGN_6:
+setp.ne.u64 %p,%n6,0;@%p bra USED_6;
+mov.u32 %error,16202;setp.ne.u64 %p,%cap,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ne.u64 %p,%v6,0;@%p bra REFUSE;
+USED_6:
+ld.global.u64 %cap,[%record+56];
+st.param.u64 [rb],%v7;st.param.u64 [rn],%n7;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.lt.u64 %p,%n7,8;@%p bra ALIGN_7;and.b64 %word,%v7,7;
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ALIGN_7:
+setp.ne.u64 %p,%n7,0;@%p bra USED_7;
+mov.u32 %error,16202;setp.ne.u64 %p,%cap,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ne.u64 %p,%v7,0;@%p bra REFUSE;
+USED_7:
+ld.global.u64 %cap,[%record+64];
+st.param.u64 [rb],%v8;st.param.u64 [rn],%n8;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.lt.u64 %p,%n8,8;@%p bra ALIGN_8;and.b64 %word,%v8,7;
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ALIGN_8:
+setp.ne.u64 %p,%n8,0;@%p bra USED_8;
+mov.u32 %error,16202;setp.ne.u64 %p,%cap,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ne.u64 %p,%v8,0;@%p bra REFUSE;
+USED_8:
+ld.global.u64 %cap,[%record+72];
+st.param.u64 [rb],%v9;st.param.u64 [rn],%n9;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.lt.u64 %p,%n9,8;@%p bra ALIGN_9;and.b64 %word,%v9,7;
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ALIGN_9:
+setp.ne.u64 %p,%n9,0;@%p bra USED_9;
+mov.u32 %error,16202;setp.ne.u64 %p,%cap,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ne.u64 %p,%v9,0;@%p bra REFUSE;
+USED_9:
+ld.global.u64 %cap,[%record+80];
+st.param.u64 [rb],%v10;st.param.u64 [rn],%n10;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.lt.u64 %p,%n10,8;@%p bra ALIGN_10;and.b64 %word,%v10,7;
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ALIGN_10:
+setp.ne.u64 %p,%n10,0;@%p bra USED_10;
+mov.u32 %error,16202;setp.ne.u64 %p,%cap,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ne.u64 %p,%v10,0;@%p bra REFUSE;
+USED_10:
+ld.global.u64 %cap,[%record+88];
+st.param.u64 [rb],%v11;st.param.u64 [rn],%n11;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.lt.u64 %p,%n11,8;@%p bra ALIGN_11;and.b64 %word,%v11,7;
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ALIGN_11:
+setp.ne.u64 %p,%n11,0;@%p bra USED_11;
+mov.u32 %error,16202;setp.ne.u64 %p,%cap,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ne.u64 %p,%v11,0;@%p bra REFUSE;
+USED_11:
+ld.global.u64 %cap,[%record+96];
+st.param.u64 [rb],%v12;st.param.u64 [rn],%n12;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.lt.u64 %p,%n12,8;@%p bra ALIGN_12;and.b64 %word,%v12,7;
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ALIGN_12:
+setp.ne.u64 %p,%n12,0;@%p bra USED_12;
+mov.u32 %error,16202;setp.ne.u64 %p,%cap,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ne.u64 %p,%v12,0;@%p bra REFUSE;
+USED_12:
+ld.global.u64 %cap,[%record+104];
+st.param.u64 [rb],%v13;st.param.u64 [rn],%n13;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.lt.u64 %p,%n13,8;@%p bra ALIGN_13;and.b64 %word,%v13,7;
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ALIGN_13:
+setp.ne.u64 %p,%n13,0;@%p bra USED_13;
+mov.u32 %error,16202;setp.ne.u64 %p,%cap,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ne.u64 %p,%v13,0;@%p bra REFUSE;
+USED_13:
+ld.global.u64 %cap,[%record+112];
+st.param.u64 [rb],%v14;st.param.u64 [rn],%n14;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.lt.u64 %p,%n14,8;@%p bra ALIGN_14;and.b64 %word,%v14,7;
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ALIGN_14:
+setp.ne.u64 %p,%n14,0;@%p bra USED_14;
+mov.u32 %error,16202;setp.ne.u64 %p,%cap,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ne.u64 %p,%v14,0;@%p bra REFUSE;
+USED_14:
+ld.global.u64 %cap,[%record+120];
+st.param.u64 [rb],%v15;st.param.u64 [rn],%n15;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),column_stage_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.lt.u64 %p,%n15,8;@%p bra ALIGN_15;and.b64 %word,%v15,7;
+mov.u32 %error,16202;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ALIGN_15:
+setp.ne.u64 %p,%n15,0;@%p bra USED_15;
+mov.u32 %error,16202;setp.ne.u64 %p,%cap,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ne.u64 %p,%v15,0;@%p bra REFUSE;
+USED_15:
+setp.eq.u64 %p,%mutable0,0;@%p bra PAIR_DONE_0;add.u64 %leftend,%v0,%n0;
+setp.eq.u64 %p,%n1,0;@%p bra PAIR_0_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_0_1:
+setp.eq.u64 %p,%n2,0;@%p bra PAIR_0_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_0_2:
+setp.eq.u64 %p,%n3,0;@%p bra PAIR_0_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_0_3:
+setp.eq.u64 %p,%n4,0;@%p bra PAIR_0_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_0_4:
+setp.eq.u64 %p,%n5,0;@%p bra PAIR_0_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_0_5:
+setp.eq.u64 %p,%n6,0;@%p bra PAIR_0_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_0_6:
+setp.eq.u64 %p,%n7,0;@%p bra PAIR_0_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_0_7:
+setp.eq.u64 %p,%n8,0;@%p bra PAIR_0_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_0_8:
+setp.eq.u64 %p,%n9,0;@%p bra PAIR_0_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_0_9:
+setp.eq.u64 %p,%n10,0;@%p bra PAIR_0_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_0_10:
+setp.eq.u64 %p,%n11,0;@%p bra PAIR_0_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_0_11:
+setp.eq.u64 %p,%n12,0;@%p bra PAIR_0_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_0_12:
+setp.eq.u64 %p,%n13,0;@%p bra PAIR_0_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_0_13:
+setp.eq.u64 %p,%n14,0;@%p bra PAIR_0_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_0_14:
+setp.eq.u64 %p,%n15,0;@%p bra PAIR_0_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_0_15:
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%v0,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+PAIR_DONE_0:
+setp.eq.u64 %p,%mutable1,0;@%p bra PAIR_DONE_1;add.u64 %leftend,%v1,%n1;
+setp.eq.u64 %p,%n0,0;@%p bra PAIR_1_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_1_0:
+setp.eq.u64 %p,%n2,0;@%p bra PAIR_1_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_1_2:
+setp.eq.u64 %p,%n3,0;@%p bra PAIR_1_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_1_3:
+setp.eq.u64 %p,%n4,0;@%p bra PAIR_1_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_1_4:
+setp.eq.u64 %p,%n5,0;@%p bra PAIR_1_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_1_5:
+setp.eq.u64 %p,%n6,0;@%p bra PAIR_1_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_1_6:
+setp.eq.u64 %p,%n7,0;@%p bra PAIR_1_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_1_7:
+setp.eq.u64 %p,%n8,0;@%p bra PAIR_1_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_1_8:
+setp.eq.u64 %p,%n9,0;@%p bra PAIR_1_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_1_9:
+setp.eq.u64 %p,%n10,0;@%p bra PAIR_1_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_1_10:
+setp.eq.u64 %p,%n11,0;@%p bra PAIR_1_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_1_11:
+setp.eq.u64 %p,%n12,0;@%p bra PAIR_1_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_1_12:
+setp.eq.u64 %p,%n13,0;@%p bra PAIR_1_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_1_13:
+setp.eq.u64 %p,%n14,0;@%p bra PAIR_1_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_1_14:
+setp.eq.u64 %p,%n15,0;@%p bra PAIR_1_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_1_15:
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%v1,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+PAIR_DONE_1:
+setp.eq.u64 %p,%mutable2,0;@%p bra PAIR_DONE_2;add.u64 %leftend,%v2,%n2;
+setp.eq.u64 %p,%n0,0;@%p bra PAIR_2_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_2_0:
+setp.eq.u64 %p,%n1,0;@%p bra PAIR_2_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_2_1:
+setp.eq.u64 %p,%n3,0;@%p bra PAIR_2_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_2_3:
+setp.eq.u64 %p,%n4,0;@%p bra PAIR_2_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_2_4:
+setp.eq.u64 %p,%n5,0;@%p bra PAIR_2_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_2_5:
+setp.eq.u64 %p,%n6,0;@%p bra PAIR_2_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_2_6:
+setp.eq.u64 %p,%n7,0;@%p bra PAIR_2_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_2_7:
+setp.eq.u64 %p,%n8,0;@%p bra PAIR_2_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_2_8:
+setp.eq.u64 %p,%n9,0;@%p bra PAIR_2_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_2_9:
+setp.eq.u64 %p,%n10,0;@%p bra PAIR_2_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_2_10:
+setp.eq.u64 %p,%n11,0;@%p bra PAIR_2_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_2_11:
+setp.eq.u64 %p,%n12,0;@%p bra PAIR_2_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_2_12:
+setp.eq.u64 %p,%n13,0;@%p bra PAIR_2_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_2_13:
+setp.eq.u64 %p,%n14,0;@%p bra PAIR_2_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_2_14:
+setp.eq.u64 %p,%n15,0;@%p bra PAIR_2_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_2_15:
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%v2,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+PAIR_DONE_2:
+setp.eq.u64 %p,%mutable3,0;@%p bra PAIR_DONE_3;add.u64 %leftend,%v3,%n3;
+setp.eq.u64 %p,%n0,0;@%p bra PAIR_3_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_3_0:
+setp.eq.u64 %p,%n1,0;@%p bra PAIR_3_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_3_1:
+setp.eq.u64 %p,%n2,0;@%p bra PAIR_3_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_3_2:
+setp.eq.u64 %p,%n4,0;@%p bra PAIR_3_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_3_4:
+setp.eq.u64 %p,%n5,0;@%p bra PAIR_3_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_3_5:
+setp.eq.u64 %p,%n6,0;@%p bra PAIR_3_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_3_6:
+setp.eq.u64 %p,%n7,0;@%p bra PAIR_3_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_3_7:
+setp.eq.u64 %p,%n8,0;@%p bra PAIR_3_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_3_8:
+setp.eq.u64 %p,%n9,0;@%p bra PAIR_3_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_3_9:
+setp.eq.u64 %p,%n10,0;@%p bra PAIR_3_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_3_10:
+setp.eq.u64 %p,%n11,0;@%p bra PAIR_3_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_3_11:
+setp.eq.u64 %p,%n12,0;@%p bra PAIR_3_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_3_12:
+setp.eq.u64 %p,%n13,0;@%p bra PAIR_3_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_3_13:
+setp.eq.u64 %p,%n14,0;@%p bra PAIR_3_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_3_14:
+setp.eq.u64 %p,%n15,0;@%p bra PAIR_3_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_3_15:
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%v3,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+PAIR_DONE_3:
+setp.eq.u64 %p,%mutable4,0;@%p bra PAIR_DONE_4;add.u64 %leftend,%v4,%n4;
+setp.eq.u64 %p,%n0,0;@%p bra PAIR_4_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_4_0:
+setp.eq.u64 %p,%n1,0;@%p bra PAIR_4_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_4_1:
+setp.eq.u64 %p,%n2,0;@%p bra PAIR_4_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_4_2:
+setp.eq.u64 %p,%n3,0;@%p bra PAIR_4_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_4_3:
+setp.eq.u64 %p,%n5,0;@%p bra PAIR_4_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_4_5:
+setp.eq.u64 %p,%n6,0;@%p bra PAIR_4_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_4_6:
+setp.eq.u64 %p,%n7,0;@%p bra PAIR_4_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_4_7:
+setp.eq.u64 %p,%n8,0;@%p bra PAIR_4_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_4_8:
+setp.eq.u64 %p,%n9,0;@%p bra PAIR_4_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_4_9:
+setp.eq.u64 %p,%n10,0;@%p bra PAIR_4_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_4_10:
+setp.eq.u64 %p,%n11,0;@%p bra PAIR_4_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_4_11:
+setp.eq.u64 %p,%n12,0;@%p bra PAIR_4_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_4_12:
+setp.eq.u64 %p,%n13,0;@%p bra PAIR_4_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_4_13:
+setp.eq.u64 %p,%n14,0;@%p bra PAIR_4_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_4_14:
+setp.eq.u64 %p,%n15,0;@%p bra PAIR_4_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_4_15:
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%v4,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+PAIR_DONE_4:
+setp.eq.u64 %p,%mutable5,0;@%p bra PAIR_DONE_5;add.u64 %leftend,%v5,%n5;
+setp.eq.u64 %p,%n0,0;@%p bra PAIR_5_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_5_0:
+setp.eq.u64 %p,%n1,0;@%p bra PAIR_5_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_5_1:
+setp.eq.u64 %p,%n2,0;@%p bra PAIR_5_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_5_2:
+setp.eq.u64 %p,%n3,0;@%p bra PAIR_5_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_5_3:
+setp.eq.u64 %p,%n4,0;@%p bra PAIR_5_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_5_4:
+setp.eq.u64 %p,%n6,0;@%p bra PAIR_5_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_5_6:
+setp.eq.u64 %p,%n7,0;@%p bra PAIR_5_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_5_7:
+setp.eq.u64 %p,%n8,0;@%p bra PAIR_5_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_5_8:
+setp.eq.u64 %p,%n9,0;@%p bra PAIR_5_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_5_9:
+setp.eq.u64 %p,%n10,0;@%p bra PAIR_5_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_5_10:
+setp.eq.u64 %p,%n11,0;@%p bra PAIR_5_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_5_11:
+setp.eq.u64 %p,%n12,0;@%p bra PAIR_5_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_5_12:
+setp.eq.u64 %p,%n13,0;@%p bra PAIR_5_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_5_13:
+setp.eq.u64 %p,%n14,0;@%p bra PAIR_5_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_5_14:
+setp.eq.u64 %p,%n15,0;@%p bra PAIR_5_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_5_15:
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%v5,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+PAIR_DONE_5:
+setp.eq.u64 %p,%mutable6,0;@%p bra PAIR_DONE_6;add.u64 %leftend,%v6,%n6;
+setp.eq.u64 %p,%n0,0;@%p bra PAIR_6_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_6_0:
+setp.eq.u64 %p,%n1,0;@%p bra PAIR_6_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_6_1:
+setp.eq.u64 %p,%n2,0;@%p bra PAIR_6_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_6_2:
+setp.eq.u64 %p,%n3,0;@%p bra PAIR_6_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_6_3:
+setp.eq.u64 %p,%n4,0;@%p bra PAIR_6_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_6_4:
+setp.eq.u64 %p,%n5,0;@%p bra PAIR_6_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_6_5:
+setp.eq.u64 %p,%n7,0;@%p bra PAIR_6_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_6_7:
+setp.eq.u64 %p,%n8,0;@%p bra PAIR_6_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_6_8:
+setp.eq.u64 %p,%n9,0;@%p bra PAIR_6_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_6_9:
+setp.eq.u64 %p,%n10,0;@%p bra PAIR_6_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_6_10:
+setp.eq.u64 %p,%n11,0;@%p bra PAIR_6_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_6_11:
+setp.eq.u64 %p,%n12,0;@%p bra PAIR_6_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_6_12:
+setp.eq.u64 %p,%n13,0;@%p bra PAIR_6_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_6_13:
+setp.eq.u64 %p,%n14,0;@%p bra PAIR_6_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_6_14:
+setp.eq.u64 %p,%n15,0;@%p bra PAIR_6_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_6_15:
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%v6,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+PAIR_DONE_6:
+setp.eq.u64 %p,%mutable7,0;@%p bra PAIR_DONE_7;add.u64 %leftend,%v7,%n7;
+setp.eq.u64 %p,%n0,0;@%p bra PAIR_7_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_7_0:
+setp.eq.u64 %p,%n1,0;@%p bra PAIR_7_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_7_1:
+setp.eq.u64 %p,%n2,0;@%p bra PAIR_7_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_7_2:
+setp.eq.u64 %p,%n3,0;@%p bra PAIR_7_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_7_3:
+setp.eq.u64 %p,%n4,0;@%p bra PAIR_7_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_7_4:
+setp.eq.u64 %p,%n5,0;@%p bra PAIR_7_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_7_5:
+setp.eq.u64 %p,%n6,0;@%p bra PAIR_7_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_7_6:
+setp.eq.u64 %p,%n8,0;@%p bra PAIR_7_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_7_8:
+setp.eq.u64 %p,%n9,0;@%p bra PAIR_7_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_7_9:
+setp.eq.u64 %p,%n10,0;@%p bra PAIR_7_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_7_10:
+setp.eq.u64 %p,%n11,0;@%p bra PAIR_7_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_7_11:
+setp.eq.u64 %p,%n12,0;@%p bra PAIR_7_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_7_12:
+setp.eq.u64 %p,%n13,0;@%p bra PAIR_7_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_7_13:
+setp.eq.u64 %p,%n14,0;@%p bra PAIR_7_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_7_14:
+setp.eq.u64 %p,%n15,0;@%p bra PAIR_7_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_7_15:
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%v7,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+PAIR_DONE_7:
+setp.eq.u64 %p,%mutable8,0;@%p bra PAIR_DONE_8;add.u64 %leftend,%v8,%n8;
+setp.eq.u64 %p,%n0,0;@%p bra PAIR_8_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_8_0:
+setp.eq.u64 %p,%n1,0;@%p bra PAIR_8_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_8_1:
+setp.eq.u64 %p,%n2,0;@%p bra PAIR_8_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_8_2:
+setp.eq.u64 %p,%n3,0;@%p bra PAIR_8_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_8_3:
+setp.eq.u64 %p,%n4,0;@%p bra PAIR_8_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_8_4:
+setp.eq.u64 %p,%n5,0;@%p bra PAIR_8_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_8_5:
+setp.eq.u64 %p,%n6,0;@%p bra PAIR_8_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_8_6:
+setp.eq.u64 %p,%n7,0;@%p bra PAIR_8_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_8_7:
+setp.eq.u64 %p,%n9,0;@%p bra PAIR_8_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_8_9:
+setp.eq.u64 %p,%n10,0;@%p bra PAIR_8_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_8_10:
+setp.eq.u64 %p,%n11,0;@%p bra PAIR_8_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_8_11:
+setp.eq.u64 %p,%n12,0;@%p bra PAIR_8_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_8_12:
+setp.eq.u64 %p,%n13,0;@%p bra PAIR_8_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_8_13:
+setp.eq.u64 %p,%n14,0;@%p bra PAIR_8_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_8_14:
+setp.eq.u64 %p,%n15,0;@%p bra PAIR_8_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_8_15:
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%v8,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+PAIR_DONE_8:
+setp.eq.u64 %p,%mutable9,0;@%p bra PAIR_DONE_9;add.u64 %leftend,%v9,%n9;
+setp.eq.u64 %p,%n0,0;@%p bra PAIR_9_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_9_0:
+setp.eq.u64 %p,%n1,0;@%p bra PAIR_9_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_9_1:
+setp.eq.u64 %p,%n2,0;@%p bra PAIR_9_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_9_2:
+setp.eq.u64 %p,%n3,0;@%p bra PAIR_9_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_9_3:
+setp.eq.u64 %p,%n4,0;@%p bra PAIR_9_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_9_4:
+setp.eq.u64 %p,%n5,0;@%p bra PAIR_9_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_9_5:
+setp.eq.u64 %p,%n6,0;@%p bra PAIR_9_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_9_6:
+setp.eq.u64 %p,%n7,0;@%p bra PAIR_9_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_9_7:
+setp.eq.u64 %p,%n8,0;@%p bra PAIR_9_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_9_8:
+setp.eq.u64 %p,%n10,0;@%p bra PAIR_9_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_9_10:
+setp.eq.u64 %p,%n11,0;@%p bra PAIR_9_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_9_11:
+setp.eq.u64 %p,%n12,0;@%p bra PAIR_9_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_9_12:
+setp.eq.u64 %p,%n13,0;@%p bra PAIR_9_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_9_13:
+setp.eq.u64 %p,%n14,0;@%p bra PAIR_9_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_9_14:
+setp.eq.u64 %p,%n15,0;@%p bra PAIR_9_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_9_15:
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%v9,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+PAIR_DONE_9:
+setp.eq.u64 %p,%mutable10,0;@%p bra PAIR_DONE_10;add.u64 %leftend,%v10,%n10;
+setp.eq.u64 %p,%n0,0;@%p bra PAIR_10_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_10_0:
+setp.eq.u64 %p,%n1,0;@%p bra PAIR_10_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_10_1:
+setp.eq.u64 %p,%n2,0;@%p bra PAIR_10_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_10_2:
+setp.eq.u64 %p,%n3,0;@%p bra PAIR_10_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_10_3:
+setp.eq.u64 %p,%n4,0;@%p bra PAIR_10_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_10_4:
+setp.eq.u64 %p,%n5,0;@%p bra PAIR_10_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_10_5:
+setp.eq.u64 %p,%n6,0;@%p bra PAIR_10_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_10_6:
+setp.eq.u64 %p,%n7,0;@%p bra PAIR_10_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_10_7:
+setp.eq.u64 %p,%n8,0;@%p bra PAIR_10_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_10_8:
+setp.eq.u64 %p,%n9,0;@%p bra PAIR_10_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_10_9:
+setp.eq.u64 %p,%n11,0;@%p bra PAIR_10_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_10_11:
+setp.eq.u64 %p,%n12,0;@%p bra PAIR_10_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_10_12:
+setp.eq.u64 %p,%n13,0;@%p bra PAIR_10_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_10_13:
+setp.eq.u64 %p,%n14,0;@%p bra PAIR_10_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_10_14:
+setp.eq.u64 %p,%n15,0;@%p bra PAIR_10_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_10_15:
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%v10,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+PAIR_DONE_10:
+setp.eq.u64 %p,%mutable11,0;@%p bra PAIR_DONE_11;add.u64 %leftend,%v11,%n11;
+setp.eq.u64 %p,%n0,0;@%p bra PAIR_11_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_11_0:
+setp.eq.u64 %p,%n1,0;@%p bra PAIR_11_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_11_1:
+setp.eq.u64 %p,%n2,0;@%p bra PAIR_11_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_11_2:
+setp.eq.u64 %p,%n3,0;@%p bra PAIR_11_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_11_3:
+setp.eq.u64 %p,%n4,0;@%p bra PAIR_11_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_11_4:
+setp.eq.u64 %p,%n5,0;@%p bra PAIR_11_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_11_5:
+setp.eq.u64 %p,%n6,0;@%p bra PAIR_11_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_11_6:
+setp.eq.u64 %p,%n7,0;@%p bra PAIR_11_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_11_7:
+setp.eq.u64 %p,%n8,0;@%p bra PAIR_11_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_11_8:
+setp.eq.u64 %p,%n9,0;@%p bra PAIR_11_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_11_9:
+setp.eq.u64 %p,%n10,0;@%p bra PAIR_11_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_11_10:
+setp.eq.u64 %p,%n12,0;@%p bra PAIR_11_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_11_12:
+setp.eq.u64 %p,%n13,0;@%p bra PAIR_11_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_11_13:
+setp.eq.u64 %p,%n14,0;@%p bra PAIR_11_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_11_14:
+setp.eq.u64 %p,%n15,0;@%p bra PAIR_11_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_11_15:
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%v11,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+PAIR_DONE_11:
+setp.eq.u64 %p,%mutable12,0;@%p bra PAIR_DONE_12;add.u64 %leftend,%v12,%n12;
+setp.eq.u64 %p,%n0,0;@%p bra PAIR_12_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_12_0:
+setp.eq.u64 %p,%n1,0;@%p bra PAIR_12_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_12_1:
+setp.eq.u64 %p,%n2,0;@%p bra PAIR_12_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_12_2:
+setp.eq.u64 %p,%n3,0;@%p bra PAIR_12_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_12_3:
+setp.eq.u64 %p,%n4,0;@%p bra PAIR_12_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_12_4:
+setp.eq.u64 %p,%n5,0;@%p bra PAIR_12_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_12_5:
+setp.eq.u64 %p,%n6,0;@%p bra PAIR_12_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_12_6:
+setp.eq.u64 %p,%n7,0;@%p bra PAIR_12_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_12_7:
+setp.eq.u64 %p,%n8,0;@%p bra PAIR_12_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_12_8:
+setp.eq.u64 %p,%n9,0;@%p bra PAIR_12_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_12_9:
+setp.eq.u64 %p,%n10,0;@%p bra PAIR_12_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_12_10:
+setp.eq.u64 %p,%n11,0;@%p bra PAIR_12_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_12_11:
+setp.eq.u64 %p,%n13,0;@%p bra PAIR_12_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_12_13:
+setp.eq.u64 %p,%n14,0;@%p bra PAIR_12_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_12_14:
+setp.eq.u64 %p,%n15,0;@%p bra PAIR_12_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_12_15:
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%v12,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+PAIR_DONE_12:
+setp.eq.u64 %p,%mutable13,0;@%p bra PAIR_DONE_13;add.u64 %leftend,%v13,%n13;
+setp.eq.u64 %p,%n0,0;@%p bra PAIR_13_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_13_0:
+setp.eq.u64 %p,%n1,0;@%p bra PAIR_13_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_13_1:
+setp.eq.u64 %p,%n2,0;@%p bra PAIR_13_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_13_2:
+setp.eq.u64 %p,%n3,0;@%p bra PAIR_13_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_13_3:
+setp.eq.u64 %p,%n4,0;@%p bra PAIR_13_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_13_4:
+setp.eq.u64 %p,%n5,0;@%p bra PAIR_13_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_13_5:
+setp.eq.u64 %p,%n6,0;@%p bra PAIR_13_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_13_6:
+setp.eq.u64 %p,%n7,0;@%p bra PAIR_13_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_13_7:
+setp.eq.u64 %p,%n8,0;@%p bra PAIR_13_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_13_8:
+setp.eq.u64 %p,%n9,0;@%p bra PAIR_13_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_13_9:
+setp.eq.u64 %p,%n10,0;@%p bra PAIR_13_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_13_10:
+setp.eq.u64 %p,%n11,0;@%p bra PAIR_13_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_13_11:
+setp.eq.u64 %p,%n12,0;@%p bra PAIR_13_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_13_12:
+setp.eq.u64 %p,%n14,0;@%p bra PAIR_13_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_13_14:
+setp.eq.u64 %p,%n15,0;@%p bra PAIR_13_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_13_15:
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%v13,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+PAIR_DONE_13:
+setp.eq.u64 %p,%mutable14,0;@%p bra PAIR_DONE_14;add.u64 %leftend,%v14,%n14;
+setp.eq.u64 %p,%n0,0;@%p bra PAIR_14_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_14_0:
+setp.eq.u64 %p,%n1,0;@%p bra PAIR_14_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_14_1:
+setp.eq.u64 %p,%n2,0;@%p bra PAIR_14_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_14_2:
+setp.eq.u64 %p,%n3,0;@%p bra PAIR_14_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_14_3:
+setp.eq.u64 %p,%n4,0;@%p bra PAIR_14_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_14_4:
+setp.eq.u64 %p,%n5,0;@%p bra PAIR_14_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_14_5:
+setp.eq.u64 %p,%n6,0;@%p bra PAIR_14_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_14_6:
+setp.eq.u64 %p,%n7,0;@%p bra PAIR_14_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_14_7:
+setp.eq.u64 %p,%n8,0;@%p bra PAIR_14_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_14_8:
+setp.eq.u64 %p,%n9,0;@%p bra PAIR_14_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_14_9:
+setp.eq.u64 %p,%n10,0;@%p bra PAIR_14_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_14_10:
+setp.eq.u64 %p,%n11,0;@%p bra PAIR_14_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_14_11:
+setp.eq.u64 %p,%n12,0;@%p bra PAIR_14_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_14_12:
+setp.eq.u64 %p,%n13,0;@%p bra PAIR_14_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_14_13:
+setp.eq.u64 %p,%n15,0;@%p bra PAIR_14_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_14_15:
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%v14,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+PAIR_DONE_14:
+setp.eq.u64 %p,%mutable15,0;@%p bra PAIR_DONE_15;add.u64 %leftend,%v15,%n15;
+setp.eq.u64 %p,%n0,0;@%p bra PAIR_15_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_15_0:
+setp.eq.u64 %p,%n1,0;@%p bra PAIR_15_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_15_1:
+setp.eq.u64 %p,%n2,0;@%p bra PAIR_15_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_15_2:
+setp.eq.u64 %p,%n3,0;@%p bra PAIR_15_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_15_3:
+setp.eq.u64 %p,%n4,0;@%p bra PAIR_15_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_15_4:
+setp.eq.u64 %p,%n5,0;@%p bra PAIR_15_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_15_5:
+setp.eq.u64 %p,%n6,0;@%p bra PAIR_15_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_15_6:
+setp.eq.u64 %p,%n7,0;@%p bra PAIR_15_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_15_7:
+setp.eq.u64 %p,%n8,0;@%p bra PAIR_15_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_15_8:
+setp.eq.u64 %p,%n9,0;@%p bra PAIR_15_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_15_9:
+setp.eq.u64 %p,%n10,0;@%p bra PAIR_15_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_15_10:
+setp.eq.u64 %p,%n11,0;@%p bra PAIR_15_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_15_11:
+setp.eq.u64 %p,%n12,0;@%p bra PAIR_15_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_15_12:
+setp.eq.u64 %p,%n13,0;@%p bra PAIR_15_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_15_13:
+setp.eq.u64 %p,%n14,0;@%p bra PAIR_15_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;PAIR_15_14:
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%v15,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+PAIR_DONE_15:
+add.u64 %leftend,%counter,8;
+setp.eq.u64 %p,%n0,0;@%p bra META_counter_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_counter_0:
+setp.eq.u64 %p,%n1,0;@%p bra META_counter_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_counter_1:
+setp.eq.u64 %p,%n2,0;@%p bra META_counter_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_counter_2:
+setp.eq.u64 %p,%n3,0;@%p bra META_counter_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_counter_3:
+setp.eq.u64 %p,%n4,0;@%p bra META_counter_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_counter_4:
+setp.eq.u64 %p,%n5,0;@%p bra META_counter_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_counter_5:
+setp.eq.u64 %p,%n6,0;@%p bra META_counter_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_counter_6:
+setp.eq.u64 %p,%n7,0;@%p bra META_counter_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_counter_7:
+setp.eq.u64 %p,%n8,0;@%p bra META_counter_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_counter_8:
+setp.eq.u64 %p,%n9,0;@%p bra META_counter_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_counter_9:
+setp.eq.u64 %p,%n10,0;@%p bra META_counter_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_counter_10:
+setp.eq.u64 %p,%n11,0;@%p bra META_counter_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_counter_11:
+setp.eq.u64 %p,%n12,0;@%p bra META_counter_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_counter_12:
+setp.eq.u64 %p,%n13,0;@%p bra META_counter_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_counter_13:
+setp.eq.u64 %p,%n14,0;@%p bra META_counter_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_counter_14:
+setp.eq.u64 %p,%n15,0;@%p bra META_counter_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_counter_15:
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%ctx,64;setp.lt.u64 %p,%counter,%rightend;setp.lt.u64 %q,%ctx,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %leftend,%ctx,64;
+setp.eq.u64 %p,%n0,0;@%p bra META_ctx_0;add.u64 %rightend,%v0,%n0;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%v0,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_ctx_0:
+setp.eq.u64 %p,%n1,0;@%p bra META_ctx_1;add.u64 %rightend,%v1,%n1;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%v1,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_ctx_1:
+setp.eq.u64 %p,%n2,0;@%p bra META_ctx_2;add.u64 %rightend,%v2,%n2;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%v2,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_ctx_2:
+setp.eq.u64 %p,%n3,0;@%p bra META_ctx_3;add.u64 %rightend,%v3,%n3;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%v3,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_ctx_3:
+setp.eq.u64 %p,%n4,0;@%p bra META_ctx_4;add.u64 %rightend,%v4,%n4;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%v4,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_ctx_4:
+setp.eq.u64 %p,%n5,0;@%p bra META_ctx_5;add.u64 %rightend,%v5,%n5;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%v5,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_ctx_5:
+setp.eq.u64 %p,%n6,0;@%p bra META_ctx_6;add.u64 %rightend,%v6,%n6;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%v6,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_ctx_6:
+setp.eq.u64 %p,%n7,0;@%p bra META_ctx_7;add.u64 %rightend,%v7,%n7;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%v7,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_ctx_7:
+setp.eq.u64 %p,%n8,0;@%p bra META_ctx_8;add.u64 %rightend,%v8,%n8;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%v8,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_ctx_8:
+setp.eq.u64 %p,%n9,0;@%p bra META_ctx_9;add.u64 %rightend,%v9,%n9;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%v9,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_ctx_9:
+setp.eq.u64 %p,%n10,0;@%p bra META_ctx_10;add.u64 %rightend,%v10,%n10;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%v10,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_ctx_10:
+setp.eq.u64 %p,%n11,0;@%p bra META_ctx_11;add.u64 %rightend,%v11,%n11;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%v11,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_ctx_11:
+setp.eq.u64 %p,%n12,0;@%p bra META_ctx_12;add.u64 %rightend,%v12,%n12;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%v12,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_ctx_12:
+setp.eq.u64 %p,%n13,0;@%p bra META_ctx_13;add.u64 %rightend,%v13,%n13;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%v13,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_ctx_13:
+setp.eq.u64 %p,%n14,0;@%p bra META_ctx_14;add.u64 %rightend,%v14,%n14;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%v14,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_ctx_14:
+setp.eq.u64 %p,%n15,0;@%p bra META_ctx_15;add.u64 %rightend,%v15,%n15;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%v15,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;META_ctx_15:
+add.u64 %rightend,%args,128;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%args,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%record,160;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%record,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+add.u64 %rightend,%counter,8;setp.lt.u64 %p,%ctx,%rightend;setp.lt.u64 %q,%counter,%leftend;and.pred %p,%p,%q;mov.u32 %error,16201;@%p bra REFUSE;
+setp.eq.u32 %p,%stage,0;@%p bra CHECK_BIN;ld.global.u32 %first,[%v0];ld.global.u32 %last,[%v1];
+mov.u32 %error,16202;setp.lt.s32 %p,%first,1;@%p bra REFUSE;
+mov.u32 %error,16202;setp.gt.u32 %p,%first,25;@%p bra REFUSE;
+mov.u32 %error,16202;setp.gt.u32 %p,%last,24;@%p bra REFUSE;
+mov.u32 %error,16202;sub.u32 %i,%first,1;setp.lt.s32 %p,%last,%i;@%p bra REFUSE;
+sub.u32 %first,%first,1;
+setp.eq.u32 %p,%stage,1;@%p bra CHECK_1;
+setp.eq.u32 %p,%stage,2;@%p bra CHECK_2;
+setp.eq.u32 %p,%stage,3;@%p bra CHECK_3;
+setp.eq.u32 %p,%stage,4;@%p bra CHECK_4;
+setp.eq.u32 %p,%stage,5;@%p bra CHECK_5;
+setp.eq.u32 %p,%stage,6;@%p bra CHECK_6;
+CHECK_BIN:
+add.u64 %pointer,%v0,0;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+ld.global.b64 %a,[%v0];
+mov.u32 %error,16202;setp.le.f64 %p,%a,0d0000000000000000;@%p bra REFUSE;
+mov.u32 %error,16202;setp.ge.f64 %p,%a,0d40d5184000000000;@%p bra REFUSE;
+ld.global.s32 %step,[%v1];
+mov.u32 %error,16202;setp.lt.s32 %p,%step,0;@%p bra REFUSE;
+mov.u32 %error,16202;setp.gt.s32 %p,%step,25;@%p bra REFUSE;
+bra ADMITTED;
+CHECK_1:
+mov.u32 %level,0;CHECK_1_LEVEL:mov.u32 %col,%first;CHECK_1_COL:setp.ge.u32 %p,%col,%last;@%p bra CHECK_1_NEXT;mul.lo.u32 %cell,%level,24;add.u32 %cell,%cell,%col;mul.wide.u32 %off,%cell,8;
+add.u64 %pointer,%v2,%off;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+add.u32 %col,%col,1;bra CHECK_1_COL;CHECK_1_NEXT:add.u32 %level,%level,1;setp.lt.u32 %p,%level,1;@%p bra CHECK_1_LEVEL;bra ADMITTED;
+CHECK_2:
+mov.u32 %level,0;CHECK_2_LEVEL:mov.u32 %col,%first;CHECK_2_COL:setp.ge.u32 %p,%col,%last;@%p bra CHECK_2_NEXT;mul.lo.u32 %cell,%level,24;add.u32 %cell,%cell,%col;mul.wide.u32 %off,%cell,8;
+add.u64 %pointer,%v2,%off;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %pointer,%v2,%off;ld.global.b64 %a,[%pointer];
+mov.u32 %error,16202;setp.lt.f64 %p,%a,0dc085e00000000000;@%p bra REFUSE;
+mov.u32 %error,16202;setp.gt.f64 %p,%a,0d4085e00000000000;@%p bra REFUSE;
+add.u32 %col,%col,1;bra CHECK_2_COL;CHECK_2_NEXT:add.u32 %level,%level,1;setp.lt.u32 %p,%level,1;@%p bra CHECK_2_LEVEL;bra ADMITTED;
+CHECK_3:
+mov.u32 %level,0;CHECK_3_LEVEL:mov.u32 %col,%first;CHECK_3_COL:setp.ge.u32 %p,%col,%last;@%p bra CHECK_3_NEXT;mul.lo.u32 %cell,%level,24;add.u32 %cell,%cell,%col;mul.wide.u32 %off,%cell,8;
+add.u64 %pointer,%v3,%off;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %off2,%off,192;
+add.u64 %pointer,%v2,%off2;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+mul.wide.u32 %off2,%col,8;
+add.u64 %pointer,%v2,%off2;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %off2,%off2,3648;
+add.u64 %pointer,%v2,%off2;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+add.u32 %col,%col,1;bra CHECK_3_COL;CHECK_3_NEXT:add.u32 %level,%level,1;setp.lt.u32 %p,%level,19;@%p bra CHECK_3_LEVEL;bra ADMITTED;
+CHECK_4:
+add.u64 %pointer,%v5,0;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %pointer,%v5,8;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %pointer,%v5,16;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %pointer,%v5,24;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+mov.u32 %level,0;CHECK_4_LEVEL:mov.u32 %col,%first;CHECK_4_COL:setp.ge.u32 %p,%col,%last;@%p bra CHECK_4_NEXT;mul.lo.u32 %cell,%level,24;add.u32 %cell,%cell,%col;mul.wide.u32 %off,%cell,8;
+add.u64 %pointer,%v2,%off;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %pointer,%v3,%off;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %pointer,%v2,%off;ld.global.b64 %a,[%pointer];
+mov.u32 %error,16202;setp.lt.f64 %p,%a,0dbff0000000000000;@%p bra REFUSE;
+mov.u32 %error,16202;setp.gt.f64 %p,%a,0d3ff0000000000000;@%p bra REFUSE;
+add.u64 %pointer,%v3,%off;ld.global.b64 %a,[%pointer];
+and.b64 %word,%a,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x40f0000000000000;@%p bra REFUSE;
+add.u32 %col,%col,1;bra CHECK_4_COL;CHECK_4_NEXT:add.u32 %level,%level,1;setp.lt.u32 %p,%level,1;@%p bra CHECK_4_LEVEL;bra ADMITTED;
+CHECK_5:
+mov.u32 %level,0;CHECK_5_LEVEL:mov.u32 %col,%first;CHECK_5_COL:setp.ge.u32 %p,%col,%last;@%p bra CHECK_5_NEXT;mul.lo.u32 %cell,%level,24;add.u32 %cell,%cell,%col;mul.wide.u32 %off,%cell,8;
+add.u64 %pointer,%v2,%off;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+ld.global.u32 %i,[%v6];ld.global.u32 %j,[%v7];and.b32 %i,%i,%j;setp.eq.u32 %p,%i,0;@%p bra WATER_CHECKED;
+add.u64 %pointer,%v3,%off;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %pointer,%v4,%off;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+WATER_CHECKED:
+add.u32 %col,%col,1;bra CHECK_5_COL;CHECK_5_NEXT:add.u32 %level,%level,1;setp.lt.u32 %p,%level,19;@%p bra CHECK_5_LEVEL;bra ADMITTED;
+CHECK_6:
+add.u64 %pointer,%v7,0;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %pointer,%v8,0;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %pointer,%v9,0;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+mov.u32 %level,0;CHECK_6_LEVEL:mov.u32 %col,%first;CHECK_6_COL:setp.ge.u32 %p,%col,%last;@%p bra CHECK_6_NEXT;mul.lo.u32 %cell,%level,24;add.u32 %cell,%cell,%col;mul.wide.u32 %off,%cell,8;
+mul.wide.u32 %off2,%col,4;add.u64 %pointer,%v4,%off2;ld.global.u32 %i,[%pointer];setp.ne.u32 %p,%i,1;@%p bra CONVECTION_CHECKED;
+add.u64 %pointer,%v2,%off;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %pointer,%v3,%off;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %pointer,%v6,%off;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+setp.eq.u32 %p,%level,18;@%p bra CONVECTION_CHECKED;add.u64 %off2,%off,192;
+add.u64 %pointer,%v2,%off2;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+add.u64 %pointer,%v3,%off2;ld.global.u64 %word,[%pointer];and.b64 %word,%word,0x7fffffffffffffff;
+mov.u32 %error,16202;setp.gt.u64 %p,%word,0x7fefffffffffffff;@%p bra REFUSE;
+CONVECTION_CHECKED:
+add.u32 %col,%col,1;bra CHECK_6_COL;CHECK_6_NEXT:add.u32 %level,%level,1;setp.lt.u32 %p,%level,19;@%p bra CHECK_6_LEVEL;bra ADMITTED;
+ADMITTED:mov.u32 %flags,0;mov.u64 %event,0;mov.u64 %actual_exp,0;
+setp.eq.u32 %p,%stage,0;@%p bra STAGE_0;
+setp.eq.u32 %p,%stage,1;@%p bra STAGE_1;
+setp.eq.u32 %p,%stage,2;@%p bra STAGE_2;
+setp.eq.u32 %p,%stage,3;@%p bra STAGE_3;
+setp.eq.u32 %p,%stage,4;@%p bra STAGE_4;
+setp.eq.u32 %p,%stage,5;@%p bra STAGE_5;
+setp.eq.u32 %p,%stage,6;@%p bra STAGE_6;
+STAGE_0:
+ld.global.b64 %a,[%v0];
+ld.global.s32 %step,[%v1];
+cvt.rzi.s32.f64 %itime,%a;cvt.rn.f64.s32 %converted,%itime;setp.ne.f64 %p,%converted,%a;selp.u32 %raised,16,0,%p;or.b32 %flags,%flags,%raised;
+max.s32 %itime,%itime,3600;div.s32 %bins,21600,%itime;cvt.rn.f64.s32 %b,%itime;cvt.rn.f64.s32 %c,%step;
+st.param.b64 [ma],%c;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %c,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%c;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %c,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+cvt.rzi.s32.f64 %now,%c;cvt.rn.f64.s32 %converted,%now;setp.ne.f64 %p,%converted,%c;selp.u32 %raised,16,0,%p;or.b32 %flags,%flags,%raised;
+div.s32 %quotient,%now,%bins;mul.lo.s32 %quotient,%quotient,%bins;sub.s32 %now,%now,%quotient;add.s32 %now,%now,1;sub.s32 %step,%step,1;cvt.rn.f64.s32 %c,%step;
+st.param.b64 [ma],%c;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %c,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%c;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %c,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+cvt.rzi.s32.f64 %previous,%c;cvt.rn.f64.s32 %converted,%previous;setp.ne.f64 %p,%converted,%c;selp.u32 %raised,16,0,%p;or.b32 %flags,%flags,%raised;
+div.s32 %quotient,%previous,%bins;mul.lo.s32 %quotient,%quotient,%bins;sub.s32 %previous,%previous,%quotient;add.s32 %previous,%previous,1;setp.ne.s32 %p,%previous,%now;selp.u32 %i,1,0,%p;st.global.u32 [%v2],%i;bra FINISH;
+STAGE_1:
+mov.u32 %level,0;CLAMP_LEVEL:mov.u32 %col,%first;CLAMP_CELL:setp.ge.u32 %p,%col,%last;@%p bra CLAMP_NEXT;mul.lo.u32 %cell,%level,24;add.u32 %cell,%cell,%col;mul.wide.u32 %off,%cell,8;
+add.u64 %pointer,%v2,%off;ld.global.b64 %a,[%pointer];
+setp.ge.f64 %p,%a,0d0000000000000000;selp.b64 %value,%a,0,%p;
+add.u64 %pointer,%v3,%off;st.global.b64 [%pointer],%value;
+add.u32 %col,%col,1;bra CLAMP_CELL;CLAMP_NEXT:add.u32 %level,%level,1;setp.lt.u32 %p,%level,1;@%p bra CLAMP_LEVEL;bra FINISH;
+STAGE_2:
+mov.u32 %level,0;PRESSURE_LEVEL:mov.u32 %col,%first;PRESSURE_CELL:setp.ge.u32 %p,%col,%last;@%p bra PRESSURE_NEXT;mul.lo.u32 %cell,%level,24;add.u32 %cell,%cell,%col;mul.wide.u32 %off,%cell,8;
+add.u64 %pointer,%v2,%off;ld.global.b64 %a,[%pointer];
+st.param.b64 [ma],%a;call.uni (math),md2asm_gpu_exp_original_rounding,(ma);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];ld.param.u32 %event32,[math+12];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%event32,0;cvt.u64.u32 %temp,%event32;@%p mov.u64 %event,%temp;add.u64 %actual_exp,%actual_exp,1;
+add.u64 %pointer,%v3,%off;st.global.b64 [%pointer],%value;
+add.u32 %col,%col,1;bra PRESSURE_CELL;PRESSURE_NEXT:add.u32 %level,%level,1;setp.lt.u32 %p,%level,1;@%p bra PRESSURE_LEVEL;bra FINISH;
+STAGE_3:
+mov.u32 %level,0;GEOMETRY_LEVEL:mov.u32 %col,%first;GEOMETRY_CELL:setp.ge.u32 %p,%col,%last;@%p bra GEOMETRY_NEXT;mul.lo.u32 %cell,%level,24;add.u32 %cell,%cell,%col;mul.wide.u32 %off,%cell,8;
+mul.wide.u32 %off2,%col,8;add.u64 %off2,%off2,3648;
+add.u64 %pointer,%v2,%off2;ld.global.b64 %a,[%pointer];
+add.u64 %pointer,%v3,%off;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%b;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v4,%off;st.global.b64 [%pointer],%value;
+add.u64 %off2,%off,192;
+add.u64 %pointer,%v2,%off2;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%b;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v5,%off2;st.global.b64 [%pointer],%value;
+add.u32 %col,%col,1;bra GEOMETRY_CELL;GEOMETRY_NEXT:add.u32 %level,%level,1;setp.lt.u32 %p,%level,19;@%p bra GEOMETRY_LEVEL;mov.u32 %col,%first;GEOMETRY_TOP:setp.ge.u32 %p,%col,%last;@%p bra FINISH;mul.wide.u32 %off,%col,8;add.u64 %off2,%off,3648;
+add.u64 %pointer,%v2,%off2;ld.global.b64 %a,[%pointer];
+add.u64 %pointer,%v2,%off;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%b;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v5,%off;st.global.b64 [%pointer],%value;
+add.u32 %col,%col,1;bra GEOMETRY_TOP;
+STAGE_4:
+mov.u32 %level,0;CHEMISTRY_LEVEL:mov.u32 %col,%first;CHEMISTRY_CELL:setp.ge.u32 %p,%col,%last;@%p bra CHEMISTRY_NEXT;mul.lo.u32 %cell,%level,24;add.u32 %cell,%cell,%col;mul.wide.u32 %off,%cell,8;
+add.u64 %pointer,%v2,%off;ld.global.b64 %sinlat,[%pointer];
+st.param.b64 [ma],%sinlat;st.param.b64 [mb],%sinlat;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %root,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%root;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %root,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%root;call.uni (math),md2asm_gpu_sqrt_status,(ma);ld.param.b64 %root,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v3,%off;ld.global.b64 %a,[%pointer];
+st.param.b64 [ma],%a;call.uni (projection),md2asm_gpu_cos_bounded_finite,(ma);ld.param.b64 %coslon,[projection];ld.param.u32 %raised,[projection+8];ld.param.u32 %event32,[projection+12];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%event32,0;cvt.u64.u32 %temp,%event32;@%p mov.u64 %event,%temp;
+st.param.b64 [ma],%a;call.uni (projection),md2asm_gpu_sin_bounded_finite,(ma);ld.param.b64 %sinlon,[projection];ld.param.u32 %raised,[projection+8];ld.param.u32 %event32,[projection+12];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%event32,0;cvt.u64.u32 %temp,%event32;@%p mov.u64 %event,%temp;
+add.u64 %pointer,%v5,0;ld.global.b64 %coefB,[%pointer];
+add.u64 %pointer,%v5,8;ld.global.b64 %coefA,[%pointer];
+add.u64 %pointer,%v5,16;ld.global.b64 %coefC,[%pointer];
+add.u64 %pointer,%v5,24;ld.global.b64 %coefS,[%pointer];
+st.param.b64 [ma],%coefA;st.param.b64 [mb],%sinlat;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%coefB;st.param.b64 [mb],%coefC;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%b;st.param.b64 [mb],%root;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%b;st.param.b64 [mb],%coslon;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%value;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%coefB;st.param.b64 [mb],%coefS;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%b;st.param.b64 [mb],%root;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%b;st.param.b64 [mb],%sinlon;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%value;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v4,%off;st.global.b64 [%pointer],%value;
+add.u32 %col,%col,1;bra CHEMISTRY_CELL;CHEMISTRY_NEXT:add.u32 %level,%level,1;setp.lt.u32 %p,%level,1;@%p bra CHEMISTRY_LEVEL;bra FINISH;
+STAGE_5:
+mov.u32 %level,0;WATER_LEVEL:mov.u32 %col,%first;WATER_CELL:setp.ge.u32 %p,%col,%last;@%p bra WATER_NEXT;mul.lo.u32 %cell,%level,24;add.u32 %cell,%cell,%col;mul.wide.u32 %off,%cell,8;
+add.u64 %pointer,%v2,%off;ld.global.b64 %a,[%pointer];
+ld.global.s32 %flag,[%v6];
+ld.global.s32 %flag2,[%v7];
+and.b32 %flag,%flag,%flag2;setp.eq.u32 %p,%flag,0;@%p bra WATER_SUM_READY;
+add.u64 %pointer,%v3,%off;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v4,%off;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+WATER_SUM_READY:
+st.param.b64 [ma],0xbff0000000000000;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v5,%off;st.global.b64 [%pointer],%value;
+add.u32 %col,%col,1;bra WATER_CELL;WATER_NEXT:add.u32 %level,%level,1;setp.lt.u32 %p,%level,19;@%p bra WATER_LEVEL;bra FINISH;
+STAGE_6:
+mov.u32 %level,0;CONVECTION_LEVEL:mov.u32 %col,%first;CONVECTION_CELL:setp.ge.u32 %p,%col,%last;@%p bra CONVECTION_NEXT;mul.lo.u32 %cell,%level,24;add.u32 %cell,%cell,%col;mul.wide.u32 %off,%cell,8;
+mul.wide.u32 %off2,%col,4;add.u64 %pointer,%v4,%off2;ld.global.u32 %i,[%pointer];setp.ne.u32 %p,%i,1;@%p bra CONVECTION_SKIP;
+add.u64 %pointer,%v2,%off;ld.global.b64 %a,[%pointer];
+add.u64 %pointer,%v3,%off;ld.global.b64 %b,[%pointer];
+mov.b64 %c,0;mov.b64 %d,0;setp.eq.u32 %p,%level,18;@%p bra NEXT_LEVEL_READY;add.u64 %off2,%off,192;
+add.u64 %pointer,%v2,%off2;ld.global.b64 %c,[%pointer];
+add.u64 %pointer,%v3,%off2;ld.global.b64 %d,[%pointer];
+NEXT_LEVEL_READY:
+st.param.b64 [ma],%a;st.param.b64 [mb],%c;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%b;st.param.b64 [mb],%d;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ld.global.b64 %c,[%v7];
+st.param.b64 [ma],%b;st.param.b64 [mb],%c;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ld.global.b64 %b,[%v8];
+xor.b64 %b,%b,0x8000000000000000;
+st.param.b64 [ma],%b;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v6,%off;ld.global.b64 %b,[%pointer];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ld.global.b64 %b,[%v9];
+st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+add.u64 %pointer,%v5,%off;st.global.b64 [%pointer],%value;
+CONVECTION_SKIP:
+add.u32 %col,%col,1;bra CONVECTION_CELL;CONVECTION_NEXT:add.u32 %level,%level,1;setp.lt.u32 %p,%level,19;@%p bra CONVECTION_LEVEL;bra FINISH;
+FINISH:st.global.u32 [%ctx+8],%flags;st.global.u64 [%ctx+16],%event;st.global.u64 [%counter],%actual_exp;ret;REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+.visible .entry md2asm_gpu_column_rate_stages(.param .u64 original_vector,.param .u64 common_context)
+{.reg .u64 %a,%c;.param .u64 a,c;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[common_context];st.param.u64 [a],%a;st.param.u64 [c],%c;call.uni md2asm_gpu_column_rate_stage,(a,c);ret;
+}

@@ -1,0 +1,51 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Reusable generic GPRCP directly from the retained component contract.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.visible .func (.param .u32 result) openifs_gprcp_generic_admit(.param .u64 configuration,.param .u64 actual_capacity,.param .u32 field_mode)
+{
+ .reg .u64 %cfg,%capacity,%ptr,%offset; .reg .u32 %n,%ndim,%mode,%map,%i,%active,%index,%e; .reg .pred %p;
+ ld.param.u64 %cfg,[configuration]; ld.param.u64 %capacity,[actual_capacity]; ld.param.u32 %mode,[field_mode]; mov.u32 %e,10500; ld.global.u32 %n,[%cfg]; setp.gt.u32 %p,%n,2163; @%p bra AD_DONE; ld.global.u32 %ndim,[%cfg+48]; setp.gt.u32 %p,%ndim,2147483647; @%p bra AD_DONE; setp.gt.u64 %p,%capacity,2147483647; @%p bra AD_DONE;
+ mov.u32 %map,168; setp.eq.u32 %p,%mode,0; @%p bra MAP_READY; mov.u32 %map,188; setp.eq.u32 %p,%mode,1; @%p bra MAP_READY; mov.u32 %map,192; setp.eq.u32 %p,%mode,5; @%p bra MAP_READY; mov.u32 %map,184; setp.eq.u32 %p,%mode,9; @%p bra MAP_READY; mov.u32 %map,216; setp.ne.u32 %p,%mode,101; @%p bra AD_DONE;
+MAP_READY: mov.u32 %i,0; add.u64 %ptr,%cfg,3848;
+AD_COMPONENT: setp.ge.u32 %p,%i,%n; @%p bra AD_OK; ld.global.u32 %active,[%ptr+68]; setp.eq.u32 %p,%active,0; @%p bra AD_NEXT; cvt.u64.u32 %offset,%map; add.u64 %offset,%ptr,%offset; ld.global.u32 %index,[%offset]; setp.lt.s32 %p,%index,1; @%p bra AD_DONE; setp.gt.u32 %p,%index,%ndim; @%p bra AD_DONE; cvt.u64.u32 %offset,%index; setp.gt.u64 %p,%offset,%capacity; @%p bra AD_DONE;
+AD_NEXT: add.u64 %ptr,%ptr,368; add.u32 %i,%i,1; bra AD_COMPONENT;
+AD_OK: mov.u32 %e,0;
+AD_DONE: st.param.u32 [result],%e; ret;
+}
+.visible .func (.param .u32 result) openifs_gprcp_generic_values(.param .u64 configuration,.param .u64 dry_gas_pointer,.param .u64 dry_heat_pointer,.param .u64 fields,.param .u32 width,.param .u32 levels,.param .u32 first_column,.param .u32 last_column,.param .u32 field_mode,.param .u64 heat_output,.param .u64 gas_output,.param .u64 ratio_output)
+{
+ .reg .u64 %cfg,%rdptr,%cpdptr,%pgfl,%cpout,%rout,%kout,%fieldbytes,%offset,%address,%descriptor,%mapoffset,%fieldoffset,%cell,%tmp;
+ .reg .u32 %B,%N,%first,%last,%mode,%map,%count,%i,%active,%index,%seen,%row,%level,%flags,%raised; .reg .pred %p;
+ .reg .b64 %rd,%cpd,%fraction,%a,%b,%rp,%cp,%rsum,%csum,%ratio;
+ .param .b64 ma,mb; .param .align 8 .b8 math[16];
+ ld.param.u64 %cfg,[configuration]; ld.param.u64 %rdptr,[dry_gas_pointer]; ld.param.u64 %cpdptr,[dry_heat_pointer]; ld.param.u64 %pgfl,[fields]; ld.param.u32 %B,[width]; ld.param.u32 %N,[levels]; ld.param.u32 %first,[first_column]; ld.param.u32 %last,[last_column]; ld.param.u32 %mode,[field_mode]; ld.param.u64 %cpout,[heat_output]; ld.param.u64 %rout,[gas_output]; ld.param.u64 %kout,[ratio_output]; mov.u32 %flags,0; setp.eq.u32 %p,%N,0; @%p bra DONE; setp.lt.u32 %p,%last,%first; @%p bra DONE; ld.global.b64 %rd,[%rdptr]; ld.global.b64 %cpd,[%cpdptr]; ld.global.u32 %count,[%cfg]; mov.u32 %map,168; setp.eq.u32 %p,%mode,1; @%p mov.u32 %map,188; setp.eq.u32 %p,%mode,5; @%p mov.u32 %map,192; setp.eq.u32 %p,%mode,9; @%p mov.u32 %map,184; setp.eq.u32 %p,%mode,101; @%p mov.u32 %map,216; cvt.u64.u32 %mapoffset,%map; mul.wide.u32 %fieldbytes,%B,%N; shl.b64 %fieldbytes,%fieldbytes,3; mov.u32 %level,0;
+LEVEL: mov.u32 %row,%first;
+CELL: sub.u32 %index,%row,1; mul.wide.u32 %cell,%level,%B; cvt.u64.u32 %tmp,%index; add.u64 %cell,%cell,%tmp; shl.b64 %offset,%cell,3; mov.u32 %seen,0; mov.u32 %i,0; add.u64 %descriptor,%cfg,3848; mov.b64 %rsum,%rd; mov.b64 %csum,%cpd;
+COMPONENT: setp.ge.u32 %p,%i,%count; @%p bra END_COMPONENTS; ld.global.u32 %active,[%descriptor+68]; setp.eq.u32 %p,%active,0; @%p bra NEXT_COMPONENT; add.u64 %address,%descriptor,%mapoffset; ld.global.u32 %index,[%address]; sub.u32 %index,%index,1; cvt.u64.u32 %fieldoffset,%index; mul.lo.u64 %fieldoffset,%fieldoffset,%fieldbytes; add.u64 %fieldoffset,%fieldoffset,%offset; add.u64 %address,%pgfl,%fieldoffset; ld.global.b64 %fraction,[%address]; ld.global.b64 %a,[%descriptor+72]; ld.global.b64 %b,[%descriptor+80];
+ st.param.b64 [ma],%a; st.param.b64 [mb],%rd; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %a,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%b; st.param.b64 [mb],%cpd; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %b,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%a; st.param.b64 [mb],%fraction; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %rp,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%b; st.param.b64 [mb],%fraction; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %cp,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ setp.ne.u32 %p,%seen,0; @%p bra ADD_COMPONENT; mov.b64 %rsum,%rp; mov.b64 %csum,%cp; mov.u32 %seen,1; bra NEXT_COMPONENT;
+ADD_COMPONENT:
+ st.param.b64 [ma],%rsum; st.param.b64 [mb],%rp; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %rsum,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%csum; st.param.b64 [mb],%cp; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %csum,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+NEXT_COMPONENT: add.u64 %descriptor,%descriptor,368; add.u32 %i,%i,1; bra COMPONENT;
+END_COMPONENTS: setp.eq.u32 %p,%seen,0; @%p bra OUTPUT;
+ st.param.b64 [ma],%rd; st.param.b64 [mb],%rsum; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %rsum,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%cpd; st.param.b64 [mb],%csum; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %csum,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+OUTPUT: setp.eq.u64 %p,%cpout,0; @%p bra GAS_OUTPUT; add.u64 %address,%cpout,%offset; st.global.b64 [%address],%csum;
+GAS_OUTPUT: setp.eq.u64 %p,%rout,0; @%p bra RATIO_OUTPUT; add.u64 %address,%rout,%offset; st.global.b64 [%address],%rsum;
+RATIO_OUTPUT: setp.eq.u64 %p,%kout,0; @%p bra CELL_NEXT;
+ st.param.b64 [ma],%rsum; st.param.b64 [mb],%csum; call.uni (math),md2asm_gpu_div_status,(ma,mb); ld.param.b64 %ratio,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %address,%kout,%offset; st.global.b64 [%address],%ratio;
+CELL_NEXT: add.u32 %row,%row,1; setp.le.u32 %p,%row,%last; @%p bra CELL; add.u32 %level,%level,1; setp.lt.u32 %p,%level,%N; @%p bra LEVEL;
+DONE: st.param.u32 [result],%flags; ret;
+}

@@ -1,0 +1,443 @@
+/* GPU physical setup route. Original interface and ordered arithmetic are preserved.
+ * Contract: skills/md2asm-gpu/references/openifs/setup/physical_setup.md
+ * Original source: src/openifs/setup/vegetation_exchange_parameter_fields.S
+ */
+// Original contract: skills/md2asm/references/openifs/setup/surface_land_parameters.md
+#include "../../support/gpu/preserved_scalar_calls.inc.S"
+.arch armv8.2-a
+.equ SOIL_NSOTY,0
+.equ SOIL_RRCSOIL,8
+.equ SOIL_RLAMBDADRY,16
+.equ SOIL_RLAMSAT1,24
+.equ SOIL_RLAMBDAICE,32
+.equ SOIL_RLAMBDAWAT,40
+.equ SOIL_RKERST1,48
+.equ SOIL_RKERST2,56
+.equ SOIL_RKERST3,64
+.equ SOIL_RSRDEP,72
+.equ SOIL_RSIGORMIN,80
+.equ SOIL_RSIGORMAX,88
+.equ SOIL_RWB,96
+.equ SOIL_RCWPSIS,104
+.equ SOIL_RWCONS,112
+.equ SOIL_RWSAT,120
+.equ SOIL_RWCAP,128
+.equ SOIL_RWPWP,136
+.equ SOIL_RSIMP,144
+.equ SOIL_RLICE,152
+.equ SOIL_RGH2O,160
+.equ SOIL_RQWEVAP,168
+.equ SOIL_RQWSBCR,176
+.equ SOIL_RQSNCR,184
+.equ SOIL_RWLMAX,192
+.equ SOIL_RPSFR,200
+.equ SOIL_RTF1,208
+.equ SOIL_RTF2,216
+.equ SOIL_RTF3,224
+.equ SOIL_RTF4,232
+.equ SOIL_RTFREEZSICE,240
+.equ SOIL_RTMELTSICE,248
+.equ SOIL_RDARSICE,256
+.equ SOIL_RDANSICE,264
+.equ SOIL_RCONDSICE,272
+.equ SOIL_RDFSICE,280
+.equ SOIL_RCIMIN,288
+.equ SOIL_RHOICE,296
+.equ SOIL_RLAMICE,304
+.equ SOIL_RHOCI,312
+.equ SOIL_RALFMINSN,320
+.equ SOIL_RALFMINPSN,328
+.equ SOIL_RALFMAXSN,336
+.equ SOIL_RSNPER,344
+.equ SOIL_RHOMINSN,352
+.equ SOIL_RHOMAXSN,360
+.equ SOIL_RTAUF,368
+.equ SOIL_RTAUA,376
+.equ SOIL_RSFRESH,384
+.equ SOIL_RFRSMALL,392
+.equ SOIL_RFRTINY,400
+.equ SOIL_RALAMSN,408
+.equ SOIL_RDSNMAX,416
+.equ SOIL_RRCSICE,424
+.equ SOIL_RTHRFRTI,432
+.equ SOIL_LEVGEN,440
+.equ SOIL_LESSRO,444
+.equ SOIL_LESN09,448
+.equ SOIL_LESNML,452
+.equ SOIL_LESNWD,456
+.equ SOIL_LESNRF,460
+.equ SOIL_LESNRSN,464
+.equ SOIL_LESNWP,468
+.equ SOIL_LESNFA,472
+.equ SOIL_LESNCF,476
+.equ SOIL_LESNAS,480
+.equ SOIL_NLEVSN,484
+.equ SOIL_NSNMLWS,488
+.equ SOIL_RCWPSISM,496
+.equ SOIL_RMVGALPHA,560
+.equ SOIL_RWCONSM,624
+.equ SOIL_RMFACM,688
+.equ SOIL_RNFACM,752
+.equ SOIL_RLAMBDAM,816
+.equ SOIL_RWSATM,880
+.equ SOIL_RWCAPM,944
+.equ SOIL_RWPWPM,1008
+.equ SOIL_RWRESTM,1072
+.equ SOIL_RDMAXM,1136
+.equ SOIL_RDMINM,1200
+.equ SOIL_RQWEVAPM,1264
+.equ SOIL_RQWSBCRM,1328
+.equ SOIL_RLAMBDADRYM,1392
+.equ SOIL_RLAMSAT1M,1456
+.equ SOIL_RRCSOILM,1520
+.equ SOIL_RDAT,1584
+.equ SOIL_RDAW,1648
+.equ SOIL_RDAI,1712
+.equ SOIL_RLWCSWEA,1776
+.equ SOIL_RLWCSWEB,1784
+.equ SOIL_RLWCSWEC,1792
+.equ SOIL_RTEMPAMP,1800
+.equ SOIL_RHOMINSNA,1808
+.equ SOIL_RHOMINSNB,1816
+.equ SOIL_RHOMINSNC,1824
+.equ SOIL_RHOMINSND,1832
+.equ SOIL_RSNDTOVERA,1840
+.equ SOIL_RSNDTOVERB,1848
+.equ SOIL_RSNDTOVERC,1856
+.equ SOIL_RSNDTDESTA,1864
+.equ SOIL_RSNDTDESTB,1872
+.equ SOIL_RSNDTDESTC,1880
+.equ SOIL_RSNDTDESTROI,1888
+.equ SOIL_RSNDTDESTC_ML,1896
+.equ SOIL_RHOMAXSN_NEW,1960
+.equ SOIL_RSNDAMOB,1968
+.equ SOIL_RSNDMOB,1976
+.equ SOIL_RSNDAW,1984
+.equ SOIL_RSNDBW,1992
+.equ SOIL_RSNDKV,2000
+.equ SOIL_RSNDATAUW,2008
+.equ SOIL_RSNDBTAUW,2016
+.equ SOIL_RSNDWCOMPMAX,2024
+.equ SOIL_SSAG1,2032
+.equ SOIL_SSAG2,2040
+.equ SOIL_SSAG3,2048
+.equ SOIL_SSAGSNSMAX,2056
+.equ SOIL_SSASNEXTMIN,2064
+.equ SOIL_SSASNEXTMAX,2072
+.equ SOIL_SSASNEXTCNST,2080
+.equ SOIL_SNHCONDAV,2088
+.equ SOIL_SNHCONDBV,2096
+.equ SOIL_SNHCONDCV,2104
+.equ SOIL_SNHCONDPOV,2112
+.equ SOIL_RLEVSNMIN,2120
+.equ SOIL_RLEVSNMAX,2184
+.equ SOIL_RLEVSNMIN_GL,2248
+.equ SOIL_RLEVSNMAX_GL,2312
+.equ SOIL_LESKTI5,2376
+.equ SOIL_LESKTI8,2380
+.equ SOIL_LESOILCOND,2384
+.equ SOIL_LEROLAKE,2388
+.equ SOIL_LEWBSOILFIX,2392
+.equ SOIL_LEWBCHECK,2396
+.equ SOIL_LEWBCHECKAbort,2400
+.equ SOIL_LESNCHECK,2404
+.equ SOIL_LESNCHECKAbort,2408
+.equ SOIL_LESNWBCON,2412
+.equ VEG_NVTYPES,0
+.equ VEG_NVTILES,4
+.equ VEG_RVCOV,8
+.equ VEG_RVLAI,72
+.equ VEG_RVROOTSA,136
+.equ VEG_RVLAMSK,224
+.equ VEG_RVLAMSKS,288
+.equ VEG_RVTRSR,352
+.equ VEG_RVZ0M,416
+.equ VEG_RVZ0H,480
+.equ VEG_REPEVAP,544
+.equ VEG_RVINTER,552
+.equ VEG_RCEPSW,560
+.equ VEG_RVRSMIN,568
+.equ VEG_RVHSTR,632
+.equ VEG_RLHAERO,696
+.equ VEG_RLHAEROS,704
+.equ VEG_RCVC,712
+.equ VEG_RVLT,720
+.equ VEG_RVRAD,728
+.equ VEG_REPSR,736
+.equ VEG_RLAIINT,744
+.equ VEG_LELAIV,752
+.equ VEG_LECTESSEL,756
+.equ VEG_LEAGS,760
+.equ VEG_LEFARQUHAR,764
+.equ VEG_LEAIRCO2COUP,768
+.equ VEG_LFACO2BIOFLUX,772
+.equ EXC_LELWDD,0
+.equ EXC_LELWTL,4
+.equ EXC_LEOCWA,8
+.equ EXC_LEOCCO,12
+.equ EXC_LWCOU,16
+.equ EXC_LWCOU2W,20
+.equ EXC_LWCOUHMF,24
+.equ EXC_LEOCSA,28
+.equ EXC_LEOCLA,32
+.equ EXC_LSCMEC,36
+.equ EXC_LROUGH,40
+.equ EXC_REXTZ0M,48
+.equ EXC_REXTZ0H,56
+.equ EXC_RKAP,64
+.equ EXC_REPDU2,72
+.equ EXC_RPARZI,80
+.equ EXC_RZ0ICE,88
+.equ EXC_REPUST,96
+.equ EXC_RNU,104
+.equ EXC_RNUM,112
+.equ EXC_RNUH,120
+.equ EXC_RNUQ,128
+.equ EXC_RCHAR,136
+.equ DIM_NCSS,0
+.equ DIM_NTILES,4
+.equ DIM_NMONTH,8
+.equ DIM_NCSNEC,12
+.text
+.p2align 4
+.global md2asm_vegetation_parameter_fields
+.type md2asm_vegetation_parameter_fields,%function
+md2asm_vegetation_parameter_fields:
+ stp x29,x30,[sp,#-256]!
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ stp d8,d9,[sp,#112]
+ stp d10,d11,[sp,#128]
+ stp d12,d13,[sp,#144]
+ stp d14,d15,[sp,#160]
+ mov x29,sp
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ mov x22,x4
+ mov w9,#20
+ str w9,[x19,#VEG_NVTYPES]
+ mov w9,#2
+ str w9,[x19,#VEG_NVTILES]
+ adr x23,.Lland_vegetation_literals
+ ldr d0,[x23]
+ str d0,[x19,#VEG_REPEVAP]
+ ldr d0,[x23,#8]
+ str d0,[x19,#VEG_RVINTER]
+ ldr x0,[x19,#VEG_RVCOV]
+ adr x1,.Lland_vegetation_RVCOV
+ bl .Lland_copy_vegetation_values
+ ldr x0,[x19,#VEG_RVLAI]
+ adr x1,.Lland_vegetation_RVLAI
+ bl .Lland_copy_vegetation_values
+ ldr w9,[x22,#20]
+ str w9,[x19,#VEG_LELAIV]
+ ldr w9,[x22,#24]
+ str w9,[x19,#VEG_LECTESSEL]
+ ldr w9,[x22,#28]
+ str w9,[x19,#VEG_LEAGS]
+ ldr w9,[x22,#32]
+ str w9,[x19,#VEG_LEFARQUHAR]
+ ldr w9,[x22,#36]
+ str w9,[x19,#VEG_LEAIRCO2COUP]
+ ldr x9,[x22,#104]
+ str x9,[x19,#VEG_RLAIINT]
+ ldp d0,d1,[x23,#16]
+ str d0,[x19,#VEG_RLHAERO]
+ str d1,[x19,#VEG_RLHAEROS]
+ ldr x0,[x19,#VEG_RVLAMSK]
+ adr x1,.Lland_vegetation_RVLAMSK
+ bl .Lland_copy_vegetation_values
+ ldr x0,[x19,#VEG_RVLAMSKS]
+ adr x1,.Lland_vegetation_RVLAMSKS
+ bl .Lland_copy_vegetation_values
+ ldr x0,[x19,#VEG_RVTRSR]
+ adr x1,.Lland_vegetation_RVTRSR
+ bl .Lland_copy_vegetation_values
+ ldr x0,[x19,#VEG_RVROOTSA]
+ add x0,x0,#32
+ ldr x1,[x20,#SOIL_RDAW]
+ bl md2asm_vegetation_root_fraction_fields
+ ldr x9,[x19,#VEG_RVROOTSA]
+ ldp x10,x11,[x9,#256]
+ stp x10,x11,[x9]
+ ldp x10,x11,[x9,#272]
+ stp x10,x11,[x9,#16]
+ ldr d0,[x23,#32]
+ str d0,[x19,#VEG_RCEPSW]
+ ldr x0,[x19,#VEG_RVRSMIN]
+ adr x1,.Lland_vegetation_RVRSMIN
+ bl .Lland_copy_vegetation_values
+ ldr x0,[x19,#VEG_RVHSTR]
+ adr x1,.Lland_vegetation_RVHSTR
+ bl .Lland_copy_vegetation_values
+ ldr d0,[x21,#48]
+ fmov d1,#1.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x23,#40]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d8,destination,d1,real,x16,0,d0
+ ldr x24,[x19,#VEG_RVHSTR]
+ mov x25,#0
+.Lland_vegetation_humidity:
+ ldr d0,[x24,x25,lsl#3]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d8,real,x16,0,d0
+ str d0,[x24,x25,lsl#3]
+ add x25,x25,#1
+ cmp x25,#21
+ b.lo .Lland_vegetation_humidity
+ ldr x0,[x19,#VEG_RVZ0M]
+ adr x1,.Lland_vegetation_RVZ0M
+ bl .Lland_copy_vegetation_values
+ ldr x24,[x19,#VEG_RVZ0M]
+ ldr x25,[x19,#VEG_RVZ0H]
+ adr x26,.Lland_vegetation_heat_divisors
+ mov x27,#1
+.Lland_vegetation_heat_roughness:
+ ldr d0,[x24,x27,lsl#3]
+ sub x9,x27,#1
+ ldrb w9,[x26,x9]
+ cbz w9,.Lland_vegetation_heat_store
+ cmp w9,#1
+ b.ne .Lland_vegetation_heat_ten
+ ldr d1,[x23,#48]
+ b .Lland_vegetation_heat_divide
+.Lland_vegetation_heat_ten:
+ ldr d1,[x23,#56]
+.Lland_vegetation_heat_divide:
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+.Lland_vegetation_heat_store:
+ str d0,[x25,x27,lsl#3]
+ add x27,x27,#1
+ cmp x27,#21
+ b.lo .Lland_vegetation_heat_roughness
+ ldr x9,[x25,#64]
+ str x9,[x25]
+ ldp d0,d1,[x23,#64]
+ str d0,[x19,#VEG_RCVC]
+ str d1,[x19,#VEG_RVLT]
+ ldr d0,[x23,#8]
+ str d0,[x19,#VEG_RVRAD]
+ ldr d0,[x23]
+ str d0,[x19,#VEG_REPSR]
+ mov w0,#0
+ ldp d8,d9,[sp,#112]
+ ldp d10,d11,[sp,#128]
+ ldp d12,d13,[sp,#144]
+ ldp d14,d15,[sp,#160]
+ ldr x18,[sp,#96]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ .if 256 > 504
+ ldp x29,x30,[sp]
+ add sp,sp,#256
+ .else
+ ldp x29,x30,[sp],#256
+ .endif
+ ret
+.size md2asm_vegetation_parameter_fields,.-md2asm_vegetation_parameter_fields
+.Lland_copy_vegetation_values:
+ mov x4,x0
+ add x0,x0,#8
+ mov x2,#20
+.Lland_copy_vegetation_loop:
+ ldr x3,[x1],#8
+ str x3,[x0],#8
+ subs x2,x2,#1
+ b.ne .Lland_copy_vegetation_loop
+ ldr x3,[x4,#64]
+ str x3,[x4]
+ ret
+.p2align 4
+.global md2asm_surface_exchange_parameter_fields
+.type md2asm_surface_exchange_parameter_fields,%function
+md2asm_surface_exchange_parameter_fields:
+ adr x8,.Lland_exchange_literals
+ ldr d0,[x8]
+ str d0,[x0,#EXC_RKAP]
+ ldr d3,[x1,#128]
+ ldr d0,[x8,#8]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d3
+ str d0,[x0,#EXC_RZ0ICE]
+ ldr d0,[x8,#16]
+ str d0,[x0,#EXC_RCHAR]
+ ldr d0,[x8,#24]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d0
+ str d0,[x0,#EXC_REPDU2]
+ ldr d0,[x8,#32]
+ str d0,[x0,#EXC_REPUST]
+ ldr d0,[x8,#40]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d3
+ str d0,[x0,#EXC_RNU]
+ ldr d1,[x8,#48]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d0
+ str d1,[x0,#EXC_RNUM]
+ ldr d1,[x8,#56]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d0
+ str d1,[x0,#EXC_RNUH]
+ ldr d1,[x8,#64]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d0
+ str d1,[x0,#EXC_RNUQ]
+ ldr d0,[x8,#72]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d3
+ str d0,[x0,#EXC_RPARZI]
+ mov w9,#1
+ str w9,[x0,#EXC_LELWDD]
+ str w9,[x0,#EXC_LELWTL]
+ ldr w9,[x1,#40]
+ str w9,[x0,#EXC_LEOCWA]
+ ldr w9,[x1,#44]
+ str w9,[x0,#EXC_LEOCCO]
+ ldr w9,[x1,#48]
+ str w9,[x0,#EXC_LEOCSA]
+ ldr w9,[x1,#52]
+ str w9,[x0,#EXC_LEOCLA]
+ ldr w9,[x1,#56]
+ str w9,[x0,#EXC_LWCOU]
+ ldr w9,[x1,#60]
+ str w9,[x0,#EXC_LWCOU2W]
+ ldr w9,[x1,#64]
+ str w9,[x0,#EXC_LWCOUHMF]
+ ldr w9,[x1,#68]
+ str w9,[x0,#EXC_LSCMEC]
+ ldr w9,[x1,#72]
+ str w9,[x0,#EXC_LROUGH]
+ ldr x9,[x1,#112]
+ str x9,[x0,#EXC_REXTZ0M]
+ ldr x9,[x1,#120]
+ str x9,[x0,#EXC_REXTZ0H]
+ mov w0,#0
+ ret
+.size md2asm_surface_exchange_parameter_fields,.-md2asm_surface_exchange_parameter_fields
+.section .rodata
+.p2align 3
+.Lland_vegetation_literals:
+ .double 1e-10,.5,15.0,10.0,.001,1013.25,100.0,10.0,240.0,4.0
+.Lland_exchange_literals:
+ .double .4,.001,.0155,.1,.0001,1.5e-5,.11,.40,.62,1000.0
+.Lland_vegetation_heat_divisors:
+ .byte 1,1,0,0,0,0,1,1,1,1,1,2,1,2,2,1,1,0,1,2
+.p2align 3
+.Lland_vegetation_RVCOV:
+ .double 0.9,0.85,0.9,0.9,0.9,0.99,0.7,0.0,0.5,0.9,0.1,0.0,0.6,0.0,0.0,0.5,0.5,0.9,0.9,0.6
+.Lland_vegetation_RVLAI:
+ .double 3.0,2.0,5.0,5.0,5.0,6.0,2.0,0.5,1.0,3.0,0.5,0.0,4.0,0.0,0.0,3.0,1.5,5.0,2.5,4.0
+.Lland_vegetation_RVLAMSK:
+ .double 10.0,10.0,10.0,10.0,10.0,10.0,10.0,15.0,10.0,10.0,10.0,58.0,10.0,10000000000.0,10000000000.0,10.0,10.0,10.0,10.0,10000000000.0
+.Lland_vegetation_RVLAMSKS:
+ .double 10.0,10.0,10.0,10.0,10.0,10.0,10.0,15.0,10.0,10.0,10.0,58.0,10.0,10000000000.0,10000000000.0,10.0,10.0,10.0,10.0,10000000000.0
+.Lland_vegetation_RVTRSR:
+ .double 0.05,0.05,0.03,0.03,0.03,0.03,0.05,0.0,0.05,0.05,0.05,0.0,0.05,0.0,0.0,0.05,0.05,0.03,0.03,0.0
+.Lland_vegetation_RVRSMIN:
+ .double 100.0,100.0,250.0,250.0,175.0,240.0,100.0,250.0,80.0,100.0,150.0,0.0,240.0,0.0,0.0,225.0,225.0,250.0,175.0,150.0
+.Lland_vegetation_RVHSTR:
+ .double 0.0,0.0,0.03,0.03,0.03,0.03,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.03,0.03,0.0
+.Lland_vegetation_RVZ0M:
+ .double 0.25,0.1,2.0,2.0,2.0,2.0,0.47,0.013,0.034,0.5,0.17,0.0013,0.5,0.0001,0.0001,0.1,0.25,2.0,1.1,0.02
+.section .note.GNU-stack,"",%progbits

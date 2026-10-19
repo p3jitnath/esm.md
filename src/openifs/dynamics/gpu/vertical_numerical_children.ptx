@@ -1,0 +1,138 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Direct PTX from the retained component contract revision 1.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 ar[16]) md2asm_gpu_add_rn(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 ar[16]) md2asm_gpu_mul_rn(.param .b64 a,.param .b64 b);
+
+.visible .func (.param .align 8 .b8 dot_return[16]) ordered_matrix_dot_status_fp64(
+ .param .u32 dot_k,.param .u64 dot_a,.param .u64 dot_b,
+ .param .u64 dot_lda,.param .u64 dot_ldb,.param .u32 dot_zero_endpoints)
+{
+ .reg .b32 %k,%c,%last,%zero,%flags,%raised;
+ .reg .b64 %a,%b,%lda,%ldb,%av,%bv,%sum,%product;
+ .reg .pred %p,%q,%endpoint;
+ .param .b64 ca,cb;
+ .param .align 8 .b8 cr[16];
+ ld.param.u32 %k,[dot_k];
+ ld.param.u64 %a,[dot_a];
+ ld.param.u64 %b,[dot_b];
+ ld.param.u64 %lda,[dot_lda];
+ ld.param.u64 %ldb,[dot_ldb];
+ ld.param.u32 %zero,[dot_zero_endpoints];
+ mov.u32 %c,0;
+ sub.u32 %last,%k,1;
+ mov.b64 %sum,0;
+ mov.u32 %flags,0;
+VDS_LOOP:
+ setp.ge.u32 %p,%c,%k;
+ @%p bra VDS_DONE;
+ setp.eq.u32 %p,%c,0;
+ setp.eq.u32 %q,%c,%last;
+ or.pred %endpoint,%p,%q;
+ setp.ne.u32 %p,%zero,0;
+ and.pred %endpoint,%endpoint,%p;
+ mov.b64 %av,0;
+ @!%endpoint ld.global.b64 %av,[%a];
+ ld.global.b64 %bv,[%b];
+ st.param.b64 [ca],%av;
+ st.param.b64 [cb],%bv;
+ call.uni (cr),md2asm_gpu_mul_rn,(ca,cb);
+ ld.param.b64 %product,[cr];
+ ld.param.b32 %raised,[cr+8];
+ or.b32 %flags,%flags,%raised;
+ st.param.b64 [ca],%sum;
+ st.param.b64 [cb],%product;
+ call.uni (cr),md2asm_gpu_add_rn,(ca,cb);
+ ld.param.b64 %sum,[cr];
+ ld.param.b32 %raised,[cr+8];
+ or.b32 %flags,%flags,%raised;
+ add.u32 %c,%c,1;
+ setp.ge.u32 %p,%c,%k;
+ @%p bra VDS_DONE;
+ add.u64 %a,%a,%lda;
+ add.u64 %b,%b,%ldb;
+ bra VDS_LOOP;
+VDS_DONE:
+ st.param.b64 [dot_return],%sum;
+ st.param.b32 [dot_return+8],%flags;
+ st.param.b32 [dot_return+12],0;
+ ret;
+}
+
+// One point owns all Q rows before it starts bottom subtraction.
+.visible .func (.param .u32 point_flags) openifs_vertical_point_fp64(
+ .param .u32 point_p,.param .u32 point_n,.param .u32 point_m,
+ .param .u32 point_index,.param .u32 point_bottom,.param .u32 point_zero_endpoints,
+ .param .u64 point_matrix,.param .u64 point_input,.param .u64 point_output)
+{
+ .reg .b32 %p,%n,%m,%i,%bottom,%zero,%row,%flags,%raised;
+ .reg .b64 %matrix,%input,%output,%pitch,%mpitch,%offset,%a,%b,%c,%q,%last,%negative;
+ .reg .pred %pred;
+ .param .u32 dk,dz;
+ .param .u64 da,db,dl,dm;
+ .param .align 8 .b8 dr[16];
+ .param .b64 ca,cb;
+ .param .align 8 .b8 cr[16];
+ ld.param.u32 %p,[point_p];
+ ld.param.u32 %n,[point_n];
+ ld.param.u32 %m,[point_m];
+ ld.param.u32 %i,[point_index];
+ ld.param.u32 %bottom,[point_bottom];
+ ld.param.u32 %zero,[point_zero_endpoints];
+ ld.param.u64 %matrix,[point_matrix];
+ ld.param.u64 %input,[point_input];
+ ld.param.u64 %output,[point_output];
+ mul.wide.u32 %pitch,%p,8;
+ mul.wide.u32 %mpitch,%m,8;
+ mul.wide.u32 %offset,%i,8;
+ add.u64 %a,%input,%offset;
+ add.u64 %c,%output,%offset;
+ mov.u64 %b,%matrix;
+ mov.u32 %row,0;
+ mov.u32 %flags,0;
+VP_ROWS:
+ setp.ge.u32 %pred,%row,%m;
+ @%pred bra VP_MATRIX_DONE;
+ st.param.u32 [dk],%n;
+ st.param.u64 [da],%a;
+ st.param.u64 [db],%b;
+ st.param.u64 [dl],%pitch;
+ st.param.u64 [dm],%mpitch;
+ st.param.u32 [dz],%zero;
+ call.uni (dr),ordered_matrix_dot_status_fp64,(dk,da,db,dl,dm,dz);
+ ld.param.b64 %q,[dr];
+ ld.param.b32 %raised,[dr+8];
+ or.b32 %flags,%flags,%raised;
+ st.global.b64 [%c],%q;
+ add.u64 %b,%b,8;
+ add.u64 %c,%c,%pitch;
+ add.u32 %row,%row,1;
+ bra VP_ROWS;
+VP_MATRIX_DONE:
+ setp.eq.u32 %pred,%bottom,0;
+ @%pred bra VP_DONE;
+ mov.b64 %last,%q;
+ xor.b64 %negative,%last,0x8000000000000000;
+ add.u64 %c,%output,%offset;
+ mov.u32 %row,0;
+VP_SUBTRACT:
+ setp.ge.u32 %pred,%row,%m;
+ @%pred bra VP_DONE;
+ ld.global.b64 %q,[%c];
+ st.param.b64 [ca],%q;
+ st.param.b64 [cb],%negative;
+ call.uni (cr),md2asm_gpu_add_rn,(ca,cb);
+ ld.param.b64 %q,[cr];
+ ld.param.b32 %raised,[cr+8];
+ or.b32 %flags,%flags,%raised;
+ st.global.b64 [%c],%q;
+ add.u64 %c,%c,%pitch;
+ add.u32 %row,%row,1;
+ bra VP_SUBTRACT;
+VP_DONE:
+ st.param.u32 [point_flags],%flags;
+ ret;
+}

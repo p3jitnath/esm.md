@@ -1,0 +1,678 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Direct PTX from the retained component contract revision 1.
+.version 8.5
+.target sm_90
+.address_size 64
+.visible .const .align 8 .b64 openifs_vertical_dispatch_metadata[112] = {
+ 0x0001000102000040,
+ 0x0000000100010040,
+ 0x0000000100010040,
+ 0x0000000100010040,
+ 0x0001000102000098,
+ 0x00000001020000f0,
+ 0x00000001020000f0,
+ 0x00000001020000f0,
+ 0x0001000102000098,
+ 0x0000000100010510,
+ 0x0000000100010510,
+ 0x0000000100010510,
+ 0x0001000102000098,
+ 0x00000001020000f0,
+ 0x00000001020000f0,
+ 0x00000001020000f0,
+ 0x0001010102000040,
+ 0x0000010100010040,
+ 0x0000010100010040,
+ 0x0000010100010040,
+ 0x0001010102000098,
+ 0x00000101020000f0,
+ 0x00000101020000f0,
+ 0x00000101020000f0,
+ 0x0001010102000098,
+ 0x0000010100010510,
+ 0x0000010100010510,
+ 0x0000010100010510,
+ 0x0001010102000098,
+ 0x00000101020000f0,
+ 0x00000101020000f0,
+ 0x00000101020000f0,
+ 0x0001010102000040,
+ 0x0001010101000040,
+ 0x0001010101000040,
+ 0x0001010101000040,
+ 0x00010001020007d0,
+ 0x00010001020007d0,
+ 0x00010001020007d0,
+ 0x00010001020007d0,
+ 0x00010001020007d0,
+ 0x00010001010007d0,
+ 0x00010001010007d0,
+ 0x00010001010007d0,
+ 0x00010001020007d0,
+ 0x00010001020007d0,
+ 0x00010001020007d0,
+ 0x00010001020007d0,
+ 0x0001000102000828,
+ 0x0000000101000828,
+ 0x0000000101000828,
+ 0x0000000101000828,
+ 0x0001000102000828,
+ 0x0001000102000828,
+ 0x0001000102000828,
+ 0x0001000102000828,
+ 0x0001000102000828,
+ 0x0000000101000828,
+ 0x0000000101000828,
+ 0x0000000101000828,
+ 0x0001000102000828,
+ 0x0001000102000828,
+ 0x0001000102000828,
+ 0x0001000102000828,
+ 0x0000000102000358,
+ 0x0002000100010358,
+ 0x0002000100010358,
+ 0x0002000100010358,
+ 0x0000000102000358,
+ 0x0002000102000358,
+ 0x0002000102000358,
+ 0x0002000102000358,
+ 0x0000000102000358,
+ 0x0000000100010670,
+ 0x0002000100010358,
+ 0x0002000100010358,
+ 0x0000000102000358,
+ 0x00000001020003b0,
+ 0x0002000102000358,
+ 0x0002000102000358,
+ 0x0001000002000148,
+ 0x0000000000010148,
+ 0x0000000000010148,
+ 0x0000000000010148,
+ 0x00000000020001f8,
+ 0x0000000002000250,
+ 0x00000000020002a8,
+ 0x0000000002000300,
+ 0x0002000002000000,
+ 0x0000000000010568,
+ 0x00000000000105c0,
+ 0x0000000000010618,
+ 0x00000000020001f8,
+ 0x0000000002000250,
+ 0x00000000020002a8,
+ 0x0000000002000300,
+ 0x0001000002000408,
+ 0x0000000000010408,
+ 0x0000000000010408,
+ 0x0000000000010408,
+ 0x0001000002000408,
+ 0x0000000002000460,
+ 0x0002000002000000,
+ 0x0002000002000000,
+ 0x0002000002000000,
+ 0x0002000000010000,
+ 0x0002000000010000,
+ 0x0000000000010778,
+ 0x0002000002000000,
+ 0x0000000002000460,
+ 0x0002000002000000,
+ 0x00000000020004b8
+};
+.extern .func (.param .u32 flags) openifs_vertical_point_fp64(
+ .param .u32 p,.param .u32 n,.param .u32 m,.param .u32 i,
+ .param .u32 bottom,.param .u32 zero_endpoints,
+ .param .u64 matrix,.param .u64 input,.param .u64 output);
+
+.func (.param .u32 scalar_code) vertical_scalar_arguments_check(
+ .param .u64 scalar_vector,.param .u32 scalar_count)
+{
+ .reg .b64 %v,%a,%t;
+ .reg .b32 %n,%i,%code;
+ .reg .pred %p;
+ ld.param.u64 %v,[scalar_vector];
+ ld.param.u32 %n,[scalar_count];
+ mov.u32 %i,0;
+ mov.u32 %code,4353;
+VSC_LOOP:
+ setp.ge.u32 %p,%i,%n;
+ @%p bra VSC_OK;
+ ld.global.u64 %a,[%v];
+ setp.eq.u64 %p,%a,0;
+ @%p bra VSC_DONE;
+ and.b64 %t,%a,3;
+ setp.ne.u64 %p,%t,0;
+ @%p bra VSC_DONE;
+ add.u64 %v,%v,8;
+ add.u32 %i,%i,1;
+ bra VSC_LOOP;
+VSC_OK:
+ mov.u32 %code,0;
+VSC_DONE:
+ st.param.u32 [scalar_code],%code;
+ ret;
+}
+
+.func (.param .u32 range_code) vertical_range_check(
+ .param .u64 range_base,.param .u64 range_bytes,.param .u64 range_capacity)
+{
+ .reg .b64 %base,%bytes,%capacity,%t,%end;
+ .reg .b32 %code;
+ .reg .pred %p;
+ ld.param.u64 %base,[range_base];
+ ld.param.u64 %bytes,[range_bytes];
+ ld.param.u64 %capacity,[range_capacity];
+ mov.u32 %code,4355;
+ setp.gt.u64 %p,%bytes,%capacity;
+ @%p bra VRC_DONE;
+ setp.eq.u64 %p,%base,0;
+ @%p bra VRC_DONE;
+ and.b64 %t,%base,7;
+ setp.ne.u64 %p,%t,0;
+ @%p bra VRC_DONE;
+ setp.gt.u64 %p,%base,0x7fffffffffffffff;
+ @%p bra VRC_DONE;
+ add.u64 %end,%base,%bytes;
+ setp.gt.u64 %p,%end,0x7fffffffffffffff;
+ @%p bra VRC_DONE;
+ mov.u32 %code,0;
+VRC_DONE:
+ st.param.u32 [range_code],%code;
+ ret;
+}
+
+.visible .func openifs_vertical_parent_fp64(
+ .param .u64 parent_vector,.param .u64 parent_context,.param .u32 parent_kind)
+{
+ .reg .b32 %r<56>;
+ .reg .b64 %d<48>;
+ .reg .pred %p<5>;
+ .param .u64 check_vector;
+ .param .u32 check_count,check_return;
+ .param .u64 range_base,range_bytes,range_capacity;
+ .param .u32 range_return;
+ .param .u32 pp,pn,pm,pi,pb,pz,point_return;
+ .param .u64 pmat,pin,pout;
+ ld.param.u64 %d0,[parent_vector];
+ ld.param.u64 %d1,[parent_context];
+ ld.param.u32 %r0,[parent_kind];
+ ld.global.u32 %r14,[%d1];
+ setp.ne.u32 %p0,%r14,0;
+ @%p0 ret;
+ mov.u32 %r40,%ctaid.x;
+ mov.u32 %r41,%tid.x;
+ or.b32 %r40,%r40,%r41;
+ mov.u32 %r41,%ctaid.y;
+ or.b32 %r40,%r40,%r41;
+ mov.u32 %r41,%ctaid.z;
+ or.b32 %r40,%r40,%r41;
+ mov.u32 %r41,%tid.y;
+ or.b32 %r40,%r40,%r41;
+ mov.u32 %r41,%tid.z;
+ or.b32 %r40,%r40,%r41;
+ mov.u32 %r14,4352;
+ ld.global.u32 %r16,[%d1+4];
+ setp.ne.u32 %p0,%r16,1;
+ @%p0 bra VPA_REFUSE;
+ mov.u32 %r16,%ntid.y;
+ setp.ne.u32 %p0,%r16,1;
+ @%p0 bra VPA_REFUSE;
+ mov.u32 %r16,%ntid.z;
+ setp.ne.u32 %p0,%r16,1;
+ @%p0 bra VPA_REFUSE;
+ mov.u32 %r16,%nctaid.y;
+ setp.ne.u32 %p0,%r16,1;
+ @%p0 bra VPA_REFUSE;
+ mov.u32 %r16,%nctaid.z;
+ setp.ne.u32 %p0,%r16,1;
+ @%p0 bra VPA_REFUSE;
+ mov.u32 %r14,4353;
+ ld.global.u64 %d2,[%d1+48];
+ ld.global.u64 %d20,[%d1+56];
+ setp.lt.u64 %p0,%d20,64;
+ @%p0 bra VPA_REFUSE;
+ setp.eq.u64 %p0,%d2,0;
+ @%p0 bra VPA_REFUSE;
+ and.b64 %d20,%d2,7;
+ setp.ne.u64 %p0,%d20,0;
+ @%p0 bra VPA_REFUSE;
+ setp.eq.u64 %p0,%d0,0;
+ @%p0 bra VPA_REFUSE;
+ and.b64 %d20,%d0,7;
+ setp.ne.u64 %p0,%d20,0;
+ @%p0 bra VPA_REFUSE;
+ ld.global.u64 %d8,[%d2];
+ ld.global.u64 %d9,[%d2+8];
+ ld.global.u64 %d10,[%d2+16];
+ ld.global.u64 %d11,[%d2+24];
+ ld.global.u64 %d12,[%d2+32];
+ ld.global.u64 %d13,[%d2+40];
+ ld.global.u64 %d20,[%d2+48];
+ ld.global.u64 %d21,[%d2+56];
+ or.b64 %d20,%d20,%d21;
+ setp.ne.u64 %p0,%d20,0;
+ @%p0 bra VPA_REFUSE;
+ mov.u64 %d20,80;
+ setp.eq.u32 %p0,%r0,1;
+ @%p0 mov.u64 %d20,64;
+ setp.eq.u32 %p0,%r0,2;
+ @%p0 mov.u64 %d20,112;
+ setp.lt.u64 %p0,%d13,%d20;
+ @%p0 bra VPA_REFUSE;
+ ld.global.u32 %r15,[%d1+12];
+ and.b32 %r15,%r15,1;
+ mov.u32 %r7,0;
+ mov.u32 %r8,1;
+ mov.u32 %r12,0;
+ mov.u32 %r13,0;
+ setp.eq.u32 %p0,%r0,2;
+ @%p0 bra VPA_WRAPPER;
+ st.param.u64 [check_vector],%d0;
+ st.param.u32 [check_count],5;
+ call.uni (check_return),vertical_scalar_arguments_check,(check_vector,check_count);
+ ld.param.u32 %r14,[check_return];
+ setp.ne.u32 %p0,%r14,0;
+ @%p0 bra VPA_REFUSE;
+ ld.global.u64 %d20,[%d0];
+ ld.global.s32 %r1,[%d20];
+ ld.global.u64 %d20,[%d0+8];
+ ld.global.s32 %r2,[%d20];
+ ld.global.u64 %d20,[%d0+16];
+ ld.global.s32 %r3,[%d20];
+ ld.global.u64 %d20,[%d0+24];
+ ld.global.s32 %r4,[%d20];
+ ld.global.u64 %d20,[%d0+32];
+ ld.global.s32 %r5,[%d20];
+ ld.global.u64 %d5,[%d0+40];
+ ld.global.u64 %d3,[%d0+48];
+ ld.global.u64 %d4,[%d0+56];
+ setp.eq.u32 %p0,%r0,1;
+ @%p0 bra VPA_HELPER_SHAPES;
+ add.u64 %d20,%d0,64;
+ st.param.u64 [check_vector],%d20;
+ st.param.u32 [check_count],2;
+ call.uni (check_return),vertical_scalar_arguments_check,(check_vector,check_count);
+ ld.param.u32 %r14,[check_return];
+ setp.ne.u32 %p0,%r14,0;
+ @%p0 bra VPA_REFUSE;
+ ld.global.u64 %d20,[%d0+64];
+ ld.global.s32 %r7,[%d20];
+ ld.global.u64 %d20,[%d0+72];
+ ld.global.s32 %r8,[%d20];
+ bra VPA_HELPER_SHAPES;
+VPA_WRAPPER:
+ mov.u32 %r14,4353;
+ setp.lt.u64 %p0,%d11,2176;
+ @%p0 bra VPA_REFUSE;
+ setp.lt.u64 %p0,%d12,216;
+ @%p0 bra VPA_REFUSE;
+ ld.global.u64 %d6,[%d0];
+ ld.global.u64 %d7,[%d0+8];
+ or.b64 %d20,%d6,%d7;
+ and.b64 %d20,%d20,7;
+ setp.ne.u64 %p0,%d20,0;
+ @%p0 bra VPA_REFUSE;
+ setp.eq.u64 %p0,%d6,0;
+ @%p0 bra VPA_REFUSE;
+ setp.eq.u64 %p0,%d7,0;
+ @%p0 bra VPA_REFUSE;
+ ld.global.u64 %d20,[%d0+96];
+ setp.ne.u64 %p0,%d20,4;
+ @%p0 bra VPA_REFUSE;
+ ld.global.u64 %d20,[%d0+104];
+ setp.ne.u64 %p0,%d20,2;
+ @%p0 bra VPA_REFUSE;
+ add.u64 %d20,%d0,32;
+ st.param.u64 [check_vector],%d20;
+ st.param.u32 [check_count],4;
+ call.uni (check_return),vertical_scalar_arguments_check,(check_vector,check_count);
+ ld.param.u32 %r14,[check_return];
+ setp.ne.u32 %p0,%r14,0;
+ @%p0 bra VPA_REFUSE;
+ ld.global.u64 %d20,[%d0+32];
+ ld.global.s32 %r1,[%d20];
+ ld.global.u64 %d20,[%d0+40];
+ ld.global.s32 %r2,[%d20];
+ ld.global.u64 %d20,[%d0+48];
+ ld.global.s32 %r3,[%d20];
+ ld.global.u64 %d20,[%d0+56];
+ ld.global.s32 %r6,[%d20];
+ ld.global.u64 %d3,[%d0+64];
+ ld.global.u64 %d4,[%d0+72];
+ mov.u32 %r14,4354;
+ ld.global.u32 %r16,[%d7+52];
+ setp.eq.u32 %p0,%r16,0;
+ @%p0 bra VPA_REFUSE;
+ setp.lt.s32 %p0,%r6,1;
+ @%p0 bra VPA_REFUSE;
+ setp.gt.s32 %p0,%r6,2147483645;
+ @%p0 bra VPA_REFUSE;
+ ld.global.u64 %d20,[%d0+16];
+ mov.u32 %r14,4353;
+ setp.eq.u64 %p0,%d20,0;
+ @%p0 bra VPA_REFUSE;
+ ld.global.u8 %r16,[%d20];
+ ld.global.u8 %r17,[%d20+1];
+ ld.global.u8 %r18,[%d20+2];
+ ld.global.u8 %r19,[%d20+3];
+ shl.b32 %r17,%r17,8;
+ shl.b32 %r18,%r18,16;
+ shl.b32 %r19,%r19,24;
+ or.b32 %r16,%r16,%r17;
+ or.b32 %r16,%r16,%r18;
+ or.b32 %r16,%r16,%r19;
+ mov.u32 %r9,0;
+ setp.eq.u32 %p0,%r16,0x504f5449;
+ @%p0 bra VPA_OPERATION;
+ mov.u32 %r9,1;
+ setp.eq.u32 %p0,%r16,0x544f4249;
+ @%p0 bra VPA_OPERATION;
+ mov.u32 %r9,2;
+ setp.eq.u32 %p0,%r16,0x57474e49;
+ @%p0 bra VPA_OPERATION;
+ mov.u32 %r9,3;
+ setp.eq.u32 %p0,%r16,0x57474544;
+ @%p0 bra VPA_OPERATION;
+ mov.u32 %r9,4;
+ setp.eq.u32 %p0,%r16,0x52454448;
+ @%p0 bra VPA_OPERATION;
+ mov.u32 %r9,5;
+ setp.eq.u32 %p0,%r16,0x52454446;
+ @%p0 bra VPA_OPERATION;
+ mov.u32 %r9,6;
+ setp.eq.u32 %p0,%r16,0x52454444;
+ @%p0 bra VPA_OPERATION;
+ mov.u32 %r14,4354;
+ bra VPA_REFUSE;
+VPA_OPERATION:
+ ld.global.u64 %d20,[%d0+24];
+ mov.u32 %r14,4353;
+ setp.eq.u64 %p0,%d20,0;
+ @%p0 bra VPA_REFUSE;
+ ld.global.u8 %r16,[%d20];
+ ld.global.u8 %r17,[%d20+1];
+ sub.u32 %r16,%r16,48;
+ sub.u32 %r17,%r17,48;
+ mov.u32 %r14,4354;
+ setp.gt.u32 %p0,%r16,1;
+ @%p0 bra VPA_REFUSE;
+ setp.gt.u32 %p0,%r17,1;
+ @%p0 bra VPA_REFUSE;
+ shl.b32 %r16,%r16,1;
+ add.u32 %r10,%r16,%r17;
+ ld.global.u64 %d20,[%d0+80];
+ setp.eq.u64 %p0,%d20,0;
+ @%p0 bra VPA_DEFAULT_IBC;
+ and.b64 %d21,%d20,3;
+ mov.u32 %r14,4353;
+ setp.ne.u64 %p0,%d21,0;
+ @%p0 bra VPA_REFUSE;
+ ld.global.s32 %r11,[%d20];
+ bra VPA_IBC;
+VPA_DEFAULT_IBC:
+ setp.gt.u32 %p0,%r9,2;
+ @%p0 bra VPA_DEFAULT_DERIVATIVE;
+ ld.global.s32 %r11,[%d7+36];
+ bra VPA_IBC;
+VPA_DEFAULT_DERIVATIVE:
+ ld.global.s32 %r11,[%d7+40];
+VPA_IBC:
+ mov.u32 %r14,4354;
+ setp.gt.u32 %p0,%r11,3;
+ @%p0 bra VPA_REFUSE;
+ ld.global.u64 %d20,[%d0+88];
+ setp.eq.u64 %p0,%d20,0;
+ @%p0 bra VPA_CHUNK_READY;
+ and.b64 %d21,%d20,3;
+ mov.u32 %r14,4353;
+ setp.ne.u64 %p0,%d21,0;
+ @%p0 bra VPA_REFUSE;
+ ld.global.s32 %r8,[%d20];
+VPA_CHUNK_READY:
+ setp.eq.u32 %p0,%r9,4;
+ @!%p0 bra VPA_SELECT;
+ ld.global.u64 %d20,[%d6+856];
+ mov.u32 %r14,4356;
+ setp.eq.u64 %p0,%d20,0;
+ @%p0 bra VPA_REFUSE;
+VPA_SELECT:
+ shl.b32 %r16,%r9,4;
+ shl.b32 %r17,%r11,2;
+ add.u32 %r16,%r16,%r17;
+ add.u32 %r16,%r16,%r10;
+ mul.wide.u32 %d20,%r16,8;
+ mov.u64 %d21,openifs_vertical_dispatch_metadata;
+ add.u64 %d20,%d20,%d21;
+ ld.const.u64 %d22,[%d20];
+ shr.u64 %d20,%d22,48;
+ cvt.u32.u64 %r16,%d20;
+ and.b32 %r16,%r16,255;
+ mov.u32 %r14,4358;
+ setp.eq.u32 %p0,%r16,1;
+ @%p0 bra VPA_REFUSE;
+ mov.u32 %r14,4357;
+ setp.ne.u32 %p0,%r16,0;
+ @%p0 bra VPA_REFUSE;
+ and.b64 %d20,%d22,65535;
+ add.u64 %d23,%d6,%d20;
+ shr.u64 %d20,%d22,16;
+ cvt.u32.u64 %r12,%d20;
+ and.b32 %r12,%r12,255;
+ shr.u64 %d20,%d22,24;
+ cvt.u32.u64 %r4,%d20;
+ and.b32 %r4,%r4,255;
+ add.u32 %r4,%r4,%r6;
+ shr.u64 %d20,%d22,32;
+ cvt.u32.u64 %r5,%d20;
+ and.b32 %r5,%r5,255;
+ add.u32 %r5,%r5,%r6;
+ shr.u64 %d20,%d22,40;
+ cvt.u32.u64 %r7,%d20;
+ and.b32 %r7,%r7,255;
+ mov.u32 %r14,4356;
+ ld.global.u64 %d20,[%d23+16];
+ setp.ne.u64 %p0,%d20,8;
+ @%p0 bra VPA_REFUSE;
+ ld.global.u64 %d20,[%d23+32];
+ setp.ne.u64 %p0,%d20,8;
+ @%p0 bra VPA_REFUSE;
+ ld.global.u64 %d20,[%d23+40];
+ setp.ne.u64 %p0,%d20,1;
+ @%p0 bra VPA_REFUSE;
+ ld.global.u64 %d20,[%d23+64];
+ cvt.u64.u32 %d21,%r5;
+ setp.ne.u64 %p0,%d20,%d21;
+ @%p0 bra VPA_REFUSE;
+ ld.global.s64 %d20,[%d23+48];
+ ld.global.s64 %d21,[%d23+56];
+ cvt.u64.u32 %d24,%r5;
+ sub.u64 %d24,%d24,1;
+ add.s64 %d24,%d24,%d20;
+ setp.lt.s64 %p0,%d24,%d20;
+ @%p0 bra VPA_REFUSE;
+ setp.ne.s64 %p0,%d24,%d21;
+ @%p0 bra VPA_REFUSE;
+ ld.global.s64 %d20,[%d23+72];
+ ld.global.s64 %d21,[%d23+80];
+ cvt.u64.u32 %d24,%r4;
+ sub.u64 %d24,%d24,1;
+ add.s64 %d24,%d24,%d20;
+ setp.lt.s64 %p0,%d24,%d20;
+ @%p0 bra VPA_REFUSE;
+ setp.ne.s64 %p0,%d24,%d21;
+ @%p0 bra VPA_REFUSE;
+ ld.global.u64 %d5,[%d23];
+ setp.le.u32 %p0,%r9,2;
+ @!%p0 bra VPA_HELPER_SHAPES;
+ add.u32 %r16,%r6,2;
+ setp.eq.u32 %p0,%r4,%r16;
+ selp.u32 %r13,1,0,%p0;
+VPA_HELPER_SHAPES:
+ mov.u32 %r14,4354;
+ setp.lt.s32 %p0,%r1,1;
+ @%p0 bra VPA_REFUSE;
+ setp.lt.s32 %p0,%r4,1;
+ @%p0 bra VPA_REFUSE;
+ setp.lt.s32 %p0,%r5,1;
+ @%p0 bra VPA_REFUSE;
+ setp.lt.s32 %p0,%r2,1;
+ @%p0 bra VPA_REFUSE;
+ setp.gt.s32 %p0,%r2,%r1;
+ @%p0 bra VPA_REFUSE;
+ sub.u32 %r16,%r2,1;
+ setp.lt.s32 %p0,%r3,%r16;
+ @%p0 bra VPA_REFUSE;
+ setp.gt.s32 %p0,%r3,%r1;
+ @%p0 bra VPA_REFUSE;
+ setp.eq.u32 %p0,%r0,1;
+ @%p0 bra VPA_REQUIRE_START_ONE;
+ setp.eq.u32 %p0,%r0,2;
+ @!%p0 bra VPA_INTEGRAL_SHAPES;
+ setp.gt.u32 %p0,%r9,2;
+ @%p0 bra VPA_REQUIRE_START_ONE;
+VPA_INTEGRAL_SHAPES:
+ setp.gt.u32 %p0,%r7,1;
+ @%p0 bra VPA_REFUSE;
+ setp.lt.s32 %p0,%r8,1;
+ @%p0 bra VPA_REFUSE;
+ setp.ne.u32 %p0,%r15,0;
+ @%p0 bra VPA_REQUIRE_START_ONE;
+ bra VPA_CAPACITIES;
+VPA_REQUIRE_START_ONE:
+ setp.ne.u32 %p0,%r2,1;
+ @%p0 bra VPA_REFUSE;
+VPA_CAPACITIES:
+ mov.u32 %r14,4355;
+ mov.u32 %r16,%r4;
+ setp.eq.u32 %p0,%r0,2;
+ @%p0 add.u32 %r16,%r6,2;
+ mul.wide.u32 %d15,%r1,%r16;
+ setp.gt.u64 %p0,%d15,0x0fffffffffffffff;
+ @%p0 bra VPA_REFUSE;
+ shl.b64 %d15,%d15,3;
+ mul.wide.u32 %d16,%r1,%r5;
+ setp.gt.u64 %p0,%d16,0x0fffffffffffffff;
+ @%p0 bra VPA_REFUSE;
+ shl.b64 %d16,%d16,3;
+ mul.wide.u32 %d17,%r4,%r5;
+ setp.gt.u64 %p0,%d17,0x0fffffffffffffff;
+ @%p0 bra VPA_REFUSE;
+ shl.b64 %d17,%d17,3;
+ st.param.u64 [range_base],%d3;
+ st.param.u64 [range_bytes],%d15;
+ st.param.u64 [range_capacity],%d8;
+ call.uni (range_return),vertical_range_check,(range_base,range_bytes,range_capacity);
+ ld.param.u32 %r14,[range_return];
+ setp.ne.u32 %p0,%r14,0;
+ @%p0 bra VPA_REFUSE;
+ st.param.u64 [range_base],%d4;
+ st.param.u64 [range_bytes],%d16;
+ st.param.u64 [range_capacity],%d9;
+ call.uni (range_return),vertical_range_check,(range_base,range_bytes,range_capacity);
+ ld.param.u32 %r14,[range_return];
+ setp.ne.u32 %p0,%r14,0;
+ @%p0 bra VPA_REFUSE;
+ st.param.u64 [range_base],%d5;
+ st.param.u64 [range_bytes],%d17;
+ st.param.u64 [range_capacity],%d10;
+ call.uni (range_return),vertical_range_check,(range_base,range_bytes,range_capacity);
+ ld.param.u32 %r14,[range_return];
+ setp.ne.u32 %p0,%r14,0;
+ @%p0 bra VPA_REFUSE;
+ mov.u32 %r14,4355;
+ add.u64 %d20,%d3,%d15;
+ add.u64 %d21,%d4,%d16;
+ add.u64 %d22,%d5,%d17;
+ setp.lt.u64 %p0,%d3,%d21;
+ setp.lt.u64 %p1,%d4,%d20;
+ and.pred %p2,%p0,%p1;
+ @%p2 bra VPA_REFUSE;
+ setp.lt.u64 %p0,%d3,%d22;
+ setp.lt.u64 %p1,%d5,%d20;
+ and.pred %p2,%p0,%p1;
+ @%p2 bra VPA_REFUSE;
+ setp.lt.u64 %p0,%d4,%d22;
+ setp.lt.u64 %p1,%d5,%d21;
+ and.pred %p2,%p0,%p1;
+ @%p2 bra VPA_REFUSE;
+ setp.lt.s32 %p0,%r3,%r2;
+ @%p0 ret;
+ mul.wide.u32 %d18,%r1,8;
+ mul.wide.u32 %d20,%r12,%r1;
+ shl.b64 %d20,%d20,3;
+ add.u64 %d3,%d3,%d20;
+ mov.u32 %r16,%ctaid.x;
+ mov.u32 %r17,%ntid.x;
+ mov.u32 %r18,%tid.x;
+ mov.u32 %r19,%nctaid.x;
+ mul.wide.u32 %d26,%r16,%r17;
+ cvt.u64.u32 %d20,%r18;
+ add.u64 %d26,%d26,%d20;
+ sub.u32 %r16,%r2,1;
+ cvt.u64.u32 %d20,%r16;
+ add.u64 %d26,%d26,%d20;
+ mul.wide.u32 %d27,%r17,%r19;
+ cvt.u64.u32 %d28,%r3;
+VPA_POINTS:
+ setp.ge.u64 %p0,%d26,%d28;
+ @%p0 ret;
+ cvt.u32.u64 %r20,%d26;
+ st.param.u32 [pp],%r1;
+ st.param.u32 [pn],%r4;
+ st.param.u32 [pm],%r5;
+ st.param.u32 [pi],%r20;
+ st.param.u32 [pb],%r7;
+ st.param.u32 [pz],%r13;
+ st.param.u64 [pmat],%d5;
+ st.param.u64 [pin],%d3;
+ st.param.u64 [pout],%d4;
+ call.uni (point_return),openifs_vertical_point_fp64,(pp,pn,pm,pi,pb,pz,pmat,pin,pout);
+ ld.param.u32 %r21,[point_return];
+ add.u64 %d29,%d1,8;
+ atom.global.or.b32 %r22,[%d29],%r21;
+ add.u64 %d26,%d26,%d27;
+ bra VPA_POINTS;
+VPA_REFUSE:
+ setp.eq.u32 %p0,%r40,0;
+ @%p0 st.global.u32 [%d1],%r14;
+ ret;
+}
+
+.visible .entry openifs_verint_ptx(.param .u64 original_argument_vector,.param .u64 context)
+{
+ .reg .b64 %a,%b;
+ .param .u64 va,vb;
+ .param .u32 kind;
+ ld.param.u64 %a,[original_argument_vector];
+ ld.param.u64 %b,[context];
+ st.param.u64 [va],%a;
+ st.param.u64 [vb],%b;
+ st.param.u32 [kind],0;
+ call.uni openifs_vertical_parent_fp64,(va,vb,kind);
+ ret;
+}
+.visible .entry openifs_verder_ptx(.param .u64 original_argument_vector,.param .u64 context)
+{
+ .reg .b64 %a,%b;
+ .param .u64 va,vb;
+ .param .u32 kind;
+ ld.param.u64 %a,[original_argument_vector];
+ ld.param.u64 %b,[context];
+ st.param.u64 [va],%a;
+ st.param.u64 [vb],%b;
+ st.param.u32 [kind],1;
+ call.uni openifs_vertical_parent_fp64,(va,vb,kind);
+ ret;
+}
+.visible .entry openifs_verdisint_ptx(.param .u64 original_argument_vector,.param .u64 context)
+{
+ .reg .b64 %a,%b;
+ .param .u64 va,vb;
+ .param .u32 kind;
+ ld.param.u64 %a,[original_argument_vector];
+ ld.param.u64 %b,[context];
+ st.param.u64 [va],%a;
+ st.param.u64 [vb],%b;
+ st.param.u32 [kind],2;
+ call.uni openifs_vertical_parent_fp64,(va,vb,kind);
+ ret;
+}

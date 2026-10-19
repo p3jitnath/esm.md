@@ -1,0 +1,80 @@
+// Unverified direct PTX batch draft. See the routine frozen contract.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sqrt_status(.param .b64 a);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_exp_original_rounding(.param .b64 a);
+.extern .func (.param .align 8 .b8 geometry[64]) md2asm_gpu_surface_descriptor_geometry(.param .u64 descriptor,.param .u32 rank,.param .u32 element_bytes,.param .u64 required0,.param .u64 required1,.param .u64 required2,.param .u32 zero_is_one);
+
+.extern .func (.param .align 8 .b8 result[32]) md2asm_gpu_sin_small_finite(.param .b64 input_word);
+// Return vapor@0, logarithmic derivative@8, flags@16, errno event@20, EXP count@24.
+.visible .func (.param .align 8 .b8 result[32]) md2asm_gpu_surface_saturation_values(.param .b64 temperature,.param .u64 constants,.param .u64 numerical_record)
+{
+.reg .b64 %T,%reference,%difference,%phase,%other,%a,%b,%r3,%r4,%r5,%denominator,%exponent,%vapor,%derivative,%c<8>;
+.reg .u64 %cst,%record,%address;.reg .u32 %flags,%raised,%event;.reg .pred %p;
+.param .b64 ma,mb,xa;.param .align 8 .b8 math[16],expret[16];
+ld.param.b64 %T,[temperature];ld.param.u64 %cst,[constants];ld.param.u64 %record,[numerical_record];mov.u32 %flags,0;ld.global.b64 %reference,[%cst];
+ld.global.u64 %address,[%record+0];ld.global.b64 %c0,[%address];
+ld.global.u64 %address,[%record+8];ld.global.b64 %c1,[%address];
+ld.global.u64 %address,[%record+16];ld.global.b64 %c2,[%address];
+ld.global.u64 %address,[%record+24];ld.global.b64 %c3,[%address];
+ld.global.u64 %address,[%record+32];ld.global.b64 %c4,[%address];
+ld.global.u64 %address,[%record+40];ld.global.b64 %c5,[%address];
+ld.global.u64 %address,[%record+48];ld.global.b64 %c6,[%address];
+ld.global.u64 %address,[%record+56];ld.global.b64 %c7,[%address];
+ st.param.b64 [ma],%T;st.param.b64 [mb],%reference;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %difference,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+setp.ge.f64 %p,%difference,0d0000000000000000;mov.b64 %phase,0x0000000000000000;@%p mov.b64 %phase,0x3ff0000000000000;
+ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%phase;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %other,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%c1;st.param.b64 [mb],%phase;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%c2;st.param.b64 [mb],%other;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %r3,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%c3;st.param.b64 [mb],%phase;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%c4;st.param.b64 [mb],%other;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %r4,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%T;st.param.b64 [mb],%r4;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %denominator,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%phase;st.param.b64 [mb],%c5;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%other;st.param.b64 [mb],%c6;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %b,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%a;st.param.b64 [mb],%b;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %r5,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%r3;st.param.b64 [mb],%difference;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %exponent,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%exponent;st.param.b64 [mb],%denominator;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %exponent,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [xa],%exponent;call.uni (expret),md2asm_gpu_exp_original_rounding,(xa);ld.param.b64 %vapor,[expret];ld.param.u32 %raised,[expret+8];ld.param.u32 %event,[expret+12];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%c0;st.param.b64 [mb],%vapor;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %vapor,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%denominator;st.param.b64 [mb],%denominator;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%r5;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %derivative,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [result],%vapor;st.param.b64 [result+8],%derivative;st.param.u32 [result+16],%flags;st.param.u32 [result+20],%event;st.param.u64 [result+24],1;ret;
+}
+// Return the common flags/error/event/EXP/FAST/WIDE/math-ordinal packet.
+.visible .func (.param .align 8 .b8 result[48]) md2asm_gpu_surface_liquid_values(.param .u64 original_vector,.param .u64 liquid_owner,.param .u64 residual_owner)
+{
+.reg .u64 %args,%liquid,%residual,%ptr,%soil,%temperature,%moisture,%types,%temperature_stride,%moisture_stride,%address,%offset,%index,%P64,%event,%fast,%wide,%increment,%count;
+.reg .u32 %first,%last,%P,%column,%layer,%kind,%flags,%raised,%new_event;.reg .pred %p;
+.reg .b64 %T,%water,%fraction,%a,%b,%capacity,%floor,%left,%sin_fast,%sin_wide;
+.param .b64 ma,mb,xa;.param .align 8 .b8 math[16],sinret[32];
+ld.param.u64 %args,[original_vector];ld.param.u64 %liquid,[liquid_owner];ld.param.u64 %residual,[residual_owner];mov.u32 %flags,0;mov.u64 %event,0;mov.u64 %fast,0;mov.u64 %wide,0;mov.u64 %count,0;
+ld.global.u64 %ptr,[%args];ld.global.u32 %first,[%ptr];ld.global.u64 %ptr,[%args+8];ld.global.u32 %last,[%ptr];ld.global.u64 %ptr,[%args+16];ld.global.u32 %P,[%ptr];sub.u32 %column,%first,1;setp.ge.u32 %p,%column,%last;@%p bra RETURN_LIQUID;cvt.u64.u32 %P64,%P;
+ld.global.u64 %ptr,[%args+184];ld.global.u64 %temperature,[%ptr];ld.global.u64 %temperature_stride,[%ptr+64];ld.global.u64 %ptr,[%args+176];ld.global.u64 %moisture,[%ptr];ld.global.u64 %moisture_stride,[%ptr+64];ld.global.u64 %ptr,[%args+192];ld.global.u64 %types,[%ptr];ld.global.u64 %soil,[%args+384];mov.u32 %layer,0;
+LIQUID_LAYER:sub.u32 %column,%first,1;
+LIQUID_COLUMN:cvt.u64.u32 %index,%layer;mul.lo.u64 %index,%index,%temperature_stride;cvt.u64.u32 %offset,%column;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %address,%temperature,%offset;ld.global.b64 %T,[%address];ld.global.b64 %a,[%soil+208];setp.ge.f64 %p,%T,%a;@%p bra UNFROZEN;ld.global.b64 %a,[%soil+216];setp.le.f64 %p,%T,%a;@%p bra FROZEN;ld.global.b64 %a,[%soil+224];
+ st.param.b64 [ma],%T;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ld.global.b64 %b,[%soil+232];
+ st.param.b64 [ma],%b;st.param.b64 [mb],%a;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %a,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [xa],%a;call.uni (sinret),md2asm_gpu_sin_small_finite,(xa);ld.param.b64 %fraction,[sinret];ld.param.u32 %raised,[sinret+8];ld.param.u32 %new_event,[sinret+12];ld.param.u64 %sin_fast,[sinret+16];ld.param.u64 %sin_wide,[sinret+24];or.b32 %flags,%flags,%raised;add.u64 %count,%count,1;setp.eq.u32 %p,%new_event,0;@%p bra SINE_EVENT_JOINED;shl.b64 %event,%count,8;cvt.u64.u32 %increment,%new_event;or.b64 %event,%event,%increment;
+SINE_EVENT_JOINED:
+ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%fraction;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %fraction,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3fe0000000000000;st.param.b64 [mb],%fraction;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %fraction,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+bra FRACTION_READY;
+UNFROZEN:mov.b64 %fraction,0;bra FRACTION_READY;
+FROZEN:mov.b64 %fraction,0x3ff0000000000000;
+FRACTION_READY:
+ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%fraction;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %fraction,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+cvt.u64.u32 %index,%layer;mul.lo.u64 %index,%index,%moisture_stride;cvt.u64.u32 %offset,%column;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %address,%moisture,%offset;ld.global.b64 %water,[%address];
+ st.param.b64 [ma],%water;st.param.b64 [mb],%fraction;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %left,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+mul.wide.u32 %offset,%column,4;add.u64 %address,%types,%offset;ld.global.u32 %kind,[%address];mul.wide.u32 %offset,%kind,8;ld.global.u64 %ptr,[%soil+944];add.u64 %address,%ptr,%offset;ld.global.b64 %capacity,[%address];min.f64 %a,%capacity,%left;ld.global.u64 %ptr,[%soil+1008];add.u64 %address,%ptr,%offset;ld.global.b64 %floor,[%address];max.f64 %a,%floor,%a;mul.wide.u32 %index,%layer,%P;cvt.u64.u32 %offset,%column;add.u64 %index,%index,%offset;shl.b64 %index,%index,3;add.u64 %address,%liquid,%index;st.global.b64 [%address],%a;
+// Repeat the independent residual clipping, including the capacity load.
+ld.global.u64 %ptr,[%soil+944];mul.wide.u32 %offset,%kind,8;add.u64 %address,%ptr,%offset;ld.global.b64 %capacity,[%address];min.f64 %a,%capacity,%left;ld.global.u64 %ptr,[%soil+1072];add.u64 %address,%ptr,%offset;ld.global.b64 %floor,[%address];max.f64 %a,%floor,%a;add.u64 %address,%residual,%index;st.global.b64 [%address],%a;add.u32 %column,%column,1;setp.lt.u32 %p,%column,%last;@%p bra LIQUID_COLUMN;add.u32 %layer,%layer,1;setp.lt.u32 %p,%layer,4;@%p bra LIQUID_LAYER;
+RETURN_LIQUID:st.param.u32 [result],%flags;st.param.u32 [result+4],0;st.param.u64 [result+8],%event;st.param.u64 [result+16],0;st.param.u64 [result+24],%fast;st.param.u64 [result+32],%wide;st.param.u64 [result+40],%count;ret;
+}

@@ -1,0 +1,49 @@
+# Geometry and initial state on the GPU
+
+This family converts initial fields, builds grid and vertical coordinates, and prepares interpolation and reference-atmosphere tables. A spline is a piecewise polynomial used to estimate values between known levels. The physical inputs remain in [surface unit changes](../../../../../formulations/openifs/input/surface_field_unit_scaling.md), [surface initial state](../../../../../formulations/openifs/input/surface_initial_state_conversion.md) and [virtual temperature](../../../../../formulations/openifs/dynamics/virtual_temperature_conversion.md). Their equations, units and parameter meanings are unchanged.
+
+The package contains 48 accepted source owners: four initial-input objects, 40 geometry objects and four raw mathematical objects. A source owner is one complete assembly compilation unit, including its private helpers and release entries. Forty-four sources use shared macros that expand to the identical complete object bytes; four raw or alias sources remain unchanged. The source package adds no routine credit, new GPU arithmetic, timing result or whole-forecast acceptance.
+
+## State and interfaces
+
+FP64 means a 64-bit floating-point number. The existing [surface conversion](../../../../md2asm/references/openifs/input/surface_initial_state_conversion.md), [spectral virtual temperature](../../../../md2asm/references/openifs/input/initial_virtual_temperature_conversion.md), [owned vertical system](../../../../md2asm/references/openifs/setup/owned_vertical_system_contract.md), [computational geometry](../../../../md2asm/references/openifs/setup/computational_geometry_setup.md) and [standard atmosphere](../../../../md2asm/references/openifs/setup/standard_atmosphere_profile.md) contracts define each entry's complete argument list and owner bounds. An owner is the complete allocation that holds an array. A descriptor records its address, element size, bounds and strides. Existing allocation, loading, cleanup, error codes, pointer views and final stores remain in assembly. Public file-format and transform interfaces remain unchanged.
+
+| Entry group | Retained interface and bounds |
+| --- | --- |
+| Surface conversion | Eight arguments use x0 through x7. The in-place FP64 arrays have shapes (2048,47) and (2048,5,5), with 770048 and 409600 bytes. Parameter identifiers and configuration remain inputs. |
+| Spectral virtual temperature | Five record addresses use x0 through x4. Their complete capacities are 20400, 1096, 1359136, 2992 and 520 bytes. Only the 76912-byte spectral temperature view changes. The last of 86 blocks has eight active rows. |
+| Vertical and geometry construction | Original pointer interfaces, complete descriptors and owner bounds are retained. The final focused fixture covers all 28 vertical payloads, a 20400-byte Geometry record and the complete 624-byte cloud-pressure output. |
+| Raw mathematical entries | One FP64 input in d0 returns its result in d0. Sine and cosine retain finite angles with absolute value at most 2^20 radians. Inverse sine and cosine retain finite arguments from -1 to 1. Gaussian tangent retains positive angles from 1/16 to 25/16 radians. Exponential retains its original FP64 input classes, including infinities and non-numbers. |
+
+The Arm floating-point control register, FPCR, must be zero, which selects nearest-even rounding and gradual underflow. The floating-point status register, FPSR, keeps incoming flags and adds the original arithmetic flags. Errno, the system error indicator, retains the original behavior. Signed zeros, non-number payloads, tie rules and each intermediate rounding point remain unchanged. No fused instruction, reassociation, approximate arithmetic, output rounding or status masking is introduced.
+
+The scalar GPU host receives an address to nine initialized 8-byte operand words in x0 and an operation selector in w1. Its result bits return in d0; comparison operations also return the Arm condition bits in x0. Each original destination receives only its declared result width. Geometry transport uses a 1024-byte temporary to save all 31 general registers and all 32 complete 128-bit vector registers. Initial-input transport uses the accepted 256-byte temporary and saves its source-live upper FP64 registers. Registers restore before the original destination is installed, and the stack remains aligned to 16 bytes.
+
+The original finite-input conditions remain. Finite cover values can overflow an intermediate capacity expression, so the complete numeric minimum and maximum helpers preserve the original non-number and signed-zero behavior. The snow comparison keeps its original observable status under the unchanged finite caller domain, including the checked overflowing-snow case. Unwritten capacity retains its allocator preimage and is not a physical output value. Component comparisons use complete owner bounds and matched preimages where required; no returned data is repaired or normalized.
+
+## Dependencies
+
+The [shared call header](../../../../../src/openifs/support/gpu/preserved_weather_calls.inc.S) supplies only fixed assembly call macros. Publish it once before these sources. It preserves the accepted instruction order and registers; it supplies no omitted equation or numerical stage. Assemble each .S file with the compiler driver in assembly mode, so its relative header include is resolved without compiling a high-level solver.
+
+The existing qualified GPU providers remain prerequisites: ordinary FP64 operations from soil-water scalar support; square root from lake-energy support; the original minimum operation from lake-controller support; full-width conversions and the uncounted exponential mode from startup support; physical-setup conversions; and full numeric minimum/maximum support. Startup and physical-setup host/PTX sources and their preserved-scalar header are supplied by the common setup packet. Numeric minimum/maximum is supplied by the output packet. These dependencies and the shared header are linked once.
+
+The raw sine route uses the qualified soil-water sine mode. Raw cosine, inverse sine and inverse cosine use `md2asm_gpu_geometry_raw_math_cell_host`, which must be linked once in addition to the 48 replacement objects. This host keeps its actual helper-work totals in 16 private bytes and leaves original public FAST/WIDE counters unchanged. The separate uncounted exponential route uses startup mode 23.
+
+The original 44-operation Gaussian tangent shell retains all of its original product-and-sum call sites, including three calls in its reduced branch. It binds the qualified GPU `md2asm_round_product_sum_direct` service, whose public counter change is zero. Spline factorization binds the separate counted GPU `md2asm_round_product_sum_candidate` service. Power retains its qualified complete parent and seven GPU integer numerical services. Positive logarithm requires the qualified GPU positive logarithm route from the setup packet. Each scalar host and public counter-storage owner is linked once, with no CPU integer numerical fallback.
+
+The private initial-temperature gas entry remains a 16-address tail to the qualified complete GPRCP GPU host. The atmosphere adjustment, originally PPSTA, is reused from the independent output packet through `md2asm_adjust_postprocessing_atmosphere`. Omit the historical duplicate local atmosphere object. Public input loading and transform calls keep their existing assembly-owned records and call order.
+
+## Component evidence and limits
+
+All listed comparisons have zero differing declared numerical bytes, with independent source and interface review.
+
+| Check | Accepted evidence |
+| --- | --- |
+| Initial conversion | Complete physical surface cases, original-source controls, captured original input/output and the finite-overflow witness; virtual-temperature checks include 1064 independent gas-law relations and both 24-row and eight-row paths. |
+| Matrix and hybrid coordinates | Sixteen matrix CPU/GPU pairs compare 6656 bytes and 212 exact-rational relations. Eight hybrid-coordinate pairs include zero, one, 19 and 256 levels and 4440 exact-rational relations. |
+| Standard atmosphere | Three complete original-source/GPU cases and 25 levels checked with 120-digit arithmetic; density relative error is below 5e-16, with pressure order and positive temperature and density retained. |
+| Geometry and complete initialisation | Two complete geometry snapshots compare 2312192 bytes. The composed initializer compares 27197300 original-defined numerical bytes and 2748656 canonical field bytes. Its two FPCR/FPSR/errno records are exactly 0/16/0 and 0/24/34. |
+| Final vertical and cloud owners | One CPU/GPU fixture sequence compares 43984 bytes, including all 22760 vertical payload bytes, the typed Geometry record, cloud output, canaries, bounds and immediate status. All 39 independent rational pressure-normalization relations pass. |
+| Raw mathematics | The final 150 CPU/GPU boundary calls retain exact results, status, errno and unchanged public counters. Gaussian product-and-sum boundaries and the actual private helper-work counters are checked separately. |
+
+Protected buffer ends, read-only owners, source failure paths and native register obligations are retained in the local qualification records. Shared arithmetic, owner admission, graph and machine-instruction checks are reused from unchanged qualified children. This publication layout change performs no numerical replay. Detailed inputs, source versions, build commands, hashes and failed draft diagnostics remain local. Complete forecast acceptance and performance work are separate.

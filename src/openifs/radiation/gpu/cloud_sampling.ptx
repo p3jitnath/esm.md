@@ -1,0 +1,242 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Complete direct cloud parent from the retained component contract revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func md2asm_gpu_uniform_values(.param .u64 stream,.param .u64 output,.param .s64 step,.param .u32 count);
+.extern .func md2asm_gpu_initialize_random_stream(.param .u32 seed,.param .u64 stream);
+.extern .func (.param .u32 flags) md2asm_gpu_cumulative_cloud_cover_values(.param .u32 N,.param .u64 f,.param .u64 o,.param .u64 c,.param .u64 p,.param .u32 beta);
+.extern .func (.param .align 8 .b8 r[24]) md2asm_gpu_cloud_pdf_geometry(.param .u64 object);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_power_positive_unit(.param .b64 x,.param .b64 y);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .u32 flags) md2asm_gpu_cloud_column_values(.param .u32 a0,.param .u32 a1,.param .u32 a2,.param .u64 a3,.param .u64 a4,.param .u64 a5,.param .u64 a6,.param .u64 a7,.param .u64 a8,.param .u64 a9,.param .u64 a10,.param .u32 a11,.param .u32 a12,.param .u64 a13,.param .u64 a14);
+.visible .func (.param .align 8 .b8 result[32]) md2asm_gpu_cloud_generator_values(.param .u32 spectral_count,.param .u32 levels,.param .u32 seed_word,.param .b64 threshold_word,.param .u64 fraction,.param .u64 overlap,.param .b64 decorrelation_word,.param .u64 spread,.param .u64 sampler,.param .u64 matrix,.param .u64 total_output,.param .u32 beta_mode,.param .u64 private_scratch)
+{
+ .reg .u64 %f,%overlap,%spread,%sampler,%matrix,%total_out,%scratch,%stream,%cum,%pair,%overhang,%inh,%randtop,%column_scratch,%nbytes,%pairbytes,%matrixbytes,%address,%offset,%next,%fast,%wide,%increment;
+ .reg .u32 %G,%N,%seed,%beta,%first,%last,%current,%j,%g,%top,%bottom,%flags,%raised,%event,%new_event;
+ .reg .pred %pred;
+ .reg .b64 %threshold,%decorrelation,%total,%value,%upper,%lower,%exponent,%trigger;
+ .param .u32 cn,cb,returned,seed; .param .u64 cf,co,cc,cp,us,uo,po; .param .s64 step; .param .u32 count;
+ .param .b64 ma,mb,px,py; .param .align 8 .b8 math[16],power[32];
+ .param .u32 col0;
+ .param .u32 col1;
+ .param .u32 col2;
+ .param .u64 col3;
+ .param .u64 col4;
+ .param .u64 col5;
+ .param .u64 col6;
+ .param .u64 col7;
+ .param .u64 col8;
+ .param .u64 col9;
+ .param .u64 col10;
+ .param .u32 col11;
+ .param .u32 col12;
+ .param .u64 col13;
+ .param .u64 col14;
+ ld.param.u32 %G,[spectral_count];
+ ld.param.u32 %N,[levels];
+ ld.param.u32 %seed,[seed_word];
+ ld.param.b64 %threshold,[threshold_word];
+ ld.param.u64 %f,[fraction];
+ ld.param.u64 %overlap,[overlap];
+ ld.param.b64 %decorrelation,[decorrelation_word];
+ ld.param.u64 %spread,[spread];
+ ld.param.u64 %sampler,[sampler];
+ ld.param.u64 %matrix,[matrix];
+ ld.param.u64 %total_out,[total_output];
+ ld.param.u32 %beta,[beta_mode];
+ ld.param.u64 %scratch,[private_scratch];
+ mov.u32 %flags,0; mov.u32 %event,0; mov.u64 %fast,0; mov.u64 %wide,0;
+ mul.wide.u32 %nbytes,%N,8; sub.u64 %pairbytes,%nbytes,8; mul.wide.u32 %matrixbytes,%G,%N; shl.b64 %matrixbytes,%matrixbytes,3;
+ mov.u64 %stream,%scratch; add.u64 %cum,%stream,2448; add.u64 %pair,%cum,%nbytes; add.u64 %overhang,%pair,%pairbytes; add.u64 %inh,%overhang,%pairbytes; add.u64 %randtop,%inh,%pairbytes; mul.wide.u32 %offset,%G,8; add.u64 %column_scratch,%randtop,%offset;
+ st.param.u32 [cn],%N; st.param.u64 [cf],%f; st.param.u64 [co],%overlap; st.param.u64 [cc],%cum; st.param.u64 [cp],%pair; st.param.u32 [cb],%beta; call.uni (returned),md2asm_gpu_cumulative_cloud_cover_values,(cn,cf,co,cc,cp,cb); ld.param.u32 %raised,[returned]; or.b32 %flags,%flags,%raised;
+ add.u64 %address,%cum,%pairbytes; ld.global.b64 %total,[%address]; st.global.b64 [%total_out],%total; mov.u32 %j,1;
+OVERHANG:
+ setp.ge.u32 %pred,%j,%N; @%pred bra COVER_DECISION; mul.wide.u32 %offset,%j,8; add.u64 %address,%cum,%offset; ld.global.b64 %lower,[%address]; sub.u64 %offset,%offset,8; add.u64 %address,%cum,%offset; ld.global.b64 %upper,[%address];
+ st.param.b64 [ma],%lower; st.param.b64 [mb],%upper; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %value,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %address,%overhang,%offset; st.global.b64 [%address],%value; add.u32 %j,%j,1; bra OVERHANG;
+COVER_DECISION:
+ setp.lt.f64 %pred,%total,%threshold; @!%pred bra FIND_FIRST; mov.b64 %total,0; st.global.b64 [%total_out],%total; bra COMPLETE;
+FIND_FIRST: mov.u32 %first,0;
+FIRST_LOOP:
+ mul.wide.u32 %offset,%first,8; add.u64 %address,%f,%offset; ld.global.b64 %value,[%address]; setp.gt.f64 %pred,%value,0d0000000000000000; @%pred bra FIND_LAST; add.u32 %first,%first,1; bra FIRST_LOOP;
+FIND_LAST: mov.u32 %last,%first; add.u32 %j,%first,1;
+LAST_LOOP:
+ setp.ge.u32 %pred,%j,%N; @%pred bra COPY_OVERLAP_START; mul.wide.u32 %offset,%j,8; add.u64 %address,%f,%offset; ld.global.b64 %value,[%address]; setp.gt.f64 %pred,%value,0d0000000000000000; @%pred mov.u32 %last,%j; add.u32 %j,%j,1; bra LAST_LOOP;
+COPY_OVERLAP_START: mov.u64 %offset,0;
+COPY_OVERLAP:
+ setp.ge.u64 %pred,%offset,%pairbytes; @%pred bra POWER_START; add.u64 %address,%overlap,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%inh,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COPY_OVERLAP;
+POWER_START: mov.u32 %j,%first;
+POWER_INTERFACE:
+ setp.ge.u32 %pred,%j,%last; @%pred bra ZERO_MATRIX_START; mul.wide.u32 %offset,%j,8; add.u64 %address,%overlap,%offset; ld.global.b64 %value,[%address]; setp.le.f64 %pred,%value,0d0000000000000000; @%pred bra NEXT_POWER;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%decorrelation; call.uni (math),md2asm_gpu_div_status,(ma,mb); ld.param.b64 %exponent,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [px],%value; st.param.b64 [py],%exponent; call.uni (power),md2asm_gpu_power_positive_unit,(px,py); ld.param.b64 %value,[power]; ld.param.u32 %raised,[power+8]; or.b32 %flags,%flags,%raised; ld.param.u32 %new_event,[power+12]; setp.ne.u32 %pred,%new_event,0; @%pred mov.u32 %event,%new_event; ld.param.u64 %increment,[power+16]; add.u64 %fast,%fast,%increment; ld.param.u64 %increment,[power+24]; add.u64 %wide,%wide,%increment; add.u64 %address,%inh,%offset; st.global.b64 [%address],%value;
+NEXT_POWER: add.u32 %j,%j,1; bra POWER_INTERFACE;
+ZERO_MATRIX_START: mov.u64 %offset,0;
+ZERO_MATRIX:
+ setp.ge.u64 %pred,%offset,%matrixbytes; @%pred bra INITIALIZE; add.u64 %address,%matrix,%offset; st.global.b64 [%address],0; add.u64 %offset,%offset,8; bra ZERO_MATRIX;
+INITIALIZE:
+ st.param.u32 [seed],%seed; st.param.u64 [us],%stream; call.uni md2asm_gpu_initialize_random_stream,(seed,us); st.param.u64 [us],%stream; st.param.u64 [uo],%randtop; st.param.s64 [step],8; st.param.u32 [count],%G; call.uni md2asm_gpu_uniform_values,(us,uo,step,count); mov.u32 %g,0;
+SAMPLE_COLUMN:
+ setp.ge.u32 %pred,%g,%G; @%pred bra COMPLETE; mul.wide.u32 %offset,%g,8; add.u64 %address,%randtop,%offset; ld.global.b64 %value,[%address];
+ st.param.b64 [ma],%value; st.param.b64 [mb],%total; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %trigger,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ mov.u32 %current,%first;
+SELECT_TOP:
+ mul.wide.u32 %offset,%current,8; add.u64 %address,%cum,%offset; ld.global.b64 %value,[%address]; setp.le.f64 %pred,%trigger,%value; @%pred bra TOP_SELECTED; setp.ge.u32 %pred,%current,%last; @%pred bra TOP_SELECTED; add.u32 %current,%current,1; bra SELECT_TOP;
+TOP_SELECTED: add.u32 %top,%current,1; add.u32 %bottom,%last,1; add.u32 %current,%g,1;
+ st.param.u32 [col0],%G;
+ st.param.u32 [col1],%N;
+ st.param.u32 [col2],%current;
+ st.param.u64 [col3],%stream;
+ st.param.u64 [col4],%sampler;
+ st.param.u64 [col5],%f;
+ st.param.u64 [col6],%pair;
+ st.param.u64 [col7],%cum;
+ st.param.u64 [col8],%overhang;
+ st.param.u64 [col9],%spread;
+ st.param.u64 [col10],%inh;
+ st.param.u32 [col11],%top;
+ st.param.u32 [col12],%bottom;
+ st.param.u64 [col13],%matrix;
+ st.param.u64 [col14],%column_scratch;
+ call.uni (returned),md2asm_gpu_cloud_column_values,(col0,col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,col11,col12,col13,col14); ld.param.u32 %raised,[returned]; or.b32 %flags,%flags,%raised; add.u32 %g,%g,1; bra SAMPLE_COLUMN;
+COMPLETE:
+ st.param.b64 [result],%total; st.param.u32 [result+8],%flags; st.param.u32 [result+12],%event; st.param.u64 [result+16],%fast; st.param.u64 [result+24],%wide; ret;
+}
+.func (.param .u32 result) sampling_range(.param .u64 base,.param .u64 bytes,.param .u64 mask,.param .u64 owners,.param .u32 count)
+{
+ .reg .u64 %b,%n,%m,%list,%t,%end,%o,%on,%oe; .reg .u32 %i,%count,%e; .reg .pred %p,%q;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %m,[mask]; ld.param.u64 %list,[owners]; ld.param.u32 %count,[count];
+ mov.u32 %e,0; setp.eq.u64 %p,%n,0; @%p bra RANGE_DONE;
+ mov.u32 %e,442; setp.eq.u64 %p,%b,0; @%p bra RANGE_DONE; and.b64 %t,%b,%m; setp.ne.u64 %p,%t,0; @%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra RANGE_DONE; setp.gt.u64 %p,%n,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ add.u64 %end,%b,%n; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ mov.u32 %i,0;
+RANGE_OWNERS:
+ setp.ge.u32 %p,%i,%count; @%p bra RANGE_OK; ld.u64 %o,[%list]; ld.u64 %on,[%list+8]; setp.eq.u64 %p,%on,0; @%p bra RANGE_NEXT;
+ add.u64 %oe,%o,%on; setp.lt.u64 %p,%b,%oe; setp.lt.u64 %q,%o,%end; and.pred %p,%p,%q; @%p bra RANGE_DONE;
+RANGE_NEXT: add.u64 %list,%list,16; add.u32 %i,%i,1; bra RANGE_OWNERS;
+RANGE_OK: mov.u32 %e,0;
+RANGE_DONE: st.param.u32 [result],%e; ret;
+}
+
+.visible .func md2asm_gpu_cloud_sampling_fp64(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%ptr<13>,%list,%tmp,%nbytes,%pairbytes,%matrixbytes,%scratch,%scratchbytes,%capacity,%low,%span,%record,%fast_owner,%wide_owner,%increment,%old,%event64;
+ .reg .u32 %unique,%rt,%G,%N,%scheme,%seed,%beta,%error,%raised,%event; .reg .pred %p0;
+ .reg .b64 %threshold,%decorrelation;
+ .local .align 8 .b8 spans[96]; .param .u64 b,n,m,l,object; .param .u32 c,r; .param .align 8 .b8 geometry[24],values[32];
+ .param .u32 arg0;
+ .param .u32 arg1;
+ .param .u32 arg2;
+ .param .b64 arg3;
+ .param .u64 arg4;
+ .param .u64 arg5;
+ .param .b64 arg6;
+ .param .u64 arg7;
+ .param .u64 arg8;
+ .param .u64 arg9;
+ .param .u64 arg10;
+ .param .u32 arg11;
+ .param .u64 arg12;
+ ld.param.u64 %args,[original_vector]; ld.param.u64 %ctx,[context]; setp.eq.u64 %p0,%ctx,0; @%p0 ret; and.b64 %tmp,%ctx,7; setp.ne.u64 %p0,%tmp,0; @%p0 ret;
+ mov.u32 %unique,%ctaid.x; mov.u32 %rt,%ctaid.y; or.b32 %unique,%unique,%rt; mov.u32 %rt,%ctaid.z; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.x; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.y; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.z; or.b32 %unique,%unique,%rt; setp.ne.u32 %p0,%unique,0; @%p0 ret;
+ ld.global.u32 %error,[%ctx]; setp.ne.u32 %p0,%error,0; @%p0 ret; mov.u32 %error,441;
+ mov.u32 %rt,%nctaid.x; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%nctaid.y; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%nctaid.z; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%ntid.x; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%ntid.y; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%ntid.z; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%dynamic_smem_size; setp.ne.u32 %p0,%rt,0; @%p0 bra REFUSE;
+ ld.global.u32 %rt,[%ctx+4]; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u64 %list,spans; cvta.local.u64 %list,%list;
+ st.param.u64 [b],%args; st.param.u64 [n],104; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],0; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.global.u64 %ptr0,[%args+0];
+ ld.global.u64 %ptr1,[%args+8];
+ ld.global.u64 %ptr2,[%args+16];
+ ld.global.u64 %ptr3,[%args+24];
+ ld.global.u64 %ptr4,[%args+32];
+ ld.global.u64 %ptr5,[%args+40];
+ ld.global.u64 %ptr6,[%args+48];
+ ld.global.u64 %ptr7,[%args+56];
+ ld.global.u64 %ptr8,[%args+64];
+ ld.global.u64 %ptr9,[%args+72];
+ ld.global.u64 %ptr10,[%args+80];
+ ld.global.u64 %ptr11,[%args+88];
+ ld.global.u64 %ptr12,[%args+96];
+ st.param.u64 [b],%ptr0; st.param.u64 [n],4; st.param.u64 [m],3; st.param.u64 [l],%list; st.param.u32 [c],0; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr1; st.param.u64 [n],4; st.param.u64 [m],3; st.param.u64 [l],%list; st.param.u32 [c],0; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr2; st.param.u64 [n],4; st.param.u64 [m],3; st.param.u64 [l],%list; st.param.u32 [c],0; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr3; st.param.u64 [n],4; st.param.u64 [m],3; st.param.u64 [l],%list; st.param.u32 [c],0; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.global.s32 %G,[%ptr0]; ld.global.s32 %N,[%ptr1]; ld.global.u32 %scheme,[%ptr2]; ld.global.u32 %seed,[%ptr3];
+ setp.lt.s32 %p0,%G,1; @%p0 bra REFUSE_META; setp.gt.s32 %p0,%G,4096; @%p0 bra REFUSE_META; setp.lt.s32 %p0,%N,1; @%p0 bra REFUSE_META; setp.gt.s32 %p0,%N,512; @%p0 bra REFUSE_META;
+ mov.u32 %error,443; setp.ne.u32 %p0,%scheme,1; @%p0 bra REFUSE;
+ mul.wide.u32 %nbytes,%N,8; sub.u64 %pairbytes,%nbytes,8; mul.wide.u32 %matrixbytes,%N,%G; shl.b64 %matrixbytes,%matrixbytes,3; mul.lo.u64 %scratchbytes,%nbytes,7; mul.wide.u32 %tmp,%G,8; add.u64 %scratchbytes,%scratchbytes,%tmp; add.u64 %scratchbytes,%scratchbytes,2424;
+ ld.global.u64 %scratch,[%ctx+32]; ld.global.u64 %capacity,[%ctx+40]; setp.lt.u64 %p0,%capacity,%scratchbytes; @%p0 bra REFUSE_META;
+ mov.u64 %record,0; mov.u64 %fast_owner,0; mov.u64 %wide_owner,0; ld.global.u64 %record,[%ctx+48]; setp.eq.u64 %p0,%record,0; @%p0 bra NO_RECORD;
+ ld.global.u64 %capacity,[%ctx+56]; setp.lt.u64 %p0,%capacity,16; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%record; st.param.u64 [n],16; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],0; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.global.u64 %fast_owner,[%record]; ld.global.u64 %wide_owner,[%record+8]; or.b64 %tmp,%fast_owner,%wide_owner; setp.eq.u64 %p0,%tmp,0; @%p0 bra NO_RECORD;
+ st.param.u64 [b],%fast_owner; st.param.u64 [n],8; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],0; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.u64 [%list],%fast_owner; st.u64 [%list+8],8;
+ st.param.u64 [b],%wide_owner; st.param.u64 [n],8; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],1; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+NO_RECORD:
+ st.u64 [%list],%ptr10; st.u64 [%list+8],%matrixbytes; st.u64 [%list+16],%ptr11; st.u64 [%list+24],8; st.u64 [%list+32],%scratch; st.u64 [%list+40],%scratchbytes; st.u64 [%list+48],%ctx; st.u64 [%list+56],64;
+ st.u64 [%list+64],%fast_owner; st.u64 [%list+72],0; st.u64 [%list+80],%wide_owner; st.u64 [%list+88],0; setp.eq.u64 %p0,%fast_owner,0; @%p0 bra OWNERS_READY; st.u64 [%list+72],8; st.u64 [%list+88],8;
+OWNERS_READY:
+ st.param.u64 [b],%ptr10; st.param.u64 [n],%matrixbytes; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],0; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr11; st.param.u64 [n],8; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],1; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%scratch; st.param.u64 [n],%scratchbytes; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],2; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ctx; st.param.u64 [n],64; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],3; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ setp.eq.u64 %p0,%fast_owner,0; @%p0 bra COUNTERS_CHECKED;
+ st.param.u64 [b],%fast_owner; st.param.u64 [n],8; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],4; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%wide_owner; st.param.u64 [n],8; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],5; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+COUNTERS_CHECKED:
+ st.param.u64 [b],%args; st.param.u64 [n],104; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],6; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr0; st.param.u64 [n],4; st.param.u64 [m],3; st.param.u64 [l],%list; st.param.u32 [c],6; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr1; st.param.u64 [n],4; st.param.u64 [m],3; st.param.u64 [l],%list; st.param.u32 [c],6; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr2; st.param.u64 [n],4; st.param.u64 [m],3; st.param.u64 [l],%list; st.param.u32 [c],6; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr3; st.param.u64 [n],4; st.param.u64 [m],3; st.param.u64 [l],%list; st.param.u32 [c],6; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr4; st.param.u64 [n],8; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],6; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr7; st.param.u64 [n],8; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],6; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr5; st.param.u64 [n],%nbytes; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],6; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr8; st.param.u64 [n],%nbytes; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],6; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr6; st.param.u64 [n],%pairbytes; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],6; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr9; st.param.u64 [n],112; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],6; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ setp.eq.u64 %p0,%record,0; @%p0 bra RECORD_CHECKED;
+ st.param.u64 [b],%record; st.param.u64 [n],16; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],6; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+RECORD_CHECKED:
+ mov.u32 %beta,0; setp.eq.u64 %p0,%ptr12,0; @%p0 bra OPTIONAL_READY;
+ st.param.u64 [b],%ptr12; st.param.u64 [n],4; st.param.u64 [m],3; st.param.u64 [l],%list; st.param.u32 [c],6; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.global.u32 %beta,[%ptr12]; mov.u32 %error,443; setp.gt.u32 %p0,%beta,1; @%p0 bra REFUSE;
+OPTIONAL_READY:
+ st.param.u64 [object],%ptr9; call.uni (geometry),md2asm_gpu_cloud_pdf_geometry,(object); ld.param.u64 %low,[geometry]; ld.param.u64 %span,[geometry+8]; ld.param.u32 %error,[geometry+16]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%low; st.param.u64 [n],%span; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],6; call.uni (r),sampling_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.global.b64 %threshold,[%ptr4]; ld.global.b64 %decorrelation,[%ptr7];
+ st.param.u32 [arg0],%G;
+ st.param.u32 [arg1],%N;
+ st.param.u32 [arg2],%seed;
+ st.param.b64 [arg3],%threshold;
+ st.param.u64 [arg4],%ptr5;
+ st.param.u64 [arg5],%ptr6;
+ st.param.b64 [arg6],%decorrelation;
+ st.param.u64 [arg7],%ptr8;
+ st.param.u64 [arg8],%ptr9;
+ st.param.u64 [arg9],%ptr10;
+ st.param.u64 [arg10],%ptr11;
+ st.param.u32 [arg11],%beta;
+ st.param.u64 [arg12],%scratch;
+ call.uni (values),md2asm_gpu_cloud_generator_values,(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12); ld.param.u32 %raised,[values+8]; atom.global.or.b32 %rt,[%ctx+8],%raised; ld.param.u32 %event,[values+12]; setp.eq.u32 %p0,%event,0; @%p0 bra EVENT_JOINED; cvt.u64.u32 %event64,%event; st.global.u64 [%ctx+16],%event64;
+EVENT_JOINED:
+ setp.eq.u64 %p0,%fast_owner,0; @%p0 ret; ld.param.u64 %increment,[values+16]; ld.global.u64 %old,[%fast_owner]; add.u64 %old,%old,%increment; st.global.u64 [%fast_owner],%old; ld.param.u64 %increment,[values+24]; ld.global.u64 %old,[%wide_owner]; add.u64 %old,%old,%increment; st.global.u64 [%wide_owner],%old; ret;
+REFUSE_META: mov.u32 %error,442;
+REFUSE: st.global.u32 [%ctx],%error; ret;
+}
+.visible .entry md2asm_gpu_cloud_generator(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %a,%c; .param .u64 a,c; ld.param.u64 %a,[original_vector]; ld.param.u64 %c,[context]; st.param.u64 [a],%a; st.param.u64 [c],%c; call.uni md2asm_gpu_cloud_sampling_fp64,(a,c); ret;
+}

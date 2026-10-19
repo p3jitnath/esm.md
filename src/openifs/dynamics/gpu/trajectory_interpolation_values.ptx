@@ -1,0 +1,89 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Complete selected LAPINEA numerical graph; the retained component contract revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_sin_bounded_finite(.param .b64 a);
+.extern .func openifs_larmes_xyz_fp64(.param .u64 original_vector,.param .u64 context);
+.extern .func openifs_larcina_fp64(.param .u64 original_vector,.param .u64 context);
+.visible .func (.param .align 8 .b8 result[16]) openifs_lapinea_values(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u64 %args,%ctx,%record,%scratch,%v<26>,%B,%N,%cells,%cellBytes,%workBytes,%offset,%ptr,%address,%sourceScale,%sourceLat,%sourceLevel,%sourceW,%sourceIlev,%sourceIdep,%trajectoryVector,%trajectoryContext,%weightVector,%weightContext,%event,%lastEvent,%fastClass,%wideClass,%label0,%label1,%want0,%want1,%diagBase,%diagLower,%diag,%destination,%source,%component;
+.reg .s64 %lower,%upper,%latitude,%index,%low,%high,%shift,%pointCount,%field,%fieldCount,%first,%last,%level,%column;
+.reg .u32 %flags,%error,%raised,%rt,%labelLow,%labelHigh,%event32,%selected,%kind;.reg .b64 %a,%b,%twicePi;.reg .pred %p,%q;
+.param .b64 ma,mb,sa;.param .align 8 .b8 mr[16],sr[32];.param .u64 ca,cc;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];mov.u32 %flags,0;mov.u32 %error,0;mov.u64 %lastEvent,0;
+
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ld.global.u64 %v5,[%args+40];
+ld.global.u64 %v6,[%args+48];
+ld.global.u64 %v7,[%args+56];
+ld.global.u64 %v8,[%args+64];
+ld.global.u64 %v9,[%args+72];
+ld.global.u64 %v10,[%args+80];
+ld.global.u64 %v11,[%args+88];
+ld.global.u64 %v12,[%args+96];
+ld.global.u64 %v13,[%args+104];
+ld.global.u64 %v14,[%args+112];
+ld.global.u64 %v15,[%args+120];
+ld.global.u64 %v16,[%args+128];
+ld.global.u64 %v17,[%args+136];
+ld.global.u64 %v18,[%args+144];
+ld.global.u64 %v19,[%args+152];
+ld.global.u64 %v20,[%args+160];
+ld.global.u64 %v21,[%args+168];
+ld.global.u64 %v22,[%args+176];
+ld.global.u64 %v23,[%args+184];
+ld.global.u64 %v24,[%args+192];
+ld.global.u64 %v25,[%args+200];
+ld.global.u64 %sourceScale,[%scratch+6208];
+ld.global.u64 %sourceLat,[%scratch+6216];
+ld.global.u64 %sourceLevel,[%scratch+6224];
+ld.global.u64 %sourceW,[%scratch+6232];
+ld.global.u64 %sourceIlev,[%scratch+6240];
+ld.global.u64 %sourceIdep,[%scratch+6248];
+ld.global.u32 %rt,[%v0+5144];cvt.u64.u32 %B,%rt;ld.global.u32 %rt,[%v0+5224];cvt.u64.u32 %N,%rt;mul.lo.u64 %cells,%B,%N;shl.b64 %cellBytes,%cells,3;ld.global.s32 %first,[%v3];ld.global.s32 %last,[%v4];ld.global.u64 %workBytes,[%scratch+6320];add.u64 %ptr,%scratch,16384;mov.u64 %offset,0;
+CLEAR_SOURCE_WORK:setp.ge.u64 %p,%offset,%workBytes;@%p bra SOURCE_WORK_READY;add.u64 %address,%ptr,%offset;st.global.u64 [%address],0;add.u64 %offset,%offset,8;bra CLEAR_SOURCE_WORK;
+SOURCE_WORK_READY:ld.global.u64 %ptr,[%record+216];ld.global.b64 %a,[%ptr];
+st.param.b64 [ma],0x4000000000000000;st.param.b64 [mb],%a;call.uni (mr),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %twicePi,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+ld.global.s64 %latitude,[%scratch+6256];ld.global.s64 %upper,[%scratch+6264];ld.global.s32 %shift,[%v5+1720];ld.global.s32 %lower,[%v5+1672];
+LATITUDE_SCALE:setp.gt.s64 %p,%latitude,%upper;@%p bra LATITUDE_SCALE_DONE;add.s64 %index,%latitude,%shift;ld.global.u64 %ptr,[%scratch+6304];ld.global.s64 %low,[%scratch+6312];sub.s64 %index,%index,%low;shl.b64 %offset,%index,2;add.u64 %address,%ptr,%offset;ld.global.s32 %pointCount,[%address];cvt.rn.f64.s64 %a,%pointCount;
+st.param.b64 [ma],%a;st.param.b64 [mb],%twicePi;call.uni (mr),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %a,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+sub.s64 %index,%latitude,%lower;shl.b64 %offset,%index,3;add.u64 %address,%sourceScale,%offset;st.global.b64 [%address],%a;add.s64 %latitude,%latitude,1;bra LATITUDE_SCALE;
+LATITUDE_SCALE_DONE:ld.global.s64 %latitude,[%scratch+6272];ld.global.s64 %upper,[%scratch+6280];ld.global.u64 %ptr,[%scratch+6288];ld.global.s64 %low,[%scratch+6296];
+LATITUDE_ADDRESS:setp.gt.s64 %p,%latitude,%upper;@%p bra LATITUDE_ADDRESS_DONE;sub.s64 %index,%latitude,%low;shl.b64 %offset,%index,2;add.u64 %address,%ptr,%offset;ld.global.u32 %rt,[%address];sub.s64 %index,%latitude,%lower;shl.b64 %offset,%index,2;add.u64 %address,%sourceLat,%offset;st.global.u32 [%address],%rt;add.s64 %latitude,%latitude,1;bra LATITUDE_ADDRESS;
+LATITUDE_ADDRESS_DONE:mov.u32 %selected,0;ld.global.s32 %fieldCount,[%v1+184];mov.s64 %field,0;add.u64 %ptr,%v1,4188;
+FIELD_SCAN:setp.ge.s64 %p,%field,%fieldCount;@%p bra FIELD_SCAN_DONE;ld.global.u32 %labelLow,[%ptr];ld.global.u32 %labelHigh,[%ptr+4];mov.b64 %label0,{%labelLow,%labelHigh};ld.global.u32 %rt,[%ptr+8];
+mov.u64 %want0,0x202054564849414c;setp.eq.u64 %p,%label0,%want0;setp.eq.u32 %q,%rt,0x20202020;and.pred %p,%p,%q;@%p mov.u32 %selected,1;
+mov.u64 %want0,0x4d5154564849414c;setp.eq.u64 %p,%label0,%want0;setp.eq.u32 %q,%rt,0x20202020;and.pred %p,%p,%q;@%p mov.u32 %selected,1;
+mov.u64 %want0,0x4d5154564849414c;setp.eq.u64 %p,%label0,%want0;setp.eq.u32 %q,%rt,0x20202048;and.pred %p,%p,%q;@%p mov.u32 %selected,1;
+add.u64 %ptr,%ptr,368;add.s64 %field,%field,1;bra FIELD_SCAN;
+FIELD_SCAN_DONE:st.global.u32 [%scratch+6080],%selected;mov.u64 %trajectoryVector,%scratch;add.u64 %trajectoryContext,%scratch,256;add.u64 %weightVector,%scratch,4480;add.u64 %weightContext,%scratch,4864;
+st.global.u32 [%trajectoryContext],0;st.global.u32 [%trajectoryContext+8],0;st.global.u64 [%trajectoryContext+16],0;st.param.u64 [ca],%trajectoryVector;st.param.u64 [cc],%trajectoryContext;call.uni openifs_larmes_xyz_fp64,(ca,cc);ld.global.u32 %error,[%trajectoryContext];ld.global.u32 %raised,[%trajectoryContext+8];ld.global.u64 %event,[%trajectoryContext+16];or.b32 %flags,%flags,%raised;setp.ne.u64 %p,%event,0;@%p mov.u64 %lastEvent,%event;setp.ne.u32 %p,%error,0;@%p bra RETURN;
+ld.global.u32 %selected,[%scratch+6112];setp.eq.u32 %p,%selected,0;@%p bra DIAGNOSTICS_DONE;ld.global.s32 %diag,[%scratch+6116];ld.global.s32 %upper,[%scratch+6120];ld.global.u64 %diagBase,[%scratch+6328];ld.global.s64 %diagLower,[%scratch+6336];
+DIAGNOSTIC_FIELD:setp.gt.s64 %p,%diag,%upper;@%p bra DIAGNOSTICS_DONE;sub.s64 %index,%diag,%diagLower;mul.lo.u64 %offset,%index,368;add.u64 %ptr,%diagBase,%offset;ld.global.u64 %label0,[%ptr];ld.global.u64 %label1,[%ptr+8];mov.u32 %kind,6;
+mov.u64 %want0,0x2020204a41525455;mov.u64 %want1,0x2020202020202020;setp.eq.u64 %p,%label0,%want0;setp.eq.u64 %q,%label1,%want1;and.pred %p,%p,%q;@%p mov.u32 %kind,0;
+mov.u64 %want0,0x2020204a41525456;mov.u64 %want1,0x2020202020202020;setp.eq.u64 %p,%label0,%want0;setp.eq.u64 %q,%label1,%want1;and.pred %p,%p,%q;@%p mov.u32 %kind,1;
+mov.u64 %want0,0x2020204a41525457;mov.u64 %want1,0x2020202020202020;setp.eq.u64 %p,%label0,%want0;setp.eq.u64 %q,%label1,%want1;and.pred %p,%p,%q;@%p mov.u32 %kind,2;
+mov.u64 %want0,0x20304144424d414c;mov.u64 %want1,0x2020202020202020;setp.eq.u64 %p,%label0,%want0;setp.eq.u64 %q,%label1,%want1;and.pred %p,%p,%q;@%p mov.u32 %kind,3;
+mov.u64 %want0,0x2020304154454854;mov.u64 %want1,0x2020202020202020;setp.eq.u64 %p,%label0,%want0;setp.eq.u64 %q,%label1,%want1;and.pred %p,%p,%q;@%p mov.u32 %kind,4;
+mov.u64 %want0,0x2020202030415445;mov.u64 %want1,0x2020202020202020;setp.eq.u64 %p,%label0,%want0;setp.eq.u64 %q,%label1,%want1;and.pred %p,%p,%q;@%p mov.u32 %kind,5;
+setp.eq.u32 %p,%kind,6;@%p bra NEXT_DIAGNOSTIC;ld.global.s32 %index,[%ptr+188];sub.s64 %index,%index,1;mul.lo.u64 %offset,%index,%cellBytes;add.u64 %destination,%v24,%offset;mov.u64 %source,%v14;setp.eq.u32 %p,%kind,0;@%p bra DIAGNOSTIC_SOURCE_READY;mov.u64 %source,%v15;setp.eq.u32 %p,%kind,1;@%p bra DIAGNOSTIC_SOURCE_READY;mov.u64 %source,%sourceW;setp.eq.u32 %p,%kind,2;@%p bra DIAGNOSTIC_SOURCE_READY;mov.u64 %source,%sourceLevel;setp.eq.u32 %p,%kind,5;@%p bra DIAGNOSTIC_SOURCE_READY;ld.global.s32 %index,[%v2+6812];setp.eq.u32 %p,%kind,4;@%p ld.global.s32 %index,[%v2+6816];sub.s64 %index,%index,1;mul.lo.u64 %offset,%index,%cellBytes;add.u64 %source,%v13,%offset;
+DIAGNOSTIC_SOURCE_READY:mov.u64 %level,0;
+DIAGNOSTIC_LEVEL:mov.s64 %column,%first;
+DIAGNOSTIC_COLUMN:setp.gt.s64 %p,%column,%last;@%p bra DIAGNOSTIC_NEXT_LEVEL;sub.s64 %index,%column,1;mad.lo.u64 %index,%level,%B,%index;shl.b64 %offset,%index,3;add.u64 %address,%source,%offset;ld.global.b64 %a,[%address];setp.lt.u32 %p,%kind,3;@%p bra DIAGNOSTIC_STORE;setp.gt.u32 %p,%kind,4;@%p bra DIAGNOSTIC_STORE;
+st.param.b64 [sa],%a;call.uni (sr),md2asm_gpu_sin_bounded_finite,(sa);ld.param.b64 %a,[sr];ld.param.u32 %raised,[sr+8];ld.param.u32 %event32,[sr+12];ld.param.u64 %fastClass,[sr+16];ld.param.u64 %wideClass,[sr+24];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%event32,0;@%p cvt.u64.u32 %lastEvent,%event32;
+DIAGNOSTIC_STORE:add.u64 %address,%destination,%offset;st.global.b64 [%address],%a;add.s64 %column,%column,1;bra DIAGNOSTIC_COLUMN;
+DIAGNOSTIC_NEXT_LEVEL:add.u64 %level,%level,1;setp.lt.u64 %p,%level,%N;@%p bra DIAGNOSTIC_LEVEL;
+NEXT_DIAGNOSTIC:add.s64 %diag,%diag,1;bra DIAGNOSTIC_FIELD;
+DIAGNOSTICS_DONE:
+st.global.u32 [%weightContext],0;st.global.u32 [%weightContext+8],0;st.global.u64 [%weightContext+16],0;st.param.u64 [ca],%weightVector;st.param.u64 [cc],%weightContext;call.uni openifs_larcina_fp64,(ca,cc);ld.global.u32 %error,[%weightContext];ld.global.u32 %raised,[%weightContext+8];ld.global.u64 %event,[%weightContext+16];or.b32 %flags,%flags,%raised;setp.ne.u64 %p,%event,0;@%p mov.u64 %lastEvent,%event;setp.ne.u32 %p,%error,0;@%p bra RETURN;
+RETURN:st.param.u32 [result],%flags;st.param.u32 [result+4],%error;st.param.u64 [result+8],0;ret;
+}

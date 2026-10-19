@@ -1,0 +1,118 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Direct complete SLEXTPOL from the retained component contract revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 left,.param .b64 right);
+.visible .func (.param .align 8 .b8 result[16]) openifs_slextpol_values(.param .u64 original_vector,.param .u64 context)
+{ .reg .u64 %args,%ctx,%record,%scratch,%v<8>,%map<4>,%ptr,%offset,%pair,%address,%capacity,%bytes,%size,%owners,%word;
+ .reg .s64 %n,%fields,%mode,%width,%ng,%shift,%lo,%hi,%row,%global,%sourceGlobal,%sourceRow,%start,%localCount,%coreOffset,%longitudes,%sourceStart,%sourceCount,%sourceOffset,%sourceLongitudes,%longitude,%destination,%rawSource,%chosen,%point,%field,%tmp,%tmp2,%fixedFirst,%fixedLast,%bias<4>,%lower<4>,%upper<4>;
+ .reg .u32 %flags,%error,%raised,%rt,%count,%code;.reg .pred %p,%q;
+ .reg .b64 %left,%right,%answer;
+ .param .b64 ma,mb;.param .align 8 .b8 mr[16];
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];ld.u64 %scratch,[%ctx+32];mov.u32 %flags,0;
+ld.u64 %v0,[%args+0];
+ld.u64 %v1,[%args+8];
+ld.u64 %v2,[%args+16];
+ld.u64 %v3,[%args+24];
+ld.u64 %v4,[%args+32];
+ld.u64 %v5,[%args+40];
+ld.u64 %v6,[%args+48];
+ld.u64 %v7,[%args+56];
+ld.s32 %n,[%v1+1016];ld.s32 %fields,[%v2];ld.s32 %mode,[%v4];ld.s32 %width,[%v0+72];ld.s32 %ng,[%v1+1648];ld.s32 %shift,[%v1+1720];
+ld.s32 %tmp,[%v1+1724];ld.s32 %tmp2,[%v1+1348];sub.s64 %tmp,%tmp,%tmp2;ld.s32 %lo,[%v1+1656];max.s64 %lo,%lo,%tmp;sub.s64 %lo,%lo,%shift;
+ld.s32 %tmp,[%v1+1728];ld.s32 %tmp2,[%v1+1352];add.s64 %tmp,%tmp,%tmp2;ld.s32 %hi,[%v1+1660];min.s64 %hi,%hi,%tmp;sub.s64 %hi,%hi,%shift;
+mov.s64 %fixedFirst,1;mov.s64 %fixedLast,0;setp.eq.s64 %p,%mode,1;@%p bra FIXED_READY;ld.s32 %fixedFirst,[%v3];ld.s32 %fixedLast,[%v3+4];FIXED_READY:
+ld.u64 %map0,[%v1+8];ld.s64 %bias0,[%v1+16];
+ld.u64 %map1,[%v1+72];ld.s64 %bias1,[%v1+80];
+ld.u64 %map2,[%v1+136];ld.s64 %bias2,[%v1+144];
+ld.u64 %map3,[%v1+1736];ld.s64 %bias3,[%v1+1744];
+mov.s64 %point,0;setp.eq.u64 %p,%v7,0;@%p bra MASK_CLEARED;
+CLEAR_MASK:setp.ge.s64 %p,%point,%n;@%p bra MASK_CLEARED;shl.b64 %offset,%point,2;add.u64 %ptr,%v7,%offset;st.global.u32 [%ptr],0;add.s64 %point,%point,1;bra CLEAR_MASK;
+MASK_CLEARED:mov.s64 %row,%lo;
+POLAR_ROW:setp.gt.s64 %p,%row,%hi;@%p bra PERIODIC_BEGIN;
+add.s64 %tmp,%row,%bias0;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map0,%offset;ld.global.s32 %start,[%ptr];
+add.s64 %tmp,%row,%bias1;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map1,%offset;ld.global.s32 %localCount,[%ptr];
+add.s64 %tmp,%row,%bias2;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map2,%offset;ld.global.s32 %coreOffset,[%ptr];
+add.s64 %global,%row,%shift;
+add.s64 %tmp,%global,%bias3;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map3,%offset;ld.global.s32 %longitudes,[%ptr];
+setp.le.s64 %p,%global,0;@%p bra NORTH_POLE;setp.le.s64 %p,%global,%ng;@%p bra POLAR_NEXT;add.s64 %sourceGlobal,%ng,%ng;add.s64 %sourceGlobal,%sourceGlobal,1;sub.s64 %sourceGlobal,%sourceGlobal,%global;bra REFLECTED_ROW;
+NORTH_POLE:sub.s64 %sourceGlobal,1,%global;
+REFLECTED_ROW:
+sub.s64 %sourceRow,%sourceGlobal,%shift;
+add.s64 %tmp,%sourceRow,%bias0;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map0,%offset;ld.global.s32 %sourceStart,[%ptr];
+add.s64 %tmp,%sourceRow,%bias1;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map1,%offset;ld.global.s32 %sourceCount,[%ptr];
+add.s64 %tmp,%sourceRow,%bias2;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map2,%offset;ld.global.s32 %sourceOffset,[%ptr];
+add.s64 %tmp,%sourceGlobal,%bias3;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map3,%offset;ld.global.s32 %sourceLongitudes,[%ptr];
+mov.s64 %point,0;
+POLAR_POINT:setp.ge.s64 %p,%point,%localCount;@%p bra POLAR_FIELDS;
+add.s64 %longitude,%start,%point;sub.s64 %longitude,%longitude,1;add.s64 %longitude,%longitude,%longitudes;rem.s64 %longitude,%longitude,%longitudes;add.s64 %longitude,%longitude,1;
+sub.s64 %tmp,%longitude,%start;add.s64 %tmp,%tmp,%longitudes;rem.s64 %tmp,%tmp,%longitudes;add.s64 %destination,%coreOffset,%tmp;
+sub.s64 %tmp,%longitude,%sourceStart;add.s64 %tmp,%tmp,%sourceLongitudes;rem.s64 %tmp,%tmp,%sourceLongitudes;add.s64 %rawSource,%sourceOffset,%tmp;
+mov.s64 %chosen,%rawSource;add.s64 %tmp,%sourceOffset,%sourceCount;setp.lt.s64 %p,%chosen,%sourceOffset;setp.ge.s64 %q,%chosen,%tmp;or.pred %p,%p,%q;@%p mov.s64 %chosen,%destination;
+setp.ne.s64 %p,%mode,1;@%p bra SAVE_PAIR;setp.eq.s64 %p,%destination,%chosen;@%p bra POINT_PARITY;mov.s64 %field,0;
+POINT_COPY:setp.ge.s64 %p,%field,%fields;@%p bra POINT_PARITY;mul.lo.u64 %tmp,%field,%n;add.u64 %offset,%tmp,%chosen;shl.b64 %offset,%offset,3;add.u64 %ptr,%v6,%offset;ld.global.b64 %answer,[%ptr];add.u64 %offset,%tmp,%destination;shl.b64 %offset,%offset,3;add.u64 %ptr,%v6,%offset;st.global.b64 [%ptr],%answer;add.s64 %field,%field,1;bra POINT_COPY;
+POINT_PARITY:mov.s64 %field,0;
+POINT_MULTIPLY:setp.ge.s64 %p,%field,%fields;@%p bra POLAR_POINT_NEXT;
+mul.lo.u64 %offset,%field,%n;add.u64 %offset,%offset,%destination;shl.b64 %offset,%offset,3;add.u64 %ptr,%v6,%offset;ld.global.b64 %right,[%ptr];shl.b64 %offset,%field,3;add.u64 %ptr,%v5,%offset;ld.global.b64 %left,[%ptr];
+st.param.b64 [ma],%left;st.param.b64 [mb],%right;call.uni (mr),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %answer,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+mul.lo.u64 %offset,%field,%n;add.u64 %offset,%offset,%destination;shl.b64 %offset,%offset,3;add.u64 %ptr,%v6,%offset;st.global.b64 [%ptr],%answer;
+add.s64 %field,%field,1;bra POINT_MULTIPLY;
+SAVE_PAIR:shl.b64 %offset,%point,3;add.u64 %ptr,%scratch,%offset;cvt.u32.u64 %rt,%destination;st.global.u32 [%ptr],%rt;cvt.u32.u64 %rt,%chosen;st.global.u32 [%ptr+4],%rt;
+POLAR_POINT_NEXT:add.s64 %point,%point,1;bra POLAR_POINT;
+POLAR_FIELDS:setp.eq.s64 %p,%mode,1;@%p bra POLAR_NEXT;mov.s64 %field,0;
+POLAR_FIELD:setp.ge.s64 %p,%field,%fields;@%p bra POLAR_MASK;
+add.s64 %tmp,%field,1;setp.lt.s64 %p,%tmp,%fixedFirst;setp.gt.s64 %q,%tmp,%fixedLast;or.pred %p,%p,%q;setp.eq.s64 %q,%mode,2;xor.pred %p,%p,%q;@%p bra POLAR_FIELD_NEXT;
+mov.s64 %point,0;
+APPLY_PAIR:setp.ge.s64 %p,%point,%localCount;@%p bra POLAR_FIELD_NEXT;shl.b64 %offset,%point,3;add.u64 %ptr,%scratch,%offset;ld.global.u32 %rt,[%ptr];cvt.u64.u32 %destination,%rt;ld.global.u32 %rt,[%ptr+4];cvt.u64.u32 %chosen,%rt;
+mul.lo.u64 %offset,%field,%n;add.u64 %offset,%offset,%chosen;shl.b64 %offset,%offset,3;add.u64 %ptr,%v6,%offset;ld.global.b64 %right,[%ptr];shl.b64 %offset,%field,3;add.u64 %ptr,%v5,%offset;ld.global.b64 %left,[%ptr];
+st.param.b64 [ma],%left;st.param.b64 [mb],%right;call.uni (mr),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %answer,[mr];ld.param.u32 %raised,[mr+8];or.b32 %flags,%flags,%raised;
+mul.lo.u64 %offset,%field,%n;add.u64 %offset,%offset,%destination;shl.b64 %offset,%offset,3;add.u64 %ptr,%v6,%offset;st.global.b64 [%ptr],%answer;
+add.s64 %point,%point,1;bra APPLY_PAIR;
+POLAR_FIELD_NEXT:add.s64 %field,%field,1;bra POLAR_FIELD;
+POLAR_MASK:setp.ne.s64 %p,%mode,3;@%p bra POLAR_NEXT;setp.eq.u64 %p,%v7,0;@%p bra POLAR_NEXT;mov.s64 %point,0;
+MARK_POLAR:setp.ge.s64 %p,%point,%localCount;@%p bra POLAR_NEXT;shl.b64 %offset,%point,3;add.u64 %ptr,%scratch,%offset;ld.global.u32 %rt,[%ptr+4];cvt.u64.u32 %offset,%rt;shl.b64 %offset,%offset,2;add.u64 %ptr,%v7,%offset;st.global.u32 [%ptr],1;add.s64 %point,%point,1;bra MARK_POLAR;
+POLAR_NEXT:add.s64 %row,%row,1;bra POLAR_ROW;
+PERIODIC_BEGIN:setp.ne.s64 %p,%mode,1;@%p bra PERIODIC_OTHER;mov.s64 %row,%lo;
+PERIODIC_ROW:setp.gt.s64 %p,%row,%hi;@%p bra RETURN;
+add.s64 %tmp,%row,%bias0;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map0,%offset;ld.global.s32 %start,[%ptr];
+add.s64 %tmp,%row,%bias1;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map1,%offset;ld.global.s32 %localCount,[%ptr];
+add.s64 %tmp,%row,%bias2;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map2,%offset;ld.global.s32 %coreOffset,[%ptr];
+add.s64 %global,%row,%shift;
+add.s64 %tmp,%global,%bias3;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map3,%offset;ld.global.s32 %longitudes,[%ptr];
+setp.ne.s64 %p,%localCount,%longitudes;@%p bra PERIODIC_ROW_NEXT;mov.s64 %field,0;
+PERIODIC_ROW_FIELD:setp.ge.s64 %p,%field,%fields;@%p bra PERIODIC_ROW_NEXT;bra STAR_MODE1;
+PERIODIC_ROW_FIELD_NEXT:add.s64 %field,%field,1;bra PERIODIC_ROW_FIELD;
+PERIODIC_ROW_NEXT:add.s64 %row,%row,1;bra PERIODIC_ROW;
+PERIODIC_OTHER:mov.s64 %field,0;
+PERIODIC_FIELD:setp.ge.s64 %p,%field,%fields;@%p bra PERIODIC_MASK_BEGIN;
+add.s64 %tmp,%field,1;setp.lt.s64 %p,%tmp,%fixedFirst;setp.gt.s64 %q,%tmp,%fixedLast;or.pred %p,%p,%q;setp.eq.s64 %q,%mode,2;xor.pred %p,%p,%q;@%p bra PERIODIC_FIELD_NEXT;
+mov.s64 %row,%lo;
+PERIODIC_FIELD_ROW:setp.gt.s64 %p,%row,%hi;@%p bra PERIODIC_FIELD_NEXT;
+add.s64 %tmp,%row,%bias0;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map0,%offset;ld.global.s32 %start,[%ptr];
+add.s64 %tmp,%row,%bias1;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map1,%offset;ld.global.s32 %localCount,[%ptr];
+add.s64 %tmp,%row,%bias2;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map2,%offset;ld.global.s32 %coreOffset,[%ptr];
+add.s64 %global,%row,%shift;
+add.s64 %tmp,%global,%bias3;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map3,%offset;ld.global.s32 %longitudes,[%ptr];
+setp.eq.s64 %p,%localCount,%longitudes;@%p bra STAR_OTHER;
+PERIODIC_FIELD_ROW_NEXT:add.s64 %row,%row,1;bra PERIODIC_FIELD_ROW;
+PERIODIC_FIELD_NEXT:add.s64 %field,%field,1;bra PERIODIC_FIELD;
+PERIODIC_MASK_BEGIN:setp.ne.s64 %p,%mode,3;@%p bra RETURN;setp.eq.u64 %p,%v7,0;@%p bra RETURN;mov.s64 %row,%lo;
+PERIODIC_MASK_ROW:setp.gt.s64 %p,%row,%hi;@%p bra RETURN;
+add.s64 %tmp,%row,%bias0;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map0,%offset;ld.global.s32 %start,[%ptr];
+add.s64 %tmp,%row,%bias1;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map1,%offset;ld.global.s32 %localCount,[%ptr];
+add.s64 %tmp,%row,%bias2;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map2,%offset;ld.global.s32 %coreOffset,[%ptr];
+add.s64 %global,%row,%shift;
+add.s64 %tmp,%global,%bias3;shl.b64 %offset,%tmp,2;add.u64 %ptr,%map3,%offset;ld.global.s32 %longitudes,[%ptr];
+setp.ne.s64 %p,%localCount,%longitudes;@%p bra PERIODIC_MASK_NEXT;add.s64 %tmp,%coreOffset,%longitudes;sub.s64 %tmp,%tmp,1;shl.b64 %offset,%tmp,2;add.u64 %ptr,%v7,%offset;st.global.u32 [%ptr],1;setp.ne.s64 %p,%width,3;@%p bra MASK_LEFT_DONE;sub.u64 %ptr,%ptr,4;st.global.u32 [%ptr],1;
+MASK_LEFT_DONE:shl.b64 %offset,%coreOffset,2;add.u64 %ptr,%v7,%offset;st.global.u32 [%ptr],1;st.global.u32 [%ptr+4],1;setp.ne.s64 %p,%width,3;@%p bra PERIODIC_MASK_NEXT;st.global.u32 [%ptr+8],1;
+PERIODIC_MASK_NEXT:add.s64 %row,%row,1;bra PERIODIC_MASK_ROW;
+STAR_MODE1:mul.lo.u64 %tmp,%field,%n;add.u64 %tmp,%tmp,%coreOffset;shl.b64 %offset,%tmp,3;add.u64 %ptr,%v6,%offset;shl.b64 %offset,%longitudes,3;add.u64 %address,%ptr,%offset;setp.eq.s64 %p,%width,3;@%p bra STAR_MODE1_THREE;
+ld.global.b64 %answer,[%address+-8];st.global.b64 [%ptr+-8],%answer;ld.global.b64 %answer,[%ptr];st.global.b64 [%address],%answer;ld.global.b64 %answer,[%ptr+8];st.global.b64 [%address+8],%answer;bra PERIODIC_ROW_FIELD_NEXT;
+STAR_MODE1_THREE:ld.global.b64 %answer,[%address+-16];st.global.b64 [%ptr+-16],%answer;ld.global.b64 %answer,[%address+-8];st.global.b64 [%ptr+-8],%answer;ld.global.b64 %answer,[%ptr];st.global.b64 [%address],%answer;ld.global.b64 %answer,[%ptr+8];st.global.b64 [%address+8],%answer;ld.global.b64 %answer,[%ptr+16];st.global.b64 [%address+16],%answer;bra PERIODIC_ROW_FIELD_NEXT;
+STAR_OTHER:mul.lo.u64 %tmp,%field,%n;add.u64 %tmp,%tmp,%coreOffset;shl.b64 %offset,%tmp,3;add.u64 %ptr,%v6,%offset;shl.b64 %offset,%longitudes,3;add.u64 %address,%ptr,%offset;setp.eq.s64 %p,%width,3;@%p bra STAR_OTHER_THREE;
+ld.global.b64 %answer,[%address+-8];st.global.b64 [%ptr+-8],%answer;ld.global.b64 %answer,[%ptr];st.global.b64 [%address],%answer;ld.global.b64 %answer,[%ptr+8];st.global.b64 [%address+8],%answer;bra PERIODIC_FIELD_ROW_NEXT;
+STAR_OTHER_THREE:ld.global.b64 %answer,[%address+-16];st.global.b64 [%ptr+-16],%answer;ld.global.b64 %answer,[%address+-8];st.global.b64 [%ptr+-8],%answer;ld.global.b64 %answer,[%ptr];st.global.b64 [%address],%answer;ld.global.b64 %answer,[%ptr+8];st.global.b64 [%address+8],%answer;ld.global.b64 %answer,[%ptr+16];st.global.b64 [%address+16],%answer;bra PERIODIC_FIELD_ROW_NEXT;
+RETURN:st.param.u32 [result],%flags;st.param.u32 [result+4],0;st.param.u64 [result+8],0;ret;
+}

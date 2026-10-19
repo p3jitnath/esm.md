@@ -1,0 +1,138 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Complete direct random stream from the retained component contract revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.visible .func md2asm_gpu_uniform_values(.param .u64 stream,.param .u64 output,.param .s64 byte_step,.param .u32 count)
+{
+ .reg .u64 %state,%out,%step,%address,%partner,%word,%mantissa; .reg .u32 %n,%done,%used,%j,%k,%a,%v,%e,%shift,%exponent; .reg .pred %p;
+ ld.param.u64 %state,[stream]; ld.param.u64 %out,[output]; ld.param.s64 %step,[byte_step]; ld.param.u32 %n,[count];
+ setp.eq.u32 %p,%n,0; @%p ret; ld.global.u32 %used,[%state]; mov.u32 %done,0;
+NEXT_SAMPLE:
+ setp.lt.u32 %p,%used,607; @%p bra READ_SAMPLE; mov.u32 %j,0;
+REFILL:
+ mul.wide.u32 %address,%j,4; add.u64 %address,%address,8; add.u64 %address,%state,%address; ld.global.u32 %a,[%address];
+ setp.lt.u32 %p,%j,273; add.u32 %k,%j,334; @!%p sub.u32 %k,%j,273;
+ mul.wide.u32 %partner,%k,4; add.u64 %partner,%partner,8; add.u64 %partner,%state,%partner; ld.global.u32 %v,[%partner];
+ add.u32 %v,%a,%v; and.b32 %v,%v,0x3fffffff; st.global.u32 [%address],%v; add.u32 %j,%j,1; setp.lt.u32 %p,%j,607; @%p bra REFILL;
+ mov.u32 %used,0;
+READ_SAMPLE:
+ setp.eq.u64 %p,%out,0; @%p bra SAMPLE_CONSUMED;
+ mul.wide.u32 %address,%used,4; add.u64 %address,%address,8; add.u64 %address,%state,%address; ld.global.u32 %v,[%address]; mov.u64 %word,0;
+ setp.eq.u32 %p,%v,0; @%p bra STORE_SAMPLE;
+ bfind.u32 %e,%v; sub.u32 %shift,52,%e; cvt.u64.u32 %mantissa,%v; shl.b64 %mantissa,%mantissa,%shift; and.b64 %mantissa,%mantissa,0x000fffffffffffff;
+ add.u32 %exponent,%e,993; cvt.u64.u32 %word,%exponent; shl.b64 %word,%word,52; or.b64 %word,%word,%mantissa;
+STORE_SAMPLE: st.global.b64 [%out],%word; add.u64 %out,%out,%step;
+SAMPLE_CONSUMED:
+ add.u32 %used,%used,1; add.u32 %done,%done,1; setp.lt.u32 %p,%done,%n; @%p bra NEXT_SAMPLE;
+ st.global.u32 [%state],%used; ret;
+}
+.visible .func md2asm_gpu_initialize_random_stream(.param .u32 seed_word,.param .u64 stream)
+{
+ .reg .u64 %state,%address; .reg .u32 %seed,%r,%old,%j,%bit,%mask,%v; .reg .pred %p;
+ .param .u64 us,uo; .param .s64 step; .param .u32 count;
+ ld.param.u32 %seed,[seed_word]; ld.param.u64 %state,[stream]; xor.b32 %r,%seed,123459876; setp.lt.s32 %p,%r,0; @%p neg.s32 %r,%r; setp.eq.u32 %p,%r,0; @%p mov.u32 %r,123459876;
+ mov.u32 %j,0;
+SHIFT_WARMUP:
+ mov.u32 %old,%r; shl.b32 %r,%r,1; setp.lt.s32 %p,%old,0; @%p xor.b32 %r,%r,175; add.u32 %j,%j,1; setp.lt.u32 %p,%j,64; @%p bra SHIFT_WARMUP;
+ mov.u32 %j,0;
+CLEAR_STATE:
+ mul.wide.u32 %address,%j,4; add.u64 %address,%address,8; add.u64 %address,%state,%address; st.global.u32 [%address],0; add.u32 %j,%j,1; setp.lt.u32 %p,%j,606; @%p bra CLEAR_STATE;
+ and.b32 %v,%r,0x1fffffff; shl.b32 %v,%v,1; st.global.u32 [%state+12],%v; shr.u32 %v,%r,29; st.global.u32 [%state+2432],%v;
+ mov.u32 %bit,1;
+BIT_PLANE:
+ mov.u32 %j,2; shl.b32 %mask,1,%bit;
+SEED_WORD:
+ mov.u32 %old,%r; shl.b32 %r,%r,1; setp.lt.s32 %p,%old,0; @!%p bra SEED_NEXT; xor.b32 %r,%r,175;
+ mul.wide.u32 %address,%j,4; add.u64 %address,%address,8; add.u64 %address,%state,%address; ld.global.u32 %v,[%address]; or.b32 %v,%v,%mask; st.global.u32 [%address],%v;
+SEED_NEXT: add.u32 %j,%j,1; setp.lt.u32 %p,%j,606; @%p bra SEED_WORD;
+ add.u32 %bit,%bit,1; setp.lt.u32 %p,%bit,30; @%p bra BIT_PLANE;
+ ld.global.u32 %v,[%state+2012]; or.b32 %v,%v,1; st.global.u32 [%state+2012],%v;
+ st.global.u32 [%state],607; st.global.u32 [%state+4],12345678; st.global.u64 [%state+2440],0x3e10000000000000;
+ st.param.u64 [us],%state; st.param.u64 [uo],0; st.param.s64 [step],8; st.param.u32 [count],999; call.uni md2asm_gpu_uniform_values,(us,uo,step,count); ret;
+}
+.func (.param .u32 result) random_range(.param .u64 base,.param .u64 bytes,.param .u64 mask,.param .u64 owners,.param .u32 count)
+{
+ .reg .u64 %b,%n,%m,%list,%t,%end,%o,%on,%oe; .reg .u32 %i,%count,%e; .reg .pred %p,%q;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %m,[mask]; ld.param.u64 %list,[owners]; ld.param.u32 %count,[count];
+ mov.u32 %e,0; setp.eq.u64 %p,%n,0; @%p bra RANGE_DONE;
+ mov.u32 %e,402; setp.eq.u64 %p,%b,0; @%p bra RANGE_DONE; and.b64 %t,%b,%m; setp.ne.u64 %p,%t,0; @%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra RANGE_DONE; setp.gt.u64 %p,%n,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ add.u64 %end,%b,%n; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ mov.u32 %i,0;
+RANGE_OWNERS:
+ setp.ge.u32 %p,%i,%count; @%p bra RANGE_OK; ld.u64 %o,[%list]; ld.u64 %on,[%list+8]; setp.eq.u64 %p,%on,0; @%p bra RANGE_NEXT;
+ add.u64 %oe,%o,%on; setp.lt.u64 %p,%b,%oe; setp.lt.u64 %q,%o,%end; and.pred %p,%p,%q; @%p bra RANGE_DONE;
+RANGE_NEXT: add.u64 %list,%list,16; add.u32 %i,%i,1; bra RANGE_OWNERS;
+RANGE_OK: mov.u32 %e,0;
+RANGE_DONE: st.param.u32 [result],%e; ret;
+}
+.visible .func md2asm_gpu_cloud_random_stream_fp64(.param .u64 original_vector,.param .u64 context,.param .u32 initialize_mode)
+{
+ .reg .u64 %args,%ctx,%first,%state,%list,%tmp,%base,%stride,%step,%low,%span,%lo,%hi,%diff,%mag,%high,%address;
+ .reg .u32 %mode,%unique,%rt,%error,%count,%used,%j,%word,%seed; .reg .pred %p0;
+ .local .align 8 .b8 spans[48]; .param .u64 b,n,m,l,us,uo; .param .s64 step; .param .u32 c,r,count,seed;
+ ld.param.u64 %args,[original_vector]; ld.param.u64 %ctx,[context]; ld.param.u32 %mode,[initialize_mode];
+ setp.eq.u64 %p0,%ctx,0; @%p0 ret; and.b64 %tmp,%ctx,7; setp.ne.u64 %p0,%tmp,0; @%p0 ret;
+ mov.u32 %unique,%ctaid.x; mov.u32 %rt,%ctaid.y; or.b32 %unique,%unique,%rt; mov.u32 %rt,%ctaid.z; or.b32 %unique,%unique,%rt;
+ mov.u32 %rt,%tid.x; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.y; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.z; or.b32 %unique,%unique,%rt; setp.ne.u32 %p0,%unique,0; @%p0 ret;
+ ld.global.u32 %error,[%ctx]; setp.ne.u32 %p0,%error,0; @%p0 ret; mov.u32 %error,401;
+ mov.u32 %rt,%nctaid.x; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%nctaid.y; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%nctaid.z; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%ntid.x; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%ntid.y; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%ntid.z; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%dynamic_smem_size; setp.ne.u32 %p0,%rt,0; @%p0 bra REFUSE;
+ ld.global.u32 %rt,[%ctx+4]; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ setp.gt.u32 %p0,%mode,1; @%p0 bra REFUSE;
+ mov.u64 %list,spans; cvta.local.u64 %list,%list;
+ st.param.u64 [b],%args; st.param.u64 [n],16; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],0; call.uni (r),random_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.global.u64 %first,[%args]; ld.global.u64 %state,[%args+8];
+ st.param.u64 [b],%state; st.param.u64 [n],2448; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],0; call.uni (r),random_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.u64 [%list],%state; st.u64 [%list+8],2448; st.u64 [%list+16],%ctx; st.u64 [%list+24],64;
+ st.param.u64 [b],%ctx; st.param.u64 [n],64; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],1; call.uni (r),random_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%args; st.param.u64 [n],16; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],2; call.uni (r),random_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ setp.eq.u32 %p0,%mode,0; @%p0 bra UNIFORM_METADATA;
+ st.param.u64 [b],%first; st.param.u64 [n],4; st.param.u64 [m],3; st.param.u64 [l],%list; st.param.u32 [c],2; call.uni (r),random_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.global.u32 %seed,[%first]; st.param.u32 [seed],%seed; st.param.u64 [us],%state; call.uni md2asm_gpu_initialize_random_stream,(seed,us); ret;
+UNIFORM_METADATA:
+ st.param.u64 [b],%first; st.param.u64 [n],64; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],2; call.uni (r),random_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.global.s64 %lo,[%first+48]; ld.global.s64 %hi,[%first+56]; mov.u32 %count,0;
+ setp.ge.s64 %p0,%hi,%lo; @%p0 bra NONEMPTY_DESCRIPTOR;
+ setp.eq.u64 %p0,%lo,0x8000000000000000; @%p0 bra REFUSE_META; sub.s64 %tmp,%lo,1; setp.ne.u64 %p0,%hi,%tmp; @%p0 bra REFUSE_META; bra STREAM_METADATA;
+NONEMPTY_DESCRIPTOR:
+ sub.u64 %diff,%hi,%lo; setp.gt.u64 %p0,%diff,2147483646; @%p0 bra REFUSE_META; cvt.u32.u64 %count,%diff; add.u32 %count,%count,1;
+ ld.global.u64 %base,[%first]; ld.global.s64 %stride,[%first+40]; setp.eq.u64 %p0,%stride,0; @%p0 mov.u64 %stride,1;
+ mov.u64 %mag,%stride; setp.lt.s64 %p0,%stride,0; @%p0 neg.s64 %mag,%stride;
+ mul.hi.u64 %high,%diff,%mag; setp.ne.u64 %p0,%high,0; @%p0 bra REFUSE_META; mul.lo.u64 %span,%diff,%mag; setp.gt.u64 %p0,%span,0x0ffffffffffffffe; @%p0 bra REFUSE_META;
+ shl.b64 %span,%span,3; mov.u64 %low,%base; setp.ge.s64 %p0,%stride,0; @%p0 bra SPAN_READY;
+ setp.le.u64 %p0,%base,%span; @%p0 bra REFUSE_META; sub.u64 %low,%base,%span;
+SPAN_READY: add.u64 %span,%span,8; shl.b64 %step,%stride,3;
+ st.param.u64 [b],%low; st.param.u64 [n],%span; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],2; call.uni (r),random_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.u64 [%list+32],%low; st.u64 [%list+40],%span;
+ st.u64 [%list],%low; st.u64 [%list+8],%span;
+ st.param.u64 [b],%args; st.param.u64 [n],16; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],1; call.uni (r),random_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%first; st.param.u64 [n],64; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],1; call.uni (r),random_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+STREAM_METADATA:
+ mov.u32 %error,403; ld.global.u32 %word,[%state+4]; setp.ne.u32 %p0,%word,12345678; @%p0 bra REFUSE;
+ ld.global.u32 %used,[%state]; setp.gt.u32 %p0,%used,607; @%p0 bra REFUSE;
+ ld.global.u64 %tmp,[%state+2440]; setp.ne.u64 %p0,%tmp,0x3e10000000000000; @%p0 bra REFUSE;
+ setp.eq.u32 %p0,%count,0; @%p0 ret; mov.u32 %j,0;
+VALIDATE_WORD:
+ mul.wide.u32 %address,%j,4; add.u64 %address,%address,8; add.u64 %address,%state,%address; ld.global.u32 %word,[%address]; setp.gt.u32 %p0,%word,0x3fffffff; @%p0 bra REFUSE;
+ add.u32 %j,%j,1; setp.lt.u32 %p0,%j,607; @%p0 bra VALIDATE_WORD;
+ st.param.u64 [us],%state; st.param.u64 [uo],%base; st.param.s64 [step],%step; st.param.u32 [count],%count; call.uni md2asm_gpu_uniform_values,(us,uo,step,count); ret;
+REFUSE_META: mov.u32 %error,402;
+REFUSE: st.global.u32 [%ctx],%error; ret;
+}
+
+.visible .entry md2asm_gpu_uniform_distribution(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %a,%c; .param .u64 a,c; .param .u32 mode; ld.param.u64 %a,[original_vector]; ld.param.u64 %c,[context]; st.param.u64 [a],%a; st.param.u64 [c],%c; st.param.u32 [mode],0; call.uni md2asm_gpu_cloud_random_stream_fp64,(a,c,mode); ret;
+}
+.visible .entry md2asm_gpu_initialize_random_numbers(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %a,%c; .param .u64 a,c; .param .u32 mode; ld.param.u64 %a,[original_vector]; ld.param.u64 %c,[context]; st.param.u64 [a],%a; st.param.u64 [c],%c; st.param.u32 [mode],1; call.uni md2asm_gpu_cloud_random_stream_fp64,(a,c,mode); ret;
+}

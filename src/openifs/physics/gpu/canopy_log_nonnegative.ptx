@@ -1,0 +1,17 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Frozen local public-LOG zero boundary from the retained component contract revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_log_positive_finite(.param .b64 input_word);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 numerator,.param .b64 denominator);
+.visible .func (.param .align 8 .b8 result[32]) md2asm_gpu_canopy_log_nonnegative(.param .b64 input_word)
+{
+.reg .b64 %word,%magnitude,%value;.reg .u32 %flags,%event;.reg .pred %zero;
+.param .b64 argument,numerator,denominator;.param .align 8 .b8 returned[16];
+ld.param.b64 %word,[input_word];and.b64 %magnitude,%word,0x7fffffffffffffff;setp.eq.u64 %zero,%magnitude,0;@%zero bra ZERO_BOUNDARY;
+st.param.b64 [argument],%word;call.uni (returned),md2asm_gpu_log_positive_finite,(argument);ld.param.b64 %value,[returned];ld.param.u32 %flags,[returned+8];mov.u32 %event,0;bra RETURN_LOG;
+ZERO_BOUNDARY:st.param.b64 [numerator],0xbff0000000000000;st.param.b64 [denominator],0;call.uni (returned),md2asm_gpu_div_status,(numerator,denominator);ld.param.b64 %value,[returned];ld.param.u32 %flags,[returned+8];mov.u32 %event,34;
+RETURN_LOG:st.param.b64 [result],%value;st.param.u32 [result+8],%flags;st.param.u32 [result+12],%event;st.param.u64 [result+16],0;st.param.u64 [result+24],0;ret;
+}

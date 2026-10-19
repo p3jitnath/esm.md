@@ -1,0 +1,1108 @@
+/* GPU physical setup route. Original interface and ordered arithmetic are preserved.
+ * Contract: skills/md2asm-gpu/references/openifs/setup/physical_setup.md
+ * Original source: src/openifs/setup/soil_parameter_fields.S
+ */
+#include "../../support/gpu/preserved_scalar_calls.inc.S"
+.equ SOIL_NSOTY,0
+.equ SOIL_RRCSOIL,8
+.equ SOIL_RLAMBDADRY,16
+.equ SOIL_RLAMSAT1,24
+.equ SOIL_RLAMBDAICE,32
+.equ SOIL_RLAMBDAWAT,40
+.equ SOIL_RKERST1,48
+.equ SOIL_RKERST2,56
+.equ SOIL_RKERST3,64
+.equ SOIL_RSRDEP,72
+.equ SOIL_RSIGORMIN,80
+.equ SOIL_RSIGORMAX,88
+.equ SOIL_RWB,96
+.equ SOIL_RCWPSIS,104
+.equ SOIL_RWCONS,112
+.equ SOIL_RWSAT,120
+.equ SOIL_RWCAP,128
+.equ SOIL_RWPWP,136
+.equ SOIL_RSIMP,144
+.equ SOIL_RLICE,152
+.equ SOIL_RGH2O,160
+.equ SOIL_RQWEVAP,168
+.equ SOIL_RQWSBCR,176
+.equ SOIL_RQSNCR,184
+.equ SOIL_RWLMAX,192
+.equ SOIL_RPSFR,200
+.equ SOIL_RTF1,208
+.equ SOIL_RTF2,216
+.equ SOIL_RTF3,224
+.equ SOIL_RTF4,232
+.equ SOIL_RTFREEZSICE,240
+.equ SOIL_RTMELTSICE,248
+.equ SOIL_RDARSICE,256
+.equ SOIL_RDANSICE,264
+.equ SOIL_RCONDSICE,272
+.equ SOIL_RDFSICE,280
+.equ SOIL_RCIMIN,288
+.equ SOIL_RHOICE,296
+.equ SOIL_RLAMICE,304
+.equ SOIL_RHOCI,312
+.equ SOIL_RALFMINSN,320
+.equ SOIL_RALFMINPSN,328
+.equ SOIL_RALFMAXSN,336
+.equ SOIL_RSNPER,344
+.equ SOIL_RHOMINSN,352
+.equ SOIL_RHOMAXSN,360
+.equ SOIL_RTAUF,368
+.equ SOIL_RTAUA,376
+.equ SOIL_RSFRESH,384
+.equ SOIL_RFRSMALL,392
+.equ SOIL_RFRTINY,400
+.equ SOIL_RALAMSN,408
+.equ SOIL_RDSNMAX,416
+.equ SOIL_RRCSICE,424
+.equ SOIL_RTHRFRTI,432
+.equ SOIL_LEVGEN,440
+.equ SOIL_LESSRO,444
+.equ SOIL_LESN09,448
+.equ SOIL_LESNML,452
+.equ SOIL_LESNWD,456
+.equ SOIL_LESNRF,460
+.equ SOIL_LESNRSN,464
+.equ SOIL_LESNWP,468
+.equ SOIL_LESNFA,472
+.equ SOIL_LESNCF,476
+.equ SOIL_LESNAS,480
+.equ SOIL_NLEVSN,484
+.equ SOIL_NSNMLWS,488
+.equ SOIL_RCWPSISM,496
+.equ SOIL_RMVGALPHA,560
+.equ SOIL_RWCONSM,624
+.equ SOIL_RMFACM,688
+.equ SOIL_RNFACM,752
+.equ SOIL_RLAMBDAM,816
+.equ SOIL_RWSATM,880
+.equ SOIL_RWCAPM,944
+.equ SOIL_RWPWPM,1008
+.equ SOIL_RWRESTM,1072
+.equ SOIL_RDMAXM,1136
+.equ SOIL_RDMINM,1200
+.equ SOIL_RQWEVAPM,1264
+.equ SOIL_RQWSBCRM,1328
+.equ SOIL_RLAMBDADRYM,1392
+.equ SOIL_RLAMSAT1M,1456
+.equ SOIL_RRCSOILM,1520
+.equ SOIL_RDAT,1584
+.equ SOIL_RDAW,1648
+.equ SOIL_RDAI,1712
+.equ SOIL_RLWCSWEA,1776
+.equ SOIL_RLWCSWEB,1784
+.equ SOIL_RLWCSWEC,1792
+.equ SOIL_RTEMPAMP,1800
+.equ SOIL_RHOMINSNA,1808
+.equ SOIL_RHOMINSNB,1816
+.equ SOIL_RHOMINSNC,1824
+.equ SOIL_RHOMINSND,1832
+.equ SOIL_RSNDTOVERA,1840
+.equ SOIL_RSNDTOVERB,1848
+.equ SOIL_RSNDTOVERC,1856
+.equ SOIL_RSNDTDESTA,1864
+.equ SOIL_RSNDTDESTB,1872
+.equ SOIL_RSNDTDESTC,1880
+.equ SOIL_RSNDTDESTROI,1888
+.equ SOIL_RSNDTDESTC_ML,1896
+.equ SOIL_RHOMAXSN_NEW,1960
+.equ SOIL_RSNDAMOB,1968
+.equ SOIL_RSNDMOB,1976
+.equ SOIL_RSNDAW,1984
+.equ SOIL_RSNDBW,1992
+.equ SOIL_RSNDKV,2000
+.equ SOIL_RSNDATAUW,2008
+.equ SOIL_RSNDBTAUW,2016
+.equ SOIL_RSNDWCOMPMAX,2024
+.equ SOIL_SSAG1,2032
+.equ SOIL_SSAG2,2040
+.equ SOIL_SSAG3,2048
+.equ SOIL_SSAGSNSMAX,2056
+.equ SOIL_SSASNEXTMIN,2064
+.equ SOIL_SSASNEXTMAX,2072
+.equ SOIL_SSASNEXTCNST,2080
+.equ SOIL_SNHCONDAV,2088
+.equ SOIL_SNHCONDBV,2096
+.equ SOIL_SNHCONDCV,2104
+.equ SOIL_SNHCONDPOV,2112
+.equ SOIL_RLEVSNMIN,2120
+.equ SOIL_RLEVSNMAX,2184
+.equ SOIL_RLEVSNMIN_GL,2248
+.equ SOIL_RLEVSNMAX_GL,2312
+.equ SOIL_LESKTI5,2376
+.equ SOIL_LESKTI8,2380
+.equ SOIL_LESOILCOND,2384
+.equ SOIL_LEROLAKE,2388
+.equ SOIL_LEWBSOILFIX,2392
+.equ SOIL_LEWBCHECK,2396
+.equ SOIL_LEWBCHECKAbort,2400
+.equ SOIL_LESNCHECK,2404
+.equ SOIL_LESNCHECKAbort,2408
+.equ SOIL_LESNWBCON,2412
+.equ VEG_NVTYPES,0
+.equ VEG_NVTILES,4
+.equ VEG_RVCOV,8
+.equ VEG_RVLAI,72
+.equ VEG_RVROOTSA,136
+.equ VEG_RVLAMSK,224
+.equ VEG_RVLAMSKS,288
+.equ VEG_RVTRSR,352
+.equ VEG_RVZ0M,416
+.equ VEG_RVZ0H,480
+.equ VEG_REPEVAP,544
+.equ VEG_RVINTER,552
+.equ VEG_RCEPSW,560
+.equ VEG_RVRSMIN,568
+.equ VEG_RVHSTR,632
+.equ VEG_RLHAERO,696
+.equ VEG_RLHAEROS,704
+.equ VEG_RCVC,712
+.equ VEG_RVLT,720
+.equ VEG_RVRAD,728
+.equ VEG_REPSR,736
+.equ VEG_RLAIINT,744
+.equ VEG_LELAIV,752
+.equ VEG_LECTESSEL,756
+.equ VEG_LEAGS,760
+.equ VEG_LEFARQUHAR,764
+.equ VEG_LEAIRCO2COUP,768
+.equ VEG_LFACO2BIOFLUX,772
+.equ EXC_LELWDD,0
+.equ EXC_LELWTL,4
+.equ EXC_LEOCWA,8
+.equ EXC_LEOCCO,12
+.equ EXC_LWCOU,16
+.equ EXC_LWCOU2W,20
+.equ EXC_LWCOUHMF,24
+.equ EXC_LEOCSA,28
+.equ EXC_LEOCLA,32
+.equ EXC_LSCMEC,36
+.equ EXC_LROUGH,40
+.equ EXC_REXTZ0M,48
+.equ EXC_REXTZ0H,56
+.equ EXC_RKAP,64
+.equ EXC_REPDU2,72
+.equ EXC_RPARZI,80
+.equ EXC_RZ0ICE,88
+.equ EXC_REPUST,96
+.equ EXC_RNU,104
+.equ EXC_RNUM,112
+.equ EXC_RNUH,120
+.equ EXC_RNUQ,128
+.equ EXC_RCHAR,136
+.equ DIM_NCSS,0
+.equ DIM_NTILES,4
+.equ DIM_NMONTH,8
+.equ DIM_NCSNEC,12
+.text
+.p2align 2
+.global md2asm_soil_parameter_fields
+.type md2asm_soil_parameter_fields,%function
+md2asm_soil_parameter_fields:
+ stp x29,x30,[sp,#-512]!
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ stp d8,d9,[sp,#112]
+ stp d10,d11,[sp,#128]
+ stp d12,d13,[sp,#144]
+ stp d14,d15,[sp,#160]
+ mov x29,sp
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ adrp x22,.Lsoil_constants
+ add x22,x22,:lo12:.Lsoil_constants
+ ldr d0,[x22,#C_s_RLICE]
+ str d0,[x19,#SOIL_RLICE]
+ ldr d0,[x22,#C_s_RGH2O]
+ str d0,[x19,#SOIL_RGH2O]
+ ldr d0,[x22,#C_s_RWLMAX]
+ str d0,[x19,#SOIL_RWLMAX]
+ ldr d0,[x22,#C_s_RPSFR]
+ str d0,[x19,#SOIL_RPSFR]
+ ldr d0,[x22,#C_s_RLAMBDAICE]
+ str d0,[x19,#SOIL_RLAMBDAICE]
+ ldr d0,[x22,#C_s_RLAMBDAWAT]
+ str d0,[x19,#SOIL_RLAMBDAWAT]
+ ldr d0,[x22,#C_s_RKERST1]
+ str d0,[x19,#SOIL_RKERST1]
+ ldr d0,[x22,#C_s_RKERST2]
+ str d0,[x19,#SOIL_RKERST2]
+ ldr d0,[x22,#C_s_RKERST3]
+ str d0,[x19,#SOIL_RKERST3]
+ ldr d0,[x22,#C_s_RSIMP]
+ str d0,[x19,#SOIL_RSIMP]
+ ldr d0,[x22,#C_s_RDARSICE]
+ str d0,[x19,#SOIL_RDARSICE]
+ ldr d0,[x22,#C_s_RDANSICE]
+ str d0,[x19,#SOIL_RDANSICE]
+ ldr d0,[x22,#C_s_RRCSICE]
+ str d0,[x19,#SOIL_RRCSICE]
+ ldr d0,[x22,#C_s_RCONDSICE]
+ str d0,[x19,#SOIL_RCONDSICE]
+ ldr d0,[x22,#C_s_RCIMIN]
+ str d0,[x19,#SOIL_RCIMIN]
+ ldr d0,[x22,#C_s_RSRDEP]
+ str d0,[x19,#SOIL_RSRDEP]
+ ldr d0,[x22,#C_s_RSIGORMIN]
+ str d0,[x19,#SOIL_RSIGORMIN]
+ ldr d0,[x22,#C_s_RSIGORMAX]
+ str d0,[x19,#SOIL_RSIGORMAX]
+ ldr d0,[x22,#C_s_RHOICE]
+ str d0,[x19,#SOIL_RHOICE]
+ ldr d0,[x22,#C_s_RLAMICE]
+ str d0,[x19,#SOIL_RLAMICE]
+ ldr d0,[x22,#C_s_RHOCI]
+ str d0,[x19,#SOIL_RHOCI]
+ ldr d0,[x22,#C_s_RALFMINSN]
+ str d0,[x19,#SOIL_RALFMINSN]
+ ldr d0,[x22,#C_s_RALFMAXSN]
+ str d0,[x19,#SOIL_RALFMAXSN]
+ ldr d0,[x22,#C_s_RHOMAXSN_NEW]
+ str d0,[x19,#SOIL_RHOMAXSN_NEW]
+ ldr d0,[x22,#C_s_RHOMAXSN]
+ str d0,[x19,#SOIL_RHOMAXSN]
+ ldr d0,[x22,#C_s_RSNPER]
+ str d0,[x19,#SOIL_RSNPER]
+ ldr d0,[x22,#C_s_RHOMINSN]
+ str d0,[x19,#SOIL_RHOMINSN]
+ ldr d0,[x22,#C_s_RTAUF]
+ str d0,[x19,#SOIL_RTAUF]
+ ldr d0,[x22,#C_s_RTAUA]
+ str d0,[x19,#SOIL_RTAUA]
+ ldr d0,[x22,#C_s_RFRTINY]
+ str d0,[x19,#SOIL_RFRTINY]
+ ldr d0,[x22,#C_s_RALAMSN]
+ str d0,[x19,#SOIL_RALAMSN]
+ ldr d0,[x22,#C_s_RDSNMAX]
+ str d0,[x19,#SOIL_RDSNMAX]
+ ldr d0,[x22,#C_s_RLWCSWEA]
+ str d0,[x19,#SOIL_RLWCSWEA]
+ ldr d0,[x22,#C_s_RLWCSWEB]
+ str d0,[x19,#SOIL_RLWCSWEB]
+ ldr d0,[x22,#C_s_RLWCSWEC]
+ str d0,[x19,#SOIL_RLWCSWEC]
+ ldr d0,[x22,#C_s_RTEMPAMP]
+ str d0,[x19,#SOIL_RTEMPAMP]
+ ldr d0,[x22,#C_s_RHOMINSNA]
+ str d0,[x19,#SOIL_RHOMINSNA]
+ ldr d0,[x22,#C_s_RHOMINSNB]
+ str d0,[x19,#SOIL_RHOMINSNB]
+ ldr d0,[x22,#C_s_RHOMINSNC]
+ str d0,[x19,#SOIL_RHOMINSNC]
+ ldr d0,[x22,#C_s_RHOMINSND]
+ str d0,[x19,#SOIL_RHOMINSND]
+ ldr d0,[x22,#C_s_RSNDTOVERA]
+ str d0,[x19,#SOIL_RSNDTOVERA]
+ ldr d0,[x22,#C_s_RSNDTOVERB]
+ str d0,[x19,#SOIL_RSNDTOVERB]
+ ldr d0,[x22,#C_s_RSNDTOVERC]
+ str d0,[x19,#SOIL_RSNDTOVERC]
+ ldr d0,[x22,#C_s_RSNDAMOB]
+ str d0,[x19,#SOIL_RSNDAMOB]
+ ldr d0,[x22,#C_s_RSNDMOB]
+ str d0,[x19,#SOIL_RSNDMOB]
+ ldr d0,[x22,#C_s_RSNDAW]
+ str d0,[x19,#SOIL_RSNDAW]
+ ldr d0,[x22,#C_s_RSNDBW]
+ str d0,[x19,#SOIL_RSNDBW]
+ ldr d0,[x22,#C_s_RSNDKV]
+ str d0,[x19,#SOIL_RSNDKV]
+ ldr d0,[x22,#C_s_RSNDATAUW]
+ str d0,[x19,#SOIL_RSNDATAUW]
+ ldr d0,[x22,#C_s_RSNDBTAUW]
+ str d0,[x19,#SOIL_RSNDBTAUW]
+ ldr d0,[x22,#C_s_RSNDWCOMPMAX]
+ str d0,[x19,#SOIL_RSNDWCOMPMAX]
+ ldr d0,[x22,#C_s_RSNDTDESTA]
+ str d0,[x19,#SOIL_RSNDTDESTA]
+ ldr d0,[x22,#C_s_RSNDTDESTB]
+ str d0,[x19,#SOIL_RSNDTDESTB]
+ ldr d0,[x22,#C_s_RSNDTDESTC]
+ str d0,[x19,#SOIL_RSNDTDESTC]
+ ldr d0,[x22,#C_s_RSNDTDESTROI]
+ str d0,[x19,#SOIL_RSNDTDESTROI]
+ ldr d0,[x22,#C_s_SSAG1]
+ str d0,[x19,#SOIL_SSAG1]
+ ldr d0,[x22,#C_s_SSAG2]
+ str d0,[x19,#SOIL_SSAG2]
+ ldr d0,[x22,#C_s_SSAG3]
+ str d0,[x19,#SOIL_SSAG3]
+ ldr d0,[x22,#C_s_SSAGSNSMAX]
+ str d0,[x19,#SOIL_SSAGSNSMAX]
+ ldr d0,[x22,#C_s_SSASNEXTMIN]
+ str d0,[x19,#SOIL_SSASNEXTMIN]
+ ldr d0,[x22,#C_s_SSASNEXTMAX]
+ str d0,[x19,#SOIL_SSASNEXTMAX]
+ ldr d0,[x22,#C_s_SSASNEXTCNST]
+ str d0,[x19,#SOIL_SSASNEXTCNST]
+ ldr d0,[x22,#C_s_SNHCONDAV]
+ str d0,[x19,#SOIL_SNHCONDAV]
+ ldr d0,[x22,#C_s_SNHCONDBV]
+ str d0,[x19,#SOIL_SNHCONDBV]
+ ldr d0,[x22,#C_s_SNHCONDCV]
+ str d0,[x19,#SOIL_SNHCONDCV]
+ ldr w9,[x21]
+ str w9,[x19,#SOIL_LEVGEN]
+ ldr w9,[x21,#4]
+ str w9,[x19,#SOIL_LESSRO]
+ ldr w9,[x21,#8]
+ str w9,[x19,#SOIL_LESN09]
+ ldr w9,[x21,#12]
+ str w9,[x19,#SOIL_LESNML]
+ ldr w9,[x21,#16]
+ str w9,[x19,#SOIL_NSNMLWS]
+ mov w9,#7
+ str w9,[x19,#SOIL_NSOTY]
+ mov w9,#5
+ str w9,[x19,#SOIL_NLEVSN]
+ ldr d0,[x22,#C_one]
+ ldr d1,[x22,#C_fifteen]
+ ldr w9,[x21,#8]
+ cbz w9,1f
+ ldr d1,[x22,#C_ten]
+1:
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ str d0,[x19,#SOIL_RQSNCR]
+ add x0,sp,#176
+ bl md2asm_soil_texture_average_fields
+ ldr x10,[x19,#SOIL_RDAT]
+ adr x11,.Lsoil_depth
+ ldp q0,q1,[x11]
+ stp q0,q1,[x10]
+ ldr x10,[x19,#SOIL_RDAW]
+ adr x11,.Lsoil_depth
+ ldp q0,q1,[x11]
+ stp q0,q1,[x10]
+ ldr x10,[x19,#SOIL_RDAI]
+ adr x11,.Lsoil_depth
+ ldp q0,q1,[x11]
+ stp q0,q1,[x10]
+ ldr x10,[x19,#SOIL_RCWPSISM]
+ str xzr,[x10]
+ ldr x10,[x19,#SOIL_RMVGALPHA]
+ str xzr,[x10]
+ ldr x10,[x19,#SOIL_RWCONSM]
+ str xzr,[x10]
+ ldr x10,[x19,#SOIL_RMFACM]
+ str xzr,[x10]
+ ldr x10,[x19,#SOIL_RNFACM]
+ str xzr,[x10]
+ ldr x10,[x19,#SOIL_RLAMBDAM]
+ str xzr,[x10]
+ ldr x10,[x19,#SOIL_RWSATM]
+ str xzr,[x10]
+ ldr x10,[x19,#SOIL_RWCAPM]
+ str xzr,[x10]
+ ldr x10,[x19,#SOIL_RWPWPM]
+ str xzr,[x10]
+ ldr x10,[x19,#SOIL_RWRESTM]
+ str xzr,[x10]
+ ldr x10,[x19,#SOIL_RDMAXM]
+ str xzr,[x10]
+ ldr x10,[x19,#SOIL_RDMINM]
+ str xzr,[x10]
+ ldr x10,[x19,#SOIL_RQWEVAPM]
+ str xzr,[x10]
+ ldr x10,[x19,#SOIL_RQWSBCRM]
+ str xzr,[x10]
+ ldr d8,[x22,#C_hundred]
+ ldr d0,[x22,#C_grav]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d8,destination,d8,real,x16,0,d0
+ ldr d9,[x22,#C_minus15]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d9,destination,d9,real,x16,0,d8
+ ldr d10,[x22,#C_minus10]
+ ldr w9,[x21]
+ cbnz w9,2f
+ ldr d10,[x22,#C_minus33]
+2:
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d10,destination,d10,real,x16,0,d8
+ mov x23,#1
+.Lsoil_hydro:
+ sub x9,x23,#1
+ adr x10,.Lsoil_alpha
+ ldr d11,[x10,x9,lsl #3]
+ adr x10,.Lsoil_ksat
+ ldr d12,[x10,x9,lsl #3]
+ adr x10,.Lsoil_n
+ ldr d13,[x10,x9,lsl #3]
+ adr x10,.Lsoil_lambda
+ ldr d14,[x10,x9,lsl #3]
+ adr x10,.Lsoil_sat
+ ldr d15,[x10,x9,lsl #3]
+ adr x10,.Lsoil_res
+ ldr d8,[x10,x9,lsl #3]
+ ldr x10,[x19,#SOIL_RMVGALPHA]
+ str d11,[x10,x23,lsl #3]
+ ldr x10,[x19,#SOIL_RWCONSM]
+ str d12,[x10,x23,lsl #3]
+ ldr x10,[x19,#SOIL_RNFACM]
+ str d13,[x10,x23,lsl #3]
+ ldr x10,[x19,#SOIL_RLAMBDAM]
+ str d14,[x10,x23,lsl #3]
+ ldr x10,[x19,#SOIL_RWSATM]
+ str d15,[x10,x23,lsl #3]
+ ldr x10,[x19,#SOIL_RWRESTM]
+ str d8,[x10,x23,lsl #3]
+ ldr d0,[x22,#C_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d11
+ ldr x10,[x19,#SOIL_RCWPSISM]
+ str d0,[x10,x23,lsl #3]
+ ldr d0,[x22,#C_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d1,destination,d0,real,x16,0,d13
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d1
+ ldr x10,[x19,#SOIL_RMFACM]
+ str d0,[x10,x23,lsl #3]
+ str d0,[sp,#320]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d15,real,x16,0,d8
+ str d0,[sp,#328]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d11,real,x16,0,d10
+ md2asm_gpu_preserved_scalar md2asm_gpu_soil_water_cell_host,16,d0,destination,d0,real,x16,0,zero
+ fmov d1,d13
+ bl pow
+ ldr x18,[x29,#96]
+ ldr d1,[x22,#C_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d1,real,x16,0,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d1,real,x16,0,d0
+ ldr d1,[sp,#320]
+ bl pow
+ ldr x18,[x29,#96]
+ ldr d1,[sp,#328]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d8,real,x16,0,d0
+ ldr x10,[x19,#SOIL_RWCAPM]
+ str d0,[x10,x23,lsl #3]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d11,real,x16,0,d9
+ md2asm_gpu_preserved_scalar md2asm_gpu_soil_water_cell_host,16,d0,destination,d0,real,x16,0,zero
+ fmov d1,d13
+ bl pow
+ ldr x18,[x29,#96]
+ ldr d1,[x22,#C_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d1,real,x16,0,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d1,real,x16,0,d0
+ ldr d1,[sp,#320]
+ bl pow
+ ldr x18,[x29,#96]
+ ldr d1,[sp,#328]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d8,real,x16,0,d0
+ ldr x10,[x19,#SOIL_RWPWPM]
+ str d0,[x10,x23,lsl #3]
+ ldr d0,[sp,#328]
+ md2asm_gpu_preserved_scalar md2asm_gpu_soil_water_cell_host,16,d0,destination,d0,real,x16,0,zero
+ ldr d1,[x22,#C_eps]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,5,d0,destination,d0,real,x16,0,d1
+ ldr x9,[sp,#328]
+ fmov x10,d0
+ lsr x9,x9,#63
+ bfi x10,x9,#63,#1
+ fmov d0,x10
+ str d0,[sp,#336]
+ ldr d0,[x22,#C_maxfac]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d15
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d8
+ ldr d1,[sp,#336]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ ldr d1,[sp,#320]
+ fmov d2,d14
+ fmov d3,d11
+ fmov d4,d12
+ ldr d5,[sp,#336]
+ bl .Lsoil_diffusivity
+ ldr x10,[x19,#SOIL_RDMAXM]
+ str d0,[x10,x23,lsl #3]
+ ldr d0,[x22,#C_minfac]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d8
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d8
+ ldr d1,[sp,#336]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ ldr d1,[sp,#320]
+ fmov d2,d14
+ fmov d3,d11
+ fmov d4,d12
+ ldr d5,[sp,#336]
+ bl .Lsoil_diffusivity
+ ldr x10,[x19,#SOIL_RDMINM]
+ str d0,[x10,x23,lsl #3]
+ ldr x10,[x19,#SOIL_RWCAPM]
+ ldr d0,[x10,x23,lsl #3]
+ ldr x10,[x19,#SOIL_RWPWPM]
+ ldr d1,[x10,x23,lsl #3]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x22,#C_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d1,real,x16,0,d0
+ ldr x10,[x19,#SOIL_RQWEVAPM]
+ str d0,[x10,x23,lsl #3]
+ ldr x10,[x19,#SOIL_RWCAPM]
+ ldr d0,[x10,x23,lsl #3]
+ ldr d1,[x22,#C_one6]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ ldr d1,[x20,#8]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d1,real,x16,0,d0
+ ldr x10,[x19,#SOIL_RQWSBCRM]
+ str d0,[x10,x23,lsl #3]
+ add x23,x23,#1
+ cmp x23,#8
+ b.ne .Lsoil_hydro
+ ldr d0,[sp,#304]
+ str d0,[x19,#SOIL_RWB]
+ ldr d0,[sp,#256]
+ str d0,[x19,#SOIL_RWCONS]
+ ldr d0,[sp,#280]
+ str d0,[x19,#SOIL_RCWPSIS]
+ ldr d0,[sp,#184]
+ str d0,[x19,#SOIL_RWSAT]
+ ldr d0,[sp,#208]
+ str d0,[x19,#SOIL_RWCAP]
+ ldr d1,[sp,#232]
+ str d1,[x19,#SOIL_RWPWP]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x22,#C_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d1,real,x16,0,d0
+ str d0,[x19,#SOIL_RQWEVAP]
+ ldr d0,[x19,#SOIL_RWCAP]
+ ldr d1,[x22,#C_one6]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x20,#8]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d1,real,x16,0,d0
+ str d0,[x19,#SOIL_RQWSBCR]
+ ldr d0,[x22,#C_lambdaq]
+ ldr d1,[x22,#C_q]
+ bl pow
+ ldr x18,[x29,#96]
+ fmov d8,d0
+ ldr d0,[x22,#C_lambdao]
+ ldr d1,[x22,#C_one]
+ ldr d2,[x22,#C_q]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d1,destination,d1,real,x16,0,d2
+ bl pow
+ ldr x18,[x29,#96]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d8,destination,d8,real,x16,0,d0
+ mov x23,#1
+.Lsoil_thermal:
+ ldr x10,[x19,#SOIL_RWSATM]
+ ldr d9,[x10,x23,lsl #3]
+ ldr d0,[x22,#C_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d9,destination,d0,real,x16,0,d9
+ ldr d0,[x22,#C_rhosm]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d10,destination,d9,real,x16,0,d0
+ ldr d0,[x22,#C_therma]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d10
+ ldr d1,[x22,#C_thermb]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x22,#C_thermc_sp]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d10
+ ldr d2,[x22,#C_rhosm]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d1,destination,d2,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ ldr x10,[x19,#SOIL_RLAMBDADRYM]
+ sub x9,x23,#1
+ str d0,[x10,x9,lsl #3]
+ fmov d0,d8
+ fmov d1,d9
+ bl pow
+ ldr x18,[x29,#96]
+ ldr x10,[x19,#SOIL_RLAMSAT1M]
+ sub x9,x23,#1
+ str d0,[x10,x9,lsl #3]
+ ldr d0,[x22,#C_rcgdry]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d9,real,x16,0,d0
+ ldr x10,[x19,#SOIL_RWCAPM]
+ ldr d1,[x10,x23,lsl #3]
+ ldr d2,[x22,#C_rgh2o]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d2
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
+ ldr x10,[x19,#SOIL_RRCSOILM]
+ sub x9,x23,#1
+ str d0,[x10,x9,lsl #3]
+ add x23,x23,#1
+ cmp x23,#8
+ b.ne .Lsoil_thermal
+ ldr d9,[x19,#SOIL_RWSAT]
+ ldr d0,[x22,#C_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d9,destination,d0,real,x16,0,d9
+ ldr d0,[x22,#C_rhosm]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d10,destination,d9,real,x16,0,d0
+ ldr d0,[x22,#C_therma]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d10
+ ldr d1,[x22,#C_thermb]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x22,#C_thermc]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d10
+ ldr d2,[x22,#C_rhosm]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d1,destination,d2,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ str d0,[x19,#SOIL_RLAMBDADRY]
+ fmov d0,d8
+ fmov d1,d9
+ bl pow
+ ldr x18,[x29,#96]
+ str d0,[x19,#SOIL_RLAMSAT1]
+ ldr d0,[x22,#C_rcgdry]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d9,real,x16,0,d0
+ ldr d1,[x19,#SOIL_RWCAP]
+ ldr d2,[x22,#C_rgh2o]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d2
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
+ str d0,[x19,#SOIL_RRCSOIL]
+ ldr d0,[x20]
+ ldr d1,[x22,#C_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d1,destination,d0,real,x16,0,d1
+ str d1,[x19,#SOIL_RTF1]
+ ldr d2,[x22,#C_three]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d2,destination,d0,real,x16,0,d2
+ str d2,[x19,#SOIL_RTF2]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d3,destination,d1,real,x16,0,d2
+ ldr d4,[x22,#C_half]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d3,destination,d4,real,x16,0,d3
+ str d3,[x19,#SOIL_RTF3]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d1,destination,d1,real,x16,0,d2
+ ldr d2,[x20,#8]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d1,destination,d2,real,x16,0,d1
+ str d1,[x19,#SOIL_RTF4]
+ ldr d1,[x22,#C_ice_delta]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d1,destination,d0,real,x16,0,d1
+ str d1,[x19,#SOIL_RTFREEZSICE]
+ str d0,[x19,#SOIL_RTMELTSICE]
+ ldr d0,[x19,#SOIL_RCONDSICE]
+ ldr d1,[x19,#SOIL_RRCSICE]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ str d0,[x19,#SOIL_RDFSICE]
+ ldr d0,[x21,#96]
+ str d0,[x19,#SOIL_RCIMIN]
+ ldr d0,[x21,#88]
+ str d0,[x19,#SOIL_RALFMINPSN]
+ ldr d0,[x22,#C_one]
+ ldr d1,[x22,#C_secs]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ str d0,[x19,#SOIL_RSFRESH]
+ ldr d0,[x19,#SOIL_RFRTINY]
+ ldr d1,[x22,#C_ten]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ str d0,[x19,#SOIL_RFRSMALL]
+ ldr d0,[x22,#C_thousand]
+ ldr d1,[x22,#C_hundred]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d1
+ str d0,[x19,#SOIL_SNHCONDPOV]
+ ldr d0,[x21,#80]
+ str d0,[x19,#SOIL_RTHRFRTI]
+ ldr x10,[x19,#SOIL_RSNDTDESTC_ML]
+ adr x11,.Lsoil_snowdest
+ ldp q0,q1,[x11]
+ stp q0,q1,[x10]
+ ldr x9,[x11,#32]
+ str x9,[x10,#32]
+ ldr x10,[x19,#SOIL_RLEVSNMIN]
+ adr x11,.Lsoil_snowmin
+ ldp q0,q1,[x11]
+ stp q0,q1,[x10]
+ ldr x9,[x11,#32]
+ str x9,[x10,#32]
+ ldr x10,[x19,#SOIL_RLEVSNMAX]
+ adr x11,.Lsoil_snowmax
+ ldp q0,q1,[x11]
+ stp q0,q1,[x10]
+ ldr x9,[x11,#32]
+ str x9,[x10,#32]
+ ldr x10,[x19,#SOIL_RLEVSNMIN_GL]
+ adr x11,.Lsoil_snowmingl
+ ldp q0,q1,[x11]
+ stp q0,q1,[x10]
+ ldr x9,[x11,#32]
+ str x9,[x10,#32]
+ ldr x10,[x19,#SOIL_RLEVSNMAX_GL]
+ adr x11,.Lsoil_snowmaxgl
+ ldp q0,q1,[x11]
+ stp q0,q1,[x10]
+ ldr x9,[x11,#32]
+ str x9,[x10,#32]
+ mov w9,#0
+ str w9,[x19,#SOIL_LESKTI5]
+ mov w9,#0
+ str w9,[x19,#SOIL_LESKTI8]
+ mov w9,#1
+ str w9,[x19,#SOIL_LESOILCOND]
+ mov w9,#0
+ str w9,[x19,#SOIL_LEROLAKE]
+ mov w9,#1
+ str w9,[x19,#SOIL_LEWBSOILFIX]
+ mov w9,#0
+ str w9,[x19,#SOIL_LEWBCHECK]
+ mov w9,#0
+ str w9,[x19,#SOIL_LEWBCHECKAbort]
+ mov w9,#0
+ str w9,[x19,#SOIL_LESNCHECK]
+ mov w9,#0
+ str w9,[x19,#SOIL_LESNCHECKAbort]
+ mov w9,#0
+ str w9,[x19,#SOIL_LESNWBCON]
+ ldp d8,d9,[sp,#112]
+ ldp d10,d11,[sp,#128]
+ ldp d12,d13,[sp,#144]
+ ldp d14,d15,[sp,#160]
+ ldr x18,[sp,#96]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ .if 512 > 504
+ ldp x29,x30,[sp]
+ add sp,sp,#512
+ .else
+ ldp x29,x30,[sp],#512
+ .endif
+ ret
+.size md2asm_soil_parameter_fields,.-md2asm_soil_parameter_fields
+.Lsoil_diffusivity:
+ stp x29,x30,[sp,#-256]!
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ stp d8,d9,[sp,#112]
+ stp d10,d11,[sp,#128]
+ stp d12,d13,[sp,#144]
+ stp d14,d15,[sp,#160]
+ mov x29,sp
+ fmov d8,d0
+ fmov d9,d1
+ fmov d10,d2
+ fmov d11,d3
+ fmov d12,d4
+ fmov d13,d5
+ fmov d14,#1.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d15,destination,d14,real,x16,0,d9
+ fmov d0,d8
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d1,destination,d10,real,x16,0,d15
+ bl pow
+ ldr x18,[x29,#96]
+ str d0,[sp,#176]
+ fmov d0,d8
+ fmov d1,d15
+ bl pow
+ ldr x18,[x29,#96]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d15,destination,d14,real,x16,0,d0
+ fmov d0,d15
+ fmov d1,d9
+ bl pow
+ ldr x18,[x29,#96]
+ str d0,[sp,#184]
+ fmov d0,d15
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,8,d1,destination,d9,real,x16,0,zero
+ bl pow
+ ldr x18,[x29,#96]
+ ldr d1,[sp,#184]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d1,real,x16,0,d0
+ fmov d1,#2.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d1
+ ldr d1,[sp,#176]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d1,destination,d14,real,x16,0,d9
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d12
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d2,destination,d11,real,x16,0,d9
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d2,destination,d2,real,x16,0,d13
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d1,destination,d1,real,x16,0,d2
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ ldp d8,d9,[sp,#112]
+ ldp d10,d11,[sp,#128]
+ ldp d12,d13,[sp,#144]
+ ldp d14,d15,[sp,#160]
+ ldr x18,[sp,#96]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ .if 256 > 504
+ ldp x29,x30,[sp]
+ add sp,sp,#256
+ .else
+ ldp x29,x30,[sp],#256
+ .endif
+ ret
+.section .rodata
+.p2align 3
+.Lsoil_constants:
+.equ C_zero,0
+.quad 0x0000000000000000
+.equ C_one,8
+.quad 0x3ff0000000000000
+.equ C_two,16
+.quad 0x4000000000000000
+.equ C_half,24
+.quad 0x3fe0000000000000
+.equ C_fifteen,32
+.quad 0x402e000000000000
+.equ C_ten,40
+.quad 0x4024000000000000
+.equ C_hundred,48
+.quad 0x4059000000000000
+.equ C_thousand,56
+.quad 0x408f400000000000
+.equ C_grav,64
+.quad 0x402399999999999a
+.equ C_minus15,72
+.quad 0xc02e000000000000
+.equ C_minus10,80
+.quad 0xbfb999999999999a
+.equ C_minus33,88
+.quad 0xbfd51eb851eb851f
+.equ C_maxfac,96
+.quad 0x3feff7ced916872b
+.equ C_minfac,104
+.quad 0x3ff004189374bc6a
+.equ C_one6,112
+.quad 0x3ff999999999999a
+.equ C_rhosm,120
+.quad 0x40a5180000000000
+.equ C_lambdaq,128
+.quad 0x401ecccccccccccd
+.equ C_lambdao,136
+.quad 0x4000000000000000
+.equ C_q,144
+.quad 0x3fd999999999999a
+.equ C_rcgdry,152
+.quad 0x41386a0000000000
+.equ C_therma,160
+.quad 0x3fc147ae147ae148
+.equ C_thermb,168
+.quad 0x40502ccccccccccd
+.equ C_thermc,176
+.quad 0x3fee4dd2f1a9fbe7
+.equ C_thermc_sp,184
+.quad 0x3fee4dd300000000
+.equ C_rgh2o,192
+.quad 0x414fe41000000000
+.equ C_three,200
+.quad 0x4008000000000000
+.equ C_ice_delta,208
+.quad 0x3ffb333333333333
+.equ C_secs,216
+.quad 0x40ac200000000000
+.equ C_eps,224
+.quad 0x3d19000000000000
+.equ C_s_RLICE,232
+.quad 0x3fd3333333333333
+.equ C_s_RGH2O,240
+.quad 0x414fe41000000000
+.equ C_s_RWLMAX,248
+.quad 0x3fc999999999999a
+.equ C_s_RPSFR,256
+.quad 0x4000000000000000
+.equ C_s_NSOTY,264
+.quad 0x401c000000000000
+.equ C_s_RLAMBDAICE,272
+.quad 0x400199999999999a
+.equ C_s_RLAMBDAWAT,280
+.quad 0x3fe23d70a3d70a3d
+.equ C_s_RKERST1,288
+.quad 0x3fb999999999999a
+.equ C_s_RKERST2,296
+.quad 0x3ff0000000000000
+.equ C_s_RKERST3,304
+.quad 0x3ff0000000000000
+.equ C_s_RSIMP,312
+.quad 0x3ff0000000000000
+.equ C_s_RDARSICE,320
+.quad 0x3ff8000000000000
+.equ C_s_RDANSICE,328
+.quad 0x3ff8000000000000
+.equ C_s_RRCSICE,336
+.quad 0x413cbf6000000000
+.equ C_s_RCONDSICE,344
+.quad 0x40003d70a3d70a3d
+.equ C_s_RCIMIN,352
+.quad 0x3f947ae147ae147b
+.equ C_s_RSRDEP,360
+.quad 0x3fe0000000000000
+.equ C_s_RSIGORMIN,368
+.quad 0x4059000000000000
+.equ C_s_RSIGORMAX,376
+.quad 0x408f400000000000
+.equ C_s_RHOICE,384
+.quad 0x408cc00000000000
+.equ C_s_RLAMICE,392
+.quad 0x4001c28f5c28f5c3
+.equ C_s_RHOCI,400
+.quad 0x413f47d000000000
+.equ C_s_RALFMINSN,408
+.quad 0x3fe0000000000000
+.equ C_s_RALFMAXSN,416
+.quad 0x3feb333333333333
+.equ C_s_RHOMAXSN_NEW,424
+.quad 0x407f400000000000
+.equ C_s_RHOMAXSN,432
+.quad 0x4072c00000000000
+.equ C_s_RSNPER,440
+.quad 0x408f400000000000
+.equ C_s_RHOMINSN,448
+.quad 0x4059000000000000
+.equ C_s_RTAUF,456
+.quad 0x3fceb851eb851eb8
+.equ C_s_RTAUA,464
+.quad 0x3f80624dd2f1a9fc
+.equ C_s_RFRTINY,472
+.quad 0x3e7ad7f29abcaf48
+.equ C_s_RALAMSN,480
+.quad 0x3ffe147ae147ae14
+.equ C_s_RDSNMAX,488
+.quad 0x3ff0000000000000
+.equ C_s_RLWCSWEA,496
+.quad 0x4069000000000000
+.equ C_s_RLWCSWEB,504
+.quad 0x3f9eb851eb851eb8
+.equ C_s_RLWCSWEC,512
+.quad 0x3fb999999999999a
+.equ C_s_RTEMPAMP,520
+.quad 0x4010000000000000
+.equ C_s_RHOMINSNA,528
+.quad 0x405b400000000000
+.equ C_s_RHOMINSNB,536
+.quad 0x4018000000000000
+.equ C_s_RHOMINSNC,544
+.quad 0x403a000000000000
+.equ C_s_RHOMINSND,552
+.quad 0x4049000000000000
+.equ C_s_RSNDTOVERA,560
+.quad 0x4181a49a00000000
+.equ C_s_RSNDTOVERB,568
+.quad 0x3fb4bc6a7ef9db23
+.equ C_s_RSNDTOVERC,576
+.quad 0x3f926e978d4fdf3b
+.equ C_s_RSNDAMOB,584
+.quad 0x3ff4000000000000
+.equ C_s_RSNDMOB,592
+.quad 0x4072700000000000
+.equ C_s_RSNDAW,600
+.quad 0x4006f1a9fbe76c8b
+.equ C_s_RSNDBW,608
+.quad 0x3fb5c28f5c28f5c3
+.equ C_s_RSNDKV,616
+.quad 0x3ff4000000000000
+.equ C_s_RSNDATAUW,624
+.quad 0x4024000000000000
+.equ C_s_RSNDBTAUW,632
+.quad 0x400a000000000000
+.equ C_s_RSNDWCOMPMAX,640
+.quad 0x4075e00000000000
+.equ C_s_RSNDTDESTA,648
+.quad 0x3ec77cf44765195f
+.equ C_s_RSNDTDESTB,656
+.quad 0x3fa5810624dd2f1b
+.equ C_s_RSNDTDESTC,664
+.quad 0x407cc00000000000
+.equ C_s_RSNDTDESTROI,672
+.quad 0x4062c00000000000
+.equ C_s_SSAG1,680
+.quad 0x3f24f8b588e368f1
+.equ C_s_SSAG2,688
+.quad 0x0000000000000000
+.equ C_s_SSAG3,696
+.quad 0x3d3ef655d91d9bf5
+.equ C_s_SSAGSNSMAX,704
+.quad 0x3f66e7a320000000
+.equ C_s_SSASNEXTMIN,712
+.quad 0x4014000000000000
+.equ C_s_SSASNEXTMAX,720
+.quad 0x4049000000000000
+.equ C_s_SSASNEXTCNST,728
+.quad 0x3f6f212d77318fc5
+.equ C_s_SNHCONDAV,736
+.quad 0xbfaed6777079e59f
+.equ C_s_SNHCONDBV,744
+.quad 0x4004570a3d70a3d7
+.equ C_s_SNHCONDCV,752
+.quad 0x40721fd70a3d70a4
+.Lsoil_alpha:
+.quad 0x400ea3d70a3d70a4
+.quad 0x40091eb851eb851f
+.quad 0x3fea8f5c28f5c28f
+.quad 0x400d5c28f5c28f5c
+.quad 0x4005333333333333
+.quad 0x3ff4cccccccccccd
+.quad 0x40091eb851eb851f
+.Lsoil_ksat:
+.quad 0x3edd1bc4ac97ce12
+.quad 0x3eb376297cfbff14
+.quad 0x3e91a64e3b7fe673
+.quad 0x3ec813472f946d35
+.quad 0x3ebd313e3b79fe9f
+.quad 0x3eaf34a3a0ae8bc4
+.quad 0x3eb376297cfbff14
+.Lsoil_n:
+.quad 0x3ff609d495182a99
+.quad 0x3ff2e2eb1c432ca5
+.quad 0x3ff40ff972474539
+.quad 0x3ff19e83e425aee6
+.quad 0x3ff1a71de69ad42c
+.quad 0x3ff3432ca57a786c
+.quad 0x3ff2e2eb1c432ca5
+.Lsoil_lambda:
+.quad 0x3ff4000000000000
+.quad 0xc002bc9eecbfb15b
+.quad 0xbfe2d42c3c9eecc0
+.quad 0xbfffa29c779a6b51
+.quad 0x4004000000000000
+.quad 0x3fd999999999999a
+.quad 0xc002bc9eecbfb15b
+.Lsoil_sat:
+.quad 0x3fd9cac083126e98
+.quad 0x3fdc189374bc6a7f
+.quad 0x3fdb851eb851eb85
+.quad 0x3fe0a3d70a3d70a4
+.quad 0x3fe3a5e353f7ced9
+.quad 0x3fe883126e978d50
+.quad 0x3fdc189374bc6a7f
+.Lsoil_res:
+.quad 0x3f9999999999999a
+.quad 0x3f847ae147ae147b
+.quad 0x3f847ae147ae147b
+.quad 0x3f847ae147ae147b
+.quad 0x3f847ae147ae147b
+.quad 0x3f847ae147ae147b
+.quad 0x3f847ae147ae147b
+.Lsoil_depth:
+.quad 0x3fb1eb851eb851ec
+.quad 0x3fcae147ae147ae1
+.quad 0x3fe70a3d70a3d70a
+.quad 0x3ffe3d70a3d70a3d
+.Lsoil_snowdest:
+.quad 0x3fbcac083126e979
+.quad 0x3fc374bc6a7ef9db
+.quad 0x3fc89374bc6a7efa
+.quad 0x3fd26e978d4fdf3b
+.quad 0x3fdf3b645a1cac08
+.Lsoil_snowmin:
+.quad 0x3fb3333333333333
+.quad 0x3fa999999999999a
+.quad 0x3fa999999999999a
+.quad 0x3fa999999999999a
+.quad 0x3fa999999999999a
+.Lsoil_snowmax:
+.quad 0x3fb3333333333333
+.quad 0x3fb999999999999a
+.quad 0x3fc999999999999a
+.quad 0xbff0000000000000
+.quad 0x3fc3333333333333
+.Lsoil_snowmingl:
+.quad 0x3fe0000000000000
+.quad 0x3fe0000000000000
+.quad 0x3fe0000000000000
+.quad 0x3fe0000000000000
+.quad 0x3fe0000000000000
+.Lsoil_snowmaxgl:
+.quad 0x3fe0000000000000
+.quad 0x3fe0000000000000
+.quad 0x3fe0000000000000
+.quad 0x3fe0000000000000
+.quad 0xbff0000000000000
+.section .note.GNU-stack,"",%progbits

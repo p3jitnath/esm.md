@@ -1,0 +1,114 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Direct cumulative cloud cover from the retained component contract revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.visible .func (.param .u32 raised_flags) md2asm_gpu_cumulative_cloud_cover_values(.param .u32 levels,.param .u64 fraction,.param .u64 overlap,.param .u64 cumulative,.param .u64 pair,.param .u32 beta_mode)
+{
+ .reg .u64 %f,%o,%c,%p,%address,%offset,%tmp; .reg .u32 %N,%j,%beta,%flags,%raised; .reg .pred %pred;
+ .reg .b64 %upper,%lower,%alpha,%weight,%clear,%maximum,%a,%b,%d,%e,%h,%i,%left,%right,%cover,%value;
+ .param .b64 ma,mb; .param .align 8 .b8 math[16];
+ ld.param.u32 %N,[levels]; ld.param.u64 %f,[fraction]; ld.param.u64 %o,[overlap]; ld.param.u64 %c,[cumulative]; ld.param.u64 %p,[pair]; ld.param.u32 %beta,[beta_mode]; mov.u32 %flags,0;
+ ld.global.b64 %upper,[%f];
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%upper; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %clear,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.global.b64 [%c],%upper; mov.u32 %j,1;
+INTERFACE:
+ setp.ge.u32 %pred,%j,%N; @%pred bra COVER_DONE; mul.wide.u32 %offset,%j,8; add.u64 %address,%f,%offset; ld.global.b64 %lower,[%address]; sub.u64 %offset,%offset,8; add.u64 %address,%o,%offset; ld.global.b64 %weight,[%address]; mov.b64 %alpha,%weight; setp.eq.u32 %pred,%beta,0; @%pred bra ALPHA_READY; setp.lt.f64 %pred,%weight,0d3ff0000000000000; @%pred bra BETA_CONVERT; mov.b64 %alpha,0x3ff0000000000000; bra ALPHA_READY;
+BETA_CONVERT:
+ st.param.b64 [ma],%upper; st.param.b64 [mb],%lower; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %d,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ and.b64 %d,%d,0x7fffffffffffffff;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%weight; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %a,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%a; st.param.b64 [mb],%d; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %b,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%weight; call.uni (math),md2asm_gpu_div_status,(ma,mb); ld.param.b64 %e,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%d; st.param.b64 [mb],%e; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %e,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%e; st.param.b64 [mb],0x3ff0000000000000; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %h,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%b; st.param.b64 [mb],%h; call.uni (math),md2asm_gpu_div_status,(ma,mb); ld.param.b64 %i,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%weight; st.param.b64 [mb],%i; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %alpha,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ALPHA_READY:
+ setp.ge.f64 %pred,%upper,%lower; selp.b64 %maximum,%upper,%lower,%pred; or.b64 %tmp,%upper,%lower; and.b64 %tmp,%tmp,0x7fffffffffffffff; setp.ne.u64 %pred,%tmp,0; @%pred bra MAXIMUM_READY; and.b64 %maximum,%upper,%lower;
+MAXIMUM_READY:
+ st.param.b64 [ma],%alpha; st.param.b64 [mb],%maximum; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %left,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%alpha; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %a,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%upper; st.param.b64 [mb],%lower; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %b,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%upper; st.param.b64 [mb],%lower; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %d,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%b; st.param.b64 [mb],%d; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %d,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%a; st.param.b64 [mb],%d; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %right,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%left; st.param.b64 [mb],%right; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %cover,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %address,%p,%offset; st.global.b64 [%address],%cover; setp.ge.f64 %pred,%upper,0d3fefffffffffffec; @%pred bra FULL_UPPER;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%cover; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %a,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%clear; st.param.b64 [mb],%a; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %b,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%upper; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %d,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%b; st.param.b64 [mb],%d; call.uni (math),md2asm_gpu_div_status,(ma,mb); ld.param.b64 %clear,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ bra CLEAR_READY;
+FULL_UPPER: mov.b64 %clear,0;
+CLEAR_READY:
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%clear; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %value,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %offset,%offset,8; add.u64 %address,%c,%offset; st.global.b64 [%address],%value; mov.b64 %upper,%lower; add.u32 %j,%j,1; bra INTERFACE;
+COVER_DONE: st.param.u32 [raised_flags],%flags; ret;
+}
+.func (.param .u32 result) cover_range(.param .u64 base,.param .u64 bytes,.param .u64 mask,.param .u64 owners,.param .u32 count)
+{
+ .reg .u64 %b,%n,%m,%list,%t,%end,%o,%on,%oe; .reg .u32 %i,%count,%e; .reg .pred %p,%q;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %m,[mask]; ld.param.u64 %list,[owners]; ld.param.u32 %count,[count];
+ mov.u32 %e,0; setp.eq.u64 %p,%n,0; @%p bra RANGE_DONE;
+ mov.u32 %e,422; setp.eq.u64 %p,%b,0; @%p bra RANGE_DONE; and.b64 %t,%b,%m; setp.ne.u64 %p,%t,0; @%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra RANGE_DONE; setp.gt.u64 %p,%n,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ add.u64 %end,%b,%n; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ mov.u32 %i,0;
+RANGE_OWNERS:
+ setp.ge.u32 %p,%i,%count; @%p bra RANGE_OK; ld.u64 %o,[%list]; ld.u64 %on,[%list+8]; setp.eq.u64 %p,%on,0; @%p bra RANGE_NEXT;
+ add.u64 %oe,%o,%on; setp.lt.u64 %p,%b,%oe; setp.lt.u64 %q,%o,%end; and.pred %p,%p,%q; @%p bra RANGE_DONE;
+RANGE_NEXT: add.u64 %list,%list,16; add.u32 %i,%i,1; bra RANGE_OWNERS;
+RANGE_OK: mov.u32 %e,0;
+RANGE_DONE: st.param.u32 [result],%e; ret;
+}
+
+.visible .func md2asm_gpu_cumulative_cloud_cover_fp64(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%ptr<6>,%list,%tmp,%nbytes,%pairbytes; .reg .u32 %unique,%rt,%N,%beta,%error,%raised; .reg .pred %p0;
+ .local .align 8 .b8 spans[48]; .param .u64 b,n,m,l,f,o,cu,pa; .param .u32 c,r,levels,beta;
+ ld.param.u64 %args,[original_vector]; ld.param.u64 %ctx,[context]; setp.eq.u64 %p0,%ctx,0; @%p0 ret; and.b64 %tmp,%ctx,7; setp.ne.u64 %p0,%tmp,0; @%p0 ret;
+ mov.u32 %unique,%ctaid.x; mov.u32 %rt,%ctaid.y; or.b32 %unique,%unique,%rt; mov.u32 %rt,%ctaid.z; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.x; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.y; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.z; or.b32 %unique,%unique,%rt; setp.ne.u32 %p0,%unique,0; @%p0 ret;
+ ld.global.u32 %error,[%ctx]; setp.ne.u32 %p0,%error,0; @%p0 ret; mov.u32 %error,421;
+ mov.u32 %rt,%nctaid.x; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%nctaid.y; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%nctaid.z; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%ntid.x; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%ntid.y; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%ntid.z; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%dynamic_smem_size; setp.ne.u32 %p0,%rt,0; @%p0 bra REFUSE;
+ ld.global.u32 %rt,[%ctx+4]; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u64 %list,spans; cvta.local.u64 %list,%list;
+ st.param.u64 [b],%args; st.param.u64 [n],48; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],0; call.uni (r),cover_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.global.u64 %ptr0,[%args+0];
+ ld.global.u64 %ptr1,[%args+8];
+ ld.global.u64 %ptr2,[%args+16];
+ ld.global.u64 %ptr3,[%args+24];
+ ld.global.u64 %ptr4,[%args+32];
+ ld.global.u64 %ptr5,[%args+40];
+ st.param.u64 [b],%ptr0; st.param.u64 [n],4; st.param.u64 [m],3; st.param.u64 [l],%list; st.param.u32 [c],0; call.uni (r),cover_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.global.s32 %N,[%ptr0]; setp.lt.s32 %p0,%N,1; @%p0 bra REFUSE_META; mul.wide.u32 %nbytes,%N,8; sub.u64 %pairbytes,%nbytes,8; st.u64 [%list],%ptr3; st.u64 [%list+8],%nbytes; st.u64 [%list+16],%ptr4; st.u64 [%list+24],%pairbytes; st.u64 [%list+32],%ctx; st.u64 [%list+40],64;
+ st.param.u64 [b],%ptr3; st.param.u64 [n],%nbytes; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],0; call.uni (r),cover_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr4; st.param.u64 [n],%pairbytes; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],1; call.uni (r),cover_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ctx; st.param.u64 [n],64; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],2; call.uni (r),cover_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%args; st.param.u64 [n],48; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],3; call.uni (r),cover_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr0; st.param.u64 [n],4; st.param.u64 [m],3; st.param.u64 [l],%list; st.param.u32 [c],3; call.uni (r),cover_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr1; st.param.u64 [n],%nbytes; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],3; call.uni (r),cover_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr2; st.param.u64 [n],%pairbytes; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],3; call.uni (r),cover_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ mov.u32 %beta,0; setp.eq.u64 %p0,%ptr5,0; @%p0 bra OPTIONAL_READY;
+ st.param.u64 [b],%ptr5; st.param.u64 [n],4; st.param.u64 [m],3; st.param.u64 [l],%list; st.param.u32 [c],3; call.uni (r),cover_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.global.u32 %beta,[%ptr5]; setp.gt.u32 %p0,%beta,1; @%p0 bra REFUSE_META;
+OPTIONAL_READY:
+ st.param.u32 [levels],%N; st.param.u64 [f],%ptr1; st.param.u64 [o],%ptr2; st.param.u64 [cu],%ptr3; st.param.u64 [pa],%ptr4; st.param.u32 [beta],%beta; call.uni (r),md2asm_gpu_cumulative_cloud_cover_values,(levels,f,o,cu,pa,beta); ld.param.u32 %raised,[r]; atom.global.or.b32 %rt,[%ctx+8],%raised; ret;
+REFUSE_META: mov.u32 %error,422;
+REFUSE: st.global.u32 [%ctx],%error; ret;
+}
+.visible .entry md2asm_gpu_cum_cloud_cover_exp_ran(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %a,%c; .param .u64 a,c; ld.param.u64 %a,[original_vector]; ld.param.u64 %c,[context]; st.param.u64 [a],%a; st.param.u64 [c],%c; call.uni md2asm_gpu_cumulative_cloud_cover_fp64,(a,c); ret;
+}

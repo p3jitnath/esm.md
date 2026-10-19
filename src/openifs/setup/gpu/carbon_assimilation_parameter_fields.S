@@ -1,0 +1,1445 @@
+/* GPU physical setup route. Original interface and ordered arithmetic are preserved.
+ * Contract: skills/md2asm-gpu/references/openifs/setup/physical_setup.md
+ * Original source: src/openifs/setup/carbon_assimilation_parameter_fields.S
+ */
+// Original contract: skills/md2asm/references/openifs/setup/photosynthesis_parameter_setup.md
+#include "../../support/gpu/preserved_scalar_calls.inc.S"
+.arch armv8.2-a
+.equ AGS_RCO2,0
+.equ AGS_RMAIR,8
+.equ AGS_RMH2O,16
+.equ AGS_RMCO2,24
+.equ AGS_RMC,32
+.equ AGS_RDMAX_AGS,40
+.equ AGS_RPARCF,48
+.equ AGS_RRACCF,56
+.equ AGS_RPCCO2,64
+.equ AGS_RIAOPT,72
+.equ AGS_RDSPOPT,80
+.equ AGS_RXGT,88
+.equ AGS_RDIFRACF,96
+.equ AGS_RXBOMEGA,104
+.equ AGS_RRDCF,112
+.equ AGS_RAMMIN,120
+.equ AGS_RCONDCTMIN,128
+.equ AGS_RCONDSTMIN,136
+.equ AGS_RANFMINIT,144
+.equ AGS_RAIRTOH2O,152
+.equ AGS_RCO2TOH2O,160
+.equ AGS_RAW,168
+.equ AGS_RASW,176
+.equ AGS_RBW,184
+.equ AGS_RDMAXN,192
+.equ AGS_RDMAXX,200
+.equ AGS_RRESPFACTOR_NIT,208
+.equ AGS_RCNS_NIT,216
+.equ AGS_RCA_1X_CO2_NIT,224
+.equ AGS_RCA_2X_CO2_NIT,232
+.equ AGS_RCC_NIT,240
+.equ AGS_RABC,248
+.equ AGS_RPOI,272
+.equ AGS_RQ10,296
+.equ AGS_RTAULIM,304
+.equ AGS_RVCH4S,312
+.equ AGS_RVTOPT,336
+.equ AGS_RVFZERO,400
+.equ AGS_RVFZEROST,464
+.equ AGS_RVEPSO,528
+.equ AGS_RVGAMM,592
+.equ AGS_RVQDGAMM,656
+.equ AGS_RVQDGMES,720
+.equ AGS_RVT1GMES,784
+.equ AGS_RVT2GMES,848
+.equ AGS_RVAMMAX,912
+.equ AGS_RVQDAMMAX,976
+.equ AGS_RVT1AMMAX,1040
+.equ AGS_RVT2AMMAX,1104
+.equ AGS_RVAH,1168
+.equ AGS_RVBH,1232
+.equ AGS_LVSTRESS,1296
+.equ AGS_RVBSLAI,1360
+.equ AGS_RVLAIMIN,1424
+.equ AGS_RVSEFOLD,1488
+.equ AGS_RVGMES,1552
+.equ AGS_RVGC,1616
+.equ AGS_RVDMAX,1680
+.equ AGS_RVF2I,1744
+.equ AGS_RVCE,1808
+.equ AGS_RVCF,1872
+.equ AGS_RVCNA,1936
+.equ AGS_RVBSLAI_NITRO,2000
+.equ AGS_RXBOMEGAM,2064
+.equ AGS_RVR0VT,2128
+.equ AGS_RVCH4QVT,2216
+.equ AGS_RVANMAX,2280
+.equ AGF_NLAI,0
+.equ AGF_NLAI1,4
+.equ AGF_NPATH,8
+.equ AGF_NIUNDEF,12
+.equ AGF_RDOWNREGULATION_CO2_BASELEVEL,16
+.equ AGF_RDOWNREGULATION_CO2_MINIMUM,24
+.equ AGF_RUNDEF_SECHIBA,32
+.equ AGF_RUNDEF,40
+.equ AGF_RONE_MONTH,48
+.equ AGF_RARJV,56
+.equ AGF_RBRJV,72
+.equ AGF_RASJ,88
+.equ AGF_RBSJ,104
+.equ AGF_RASV,120
+.equ AGF_RBSV,136
+.equ AGF_RD_VCMAX,152
+.equ AGF_RD_JMAX,168
+.equ AGF_RE_GAMMA_STAR,184
+.equ AGF_RE_GM,192
+.equ AGF_RS_GM,208
+.equ AGF_RS_JMAX,224
+.equ AGF_RD_GM,240
+.equ AGF_RE_KMC,256
+.equ AGF_RE_KMO,264
+.equ AGF_RE_RD,272
+.equ AGF_RE_SCO,280
+.equ AGF_RGAMMA_STAR25,288
+.equ AGF_RKMC25,296
+.equ AGF_RKMO25,312
+.equ AGF_RSCO25,328
+.equ AGF_RSTRESS_GM,344
+.equ AGF_RSTRESS_GS,352
+.equ AGF_RSTRESS_VCMAX,360
+.equ AGF_RTPHOTO_MAX,368
+.equ AGF_RTPHOTO_MIN,376
+.equ AGF_RVCMAX25,384
+.equ AGF_RHUMREL,472
+.equ AGF_RA1,560
+.equ AGF_RB1,648
+.equ AGF_RG0,736
+.equ AGF_RGM25,824
+.equ AGF_RE_VCMAX,912
+.equ AGF_RE_JMAX,1000
+.equ AGF_RDOWNREGULATION_CO2_COEF,1088
+.equ AGF_RSTRUCT_CONST,1176
+.equ AGF_RLAI_LEVEL_DEPTH,1264
+.equ AGF_RLAIMAX,1272
+.equ AGF_REXT_COEFF,1280
+.equ AGF_RGB_REF,1288
+.equ AGF_RTP_00,1296
+.equ AGF_RPB_STD,1304
+.equ AGF_RRG_TO_PAR,1312
+.equ AGF_RW_TO_MOL,1320
+.equ AGF_RALPHA_LL,1328
+.equ AGF_RTHETA,1336
+.equ AGF_RFPSIR,1344
+.equ AGF_RFQ,1352
+.equ AGF_RFPSEUDO,1360
+.equ AGF_RH_PROTONS,1368
+.equ AGF_RGBS,1376
+.equ AGF_ROI,1384
+.equ AGF_RALPHA,1392
+.equ AGF_RKP,1400
+.equ AGF_RTETENS_1,1408
+.equ AGF_RTETENS_2,1416
+.equ AGF_RREF_TEMP,1424
+.equ AGF_RMOL_TO_M_1,1432
+.equ AGF_RRATIO_H2O_TO_CO2,1440
+.equ AGF_RN_VERT_ATT,1448
+.equ AGF_RRVEG_PFT,1456
+.equ AGF_RTAU_TEMP_AIR_MONTH,1464
+.text
+.p2align 4
+.global md2asm_carbon_assimilation_parameter_fields
+.type md2asm_carbon_assimilation_parameter_fields,%function
+md2asm_carbon_assimilation_parameter_fields:
+ stp x29,x30,[sp,#-512]!
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ stp d8,d9,[sp,#112]
+ stp d10,d11,[sp,#128]
+ stp d12,d13,[sp,#144]
+ stp d14,d15,[sp,#160]
+ mov x29,sp
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ adrp x22,.Lcarbon_parameter_constants
+ add x22,x22,:lo12:.Lcarbon_parameter_constants
+ ldr d0,[x22,#CP_scalar_RMAIR]
+ str d0,[x19,#AGS_RMAIR]
+ ldr d0,[x22,#CP_scalar_RMCO2]
+ str d0,[x19,#AGS_RMCO2]
+ ldr d0,[x22,#CP_scalar_RMC]
+ str d0,[x19,#AGS_RMC]
+ ldr d0,[x22,#CP_scalar_RDMAX_AGS]
+ str d0,[x19,#AGS_RDMAX_AGS]
+ ldr d0,[x22,#CP_scalar_RPARCF]
+ str d0,[x19,#AGS_RPARCF]
+ ldr d0,[x22,#CP_scalar_RRACCF]
+ str d0,[x19,#AGS_RRACCF]
+ ldr d0,[x22,#CP_scalar_RPCCO2]
+ str d0,[x19,#AGS_RPCCO2]
+ ldr d0,[x22,#CP_scalar_RIAOPT]
+ str d0,[x19,#AGS_RIAOPT]
+ ldr d0,[x22,#CP_scalar_RDSPOPT]
+ str d0,[x19,#AGS_RDSPOPT]
+ ldr d0,[x22,#CP_scalar_RXGT]
+ str d0,[x19,#AGS_RXGT]
+ ldr d0,[x22,#CP_scalar_RDIFRACF]
+ str d0,[x19,#AGS_RDIFRACF]
+ ldr d0,[x22,#CP_scalar_RXBOMEGA]
+ str d0,[x19,#AGS_RXBOMEGA]
+ ldr d0,[x22,#CP_scalar_RRDCF]
+ str d0,[x19,#AGS_RRDCF]
+ ldr d0,[x22,#CP_scalar_RAMMIN]
+ str d0,[x19,#AGS_RAMMIN]
+ ldr d0,[x22,#CP_scalar_RCONDCTMIN]
+ str d0,[x19,#AGS_RCONDCTMIN]
+ ldr d0,[x22,#CP_scalar_RCONDSTMIN]
+ str d0,[x19,#AGS_RCONDSTMIN]
+ ldr d0,[x22,#CP_scalar_RANFMINIT]
+ str d0,[x19,#AGS_RANFMINIT]
+ ldr d0,[x22,#CP_scalar_RAIRTOH2O]
+ str d0,[x19,#AGS_RAIRTOH2O]
+ ldr d0,[x22,#CP_scalar_RCO2TOH2O]
+ str d0,[x19,#AGS_RCO2TOH2O]
+ ldr d0,[x22,#CP_scalar_RAW]
+ str d0,[x19,#AGS_RAW]
+ ldr d0,[x22,#CP_scalar_RASW]
+ str d0,[x19,#AGS_RASW]
+ ldr d0,[x22,#CP_scalar_RBW]
+ str d0,[x19,#AGS_RBW]
+ ldr d0,[x22,#CP_scalar_RDMAXN]
+ str d0,[x19,#AGS_RDMAXN]
+ ldr d0,[x22,#CP_scalar_RDMAXX]
+ str d0,[x19,#AGS_RDMAXX]
+ ldr d0,[x22,#CP_scalar_RRESPFACTOR_NIT]
+ str d0,[x19,#AGS_RRESPFACTOR_NIT]
+ ldr d0,[x22,#CP_scalar_RCNS_NIT]
+ str d0,[x19,#AGS_RCNS_NIT]
+ ldr d0,[x22,#CP_scalar_RCA_1X_CO2_NIT]
+ str d0,[x19,#AGS_RCA_1X_CO2_NIT]
+ ldr d0,[x22,#CP_scalar_RCA_2X_CO2_NIT]
+ str d0,[x19,#AGS_RCA_2X_CO2_NIT]
+ ldr d0,[x22,#CP_scalar_RCC_NIT]
+ str d0,[x19,#AGS_RCC_NIT]
+ ldr d0,[x22,#CP_CO2_massfrac]
+ ldr d1,[x22,#CP_CO2_molmass]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x22,#CP_air_molmass]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ str d0,[x19,#AGS_RCO2]
+ adr x9,.Lcarbon_parameter_RVCH4S
+ add x10,x19,#AGS_RVCH4S
+ ldp x11,x12,[x9]
+ stp x11,x12,[x10]
+ ldr x11,[x9,#16]
+ str x11,[x10,#16]
+ adr x9,.Lcarbon_parameter_RVTOPT
+ ldr x10,[x19,#AGS_RVTOPT]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVFZERO
+ ldr x10,[x19,#AGS_RVFZERO]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVFZEROST
+ ldr x10,[x19,#AGS_RVFZEROST]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVEPSO
+ ldr x10,[x19,#AGS_RVEPSO]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVGAMM
+ ldr x10,[x19,#AGS_RVGAMM]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVQDGAMM
+ ldr x10,[x19,#AGS_RVQDGAMM]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVQDGMES
+ ldr x10,[x19,#AGS_RVQDGMES]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVT1GMES
+ ldr x10,[x19,#AGS_RVT1GMES]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVT2GMES
+ ldr x10,[x19,#AGS_RVT2GMES]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVAMMAX
+ ldr x10,[x19,#AGS_RVAMMAX]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVQDAMMAX
+ ldr x10,[x19,#AGS_RVQDAMMAX]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVT1AMMAX
+ ldr x10,[x19,#AGS_RVT1AMMAX]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVT2AMMAX
+ ldr x10,[x19,#AGS_RVT2AMMAX]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVAH
+ ldr x10,[x19,#AGS_RVAH]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVBH
+ ldr x10,[x19,#AGS_RVBH]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_LVSTRESS
+ ldr x10,[x19,#AGS_LVSTRESS]
+ mov x12,#21
+1:
+ ldr w11,[x9],#4
+ str w11,[x10],#4
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVBSLAI
+ ldr x10,[x19,#AGS_RVBSLAI]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVLAIMIN
+ ldr x10,[x19,#AGS_RVLAIMIN]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVGMES
+ ldr x10,[x19,#AGS_RVGMES]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVGC
+ ldr x10,[x19,#AGS_RVGC]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVDMAX
+ ldr x10,[x19,#AGS_RVDMAX]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVF2I
+ ldr x10,[x19,#AGS_RVF2I]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVCE
+ ldr x10,[x19,#AGS_RVCE]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVCF
+ ldr x10,[x19,#AGS_RVCF]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVCNA
+ ldr x10,[x19,#AGS_RVCNA]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ adr x9,.Lcarbon_parameter_RVCH4QVT
+ ldr x10,[x19,#AGS_RVCH4QVT]
+ mov x12,#21
+1:
+ ldr x11,[x9],#8
+ str x11,[x10],#8
+ subs x12,x12,#1
+ b.ne 1b
+ ldr x9,[x21]
+ ldr x10,[x19,#AGS_RVR0VT]
+ mov x11,#2
+.Lcarbon_respiration_column:
+ ldr x12,[x9,#48]
+ str x12,[x10],#8
+ mov x13,#20
+.Lcarbon_respiration_copy:
+ ldr x12,[x9],#8
+ str x12,[x10],#8
+ subs x13,x13,#1
+ b.ne .Lcarbon_respiration_copy
+ subs x11,x11,#1
+ b.ne .Lcarbon_respiration_column
+ adr x10,.Lcarbon_parameter_RVSEFOLD
+ ldr x11,[x19,#AGS_RVSEFOLD]
+ ldr d1,[x20,#16]
+ mov x9,#1
+.Lcarbon_leaf_time:
+ ldr d0,[x10,x9,lsl #3]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d1
+ str d0,[x11,x9,lsl #3]
+ add x9,x9,#1
+ cmp x9,#21
+ b.ne .Lcarbon_leaf_time
+ ldr x9,[x11,#56]
+ str x9,[x11]
+ mov x23,#0
+.Lcarbon_nitrogen:
+ ldr x9,[x19,#AGS_RVCE]
+ ldr d0,[x9,x23,lsl #3]
+ ldr x9,[x19,#AGS_RVCNA]
+ ldr d1,[x9,x23,lsl #3]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d1
+ ldr x9,[x19,#AGS_RVCF]
+ ldr d1,[x9,x23,lsl #3]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x22,#CP_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d1,real,x16,0,d0
+ ldr x9,[x19,#AGS_RVBSLAI_NITRO]
+ str d0,[x9,x23,lsl #3]
+ add x23,x23,#1
+ cmp x23,#21
+ b.ne .Lcarbon_nitrogen
+ mov x23,#0
+.Lcarbon_scattering:
+ ldr d0,[x19,#AGS_RXBOMEGA]
+ sub x9,x23,#3
+ cmp x9,#3
+ b.ls .Lcarbon_forest_scattering
+ sub x9,x23,#18
+ cmp x9,#1
+ b.hi .Lcarbon_store_scattering
+.Lcarbon_forest_scattering:
+ ldr d1,[x22,#CP_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d1
+.Lcarbon_store_scattering:
+ ldr x9,[x19,#AGS_RXBOMEGAM]
+ str d0,[x9,x23,lsl #3]
+ add x23,x23,#1
+ cmp x23,#21
+ b.ne .Lcarbon_scattering
+ ldr d0,[x19,#AGS_RAIRTOH2O]
+ ldr d1,[x19,#AGS_RCO2TOH2O]
+ stp d0,d1,[sp,#256]
+ ldr d0,[x19,#AGS_RCONDSTMIN]
+ ldr d1,[x19,#AGS_RRDCF]
+ stp d0,d1,[sp,#272]
+ mov x23,#0
+.Lcarbon_optimum_type:
+ ldr x9,[x19,#AGS_RVTOPT]
+ ldr d8,[x9,x23,lsl #3]
+ ldr d0,[x22,#CP_twentyfive]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d9,destination,d8,real,x16,0,d0
+ ldr d0,[x22,#CP_one_tenth]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d9,destination,d0,real,x16,0,d9
+ ldr x9,[x19,#AGS_RVQDGAMM]
+ ldr d0,[x9,x23,lsl #3]
+ fmov d1,d9
+ bl pow
+ ldr x18,[x29,#96]
+ ldr x9,[x19,#AGS_RVGAMM]
+ ldr d1,[x9,x23,lsl #3]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d10,destination,d1,real,x16,0,d0
+ ldr x9,[x19,#AGS_RVQDAMMAX]
+ ldr d0,[x9,x23,lsl #3]
+ fmov d1,d9
+ bl pow
+ ldr x18,[x29,#96]
+ ldr x9,[x19,#AGS_RVAMMAX]
+ ldr d1,[x9,x23,lsl #3]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d11,destination,d1,real,x16,0,d0
+ ldr x9,[x19,#AGS_RVT1AMMAX]
+ ldr d0,[x9,x23,lsl #3]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d8
+ ldr d1,[x22,#CP_three_tenths]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ bl exp
+ ldr x18,[x29,#96]
+ ldr d1,[x22,#CP_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d12,destination,d1,real,x16,0,d0
+ ldr x9,[x19,#AGS_RVT2AMMAX]
+ ldr d0,[x9,x23,lsl #3]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d8,real,x16,0,d0
+ ldr d1,[x22,#CP_three_tenths]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ bl exp
+ ldr x18,[x29,#96]
+ ldr d1,[x22,#CP_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d1,real,x16,0,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d12,real,x16,0,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d11,destination,d11,real,x16,0,d0
+ ldr x9,[x19,#AGS_RVQDGMES]
+ ldr d0,[x9,x23,lsl #3]
+ fmov d1,d9
+ bl pow
+ ldr x18,[x29,#96]
+ ldr x9,[x19,#AGS_RVGMES]
+ ldr d1,[x9,x23,lsl #3]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d12,destination,d1,real,x16,0,d0
+ ldr x9,[x19,#AGS_RVT1GMES]
+ ldr d0,[x9,x23,lsl #3]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d8
+ ldr d1,[x22,#CP_three_tenths]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ bl exp
+ ldr x18,[x29,#96]
+ ldr d1,[x22,#CP_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d13,destination,d1,real,x16,0,d0
+ ldr x9,[x19,#AGS_RVT2GMES]
+ ldr d0,[x9,x23,lsl #3]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d8,real,x16,0,d0
+ ldr d1,[x22,#CP_three_tenths]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ bl exp
+ ldr x18,[x29,#96]
+ ldr d1,[x22,#CP_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d1,real,x16,0,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d13,real,x16,0,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d12,destination,d12,real,x16,0,d0
+ ldr d0,[x22,#CP_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d12,destination,d12,real,x16,0,d0
+ ldr x9,[x19,#AGS_RVFZEROST]
+ ldr d13,[x9,x23,lsl #3]
+ sub x9,x23,#3
+ cmp x9,#3
+ b.ls .Lcarbon_forest_fraction
+ sub x9,x23,#18
+ cmp x9,#1
+ b.hi .Lcarbon_pack_cell
+.Lcarbon_forest_fraction:
+ ldr x9,[x19,#AGS_RVGMES]
+ ldr d0,[x9,x23,lsl #3]
+ ldr d1,[x22,#CP_thousand]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d1
+ bl log
+ ldr x18,[x29,#96]
+ ldr d1,[x19,#AGS_RAW]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d1,real,x16,0,d0
+ ldr d1,[x19,#AGS_RBW]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d13,destination,d0,real,x16,0,d1
+.Lcarbon_pack_cell:
+ ldr x9,[x19,#AGS_RVGC]
+ ldr d0,[x9,x23,lsl #3]
+ ldr d1,[x19,#AGS_RCO2]
+ stp d0,d1,[sp,#176]
+ ldr d0,[x19,#AGS_RDSPOPT]
+ ldr x9,[x19,#AGS_RVDMAX]
+ ldr d1,[x9,x23,lsl #3]
+ stp d0,d1,[sp,#192]
+ ldr d0,[x19,#AGS_RIAOPT]
+ stp d0,d10,[sp,#208]
+ stp d13,d12,[sp,#224]
+ ldr x9,[x19,#AGS_RVEPSO]
+ ldr d0,[x9,x23,lsl #3]
+ stp d0,d11,[sp,#240]
+ add x0,sp,#176
+ add x1,sp,#256
+ add x2,sp,#288
+ bl md2asm_one_cell_carbon_assimilation_fields
+ ldr d0,[sp,#288]
+ ldr x9,[x19,#AGS_RVANMAX]
+ str d0,[x9,x23,lsl #3]
+ add x23,x23,#1
+ cmp x23,#21
+ b.ne .Lcarbon_optimum_type
+ mov x23,#1
+.Lcarbon_gauss_point:
+ md2asm_gpu_preserved_scalar md2asm_gpu_startup_integer_cell_host,17,d0,destination,x23,general,x16,312,zero
+ ldr d1,[x22,#CP_quarter]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x20,#8]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ ldr d1,[x22,#CP_gauss_threehalf]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ bl cos
+ ldr x18,[x29,#96]
+ fmov d8,d0
+ mov x24,#100
+.Lcarbon_gauss_newton:
+ ldr d9,[x22,#CP_one]
+ ldr d10,[x22,#CP_zero]
+ mov x25,#1
+.Lcarbon_gauss_polynomial:
+ fmov d11,d10
+ fmov d10,d9
+ md2asm_gpu_preserved_scalar md2asm_gpu_startup_integer_cell_host,17,d0,destination,x25,general,x16,328,zero
+ ldr d1,[x22,#CP_two]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d0
+ ldr d2,[x22,#CP_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d1,destination,d1,real,x16,0,d2
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d8
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d10
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d2,destination,d0,real,x16,0,d2
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d2,destination,d2,real,x16,0,d11
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d1,destination,d1,real,x16,0,d2
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d9,destination,d1,real,x16,0,d0
+ add x25,x25,#1
+ cmp x25,#4
+ b.ne .Lcarbon_gauss_polynomial
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d8,real,x16,0,d9
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d10
+ ldr d1,[x22,#CP_three]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d8,real,x16,0,d8
+ ldr d2,[x22,#CP_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d1,destination,d1,real,x16,0,d2
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d11,destination,d0,real,x16,0,d1
+ fmov d12,d8
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d9,real,x16,0,d11
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d8,destination,d12,real,x16,0,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d8,real,x16,0,d12
+ md2asm_gpu_preserved_scalar md2asm_gpu_soil_water_cell_host,16,d0,destination,d0,real,x16,0,zero
+ ldr d1,[x22,#CP_gauss_tolerance]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,4,none,comparison,d0,real,x16,0,d1
+ b.le .Lcarbon_gauss_converged
+ subs x24,x24,#1
+ b.ne .Lcarbon_gauss_newton
+.Lcarbon_gauss_converged:
+ ldr d0,[x22,#CP_half]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d0,real,x16,0,d8
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d2,destination,d0,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
+ sub x9,x23,#1
+ mov x10,#3
+ sub x10,x10,x23
+ add x11,x19,#AGS_RABC
+ str d2,[x11,x9,lsl #3]
+ str d0,[x11,x10,lsl #3]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d8,real,x16,0,d8
+ ldr d1,[x22,#CP_one]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d1,real,x16,0,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d11
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d11
+ ldr d1,[x22,#CP_two]
+ ldr d2,[x22,#CP_half]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d2
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d1,real,x16,0,d0
+ add x11,x19,#AGS_RPOI
+ str d0,[x11,x9,lsl #3]
+ str d0,[x11,x10,lsl #3]
+ add x23,x23,#1
+ cmp x23,#3
+ b.ne .Lcarbon_gauss_point
+ ldp d8,d9,[sp,#112]
+ ldp d10,d11,[sp,#128]
+ ldp d12,d13,[sp,#144]
+ ldp d14,d15,[sp,#160]
+ ldr x18,[sp,#96]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ .if 512 > 504
+ ldp x29,x30,[sp]
+ add sp,sp,#512
+ .else
+ ldp x29,x30,[sp],#512
+ .endif
+ ret
+.size md2asm_carbon_assimilation_parameter_fields,.-md2asm_carbon_assimilation_parameter_fields
+.section .rodata
+.p2align 3
+.Lcarbon_parameter_constants:
+.equ CP_one,0
+.quad 0x3ff0000000000000
+.equ CP_zero,8
+.quad 0x0000000000000000
+.equ CP_two,16
+.quad 0x4000000000000000
+.equ CP_half,24
+.quad 0x3fe0000000000000
+.equ CP_three,32
+.quad 0x4008000000000000
+.equ CP_quarter,40
+.quad 0x3fd0000000000000
+.equ CP_one_tenth,48
+.quad 0x3fb999999999999a
+.equ CP_three_tenths,56
+.quad 0x3fd3333333333333
+.equ CP_twentyfive,64
+.quad 0x4039000000000000
+.equ CP_thousand,72
+.quad 0x408f400000000000
+.equ CP_CO2_massfrac,80
+.quad 0x3f3a36e2eb1c432d
+.equ CP_CO2_molmass,88
+.quad 0x4046016872b020c5
+.equ CP_air_molmass,96
+.quad 0x403cf851eb851eb8
+.equ CP_gauss_tolerance,104
+.quad 0x3d20e374a4f8e0b4
+.equ CP_gauss_threehalf,112
+.quad 0x400c000000000000
+.equ CP_scalar_RMAIR,120
+.quad 0x3f9daa4fca42aed1
+.equ CP_scalar_RMCO2,128
+.quad 0x3fa6889c1b54195d
+.equ CP_scalar_RMC,136
+.quad 0x3f889374bc6a7efa
+.equ CP_scalar_RDMAX_AGS,144
+.quad 0x3fa70a3d70a3d70a
+.equ CP_scalar_RPARCF,152
+.quad 0x3fdeb851eb851eb8
+.equ CP_scalar_RRACCF,160
+.quad 0x3ff0000000000000
+.equ CP_scalar_RPCCO2,168
+.quad 0x3fd999999999999a
+.equ CP_scalar_RIAOPT,176
+.quad 0x407f400000000000
+.equ CP_scalar_RDSPOPT,184
+.quad 0x0000000000000000
+.equ CP_scalar_RXGT,192
+.quad 0x3fe0000000000000
+.equ CP_scalar_RDIFRACF,200
+.quad 0x3fd010624dd2f1aa
+.equ CP_scalar_RXBOMEGA,208
+.quad 0x3fee3779b421045d
+.equ CP_scalar_RRDCF,216
+.quad 0x3fbc71c53f39d1b3
+.equ CP_scalar_RAMMIN,224
+.quad 0x3ddb7cdfd9d7bdbb
+.equ CP_scalar_RCONDCTMIN,232
+.quad 0x3f2a36e2eb1c432d
+.equ CP_scalar_RCONDSTMIN,240
+.quad 0x3ee4f8b588e368f1
+.equ CP_scalar_RANFMINIT,248
+.quad 0x3e45798ee2308c3a
+.equ CP_scalar_RAIRTOH2O,256
+.quad 0x3ff9b22d0e560419
+.equ CP_scalar_RCO2TOH2O,264
+.quad 0x3ff999999999999a
+.equ CP_scalar_RAW,272
+.quad 0x4012cccccccccccd
+.equ CP_scalar_RASW,280
+.quad 0x4006666666666666
+.equ CP_scalar_RBW,288
+.quad 0x401c000000000000
+.equ CP_scalar_RDMAXN,296
+.quad 0x3f9eb851eb851eb8
+.equ CP_scalar_RDMAXX,304
+.quad 0x3fd3333333333333
+.equ CP_scalar_RRESPFACTOR_NIT,312
+.quad 0x3e7f237594c664ee
+.equ CP_scalar_RCNS_NIT,320
+.quad 0x3fe999999999999a
+.equ CP_scalar_RCA_1X_CO2_NIT,328
+.quad 0x3fd851eb851eb852
+.equ CP_scalar_RCA_2X_CO2_NIT,336
+.quad 0x3fe0a3d70a3d70a4
+.equ CP_scalar_RCC_NIT,344
+.quad 0x3fe81f81a5870da6
+.Lcarbon_parameter_RVCH4S:
+.quad 0x3f7148fd9fd36f7e
+.quad 0x3f68a86d71f36263
+.quad 0x3f6ab4b72c5197a2
+.p2align 3
+.Lcarbon_parameter_RVTOPT:
+.quad 0x4041800000000000
+.quad 0x4039000000000000
+.quad 0x4039000000000000
+.quad 0x4039000000000000
+.quad 0x4039000000000000
+.quad 0x4039000000000000
+.quad 0x4039000000000000
+.quad 0x4041800000000000
+.quad 0x4039000000000000
+.quad 0x4039000000000000
+.quad 0x4039000000000000
+.quad 0x4039000000000000
+.quad 0x4039000000000000
+.quad 0x4039000000000000
+.quad 0x4039000000000000
+.quad 0x4039000000000000
+.quad 0x4041800000000000
+.quad 0x4039000000000000
+.quad 0x4039000000000000
+.quad 0x4039000000000000
+.quad 0x4039000000000000
+.p2align 3
+.Lcarbon_parameter_RVFZERO:
+.quad 0x3fe0000000000000
+.quad 0x3feb333340000000
+.quad 0x3feb333340000000
+.quad 0x3feb333340000000
+.quad 0x3feb333340000000
+.quad 0x3feb333340000000
+.quad 0x3feb333340000000
+.quad 0x3fe0000000000000
+.quad 0x3feb333340000000
+.quad 0x3feb333340000000
+.quad 0x3feb333340000000
+.quad 0x3feb333340000000
+.quad 0x3feb333340000000
+.quad 0x3feb333340000000
+.quad 0x3feb333340000000
+.quad 0x3feb333340000000
+.quad 0x3fe0000000000000
+.quad 0x3feb333340000000
+.quad 0x3feb333340000000
+.quad 0x3feb333340000000
+.quad 0x3feb333340000000
+.p2align 3
+.Lcarbon_parameter_RVFZEROST:
+.quad 0x3fe6666666666666
+.quad 0x3feb333333333333
+.quad 0x3fe4cccccccccccd
+.quad 0x3fee666666666666
+.quad 0x3fee666666666666
+.quad 0x3fee666666666666
+.quad 0x3fee666666666666
+.quad 0x3fe6666666666666
+.quad 0x3fee666666666666
+.quad 0x3fee666666666666
+.quad 0x3fed70a3d70a3d71
+.quad 0x3fe999999999999a
+.quad 0x3fee666666666666
+.quad 0x3feeb851eb851eb8
+.quad 0x3fee666666666666
+.quad 0x3fee666666666666
+.quad 0x3fe70a3d70a3d70a
+.quad 0x3feeb851eb851eb8
+.quad 0x3fee666666666666
+.quad 0x3fee666666666666
+.quad 0x3fee666666666666
+.p2align 3
+.Lcarbon_parameter_RVEPSO:
+.quad 0x3e490fa680000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e490fa680000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e490fa680000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e4e6e0a40000000
+.quad 0x3e4e6e0a40000000
+.p2align 3
+.Lcarbon_parameter_RVGAMM:
+.quad 0x3ed1e15c80000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3ed1e15c80000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3ed1e15c80000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3f11f5a0e0000000
+.quad 0x3f11f5a0e0000000
+.p2align 3
+.Lcarbon_parameter_RVQDGAMM:
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.quad 0x3ff8000000000000
+.p2align 3
+.Lcarbon_parameter_RVQDGMES:
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.p2align 3
+.Lcarbon_parameter_RVT1GMES:
+.quad 0x402a000000000000
+.quad 0x4014000000000000
+.quad 0x4014000000000000
+.quad 0x4014000000000000
+.quad 0x4014000000000000
+.quad 0x4014000000000000
+.quad 0x4014000000000000
+.quad 0x402a000000000000
+.quad 0x4014000000000000
+.quad 0x4014000000000000
+.quad 0x4014000000000000
+.quad 0x4014000000000000
+.quad 0x4014000000000000
+.quad 0x4014000000000000
+.quad 0x4014000000000000
+.quad 0x4014000000000000
+.quad 0x402a000000000000
+.quad 0x4014000000000000
+.quad 0x4014000000000000
+.quad 0x4014000000000000
+.quad 0x4014000000000000
+.p2align 3
+.Lcarbon_parameter_RVT2GMES:
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.quad 0x4042000000000000
+.p2align 3
+.Lcarbon_parameter_RVAMMAX:
+.quad 0x3ebec0acd04f859c
+.quad 0x3ec27476ca61b882
+.quad 0x3ec92a737110e454
+.quad 0x3ec27476ca61b882
+.quad 0x3ec27476ca61b882
+.quad 0x3ebec0acd04f859c
+.quad 0x3ebec0acd04f859c
+.quad 0x3ebec0acd04f859c
+.quad 0x3ebec0acd04f859c
+.quad 0x3ec92a737110e454
+.quad 0x3ebec0acd04f859c
+.quad 0x3ebec0acd04f859c
+.quad 0x3ebec0acd04f859c
+.quad 0x3ebec0acd04f859c
+.quad 0x3ebec0acd04f859c
+.quad 0x3ebec0acd04f859c
+.quad 0x3ebec0acd04f859c
+.quad 0x3ebec0acd04f859c
+.quad 0x3ec27476ca61b882
+.quad 0x3ec27476ca61b882
+.quad 0x3ebec0acd04f859c
+.p2align 3
+.Lcarbon_parameter_RVQDAMMAX:
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.quad 0x4000000000000000
+.p2align 3
+.Lcarbon_parameter_RVT1AMMAX:
+.quad 0x402a000000000000
+.quad 0x4020000000000000
+.quad 0x4020000000000000
+.quad 0x4020000000000000
+.quad 0x4020000000000000
+.quad 0x4020000000000000
+.quad 0x4020000000000000
+.quad 0x402a000000000000
+.quad 0x4020000000000000
+.quad 0x4020000000000000
+.quad 0x4020000000000000
+.quad 0x4020000000000000
+.quad 0x4020000000000000
+.quad 0x4020000000000000
+.quad 0x4020000000000000
+.quad 0x4020000000000000
+.quad 0x402a000000000000
+.quad 0x4020000000000000
+.quad 0x4020000000000000
+.quad 0x4020000000000000
+.quad 0x4020000000000000
+.p2align 3
+.Lcarbon_parameter_RVT2AMMAX:
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.quad 0x4043000000000000
+.p2align 3
+.Lcarbon_parameter_RVAH:
+.quad 0x40154ac080000000
+.quad 0x40030c49c0000000
+.quad 0x40030c49c0000000
+.quad 0x40030c49c0000000
+.quad 0x40030c49c0000000
+.quad 0x40030c49c0000000
+.quad 0x40030c49c0000000
+.quad 0x40154ac080000000
+.quad 0x40030c49c0000000
+.quad 0x40030c49c0000000
+.quad 0x40030c49c0000000
+.quad 0x40030c49c0000000
+.quad 0x40030c49c0000000
+.quad 0x40030c49c0000000
+.quad 0x40030c49c0000000
+.quad 0x40030c49c0000000
+.quad 0x40154ac080000000
+.quad 0x40030c49c0000000
+.quad 0x40030c49c0000000
+.quad 0x40030c49c0000000
+.quad 0x40030c49c0000000
+.p2align 3
+.Lcarbon_parameter_RVBH:
+.quad 0xbfec92a300000000
+.quad 0xbfe38793e0000000
+.quad 0xbfe38793e0000000
+.quad 0xbfe38793e0000000
+.quad 0xbfe38793e0000000
+.quad 0xbfe38793e0000000
+.quad 0xbfe38793e0000000
+.quad 0xbfec92a300000000
+.quad 0xbfe38793e0000000
+.quad 0xbfe38793e0000000
+.quad 0xbfe38793e0000000
+.quad 0xbfe38793e0000000
+.quad 0xbfe38793e0000000
+.quad 0xbfe38793e0000000
+.quad 0xbfe38793e0000000
+.quad 0xbfe38793e0000000
+.quad 0xbfec92a300000000
+.quad 0xbfe38793e0000000
+.quad 0xbfe38793e0000000
+.quad 0xbfe38793e0000000
+.quad 0xbfe38793e0000000
+.p2align 3
+.Lcarbon_parameter_LVSTRESS:
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.word 0
+.p2align 3
+.Lcarbon_parameter_RVBSLAI:
+.quad 0x3fb47ae147ae147b
+.quad 0x3faeb851eb851eb8
+.quad 0x3fb47ae147ae147b
+.quad 0x3fe0000000000000
+.quad 0x3fe0000000000000
+.quad 0x3fc0000000000000
+.quad 0x3fd0000000000000
+.quad 0x3fb47ae147ae147b
+.quad 0x3ee4f8b588e368f1
+.quad 0x3fb47ae147ae147b
+.quad 0x3faeb851eb851eb8
+.quad 0x3fb47ae147ae147b
+.quad 0x3ee4f8b588e368f1
+.quad 0x3fb47ae147ae147b
+.quad 0x3ee4f8b588e368f1
+.quad 0x3ee4f8b588e368f1
+.quad 0x3fb47ae147ae147b
+.quad 0x3fb47ae147ae147b
+.quad 0x3fe0000000000000
+.quad 0x3fe0000000000000
+.quad 0x3fb47ae147ae147b
+.p2align 3
+.Lcarbon_parameter_RVLAIMIN:
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3ff0000000000000
+.quad 0x3ff0000000000000
+.quad 0x3ff0000000000000
+.quad 0x3ff0000000000000
+.quad 0x3fd3333333333333
+.quad 0x3f1a36e2eb1c432d
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3f1a36e2eb1c432d
+.quad 0x3fd3333333333333
+.quad 0x3f1a36e2eb1c432d
+.quad 0x3f1a36e2eb1c432d
+.quad 0x3ff0000000000000
+.quad 0x3fd3333333333333
+.quad 0x3ff0000000000000
+.quad 0x3ff0000000000000
+.quad 0x3fd3333333333333
+.p2align 3
+.Lcarbon_parameter_RVSEFOLD:
+.quad 0x4062c00000000000
+.quad 0x4062c00000000000
+.quad 0x4062c00000000000
+.quad 0x4076d00000000000
+.quad 0x406cc00000000000
+.quad 0x406cc00000000000
+.quad 0x4076d00000000000
+.quad 0x4062c00000000000
+.quad 0x3f50624dd2f1a9fc
+.quad 0x4062c00000000000
+.quad 0x4062c00000000000
+.quad 0x4062c00000000000
+.quad 0x3f50624dd2f1a9fc
+.quad 0x4062c00000000000
+.quad 0x3f50624dd2f1a9fc
+.quad 0x3f50624dd2f1a9fc
+.quad 0x4076d00000000000
+.quad 0x4062c00000000000
+.quad 0x4076d00000000000
+.quad 0x4076d00000000000
+.quad 0x4062c00000000000
+.p2align 3
+.Lcarbon_parameter_RVGMES:
+.quad 0x3f62d77318fc5048
+.quad 0x3f554c985f06f694
+.quad 0x3f554c985f06f694
+.quad 0x3f4a36e2eb1c432d
+.quad 0x3f4a36e2eb1c432d
+.quad 0x3f56f0068db8bac7
+.quad 0x3f5205bc01a36e2f
+.quad 0x3f62d77318fc5048
+.quad 0x3eb0c6f7a0b5ed8d
+.quad 0x3f60624dd2f1a9fc
+.quad 0x3f3a36e2eb1c432d
+.quad 0x3f50624dd2f1a9fc
+.quad 0x3eb0c6f7a0b5ed8d
+.quad 0x3f40624dd2f1a9fc
+.quad 0x3eb0c6f7a0b5ed8d
+.quad 0x3eb0c6f7a0b5ed8d
+.quad 0x3f4d7dbf487fcb92
+.quad 0x3f5f212d77318fc5
+.quad 0x3f50624dd2f1a9fc
+.quad 0x3f4a36e2eb1c432d
+.quad 0x3f50624dd2f1a9fc
+.p2align 3
+.Lcarbon_parameter_RVGC:
+.quad 0x3f2a36e2eb1c432d
+.quad 0x3f23a92a30553261
+.quad 0x3f2a36e2eb1c432d
+.quad 0x3f2a36e2eb1c432d
+.quad 0x3f2a36e2eb1c432d
+.quad 0x0000000000000000
+.quad 0x3f30624dd2f1a9fc
+.quad 0x3f2a36e2eb1c432d
+.quad 0x3e7ad7f29abcaf48
+.quad 0x3f30624dd2f1a9fc
+.quad 0x3f30624dd2f1a9fc
+.quad 0x3f30624dd2f1a9fc
+.quad 0x3e7ad7f29abcaf48
+.quad 0x3f30624dd2f1a9fc
+.quad 0x0000000000000000
+.quad 0x3e45798ee2308c3a
+.quad 0x3f23a92a30553261
+.quad 0x3f2a36e2eb1c432d
+.quad 0x0000000000000000
+.quad 0x3f1a36e2eb1c432d
+.quad 0x3f30624dd2f1a9fc
+.p2align 3
+.Lcarbon_parameter_RVDMAX:
+.quad 0x3faa9fbe76c8b439
+.quad 0x3fa999999999999a
+.quad 0x3fa999999999999a
+.quad 0x3fbfbe76c8b43958
+.quad 0x3fbfbe76c8b43958
+.quad 0x3fbbe76c8b439581
+.quad 0x3fbfbe76c8b43958
+.quad 0x3faa9fbe76c8b439
+.quad 0x3ee4f8b588e368f1
+.quad 0x3fa999999999999a
+.quad 0x3fa999999999999a
+.quad 0x3fa999999999999a
+.quad 0x3ee4f8b588e368f1
+.quad 0x3fa999999999999a
+.quad 0x3ee4f8b588e368f1
+.quad 0x3ee4f8b588e368f1
+.quad 0x3faa9fbe76c8b439
+.quad 0x3fa999999999999a
+.quad 0x3fbfbe76c8b43958
+.quad 0x3fbfbe76c8b43958
+.quad 0x3fa999999999999a
+.p2align 3
+.Lcarbon_parameter_RVF2I:
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.quad 0x3fd3333333333333
+.p2align 3
+.Lcarbon_parameter_RVCE:
+.quad 0x401eb851eb851eb8
+.quad 0x400e51eb851eb852
+.quad 0x40163d70a3d70a3d
+.quad 0x4013666666666666
+.quad 0x4013666666666666
+.quad 0x401351eb851eb852
+.quad 0x401351eb851eb852
+.quad 0x401eb851eb851eb8
+.quad 0x3f1a36e2eb1c432d
+.quad 0x40163d70a3d70a3d
+.quad 0x400e51eb851eb852
+.quad 0x40163d70a3d70a3d
+.quad 0x3f1a36e2eb1c432d
+.quad 0x40163d70a3d70a3d
+.quad 0x3f1a36e2eb1c432d
+.quad 0x3f1a36e2eb1c432d
+.quad 0x401eb851eb851eb8
+.quad 0x40163d70a3d70a3d
+.quad 0x4013666666666666
+.quad 0x4013666666666666
+.quad 0x40163d70a3d70a3d
+.p2align 3
+.Lcarbon_parameter_RVCF:
+.quad 0xc01151eb851eb852
+.quad 0x4023ae147ae147ae
+.quad 0x401aeb851eb851ec
+.quad 0xbfceb851eb851eb8
+.quad 0xbfceb851eb851eb8
+.quad 0x40043d70a3d70a3d
+.quad 0x40043d70a3d70a3d
+.quad 0xc01151eb851eb852
+.quad 0x3ee4f8b588e368f1
+.quad 0x401aeb851eb851ec
+.quad 0x4023ae147ae147ae
+.quad 0x401aeb851eb851ec
+.quad 0x3ee4f8b588e368f1
+.quad 0x401aeb851eb851ec
+.quad 0x3ee4f8b588e368f1
+.quad 0x3ee4f8b588e368f1
+.quad 0xc01151eb851eb852
+.quad 0x401aeb851eb851ec
+.quad 0xbfceb851eb851eb8
+.quad 0xbfceb851eb851eb8
+.quad 0x401aeb851eb851ec
+.p2align 3
+.Lcarbon_parameter_RVCNA:
+.quad 0x3ff4cccccccccccd
+.quad 0x3ff4cccccccccccd
+.quad 0x3ff4cccccccccccd
+.quad 0x4006666666666666
+.quad 0x4006666666666666
+.quad 0x4000000000000000
+.quad 0x4004000000000000
+.quad 0x3ff4cccccccccccd
+.quad 0x3ee4f8b588e368f1
+.quad 0x3ff4cccccccccccd
+.quad 0x3ff4cccccccccccd
+.quad 0x3ff4cccccccccccd
+.quad 0x3ee4f8b588e368f1
+.quad 0x3ff4cccccccccccd
+.quad 0x3ee4f8b588e368f1
+.quad 0x3ee4f8b588e368f1
+.quad 0x3ff4cccccccccccd
+.quad 0x3ff4cccccccccccd
+.quad 0x4006666666666666
+.quad 0x4006666666666666
+.quad 0x3ff4cccccccccccd
+.p2align 3
+.Lcarbon_parameter_RVCH4QVT:
+.quad 0x0000000000000000
+.quad 0x4002b22d0e560419
+.quad 0x4002b22d0e560419
+.quad 0x4002b22d0e560419
+.quad 0x4002b22d0e560419
+.quad 0x4002b22d0e560419
+.quad 0x4002b22d0e560419
+.quad 0x4002b22d0e560419
+.quad 0x0000000000000000
+.quad 0x4002b22d0e560419
+.quad 0x4002b22d0e560419
+.quad 0x4002b22d0e560419
+.quad 0x0000000000000000
+.quad 0x4002b22d0e560419
+.quad 0x0000000000000000
+.quad 0x0000000000000000
+.quad 0x4002b22d0e560419
+.quad 0x4002b22d0e560419
+.quad 0x4002b22d0e560419
+.quad 0x4002b22d0e560419
+.quad 0x0000000000000000
+.p2align 3
+.section .note.GNU-stack,"",%progbits

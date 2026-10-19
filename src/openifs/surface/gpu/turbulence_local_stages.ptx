@@ -1,0 +1,83 @@
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.func (.param .u32 r) turbulence_range(.param .u64 pointer,.param .u64 bytes,.param .u64 capacity)
+{.reg .u64 %a,%n,%c,%end;.reg .u32 %error;.reg .pred %p;
+ld.param.u64 %a,[pointer];ld.param.u64 %n,[bytes];ld.param.u64 %c,[capacity];mov.u32 %error,16501;setp.eq.u64 %p,%n,0;@%p bra OK;setp.eq.u64 %p,%a,0;@%p bra DONE;and.b64 %end,%a,7;setp.ne.u64 %p,%end,0;@%p bra DONE;setp.gt.u64 %p,%n,%c;@%p bra DONE;add.u64 %end,%a,%n;setp.lt.u64 %p,%end,%a;@%p bra DONE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra DONE;OK:mov.u32 %error,0;DONE:st.param.u32 [r],%error;ret;}
+.visible .func md2asm_gpu_turbulence_local_complete(.param .u64 vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%record,%cap,%v<3>,%n,%n1,%word,%ptr,%off,%a,%b,%an,%bn,%ae,%be,%rows,%mag,%quiet;
+.reg .u32 %mode,%P,%first,%last,%column,%i,%j,%error,%flags,%raised,%bits;
+.reg .b64 %value,%result,%one;.reg .pred %p,%q;
+.local .align 8 .b8 table[96];.param .u64 rb,rn,rc;.param .u32 rr;.param .b64 ma,mb;.param .align 8 .b8 math[16];
+mov.u32 %i,%tid.x;mov.u32 %j,%tid.y;or.b32 %i,%i,%j;mov.u32 %j,%tid.z;or.b32 %i,%i,%j;mov.u32 %j,%ctaid.x;or.b32 %i,%i,%j;mov.u32 %j,%ctaid.y;or.b32 %i,%i,%j;mov.u32 %j,%ctaid.z;or.b32 %i,%i,%j;setp.ne.u32 %p,%i,0;@%p ret;
+ld.param.u64 %ctx,[common_context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %word,%ctx,7;setp.ne.u64 %p,%word,0;@%p ret;ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+
+mov.u32 %bits,%ntid.x;
+mov.u32 %error,16500;setp.ne.u32 %p,%bits,1;@%p bra REFUSE;
+mov.u32 %bits,%ntid.y;
+mov.u32 %error,16500;setp.ne.u32 %p,%bits,1;@%p bra REFUSE;
+mov.u32 %bits,%ntid.z;
+mov.u32 %error,16500;setp.ne.u32 %p,%bits,1;@%p bra REFUSE;
+mov.u32 %bits,%nctaid.x;
+mov.u32 %error,16500;setp.ne.u32 %p,%bits,1;@%p bra REFUSE;
+mov.u32 %bits,%nctaid.y;
+mov.u32 %error,16500;setp.ne.u32 %p,%bits,1;@%p bra REFUSE;
+mov.u32 %bits,%nctaid.z;
+mov.u32 %error,16500;setp.ne.u32 %p,%bits,1;@%p bra REFUSE;
+mov.u32 %bits,%dynamic_smem_size;
+mov.u32 %error,16500;setp.ne.u32 %p,%bits,0;@%p bra REFUSE;
+ld.global.u32 %bits,[%ctx+4];
+mov.u32 %error,16500;setp.ne.u32 %p,%bits,1;@%p bra REFUSE;
+ld.global.u32 %bits,[%ctx+12];and.b32 %bits,%bits,1;
+mov.u32 %error,16500;setp.ne.u32 %p,%bits,0;@%p bra REFUSE;
+ld.param.u64 %args,[vector];
+st.param.u64 [rb],%args;st.param.u64 [rn],24;st.param.u64 [rc],24;call.uni (rr),turbulence_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rc],64;call.uni (rr),turbulence_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %cap,[%ctx+56];
+st.param.u64 [rb],%record;st.param.u64 [rn],64;st.param.u64 [rc],%cap;call.uni (rr),turbulence_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u32 %mode,[%record+24];ld.global.u32 %P,[%record+28];ld.global.u32 %first,[%record+32];ld.global.u32 %last,[%record+36];
+mov.u32 %error,16502;setp.gt.u32 %p,%mode,1;@%p bra REFUSE;
+mov.u32 %error,16502;setp.lt.u32 %p,%P,1;@%p bra REFUSE;
+mov.u32 %error,16502;setp.gt.u32 %p,%P,4096;@%p bra REFUSE;
+mov.u32 %error,16502;setp.gt.u32 %p,%first,%P;@%p bra REFUSE;
+mov.u32 %error,16502;setp.gt.u32 %p,%last,%P;@%p bra REFUSE;
+ld.global.u64 %word,[%record+40];
+mov.u32 %error,16502;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ld.global.u64 %word,[%record+48];
+mov.u32 %error,16502;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ld.global.u64 %word,[%record+56];
+mov.u32 %error,16502;setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+setp.ne.u32 %p,%mode,0;@%p bra SHAPE_READY;
+mov.u32 %error,16502;setp.ne.u32 %p,%P,1;@%p bra REFUSE;
+mov.u32 %error,16502;setp.ne.u32 %p,%first,0;@%p bra REFUSE;
+mov.u32 %error,16502;setp.ne.u32 %p,%last,1;@%p bra REFUSE;
+SHAPE_READY:mul.wide.u32 %n,%P,8;mov.u64 %n1,0;setp.ne.u32 %p,%mode,0;@%p mov.u64 %n1,%n;
+ld.global.u64 %v0,[%args+0];ld.global.u64 %cap,[%record+0];
+st.param.u64 [rb],%v0;st.param.u64 [rn],%n;st.param.u64 [rc],%cap;call.uni (rr),turbulence_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.local.u64 [table+0],%v0;st.local.u64 [table+8],%n;
+ld.global.u64 %v1,[%args+8];ld.global.u64 %cap,[%record+8];
+st.param.u64 [rb],%v1;st.param.u64 [rn],%n1;st.param.u64 [rc],%cap;call.uni (rr),turbulence_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.local.u64 [table+16],%v1;st.local.u64 [table+24],%n1;
+ld.global.u64 %v2,[%args+16];ld.global.u64 %cap,[%record+16];
+st.param.u64 [rb],%v2;st.param.u64 [rn],%n;st.param.u64 [rc],%cap;call.uni (rr),turbulence_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.local.u64 [table+32],%v2;st.local.u64 [table+40],%n;
+st.local.u64 [table+48],%args;st.local.u64 [table+56],24;
+st.local.u64 [table+64],%ctx;st.local.u64 [table+72],64;
+st.local.u64 [table+80],%record;st.local.u64 [table+88],64;
+mov.u32 %i,2;PAIR_LEFT:setp.eq.u32 %p,%i,3;@%p bra LEFT_NEXT;setp.eq.u32 %p,%i,5;@%p bra READY;mul.wide.u32 %off,%i,16;cvta.local.u64 %rows,table;add.u64 %ptr,%rows,%off;ld.u64 %a,[%ptr];ld.u64 %an,[%ptr+8];add.u64 %ae,%a,%an;mov.u32 %j,0;
+PAIR_RIGHT:setp.eq.u32 %p,%i,%j;@%p bra RIGHT_NEXT;mul.wide.u32 %off,%j,16;add.u64 %ptr,%rows,%off;ld.u64 %b,[%ptr];ld.u64 %bn,[%ptr+8];setp.eq.u64 %p,%bn,0;@%p bra RIGHT_NEXT;add.u64 %be,%b,%bn;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;mov.u32 %error,16501;@%p bra REFUSE;
+RIGHT_NEXT:add.u32 %j,%j,1;setp.lt.u32 %p,%j,6;@%p bra PAIR_RIGHT;
+LEFT_NEXT:add.u32 %i,%i,1;bra PAIR_LEFT;
+READY:ld.global.u32 %flags,[%ctx+8];setp.ne.u32 %p,%mode,0;@%p bra SELECT;
+ld.global.b64 %value,[%v0];mov.b64 %one,0x3ff0000000000000;st.param.b64 [ma],%one;st.param.b64 [mb],%value;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %result,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;st.global.b64 [%v2],%result;bra DONE;
+SELECT:mov.u32 %column,%first;
+COLUMN:setp.ge.u32 %p,%column,%last;@%p bra DONE;mul.wide.u32 %off,%column,8;add.u64 %ptr,%v0,%off;ld.global.b64 %value,[%ptr];and.b64 %mag,%value,0x7fffffffffffffff;and.b64 %quiet,%value,0x0008000000000000;setp.gt.u64 %p,%mag,0x7ff0000000000000;setp.eq.u64 %q,%quiet,0;and.pred %p,%p,%q;@%p or.b32 %flags,%flags,1;
+mov.b64 %result,0;setp.gt.f64 %p,%value,0d3fe0000000000000;@!%p bra STORE;add.u64 %ptr,%v1,%off;ld.global.b64 %result,[%ptr];
+STORE:add.u64 %ptr,%v2,%off;st.global.b64 [%ptr],%result;add.u32 %column,%column,1;bra COLUMN;
+DONE:st.global.u32 [%ctx+8],%flags;ret;
+REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+.visible .entry md2asm_gpu_turbulence_local(.param .u64 vector,.param .u64 context)
+{.reg .u64 %v,%c;.param .u64 v,c;ld.param.u64 %v,[vector];ld.param.u64 %c,[context];st.param.u64 [v],%v;st.param.u64 [c],%c;call.uni md2asm_gpu_turbulence_local_complete,(v,c);ret;}

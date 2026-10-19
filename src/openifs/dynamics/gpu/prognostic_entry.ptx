@@ -1,0 +1,29 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Complete selected LAPINEB launch from the retained component contract revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .u32 r) openifs_lapineb_admit(.param .u64 a,.param .u64 c);
+.extern .func (.param .align 8 .b8 r[24]) openifs_lapineb_values(.param .u64 a,.param .u64 c,.param .u64 r,.param .u64 s);
+.visible .func openifs_lapineb_fp64(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u64 %args,%ctx,%record,%scratch,%tmp,%event,%vertical,%counter;
+.reg .u32 %unique,%rt,%error,%flags;.reg .pred %p;
+.param .u64 a,c,r,s;.param .u32 admitted;.param .align 8 .b8 values[24];
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %tmp,%ctx,7;setp.ne.u64 %p,%tmp,0;@%p ret;
+mov.u32 %unique,%ctaid.x;mov.u32 %rt,%ctaid.y;or.b32 %unique,%unique,%rt;mov.u32 %rt,%ctaid.z;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.x;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.y;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.z;or.b32 %unique,%unique,%rt;setp.ne.u32 %p,%unique,0;@%p ret;
+ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;mov.u32 %error,13120;
+mov.u32 %rt,%ntid.x;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%ntid.y;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%ntid.z;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%nctaid.x;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%nctaid.y;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%nctaid.z;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+ld.global.u32 %rt,[%ctx+4];setp.ne.u32 %p,%rt,1;@%p bra REFUSE;ld.global.u32 %rt,[%ctx+12];and.b32 %rt,%rt,1;setp.ne.u32 %p,%rt,0;@%p bra REFUSE;
+st.param.u64 [a],%args;st.param.u64 [c],%ctx;call.uni (admitted),openifs_lapineb_admit,(a,c);ld.param.u32 %error,[admitted];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];st.param.u64 [a],%args;st.param.u64 [c],%ctx;st.param.u64 [r],%record;st.param.u64 [s],%scratch;call.uni (values),openifs_lapineb_values,(a,c,r,s);
+ld.param.u32 %flags,[values];ld.param.u32 %error,[values+4];ld.param.u64 %event,[values+8];ld.param.u64 %vertical,[values+16];atom.global.or.b32 %rt,[%ctx+8],%flags;st.global.u64 [%ctx+16],%event;setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %counter,[%record+328];setp.eq.u64 %p,%counter,0;@%p ret;add.u64 %tmp,%counter,8;atom.global.add.u64 %tmp,[%tmp],%vertical;atom.global.add.u64 %tmp,[%counter],1;ret;
+REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+.visible .entry openifs_lapineb_ptx(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u64 %a,%c;.param .u64 a,c;
+ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];st.param.u64 [a],%a;st.param.u64 [c],%c;call.uni openifs_lapineb_fp64,(a,c);ret;
+}

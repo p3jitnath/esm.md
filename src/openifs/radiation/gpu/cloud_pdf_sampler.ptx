@@ -1,0 +1,138 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Direct cloud probability interpolation from the retained component contract revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.visible .func (.param .align 8 .b8 result[16]) md2asm_gpu_cloud_pdf_value(.param .u64 sampler,.param .b64 spread_word,.param .b64 fraction_word)
+{
+ .reg .u64 %object,%base,%offset,%s1,%s2,%address,%next,%tmp;
+ .reg .u32 %nc,%nf,%ic,%jf,%flags,%raised; .reg .s32 %index; .reg .pred %p;
+ .reg .b64 %fsd,%cdf,%x,%y,%a,%b,%scale,%origin,%number,%v00,%v01,%v10,%v11,%t1,%t2,%t3,%t4,%value;
+ .reg .f64 %converted;
+ .param .b64 ma,mb; .param .align 8 .b8 math[16];
+ ld.param.u64 %object,[sampler]; ld.param.b64 %fsd,[spread_word]; ld.param.b64 %cdf,[fraction_word]; mov.u32 %flags,0;
+ ld.global.u32 %nc,[%object]; ld.global.u32 %nf,[%object+4]; sub.u32 %nc,%nc,1; sub.u32 %nf,%nf,1; cvt.rn.f64.u32 %converted,%nc; mov.b64 %number,%converted;
+ st.param.b64 [ma],%cdf; st.param.b64 [mb],%number; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %x,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%x; st.param.b64 [mb],0x3ff0000000000000; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %x,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ cvt.rzi.s32.f64 %index,%x; cvt.rn.f64.s32 %converted,%index; setp.ne.f64 %p,%converted,%x; @%p or.b32 %flags,%flags,16; min.s32 %index,%index,%nc; max.s32 %index,%index,1; mov.b32 %ic,%index; cvt.rn.f64.s32 %converted,%index; mov.b64 %number,%converted;
+ st.param.b64 [ma],%x; st.param.b64 [mb],%number; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %x,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ setp.gt.f64 %p,%x,0d3ff0000000000000; @%p mov.b64 %x,0x3ff0000000000000; setp.le.f64 %p,%x,0d0000000000000000; @%p mov.b64 %x,0;
+ ld.global.b64 %origin,[%object+8]; ld.global.b64 %scale,[%object+16];
+ st.param.b64 [ma],%fsd; st.param.b64 [mb],%origin; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %y,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%y; st.param.b64 [mb],%scale; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %y,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%y; st.param.b64 [mb],0x3ff0000000000000; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %y,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ cvt.rzi.s32.f64 %index,%y; cvt.rn.f64.s32 %converted,%index; setp.ne.f64 %p,%converted,%y; @%p or.b32 %flags,%flags,16; min.s32 %index,%index,%nf; max.s32 %index,%index,1; mov.b32 %jf,%index; cvt.rn.f64.s32 %converted,%index; mov.b64 %number,%converted;
+ st.param.b64 [ma],%y; st.param.b64 [mb],%number; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %y,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ setp.gt.f64 %p,%y,0d3ff0000000000000; @%p mov.b64 %y,0x3ff0000000000000; setp.le.f64 %p,%y,0d0000000000000000; @%p mov.b64 %y,0;
+ ld.global.u64 %base,[%object+24]; ld.global.s64 %offset,[%object+32]; ld.global.s64 %s1,[%object+64]; ld.global.s64 %s2,[%object+88];
+ cvt.u64.u32 %tmp,%ic; mul.lo.u64 %tmp,%tmp,%s1; add.u64 %offset,%offset,%tmp; cvt.u64.u32 %tmp,%jf; mul.lo.u64 %tmp,%tmp,%s2; add.u64 %offset,%offset,%tmp; shl.b64 %offset,%offset,3; add.u64 %address,%base,%offset;
+ shl.b64 %s1,%s1,3; shl.b64 %s2,%s2,3; ld.global.b64 %v00,[%address]; add.u64 %next,%address,%s2; ld.global.b64 %v01,[%next]; add.u64 %next,%address,%s1; ld.global.b64 %v10,[%next]; add.u64 %next,%next,%s2; ld.global.b64 %v11,[%next];
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%x; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %a,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%y; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %b,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%a; st.param.b64 [mb],%b; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %t1,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t1; st.param.b64 [mb],%v00; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %t1,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%a; st.param.b64 [mb],%y; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %t2,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t2; st.param.b64 [mb],%v01; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %t2,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t1; st.param.b64 [mb],%t2; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %value,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%x; st.param.b64 [mb],%b; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %t3,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t3; st.param.b64 [mb],%v10; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %t3,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%value; st.param.b64 [mb],%t3; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %value,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%x; st.param.b64 [mb],%y; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %t4,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t4; st.param.b64 [mb],%v11; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %t4,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%value; st.param.b64 [mb],%t4; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %value,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [result],%value; st.param.u32 [result+8],%flags; st.param.u32 [result+12],0; ret;
+}
+.visible .func (.param .align 8 .b8 geometry[24]) md2asm_gpu_cloud_pdf_geometry(.param .u64 sampler)
+{
+ .reg .u64 %o,%data,%offset,%s1,%s2,%sum,%before,%xor1,%xor2,%nc,%nf,%tmp,%mag,%high,%g1,%g2,%negative,%origin,%low,%span; .reg .u32 %e; .reg .pred %p;
+ ld.param.u64 %o,[sampler]; mov.u32 %e,412; ld.global.s32 %nc,[%o]; ld.global.s32 %nf,[%o+4];
+ setp.lt.s64 %p,%nc,2; @%p bra GEOMETRY_DONE; setp.lt.s64 %p,%nf,2; @%p bra GEOMETRY_DONE;
+ ld.global.s64 %tmp,[%o+72]; setp.ne.u64 %p,%tmp,1; @%p bra GEOMETRY_DONE; ld.global.s64 %tmp,[%o+80]; setp.ne.u64 %p,%tmp,%nc; @%p bra GEOMETRY_DONE;
+ ld.global.s64 %tmp,[%o+96]; setp.ne.u64 %p,%tmp,1; @%p bra GEOMETRY_DONE; ld.global.s64 %tmp,[%o+104]; setp.ne.u64 %p,%tmp,%nf; @%p bra GEOMETRY_DONE;
+ ld.global.u64 %data,[%o+24]; setp.eq.u64 %p,%data,0; @%p bra GEOMETRY_DONE; and.b64 %tmp,%data,7; setp.ne.u64 %p,%tmp,0; @%p bra GEOMETRY_DONE;
+ setp.gt.u64 %p,%data,0x7fffffffffffffff; @%p bra GEOMETRY_DONE;
+ ld.global.s64 %offset,[%o+32]; ld.global.s64 %s1,[%o+64]; ld.global.s64 %s2,[%o+88];
+ add.s64 %sum,%offset,%s1; xor.b64 %xor1,%offset,%sum; xor.b64 %xor2,%s1,%sum; and.b64 %tmp,%xor1,%xor2; setp.lt.s64 %p,%tmp,0; @%p bra GEOMETRY_DONE;
+ mov.u64 %before,%sum; add.s64 %sum,%sum,%s2; xor.b64 %xor1,%before,%sum; xor.b64 %xor2,%s2,%sum; and.b64 %tmp,%xor1,%xor2; setp.lt.s64 %p,%tmp,0; @%p bra GEOMETRY_DONE;
+ mov.u64 %mag,%sum; setp.lt.s64 %p,%sum,0; @%p neg.s64 %mag,%sum; setp.gt.u64 %p,%mag,0x0fffffffffffffff; @%p bra GEOMETRY_DONE; shl.b64 %mag,%mag,3;
+ setp.ge.s64 %p,%sum,0; @%p bra ORIGIN_POSITIVE; setp.le.u64 %p,%data,%mag; @%p bra GEOMETRY_DONE; sub.u64 %origin,%data,%mag; bra ORIGIN_READY;
+ORIGIN_POSITIVE: add.u64 %origin,%data,%mag; setp.gt.u64 %p,%origin,0x7fffffffffffffff; @%p bra GEOMETRY_DONE;
+ORIGIN_READY:
+ sub.u64 %nc,%nc,1; sub.u64 %nf,%nf,1; mov.u64 %mag,%s1; setp.lt.s64 %p,%s1,0; @%p neg.s64 %mag,%s1;
+ mul.hi.u64 %high,%nc,%mag; setp.ne.u64 %p,%high,0; @%p bra GEOMETRY_DONE; mul.lo.u64 %g1,%nc,%mag; setp.gt.u64 %p,%g1,0x0ffffffffffffffe; @%p bra GEOMETRY_DONE;
+ mov.u64 %mag,%s2; setp.lt.s64 %p,%s2,0; @%p neg.s64 %mag,%s2; mul.hi.u64 %high,%nf,%mag; setp.ne.u64 %p,%high,0; @%p bra GEOMETRY_DONE; mul.lo.u64 %g2,%nf,%mag; setp.gt.u64 %p,%g2,0x0ffffffffffffffe; @%p bra GEOMETRY_DONE;
+ add.u64 %sum,%g1,%g2; setp.gt.u64 %p,%sum,0x0ffffffffffffffe; @%p bra GEOMETRY_DONE; mov.u64 %negative,0;
+ setp.lt.s64 %p,%s1,0; @%p add.u64 %negative,%negative,%g1; setp.lt.s64 %p,%s2,0; @%p add.u64 %negative,%negative,%g2; shl.b64 %negative,%negative,3;
+ setp.le.u64 %p,%origin,%negative; @%p bra GEOMETRY_DONE; sub.u64 %low,%origin,%negative; shl.b64 %span,%sum,3; add.u64 %span,%span,8; add.u64 %tmp,%low,%span; setp.gt.u64 %p,%tmp,0x7fffffffffffffff; @%p bra GEOMETRY_DONE;
+ mov.u32 %e,0;
+GEOMETRY_DONE: st.param.u64 [geometry],%low; st.param.u64 [geometry+8],%span; st.param.u32 [geometry+16],%e; st.param.u32 [geometry+20],0; ret;
+}
+
+.func (.param .u32 result) pdf_range(.param .u64 base,.param .u64 bytes,.param .u64 mask,.param .u64 owners,.param .u32 count)
+{
+ .reg .u64 %b,%n,%m,%list,%t,%end,%o,%on,%oe; .reg .u32 %i,%count,%e; .reg .pred %p,%q;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %m,[mask]; ld.param.u64 %list,[owners]; ld.param.u32 %count,[count];
+ mov.u32 %e,0; setp.eq.u64 %p,%n,0; @%p bra RANGE_DONE;
+ mov.u32 %e,412; setp.eq.u64 %p,%b,0; @%p bra RANGE_DONE; and.b64 %t,%b,%m; setp.ne.u64 %p,%t,0; @%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra RANGE_DONE; setp.gt.u64 %p,%n,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ add.u64 %end,%b,%n; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra RANGE_DONE;
+ mov.u32 %i,0;
+RANGE_OWNERS:
+ setp.ge.u32 %p,%i,%count; @%p bra RANGE_OK; ld.u64 %o,[%list]; ld.u64 %on,[%list+8]; setp.eq.u64 %p,%on,0; @%p bra RANGE_NEXT;
+ add.u64 %oe,%o,%on; setp.lt.u64 %p,%b,%oe; setp.lt.u64 %q,%o,%end; and.pred %p,%p,%q; @%p bra RANGE_DONE;
+RANGE_NEXT: add.u64 %list,%list,16; add.u32 %i,%i,1; bra RANGE_OWNERS;
+RANGE_OK: mov.u32 %e,0;
+RANGE_DONE: st.param.u32 [result],%e; ret;
+}
+
+.visible .func md2asm_gpu_cloud_pdf_sampler_fp64(.param .u64 original_vector,.param .u64 context,.param .u32 direct_object)
+{
+ .reg .u64 %args,%ctx,%ptr<4>,%object,%list,%tmp,%low,%span; .reg .b64 %fsd,%cdf,%value; .reg .u32 %mode,%unique,%rt,%error,%raised; .reg .pred %p0;
+ .local .align 8 .b8 spans[32]; .param .u64 b,n,m,l,object; .param .u32 c,r; .param .align 8 .b8 geometry[24],value[16]; .param .b64 fsd,cdf;
+ ld.param.u64 %args,[original_vector]; ld.param.u64 %ctx,[context]; ld.param.u32 %mode,[direct_object];
+ setp.eq.u64 %p0,%ctx,0; @%p0 ret; and.b64 %tmp,%ctx,7; setp.ne.u64 %p0,%tmp,0; @%p0 ret;
+ mov.u32 %unique,%ctaid.x; mov.u32 %rt,%ctaid.y; or.b32 %unique,%unique,%rt; mov.u32 %rt,%ctaid.z; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.x; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.y; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.z; or.b32 %unique,%unique,%rt; setp.ne.u32 %p0,%unique,0; @%p0 ret;
+ ld.global.u32 %error,[%ctx]; setp.ne.u32 %p0,%error,0; @%p0 ret; mov.u32 %error,411;
+ mov.u32 %rt,%nctaid.x; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%nctaid.y; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%nctaid.z; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%ntid.x; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%ntid.y; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%ntid.z; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE;
+ mov.u32 %rt,%dynamic_smem_size; setp.ne.u32 %p0,%rt,0; @%p0 bra REFUSE;
+ ld.global.u32 %rt,[%ctx+4]; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; setp.gt.u32 %p0,%mode,1; @%p0 bra REFUSE;
+ mov.u64 %list,spans; cvta.local.u64 %list,%list;
+ st.param.u64 [b],%args; st.param.u64 [n],32; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],0; call.uni (r),pdf_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.global.u64 %ptr0,[%args+0];
+ ld.global.u64 %ptr1,[%args+8];
+ ld.global.u64 %ptr2,[%args+16];
+ ld.global.u64 %ptr3,[%args+24];
+ st.param.u64 [b],%ptr3; st.param.u64 [n],8; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],0; call.uni (r),pdf_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.u64 [%list],%ptr3; st.u64 [%list+8],8; st.u64 [%list+16],%ctx; st.u64 [%list+24],64;
+ st.param.u64 [b],%ctx; st.param.u64 [n],64; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],1; call.uni (r),pdf_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%args; st.param.u64 [n],32; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],2; call.uni (r),pdf_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr1; st.param.u64 [n],8; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],2; call.uni (r),pdf_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%ptr2; st.param.u64 [n],8; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],2; call.uni (r),pdf_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ mov.u64 %object,%ptr0; setp.ne.u32 %p0,%mode,0; @%p0 bra OBJECT_READY;
+ st.param.u64 [b],%ptr0; st.param.u64 [n],16; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],2; call.uni (r),pdf_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.global.u64 %object,[%ptr0];
+OBJECT_READY:
+ st.param.u64 [b],%object; st.param.u64 [n],112; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],2; call.uni (r),pdf_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [object],%object; call.uni (geometry),md2asm_gpu_cloud_pdf_geometry,(object); ld.param.u64 %low,[geometry]; ld.param.u64 %span,[geometry+8]; ld.param.u32 %error,[geometry+16]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ st.param.u64 [b],%low; st.param.u64 [n],%span; st.param.u64 [m],7; st.param.u64 [l],%list; st.param.u32 [c],2; call.uni (r),pdf_range,(b,n,m,l,c); ld.param.u32 %error,[r]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE_META;
+ ld.global.b64 %fsd,[%ptr1]; ld.global.b64 %cdf,[%ptr2]; st.param.u64 [object],%object; st.param.b64 [fsd],%fsd; st.param.b64 [cdf],%cdf; call.uni (value),md2asm_gpu_cloud_pdf_value,(object,fsd,cdf); ld.param.b64 %value,[value]; ld.param.u32 %raised,[value+8]; st.global.b64 [%ptr3],%value; atom.global.or.b32 %rt,[%ctx+8],%raised; ret;
+REFUSE_META: mov.u32 %error,412;
+REFUSE: st.global.u32 [%ctx],%error; ret;
+}
+.visible .entry md2asm_gpu_sample_from_pdf(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %a,%c; .param .u64 a,c; .param .u32 mode; ld.param.u64 %a,[original_vector]; ld.param.u64 %c,[context]; st.param.u64 [a],%a; st.param.u64 [c],%c; st.param.u32 [mode],0; call.uni md2asm_gpu_cloud_pdf_sampler_fp64,(a,c,mode); ret;
+}
+.visible .entry md2asm_gpu_sample_from_pdf_simd(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %a,%c; .param .u64 a,c; .param .u32 mode; ld.param.u64 %a,[original_vector]; ld.param.u64 %c,[context]; st.param.u64 [a],%a; st.param.u64 [c],%c; st.param.u32 [mode],1; call.uni md2asm_gpu_cloud_pdf_sampler_fp64,(a,c,mode); ret;
+}

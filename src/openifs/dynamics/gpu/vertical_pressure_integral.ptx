@@ -1,0 +1,20 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Direct GPPWC entry from skills/md2asm/references/openifs/dynamics/gppwc.md revision 1.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func openifs_pressure_integral_parent_fp64(.param .u64 vector,.param .u64 context,.param .u32 kind);
+.visible .entry openifs_gppwc_ptx(.param .u64 original_argument_vector,.param .u64 context)
+{
+ .reg .b64 %a,%b;
+ .param .u64 va,vb;
+ .param .u32 kind;
+ ld.param.u64 %a,[original_argument_vector];
+ ld.param.u64 %b,[context];
+ st.param.u64 [va],%a;
+ st.param.u64 [vb],%b;
+ st.param.u32 [kind],0;
+ call.uni openifs_pressure_integral_parent_fp64,(va,vb,kind);
+ ret;
+}

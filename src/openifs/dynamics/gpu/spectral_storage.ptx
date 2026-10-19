@@ -1,0 +1,49 @@
+.version 8.5
+.target sm_90
+.address_size 64
+.visible .func (.param .u32 result) openifs_spectral_range(.param .u64 base,.param .u64 bytes,.param .u64 capacity,.param .u64 mask,.param .u64 owners,.param .u32 count)
+{
+ .reg .u64 %b,%n,%c,%m,%list,%t,%end,%o,%on,%oe; .reg .u32 %i,%count,%e; .reg .pred %p,%q;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %c,[capacity]; ld.param.u64 %m,[mask]; ld.param.u64 %list,[owners]; ld.param.u32 %count,[count];
+ mov.u32 %e,0; setp.eq.u64 %p,%n,0; @%p bra HR_DONE;
+ mov.u32 %e,7683; setp.gt.u64 %p,%n,%c; @%p bra HR_DONE;
+ setp.gt.u64 %p,%n,0x7fffffffffffffff; @%p bra HR_DONE;
+ setp.eq.u64 %p,%b,0; @%p bra HR_DONE;
+ and.b64 %t,%b,%m; setp.ne.u64 %p,%t,0; @%p bra HR_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra HR_DONE;
+ add.u64 %end,%b,%n; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra HR_DONE;
+ mov.u32 %i,0;
+HR_OWNERS:
+ setp.ge.u32 %p,%i,%count; @%p bra HR_OK;
+ ld.u64 %o,[%list]; ld.u64 %on,[%list+8]; setp.eq.u64 %p,%on,0; @%p bra HR_NEXT;
+ add.u64 %oe,%o,%on; setp.lt.u64 %p,%b,%oe; setp.lt.u64 %q,%o,%end; and.pred %p,%p,%q; @%p bra HR_DONE;
+HR_NEXT: add.u64 %list,%list,16; add.u32 %i,%i,1; bra HR_OWNERS;
+HR_OK: mov.u32 %e,0;
+HR_DONE: st.param.u32 [result],%e; ret;
+}
+.visible .func (.param .align 8 .b8 result[48]) openifs_spectral_rank2_view(.param .u64 descriptor,.param .u64 owner_base,.param .u64 owner_bytes,.param .u32 active_rows,.param .u32 last_column)
+{
+ .reg .u64 %desc,%base,%owner,%capacity,%rows,%cols,%absrow,%abscol,%left,%right,%prod,%high,%count,%bytes,%low,%end,%ownerend,%ga,%gb,%gr;
+ .reg .s64 %lo,%hi,%sr,%sc; .reg .u32 %L,%J,%error; .reg .pred %p,%q;
+ ld.param.u64 %desc,[descriptor]; ld.param.u64 %owner,[owner_base]; ld.param.u64 %capacity,[owner_bytes]; ld.param.u32 %L,[active_rows]; ld.param.u32 %J,[last_column]; mov.u64 %base,0; mov.s64 %sr,0; mov.s64 %sc,0; mov.u64 %low,0; mov.u64 %bytes,0; mov.u32 %error,7684;
+ ld.global.u64 %count,[%desc+16]; setp.ne.u64 %p,%count,8; @%p bra DONE; ld.global.u64 %count,[%desc+24]; setp.ne.u64 %p,%count,0x0000030200000000; @%p bra DONE; ld.global.u64 %count,[%desc+32]; setp.ne.u64 %p,%count,8; @%p bra DONE;
+ ld.global.s64 %lo,[%desc+48]; ld.global.s64 %hi,[%desc+56]; mov.u64 %rows,0; setp.lt.s64 %p,%hi,%lo; @%p bra ROWS_READY; sub.u64 %rows,%hi,%lo; setp.gt.u64 %p,%rows,0x7ffffffffffffffe; @%p bra DONE; add.u64 %rows,%rows,1;
+ROWS_READY: ld.global.s64 %lo,[%desc+72]; ld.global.s64 %hi,[%desc+80]; mov.u64 %cols,0; setp.lt.s64 %p,%hi,%lo; @%p bra COLS_READY; sub.u64 %cols,%hi,%lo; setp.gt.u64 %p,%cols,0x7ffffffffffffffe; @%p bra DONE; add.u64 %cols,%cols,1;
+COLS_READY: setp.eq.u32 %p,%L,0; @%p bra ACTIVE_READY; cvt.u64.u32 %count,%L; setp.gt.u64 %p,%count,%rows; @%p bra DONE; cvt.u64.u32 %count,%J; setp.gt.u64 %p,%count,%cols; @%p bra DONE;
+ACTIVE_READY: ld.global.u64 %base,[%desc]; setp.eq.u64 %p,%rows,0; setp.eq.u64 %q,%cols,0; or.pred %p,%p,%q; @%p bra OK;
+ ld.global.s64 %sr,[%desc+40]; ld.global.s64 %sc,[%desc+64]; setp.eq.u64 %p,%rows,1; @%p mov.s64 %sr,0; setp.eq.u64 %p,%cols,1; @%p mov.s64 %sc,0;
+ setp.eq.u64 %p,%rows,1; @%p bra ROW_STRIDE_OK; setp.eq.s64 %p,%sr,0; @%p bra DONE;
+ROW_STRIDE_OK: setp.eq.u64 %p,%cols,1; @%p bra COL_STRIDE_OK; setp.eq.s64 %p,%sc,0; @%p bra DONE;
+COL_STRIDE_OK: setp.eq.s64 %p,%sr,0x8000000000000000; @%p bra DONE; setp.eq.s64 %p,%sc,0x8000000000000000; @%p bra DONE; abs.s64 %absrow,%sr; abs.s64 %abscol,%sc;
+ setp.le.u64 %p,%rows,1; @%p bra INJECTIVE; setp.le.u64 %p,%cols,1; @%p bra INJECTIVE; mov.u64 %ga,%absrow; mov.u64 %gb,%abscol;
+GCD: rem.u64 %gr,%ga,%gb; mov.u64 %ga,%gb; mov.u64 %gb,%gr; setp.ne.u64 %p,%gb,0; @%p bra GCD; div.u64 %count,%abscol,%ga; setp.le.u64 %p,%rows,%count; @%p bra INJECTIVE; div.u64 %count,%absrow,%ga; setp.gt.u64 %p,%cols,%count; @%p bra DONE;
+INJECTIVE: mov.u32 %error,7683; mov.u64 %left,0; mov.u64 %right,0;
+ sub.u64 %count,%rows,1; mul.hi.u64 %high,%count,%absrow; mul.lo.u64 %prod,%count,%absrow; setp.ne.u64 %p,%high,0; @%p bra DONE; setp.gt.u64 %p,%prod,0x0fffffffffffffff; @%p bra DONE; setp.lt.s64 %p,%sr,0; @%p add.u64 %left,%left,%prod; @!%p add.u64 %right,%right,%prod;
+ sub.u64 %count,%cols,1; mul.hi.u64 %high,%count,%abscol; mul.lo.u64 %prod,%count,%abscol; setp.ne.u64 %p,%high,0; @%p bra DONE; setp.gt.u64 %p,%prod,0x0fffffffffffffff; @%p bra DONE; setp.lt.s64 %p,%sc,0; @%p add.u64 %left,%left,%prod; @!%p add.u64 %right,%right,%prod;
+ add.u64 %count,%left,%right; add.u64 %count,%count,1; setp.gt.u64 %p,%count,0x0fffffffffffffff; @%p bra DONE; shl.b64 %bytes,%count,3; shl.b64 %left,%left,3; setp.lt.u64 %p,%base,%left; @%p bra DONE; sub.u64 %low,%base,%left; setp.gt.u64 %p,%base,0x7fffffffffffffff; @%p bra DONE; setp.gt.u64 %p,%low,0x7fffffffffffffff; @%p bra DONE; add.u64 %end,%low,%bytes;
+ setp.eq.u64 %p,%low,0; @%p bra DONE; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra DONE; and.b64 %count,%base,7; setp.ne.u64 %p,%count,0; @%p bra DONE;
+ setp.eq.u64 %p,%owner,0; @%p bra DONE; setp.gt.u64 %p,%owner,0x7fffffffffffffff; @%p bra DONE; and.b64 %count,%owner,7; setp.ne.u64 %p,%count,0; @%p bra DONE; setp.gt.u64 %p,%capacity,0x7fffffffffffffff; @%p bra DONE; add.u64 %ownerend,%owner,%capacity; setp.gt.u64 %p,%ownerend,0x7fffffffffffffff; @%p bra DONE; setp.lt.u64 %p,%low,%owner; @%p bra DONE; setp.gt.u64 %p,%end,%ownerend; @%p bra DONE;
+ shl.b64 %sr,%sr,3; shl.b64 %sc,%sc,3;
+OK: mov.u32 %error,0;
+DONE: st.param.u64 [result],%base; st.param.s64 [result+8],%sr; st.param.s64 [result+16],%sc; st.param.u64 [result+24],%low; st.param.u64 [result+32],%bytes; st.param.u32 [result+40],%error; st.param.u32 [result+44],0; ret;
+}

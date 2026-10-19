@@ -1,0 +1,277 @@
+// Unverified direct PTX batch draft. See the routine frozen contract.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sqrt_status(.param .b64 a);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_exp_original_rounding(.param .b64 a);
+.extern .func (.param .align 8 .b8 geometry[64]) md2asm_gpu_surface_descriptor_geometry(.param .u64 descriptor,.param .u32 rank,.param .u32 element_bytes,.param .u64 required0,.param .u64 required1,.param .u64 required2,.param .u32 zero_is_one);
+.visible .func (.param .align 8 .b8 result[32]) md2asm_gpu_arrhenius_values(.param .b64 temperature,.param .b64 reference,.param .b64 activation,.param .b64 gas)
+{
+.reg .b64 %T,%reference,%activation,%deactivation,%entropy,%gas,%value,%t0,%t1,%numerator; .reg .u32 %flags,%raised,%event,%new_event;.reg .pred %p; .param .b64 ma,mb,xa;.param .align 8 .b8 math[16],elementary[16];
+mov.u32 %flags,0;mov.u32 %event,0;
+ld.param.b64 %T,[temperature];
+ld.param.b64 %reference,[reference];
+ld.param.b64 %activation,[activation];
+ld.param.b64 %gas,[gas];
+ st.param.b64 [ma],%T;st.param.b64 [mb],%reference;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%activation;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%reference;st.param.b64 [mb],%gas;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t1;st.param.b64 [mb],%T;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [xa],%t0;call.uni (elementary),md2asm_gpu_exp_original_rounding,(xa);ld.param.b64 %value,[elementary];ld.param.u32 %raised,[elementary+8];or.b32 %flags,%flags,%raised;ld.param.u32 %new_event,[elementary+12];setp.eq.u32 %p,%new_event,0;@%p bra FIRST_EXP_DONE;or.b32 %event,%new_event,256;FIRST_EXP_DONE:
+st.param.b64 [result],%value;st.param.u32 [result+8],%flags;st.param.u32 [result+12],%event;st.param.u64 [result+16],1;st.param.u64 [result+24],0;ret;
+}
+.visible .func (.param .align 8 .b8 result[32]) md2asm_gpu_arrhenius_modified_values(.param .b64 temperature,.param .b64 reference,.param .b64 activation,.param .b64 deactivation,.param .b64 entropy,.param .b64 gas)
+{
+.reg .b64 %T,%reference,%activation,%deactivation,%entropy,%gas,%value,%t0,%t1,%numerator; .reg .u32 %flags,%raised,%event,%new_event;.reg .pred %p; .param .b64 ma,mb,xa;.param .align 8 .b8 math[16],elementary[16];
+mov.u32 %flags,0;mov.u32 %event,0;
+ld.param.b64 %T,[temperature];
+ld.param.b64 %reference,[reference];
+ld.param.b64 %activation,[activation];
+ld.param.b64 %deactivation,[deactivation];
+ld.param.b64 %entropy,[entropy];
+ld.param.b64 %gas,[gas];
+ st.param.b64 [ma],%T;st.param.b64 [mb],%reference;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%activation;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%reference;st.param.b64 [mb],%gas;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t1;st.param.b64 [mb],%T;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [xa],%t0;call.uni (elementary),md2asm_gpu_exp_original_rounding,(xa);ld.param.b64 %value,[elementary];ld.param.u32 %raised,[elementary+8];or.b32 %flags,%flags,%raised;ld.param.u32 %new_event,[elementary+12];setp.eq.u32 %p,%new_event,0;@%p bra FIRST_EXP_DONE;or.b32 %event,%new_event,256;FIRST_EXP_DONE:
+ st.param.b64 [ma],%reference;st.param.b64 [mb],%entropy;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%deactivation;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%reference;st.param.b64 [mb],%gas;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [xa],%t0;call.uni (elementary),md2asm_gpu_exp_original_rounding,(xa);ld.param.b64 %t0,[elementary];ld.param.u32 %raised,[elementary+8];or.b32 %flags,%flags,%raised;ld.param.u32 %new_event,[elementary+12];setp.eq.u32 %p,%new_event,0;@%p bra SECOND_EXP_DONE;or.b32 %event,%new_event,512;SECOND_EXP_DONE:
+ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%value;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %numerator,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%T;st.param.b64 [mb],%entropy;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%deactivation;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%gas;st.param.b64 [mb],%T;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [xa],%t0;call.uni (elementary),md2asm_gpu_exp_original_rounding,(xa);ld.param.b64 %t0,[elementary];ld.param.u32 %raised,[elementary+8];or.b32 %flags,%flags,%raised;ld.param.u32 %new_event,[elementary+12];setp.eq.u32 %p,%new_event,0;@%p bra THIRD_EXP_DONE;or.b32 %event,%new_event,768;THIRD_EXP_DONE:
+ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%numerator;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [result],%value;st.param.u32 [result+8],%flags;st.param.u32 [result+12],%event;st.param.u64 [result+16],3;st.param.u64 [result+24],0;ret;
+}
+
+.func (.param .u32 result) md2asm_gpu_arrhenius_range(.param .u64 base,.param .u64 bytes,.param .u64 mask)
+{
+ .reg .u64 %b,%n,%m,%end; .reg .u32 %e; .reg .pred %p;
+ ld.param.u64 %b,[base];ld.param.u64 %n,[bytes];ld.param.u64 %m,[mask];mov.u32 %e,0;
+ setp.eq.u64 %p,%n,0;@%p bra RANGE_DONE;mov.u32 %e,6992;
+ setp.eq.u64 %p,%b,0;@%p bra RANGE_DONE;and.b64 %end,%b,%m;setp.ne.u64 %p,%end,0;@%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff;@%p bra RANGE_DONE;setp.gt.u64 %p,%n,0x7fffffffffffffff;@%p bra RANGE_DONE;
+ add.u64 %end,%b,%n;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra RANGE_DONE;mov.u32 %e,0;
+RANGE_DONE:st.param.u32 [result],%e;ret;
+}
+.func (.param .u32 result) md2asm_gpu_arrhenius_disjoint(.param .u64 a,.param .u64 an,.param .u64 b,.param .u64 bn)
+{
+ .reg .u64 %a,%an,%b,%bn,%ae,%be; .reg .u32 %e; .reg .pred %p,%q;
+ ld.param.u64 %a,[a];ld.param.u64 %an,[an];ld.param.u64 %b,[b];ld.param.u64 %bn,[bn];mov.u32 %e,0;
+ setp.eq.u64 %p,%an,0;@%p bra SEPARATE_DONE;setp.eq.u64 %p,%bn,0;@%p bra SEPARATE_DONE;
+ add.u64 %ae,%a,%an;add.u64 %be,%b,%bn;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;selp.u32 %e,6992,0,%p;
+SEPARATE_DONE:st.param.u32 [result],%e;ret;
+}
+
+.func (.param .u32 result) md2asm_gpu_arrhenius_admit(.param .u64 vector,.param .u64 context)
+{
+.reg .u64 %args,%ctx,%v<5>,%record,%record_bytes,%output,%outbytes,%counter,%counterbytes,%countercapacity,%word,%absolute;.reg .u32 %error;.reg .pred %p;
+.param .u64 rb,rn,rm,da,dn,db,dm;.param .u32 rr;
+ld.param.u64 %args,[vector];ld.param.u64 %ctx,[context];
+ st.param.u64 [rb],%args;st.param.u64 [rn],40;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ st.param.u64 [rb],%v0;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v1;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v2;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v4;st.param.u64 [rn],128;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+mov.u32 %error,6991;
+ld.global.u64 %word,[%v0];setp.lt.u64 %p,%word,0x4062c00000000000;@%p bra ADMIT_DONE;setp.gt.u64 %p,%word,0x4077200000000000;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1];setp.lt.u64 %p,%word,0x4071800000000000;@%p bra ADMIT_DONE;setp.gt.u64 %p,%word,0x4074000000000000;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v2];and.b64 %word,%word,0x7fffffffffffffff;setp.lt.u64 %p,%word,0;@%p bra ADMIT_DONE;setp.gt.u64 %p,%word,0x41124f8000000000;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v4+24];setp.lt.u64 %p,%word,0x4020000000000000;@%p bra ADMIT_DONE;setp.gt.u64 %p,%word,0x4022000000000000;@%p bra ADMIT_DONE;ld.global.u64 %record,[%ctx+48];ld.global.u64 %record_bytes,[%ctx+56];mov.u32 %error,6993;setp.eq.u64 %p,%record_bytes,16;@%p bra RECORD_READY;setp.ne.u64 %p,%record_bytes,32;@%p bra ADMIT_DONE;
+RECORD_READY:
+ st.param.u64 [rb],%record;st.param.u64 [rn],%record_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ld.global.u64 %output,[%record];ld.global.u64 %outbytes,[%record+8];mov.u32 %error,6993;setp.lt.u64 %p,%outbytes,8;@%p bra ADMIT_DONE;mov.u64 %counter,0;mov.u64 %counterbytes,0;setp.eq.u64 %p,%record_bytes,16;@%p bra COUNTER_READY;ld.global.u64 %counter,[%record+16];ld.global.u64 %countercapacity,[%record+24];setp.eq.u64 %p,%counter,0;@%p bra COUNTER_ABSENT;setp.lt.u64 %p,%countercapacity,8;@%p bra ADMIT_DONE;mov.u64 %counterbytes,8;bra COUNTER_READY;
+COUNTER_ABSENT:setp.ne.u64 %p,%countercapacity,0;@%p bra ADMIT_DONE;
+COUNTER_READY:
+ st.param.u64 [rb],%output;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%counter;st.param.u64 [rn],%counterbytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%output;st.param.u64 [dn],8;st.param.u64 [db],%args;st.param.u64 [dm],40;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%output;st.param.u64 [dn],8;st.param.u64 [db],%v0;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%output;st.param.u64 [dn],8;st.param.u64 [db],%v1;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%output;st.param.u64 [dn],8;st.param.u64 [db],%v2;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%output;st.param.u64 [dn],8;st.param.u64 [db],%v4;st.param.u64 [dm],128;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%output;st.param.u64 [dn],8;st.param.u64 [db],%record;st.param.u64 [dm],%record_bytes;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter;st.param.u64 [dn],%counterbytes;st.param.u64 [db],%args;st.param.u64 [dm],40;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter;st.param.u64 [dn],%counterbytes;st.param.u64 [db],%v0;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter;st.param.u64 [dn],%counterbytes;st.param.u64 [db],%v1;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter;st.param.u64 [dn],%counterbytes;st.param.u64 [db],%v2;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter;st.param.u64 [dn],%counterbytes;st.param.u64 [db],%v4;st.param.u64 [dm],128;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter;st.param.u64 [dn],%counterbytes;st.param.u64 [db],%record;st.param.u64 [dm],%record_bytes;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter;st.param.u64 [dn],%counterbytes;st.param.u64 [db],%output;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%args;st.param.u64 [dm],40;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v0;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v1;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v2;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v4;st.param.u64 [dm],128;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%record;st.param.u64 [dm],%record_bytes;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%output;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%counter;st.param.u64 [dm],%counterbytes;call.uni (rr),md2asm_gpu_arrhenius_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ADMIT_OK:mov.u32 %error,0;ADMIT_DONE:st.param.u32 [result],%error;ret;
+}
+
+.visible .entry md2asm_gpu_arrhenius(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%ptr;
+ .reg .u32 %thread,%unique,%r,%error,%old;
+ .reg .pred %p;
+ .shared .align 4 .b32 admission;
+ .param .u64 av,cv;.param .u32 rr;
+  .param .b64 T,reference,activation,deactivation,entropy,gas;.param .align 8 .b8 returned[32];.reg .u64 %pointer,%record,%output,%capacity,%owner,%increment,%previous,%event64;
+
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %ptr,%ctx,7;setp.ne.u64 %p,%ptr,0;@%p ret;
+ mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
+ mov.u32 %r,%ctaid.x;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.z;or.b32 %unique,%unique,%r;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+ mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%nctaid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ setp.ne.u32 %p,%thread,0;@%p bra WAIT;
+ st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),md2asm_gpu_arrhenius_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
+WAIT:
+ bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %pointer,[%args+0];ld.global.b64 %event64,[%pointer];st.param.b64 [T],%event64;
+ld.global.u64 %pointer,[%args+8];ld.global.b64 %event64,[%pointer];st.param.b64 [reference],%event64;
+ld.global.u64 %pointer,[%args+16];ld.global.b64 %event64,[%pointer];st.param.b64 [activation],%event64;
+ld.global.u64 %pointer,[%args+32];ld.global.b64 %event64,[%pointer+24];st.param.b64 [gas],%event64;call.uni (returned),md2asm_gpu_arrhenius_values,(T,reference,activation,gas);
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %output,[%record];ld.param.b64 %event64,[returned];st.global.b64 [%output],%event64;ld.param.u32 %r,[returned+8];atom.global.or.b32 %old,[%ctx+8],%r;ld.param.u32 %r,[returned+12];setp.eq.u32 %p,%r,0;@%p bra EVENT_DONE;cvt.u64.u32 %event64,%r;st.global.u64 [%ctx+16],%event64;
+EVENT_DONE:ld.global.u64 %capacity,[%ctx+56];setp.eq.u64 %p,%capacity,16;@%p ret;ld.global.u64 %owner,[%record+16];setp.eq.u64 %p,%owner,0;@%p ret;ld.param.u64 %increment,[returned+16];ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%increment;st.global.u64 [%owner],%previous;ret;
+
+BAD_LAUNCH:mov.u32 %error,6990;
+REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
+}
+
+.func (.param .u32 result) md2asm_gpu_arrhenius_modified_range(.param .u64 base,.param .u64 bytes,.param .u64 mask)
+{
+ .reg .u64 %b,%n,%m,%end; .reg .u32 %e; .reg .pred %p;
+ ld.param.u64 %b,[base];ld.param.u64 %n,[bytes];ld.param.u64 %m,[mask];mov.u32 %e,0;
+ setp.eq.u64 %p,%n,0;@%p bra RANGE_DONE;mov.u32 %e,7002;
+ setp.eq.u64 %p,%b,0;@%p bra RANGE_DONE;and.b64 %end,%b,%m;setp.ne.u64 %p,%end,0;@%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff;@%p bra RANGE_DONE;setp.gt.u64 %p,%n,0x7fffffffffffffff;@%p bra RANGE_DONE;
+ add.u64 %end,%b,%n;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra RANGE_DONE;mov.u32 %e,0;
+RANGE_DONE:st.param.u32 [result],%e;ret;
+}
+.func (.param .u32 result) md2asm_gpu_arrhenius_modified_disjoint(.param .u64 a,.param .u64 an,.param .u64 b,.param .u64 bn)
+{
+ .reg .u64 %a,%an,%b,%bn,%ae,%be; .reg .u32 %e; .reg .pred %p,%q;
+ ld.param.u64 %a,[a];ld.param.u64 %an,[an];ld.param.u64 %b,[b];ld.param.u64 %bn,[bn];mov.u32 %e,0;
+ setp.eq.u64 %p,%an,0;@%p bra SEPARATE_DONE;setp.eq.u64 %p,%bn,0;@%p bra SEPARATE_DONE;
+ add.u64 %ae,%a,%an;add.u64 %be,%b,%bn;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;selp.u32 %e,7002,0,%p;
+SEPARATE_DONE:st.param.u32 [result],%e;ret;
+}
+
+.func (.param .u32 result) md2asm_gpu_arrhenius_modified_admit(.param .u64 vector,.param .u64 context)
+{
+.reg .u64 %args,%ctx,%v<7>,%record,%record_bytes,%output,%outbytes,%counter,%counterbytes,%countercapacity,%word,%absolute;.reg .u32 %error;.reg .pred %p;
+.param .u64 rb,rn,rm,da,dn,db,dm;.param .u32 rr;
+ld.param.u64 %args,[vector];ld.param.u64 %ctx,[context];
+ st.param.u64 [rb],%args;st.param.u64 [rn],56;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_modified_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_modified_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ld.global.u64 %v5,[%args+40];
+ld.global.u64 %v6,[%args+48];
+ st.param.u64 [rb],%v0;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_modified_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v1;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_modified_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v2;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_modified_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v3;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_modified_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v4;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_modified_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v6;st.param.u64 [rn],128;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_modified_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+mov.u32 %error,7001;
+ld.global.u64 %word,[%v0];setp.lt.u64 %p,%word,0x4062c00000000000;@%p bra ADMIT_DONE;setp.gt.u64 %p,%word,0x4077200000000000;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v1];setp.lt.u64 %p,%word,0x4071800000000000;@%p bra ADMIT_DONE;setp.gt.u64 %p,%word,0x4074000000000000;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v2];and.b64 %absolute,%word,0x7fffffffffffffff;setp.eq.u64 %p,%absolute,0;@%p mov.u64 %word,0;setp.lt.u64 %p,%word,0;@%p bra ADMIT_DONE;setp.gt.u64 %p,%word,0x41124f8000000000;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v3];and.b64 %absolute,%word,0x7fffffffffffffff;setp.eq.u64 %p,%absolute,0;@%p mov.u64 %word,0;setp.lt.u64 %p,%word,0;@%p bra ADMIT_DONE;setp.gt.u64 %p,%word,0x41224f8000000000;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v4];and.b64 %absolute,%word,0x7fffffffffffffff;setp.eq.u64 %p,%absolute,0;@%p mov.u64 %word,0;setp.lt.u64 %p,%word,0;@%p bra ADMIT_DONE;setp.gt.u64 %p,%word,0x409f400000000000;@%p bra ADMIT_DONE;
+ld.global.u64 %word,[%v6+24];setp.lt.u64 %p,%word,0x4020000000000000;@%p bra ADMIT_DONE;setp.gt.u64 %p,%word,0x4022000000000000;@%p bra ADMIT_DONE;ld.global.u64 %record,[%ctx+48];ld.global.u64 %record_bytes,[%ctx+56];mov.u32 %error,7003;setp.eq.u64 %p,%record_bytes,16;@%p bra RECORD_READY;setp.ne.u64 %p,%record_bytes,32;@%p bra ADMIT_DONE;
+RECORD_READY:
+ st.param.u64 [rb],%record;st.param.u64 [rn],%record_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_modified_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ld.global.u64 %output,[%record];ld.global.u64 %outbytes,[%record+8];mov.u32 %error,7003;setp.lt.u64 %p,%outbytes,8;@%p bra ADMIT_DONE;mov.u64 %counter,0;mov.u64 %counterbytes,0;setp.eq.u64 %p,%record_bytes,16;@%p bra COUNTER_READY;ld.global.u64 %counter,[%record+16];ld.global.u64 %countercapacity,[%record+24];setp.eq.u64 %p,%counter,0;@%p bra COUNTER_ABSENT;setp.lt.u64 %p,%countercapacity,8;@%p bra ADMIT_DONE;mov.u64 %counterbytes,8;bra COUNTER_READY;
+COUNTER_ABSENT:setp.ne.u64 %p,%countercapacity,0;@%p bra ADMIT_DONE;
+COUNTER_READY:
+ st.param.u64 [rb],%output;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_modified_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%counter;st.param.u64 [rn],%counterbytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_arrhenius_modified_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%output;st.param.u64 [dn],8;st.param.u64 [db],%args;st.param.u64 [dm],56;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%output;st.param.u64 [dn],8;st.param.u64 [db],%v0;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%output;st.param.u64 [dn],8;st.param.u64 [db],%v1;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%output;st.param.u64 [dn],8;st.param.u64 [db],%v2;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%output;st.param.u64 [dn],8;st.param.u64 [db],%v3;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%output;st.param.u64 [dn],8;st.param.u64 [db],%v4;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%output;st.param.u64 [dn],8;st.param.u64 [db],%v6;st.param.u64 [dm],128;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%output;st.param.u64 [dn],8;st.param.u64 [db],%record;st.param.u64 [dm],%record_bytes;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter;st.param.u64 [dn],%counterbytes;st.param.u64 [db],%args;st.param.u64 [dm],56;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter;st.param.u64 [dn],%counterbytes;st.param.u64 [db],%v0;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter;st.param.u64 [dn],%counterbytes;st.param.u64 [db],%v1;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter;st.param.u64 [dn],%counterbytes;st.param.u64 [db],%v2;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter;st.param.u64 [dn],%counterbytes;st.param.u64 [db],%v3;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter;st.param.u64 [dn],%counterbytes;st.param.u64 [db],%v4;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter;st.param.u64 [dn],%counterbytes;st.param.u64 [db],%v6;st.param.u64 [dm],128;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter;st.param.u64 [dn],%counterbytes;st.param.u64 [db],%record;st.param.u64 [dm],%record_bytes;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%counter;st.param.u64 [dn],%counterbytes;st.param.u64 [db],%output;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%args;st.param.u64 [dm],56;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v0;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v1;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v2;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v3;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v4;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v6;st.param.u64 [dm],128;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%record;st.param.u64 [dm],%record_bytes;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%output;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%counter;st.param.u64 [dm],%counterbytes;call.uni (rr),md2asm_gpu_arrhenius_modified_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ADMIT_OK:mov.u32 %error,0;ADMIT_DONE:st.param.u32 [result],%error;ret;
+}
+
+.visible .entry md2asm_gpu_arrhenius_modified(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%ptr;
+ .reg .u32 %thread,%unique,%r,%error,%old;
+ .reg .pred %p;
+ .shared .align 4 .b32 admission;
+ .param .u64 av,cv;.param .u32 rr;
+  .param .b64 T,reference,activation,deactivation,entropy,gas;.param .align 8 .b8 returned[32];.reg .u64 %pointer,%record,%output,%capacity,%owner,%increment,%previous,%event64;
+
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %ptr,%ctx,7;setp.ne.u64 %p,%ptr,0;@%p ret;
+ mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
+ mov.u32 %r,%ctaid.x;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.z;or.b32 %unique,%unique,%r;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+ mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%nctaid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ setp.ne.u32 %p,%thread,0;@%p bra WAIT;
+ st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),md2asm_gpu_arrhenius_modified_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
+WAIT:
+ bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %pointer,[%args+0];ld.global.b64 %event64,[%pointer];st.param.b64 [T],%event64;
+ld.global.u64 %pointer,[%args+8];ld.global.b64 %event64,[%pointer];st.param.b64 [reference],%event64;
+ld.global.u64 %pointer,[%args+16];ld.global.b64 %event64,[%pointer];st.param.b64 [activation],%event64;
+ld.global.u64 %pointer,[%args+24];ld.global.b64 %event64,[%pointer];st.param.b64 [deactivation],%event64;
+ld.global.u64 %pointer,[%args+32];ld.global.b64 %event64,[%pointer];st.param.b64 [entropy],%event64;
+ld.global.u64 %pointer,[%args+48];ld.global.b64 %event64,[%pointer+24];st.param.b64 [gas],%event64;call.uni (returned),md2asm_gpu_arrhenius_modified_values,(T,reference,activation,deactivation,entropy,gas);
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %output,[%record];ld.param.b64 %event64,[returned];st.global.b64 [%output],%event64;ld.param.u32 %r,[returned+8];atom.global.or.b32 %old,[%ctx+8],%r;ld.param.u32 %r,[returned+12];setp.eq.u32 %p,%r,0;@%p bra EVENT_DONE;cvt.u64.u32 %event64,%r;st.global.u64 [%ctx+16],%event64;
+EVENT_DONE:ld.global.u64 %capacity,[%ctx+56];setp.eq.u64 %p,%capacity,16;@%p ret;ld.global.u64 %owner,[%record+16];setp.eq.u64 %p,%owner,0;@%p ret;ld.param.u64 %increment,[returned+16];ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%increment;st.global.u64 [%owner],%previous;ret;
+
+BAD_LAUNCH:mov.u32 %error,7000;
+REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
+}

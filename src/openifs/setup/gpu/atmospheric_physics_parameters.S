@@ -1,0 +1,2024 @@
+/* GPU physical setup route. Original interface and ordered arithmetic are preserved.
+ * Contract: skills/md2asm-gpu/references/openifs/setup/physical_setup.md
+ * Original source: src/openifs/setup/atmospheric_physics_parameters.S
+ */
+// Original contract: skills/md2asm/references/openifs/setup/atmospheric_physics_parameters.md
+#include "../../support/gpu/preserved_scalar_calls.inc.S"
+.arch armv8.2-a
+.equ ATM_TYM,0
+.equ ATM_NPCLO1,40
+.equ ATM_NPCLO2,44
+.equ ATM_A0ML_AU,48
+.equ ATM_A0ML_AT,56
+.equ ATM_A0ML_BU,64
+.equ ATM_A0ML_BT,72
+.equ ATM_AERCS1,80
+.equ ATM_AERCS3,88
+.equ ATM_AERCS5,96
+.equ ATM_ADJTAU,104
+.equ ATM_ALMAV,112
+.equ ATM_BEDIFV,120
+.equ ATM_ECMNP,128
+.equ ATM_EDB,136
+.equ ATM_EDC,144
+.equ ATM_EDD,152
+.equ ATM_EVAP,160
+.equ ATM_FONT,168
+.equ ATM_GALP,176
+.equ ATM_GCISMIN,184
+.equ ATM_GEVAVF,192
+.equ ATM_GCCSV,200
+.equ ATM_GCVADS,208
+.equ ATM_GCVBETA,216
+.equ ATM_GCVIMPT,224
+.equ ATM_GCVOMGE,232
+.equ ATM_GCVOMGQ,240
+.equ ATM_GCVOMGS,248
+.equ ATM_GCVTURB,256
+.equ ATM_GCVOMDPS,264
+.equ ATM_GCVOMGSX,272
+.equ ATM_GCVRHMIN,280
+.equ ATM_GCVRHMAX,288
+.equ ATM_GCVOMCA,296
+.equ ATM_GCVOMCC,304
+.equ ATM_GDDEVA,312
+.equ ATM_GDDSDE,320
+.equ ATM_GDDFREVS,328
+.equ ATM_GDDINHOM,336
+.equ ATM_GRCVPP,344
+.equ ATM_GWDAMP,352
+.equ ATM_GWDBC,360
+.equ ATM_GWDCCO,368
+.equ ATM_GWDCD,376
+.equ ATM_GWDLT,384
+.equ ATM_GWDSE,392
+.equ ATM_GWDPROF,400
+.equ ATM_GWDVALI,408
+.equ ATM_HOBST,416
+.equ ATM_HUCOE,424
+.equ ATM_HUTIL,432
+.equ ATM_HUTIL1,440
+.equ ATM_HUTIL2,448
+.equ ATM_QSMIN,456
+.equ ATM_QSMODC,464
+.equ ATM_QSNEBC,472
+.equ ATM_QSNEBS,480
+.equ ATM_QSSUSC,488
+.equ ATM_QSSUSS,496
+.equ ATM_QSSUSV,504
+.equ ATM_QSUSXC,512
+.equ ATM_QSUSXS,520
+.equ ATM_RPHI0,528
+.equ ATM_RPHIR,536
+.equ ATM_QXRAL,544
+.equ ATM_QXRAL_ADJ,552
+.equ ATM_QXRDEL,560
+.equ ATM_QXRHX,568
+.equ ATM_QXRR,576
+.equ ATM_QXRTGH,584
+.equ ATM_QXRCDIL,592
+.equ ATM_RCIN,600
+.equ ATM_RCVEVAP,608
+.equ ATM_RDECRD,616
+.equ ATM_RDECRD1,624
+.equ ATM_RDECRD2,632
+.equ ATM_RDECRD3,640
+.equ ATM_RDECRD4,648
+.equ ATM_RDECRDRED,656
+.equ ATM_RDTFAC,664
+.equ ATM_REVAPN,672
+.equ ATM_REVGSL,680
+.equ ATM_RGELSFON,688
+.equ ATM_RFLCHCE,696
+.equ ATM_RTCAPE,704
+.equ ATM_SCO,712
+.equ ATM_SENSL,720
+.equ ATM_SNNBCO,728
+.equ ATM_SPNBCO,736
+.equ ATM_SXNBCO,744
+.equ ATM_TCA,752
+.equ ATM_TCT,760
+.equ ATM_TCW,768
+.equ ATM_TENTR,776
+.equ ATM_TENTRX,784
+.equ ATM_TUDGP,792
+.equ ATM_TDDGP,800
+.equ ATM_TURB,808
+.equ ATM_TVF,816
+.equ ATM_UHDIFV,824
+.equ ATM_USDMLT,832
+.equ ATM_USUPRC,840
+.equ ATM_USURIC,848
+.equ ATM_VCHRNK,856
+.equ ATM_VKARMN,864
+.equ ATM_VZ0CM,872
+.equ ATM_VZIUSTAR0,880
+.equ ATM_XNBMAX,888
+.equ ATM_AECLS3,896
+.equ ATM_AECLS4,904
+.equ ATM_ALD,912
+.equ ATM_AKN,920
+.equ ATM_ALPHAT,928
+.equ ATM_ALPHAE,936
+.equ ATM_EPS,944
+.equ ATM_ETACUT,952
+.equ ATM_ADISI,960
+.equ ATM_ADISE,968
+.equ ATM_ECTMIN,976
+.equ ATM_ECTMAX,984
+.equ ATM_AHCLPV,992
+.equ ATM_RICRLM,1000
+.equ ATM_RMULACVG,1008
+.equ ATM_XBLM,1016
+.equ ATM_XMINLM,1024
+.equ ATM_XMAXLM,1032
+.equ ATM_XWSALM,1040
+.equ ATM_XWSBLM,1048
+.equ ATM_GCVALFA,1056
+.equ ATM_GCVPSI,1064
+.equ ATM_GCVPSIE,1072
+.equ ATM_USURICE,1080
+.equ ATM_USURICL,1088
+.equ ATM_QSSC,1096
+.equ ATM_USURID,1104
+.equ ATM_GCVNU,1112
+.equ ATM_USURIDE,1120
+.equ ATM_GCVMLT,1128
+.equ ATM_UTILGUST,1136
+.equ ATM_RRGAMMA,1144
+.equ ATM_RRSCALE,1152
+.equ ATM_GPBLHK0,1160
+.equ ATM_GPBLHRA,1168
+.equ ATM_WMXOV,1176
+.equ ATM_ACBRPHIM,1184
+.equ ATM_ALMAVE,1192
+.equ ATM_ALMAVX,1200
+.equ ATM_ARSCH,1208
+.equ ATM_ARSCQ,1216
+.equ ATM_ARSC1,1224
+.equ ATM_ARSB2,1232
+.equ ATM_RICRET,1240
+.equ ATM_STTBMIN,1248
+.equ ATM_UCWSTAR,1256
+.equ ATM_UDECT,1264
+.equ ATM_UPRETMIN,1272
+.equ ATM_UPRETMAX,1280
+.equ ATM_USHEARM,1288
+.equ ATM_RAUTEFR,1296
+.equ ATM_RRAUTCS,1304
+.equ ATM_RAUTEFS,1312
+.equ ATM_RAUTSBET,1320
+.equ ATM_REVASX,1328
+.equ ATM_RNINTR,1336
+.equ ATM_RNINTS,1344
+.equ ATM_RQLCR,1352
+.equ ATM_RSPCRR,1360
+.equ ATM_RQICRMAX,1368
+.equ ATM_RQICRMIN,1376
+.equ ATM_RQLCV,1384
+.equ ATM_RQICVMAX,1392
+.equ ATM_RQICVMIN,1400
+.equ ATM_RQICRT1,1408
+.equ ATM_RQICRT2,1416
+.equ ATM_RQICRSN,1424
+.equ ATM_RQCRNS,1432
+.equ ATM_RACCEF,1440
+.equ ATM_RAGGEF,1448
+.equ ATM_RRIMEF,1456
+.equ ATM_RHCRIT1,1464
+.equ ATM_RHCRIT2,1472
+.equ ATM_RETAMIN,1480
+.equ ATM_RFACNSM,1488
+.equ ATM_TFVL,1496
+.equ ATM_TFVI,1504
+.equ ATM_TFVR,1512
+.equ ATM_TFVS,1520
+.equ ATM_GRHCMOD,1528
+.equ ATM_RHCEXPDX,1536
+.equ ATM_NUPTKE,1544
+.equ ATM_TKEMULT,1552
+.equ ATM_C_EPSILON,1560
+.equ ATM_C3TKEFREE,1568
+.equ ATM_ETKE_CTHETA,1576
+.equ ATM_ETKE_RIFC_MAF,1584
+.equ ATM_ETKE_RIFC,1592
+.equ ATM_ETKE_R,1600
+.equ ATM_ETKE_OLAM,1608
+.equ ATM_ETKE_LAM0,1616
+.equ ATM_ETKE_LAM1,1624
+.equ ATM_ETKE_LAM2,1632
+.equ ATM_ETKE_LAM3,1640
+.equ ATM_ETKE_LAM4,1648
+.equ ATM_ETKE_KA1,1656
+.equ ATM_ETKE_KA2,1664
+.equ ATM_ETKE_KA3,1672
+.equ ATM_ENT_LAMBDA,1680
+.equ ATM_ETKE_CG01,1688
+.equ ATM_ETKE_CG02,1696
+.equ ATM_ETKE_CG03,1704
+.equ ATM_ETKE_BETA_EPS,1712
+.equ ATM_ETKE_GAMMA_EPS,1720
+.equ ATM_ETKE_GAMD,1728
+.equ ATM_ETKE_TALPH,1736
+.equ ATM_ETKE_ALPH0,1744
+.equ ATM_ETKE_ENTRX,1752
+.equ ATM_ETKE_ENTRN,1760
+.equ ATM_ETKE_KLM,1768
+.equ ATM_ETKE_TAULM,1776
+.equ ATM_ETKE_MIN,1784
+.equ ATM_EFB_AZ0,1792
+.equ ATM_EFB_UR,1800
+.equ ATM_REFB_1,1808
+.equ ATM_REFB_2,1816
+.equ ATM_REFB_3,1824
+.equ ATM_TUDBU,1832
+.equ ATM_TDDBU,1840
+.equ ATM_TUDFR,1848
+.equ ATM_TDDFR,1856
+.equ ATM_GCVALMX,1864
+.equ ATM_GCVTAUDE,1872
+.equ ATM_GCVACHI,1880
+.equ ATM_GCVBEE,1888
+.equ ATM_GCVEEX,1896
+.equ ATM_ECMNPI,1904
+.equ ATM_GRRMINA,1912
+.equ ATM_GDDBETA,1920
+.equ ATM_GDDDP,1928
+.equ ATM_GDDFXM,1936
+.equ ATM_GDDWPF,1944
+.equ ATM_GDDEVF,1952
+.equ ATM_TENTRD,1960
+.equ ATM_GDDALBU,1968
+.equ ATM_GDDFRAC,1976
+.equ ATM_GDDENDYMX,1984
+.equ ATM_GDDFP,1992
+.equ ATM_GDDTAUSIG,2016
+.equ ATM_GPEIPHI,2024
+.equ ATM_GPETAU,2032
+.equ ATM_GPEFDC,2040
+.equ ATM_GENVSRH,2048
+.equ ATM_GCVKSKV,2056
+.equ ATM_GCVALBU,2064
+.equ ATM_GCVENDY1,2072
+.equ ATM_GCVENDY2,2080
+.equ ATM_GCVENDYMX,2088
+.equ ATM_GCVIDPBAS,2096
+.equ ATM_GCVTAUSIG,2104
+.equ ATM_GTRGDPMIX,2112
+.equ ATM_GTRGDPHIMN,2120
+.equ ATM_GTRGPUSLMN,2128
+.equ ATM_GTRGKCK9,2136
+.equ ATM_GTRGAIN,2144
+.equ ATM_GTRTHRS,2152
+.equ ATM_GTRTHCK,2160
+.equ ATM_GTRBRC,2168
+.equ ATM_GTRKGAIN,2176
+.equ ATM_GTRKTHRS,2184
+.equ ATM_GTRKTHCK,2192
+.equ ATM_GCVCATAU,2200
+.equ ATM_GCATHRCAP,2208
+.equ ATM_GCATHRMOC,2216
+.equ ATM_GCATHRCND,2224
+.equ ATM_GCAOMCND,2232
+.equ ATM_NWEIGHT,2240
+.equ ATM_NCATAU,2248
+.equ ATM_NCAPEMAX,2256
+.equ ATM_NCVGMAX,2264
+.equ ATM_RNEGAT,2272
+.equ ATM_RNLCURV,2280
+.equ ATM_EDK,2288
+.equ ATM_XKLM,2296
+.equ ATM_AGRE1,2304
+.equ ATM_AGRERICR,2312
+.equ ATM_AJBUMIN,2320
+.equ ATM_RCOFLM,2328
+.equ ATM_TENTRVL,2336
+.equ ATM_TRENTRV,2344
+.equ ATM_GCVGAMMA,2352
+.equ ATM_LKESC,2360
+.equ ATM_AGRE2,2368
+.equ ATM_AGREF,2376
+.equ ATM_ALFX,2384
+.equ ATM_ALFX_LR,2392
+.equ ATM_ALFX_HR,2400
+.equ ATM_TCTC,2408
+.equ ATM_TVFC,2416
+.equ ATM_GAMAP1,2424
+.equ ATM_RKDN,2432
+.equ ATM_VVN,2440
+.equ ATM_VVX,2448
+.equ ATM_FENTRT,2456
+.equ ATM_FQLIC,2464
+.equ ATM_FNEBC,2472
+.equ ATM_FEVAPC,2480
+.equ ATM_RDPHIC,2488
+.equ ATM_RWBF1,2496
+.equ ATM_RWBF2,2504
+.equ ATM_SCLESPR,2512
+.equ ATM_SCLESPS,2520
+.equ ATM_HUCRED,2528
+.equ ATM_HUCREDRA,2536
+.equ ATM_FSPRAIN,2544
+.equ ATM_EFFCOLL,2552
+.equ ATM_RSMDNEBX,2560
+.equ ATM_RSMDTX,2568
+.equ ATM_NSMTPA,2576
+.equ ATM_NSMTPB,2580
+.equ ATM_RKFBTAU,2584
+.equ ATM_RKFBNBX,2592
+.equ ATM_GCVHMIN,2600
+.equ ATM_GCVRESN,2608
+.equ ATM_GCVRESX,2616
+.equ ATM_GMIRH,2624
+.equ ATM_RLMLH1,2632
+.equ ATM_RPRTH,2640
+.equ ATM_RSMOOTHMELT,2648
+.equ ATM_LADVLIM,2656
+.equ ATM_LGDDD,2660
+.equ ATM_LCVNHD,2664
+.equ ATM_LCVRESDYN,2668
+.equ ATM_LCVMICC,2672
+.equ ATM_GMUKEDD,2680
+.equ ATM_GNHDTAT,2688
+.equ ATM_GNHDSMOS,2696
+.equ ATM_GNHDSMOT,2704
+.equ ATM_GNHDEV,2712
+.equ ATM_LGVVEX,2720
+.equ ATM_LCVUVM,2724
+.equ ATM_NCVENTR,2728
+.equ ATM_NCVSIG,2732
+.equ ATM_NCVCLOS,2736
+.equ ATM_NCVQLI,2740
+.equ ATM_GCVENTRN,2744
+.equ ATM_GCVENTRX,2752
+.equ ATM_ADOE,2760
+.equ ATM_RFRAC_ENTR_N,2768
+.equ ATM_RFRAC_ENTR_X,2776
+.equ ATM_GCVENTR_MIN,2784
+.equ ATM_THPCMT,2792
+.equ ATM_AJ1PEPS,2800
+.equ ATM_AJ1MEPS,2808
+.equ ATM_NAJITER,2816
+.equ ATM_GAEPS,2824
+.equ ATM_GCVEZ,2832
+.equ ATM_GCVTRMIN,2840
+.equ ATM_LCVFEVV,2848
+.equ ATM_GCVFEVV,2856
+.equ ATM_LCVCONTAU,2864
+.equ ATM_GCVTEXC,2872
+.equ ATM_GCVWEXC,2880
+.equ ATM_LCVNAUV,2888
+.equ ATM_GCVFRR,2896
+.equ ATM_GCVPNH,2904
+.equ ATM_GCVORGED,2912
+.equ ATM_LCVIMPT,2920
+.equ ATM_GCVTAUREM,2928
+.equ ATM_GCLOEA,2936
+.equ ATM_GCLOEB,2944
+.equ ATM_GFRAE,2952
+.equ ATM_GCVADET,2960
+.equ ATM_GCVCINC,2968
+.equ ATM_GSDMIN,2976
+.equ ATM_GSDMAX,2984
+.equ ATM_GALMIN,2992
+.equ ATM_GALMAX,3000
+.equ ATM_GSDAMIN,3008
+.equ ATM_GSDAMAX,3016
+.equ ATM_GEXPKD,3024
+.equ ATM_LCVEOD,3032
+.equ ATM_GREMIN,3040
+.equ ATM_GREMAX,3048
+.equ ATM_GCHI0,3056
+.equ ATM_GFSURF,3064
+.equ ATM_GSHELL,3072
+.equ ATM_GFRIC,3080
+.equ ATM_GUDDD,3088
+.equ ATM_GSIGA,3096
+.equ ATM_GNHDSMOW,3104
+.equ ATM_GDEPTH,3112
+.equ ATM_GALTAU,3120
+.equ ATM_GKEDDRE,3128
+.equ ATM_GNHACC,3136
+.equ ATM_GTDCL,3144
+.equ ATM_GSINHD,3152
+.equ ATM_GSINHR,3160
+.equ ATM_GCVFNER,3168
+.equ ATM_GCVFNEO,3176
+.equ ATM_GCVFNEP1,3184
+.equ ATM_GCVFNEP2,3192
+.equ ATM_GRBCC,3200
+.equ ATM_GTOPDEPTH,3208
+.equ ATM_GCVTSMO,3216
+.equ ATM_RKDX,3224
+.equ ATM_LCAPCIN,3232
+.equ ATM_LCORSEDIM,3236
+.equ ATM_GNHDTAU,3240
+.equ ATM_GRSO,3248
+.equ ATM_GRTH,3256
+.equ ATM_GRFCS,3264
+.equ ATM_GCVRE,3272
+.equ ATM_LSBUO,3280
+.equ ATM_GREDDI,3288
+.equ ATM_GREDDL,3296
+.equ ATM_GREDDR,3304
+.equ ATM_GREDDS,3312
+.equ ATM_LCVTADV,3320
+.equ ATM_LCVDS,3324
+.equ ATM_GCVUV,3328
+.equ ATM_GCVGAW,3336
+.equ ATM_GCVGAX,3344
+.equ ATM_GCHECKMV_TMIN,3352
+.equ ATM_GCHECKMV_TMAX,3360
+.equ ATM_GCHECKMV_QVMIN,3368
+.equ ATM_GCHECKMV_QVMAX,3376
+.equ ATM_LGPRONI1,3384
+.equ ATM_NPRONI,3388
+.equ ATM_GPRONI,3392
+.equ ATM_RNEBCX,3400
+.equ ATM_REFLRHC,3408
+.equ ATM_TEQH,3416
+.equ ATM_REFLKUO,3424
+.equ ATM_REFLCAPE,3432
+.equ ATM_TEQK,3440
+.equ ATM_TEQC,3448
+.text
+.p2align 4
+.global md2asm_initialize_atmospheric_physics_parameters
+.type md2asm_initialize_atmospheric_physics_parameters,%function
+md2asm_initialize_atmospheric_physics_parameters:
+ cbz x0,.Latm_bad_leaf
+ cbz x1,.Latm_bad_leaf
+ cmp x1,#64,lsl#12
+ b.hi .Latm_bad_leaf
+ cbz x2,.Latm_bad_leaf
+ cbz x4,.Latm_bad_leaf
+ cmp x3,#3456
+ b.lo .Latm_bad_leaf
+ orr x5,x2,x4
+ tst x5,#7
+ b.ne .Latm_bad_leaf
+ adds x5,x0,x1
+ b.cs .Latm_bad_leaf
+ adds x6,x2,#3456
+ b.cs .Latm_bad_leaf
+ adds x7,x4,#48
+ b.cs .Latm_bad_leaf
+ cmp x2,x5
+ b.hs .Latm_text_clear
+ cmp x0,x6
+ b.lo .Latm_bad_leaf
+.Latm_text_clear:
+ cmp x2,x7
+ b.hs .Latm_input_clear
+ cmp x4,x6
+ b.lo .Latm_bad_leaf
+.Latm_input_clear:
+ mrs x5,fpcr
+ cbnz x5,.Latm_bad_leaf
+ ldp x5,x7,[x4]
+ cbz x5,.Latm_bad_leaf
+ tst x5,#7
+ b.ne .Latm_bad_leaf
+ cmp x7,#1096
+ b.lo .Latm_bad_leaf
+ adds x7,x5,#1096
+ b.cs .Latm_bad_leaf
+ cmp x2,x7
+ b.hs .Latm_phy_clear
+ cmp x5,x6
+ b.lo .Latm_bad_leaf
+.Latm_phy_clear:
+ ldr w6,[x4,#32]
+ cbnz w6,.Latm_bad_leaf
+ ldr w6,[x4,#36]
+ cmp w6,#1
+ b.ne .Latm_bad_leaf
+ ldr w6,[x5,#736]
+ cbnz w6,.Latm_bad_leaf
+ ldr w6,[x5,#12]
+ cbnz w6,.Latm_bad_leaf
+ adr x6,.Latm_control_offsets
+ mov x7,#0
+.Latm_logical_check:
+ ldr w8,[x6,x7,lsl#2]
+ ldr w8,[x5,x8]
+ cmp w8,#1
+ b.hi .Latm_bad_leaf
+ add x7,x7,#1
+ cmp x7,#7
+ b.lo .Latm_logical_check
+ ldr x6,[x4,#16]
+ and x6,x6,#0x7fffffffffffffff
+ mov x7,#0x3ff0000000000000
+ cmp x6,x7
+ b.hi .Latm_bad_leaf
+ ldr x6,[x4,#24]
+ cmp x6,x7
+ b.lo .Latm_bad_leaf
+ adr x7,.Latm_max_mesh
+ ldr x7,[x7]
+ cmp x6,x7
+ b.hi .Latm_bad_leaf
+ stp x29,x30,[sp,#-64]!
+ stp x19,x20,[sp,#16]
+ str x18,[sp,#32]
+ mov x29,sp
+ mov x19,x2
+ mov x20,x4
+ adr x2,.Latm_group
+ mov x3,#7
+ bl md2asm_require_empty_physics_group
+ cbnz w0,.Latm_bad_frame
+ mov x0,x19
+ bl md2asm_set_atmospheric_parameter_literals_raw
+ mov x0,x19
+ mov x1,x20
+ bl md2asm_set_atmospheric_parameter_arithmetic_raw
+ mov w0,#0
+ b .Latm_return
+.Latm_bad_frame:
+ mov w0,#2
+.Latm_return:
+ ldr x18,[sp,#32]
+ ldp x19,x20,[sp,#16]
+ ldp x29,x30,[sp],#64
+ ret
+.Latm_bad_leaf:
+ mov w0,#2
+ ret
+.size md2asm_initialize_atmospheric_physics_parameters,.-md2asm_initialize_atmospheric_physics_parameters
+.p2align 4
+.global md2asm_set_atmospheric_parameter_literals_raw
+.type md2asm_set_atmospheric_parameter_literals_raw,%function
+md2asm_set_atmospheric_parameter_literals_raw:
+ adr x9,.Latm_literal_values
+ ldr x10,[x9,#0]
+ str x10,[x0,#48]
+ ldr x10,[x9,#8]
+ str x10,[x0,#56]
+ ldr x10,[x9,#16]
+ str x10,[x0,#64]
+ ldr x10,[x9,#24]
+ str x10,[x0,#72]
+ ldr x10,[x9,#32]
+ str x10,[x0,#80]
+ ldr x10,[x9,#40]
+ str x10,[x0,#88]
+ ldr x10,[x9,#48]
+ str x10,[x0,#96]
+ ldr x10,[x9,#56]
+ str x10,[x0,#112]
+ ldr x10,[x9,#64]
+ str x10,[x0,#120]
+ ldr x10,[x9,#72]
+ str x10,[x0,#128]
+ ldr x10,[x9,#80]
+ str x10,[x0,#136]
+ ldr x10,[x9,#88]
+ str x10,[x0,#144]
+ ldr x10,[x9,#96]
+ str x10,[x0,#152]
+ ldr x10,[x9,#104]
+ str x10,[x0,#2288]
+ ldr x10,[x9,#112]
+ str x10,[x0,#1792]
+ ldr x10,[x9,#120]
+ str x10,[x0,#1800]
+ ldr x10,[x9,#128]
+ str x10,[x0,#952]
+ ldr x10,[x9,#136]
+ str x10,[x0,#160]
+ ldr x10,[x9,#144]
+ str x10,[x0,#168]
+ ldr x10,[x9,#152]
+ str x10,[x0,#176]
+ ldr x10,[x9,#160]
+ str x10,[x0,#184]
+ ldr x10,[x9,#168]
+ str x10,[x0,#192]
+ ldr x10,[x9,#176]
+ str x10,[x0,#200]
+ ldr x10,[x9,#184]
+ str x10,[x0,#208]
+ ldr x10,[x9,#192]
+ str x10,[x0,#1056]
+ ldr x10,[x9,#200]
+ str x10,[x0,#216]
+ ldr x10,[x9,#208]
+ str x10,[x0,#224]
+ ldr x10,[x9,#216]
+ str x10,[x0,#1128]
+ ldr x10,[x9,#224]
+ str x10,[x0,#1112]
+ ldr x10,[x9,#232]
+ str x10,[x0,#1064]
+ ldr x10,[x9,#240]
+ str x10,[x0,#1072]
+ ldr x10,[x9,#248]
+ str x10,[x0,#312]
+ ldr x10,[x9,#256]
+ str x10,[x0,#320]
+ ldr x10,[x9,#264]
+ str x10,[x0,#1160]
+ ldr x10,[x9,#272]
+ str x10,[x0,#1168]
+ ldr x10,[x9,#280]
+ str x10,[x0,#344]
+ ldr x10,[x9,#288]
+ str x10,[x0,#352]
+ ldr x10,[x9,#296]
+ str x10,[x0,#360]
+ ldr x10,[x9,#304]
+ str x10,[x0,#368]
+ ldr x10,[x9,#312]
+ str x10,[x0,#376]
+ ldr x10,[x9,#320]
+ str x10,[x0,#384]
+ ldr x10,[x9,#328]
+ str x10,[x0,#392]
+ ldr x10,[x9,#336]
+ str x10,[x0,#400]
+ ldr x10,[x9,#344]
+ str x10,[x0,#408]
+ ldr x10,[x9,#352]
+ str x10,[x0,#416]
+ ldr x10,[x9,#360]
+ str x10,[x0,#424]
+ ldr x10,[x9,#368]
+ str x10,[x0,#432]
+ ldr x10,[x9,#376]
+ str x10,[x0,#440]
+ ldr x10,[x9,#384]
+ str x10,[x0,#448]
+ ldr x10,[x9,#392]
+ str w10,[x0,#40]
+ ldr x10,[x9,#400]
+ str w10,[x0,#44]
+ ldr x10,[x9,#408]
+ str x10,[x0,#1096]
+ ldr x10,[x9,#416]
+ str x10,[x0,#464]
+ ldr x10,[x9,#424]
+ str x10,[x0,#456]
+ ldr x10,[x9,#432]
+ str x10,[x0,#472]
+ ldr x10,[x9,#440]
+ str x10,[x0,#480]
+ ldr x10,[x9,#448]
+ str x10,[x0,#488]
+ ldr x10,[x9,#456]
+ str x10,[x0,#496]
+ ldr x10,[x9,#464]
+ str x10,[x0,#504]
+ ldr x10,[x9,#472]
+ str x10,[x0,#512]
+ ldr x10,[x9,#480]
+ str x10,[x0,#520]
+ ldr x10,[x9,#488]
+ str x10,[x0,#616]
+ ldr x10,[x9,#496]
+ str x10,[x0,#624]
+ ldr x10,[x9,#504]
+ str x10,[x0,#632]
+ ldr x10,[x9,#512]
+ str x10,[x0,#640]
+ ldr x10,[x9,#520]
+ str x10,[x0,#648]
+ ldr x10,[x9,#528]
+ str x10,[x0,#656]
+ ldr x10,[x9,#536]
+ str x10,[x0,#688]
+ ldr x10,[x9,#544]
+ str x10,[x0,#672]
+ ldr x10,[x9,#552]
+ str x10,[x0,#528]
+ ldr x10,[x9,#560]
+ str x10,[x0,#536]
+ ldr x10,[x9,#568]
+ str x10,[x0,#544]
+ ldr x10,[x9,#576]
+ str x10,[x0,#552]
+ ldr x10,[x9,#584]
+ str x10,[x0,#592]
+ ldr x10,[x9,#592]
+ str x10,[x0,#560]
+ ldr x10,[x9,#600]
+ str x10,[x0,#568]
+ ldr x10,[x9,#608]
+ str x10,[x0,#576]
+ ldr x10,[x9,#616]
+ str x10,[x0,#584]
+ ldr x10,[x9,#624]
+ str x10,[x0,#600]
+ ldr x10,[x9,#632]
+ str x10,[x0,#608]
+ ldr x10,[x9,#640]
+ str x10,[x0,#680]
+ ldr x10,[x9,#648]
+ str x10,[x0,#1808]
+ ldr x10,[x9,#656]
+ str x10,[x0,#1816]
+ ldr x10,[x9,#664]
+ str x10,[x0,#1824]
+ ldr x10,[x9,#672]
+ str x10,[x0,#696]
+ ldr x10,[x9,#680]
+ str x10,[x0,#704]
+ ldr x10,[x9,#688]
+ str x10,[x0,#712]
+ ldr x10,[x9,#696]
+ str x10,[x0,#720]
+ ldr x10,[x9,#704]
+ str x10,[x0,#728]
+ ldr x10,[x9,#712]
+ str x10,[x0,#736]
+ ldr x10,[x9,#720]
+ str x10,[x0,#744]
+ ldr x10,[x9,#728]
+ str x10,[x0,#752]
+ ldr x10,[x9,#736]
+ str x10,[x0,#760]
+ ldr x10,[x9,#744]
+ str x10,[x0,#768]
+ ldr x10,[x9,#752]
+ str x10,[x0,#776]
+ ldr x10,[x9,#760]
+ str x10,[x0,#784]
+ ldr x10,[x9,#768]
+ str x10,[x0,#800]
+ ldr x10,[x9,#776]
+ str x10,[x0,#792]
+ ldr x10,[x9,#784]
+ str x10,[x0,#808]
+ ldr x10,[x9,#792]
+ str x10,[x0,#816]
+ ldr x10,[x9,#800]
+ str x10,[x0,#0]
+ ldr x10,[x9,#808]
+ str x10,[x0,#8]
+ ldr x10,[x9,#816]
+ str x10,[x0,#16]
+ ldr x10,[x9,#824]
+ str x10,[x0,#24]
+ ldr x10,[x9,#832]
+ str x10,[x0,#32]
+ ldr x10,[x9,#840]
+ str x10,[x0,#824]
+ ldr x10,[x9,#848]
+ str x10,[x0,#832]
+ ldr x10,[x9,#856]
+ str x10,[x0,#840]
+ ldr x10,[x9,#864]
+ str x10,[x0,#848]
+ ldr x10,[x9,#872]
+ str x10,[x0,#1104]
+ ldr x10,[x9,#880]
+ str x10,[x0,#1120]
+ ldr x10,[x9,#888]
+ str x10,[x0,#1080]
+ ldr x10,[x9,#896]
+ str x10,[x0,#1088]
+ ldr x10,[x9,#904]
+ str x10,[x0,#1136]
+ ldr x10,[x9,#912]
+ str x10,[x0,#856]
+ ldr x10,[x9,#920]
+ str x10,[x0,#864]
+ ldr x10,[x9,#928]
+ str x10,[x0,#872]
+ ldr x10,[x9,#936]
+ str x10,[x0,#880]
+ ldr x10,[x9,#944]
+ str x10,[x0,#888]
+ ldr x10,[x9,#952]
+ str x10,[x0,#992]
+ ldr x10,[x9,#960]
+ str x10,[x0,#1000]
+ ldr x10,[x9,#968]
+ str x10,[x0,#1144]
+ ldr x10,[x9,#976]
+ str x10,[x0,#1152]
+ ldr x10,[x9,#984]
+ str x10,[x0,#1016]
+ ldr x10,[x9,#992]
+ str x10,[x0,#2296]
+ ldr x10,[x9,#1000]
+ str x10,[x0,#1032]
+ ldr x10,[x9,#1008]
+ str x10,[x0,#1024]
+ ldr x10,[x9,#1016]
+ str x10,[x0,#1040]
+ ldr x10,[x9,#1024]
+ str x10,[x0,#1048]
+ ldr x10,[x9,#1032]
+ str x10,[x0,#2272]
+ ldr x10,[x9,#1040]
+ str x10,[x0,#2280]
+ ldr x10,[x9,#1048]
+ str x10,[x0,#1176]
+ ldr x10,[x9,#1056]
+ str x10,[x0,#2344]
+ ldr x10,[x9,#1064]
+ str x10,[x0,#2336]
+ ldr x10,[x9,#1072]
+ str x10,[x0,#2352]
+ ldr x10,[x9,#1080]
+ str w10,[x0,#2360]
+ ldr x10,[x9,#1088]
+ str x10,[x0,#664]
+ ldr x10,[x9,#1096]
+ str x10,[x0,#664]
+ ldr x10,[x9,#1104]
+ str x10,[x0,#1296]
+ ldr x10,[x9,#1112]
+ str x10,[x0,#1304]
+ ldr x10,[x9,#1120]
+ str x10,[x0,#1312]
+ ldr x10,[x9,#1128]
+ str x10,[x0,#1320]
+ ldr x10,[x9,#1136]
+ str x10,[x0,#1336]
+ ldr x10,[x9,#1144]
+ str x10,[x0,#1344]
+ ldr x10,[x9,#1152]
+ str x10,[x0,#1352]
+ ldr x10,[x9,#1160]
+ str x10,[x0,#1360]
+ ldr x10,[x9,#1168]
+ str x10,[x0,#1368]
+ ldr x10,[x9,#1176]
+ str x10,[x0,#1376]
+ ldr x10,[x9,#1184]
+ str x10,[x0,#1384]
+ ldr x10,[x9,#1192]
+ str x10,[x0,#1392]
+ ldr x10,[x9,#1200]
+ str x10,[x0,#1400]
+ ldr x10,[x9,#1208]
+ str x10,[x0,#1408]
+ ldr x10,[x9,#1216]
+ str x10,[x0,#1416]
+ ldr x10,[x9,#1224]
+ str x10,[x0,#1424]
+ ldr x10,[x9,#1232]
+ str x10,[x0,#1432]
+ ldr x10,[x9,#1240]
+ str x10,[x0,#1440]
+ ldr x10,[x9,#1248]
+ str x10,[x0,#1448]
+ ldr x10,[x9,#1256]
+ str x10,[x0,#1456]
+ ldr x10,[x9,#1264]
+ str x10,[x0,#1328]
+ ldr x10,[x9,#1272]
+ str x10,[x0,#1464]
+ ldr x10,[x9,#1280]
+ str x10,[x0,#1472]
+ ldr x10,[x9,#1288]
+ str x10,[x0,#1480]
+ ldr x10,[x9,#1296]
+ str x10,[x0,#1488]
+ ldr x10,[x9,#1304]
+ str x10,[x0,#1496]
+ ldr x10,[x9,#1312]
+ str x10,[x0,#1504]
+ ldr x10,[x9,#1320]
+ str x10,[x0,#1512]
+ ldr x10,[x9,#1328]
+ str x10,[x0,#1520]
+ ldr x10,[x9,#1336]
+ str x10,[x0,#1528]
+ ldr x10,[x9,#1344]
+ str x10,[x0,#1536]
+ ldr x10,[x9,#1352]
+ str x10,[x0,#104]
+ ldr x10,[x9,#1360]
+ str x10,[x0,#2488]
+ ldr x10,[x9,#1368]
+ str x10,[x0,#2496]
+ ldr x10,[x9,#1376]
+ str x10,[x0,#2504]
+ ldr x10,[x9,#1384]
+ str x10,[x0,#2512]
+ ldr x10,[x9,#1392]
+ str x10,[x0,#2520]
+ ldr x10,[x9,#1400]
+ str x10,[x0,#2528]
+ ldr x10,[x9,#1408]
+ str x10,[x0,#2536]
+ ldr x10,[x9,#1416]
+ str x10,[x0,#2544]
+ ldr x10,[x9,#1424]
+ str x10,[x0,#2552]
+ ldr x10,[x9,#1432]
+ str x10,[x0,#2560]
+ ldr x10,[x9,#1440]
+ str x10,[x0,#2568]
+ ldr x10,[x9,#1448]
+ str w10,[x0,#2576]
+ ldr x10,[x9,#1456]
+ str w10,[x0,#2580]
+ ldr x10,[x9,#1464]
+ str x10,[x0,#1832]
+ ldr x10,[x9,#1472]
+ str x10,[x0,#1840]
+ ldr x10,[x9,#1480]
+ str x10,[x0,#1848]
+ ldr x10,[x9,#1488]
+ str x10,[x0,#1856]
+ ldr x10,[x9,#1496]
+ str x10,[x0,#1864]
+ ldr x10,[x9,#1504]
+ str x10,[x0,#1008]
+ ldr x10,[x9,#1512]
+ str x10,[x0,#1880]
+ ldr x10,[x9,#1520]
+ str x10,[x0,#1888]
+ ldr x10,[x9,#1528]
+ str x10,[x0,#1896]
+ ldr x10,[x9,#1536]
+ str x10,[x0,#1872]
+ ldr x10,[x9,#1544]
+ str x10,[x0,#1904]
+ ldr x10,[x9,#1552]
+ str x10,[x0,#2024]
+ ldr x10,[x9,#1560]
+ str x10,[x0,#2048]
+ ldr x10,[x9,#1568]
+ str x10,[x0,#2032]
+ ldr x10,[x9,#1576]
+ str x10,[x0,#2040]
+ ldr x10,[x9,#1584]
+ str x10,[x0,#1912]
+ ldr x10,[x9,#1592]
+ str x10,[x0,#1920]
+ ldr x10,[x9,#1600]
+ str x10,[x0,#1928]
+ ldr x10,[x9,#1608]
+ str x10,[x0,#1936]
+ ldr x10,[x9,#1616]
+ str x10,[x0,#1952]
+ ldr x10,[x9,#1624]
+ str x10,[x0,#1944]
+ ldr x10,[x9,#1632]
+ str x10,[x0,#1960]
+ ldr x10,[x9,#1640]
+ str x10,[x0,#1968]
+ ldr x10,[x9,#1648]
+ str x10,[x0,#1976]
+ ldr x10,[x9,#1656]
+ str x10,[x0,#1984]
+ ldr x10,[x9,#1664]
+ str x10,[x0,#1992]
+ ldr x10,[x9,#1672]
+ str x10,[x0,#2000]
+ ldr x10,[x9,#1680]
+ str x10,[x0,#2008]
+ ldr x10,[x9,#1688]
+ str x10,[x0,#2016]
+ ldr x10,[x9,#1696]
+ str x10,[x0,#328]
+ ldr x10,[x9,#1704]
+ str x10,[x0,#336]
+ ldr x10,[x9,#1712]
+ str x10,[x0,#2064]
+ ldr x10,[x9,#1720]
+ str x10,[x0,#2072]
+ ldr x10,[x9,#1728]
+ str x10,[x0,#2080]
+ ldr x10,[x9,#1736]
+ str x10,[x0,#2088]
+ ldr x10,[x9,#1744]
+ str x10,[x0,#2096]
+ ldr x10,[x9,#1752]
+ str x10,[x0,#2104]
+ ldr x10,[x9,#1760]
+ str x10,[x0,#2056]
+ ldr x10,[x9,#1768]
+ str x10,[x0,#2200]
+ ldr x10,[x9,#1776]
+ str x10,[x0,#2208]
+ ldr x10,[x9,#1784]
+ str x10,[x0,#2216]
+ ldr x10,[x9,#1792]
+ str x10,[x0,#2224]
+ ldr x10,[x9,#1800]
+ str x10,[x0,#2232]
+ ldr x10,[x9,#1808]
+ str x10,[x0,#2136]
+ ldr x10,[x9,#1816]
+ str x10,[x0,#2112]
+ ldr x10,[x9,#1824]
+ str x10,[x0,#2120]
+ ldr x10,[x9,#1832]
+ str x10,[x0,#2128]
+ ldr x10,[x9,#1840]
+ str x10,[x0,#2144]
+ ldr x10,[x9,#1848]
+ str x10,[x0,#2152]
+ ldr x10,[x9,#1856]
+ str x10,[x0,#2160]
+ ldr x10,[x9,#1864]
+ str x10,[x0,#2168]
+ ldr x10,[x9,#1872]
+ str x10,[x0,#2176]
+ ldr x10,[x9,#1880]
+ str x10,[x0,#2184]
+ ldr x10,[x9,#1888]
+ str x10,[x0,#2192]
+ ldr x10,[x9,#1896]
+ str w10,[x0,#2660]
+ ldr x10,[x9,#1904]
+ str w10,[x0,#2664]
+ ldr x10,[x9,#1912]
+ str w10,[x0,#2668]
+ ldr x10,[x9,#1920]
+ str w10,[x0,#3324]
+ ldr x10,[x9,#1928]
+ str w10,[x0,#2672]
+ ldr x10,[x9,#1936]
+ str x10,[x0,#2680]
+ ldr x10,[x9,#1944]
+ str x10,[x0,#2688]
+ ldr x10,[x9,#1952]
+ str x10,[x0,#2696]
+ ldr x10,[x9,#1960]
+ str x10,[x0,#2704]
+ ldr x10,[x9,#1968]
+ str x10,[x0,#2712]
+ ldr x10,[x9,#1976]
+ str x10,[x0,#3240]
+ ldr x10,[x9,#1984]
+ str w10,[x0,#3032]
+ ldr x10,[x9,#1992]
+ str w10,[x0,#3384]
+ ldr x10,[x9,#2000]
+ str w10,[x0,#3388]
+ ldr x10,[x9,#2008]
+ str x10,[x0,#3392]
+ ldr x10,[x9,#2016]
+ str w10,[x0,#2720]
+ ldr x10,[x9,#2024]
+ str w10,[x0,#2728]
+ ldr x10,[x9,#2032]
+ str w10,[x0,#2732]
+ ldr x10,[x9,#2040]
+ str w10,[x0,#2736]
+ ldr x10,[x9,#2048]
+ str w10,[x0,#2740]
+ ldr x10,[x9,#2056]
+ str x10,[x0,#2744]
+ ldr x10,[x9,#2064]
+ str x10,[x0,#2752]
+ ldr x10,[x9,#2072]
+ str x10,[x0,#2784]
+ ldr x10,[x9,#2080]
+ str x10,[x0,#2792]
+ ldr x10,[x9,#2088]
+ str x10,[x0,#2824]
+ ldr x10,[x9,#2096]
+ str x10,[x0,#2832]
+ ldr x10,[x9,#2104]
+ str x10,[x0,#2840]
+ ldr x10,[x9,#2112]
+ str w10,[x0,#2848]
+ ldr x10,[x9,#2120]
+ str x10,[x0,#2856]
+ ldr x10,[x9,#2128]
+ str x10,[x0,#2872]
+ ldr x10,[x9,#2136]
+ str x10,[x0,#2880]
+ ldr x10,[x9,#2144]
+ str x10,[x0,#3064]
+ ldr x10,[x9,#2152]
+ str w10,[x0,#2888]
+ ldr x10,[x9,#2160]
+ str x10,[x0,#2896]
+ ldr x10,[x9,#2168]
+ str x10,[x0,#2904]
+ ldr x10,[x9,#2176]
+ str x10,[x0,#2912]
+ ldr x10,[x9,#2184]
+ str x10,[x0,#2928]
+ ldr x10,[x9,#2192]
+ str x10,[x0,#2936]
+ ldr x10,[x9,#2200]
+ str x10,[x0,#2944]
+ ldr x10,[x9,#2208]
+ str x10,[x0,#2952]
+ ldr x10,[x9,#2216]
+ str x10,[x0,#2960]
+ ldr x10,[x9,#2224]
+ str x10,[x0,#2968]
+ ldr x10,[x9,#2232]
+ str x10,[x0,#2976]
+ ldr x10,[x9,#2240]
+ str x10,[x0,#3056]
+ ldr x10,[x9,#2248]
+ str x10,[x0,#2984]
+ ldr x10,[x9,#2256]
+ str x10,[x0,#2992]
+ ldr x10,[x9,#2264]
+ str x10,[x0,#3000]
+ ldr x10,[x9,#2272]
+ str x10,[x0,#3008]
+ ldr x10,[x9,#2280]
+ str x10,[x0,#3016]
+ ldr x10,[x9,#2288]
+ str x10,[x0,#3024]
+ ldr x10,[x9,#2296]
+ str x10,[x0,#3040]
+ ldr x10,[x9,#2304]
+ str x10,[x0,#3048]
+ ldr x10,[x9,#2312]
+ str x10,[x0,#3072]
+ ldr x10,[x9,#2320]
+ str x10,[x0,#3168]
+ ldr x10,[x9,#2328]
+ str x10,[x0,#3176]
+ ldr x10,[x9,#2336]
+ str x10,[x0,#3184]
+ ldr x10,[x9,#2344]
+ str x10,[x0,#3192]
+ ldr x10,[x9,#2352]
+ str x10,[x0,#3200]
+ ldr x10,[x9,#2360]
+ str x10,[x0,#3288]
+ ldr x10,[x9,#2368]
+ str x10,[x0,#3296]
+ ldr x10,[x9,#2376]
+ str x10,[x0,#3304]
+ ldr x10,[x9,#2384]
+ str x10,[x0,#3312]
+ ldr x10,[x9,#2392]
+ str x10,[x0,#3328]
+ ldr x10,[x9,#2400]
+ str x10,[x0,#3352]
+ ldr x10,[x9,#2408]
+ str x10,[x0,#3360]
+ ldr x10,[x9,#2416]
+ str x10,[x0,#3368]
+ ldr x10,[x9,#2424]
+ str x10,[x0,#3376]
+ ldr x10,[x9,#2432]
+ str x10,[x0,#3272]
+ ldr x10,[x9,#2440]
+ str w10,[x0,#3280]
+ ldr x10,[x9,#2448]
+ str w10,[x0,#3320]
+ ldr x10,[x9,#2456]
+ str x10,[x0,#3248]
+ ldr x10,[x9,#2464]
+ str x10,[x0,#3256]
+ ldr x10,[x9,#2472]
+ str x10,[x0,#3264]
+ ldr x10,[x9,#2480]
+ str x10,[x0,#3080]
+ ldr x10,[x9,#2488]
+ str x10,[x0,#3088]
+ ldr x10,[x9,#2496]
+ str x10,[x0,#3096]
+ ldr x10,[x9,#2504]
+ str x10,[x0,#3104]
+ ldr x10,[x9,#2512]
+ str x10,[x0,#3152]
+ ldr x10,[x9,#2520]
+ str x10,[x0,#3160]
+ ldr x10,[x9,#2528]
+ str x10,[x0,#3112]
+ ldr x10,[x9,#2536]
+ str x10,[x0,#3120]
+ ldr x10,[x9,#2544]
+ str x10,[x0,#3128]
+ ldr x10,[x9,#2552]
+ str x10,[x0,#3136]
+ ldr x10,[x9,#2560]
+ str x10,[x0,#3144]
+ ldr x10,[x9,#2568]
+ str w10,[x0,#2864]
+ ldr x10,[x9,#2576]
+ str w10,[x0,#2920]
+ ldr x10,[x9,#2584]
+ str w10,[x0,#2656]
+ ldr x10,[x9,#2592]
+ str w10,[x0,#2724]
+ ldr x10,[x9,#2600]
+ str x10,[x0,#2760]
+ ldr x10,[x9,#2608]
+ str x10,[x0,#2768]
+ ldr x10,[x9,#2616]
+ str x10,[x0,#2776]
+ ldr x10,[x9,#2624]
+ str x10,[x0,#256]
+ ldr x10,[x9,#2632]
+ str x10,[x0,#3400]
+ ldr x10,[x9,#2640]
+ str x10,[x0,#3216]
+ ldr x10,[x9,#2648]
+ str x10,[x0,#3224]
+ ldr x10,[x9,#2656]
+ str w10,[x0,#3232]
+ ldr x10,[x9,#2664]
+ str w10,[x0,#3236]
+ ldr x10,[x9,#2672]
+ str x10,[x0,#3208]
+ ldr x10,[x9,#2680]
+ str x10,[x0,#2240]
+ ldr x10,[x9,#2688]
+ str x10,[x0,#2248]
+ ldr x10,[x9,#2696]
+ str x10,[x0,#2256]
+ ldr x10,[x9,#2704]
+ str x10,[x0,#2264]
+ ldr x10,[x9,#2712]
+ str x10,[x0,#968]
+ ldr x10,[x9,#2720]
+ str x10,[x0,#960]
+ ldr x10,[x9,#2728]
+ str x10,[x0,#896]
+ ldr x10,[x9,#2736]
+ str x10,[x0,#904]
+ ldr x10,[x9,#2744]
+ str x10,[x0,#920]
+ ldr x10,[x9,#2752]
+ str x10,[x0,#912]
+ ldr x10,[x9,#2760]
+ str x10,[x0,#936]
+ ldr x10,[x9,#2768]
+ str x10,[x0,#928]
+ ldr x10,[x9,#2776]
+ str x10,[x0,#976]
+ ldr x10,[x9,#2784]
+ str x10,[x0,#984]
+ ldr x10,[x9,#2792]
+ str x10,[x0,#1264]
+ ldr x10,[x9,#2800]
+ str x10,[x0,#1288]
+ ldr x10,[x9,#2808]
+ str x10,[x0,#1272]
+ ldr x10,[x9,#2816]
+ str x10,[x0,#1280]
+ ldr x10,[x9,#2824]
+ str x10,[x0,#1208]
+ ldr x10,[x9,#2832]
+ str x10,[x0,#1216]
+ ldr x10,[x9,#2840]
+ str x10,[x0,#1184]
+ ldr x10,[x9,#2848]
+ str x10,[x0,#1192]
+ ldr x10,[x9,#2856]
+ str x10,[x0,#1200]
+ ldr x10,[x9,#2864]
+ str x10,[x0,#1240]
+ ldr x10,[x9,#2872]
+ str x10,[x0,#2600]
+ ldr x10,[x9,#2880]
+ str x10,[x0,#232]
+ ldr x10,[x9,#2888]
+ str x10,[x0,#240]
+ ldr x10,[x9,#2896]
+ str x10,[x0,#248]
+ ldr x10,[x9,#2904]
+ str x10,[x0,#264]
+ ldr x10,[x9,#2912]
+ str x10,[x0,#272]
+ ldr x10,[x9,#2920]
+ str x10,[x0,#280]
+ ldr x10,[x9,#2928]
+ str x10,[x0,#288]
+ ldr x10,[x9,#2936]
+ str x10,[x0,#296]
+ ldr x10,[x9,#2944]
+ str x10,[x0,#304]
+ ldr x10,[x9,#2952]
+ str x10,[x0,#2584]
+ ldr x10,[x9,#2960]
+ str x10,[x0,#2592]
+ ldr x10,[x9,#2968]
+ str x10,[x0,#2320]
+ ldr x10,[x9,#2976]
+ str x10,[x0,#2328]
+ ldr x10,[x9,#2984]
+ str x10,[x0,#2808]
+ ldr x10,[x9,#2992]
+ str x10,[x0,#2800]
+ ldr x10,[x9,#3000]
+ str w10,[x0,#2816]
+ ldr x10,[x9,#3008]
+ str x10,[x0,#2304]
+ ldr x10,[x9,#3016]
+ str x10,[x0,#2368]
+ ldr x10,[x9,#3024]
+ str x10,[x0,#2376]
+ ldr x10,[x9,#3032]
+ str x10,[x0,#2312]
+ ldr x10,[x9,#3040]
+ str x10,[x0,#1544]
+ ldr x10,[x9,#3048]
+ str x10,[x0,#1552]
+ ldr x10,[x9,#3056]
+ str x10,[x0,#1560]
+ ldr x10,[x9,#3064]
+ str x10,[x0,#1576]
+ ldr x10,[x9,#3072]
+ str x10,[x0,#1584]
+ ldr x10,[x9,#3080]
+ str x10,[x0,#1592]
+ ldr x10,[x9,#3088]
+ str x10,[x0,#1600]
+ ldr x10,[x9,#3096]
+ str x10,[x0,#1624]
+ ldr x10,[x9,#3104]
+ str x10,[x0,#1632]
+ ldr x10,[x9,#3112]
+ str x10,[x0,#1640]
+ ldr x10,[x9,#3120]
+ str x10,[x0,#1648]
+ ldr x10,[x9,#3128]
+ str x10,[x0,#1680]
+ ldr x10,[x9,#3136]
+ str x10,[x0,#1688]
+ ldr x10,[x9,#3144]
+ str x10,[x0,#1696]
+ ldr x10,[x9,#3152]
+ str x10,[x0,#1704]
+ ldr x10,[x9,#3160]
+ str x10,[x0,#1712]
+ ldr x10,[x9,#3168]
+ str x10,[x0,#1720]
+ ldr x10,[x9,#3176]
+ str x10,[x0,#1728]
+ ldr x10,[x9,#3184]
+ str x10,[x0,#1736]
+ ldr x10,[x9,#3192]
+ str x10,[x0,#1744]
+ ldr x10,[x9,#3200]
+ str x10,[x0,#1752]
+ ldr x10,[x9,#3208]
+ str x10,[x0,#1760]
+ ldr x10,[x9,#3216]
+ str x10,[x0,#1768]
+ ldr x10,[x9,#3224]
+ str x10,[x0,#1776]
+ ldr x10,[x9,#3232]
+ str x10,[x0,#1784]
+ ldr x10,[x9,#3240]
+ str x10,[x0,#1568]
+ ldr x10,[x9,#3248]
+ str x10,[x0,#2384]
+ ldr x10,[x9,#3256]
+ str x10,[x0,#2392]
+ ldr x10,[x9,#3264]
+ str x10,[x0,#2400]
+ ldr x10,[x9,#3272]
+ str x10,[x0,#2608]
+ ldr x10,[x9,#3280]
+ str x10,[x0,#2616]
+ ldr x10,[x9,#3288]
+ str x10,[x0,#2624]
+ ldr x10,[x9,#3296]
+ str x10,[x0,#3336]
+ ldr x10,[x9,#3304]
+ str x10,[x0,#3344]
+ ldr x10,[x9,#3312]
+ str x10,[x0,#2408]
+ ldr x10,[x9,#3320]
+ str x10,[x0,#2416]
+ ldr x10,[x9,#3328]
+ str x10,[x0,#2424]
+ ldr x10,[x9,#3336]
+ str x10,[x0,#2432]
+ ldr x10,[x9,#3344]
+ str x10,[x0,#2440]
+ ldr x10,[x9,#3352]
+ str x10,[x0,#2448]
+ ldr x10,[x9,#3360]
+ str x10,[x0,#2456]
+ ldr x10,[x9,#3368]
+ str x10,[x0,#2464]
+ ldr x10,[x9,#3376]
+ str x10,[x0,#2472]
+ ldr x10,[x9,#3384]
+ str x10,[x0,#2480]
+ ldr x10,[x9,#3392]
+ str x10,[x0,#2632]
+ ldr x10,[x9,#3400]
+ str x10,[x0,#2640]
+ ldr x10,[x9,#3408]
+ str x10,[x0,#2648]
+ ldr x10,[x9,#3416]
+ str x10,[x0,#3424]
+ ldr x10,[x9,#3424]
+ str x10,[x0,#3432]
+ ldr x10,[x9,#3432]
+ str x10,[x0,#3408]
+ ret
+.section .rodata
+.p2align 3
+.Latm_literal_values:
+ .quad 0x4012000000000000
+ .quad 0x4014000000000000
+ .quad 0x4008000000000000
+ .quad 0x3fe999999999999a
+ .quad 0x3fd172474538ef35
+ .quad 0xbfdb212d77318fc5
+ .quad 0x3fd7020c49ba5e35
+ .quad 0x4072c00000000000
+ .quad 0x3fa999999999999a
+ .quad 0x40a7700000000000
+ .quad 0x4014000000000000
+ .quad 0x4014000000000000
+ .quad 0x4014000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3fc999999999999a
+ .quad 0x3fdd16872b020c4a
+ .quad 0x3ff0000000000000
+ .quad 0x41524f8000000000
+ .quad 0x40d7700000000000
+ .quad 0x3fe0f5c28f5c28f6
+ .quad 0x3f11904b3c3e74b0
+ .quad 0x3f11904b3c3e74b0
+ .quad 0x0000000000000000
+ .quad 0x3fe999999999999a
+ .quad 0x3f0797cc39ffd60f
+ .quad 0x3fc999999999999a
+ .quad 0x0000000000000000
+ .quad 0x3f24f8b588e368f1
+ .quad 0x3efa36e2eb1c432d
+ .quad 0x3fe0000000000000
+ .quad 0x0000000000000000
+ .quad 0x3fd0000000000000
+ .quad 0x3fe0000000000000
+ .quad 0x3fd0000000000000
+ .quad 0x4010000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3fe3333333333333
+ .quad 0x4000000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x4018000000000000
+ .quad 0x0000000000000000
+ .quad 0x3f6cac083126e979
+ .quad 0x3ff0000000000000
+ .quad 0x0000000000000000
+ .quad 0x4008000000000000
+ .quad 0x4000000000000000
+ .quad 0x3ffccccccccccccd
+ .quad 0xbfe3333333333333
+ .quad 0x3ff199999999999a
+ .quad 0x0000000000000001
+ .quad 0x0000000000000001
+ .quad 0x4099000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3f1a36e2eb1c432d
+ .quad 0x40d9640000000000
+ .quad 0x3fe6666666666666
+ .quad 0x3ff0000000000000
+ .quad 0x3fd0000000000000
+ .quad 0x0000000000000000
+ .quad 0x3f014d2f5dbb9cfa
+ .quad 0x3f014d2f5dbb9cfa
+ .quad 0x40d3880000000000
+ .quad 0x40c3880000000000
+ .quad 0x40d3880000000000
+ .quad 0x3fd3333333333333
+ .quad 0x3fdccccccccccccd
+ .quad 0x3ff0000000000000
+ .quad 0x3f8999999999999a
+ .quad 0x3ff0000000000000
+ .quad 0x0000000000000000
+ .quad 0x409b580000000000
+ .quad 0x4060400000000000
+ .quad 0x4060400000000000
+ .quad 0x3fe0000000000000
+ .quad 0x0000000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3fe0000000000000
+ .quad 0x400c000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x4054000000000000
+ .quad 0x4022000000000000
+ .quad 0x4014000000000000
+ .quad 0xc026000000000000
+ .quad 0x0000000000000000
+ .quad 0x40c5180000000000
+ .quad 0xc034000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x0000000000000000
+ .quad 0x40a7700000000000
+ .quad 0x3fe0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3f1a36e2eb1c432d
+ .quad 0x3f4a36e2eb1c432d
+ .quad 0x3ec4f8b588e368f1
+ .quad 0x3f14f8b588e368f1
+ .quad 0x3fe999999999999a
+ .quad 0x3fe999999999999a
+ .quad 0x3ff0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3fed70a3d70a3d71
+ .quad 0x3fe7ae147ae147ae
+ .quad 0x403099999999999a
+ .quad 0x4024333333333333
+ .quad 0x3fb47ae147ae147b
+ .quad 0x3f4a36e2eb1c432d
+ .quad 0x40c86a0000000000
+ .quad 0x0000000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3fa1eb851eb851ec
+ .quad 0x3ff0000000000000
+ .quad 0x3fe0000000000000
+ .quad 0x4010000000000000
+ .quad 0x3fc0000000000000
+ .quad 0x3f95810624dd2f1b
+ .quad 0x3fd999999999999a
+ .quad 0x3f23a92a30553261
+ .quad 0x0000000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x408f400000000000
+ .quad 0x3fe0000000000000
+ .quad 0x3fe999999999999a
+ .quad 0x3f1e2584f4c6e6da
+ .quad 0x401a000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x40a7700000000000
+ .quad 0x407f400000000000
+ .quad 0x3fb999999999999a
+ .quad 0x401c000000000000
+ .quad 0xbf12599ed7c6fbd2
+ .quad 0x40f1170000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0xbff0000000000000
+ .quad 0x4034000000000000
+ .quad 0x0000000000000000
+ .quad 0x3fe0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3f50624dd2f1a9fc
+ .quad 0x3ff0000000000000
+ .quad 0x3f50624dd2f1a9fc
+ .quad 0x3f9999999999999a
+ .quad 0x415e848000000000
+ .quad 0x413e848000000000
+ .quad 0x3f2a36e2eb1c432d
+ .quad 0x0000000000000000
+ .quad 0x3eff75104d551d69
+ .quad 0x3e8ad7f29abcaf48
+ .quad 0x3f2a36e2eb1c432d
+ .quad 0x3eff75104d551d69
+ .quad 0x3e8ad7f29abcaf48
+ .quad 0xc054000000000000
+ .quad 0x403e000000000000
+ .quad 0x3fe0000000000000
+ .quad 0x3f9eb851eb851eb8
+ .quad 0x3ff0000000000000
+ .quad 0x3fc999999999999a
+ .quad 0x3ff0000000000000
+ .quad 0x0000000000000000
+ .quad 0x3fe0000000000000
+ .quad 0x3fed1eb851eb851f
+ .quad 0x3fd999999999999a
+ .quad 0x3ff6666666666666
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x4014000000000000
+ .quad 0x3fe3333333333333
+ .quad 0x3fd3333333333333
+ .quad 0x3fd3333333333333
+ .quad 0x408c200000000000
+ .quad 0x40c3880000000000
+ .quad 0x4072c00000000000
+ .quad 0x4010000000000000
+ .quad 0x410e460000000000
+ .quad 0x40ce460000000000
+ .quad 0x3ff0000000000000
+ .quad 0x0000000000000000
+ .quad 0x402acccccccccccd
+ .quad 0x3fb126e978d4fdf4
+ .quad 0x3fc999999999999a
+ .quad 0x3ff0000000000000
+ .quad 0x0000000000000002
+ .quad 0x0000000000000003
+ .quad 0x3fe0000000000000
+ .quad 0x3fe0000000000000
+ .quad 0x3f53a92a30553261
+ .quad 0x3f43a92a30553261
+ .quad 0x3fee666666666666
+ .quad 0x4039000000000000
+ .quad 0x41cdcd6500000000
+ .quad 0x0000000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x408c200000000000
+ .quad 0x40a7700000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3ee4f8b588e368f1
+ .quad 0x4000000000000000
+ .quad 0x40c3880000000000
+ .quad 0x40f86a0000000000
+ .quad 0x3fe0000000000000
+ .quad 0x0000000000000000
+ .quad 0x3f1a36e2eb1c432d
+ .quad 0x3ff0000000000000
+ .quad 0x3fd51eb860000000
+ .quad 0x3f1a36e2eb1c432d
+ .quad 0x3fa6848beb5b2d4d
+ .quad 0x3fe8000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x3fe0000000000000
+ .quad 0x4000000000000000
+ .quad 0x3feccccccccccccd
+ .quad 0x3e45798ee2308c3a
+ .quad 0x3f0a36e2eb1c432d
+ .quad 0x3f1a36e2eb1c432d
+ .quad 0x3f689374bc6a7efa
+ .quad 0xbff0000000000000
+ .quad 0x4008000000000000
+ .quad 0x408f400000000000
+ .quad 0x4069000000000000
+ .quad 0xbff0000000000000
+ .quad 0xbff0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3fd999999999999a
+ .quad 0x40b7700000000000
+ .quad 0x40dca70000000000
+ .quad 0x40dd4c0000000000
+ .quad 0x4000000000000000
+ .quad 0x3fc3333333333333
+ .quad 0x40e86a0000000000
+ .quad 0x3fe0000000000000
+ .quad 0x4059000000000000
+ .quad 0x3f947ae147ae147b
+ .quad 0x409f400000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x3fb999999999999a
+ .quad 0x408c200000000000
+ .quad 0x3fcc28f5c28f5c29
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000001
+ .quad 0x0000000000000001
+ .quad 0x0000000000000001
+ .quad 0x0000000000000001
+ .quad 0x3f1f75104d551d69
+ .quad 0x3f43a92a30553261
+ .quad 0x0000000000000000
+ .quad 0xbff0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x40c3880000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000001
+ .quad 0x3ff0000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x3f50624dd2f1a9fc
+ .quad 0x3ff0000000000000
+ .quad 0x3f554c985f06f694
+ .quad 0x3f86872b020c49ba
+ .quad 0x3f9eb851eb851eb8
+ .quad 0x3f43a92a30553261
+ .quad 0x3f613404ea4a8c15
+ .quad 0x4000000000000000
+ .quad 0x3f847ae147ae147b
+ .quad 0x3ff0000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0xc014000000000000
+ .quad 0x40dd4c0000000000
+ .quad 0x40c3880000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0xc069000000000000
+ .quad 0x4069000000000000
+ .quad 0xbfb999999999999a
+ .quad 0x3fc999999999999a
+ .quad 0x3ff0000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x4059000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3f713404ea4a8c15
+ .quad 0x3fd0000000000000
+ .quad 0x3feccccccccccccd
+ .quad 0x409c200000000000
+ .quad 0x409c200000000000
+ .quad 0x0000000000000000
+ .quad 0x4089000000000000
+ .quad 0x3ef3ec460ed80a18
+ .quad 0x3f46df3f961804da
+ .quad 0x0000000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x0000000000000001
+ .quad 0x0000000000000001
+ .quad 0x0000000000000001
+ .quad 0x0000000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3ee4f8b588e368f1
+ .quad 0x3f5205bc01a36e2f
+ .quad 0x3f0a36e2eb1c432d
+ .quad 0x3ff0000000000000
+ .quad 0x3fe0000000000000
+ .quad 0x3f33a92a30553261
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x40af400000000000
+ .quad 0x3ff0000000000000
+ .quad 0x408f400000000000
+ .quad 0x0000000000000000
+ .quad 0x3eb0c6f7a0b5ed8d
+ .quad 0xbfe0000000000000
+ .quad 0x3ff8000000000000
+ .quad 0x400e000000000000
+ .quad 0x3fd3333333333333
+ .quad 0x3fc020c49ba5e354
+ .quad 0x3ff2e147ae147ae1
+ .quad 0x400599999999999a
+ .quad 0x3ff2147ae147ae14
+ .quad 0x3eb0c6f7a0b5ed8d
+ .quad 0x4059000000000000
+ .quad 0x4014000000000000
+ .quad 0x3f1a36e2eb1c432d
+ .quad 0x40ed4c0000000000
+ .quad 0x40f7cdc000000000
+ .quad 0x4010000000000000
+ .quad 0x3ff3333333333333
+ .quad 0x400199999999999a
+ .quad 0x4024000000000000
+ .quad 0x408f400000000000
+ .quad 0x3fc8f5c28f5c28f6
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x0000000000000000
+ .quad 0x409f400000000000
+ .quad 0x3fe0000000000000
+ .quad 0x3fe0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0xbffeb020c49ba5e3
+ .quad 0x3ff599999999999a
+ .quad 0x0000000000000000
+ .quad 0x3fd3333333333333
+ .quad 0x3f747ae147ae147b
+ .quad 0x3fb5c28f5c28f5c3
+ .quad 0x3fefae147ae147ae
+ .quad 0x4024000000000000
+ .quad 0x000000000000001e
+ .quad 0x3fc47ae147ae147b
+ .quad 0x4059000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x4049000000000000
+ .quad 0x3fe0a3d70a3d70a4
+ .quad 0x3ff0000000000000
+ .quad 0x3febdf3b645a1cac
+ .quad 0x3ff0000000000000
+ .quad 0x3fe0000000000000
+ .quad 0x3fc7ced916872b02
+ .quad 0x3fd77ced916872b0
+ .quad 0x3fbb645a1cac0831
+ .quad 0x3f34f8b588e368f1
+ .quad 0x3fb61e4f765fd8ae
+ .quad 0x3fb999999999999a
+ .quad 0x40177ae147ae147b
+ .quad 0x3ff0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3f947ae147ae147b
+ .quad 0x3f9eb851eb851eb8
+ .quad 0x4000000000000000
+ .quad 0x4069000000000000
+ .quad 0x4059000000000000
+ .quad 0x3f50624dd2f1a9fc
+ .quad 0x3f1a36e2eb1c432d
+ .quad 0x3ff0000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x3e45798ee2308c3a
+ .quad 0x3ff2f1a9fbe76c8b
+ .quad 0x3fb999999999999a
+ .quad 0x3fa47ae147ae147b
+ .quad 0x3fc3333333333333
+ .quad 0x3edf34a3a0ae8bc4
+ .quad 0x3f0f75104d551d69
+ .quad 0x3fef5c28f5c28f5c
+ .quad 0x3fe6666666666666
+ .quad 0x0000000000000000
+ .quad 0x3f40624dd2f1a9fc
+ .quad 0x3ff0000000000000
+ .quad 0x3ff8000000000000
+ .quad 0x3eff75104d551d69
+ .quad 0xc000000000000000
+ .quad 0xc043000000000000
+ .quad 0x4004000000000000
+ .quad 0x3ff0000000000000
+ .quad 0x401c000000000000
+ .quad 0x4010000000000000
+ .quad 0x3fd999999999999a
+ .quad 0x0000000000000000
+ .quad 0x3fe3333340000000
+ .quad 0x40d1258000000000
+ .quad 0x40f5dd6000000000
+ .quad 0x41024f8000000000
+.text
+.size md2asm_set_atmospheric_parameter_literals_raw,.-md2asm_set_atmospheric_parameter_literals_raw
+.p2align 4
+.global md2asm_set_atmospheric_parameter_arithmetic_raw
+.type md2asm_set_atmospheric_parameter_arithmetic_raw,%function
+md2asm_set_atmospheric_parameter_arithmetic_raw:
+ ldr x2,[x1]
+ ldr w3,[x2,#36]
+ ldr w4,[x2,#200]
+ and w3,w3,w4
+ fmov d0,#1.0
+ fmov d1,#0.5
+ cmp w3,#0
+ b.eq .Lsetup_select_other_0
+ fmov d0,d1
+ b .Lsetup_select_done_0
+.Lsetup_select_other_0:
+ fmov d0,d0
+.Lsetup_select_done_0:
+ str d0,[x0,#ATM_RDTFAC]
+ ldr w3,[x2,#816]
+ ldr w4,[x2,#908]
+ orr w3,w3,w4
+ ldr w4,[x2,#712]
+ orr w3,w3,w4
+ ldr w4,[x2,#808]
+ and w3,w3,w4
+ eor w3,w3,#1
+ ldr w4,[x2,#916]
+ and w3,w3,w4
+ cbz w3,.Latm_tentrvl_ready
+ str xzr,[x0,#ATM_TENTRVL]
+.Latm_tentrvl_ready:
+ ldr d0,[x1,#16]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,4,none,comparison,d0,real,x16,0,zero
+ b.eq .Latm_rotation_zero
+ fmov d1,#1.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d1,real,x16,0,d0
+ str d0,[x0,#ATM_GPETAU]
+ b .Latm_rotation_ready
+.Latm_rotation_zero:
+ str xzr,[x0,#ATM_GPETAU]
+.Latm_rotation_ready:
+ fmov d0,#1.0
+ fmov d1,#3.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ str d0,[x0,#ATM_UCWSTAR]
+ ldr d0,[x0,#ATM_ARSCH]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d1,real,x16,0,d0
+ ldr d2,[x0,#ATM_ARSCQ]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d2
+ fmov d2,#2.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d2,real,x16,0,d0
+ str d0,[x0,#ATM_ARSC1]
+ ldr d3,[x0,#ATM_ARSCH]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d3,destination,d1,real,x16,0,d3
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d3,destination,d3,real,x16,0,d0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d3,destination,d3,real,x16,0,d2
+ str d3,[x0,#ATM_ARSB2]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,7,d0,destination,d1,real,x16,0,zero
+ str d0,[x0,#ATM_STTBMIN]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d2,real,x16,0,d1
+ str d0,[x0,#ATM_ETKE_OLAM]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d2,real,x16,0,d1
+ str d0,[x0,#ATM_ETKE_LAM0]
+ ldr d16,[x0,#ATM_NUPTKE]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d16,destination,d16,real,x16,0,d16
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d16,destination,d16,real,x16,0,d16
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d16,destination,d16,real,x16,0,d2
+ ldr d17,[x0,#ATM_C3TKEFREE]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d18,destination,d17,real,x16,0,d17
+ adr x9,.Latm_375
+ ldr d0,[x9]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d18
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d2,real,x16,0,d17
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d1,destination,d18,real,x16,0,d1
+ fmov d3,#1.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d1,destination,d1,real,x16,0,d3
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d16,real,x16,0,d16
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d1,destination,d18,real,x16,0,d17
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d1,destination,d1,real,x16,0,d3
+ fmov d4,#20.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d4,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d16
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d3
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,7,d19,destination,d0,real,x16,0,zero
+ fmov d0,#5.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,7,d0,destination,d0,real,x16,0,zero
+ fmov d1,#3.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d1
+ fmov d1,#4.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d19
+ fmov d1,#30.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d17
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d2,destination,d17,real,x16,0,d3
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d2
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d16
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d1
+ fmov d1,#0.25
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d20,destination,d0,real,x16,0,d1
+ adr x9,.Latm_75
+ ldr d1,[x9]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d17
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d2
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d16
+ fmov d0,#10.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d1
+ fmov d1,#8.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d20
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d21,destination,d0,real,x16,0,d1
+ fmov d0,#4.0
+ fmov d1,#15.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d20
+ str d0,[x0,#ATM_ETKE_LAM1]
+ fmov d0,#14.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d20
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d21
+ fmov d1,#5.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d20
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
+ adr x9,.Latm_75
+ ldr d2,[x9]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d2
+ str d0,[x0,#ATM_ETKE_LAM3]
+ fmov d0,#6.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d20
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d21
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d1,real,x16,0,d0
+ fmov d2,#25.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d2
+ str d0,[x0,#ATM_ETKE_LAM2]
+ ldr d0,[x0,#ATM_C_EPSILON]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d17
+ ldr d1,[x0,#ATM_ETKE_OLAM]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ str d0,[x0,#ATM_ETKE_CTHETA]
+ fmov d2,#2.0
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d20,real,x16,0,d2
+ str d0,[x0,#ATM_ETKE_KA1]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d2,destination,d2,real,x16,0,d17
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d1,real,x16,0,d2
+ str d0,[x0,#ATM_ETKE_KA2]
+ fmov d0,#1.0
+ str d0,[x0,#ATM_ETKE_KA3]
+ ldr d1,[x1,#24]
+ ldr d0,[x0,#ATM_REFLKUO]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ str d0,[x0,#ATM_TEQK]
+ ldr d0,[x0,#ATM_REFLCAPE]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ str d0,[x0,#ATM_TEQC]
+ ldr d0,[x0,#ATM_REFLRHC]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ str d0,[x0,#ATM_TEQH]
+ ret
+.size md2asm_set_atmospheric_parameter_arithmetic_raw,.-md2asm_set_atmospheric_parameter_arithmetic_raw
+.section .rodata
+.p2align 3
+.Latm_group:
+ .ascii "NAMPHY0"
+.p2align 3
+.Latm_control_offsets:
+ .word 36,200,808,816,908,712,916
+.p2align 3
+.Latm_375:
+ .double 375.0
+.Latm_75:
+ .double 75.0
+.Latm_max_mesh:
+ .double 100000000.0
+.section .note.GNU-stack,"",%progbits

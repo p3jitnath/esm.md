@@ -1,0 +1,352 @@
+/* GPU physical setup route. Original interface and ordered arithmetic are preserved.
+ * Contract: skills/md2asm-gpu/references/openifs/setup/physical_setup.md
+ * Original source: src/openifs/setup/selected_loop_data_bindings.S
+ */
+// Original contract: skills/md2asm/references/openifs/setup/loop_data_bindings.md
+#include "../../support/gpu/preserved_scalar_calls.inc.S"
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_initialize_selected_loop_data
+.type md2asm_initialize_selected_loop_data,%function
+md2asm_initialize_selected_loop_data:
+ cbz x0,.Lloop_bad_leaf
+ tst x0,#7
+ b.ne .Lloop_bad_leaf
+ adds x9,x0,#96
+ b.cs .Lloop_bad_leaf
+ mrs x10,fpcr
+ cbnz x10,.Lloop_bad_leaf
+ sub sp,sp,#768
+ stp x29,x30,[sp]
+ mov x29,sp
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mov x19,x0
+ adrp x20,md2asm_owned_loop_data
+ add x20,x20,:lo12:md2asm_owned_loop_data
+ add x10,sp,#112
+ stp x0,x9,[x10]
+ add x11,x20,#552
+ stp x20,x11,[x10,#16]
+ adrp x17,.Lloop_required
+ add x17,x17,:lo12:.Lloop_required
+ mov x8,#0
+.Lloop_views:
+ add x9,x19,x8,lsl#4
+ ldp x11,x12,[x9]
+ cbz x11,.Lloop_bad
+ cmp x8,#5
+ b.eq .Lloop_text_view
+ tst x11,#7
+ b.ne .Lloop_bad
+ ldr x13,[x17,x8,lsl#3]
+ cmp x12,x13
+ b.lo .Lloop_bad
+ b .Lloop_view_extent
+.Lloop_text_view:
+ cbz x12,.Lloop_bad
+ cmp x12,#64,lsl#12
+ b.hi .Lloop_bad
+ mov x13,x12
+.Lloop_view_extent:
+ adds x12,x11,x13
+ b.cs .Lloop_bad
+ add x9,sp,#144
+ add x9,x9,x8,lsl#4
+ stp x11,x12,[x9]
+ add x8,x8,#1
+ cmp x8,#6
+ b.lo .Lloop_views
+ mov x8,#0
+.Lloop_outer:
+ add x9,sp,#112
+ add x9,x9,x8,lsl#4
+ ldp x10,x11,[x9]
+ add x12,x8,#1
+.Lloop_inner:
+ cmp x12,#8
+ b.hs .Lloop_next
+ add x9,sp,#112
+ add x9,x9,x12,lsl#4
+ ldp x13,x14,[x9]
+ cmp x10,x14
+ b.hs .Lloop_clear
+ cmp x13,x11
+ b.lo .Lloop_bad
+.Lloop_clear:
+ add x12,x12,#1
+ b .Lloop_inner
+.Lloop_next:
+ add x8,x8,#1
+ cmp x8,#7
+ b.lo .Lloop_outer
+ ldr x9,[x20,#544]
+ cbnz x9,.Lloop_bad
+ ldr x9,[x20,#72]
+ ldr x10,[x20,#160]
+ orr x9,x9,x10
+ ldr x10,[x20,#416]
+ orr x9,x9,x10
+ ldr x10,[x20,#480]
+ orr x9,x9,x10
+ cbnz x9,.Lloop_bad
+ ldr x21,[x19]
+ ldr x22,[x19,#16]
+ ldr x23,[x19,#32]
+ ldr x24,[x19,#48]
+ ldr x25,[x19,#64]
+ ldr x26,[x19,#80]
+ ldr x27,[x19,#88]
+ mov x9,#35104
+ ldr w10,[x23,x9]
+ cmp w10,#1
+ b.ne .Lloop_bad
+ mov x9,#35184
+ ldr w10,[x23,x9]
+ cbnz w10,.Lloop_bad
+ mov x9,#35288
+ ldr w10,[x23,x9]
+ cbnz w10,.Lloop_bad
+ mov x9,#39520
+ ldr w10,[x23,x9]
+ cmp w10,#1
+ b.ne .Lloop_bad
+ ldr w9,[x24,#200]
+ cmp w9,#1
+ b.ne .Lloop_bad
+ mov x9,#5236
+ ldr w10,[x21,x9]
+ cmp w10,#19
+ b.ne .Lloop_bad
+ str w10,[sp,#304]
+ mov x9,#5228
+ ldr w10,[x21,x9]
+ cmp w10,#19
+ b.ne .Lloop_bad
+ str w10,[sp,#312]
+ mov x9,#5200
+ ldr w10,[x21,x9]
+ cmp w10,#506
+ b.ne .Lloop_bad
+ str w10,[sp,#308]
+ ldp w9,w10,[x22]
+ cmp w9,#1
+ b.ne .Lloop_bad
+ cmp w10,#1
+ b.ne .Lloop_bad
+ ldr w9,[x22,#20]
+ cmp w9,#1
+ b.ne .Lloop_bad
+ ldr w9,[x22,#28]
+ cmp w9,#1
+ b.ne .Lloop_bad
+ ldr w9,[x22,#64]
+ tbnz w9,#31,.Lloop_bad
+ mov x9,#20320
+ ldr x10,[x21,x9]
+ cbz x10,.Lloop_bad
+ tbnz x10,#63,.Lloop_bad
+ movz x11,#0xcd65,lsl#32
+ movk x11,#0x41cd,lsl#48
+ cmp x10,x11
+ b.hi .Lloop_bad
+ ldr x10,[x25,#200]
+ mov x11,#0x3ff0000000000000
+ cmp x10,x11
+ b.lo .Lloop_bad
+ movz x11,#0x1800,lsl#32
+ movk x11,#0x40f5,lsl#48
+ cmp x10,x11
+ b.hi .Lloop_bad
+ add x2,sp,#256
+ mov w9,#1
+ stp w9,wzr,[x2]
+ stp w9,wzr,[x2,#8]
+ mov w9,#-1
+ str w9,[x2,#16]
+ str wzr,[x2,#20]
+ str xzr,[x2,#24]
+ mov x0,x26
+ mov x1,x27
+ bl md2asm_apply_selected_parallel_namelist
+ ldr x18,[sp,#96]
+ cbnz w0,.Lloop_bad
+ add x12,sp,#256
+ ldp w9,w10,[x12]
+ cmp w9,#1
+ b.ne .Lloop_bad
+ cbnz w10,.Lloop_bad
+ ldp w9,w10,[x12,#8]
+ cmp w9,#1
+ b.ne .Lloop_bad
+ cbnz w10,.Lloop_bad
+ ldr w9,[sp,#272]
+ cmp w9,#1
+ b.ne .Lloop_bad
+ adrp x28,.Lloop_empty_groups
+ add x28,x28,:lo12:.Lloop_empty_groups
+.Lloop_group:
+ ldr x3,[x28]
+ cbz x3,.Lloop_commit
+ add x2,x28,#8
+ mov x0,x26
+ mov x1,x27
+ bl md2asm_require_empty_physics_group
+ ldr x18,[sp,#96]
+ cbnz w0,.Lloop_bad
+ add x28,x28,#24
+ b .Lloop_group
+.Lloop_commit:
+ add x9,sp,#352
+ mov x10,#38
+.Lloop_private_clear:
+ str xzr,[x9],#8
+ subs x10,x10,#1
+ b.ne .Lloop_private_clear
+ mov x28,#0
+.Lloop_allocate:
+ adrp x9,.Lloop_array_plan
+ add x9,x9,:lo12:.Lloop_array_plan
+ add x9,x9,x28,lsl#4
+ ldp w10,w11,[x9]
+ ldr w1,[x9,#8]
+ add x0,sp,x10
+ add x2,sp,#304
+ cmp w1,#1
+ add x10,sp,#312
+ csel x2,x10,x2,eq
+ mov w3,#1
+ mov w4,#1
+ bl md2asm_allocate_radiation_flux_array
+ ldr x18,[sp,#96]
+ cbnz w0,.Lloop_allocation_failed
+ add x28,x28,#1
+ cmp x28,#4
+ b.lo .Lloop_allocate
+ adrp x9,.Lloop_restart_constants
+ add x9,x9,:lo12:.Lloop_restart_constants
+ ldp d0,d1,[x9]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x9,#16]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
+ ldr d1,[x25,#200]
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_physical_setup_numeric_cell_host,24,w13,destination,d0,real,x16,0,zero
+ stp wzr,wzr,[x20]
+ str wzr,[x20,#8]
+ ldr w9,[x22,#28]
+ str w9,[x20,#12]
+ ldr w9,[sp,#272]
+ str w9,[x20,#16]
+ ldr w9,[x22,#20]
+ stp w9,w9,[x20,#20]
+ str wzr,[x20,#28]
+ str wzr,[x20,#32]
+ str w13,[x20,#36]
+ str wzr,[x20,#40]
+ mov w9,#'0'
+ strb w9,[x20,#44]
+ ldr w9,[x22,#64]
+ str w9,[x20,#48]
+ str wzr,[x20,#52]
+ stp wzr,wzr,[x20,#56]
+ mov x9,#20320
+ ldr x10,[x21,x9]
+ str x10,[x20,#64]
+ add x9,x20,#248
+ mov x10,#41
+.Lloop_restart_steps:
+ str wzr,[x9],#4
+ subs x10,x10,#1
+ b.ne .Lloop_restart_steps
+ mov x28,#0
+.Lloop_publish_array:
+ adrp x9,.Lloop_array_plan
+ add x9,x9,:lo12:.Lloop_array_plan
+ add x9,x9,x28,lsl#4
+ ldp w10,w11,[x9]
+ ldr w12,[x9,#12]
+ add x10,sp,x10
+ add x11,x20,x11
+.Lloop_publish_word:
+ ldr x13,[x10],#8
+ str x13,[x11],#8
+ subs w12,w12,#8
+ b.ne .Lloop_publish_word
+ add x28,x28,#1
+ cmp x28,#4
+ b.lo .Lloop_publish_array
+ mov x9,#15
+ str x9,[x20,#544]
+ mov w0,#0
+ b .Lloop_leave
+.Lloop_allocation_failed:
+ mov x28,#0
+.Lloop_free_private:
+ adrp x9,.Lloop_array_plan
+ add x9,x9,:lo12:.Lloop_array_plan
+ add x9,x9,x28,lsl#4
+ ldr w10,[x9]
+ add x10,sp,x10
+ ldr x0,[x10]
+ bl free
+ ldr x18,[sp,#96]
+ add x28,x28,#1
+ cmp x28,#4
+ b.lo .Lloop_free_private
+ mov w0,#1
+ b .Lloop_leave
+.Lloop_bad:
+ mov w0,#2
+.Lloop_leave:
+ ldr x18,[sp,#96]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#768
+ ret
+.Lloop_bad_leaf:
+ mov w0,#2
+ ret
+.size md2asm_initialize_selected_loop_data,.-md2asm_initialize_selected_loop_data
+.section .rodata
+.p2align 3
+.Lloop_array_plan:
+ .word 352,72,2,88
+ .word 440,160,2,88
+ .word 528,416,1,64
+ .word 592,480,1,64
+.Lloop_required:.quad 20400,304,51512,456,175976,0
+.Lloop_restart_constants:.double 48.0,3600.0,0.5
+.Lloop_empty_groups:
+ .quad 9
+ .ascii "NAMGWDIAG"
+ .zero 7
+ .quad 6
+ .ascii "NAMIAU"
+ .zero 10
+ .quad 6
+ .ascii "NAMRLX"
+ .zero 10
+ .quad 6
+ .ascii "NAMVAR"
+ .zero 10
+ .quad 9
+ .ascii "NAMVAREPS"
+ .zero 7
+ .quad 6
+ .ascii "NAMPPC"
+ .zero 10
+ .quad 6
+ .ascii "NAMRES"
+ .zero 10
+ .quad 0
+.section .note.GNU-stack,"",%progbits

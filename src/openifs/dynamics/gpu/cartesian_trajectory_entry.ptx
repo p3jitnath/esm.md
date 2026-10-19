@@ -1,0 +1,33 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Complete original24-address Cartesian trajectory parent.
+// the retained component contract revision1;one serial block and one thread.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .u32 admission_error) openifs_larmes_xyz_admit(.param .u64 original_vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 result[48]) openifs_larmes_xyz_values(.param .u64 original_vector,.param .u64 context);
+.visible .func openifs_larmes_xyz_fp64(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u64 %args,%ctx,%record,%ptr,%tmp,%old,%event,%fast,%wide,%reports;.reg .u32 %rt,%error,%raised;.reg .pred %p;
+.param .u64 a,c;.param .u32 admitted;.param .align 8 .b8 values[48];
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];mov.u32 %error,14592;
+mov.u32 %rt,%ctaid.x;mov.u32 %raised,%ctaid.y;or.b32 %rt,%rt,%raised;mov.u32 %raised,%ctaid.z;or.b32 %rt,%rt,%raised;mov.u32 %raised,%tid.x;or.b32 %rt,%rt,%raised;mov.u32 %raised,%tid.y;or.b32 %rt,%rt,%raised;mov.u32 %raised,%tid.z;or.b32 %rt,%rt,%raised;setp.ne.u32 %p,%rt,0;@%p ret;
+setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %tmp,%ctx,7;setp.ne.u64 %p,%tmp,0;@%p ret;ld.global.u32 %rt,[%ctx];setp.ne.u32 %p,%rt,0;@%p ret;
+mov.u32 %rt,%ntid.x;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%ntid.y;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%ntid.z;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%nctaid.x;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%nctaid.y;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%nctaid.z;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+ld.global.u32 %rt,[%ctx+4];setp.ne.u32 %p,%rt,1;@%p bra REFUSE;ld.global.u32 %rt,[%ctx+12];and.b32 %rt,%rt,1;setp.ne.u32 %p,%rt,0;@%p bra REFUSE;
+st.param.u64 [a],%args;st.param.u64 [c],%ctx;call.uni (admitted),openifs_larmes_xyz_admit,(a,c);ld.param.u32 %error,[admitted];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [a],%args;st.param.u64 [c],%ctx;call.uni (values),openifs_larmes_xyz_values,(a,c);ld.param.u32 %raised,[values];ld.param.u32 %error,[values+4];ld.param.u64 %event,[values+8];ld.param.u64 %fast,[values+16];ld.param.u64 %wide,[values+24];ld.param.u64 %reports,[values+32];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+atom.global.or.b32 %rt,[%ctx+8],%raised;setp.eq.u64 %p,%event,0;@!%p st.global.u64 [%ctx+16],%event;ld.global.u64 %record,[%ctx+48];
+ld.global.u64 %ptr,[%record+232];setp.eq.u64 %p,%ptr,0;@%p ret;atom.global.add.u64 %old,[%ptr],1;add.u64 %ptr,%ptr,8;atom.global.add.u64 %old,[%ptr],%reports;ret;
+REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+.visible .entry openifs_larmes_xyz_ptx(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u64 %a,%c;.param .u64 a,c;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];st.param.u64 [a],%a;st.param.u64 [c],%c;call.uni openifs_larmes_xyz_fp64,(a,c);ret;
+}

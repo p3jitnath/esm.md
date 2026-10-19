@@ -1,0 +1,196 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Complete LASURE directly from skills/md2asm/references/openifs/dynamics/lasure.md revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.func (.param .u32 result) lasure_range(.param .u64 base,.param .u64 bytes,.param .u64 capacity,.param .u64 mask,.param .u64 owners,.param .u32 count)
+{
+ .reg .u64 %b,%n,%c,%m,%list,%t,%end,%o,%on,%oe; .reg .u32 %i,%count,%e; .reg .pred %p,%q;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %c,[capacity]; ld.param.u64 %m,[mask]; ld.param.u64 %list,[owners]; ld.param.u32 %count,[count];
+ mov.u32 %e,0; setp.eq.u64 %p,%n,0; @%p bra HR_DONE;
+ mov.u32 %e,8195; setp.gt.u64 %p,%n,%c; @%p bra HR_DONE;
+ setp.gt.u64 %p,%n,0x7fffffffffffffff; @%p bra HR_DONE;
+ setp.eq.u64 %p,%b,0; @%p bra HR_DONE;
+ and.b64 %t,%b,%m; setp.ne.u64 %p,%t,0; @%p bra HR_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra HR_DONE;
+ add.u64 %end,%b,%n; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra HR_DONE;
+ mov.u32 %i,0;
+HR_OWNERS:
+ setp.ge.u32 %p,%i,%count; @%p bra HR_OK;
+ ld.u64 %o,[%list]; ld.u64 %on,[%list+8]; setp.eq.u64 %p,%on,0; @%p bra HR_NEXT;
+ add.u64 %oe,%o,%on; setp.lt.u64 %p,%b,%oe; setp.lt.u64 %q,%o,%end; and.pred %p,%p,%q; @%p bra HR_DONE;
+HR_NEXT: add.u64 %list,%list,16; add.u32 %i,%i,1; bra HR_OWNERS;
+HR_OK: mov.u32 %e,0;
+HR_DONE: st.param.u32 [result],%e; ret;
+}
+
+.func (.param .align 8 .b8 result[16]) lasure_selection(.param .u64 descriptor,.param .s64 first,.param .s64 last,.param .u64 element_bytes,.param .u64 owner,.param .u64 owner_bytes,.param .u32 unit_stride)
+{
+ .reg .u64 %d,%width,%base,%owner,%bytes,%type,%expected,%start,%end,%ownerend,%needed,%count,%t,%u;
+ .reg .s64 %first,%last,%lo,%hi,%stride,%offset,%value,%high,%sum,%sign,%delta;
+ .reg .u32 %error,%unit; .reg .pred %p;
+ ld.param.u64 %d,[descriptor]; ld.param.s64 %first,[first]; ld.param.s64 %last,[last]; ld.param.u64 %width,[element_bytes]; ld.param.u64 %owner,[owner]; ld.param.u64 %bytes,[owner_bytes]; ld.param.u32 %unit,[unit_stride]; mov.u32 %error,8196; mov.u64 %start,0;
+ ld.global.u64 %t,[%d+16]; setp.ne.u64 %p,%t,%width; @%p bra LS_DONE; ld.global.u64 %t,[%d+32]; setp.ne.u64 %p,%t,%width; @%p bra LS_DONE;
+ mov.u64 %expected,0x0000030100000000; setp.eq.u64 %p,%width,1472; @%p mov.u64 %expected,0x0000050100000000; ld.global.u64 %type,[%d+24]; setp.ne.u64 %p,%type,%expected; @%p bra LS_DONE;
+ ld.global.s64 %stride,[%d+40]; setp.eq.s64 %p,%stride,0; @%p bra LS_DONE; setp.eq.u32 %p,%unit,0; @%p bra LS_STRIDE_OK; setp.ne.s64 %p,%stride,1; @%p bra LS_DONE;
+LS_STRIDE_OK:
+ ld.global.s64 %lo,[%d+48]; ld.global.s64 %hi,[%d+56]; setp.lt.s64 %p,%first,%lo; @%p bra LS_DONE; setp.gt.s64 %p,%last,%hi; @%p bra LS_DONE; setp.lt.s64 %p,%last,%first; @%p bra LS_DONE;
+ ld.global.s64 %offset,[%d+8]; mul.lo.s64 %value,%stride,%first; mul.hi.s64 %high,%stride,%first; shr.s64 %sign,%value,63; setp.ne.s64 %p,%high,%sign; @%p bra LS_DONE;
+ add.s64 %sum,%value,%offset; xor.b64 %t,%sum,%value; xor.b64 %u,%sum,%offset; and.b64 %t,%t,%u; setp.lt.s64 %p,%t,0; @%p bra LS_DONE;
+ mul.lo.s64 %value,%sum,%width; mul.hi.s64 %high,%sum,%width; shr.s64 %sign,%value,63; setp.ne.s64 %p,%high,%sign; @%p bra LS_DONE;
+ ld.global.u64 %base,[%d]; setp.eq.u64 %p,%base,0; @%p bra LS_DONE; setp.gt.u64 %p,%base,0x7fffffffffffffff; @%p bra LS_DONE;
+ add.s64 %start,%base,%value; xor.b64 %t,%start,%base; xor.b64 %u,%start,%value; and.b64 %t,%t,%u; setp.lt.s64 %p,%t,0; @%p bra LS_DONE; setp.lt.s64 %p,%start,0; @%p bra LS_DONE;
+ sub.s64 %delta,%last,%first; add.u64 %count,%delta,1; mul.lo.u64 %needed,%count,%width; mul.hi.u64 %high,%count,%width; setp.ne.u64 %p,%high,0; @%p bra LS_DONE; setp.gt.u64 %p,%needed,0x7fffffffffffffff; @%p bra LS_DONE;
+ setp.lt.u64 %p,%start,%owner; @%p bra LS_DONE; add.u64 %end,%start,%needed; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra LS_DONE; add.u64 %ownerend,%owner,%bytes; setp.gt.u64 %p,%end,%ownerend; @%p bra LS_DONE; mov.u32 %error,0;
+LS_DONE: st.param.u64 [result],%start; st.param.u32 [result+8],%error; st.param.u32 [result+12],0; ret;
+}
+.visible .func openifs_lasure_parent_fp64(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %argv,%ctx,%rec,%owners,%arg<17>,%cap,%bytes,%size,%tmp,%ptr,%desc,%block,%blockowner,%blockbytes,%gmowner,%gmbytes,%gmaowner,%gmabytes,%gm,%gma,%address;
+ .reg .s64 %first64,%last64,%blockindex;
+ .reg .u32 %error,%rt,%unique,%k,%first,%last,%implicit,%extended,%two,%mp,%ep,%lag,%i,%flags,%raised;
+ .reg .pred %p<3>;
+ .reg .b64 %dt,%beta,%half,%weight,%vesl,%stretch,%stretch2,%mappedweight,%g,%a,%square,%mapped,%ratio,%plus,%minus;
+ .local .align 8 .b8 mutable_owners[112];
+ .param .u64 rb,rn,rc,rm,rl; .param .u32 rct,rr;
+ .param .u64 sd,sw,so,sb; .param .s64 sf,sl; .param .u32 su; .param .align 8 .b8 selected[16];
+ .param .b64 ma,mb; .param .align 8 .b8 math[16];
+ ld.param.u64 %argv,[original_vector]; ld.param.u64 %ctx,[context]; mov.u32 %unique,%ctaid.x; mov.u32 %rt,%ctaid.y; or.b32 %unique,%unique,%rt; mov.u32 %rt,%ctaid.z; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.x; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.y; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.z; or.b32 %unique,%unique,%rt; setp.ne.u32 %p0,%unique,0; @%p0 ret;
+ ld.global.u32 %error,[%ctx]; setp.ne.u32 %p0,%error,0; @%p0 ret; mov.u32 %error,8192;
+ mov.u32 %rt,%ntid.x; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u32 %rt,%ntid.y; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u32 %rt,%ntid.z; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u32 %rt,%nctaid.x; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u32 %rt,%nctaid.y; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u32 %rt,%nctaid.z; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; ld.global.u32 %rt,[%ctx+4]; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u64 %owners,mutable_owners; cvta.local.u64 %owners,%owners;
+
+ st.param.u64 [rb],%argv; st.param.u64 [rn],136; st.param.u64 [rc],136; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %rec,[%ctx+48]; ld.global.u64 %cap,[%ctx+56];
+ st.param.u64 [rb],%rec; st.param.u64 [rn],256; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ mov.u32 %error,8193; mov.u32 %i,192;
+RESERVED:
+ cvt.u64.u32 %tmp,%i; add.u64 %ptr,%rec,%tmp; ld.global.u64 %tmp,[%ptr]; setp.ne.u64 %p0,%tmp,0; @%p0 bra REFUSE; add.u32 %i,%i,8; setp.lt.u32 %p0,%i,256; @%p0 bra RESERVED;
+ ld.global.u64 %arg0,[%argv+0];
+ ld.global.u64 %arg1,[%argv+8];
+ ld.global.u64 %arg2,[%argv+16];
+ ld.global.u64 %arg3,[%argv+24];
+ ld.global.u64 %arg4,[%argv+32];
+ ld.global.u64 %arg5,[%argv+40];
+ ld.global.u64 %arg6,[%argv+48];
+ ld.global.u64 %arg7,[%argv+56];
+ ld.global.u64 %arg8,[%argv+64];
+ ld.global.u64 %arg9,[%argv+72];
+ ld.global.u64 %arg10,[%argv+80];
+ ld.global.u64 %arg11,[%argv+88];
+ ld.global.u64 %arg12,[%argv+96];
+ ld.global.u64 %arg13,[%argv+104];
+ ld.global.u64 %arg14,[%argv+112];
+ ld.global.u64 %arg15,[%argv+120];
+ ld.global.u64 %arg16,[%argv+128];
+ ld.global.u64 %cap,[%rec+0];
+ st.param.u64 [rb],%arg0; st.param.u64 [rn],17096; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+8];
+ st.param.u64 [rb],%arg1; st.param.u64 [rn],448; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+16];
+ st.param.u64 [rb],%arg2; st.param.u64 [rn],4720; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+24];
+ st.param.u64 [rb],%arg3; st.param.u64 [rn],1088; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+32];
+ st.param.u64 [rb],%arg4; st.param.u64 [rn],1096; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+40];
+ st.param.u64 [rb],%arg5; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+48];
+ st.param.u64 [rb],%arg6; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+72];
+ st.param.u64 [rb],%arg9; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+56];
+ st.param.u64 [rb],%arg7; st.param.u64 [rn],8; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+64];
+ st.param.u64 [rb],%arg8; st.param.u64 [rn],8; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.s32 %k,[%arg0+5144]; ld.global.s32 %first,[%arg5]; ld.global.s32 %last,[%arg6]; mov.u32 %error,8194;
+ setp.lt.s32 %p0,%k,0; @%p0 bra REFUSE; setp.gt.u32 %p0,%k,4096; @%p0 bra REFUSE; setp.lt.s32 %p0,%first,1; @%p0 bra REFUSE; add.u32 %rt,%k,1; setp.gt.u32 %p0,%first,%rt; @%p0 bra REFUSE; setp.lt.s32 %p0,%last,0; @%p0 bra REFUSE; setp.gt.u32 %p0,%last,%k; @%p0 bra REFUSE;
+ ld.global.u32 %implicit,[%arg2+2476]; ld.global.u32 %extended,[%arg3+1056]; ld.global.u32 %two,[%arg2+4448]; ld.global.u32 %mp,[%arg4+12]; ld.global.u32 %ep,[%arg1]; ld.global.u32 %lag,[%arg1+64];
+ setp.gt.u32 %p0,%implicit,1; @%p0 bra REFUSE;
+ setp.gt.u32 %p0,%extended,1; @%p0 bra REFUSE;
+ setp.gt.u32 %p0,%two,1; @%p0 bra REFUSE;
+ setp.gt.u32 %p0,%mp,1; @%p0 bra REFUSE;
+ setp.gt.u32 %p0,%ep,1; @%p0 bra REFUSE;
+ setp.gt.u32 %p0,%lag,1; @%p0 bra REFUSE;
+ mul.wide.u32 %bytes,%k,8;
+ st.u64 [%owners+0],%arg10; st.u64 [%owners+8],8; ld.global.u64 %cap,[%rec+80];
+ st.param.u64 [rb],%arg10; st.param.u64 [rn],8; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.u64 [%owners+16],%arg11; st.u64 [%owners+24],8; ld.global.u64 %cap,[%rec+88];
+ st.param.u64 [rb],%arg11; st.param.u64 [rn],8; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],1; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.u64 [%owners+32],%arg12; st.u64 [%owners+40],4; ld.global.u64 %cap,[%rec+96];
+ st.param.u64 [rb],%arg12; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],2; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.u64 [%owners+48],%arg13; st.u64 [%owners+56],%bytes; ld.global.u64 %cap,[%rec+104];
+ st.param.u64 [rb],%arg13; st.param.u64 [rn],%bytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],3; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.u64 [%owners+64],%arg14; st.u64 [%owners+72],%bytes; ld.global.u64 %cap,[%rec+112];
+ st.param.u64 [rb],%arg14; st.param.u64 [rn],%bytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],4; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.u64 [%owners+80],%arg15; st.u64 [%owners+88],8; ld.global.u64 %cap,[%rec+120];
+ st.param.u64 [rb],%arg15; st.param.u64 [rn],8; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],5; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.u64 [%owners+96],%arg16; st.u64 [%owners+104],8; ld.global.u64 %cap,[%rec+128];
+ st.param.u64 [rb],%arg16; st.param.u64 [rn],8; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],6; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+0];
+ st.param.u64 [rb],%arg0; st.param.u64 [rn],17096; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+8];
+ st.param.u64 [rb],%arg1; st.param.u64 [rn],448; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+16];
+ st.param.u64 [rb],%arg2; st.param.u64 [rn],4720; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+24];
+ st.param.u64 [rb],%arg3; st.param.u64 [rn],1088; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+32];
+ st.param.u64 [rb],%arg4; st.param.u64 [rn],1096; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+40];
+ st.param.u64 [rb],%arg5; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+48];
+ st.param.u64 [rb],%arg6; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+72];
+ st.param.u64 [rb],%arg9; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+56];
+ st.param.u64 [rb],%arg7; st.param.u64 [rn],8; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+64];
+ st.param.u64 [rb],%arg8; st.param.u64 [rn],8; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [rb],%ctx; st.param.u64 [rn],64; st.param.u64 [rc],64; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [rb],%rec; st.param.u64 [rn],256; st.param.u64 [rc],256; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %cap,[%rec+136];
+ st.param.u64 [rb],%argv; st.param.u64 [rn],136; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ setp.lt.u32 %p0,%last,%first; @%p0 bra PREFLIGHT_DONE; setp.ne.u32 %p0,%implicit,0; @%p0 bra PREFLIGHT_DONE; ld.global.u64 %blockowner,[%rec+144]; ld.global.u64 %blockbytes,[%rec+152];
+ st.param.u64 [rb],%blockowner; st.param.u64 [rn],%blockbytes; st.param.u64 [rc],%blockbytes; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.s32 %blockindex,[%arg9]; add.u64 %desc,%arg0,8472; st.param.u64 [sd],%desc; st.param.s64 [sf],%blockindex; st.param.s64 [sl],%blockindex; st.param.u64 [sw],1472; st.param.u64 [so],%blockowner; st.param.u64 [sb],%blockbytes; st.param.u32 [su],0; call.uni (selected),lasure_selection,(sd,sf,sl,sw,so,sb,su); ld.param.u32 %error,[selected+8]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE; ld.param.u64 %block,[selected]; cvt.s64.s32 %first64,%first; cvt.s64.s32 %last64,%last;
+ ld.global.u64 %gmowner,[%rec+160]; ld.global.u64 %gmbytes,[%rec+168];
+ st.param.u64 [rb],%gmowner; st.param.u64 [rn],%gmbytes; st.param.u64 [rc],%gmbytes; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ add.u64 %desc,%block,704; st.param.u64 [sd],%desc; st.param.s64 [sf],%first64; st.param.s64 [sl],%last64; st.param.u64 [sw],8; st.param.u64 [so],%gmowner; st.param.u64 [sb],%gmbytes; st.param.u32 [su],1; call.uni (selected),lasure_selection,(sd,sf,sl,sw,so,sb,su); ld.param.u32 %error,[selected+8]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE; ld.param.u64 %gm,[selected];
+ setp.eq.u32 %p0,%extended,0; @%p0 bra PREFLIGHT_DONE;
+ ld.global.u64 %gmaowner,[%rec+176]; ld.global.u64 %gmabytes,[%rec+184];
+ st.param.u64 [rb],%gmaowner; st.param.u64 [rn],%gmabytes; st.param.u64 [rc],%gmabytes; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),lasure_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ add.u64 %desc,%block,768; st.param.u64 [sd],%desc; st.param.s64 [sf],%first64; st.param.s64 [sl],%last64; st.param.u64 [sw],8; st.param.u64 [so],%gmaowner; st.param.u64 [sb],%gmabytes; st.param.u32 [su],1; call.uni (selected),lasure_selection,(sd,sf,sl,sw,so,sb,su); ld.param.u32 %error,[selected+8]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE; ld.param.u64 %gma,[selected];
+PREFLIGHT_DONE:
+ mov.u32 %flags,0; ld.global.b64 %dt,[%arg8]; ld.global.b64 %beta,[%arg7];
+ st.param.b64 [ma],0x3fe0000000000000; st.param.b64 [mb],%dt; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %half,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%half; st.param.b64 [mb],%beta; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %weight,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.global.b64 [%arg10],%half; st.global.b64 [%arg11],%weight; setp.lt.u32 %p0,%last,%first; @%p0 bra FINAL_SCALARS; setp.ne.u32 %p0,%implicit,0; @%p0 bra COLUMN_START; setp.ne.u32 %p0,%extended,0; @%p0 bra COLUMN_START; ld.global.b64 %stretch,[%arg0+7512];
+ st.param.b64 [ma],%weight; st.param.b64 [mb],%stretch; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %mappedweight,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%mappedweight; st.param.b64 [mb],%stretch; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %mappedweight,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%stretch; st.param.b64 [mb],%stretch; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %stretch2,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+COLUMN_START: mov.u32 %i,%first;
+COLUMN:
+ mov.b64 %mapped,%weight; mov.b64 %ratio,0x3ff0000000000000; setp.ne.u32 %p0,%implicit,0; @%p0 bra STORE_COLUMN; sub.u32 %rt,%i,%first; mul.wide.u32 %tmp,%rt,8; add.u64 %address,%gm,%tmp; ld.global.b64 %g,[%address];
+ st.param.b64 [ma],%g; st.param.b64 [mb],%g; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %square,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ setp.eq.u32 %p0,%extended,0; @%p0 bra STRETCH_COLUMN; add.u64 %address,%gma,%tmp; ld.global.b64 %a,[%address];
+ st.param.b64 [ma],%weight; st.param.b64 [mb],%a; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %mapped,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%mapped; st.param.b64 [mb],%square; call.uni (math),md2asm_gpu_div_status,(ma,mb); ld.param.b64 %mapped,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%a; st.param.b64 [mb],%square; call.uni (math),md2asm_gpu_div_status,(ma,mb); ld.param.b64 %ratio,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ bra STORE_COLUMN;
+STRETCH_COLUMN:
+ st.param.b64 [ma],%mappedweight; st.param.b64 [mb],%square; call.uni (math),md2asm_gpu_div_status,(ma,mb); ld.param.b64 %mapped,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%stretch2; st.param.b64 [mb],%square; call.uni (math),md2asm_gpu_div_status,(ma,mb); ld.param.b64 %ratio,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+STORE_COLUMN: sub.u32 %rt,%i,1; mul.wide.u32 %tmp,%rt,8; add.u64 %address,%arg13,%tmp; st.global.b64 [%address],%mapped; add.u64 %address,%arg14,%tmp; st.global.b64 [%address],%ratio; add.u32 %i,%i,1; setp.le.u32 %p0,%i,%last; @%p0 bra COLUMN;
+FINAL_SCALARS: ld.global.b64 %vesl,[%arg2+4320];
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%vesl; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %plus,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%vesl; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %minus,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.global.b64 [%arg15],%plus; st.global.b64 [%arg16],%minus; or.b32 %rt,%mp,%ep; and.b32 %rt,%rt,%two; xor.b32 %lag,%lag,1; and.b32 %rt,%rt,%lag; st.global.u32 [%arg12],%rt; atom.global.or.b32 %rt,[%ctx+8],%flags; ret;
+REFUSE: st.global.u32 [%ctx],%error; ret;
+}
+.visible .entry openifs_lasure_ptx(.param .u64 original_vector,.param .u64 context)
+{ .reg .u64 %a,%c; .param .u64 a,c; ld.param.u64 %a,[original_vector]; ld.param.u64 %c,[context]; st.param.u64 [a],%a; st.param.u64 [c],%c; call.uni openifs_lasure_parent_fp64,(a,c); ret; }

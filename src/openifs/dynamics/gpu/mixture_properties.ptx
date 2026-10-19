@@ -1,7 +1,7 @@
-// Direct PTX from the frozen OpenIFS Markdown contracts.
-// Contract: skills/md2asm-gpu/references/openifs/dynamics/thermodynamic_properties.md.
-// Component checks preserve exact outputs and the accepted CPU diagnostics.
-// This source alone does not establish a complete GPU forecast.
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Direct PTX from the retained component contract revision 1; local unverified candidate.
+// Original argument vector and 64-byte context follow skills/md2asm-gpu/references/openifs/gpu_call_context.md.
 .version 8.5
 .target sm_90
 .address_size 64
@@ -832,130 +832,6 @@ SKIP_R:
  add.u64 %tmp, %kappa_out, %offset;
  st.global.b64 [%tmp], %op_r;
 COMPLETE:
-
- add.u64 %tmp, %ctx, 8;
- atom.global.or.b32 %old, [%tmp], %flags;
- ret;
-BAD:
- atom.global.cas.b32 %old, [%ctx], 0, 1;
- ret;
-}
-
-.visible .entry md2asm_gpu_ctvtot(.param .u64 args_original_vector, .param .u64 context)
-{
-
- .reg .pred %p<8>;
- .reg .u32 %r<12>, %nproma, %levels, %start, %end, %numfields, %ndim, %ndim1, %d, %active, %mp1, %mp9, %flags, %raised, %old, %revision;
- .reg .u64 %args, %ctx, %geom, %cfg, %startp, %endp, %dtp, %later_u, %later_v, %later_t, %later_q, %earlier_u, %earlier_v, %earlier_t, %earlier_q, %dyn_q, %cell, %total, %offset, %field_bytes, %descriptor, %later_addr, %earlier_addr, %dyn_addr, %tmp, %tmp2, %pitch, %column;
- .reg .b64 %op_a, %op_b, %op_r, %inv, %increment;
- ld.param.u64 %args, [args_original_vector];
- ld.param.u64 %ctx, [context];
- setp.eq.u64 %p0, %ctx, 0;
- @%p0 ret;
- setp.eq.u64 %p0, %args, 0;
- @%p0 bra BAD;
- ld.global.u32 %revision, [%ctx+4];
- setp.ne.u32 %p0, %revision, 1;
- @%p0 bra BAD;
- ld.global.u32 %old, [%ctx];
- setp.ne.u32 %p0, %old, 0;
- @%p0 ret;
-
- .reg .u64 %scratch, %scratch_size, %record, %record_size, %rd_ptr, %temperature;
- ld.global.u64 %geom, [%args];
- setp.eq.u64 %p0, %geom, 0;
- @%p0 bra BAD;
- ld.global.u32 %nproma, [%geom+5144];
- ld.global.u32 %levels, [%geom+5224];
- setp.lt.s32 %p0, %nproma, 1;
- @%p0 bra BAD;
- setp.lt.s32 %p0, %levels, 0;
- @%p0 bra BAD;
- setp.eq.u32 %p0, %levels, 0;
- @%p0 ret;
- ld.global.u64 %startp, [%args+16];
- ld.global.u64 %endp, [%args+24];
- ld.global.u32 %start, [%startp];
- ld.global.u32 %end, [%endp];
- setp.lt.s32 %p0, %start, 1;
- @%p0 bra BAD;
- setp.gt.u32 %p0, %start, %nproma;
- @%p0 bra BAD;
- setp.gt.u32 %p0, %end, %nproma;
- @%p0 bra BAD;
- sub.u32 %r0, %start, 1;
- setp.lt.s32 %p0, %end, %r0;
- @%p0 bra BAD;
- setp.lt.u32 %p0, %end, %start;
- @%p0 ret;
-
- mov.u32 %r0, %ctaid.x;
- mov.u32 %r1, %ntid.x;
- mov.u32 %r2, %tid.x;
- mul.wide.u32 %cell, %r0, %r1;
- cvt.u64.u32 %tmp, %r2;
- add.u64 %cell, %cell, %tmp;
- mul.wide.u32 %total, %nproma, %levels;
- setp.ge.u64 %p0, %cell, %total;
- @%p0 ret;
- setp.gt.u64 %p0, %total, 0x0fffffffffffffff;
- @%p0 bra BAD;
- cvt.u64.u32 %pitch, %nproma;
- rem.u64 %column, %cell, %pitch;
- add.u64 %column, %column, 1;
- cvt.u64.u32 %tmp, %start;
- setp.lt.u64 %p0, %column, %tmp;
- @%p0 ret;
- cvt.u64.u32 %tmp, %end;
- setp.gt.u64 %p0, %column, %tmp;
- @%p0 ret;
- shl.b64 %offset, %cell, 3;
- shl.b64 %field_bytes, %total, 3;
- mov.u32 %flags, 0;
-
- ld.global.u64 %scratch, [%ctx+32];
- ld.global.u64 %scratch_size, [%ctx+40];
- ld.global.u64 %record, [%ctx+48];
- ld.global.u64 %record_size, [%ctx+56];
- setp.eq.u64 %p0, %scratch, 0;
- @%p0 bra BAD;
- setp.lt.u64 %p0, %scratch_size, %field_bytes;
- @%p0 bra BAD;
- setp.eq.u64 %p0, %record, 0;
- @%p0 bra BAD;
- setp.lt.u64 %p0, %record_size, 64;
- @%p0 bra BAD;
- ld.global.u64 %temperature, [%args+32];
- ld.global.u64 %rd_ptr, [%record+8];
- ld.global.b64 %op_a, [%rd_ptr];
- add.u64 %later_addr, %temperature, %offset;
- ld.global.b64 %op_b, [%later_addr];
-{
- .param .b64 left_word;
- .param .b64 right_word;
- .param .align 8 .b8 result_and_flags[16];
- st.param.b64 [left_word], %op_a;
- st.param.b64 [right_word], %op_b;
- call.uni (result_and_flags), md2asm_gpu_mul_rn, (left_word, right_word);
- ld.param.b64 %op_r, [result_and_flags];
- ld.param.u32 %raised, [result_and_flags+8];
- or.b32 %flags, %flags, %raised;
-}
- mov.b64 %op_a, %op_r;
- add.u64 %tmp, %scratch, %offset;
- ld.global.b64 %op_b, [%tmp];
-{
- .param .b64 left_word;
- .param .b64 right_word;
- .param .align 8 .b8 result_and_flags[16];
- st.param.b64 [left_word], %op_a;
- st.param.b64 [right_word], %op_b;
- call.uni (result_and_flags), md2asm_gpu_div_rn, (left_word, right_word);
- ld.param.b64 %op_r, [result_and_flags];
- ld.param.u32 %raised, [result_and_flags+8];
- or.b32 %flags, %flags, %raised;
-}
- st.global.b64 [%later_addr], %op_r;
 
  add.u64 %tmp, %ctx, 8;
  atom.global.or.b32 %old, [%tmp], %flags;

@@ -1,0 +1,182 @@
+// Unverified direct PTX batch draft. See the routine frozen contract.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sqrt_status(.param .b64 a);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_exp_original_rounding(.param .b64 a);
+.extern .func (.param .align 8 .b8 geometry[64]) md2asm_gpu_surface_descriptor_geometry(.param .u64 descriptor,.param .u32 rank,.param .u32 element_bytes,.param .u64 required0,.param .u64 required1,.param .u64 required2,.param .u32 zero_is_one);
+
+.func (.param .u32 result) md2asm_gpu_snow_trisolver_range(.param .u64 base,.param .u64 bytes,.param .u64 mask)
+{
+ .reg .u64 %b,%n,%m,%end; .reg .u32 %e; .reg .pred %p;
+ ld.param.u64 %b,[base];ld.param.u64 %n,[bytes];ld.param.u64 %m,[mask];mov.u32 %e,0;
+ setp.eq.u64 %p,%n,0;@%p bra RANGE_DONE;mov.u32 %e,6418;
+ setp.eq.u64 %p,%b,0;@%p bra RANGE_DONE;and.b64 %end,%b,%m;setp.ne.u64 %p,%end,0;@%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff;@%p bra RANGE_DONE;setp.gt.u64 %p,%n,0x7fffffffffffffff;@%p bra RANGE_DONE;
+ add.u64 %end,%b,%n;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra RANGE_DONE;mov.u32 %e,0;
+RANGE_DONE:st.param.u32 [result],%e;ret;
+}
+.func (.param .u32 result) md2asm_gpu_snow_trisolver_disjoint(.param .u64 a,.param .u64 an,.param .u64 b,.param .u64 bn)
+{
+ .reg .u64 %a,%an,%b,%bn,%ae,%be; .reg .u32 %e; .reg .pred %p,%q;
+ ld.param.u64 %a,[a];ld.param.u64 %an,[an];ld.param.u64 %b,[b];ld.param.u64 %bn,[bn];mov.u32 %e,0;
+ setp.eq.u64 %p,%an,0;@%p bra SEPARATE_DONE;setp.eq.u64 %p,%bn,0;@%p bra SEPARATE_DONE;
+ add.u64 %ae,%a,%an;add.u64 %be,%b,%bn;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;selp.u32 %e,6418,0,%p;
+SEPARATE_DONE:st.param.u32 [result],%e;ret;
+}
+
+.visible .func (.param .u32 raised_flags) md2asm_gpu_snow_trisolver_values(.param .u64 vector,.param .u64 scratch)
+{
+ .reg .u64 %args,%scratch,%d<5>,%base<5>,%stride<5>,%offset,%ptr,%tmp;
+ .reg .u32 %N,%j,%flags,%raised; .reg .pred %p;
+ .reg .b64 %beta,%value,%gamma,%a,%b,%f,%product;
+ .param .b64 ma,mb;.param .align 8 .b8 math[16];
+ ld.param.u64 %args,[vector];ld.param.u64 %scratch,[scratch];ld.global.u64 %ptr,[%args];ld.global.u32 %N,[%ptr];mov.u32 %flags,0;
+ ld.global.u64 %d0,[%args+8];ld.global.u64 %base0,[%d0];ld.global.s64 %stride0,[%d0+40];setp.eq.u64 %p,%stride0,0;@%p mov.u64 %stride0,1;shl.b64 %stride0,%stride0,3;
+ ld.global.u64 %d1,[%args+16];ld.global.u64 %base1,[%d1];ld.global.s64 %stride1,[%d1+40];setp.eq.u64 %p,%stride1,0;@%p mov.u64 %stride1,1;shl.b64 %stride1,%stride1,3;
+ ld.global.u64 %d2,[%args+24];ld.global.u64 %base2,[%d2];ld.global.s64 %stride2,[%d2+40];setp.eq.u64 %p,%stride2,0;@%p mov.u64 %stride2,1;shl.b64 %stride2,%stride2,3;
+ ld.global.u64 %d3,[%args+32];ld.global.u64 %base3,[%d3];ld.global.s64 %stride3,[%d3+40];setp.eq.u64 %p,%stride3,0;@%p mov.u64 %stride3,1;shl.b64 %stride3,%stride3,3;
+ ld.global.u64 %d4,[%args+40];ld.global.u64 %base4,[%d4];ld.global.s64 %stride4,[%d4+40];setp.eq.u64 %p,%stride4,0;@%p mov.u64 %stride4,1;shl.b64 %stride4,%stride4,3;
+ ld.global.b64 %beta,[%base1];ld.global.b64 %f,[%base3];
+ st.param.b64 [ma],%f;st.param.b64 [mb],%beta;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.global.b64 [%base4],%value;mov.u32 %j,1;
+FORWARD:setp.ge.u32 %p,%j,%N;@%p bra BACK_START;ld.global.b64 %gamma,[%base2];add.u64 %base2,%base2,%stride2;
+ st.param.b64 [ma],%gamma;st.param.b64 [mb],%beta;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %gamma,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ mul.wide.u32 %offset,%j,8;add.u64 %ptr,%scratch,%offset;st.global.b64 [%ptr],%gamma;add.u64 %base0,%base0,%stride0;add.u64 %base1,%base1,%stride1;add.u64 %base3,%base3,%stride3;add.u64 %base4,%base4,%stride4;ld.global.b64 %a,[%base0];ld.global.b64 %b,[%base1];
+ st.param.b64 [ma],%a;st.param.b64 [mb],%gamma;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %product,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%b;st.param.b64 [mb],%product;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %beta,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%a;st.param.b64 [mb],%value;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %product,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ ld.global.b64 %f,[%base3];
+ st.param.b64 [ma],%f;st.param.b64 [mb],%product;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %f,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%f;st.param.b64 [mb],%beta;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.global.b64 [%base4],%value;add.u32 %j,%j,1;bra FORWARD;
+BACK_START:sub.u32 %j,%N,1;
+BACKWARD:setp.eq.u32 %p,%j,0;@%p bra COMPLETE;mul.wide.u32 %offset,%j,8;add.u64 %ptr,%scratch,%offset;ld.global.b64 %gamma,[%ptr];sub.u64 %base4,%base4,%stride4;
+ st.param.b64 [ma],%gamma;st.param.b64 [mb],%value;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %product,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ ld.global.b64 %value,[%base4];
+ st.param.b64 [ma],%value;st.param.b64 [mb],%product;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.global.b64 [%base4],%value;sub.u32 %j,%j,1;bra BACKWARD;
+COMPLETE:st.param.u32 [raised_flags],%flags;ret;
+}
+
+.func (.param .u32 result) md2asm_gpu_snow_trisolver_admit(.param .u64 vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%v<6>,%lower<5>,%length<5>,%scratch,%capacity,%bytes,%n,%nm1;
+ .reg .u32 %N,%error; .reg .pred %p;
+ .param .u64 rb,rn,rm,da,dn,db,dm;.param .u32 rr;
+ .param .u64 gd,gr0,gr1,gr2;.param .u32 gdim,gelem,gnorm;.param .align 8 .b8 geometry[64];
+ ld.param.u64 %args,[vector];ld.param.u64 %ctx,[context];
+ st.param.u64 [rb],%args;st.param.u64 [rn],48;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_snow_trisolver_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%args;st.param.u64 [dn],48;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ ld.global.u64 %v0,[%args+0];
+ ld.global.u64 %v1,[%args+8];
+ ld.global.u64 %v2,[%args+16];
+ ld.global.u64 %v3,[%args+24];
+ ld.global.u64 %v4,[%args+32];
+ ld.global.u64 %v5,[%args+40];
+ st.param.u64 [rb],%v0;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_snow_trisolver_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v0;st.param.u64 [dn],4;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ ld.global.u32 %N,[%v0];mov.u32 %error,6417;setp.lt.s32 %p,%N,1;@%p bra ADMIT_DONE;setp.gt.s32 %p,%N,4096;@%p bra ADMIT_DONE;cvt.u64.u32 %n,%N;sub.u64 %nm1,%n,1;mul.wide.u32 %bytes,%N,8;ld.global.u64 %scratch,[%ctx+32];ld.global.u64 %capacity,[%ctx+40];mov.u32 %error,6419;setp.lt.u64 %p,%capacity,%bytes;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%scratch;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_snow_trisolver_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v1;st.param.u64 [rn],64;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_snow_trisolver_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v2;st.param.u64 [rn],64;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_snow_trisolver_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v3;st.param.u64 [rn],64;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_snow_trisolver_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v4;st.param.u64 [rn],64;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_snow_trisolver_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v5;st.param.u64 [rn],64;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_snow_trisolver_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [gd],%v1;st.param.u32 [gdim],1;st.param.u32 [gelem],8;st.param.u32 [gnorm],1;
+ st.param.u64 [gr0],%n;
+ st.param.u64 [gr1],0;
+ st.param.u64 [gr2],0;
+ call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gdim,gelem,gr0,gr1,gr2,gnorm);ld.param.u32 %error,[geometry+48];setp.ne.u32 %p,%error,0;@%p mov.u32 %error,6418;@%p bra ADMIT_DONE;ld.param.u64 %lower0,[geometry+32];ld.param.u64 %length0,[geometry+40];
+ st.param.u64 [gd],%v2;st.param.u32 [gdim],1;st.param.u32 [gelem],8;st.param.u32 [gnorm],1;
+ st.param.u64 [gr0],%n;
+ st.param.u64 [gr1],0;
+ st.param.u64 [gr2],0;
+ call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gdim,gelem,gr0,gr1,gr2,gnorm);ld.param.u32 %error,[geometry+48];setp.ne.u32 %p,%error,0;@%p mov.u32 %error,6418;@%p bra ADMIT_DONE;ld.param.u64 %lower1,[geometry+32];ld.param.u64 %length1,[geometry+40];
+ mov.u64 %lower2,0;mov.u64 %length2,0;setp.eq.u32 %p,%N,1;@%p bra UNUSED_UPPER;
+ st.param.u64 [gd],%v3;st.param.u32 [gdim],1;st.param.u32 [gelem],8;st.param.u32 [gnorm],1;
+ st.param.u64 [gr0],%nm1;
+ st.param.u64 [gr1],0;
+ st.param.u64 [gr2],0;
+ call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gdim,gelem,gr0,gr1,gr2,gnorm);ld.param.u32 %error,[geometry+48];setp.ne.u32 %p,%error,0;@%p mov.u32 %error,6418;@%p bra ADMIT_DONE;ld.param.u64 %lower2,[geometry+32];ld.param.u64 %length2,[geometry+40];
+UNUSED_UPPER:
+ st.param.u64 [gd],%v4;st.param.u32 [gdim],1;st.param.u32 [gelem],8;st.param.u32 [gnorm],1;
+ st.param.u64 [gr0],%n;
+ st.param.u64 [gr1],0;
+ st.param.u64 [gr2],0;
+ call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gdim,gelem,gr0,gr1,gr2,gnorm);ld.param.u32 %error,[geometry+48];setp.ne.u32 %p,%error,0;@%p mov.u32 %error,6418;@%p bra ADMIT_DONE;ld.param.u64 %lower3,[geometry+32];ld.param.u64 %length3,[geometry+40];
+ st.param.u64 [gd],%v5;st.param.u32 [gdim],1;st.param.u32 [gelem],8;st.param.u32 [gnorm],1;
+ st.param.u64 [gr0],%n;
+ st.param.u64 [gr1],0;
+ st.param.u64 [gr2],0;
+ call.uni (geometry),md2asm_gpu_surface_descriptor_geometry,(gd,gdim,gelem,gr0,gr1,gr2,gnorm);ld.param.u32 %error,[geometry+48];setp.ne.u32 %p,%error,0;@%p mov.u32 %error,6418;@%p bra ADMIT_DONE;ld.param.u64 %lower4,[geometry+32];ld.param.u64 %length4,[geometry+40];
+ st.param.u64 [da],%lower4;st.param.u64 [dn],%length4;st.param.u64 [db],%args;st.param.u64 [dm],48;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%lower4;st.param.u64 [dn],%length4;st.param.u64 [db],%v0;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%lower4;st.param.u64 [dn],%length4;st.param.u64 [db],%v1;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%lower4;st.param.u64 [dn],%length4;st.param.u64 [db],%v2;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%lower4;st.param.u64 [dn],%length4;st.param.u64 [db],%v3;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%lower4;st.param.u64 [dn],%length4;st.param.u64 [db],%v4;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%lower4;st.param.u64 [dn],%length4;st.param.u64 [db],%v5;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%lower4;st.param.u64 [dn],%length4;st.param.u64 [db],%lower0;st.param.u64 [dm],%length0;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%lower4;st.param.u64 [dn],%length4;st.param.u64 [db],%lower1;st.param.u64 [dm],%length1;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%lower4;st.param.u64 [dn],%length4;st.param.u64 [db],%lower2;st.param.u64 [dm],%length2;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%lower4;st.param.u64 [dn],%length4;st.param.u64 [db],%lower3;st.param.u64 [dm],%length3;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%bytes;st.param.u64 [db],%args;st.param.u64 [dm],48;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%bytes;st.param.u64 [db],%v0;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%bytes;st.param.u64 [db],%v1;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%bytes;st.param.u64 [db],%v2;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%bytes;st.param.u64 [db],%v3;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%bytes;st.param.u64 [db],%v4;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%bytes;st.param.u64 [db],%v5;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%bytes;st.param.u64 [db],%lower0;st.param.u64 [dm],%length0;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%bytes;st.param.u64 [db],%lower1;st.param.u64 [dm],%length1;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%bytes;st.param.u64 [db],%lower2;st.param.u64 [dm],%length2;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%bytes;st.param.u64 [db],%lower3;st.param.u64 [dm],%length3;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%scratch;st.param.u64 [dn],%bytes;st.param.u64 [db],%lower4;st.param.u64 [dm],%length4;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%args;st.param.u64 [dm],48;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v0;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v1;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v2;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v3;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v4;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%v5;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%lower0;st.param.u64 [dm],%length0;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%lower1;st.param.u64 [dm],%length1;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%lower2;st.param.u64 [dm],%length2;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%lower3;st.param.u64 [dm],%length3;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%lower4;st.param.u64 [dm],%length4;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%ctx;st.param.u64 [dn],64;st.param.u64 [db],%scratch;st.param.u64 [dm],%bytes;call.uni (rr),md2asm_gpu_snow_trisolver_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ mov.u32 %error,0;
+ADMIT_DONE:st.param.u32 [result],%error;ret;
+}
+
+.visible .entry md2asm_gpu_snow_trisolver(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%ptr;
+ .reg .u32 %thread,%unique,%r,%error,%old;
+ .reg .pred %p;
+ .shared .align 4 .b32 admission;
+ .param .u64 av,cv;.param .u32 rr;
+  .param .u64 va,sc;.param .u32 status;
+ .reg .u64 %scratch;
+
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %ptr,%ctx,7;setp.ne.u64 %p,%ptr,0;@%p ret;
+ mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
+ mov.u32 %r,%ctaid.x;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.z;or.b32 %unique,%unique,%r;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+ mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%nctaid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ setp.ne.u32 %p,%thread,0;@%p bra WAIT;
+ st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),md2asm_gpu_snow_trisolver_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
+WAIT:
+ bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %scratch,[%ctx+32];st.param.u64 [va],%args;st.param.u64 [sc],%scratch;call.uni (status),md2asm_gpu_snow_trisolver_values,(va,sc);ld.param.u32 %r,[status];atom.global.or.b32 %old,[%ctx+8],%r;ret;
+
+BAD_LAUNCH:mov.u32 %error,6416;
+REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
+}

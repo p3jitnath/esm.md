@@ -1,0 +1,40 @@
+// Complete original gas-optics entry. Numerical work is the directly emitted values body.
+// Physics formulations/openifs/physics/gas_absorption_and_emission.md revision1.
+// Original fifteen-address vector and the common64-byte context. One block and one thread.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .u32 r) md2asm_gpu_gas_optics_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 r[40]) md2asm_gpu_gas_optics_values(.param .u64 vector,.param .u64 record,.param .u64 scratch);
+.visible .func md2asm_gpu_gas_optics_fp64(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u64 %args,%ctx,%record,%scratch,%tmp,%address,%event,%exp,%fast,%wide,%owner;
+.reg .u32 %unique,%rt,%error,%flags;
+.reg .pred %p;
+.param .u64 a,c,r,s;
+.param .u32 admission;
+.param .align 8 .b8 values[40];
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %tmp,%ctx,7;setp.ne.u64 %p,%tmp,0;@%p ret;
+mov.u32 %unique,%ctaid.x;mov.u32 %rt,%ctaid.y;or.b32 %unique,%unique,%rt;mov.u32 %rt,%ctaid.z;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.x;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.y;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.z;or.b32 %unique,%unique,%rt;setp.ne.u32 %p,%unique,0;@%p ret;
+ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;mov.u32 %error,731;
+mov.u32 %rt,%ntid.x;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%ntid.y;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%ntid.z;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%nctaid.x;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%nctaid.y;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%nctaid.z;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,%dynamic_smem_size;setp.ne.u32 %p,%rt,0;@%p bra REFUSE;ld.global.u32 %rt,[%ctx+4];setp.ne.u32 %p,%rt,1;@%p bra REFUSE;ld.global.u32 %rt,[%ctx+12];and.b32 %rt,%rt,1;setp.ne.u32 %p,%rt,0;@%p bra REFUSE;
+st.param.u64 [a],%args;st.param.u64 [c],%ctx;call.uni (admission),md2asm_gpu_gas_optics_admit,(a,c);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];st.param.u64 [a],%args;st.param.u64 [r],%record;st.param.u64 [s],%scratch;call.uni (values),md2asm_gpu_gas_optics_values,(a,r,s);
+ld.param.u32 %flags,[values];ld.param.u32 %error,[values+4];ld.param.u64 %event,[values+8];ld.param.u64 %exp,[values+16];ld.param.u64 %fast,[values+24];ld.param.u64 %wide,[values+32];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+add.u64 %address,%ctx,8;atom.global.or.b32 %rt,[%address],%flags;setp.eq.u64 %p,%event,0;@%p bra NO_EVENT;add.u64 %address,%ctx,16;atom.global.max.u64 %tmp,[%address],%event;
+NO_EVENT:
+// The empty source call consumes no record, scratch or counter owners.
+ld.global.u64 %tmp,[%args+16];ld.global.u32 %rt,[%tmp];ld.global.u64 %tmp,[%args+24];ld.global.u32 %unique,[%tmp];setp.lt.s32 %p,%unique,%rt;@%p ret;
+ld.global.u64 %owner,[%record+80];setp.eq.u64 %p,%owner,0;@%p bra NO_EXP;atom.global.add.u64 %tmp,[%owner],%exp;
+NO_EXP:ld.global.u64 %owner,[%record+96];setp.eq.u64 %p,%owner,0;@%p bra NO_FAST;atom.global.add.u64 %tmp,[%owner],%fast;
+NO_FAST:ld.global.u64 %owner,[%record+112];setp.eq.u64 %p,%owner,0;@%p ret;atom.global.add.u64 %tmp,[%owner],%wide;ret;
+REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+.visible .entry md2asm_gpu_gas_optics(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u64 %a,%c;
+.param .u64 a,c;
+ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];st.param.u64 [a],%a;st.param.u64 [c],%c;call.uni md2asm_gpu_gas_optics_fp64,(a,c);ret;
+}

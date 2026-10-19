@@ -1,0 +1,711 @@
+/* GPU physical setup route. Original interface and ordered arithmetic are preserved.
+ * Contract: skills/md2asm-gpu/references/openifs/setup/physical_setup.md
+ * Original source: src/openifs/radiation/selected_radiation_controls.S
+ */
+// Original contract: skills/md2asm/references/openifs/radiation/radiation_control_setup.md
+#include "../../support/gpu/preserved_scalar_calls.inc.S"
+.text
+.p2align 4
+.global md2asm_initialize_selected_radiation_controls
+.type md2asm_initialize_selected_radiation_controls,%function
+md2asm_initialize_selected_radiation_controls:
+    cbz x0,.Lrad_bad_leaf
+    cbz x1,.Lrad_bad_leaf
+    cbz x2,.Lrad_bad_leaf
+    cbz x3,.Lrad_bad_leaf
+    cbz x4,.Lrad_bad_leaf
+    cmp x2,#64,lsl #12
+    b.hi .Lrad_bad_leaf
+    orr x9,x0,x3
+    orr x9,x9,x4
+    tst x9,#7
+    b.ne .Lrad_bad_leaf
+    adds x9,x0,#112
+    b.cs .Lrad_bad_leaf
+    mrs x9,fpcr
+    cbnz x9,.Lrad_bad_leaf
+    sub sp,sp,#1,lsl #12
+    sub sp,sp,#2048
+    stp x29,x30,[sp]
+    stp x19,x20,[sp,#16]
+    stp x21,x22,[sp,#32]
+    stp x23,x24,[sp,#48]
+    stp x25,x26,[sp,#64]
+    stp x27,x28,[sp,#80]
+    str x18,[sp,#96]
+    mov x29,sp
+    mov x19,x0
+    mov x20,x1
+    mov x21,x2
+    mov x22,x3
+    mov x23,x4
+    add x24,sp,#512
+    add x25,sp,#2560
+    add x26,sp,#1,lsl #12
+    add x26,x26,#1152
+    adrp x9,.Lrad_output_sizes
+    add x9,x9,:lo12:.Lrad_output_sizes
+    add x10,sp,#256
+    mov x11,#0
+.Lrad_output_ranges:
+    add x12,x19,x11,lsl #4
+    ldp x13,x14,[x12]
+    cbz x13,.Lrad_bad_frame
+    tst x13,#7
+    b.ne .Lrad_bad_frame
+    ldr x15,[x9,x11,lsl #3]
+    cmp x14,x15
+    b.lo .Lrad_bad_frame
+    adds x14,x13,x15
+    b.cs .Lrad_bad_frame
+    stp x13,x14,[x10],#16
+    str x13,[x26]
+    add x26,x26,#16
+    add x11,x11,#1
+    cmp x11,#7
+    b.lo .Lrad_output_ranges
+    sub x26,x26,#112
+    add x13,x19,#112
+    stp x19,x13,[x10],#16
+    adds x13,x20,x21
+    b.cs .Lrad_bad_frame
+    stp x20,x13,[x10],#16
+    adds x13,x22,#520
+    b.cs .Lrad_bad_frame
+    stp x22,x13,[x10],#16
+    adds x13,x23,#112
+    b.cs .Lrad_bad_frame
+    stp x23,x13,[x10]
+    add x9,sp,#256
+    mov x10,#0
+.Lrad_overlap_output:
+    ldp x11,x12,[x9]
+    add x13,sp,#256
+    mov x14,#0
+.Lrad_overlap_other:
+    cmp x10,x14
+    b.eq .Lrad_overlap_next
+    ldp x15,x16,[x13]
+    cmp x11,x16
+    b.hs .Lrad_overlap_next
+    cmp x15,x12
+    b.lo .Lrad_bad_frame
+.Lrad_overlap_next:
+    add x13,x13,#16
+    add x14,x14,#1
+    cmp x14,#11
+    b.lo .Lrad_overlap_other
+    add x9,x9,#16
+    add x10,x10,#1
+    cmp x10,#7
+    b.lo .Lrad_overlap_output
+    adrp x9,.Lrad_upstream_words
+    add x9,x9,:lo12:.Lrad_upstream_words
+    mov x10,#0
+.Lrad_upstream_check:
+    cmp x10,#4
+    b.eq .Lrad_ozone_check
+    ldr w11,[x23,x10,lsl #2]
+    ldr w12,[x9,x10,lsl #2]
+    cmp w11,w12
+    b.ne .Lrad_bad_frame
+    b .Lrad_upstream_next
+.Lrad_ozone_check:
+    ldr w11,[x23,#16]
+    cmp w11,#1
+    b.hi .Lrad_bad_frame
+.Lrad_upstream_next:
+    add x10,x10,#1
+    cmp x10,#22
+    b.lo .Lrad_upstream_check
+    ldr x10,[x23,#88]
+    adrp x9,.Lrad_timesteps
+    add x9,x9,:lo12:.Lrad_timesteps
+    mov x11,#0
+.Lrad_timestep_check:
+    ldr x12,[x9,x11,lsl #3]
+    cmp x10,x12
+    b.eq .Lrad_timestep_ok
+    add x11,x11,#1
+    cmp x11,#4
+    b.lo .Lrad_timestep_check
+    b .Lrad_bad_frame
+.Lrad_timestep_ok:
+    ldp x9,x10,[x23,#96]
+    orr x9,x9,x10
+    cbnz x9,.Lrad_bad_frame
+    ldr x9,[x19]
+    ldr x12,[x9,#1824]
+    cbnz x12,.Lrad_bad_frame
+    ldr x12,[x9,#1912]
+    cbnz x12,.Lrad_bad_frame
+    ldr x12,[x9,#1976]
+    cbnz x12,.Lrad_bad_frame
+    adrp x9,.Lrad_constant_offsets
+    add x9,x9,:lo12:.Lrad_constant_offsets
+    mov x10,#0
+.Lrad_constant_check:
+    ldr w11,[x9,x10,lsl #2]
+    ldr x12,[x22,x11]
+    cbz x12,.Lrad_bad_frame
+    tbnz x12,#63,.Lrad_bad_frame
+    lsr x13,x12,#52
+    cmp x13,#2047
+    b.eq .Lrad_bad_frame
+    add x10,x10,#1
+    cmp x10,#6
+    b.lo .Lrad_constant_check
+    bl __errno_location
+    str x0,[sp,#104]
+    ldr w9,[x0]
+    str w9,[sp,#112]
+    ldr w9,[x23,#8]
+    str w9,[sp,#5200]
+    ldr w9,[x23,#4]
+    str w9,[sp,#5204]
+    ldr w9,[x23,#12]
+    str w9,[sp,#5208]
+    ldr w9,[x23,#16]
+    str w9,[sp,#5212]
+    ldr w9,[x23,#20]
+    str w9,[sp,#5216]
+    str wzr,[sp,#5220]
+    mov x0,x20
+    mov x1,x21
+    mov x2,x25
+    mov x3,#2640
+    add x4,sp,#1,lsl #12
+    add x4,x4,#1104
+    bl md2asm_select_radiation_climate_files
+    cbnz w0,.Lrad_bad_restore
+    mov w9,#-8
+    str w9,[x25,#24]
+    mov x0,x20
+    mov x1,x21
+    mov x2,x25
+    bl md2asm_apply_selected_radiation_namelist
+    cbnz w0,.Lrad_bad_restore
+    ldr w9,[x25,#24]
+    cbz w9,.Lrad_nrproma_ok
+    cmn w9,#8
+    b.ne .Lrad_bad_restore
+.Lrad_nrproma_ok:
+    mov w9,#8
+    str w9,[x25,#24]
+    mov x0,x24
+    ldr x1,[x19]
+    mov x2,#2040
+    bl memcpy
+    add x27,sp,#1,lsl #12
+    add x27,x27,#1280
+    mov x0,x27
+    ldr x1,[x19,#16]
+    mov x2,#176
+    bl memcpy
+    str x24,[x26]
+    str x27,[x26,#16]
+    mov x0,x26
+    mov w1,#2
+    bl .Lrad_apply_literals
+    mov x0,x24
+    mov x1,x27
+    mov x2,x22
+    bl md2asm_prepare_radiation_visibility_constants
+    ldr x9,[sp,#104]
+    ldr w10,[sp,#112]
+    str w10,[x9]
+    add x0,x24,#1800
+    mov x1,#240
+    mov x2,x22
+    mov x3,#520
+    bl md2asm_create_selected_spectral_planck
+    cbnz w0,.Lrad_child_failed
+    mov x0,x26
+    mov w1,#6
+    bl .Lrad_apply_literals
+    ldr d0,[x24,#704]
+    str d0,[x24,#616]
+    str d0,[x24,#624]
+    str d0,[x24,#632]
+    adrp x1,.Lrad_lw_map
+    add x1,x1,:lo12:.Lrad_lw_map
+    add x0,x24,#200
+    mov x2,#64
+    bl memcpy
+    adrp x1,.Lrad_sw_map
+    add x1,x1,:lo12:.Lrad_sw_map
+    add x0,x24,#264
+    mov x2,#56
+    bl memcpy
+    ldr w9,[x25]
+    str w9,[x24,#148]
+    ldr w9,[x25,#4]
+    str w9,[x24,#156]
+    ldr w9,[x25,#8]
+    str w9,[x24,#444]
+    ldr w9,[x25,#20]
+    str w9,[x24,#144]
+    ldr w9,[x25,#24]
+    str w9,[x24,#56]
+    ldr w9,[x25,#28]
+    str w9,[x24,#464]
+    ldr w9,[x25,#32]
+    str w9,[x24,#396]
+    mov w9,#2
+    str w9,[x24,#72]
+    mov w9,#1
+    str w9,[x24,#76]
+    str wzr,[x24,#436]
+    str wzr,[x24,#24]
+    mov w9,#21
+    str w9,[x24,#28]
+    ldr d0,[x22,#144]
+    str d0,[x27,#168]
+    add x0,x24,#1224
+    add x1,x25,#48
+    mov x2,#256
+    bl memcpy
+    add x0,x24,#712
+    add x1,x25,#304
+    mov x2,#256
+    bl memcpy
+    add x0,x24,#968
+    add x1,x25,#560
+    mov x2,#256
+    bl memcpy
+    ldr x28,[x19,#64]
+    ldr w9,[x25,#16]
+    str w9,[x28]
+    ldr w9,[x25,#12]
+    str w9,[x28,#8]
+    add x0,x28,#20
+    mov w1,#32
+    mov x2,#860
+    bl memset
+    mov w9,#0x2f2e
+    strh w9,[x28,#20]
+    strh w9,[x28,#540]
+    adrp x9,.Lrad_not_set
+    ldr x9,[x9,:lo12:.Lrad_not_set]
+    str x9,[x28,#800]
+    ldr x28,[x19,#80]
+    add x0,x28,#168
+    mov w1,#32
+    mov x2,#520
+    bl memset
+    add x11,x28,#688
+    stp xzr,xzr,[x11]
+    mov x9,#1
+    str x9,[x28,#704]
+    add x11,x28,#712
+    stp xzr,xzr,[x11]
+    str x9,[x28,#728]
+    ldp w9,w10,[x23,#64]
+    add x11,x28,#736
+    stp w9,w10,[x11]
+    ldr x9,[x19,#48]
+    ldr w10,[x23,#52]
+    str w10,[x9,#16]
+    str wzr,[x9,#12]
+    str wzr,[x9,#20]
+    ldr x9,[x19,#32]
+    movz x10,#(205296 & 65535)
+    movk x10,#(205296 >> 16),lsl #16
+    add x9,x9,x10
+    fmov d1,#5.0
+    adrp x10,.Lrad_uv_start
+    ldr d2,[x10,:lo12:.Lrad_uv_start]
+    mov x10,#0
+.Lrad_uv_wavelengths:
+ md2asm_gpu_preserved_scalar md2asm_gpu_startup_integer_cell_host,17,d0,destination,x10,general,x16,208,zero
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d0,real,x16,0,d1
+ md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d2,real,x16,0,d0
+    str d0,[x9,x10,lsl #3]
+    add x10,x10,#1
+    cmp x10,#72
+    b.lo .Lrad_uv_wavelengths
+    ldr x0,[x19]
+    mov x1,x24
+    mov x2,#2040
+    bl memcpy
+    ldr x0,[x19,#16]
+    mov x1,x27
+    mov x2,#176
+    bl memcpy
+    ldr x0,[x19,#96]
+    mov x1,x25
+    mov x2,#2640
+    bl memcpy
+    mov w28,#0
+    b .Lrad_restore_return
+.Lrad_bad_restore:
+    mov w28,#2
+    b .Lrad_restore_return
+.Lrad_child_failed:
+    mov w28,w0
+    b .Lrad_return
+.Lrad_bad_frame:
+    mov w28,#2
+    b .Lrad_return
+.Lrad_restore_return:
+    ldr x9,[sp,#104]
+    ldr w10,[sp,#112]
+    str w10,[x9]
+.Lrad_return:
+    mov w0,w28
+    ldr x18,[sp,#96]
+    ldp x27,x28,[sp,#80]
+    ldp x25,x26,[sp,#64]
+    ldp x23,x24,[sp,#48]
+    ldp x21,x22,[sp,#32]
+    ldp x19,x20,[sp,#16]
+    ldp x29,x30,[sp]
+    add sp,sp,#2048
+    add sp,sp,#1,lsl #12
+    ret
+.Lrad_bad_leaf:
+    mov w0,#2
+    ret
+.size md2asm_initialize_selected_radiation_controls,.-md2asm_initialize_selected_radiation_controls
+.Lrad_apply_literals:
+    adrp x9,.Lrad_literal_plan
+    add x9,x9,:lo12:.Lrad_literal_plan
+    adrp x10,.Lrad_literal_plan_end
+    add x10,x10,:lo12:.Lrad_literal_plan_end
+.Lrad_literal_next:
+    ldp w11,w12,[x9]
+    cmp w11,w1
+    b.hs .Lrad_literal_skip
+    add x13,x0,x11,lsl #4
+    ldr x13,[x13]
+    add x13,x13,x12
+    ldr w14,[x9,#8]
+    ldr x15,[x9,#16]
+    cmp w14,#4
+    b.ne .Lrad_literal_real
+    str w15,[x13]
+    b .Lrad_literal_skip
+.Lrad_literal_real:
+    str x15,[x13]
+.Lrad_literal_skip:
+    add x9,x9,#24
+    cmp x9,x10
+    b.lo .Lrad_literal_next
+    ret
+.section .rodata
+.p2align 3
+.Lrad_output_sizes:
+ .xword 2040,176,229312,32,1384,744,2640
+.Lrad_upstream_words:
+ .word 1,0,1,0,0,1,0,0,0,0,1,0,0,24,21,32,2048,2048,19,86,64,0
+.Lrad_timesteps:
+ .double 600.0,900.0,1800.0,3600.0
+.Lrad_constant_offsets:
+ .word 0,8,16,24,32,144
+.p2align 3
+.Lrad_not_set:
+ .ascii "not set "
+.Lrad_uv_start:
+ .double 280.0
+.section .rodata
+.p2align 3
+.Lrad_literal_plan:
+    .word 0, 392, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 132, 4, 0
+    .xword 0x000000000000000c
+    .word 0, 400, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 488, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 492, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 496, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 500, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 504, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 340, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 344, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 348, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 388, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 144, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 476, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 512, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 320, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 328, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 324, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 352, 4, 0
+    .xword 0x0000000000000003
+    .word 0, 368, 8, 0
+    .xword 0x40cb580000000000
+    .word 0, 376, 8, 0
+    .xword 0x40a3880000000000
+    .word 0, 96, 4, 0
+    .xword 0x0000000000000004
+    .word 0, 92, 4, 0
+    .xword 0x0000000000000003
+    .word 0, 104, 4, 0
+    .xword 0x0000000000000004
+    .word 0, 112, 4, 0
+    .xword 0x0000000000000004
+    .word 0, 100, 4, 0
+    .xword 0x0000000000000003
+    .word 0, 108, 4, 0
+    .xword 0x0000000000000003
+    .word 0, 116, 4, 0
+    .xword 0x0000000000000003
+    .word 0, 120, 4, 0
+    .xword 0x0000000000000002
+    .word 0, 584, 8, 0
+    .xword 0x3fe4c8de2ac32229
+    .word 0, 608, 8, 0
+    .xword 0x404e000000000000
+    .word 0, 164, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 160, 4, 0
+    .xword 0x0000000000000002
+    .word 0, 408, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 404, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 412, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 172, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 176, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 152, 4, 0
+    .xword 0x0000000000000002
+    .word 0, 360, 8, 0
+    .xword 0x3ff0000000000000
+    .word 0, 404, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 384, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 124, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 128, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 592, 8, 0
+    .xword 0x3ff0000000000000
+    .word 0, 600, 8, 0
+    .xword 0x3ff0000000000000
+    .word 0, 416, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 424, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 428, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 136, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 448, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 452, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 180, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 464, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 184, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 188, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 192, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 196, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 480, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 484, 4, 0
+    .xword 0x0000000000000000
+    .word 5, 88, 4, 0
+    .xword 0x0000000000000000
+    .word 5, 96, 8, 0
+    .xword 0x3ff0000000000000
+    .word 5, 104, 8, 0
+    .xword 0x3ff0000000000000
+    .word 5, 112, 8, 0
+    .xword 0x3ff0000000000000
+    .word 5, 120, 8, 0
+    .xword 0x3ff0000000000000
+    .word 0, 516, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 656, 8, 0
+    .xword 0x408f400000000000
+    .word 0, 664, 8, 0
+    .xword 0x40a7700000000000
+    .word 0, 672, 8, 0
+    .xword 0x409f400000000000
+    .word 0, 680, 8, 0
+    .xword 0x408f400000000000
+    .word 0, 688, 8, 0
+    .xword 0x40af400000000000
+    .word 0, 696, 8, 0
+    .xword 0x3fab573eab367a10
+    .word 0, 704, 8, 0
+    .xword 0x3f726e978d4fdf3b
+    .word 0, 432, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 528, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 520, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 524, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 552, 8, 0
+    .xword 0x408c200000000000
+    .word 0, 560, 8, 0
+    .xword 0x4049000000000000
+    .word 0, 456, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 460, 4, 0
+    .xword 0x0000000000000001
+    .word 5, 128, 8, 0
+    .xword 0x40436adfb0774d0d
+    .word 5, 136, 8, 0
+    .xword 0x4041b2f9341b2f93
+    .word 5, 144, 8, 0
+    .xword 0x40233b13b13b13b1
+    .word 5, 152, 8, 0
+    .xword 0x40344df833facd52
+    .word 0, 420, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 168, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 468, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 472, 4, 0
+    .xword 0x0000000000000000
+    .word 5, 160, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 576, 8, 0
+    .xword 0x0000000000000000
+    .word 0, 140, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 156, 4, 0
+    .xword 0x00000000ffffffff
+    .word 0, 0, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 4, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 8, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 16, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 20, 4, 0
+    .xword 0x000000000000000f
+    .word 0, 12, 4, 0
+    .xword 0x00000000ffffffff
+    .word 0, 48, 4, 0
+    .xword 0x0000000000000000
+    .word 2, 36008, 4, 0
+    .xword 0x0000000000000000
+    .word 2, 36012, 4, 0
+    .xword 0x0000000000000001
+    .word 2, 36016, 4, 0
+    .xword 0x0000000000000000
+    .word 2, 36020, 4, 0
+    .xword 0x0000000000000000
+    .word 2, 36024, 4, 0
+    .xword 0x0000000000000000
+    .word 2, 0, 4, 0
+    .xword 0x00000000ffffffff
+    .word 2, 4, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 332, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 84, 4, 0
+    .xword 0x0000000000000048
+    .word 0, 568, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 24, 4, 0
+    .xword 0x0000000000000003
+    .word 0, 28, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 508, 4, 0
+    .xword 0x0000000000000000
+    .word 0, 52, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 80, 4, 0
+    .xword 0x000000000000000e
+    .word 0, 60, 4, 0
+    .xword 0x0000000000000006
+    .word 0, 64, 4, 0
+    .xword 0x0000000000000006
+    .word 0, 68, 4, 0
+    .xword 0x0000000000000002
+    .word 2, 229304, 8, 0
+    .xword 0x3f50624dd2f1a9fc
+    .word 5, 0, 4, 0
+    .xword 0x0000000000000018
+    .word 5, 4, 4, 0
+    .xword 0x000000000000000f
+    .word 5, 32, 8, 0
+    .xword 0x3f1a36e2eb1c432d
+    .word 5, 40, 8, 0
+    .xword 0x3ddb7cdfd9d7bdbb
+    .word 5, 48, 8, 0
+    .xword 0x3d719799812dea11
+    .word 5, 56, 8, 0
+    .xword 0x3d719799812dea11
+    .word 5, 64, 8, 0
+    .xword 0x3d719799812dea11
+    .word 5, 72, 8, 0
+    .xword 0x3d719799812dea11
+    .word 5, 24, 8, 0
+    .xword 0x3d719799812dea11
+    .word 0, 444, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 440, 4, 0
+    .xword 0x0000000000000001
+    .word 0, 148, 4, 0
+    .xword 0x0000000000000004
+    .word 0, 336, 4, 0
+    .xword 0x0000000000000000
+    .word 1, 104, 8, 0
+    .xword 0x3f37225b749adc90
+    .word 1, 112, 8, 0
+    .xword 0x3ebcdb57fff13c6e
+    .word 1, 120, 8, 0
+    .xword 0x3e94cdc26b1f07d8
+    .word 1, 128, 8, 0
+    .xword 0x3dcb7cdfd9d7bdbb
+    .word 1, 136, 8, 0
+    .xword 0x3df33dcfe54a3803
+    .word 1, 144, 8, 0
+    .xword 0x3e00a14f1c1d6744
+    .word 1, 152, 8, 0
+    .xword 0x0000000000000000
+    .word 1, 160, 8, 0
+    .xword 0x0000000000000000
+    .word 5, 80, 8, 0
+    .xword 0x3ffa8f5c28f5c28f
+    .word 5, 16, 8, 0
+    .xword 0x3fdbcb7b28954a80
+    .word 4, 4, 4, 0
+    .xword 0x0000000000000000
+    .word 4, 8, 4, 0
+    .xword 0x0000000000000006
+    .word 4, 0, 4, 0
+    .xword 0x0000000000000003
+    .word 4, 12, 4, 0
+    .xword 0x00000000ffffffff
+.Lrad_literal_plan_end:
+.p2align 3
+.Lrad_lw_map:
+ .word 1,1,2,2,2,3,4,3,3,5,5,5,5,5,5,5
+.Lrad_sw_map:
+ .word 1,2,3,4,5,6,7,8,9,10,11,12,13,14
+.section .note.GNU-stack,"",%progbits

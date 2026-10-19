@@ -1,0 +1,18 @@
+# Numeric Minimum and Maximum on the GPU
+
+The [host](../../../../../src/openifs/support/gpu/output_numeric_cell_calls.S) and [PTX entry](../../../../../src/openifs/support/gpu/output_numeric_cell.ptx) preserve the original Arm numeric minimum and maximum for every 64-bit floating-point word, including infinities and NaNs. A NaN represents an invalid or undefined numerical result. A signalling NaN also raises the invalid-operation flag; a quiet NaN normally does not. FP64 denotes the 64-bit floating-point format.
+
+| Mode | Original operation | Result |
+| ---: | --- | --- |
+| 17 | FMAXNM | Numeric maximum of operand words zero and one |
+| 18 | FMINNM | Numeric minimum of operand words zero and one |
+
+A signalling NaN takes priority and returns its quieted payload, with invalid set; the first signalling operand wins. A single quiet NaN returns the other numerical word. Two quiet NaNs return the first operand. Numerical comparisons preserve signed-zero ties: maximum selects positive zero and minimum selects negative zero when both signs are present. Modes zero through 16 retain the unchanged qualified [soil-water scalar boundary](../surface/soil_water_exchange.md), including its separate mathematical input domains and ordered arithmetic.
+
+The Arm entry is `md2asm_gpu_output_numeric_cell_host`. Register x0 addresses a 72-byte array of nine eight-byte operand words, and w1 selects the mode. The caller initializes all nine words. The result is returned in d0, with comparison condition bits in w0. The host uses a 768-byte frame and preserves x18, required saved registers, its other source-live scalar registers and the incoming floating-point control register. The caller supplies any further live upper-vector preservation through its accepted wrapper.
+
+The [common context](../gpu_call_context.md) and [CUDA interface](../cuda_runtime.md) retain the exact seven-owner ABI. The complete owners are input 72 bytes, output 32 bytes, argument vector 16 bytes, context 64 bytes, call record 64 bytes, FAST counter eight bytes and WIDE counter eight bytes. They are eight-byte aligned, nonwrapping and disjoint. The input and output capacities, record reserved fields, mode and all owner bounds are checked before numerical effects. One GPU block contains one thread. The host caller is serial and nonrecursive and is outside an OpenMP parallel region.
+
+Output bytes zero through seven hold the result word. Bytes eight through eleven hold comparison condition bits, and bytes 12 through 15 hold the mathematical error indicator. FAST and WIDE totals occupy the last sixteen bytes. Required floating-point flags return through the common context and join the original sticky status without masking. FPCR, the Arm floating-point control register, is zero for nearest-even rounding and gradual underflow. The new two modes add no mathematical counter or errno event. Existing modes keep their original events and bounds.
+
+The retained component gate contains 528 distinct input pairs and 2112 GPU/native Arm comparisons, including both incoming status seeds. Every result, status, errno, x18 and FAST/WIDE byte agrees. It includes both NaN signs and payload priorities, infinities, signed zeros and subnormals. Independent exact-rational checks cover 1088 finite relations. Eight ordinary device graphs, the changed-mode refusal and final native-instruction checks pass. Both independent source reviews pass, and the whole previous host and device arithmetic restore exactly when the declared private extension is removed. Publication reuses these accepted records without numerical replay; complete forecast and performance checks remain separate.

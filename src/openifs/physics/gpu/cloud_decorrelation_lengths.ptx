@@ -1,0 +1,213 @@
+// Unverified direct PTX batch draft. See the routine frozen contract.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sqrt_status(.param .b64 a);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_exp_original_rounding(.param .b64 a);
+
+.func (.param .u32 result) md2asm_gpu_cloud_overlap_decorr_len_range(.param .u64 base,.param .u64 bytes,.param .u64 mask)
+{
+ .reg .u64 %b,%n,%m,%end; .reg .u32 %e; .reg .pred %p;
+ ld.param.u64 %b,[base];ld.param.u64 %n,[bytes];ld.param.u64 %m,[mask];mov.u32 %e,0;
+ setp.eq.u64 %p,%n,0;@%p bra RANGE_DONE;mov.u32 %e,6210;
+ setp.eq.u64 %p,%b,0;@%p bra RANGE_DONE;and.b64 %end,%b,%m;setp.ne.u64 %p,%end,0;@%p bra RANGE_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff;@%p bra RANGE_DONE;setp.gt.u64 %p,%n,0x7fffffffffffffff;@%p bra RANGE_DONE;
+ add.u64 %end,%b,%n;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra RANGE_DONE;mov.u32 %e,0;
+RANGE_DONE:st.param.u32 [result],%e;ret;
+}
+.func (.param .u32 result) md2asm_gpu_cloud_overlap_decorr_len_disjoint(.param .u64 a,.param .u64 an,.param .u64 b,.param .u64 bn)
+{
+ .reg .u64 %a,%an,%b,%bn,%ae,%be; .reg .u32 %e; .reg .pred %p,%q;
+ ld.param.u64 %a,[a];ld.param.u64 %an,[an];ld.param.u64 %b,[b];ld.param.u64 %bn,[bn];mov.u32 %e,0;
+ setp.eq.u64 %p,%an,0;@%p bra SEPARATE_DONE;setp.eq.u64 %p,%bn,0;@%p bra SEPARATE_DONE;
+ add.u64 %ae,%a,%an;add.u64 %be,%b,%bn;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;selp.u32 %e,6210,0,%p;
+SEPARATE_DONE:st.param.u32 [result],%e;ret;
+}
+.const .align 8 .u64 cloud_decorr_grid[96]={0x3fefe995e70409b6,0x3ff7f2e9650529f4,0x3fb2ecb28e1b54f8,0x3fef8a212714bcdc,0x3ff66a4f3f0a78ff,0x3fc5a2a8d1292e09,0x3feedf5518053baa,0x3ff4df6394c3a8dc,0x3fd0d702773295b3,0x3fedeac0259f7f42,0x3ff353f1d9ef99b5,0x3fd6b69a82ff9e41,0x3fecaea9b4574cb9,0x3ff1c84d4f66f7f5,0x3fdc60c137bd2841,0x3feb2e04fd686a13,0x3ff03c903a9fd6d6,0x3fe0e3c06f55b060,0x3fe96c69481c4bc5,0x3fed618af8d6485b,0x3fe36ee1b06a2a4e,0x3fe76e0931d693ba,0x3fea49e4cc01ba6d,0x3fe5cba4e8c85f68,0x3fe537a89c487f89,0x3fe73233c1c07c3e,0x3fe7f45e7108d59f,0x3fe2ce9146962ca5,0x3fe41a7b5283a5a0,0x3fe9e3e17c5a9c0f,0x3fe038862866b29e,0x3fe102bdb452ba1a,0x3feb958b579e13a9,0x3fdaf76b57c6f8f1,0x3fdbd5f8c9b823e5,0x3fed054defc9ba72,0x3fd53d55ce57bdf7,0x3fd5a670e661da05,0x3fee2fb9377aabfe,0x3fcea0f7e19c0949,0x3fceedcaa7be5cb2,0x3fef120333e73813,0x3fc27e0ea717f236,0x3fc28eaea3e5e152,0x3fefaa0e8ea0d481,0x3fa8bbc8488cc499,0x3fa8be3f640a1669,0x3feff66f94ecbbbb,0xbfa8bbc8488cc499,0xbfa8be3f640a1669,0x3feff66f94ecbbbb,0xbfc27e0ea717f236,0xbfc28eaea3e5e152,0x3fefaa0e8ea0d481,0xbfcea0f7e19c0949,0xbfceedcaa7be5cb2,0x3fef120333e73813,0xbfd53d55ce57bdf7,0xbfd5a670e661da05,0x3fee2fb9377aabfe,0xbfdaf76b57c6f8f1,0xbfdbd5f8c9b823e5,0x3fed054defc9ba72,0xbfe038862866b29e,0xbfe102bdb452ba1a,0x3feb958b579e13a9,0xbfe2ce9146962ca5,0xbfe41a7b5283a5a0,0x3fe9e3e17c5a9c0f,0xbfe537a89c487f89,0xbfe73233c1c07c3e,0x3fe7f45e7108d59f,0xbfe76e0931d693ba,0xbfea49e4cc01ba6d,0x3fe5cba4e8c85f68,0xbfe96c69481c4bc5,0xbfed618af8d6485b,0x3fe36ee1b06a2a4e,0xbfeb2e04fd686a13,0xbff03c903a9fd6d6,0x3fe0e3c06f55b060,0xbfecaea9b4574cb9,0xbff1c84d4f66f7f5,0x3fdc60c137bd2841,0xbfedeac0259f7f42,0xbff353f1d9ef99b5,0x3fd6b69a82ff9e41,0xbfeedf5518053baa,0xbff4df6394c3a8dc,0x3fd0d702773295b3,0xbfef8a212714bcdc,0xbff66a4f3f0a78ff,0x3fc5a2a8d1292e09,0xbfefe995e70409b6,0xbff7f2e9650529f4,0x3fb2ecb28e1b54f8};
+
+.func (.param .b64 value) cloud_decorr_lookup(.param .b64 sine,.param .u32 mode)
+{
+ .reg .u64 %base,%ptr,%offset;.reg .b64 %sine,%key,%value;.reg .u32 %i,%mode;.reg .pred %p;
+ ld.param.b64 %sine,[sine];ld.param.u32 %mode,[mode];mov.u32 %i,0;mov.u64 %base,cloud_decorr_grid;
+FIND:mul.wide.u32 %offset,%i,24;add.u64 %ptr,%base,%offset;ld.const.b64 %key,[%ptr];setp.eq.b64 %p,%key,%sine;@%p bra FOUND;
+ add.u32 %i,%i,1;setp.lt.u32 %p,%i,32;@%p bra FIND;mov.b64 %value,0x7ff8000000000001;bra LOOKUP_DONE;
+FOUND:setp.eq.u32 %p,%mode,1;@%p bra ANGLE;ld.const.b64 %value,[%ptr+16];bra LOOKUP_DONE;
+ANGLE:ld.const.b64 %value,[%ptr+8];
+LOOKUP_DONE:st.param.b64 [value],%value;ret;
+}
+
+.func (.param .u32 result) md2asm_gpu_cloud_overlap_decorr_len_admit(.param .u64 vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%v<9>,%record,%rpi,%ptr,%bytes,%offset;
+ .reg .u32 %first,%last,%P,%mode,%r,%c,%error;
+ .reg .b64 %word,%value;
+ .reg .pred %p;
+ .param .u64 rb,rn,rm,da,dn,db,dm;.param .u32 rr,modearg;.param .b64 sinearg,looked;
+ ld.param.u64 %args,[vector];ld.param.u64 %ctx,[context];
+ st.param.u64 [rb],%args;st.param.u64 [rn],72;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%args;st.param.u64 [dn],72;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ ld.global.u64 %v0,[%args+0];
+ ld.global.u64 %v1,[%args+8];
+ ld.global.u64 %v2,[%args+16];
+ ld.global.u64 %v3,[%args+24];
+ ld.global.u64 %v4,[%args+32];
+ ld.global.u64 %v5,[%args+40];
+ ld.global.u64 %v6,[%args+48];
+ ld.global.u64 %v7,[%args+56];
+ ld.global.u64 %v8,[%args+64];
+ st.param.u64 [rb],%v1;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v1;st.param.u64 [dn],4;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v2;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v2;st.param.u64 [dn],4;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v3;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v3;st.param.u64 [dn],4;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%v5;st.param.u64 [rn],4;st.param.u64 [rm],3;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v5;st.param.u64 [dn],4;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ ld.global.u32 %first,[%v1];ld.global.u32 %last,[%v2];ld.global.u32 %P,[%v3];ld.global.u32 %mode,[%v5];mov.u32 %error,6209;
+ setp.lt.s32 %p,%P,1;@%p bra ADMIT_DONE;setp.gt.u32 %p,%P,2048;@%p bra ADMIT_DONE;setp.lt.s32 %p,%first,1;@%p bra ADMIT_DONE;add.u32 %r,%P,1;setp.gt.u32 %p,%first,%r;@%p bra ADMIT_DONE;setp.gt.u32 %p,%last,%P;@%p bra ADMIT_DONE;
+ mul.wide.u32 %bytes,%P,8;
+ st.param.u64 [rb],%v6;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v6;st.param.u64 [dn],%bytes;st.param.u64 [db],%args;st.param.u64 [dm],72;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v6;st.param.u64 [dn],%bytes;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v6;st.param.u64 [dn],%bytes;st.param.u64 [db],%v1;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v6;st.param.u64 [dn],%bytes;st.param.u64 [db],%v2;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v6;st.param.u64 [dn],%bytes;st.param.u64 [db],%v3;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v6;st.param.u64 [dn],%bytes;st.param.u64 [db],%v5;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ setp.eq.u64 %p,%v7,0;@%p bra WATER_DONE;
+ st.param.u64 [rb],%v7;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v7;st.param.u64 [dn],%bytes;st.param.u64 [db],%v6;st.param.u64 [dm],%bytes;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v7;st.param.u64 [dn],%bytes;st.param.u64 [db],%args;st.param.u64 [dm],72;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v7;st.param.u64 [dn],%bytes;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v7;st.param.u64 [dn],%bytes;st.param.u64 [db],%v1;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v7;st.param.u64 [dn],%bytes;st.param.u64 [db],%v2;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v7;st.param.u64 [dn],%bytes;st.param.u64 [db],%v3;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v7;st.param.u64 [dn],%bytes;st.param.u64 [db],%v5;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+WATER_DONE:setp.eq.u64 %p,%v8,0;@%p bra RATIO_DONE;
+ st.param.u64 [rb],%v8;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v8;st.param.u64 [dn],8;st.param.u64 [db],%v6;st.param.u64 [dm],%bytes;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v8;st.param.u64 [dn],8;st.param.u64 [db],%args;st.param.u64 [dm],72;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v8;st.param.u64 [dn],8;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v8;st.param.u64 [dn],8;st.param.u64 [db],%v1;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v8;st.param.u64 [dn],8;st.param.u64 [db],%v2;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v8;st.param.u64 [dn],8;st.param.u64 [db],%v3;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v8;st.param.u64 [dn],8;st.param.u64 [db],%v5;st.param.u64 [dm],4;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ setp.eq.u64 %p,%v7,0;@%p bra RATIO_DONE;
+ st.param.u64 [da],%v8;st.param.u64 [dn],8;st.param.u64 [db],%v7;st.param.u64 [dm],%bytes;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+RATIO_DONE:setp.ne.u32 %p,%mode,0;@%p bra LATITUDE_MODE;
+ st.param.u64 [rb],%v0;st.param.u64 [rn],264;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v0;st.param.u64 [dn],264;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v0;st.param.u64 [dn],264;st.param.u64 [db],%v6;st.param.u64 [dm],%bytes;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ setp.eq.u64 %p,%v7,0;@%p bra CONFIG_SEPARATE_7;
+ st.param.u64 [da],%v0;st.param.u64 [dn],264;st.param.u64 [db],%v7;st.param.u64 [dm],%bytes;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+CONFIG_SEPARATE_7:
+ setp.eq.u64 %p,%v8,0;@%p bra CONFIG_SEPARATE_8;
+ st.param.u64 [da],%v0;st.param.u64 [dn],264;st.param.u64 [db],%v8;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+CONFIG_SEPARATE_8:
+ bra ADMIT_OK;
+LATITUDE_MODE:
+ ld.global.u64 %record,[%ctx+48];ld.global.u64 %ptr,[%ctx+56];mov.u32 %error,6211;setp.ne.u64 %p,%ptr,8;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%record;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%record;st.param.u64 [dn],8;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ ld.global.u64 %rpi,[%record];
+ st.param.u64 [rb],%rpi;st.param.u64 [rn],8;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%rpi;st.param.u64 [dn],8;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%record;st.param.u64 [dn],8;st.param.u64 [db],%v6;st.param.u64 [dm],%bytes;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%rpi;st.param.u64 [dn],8;st.param.u64 [db],%v6;st.param.u64 [dm],%bytes;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ setp.eq.u64 %p,%v7,0;@%p bra RPI_SEPARATE_7;
+ st.param.u64 [da],%record;st.param.u64 [dn],8;st.param.u64 [db],%v7;st.param.u64 [dm],%bytes;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%rpi;st.param.u64 [dn],8;st.param.u64 [db],%v7;st.param.u64 [dm],%bytes;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+RPI_SEPARATE_7:
+ setp.eq.u64 %p,%v8,0;@%p bra RPI_SEPARATE_8;
+ st.param.u64 [da],%record;st.param.u64 [dn],8;st.param.u64 [db],%v8;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%rpi;st.param.u64 [dn],8;st.param.u64 [db],%v8;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+RPI_SEPARATE_8:
+ ld.global.b64 %word,[%rpi];mov.u32 %error,6211;setp.ne.b64 %p,%word,0x400921fb54442d18;@%p bra ADMIT_DONE;
+ setp.gt.u32 %p,%first,%last;@%p bra ADMIT_OK;
+ st.param.u64 [rb],%v4;st.param.u64 [rn],%bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v4;st.param.u64 [dn],%bytes;st.param.u64 [db],%ctx;st.param.u64 [dm],64;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [da],%v4;st.param.u64 [dn],%bytes;st.param.u64 [db],%v6;st.param.u64 [dm],%bytes;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ setp.eq.u64 %p,%v7,0;@%p bra COORD_SEPARATE_7;
+ st.param.u64 [da],%v4;st.param.u64 [dn],%bytes;st.param.u64 [db],%v7;st.param.u64 [dm],%bytes;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+COORD_SEPARATE_7:
+ setp.eq.u64 %p,%v8,0;@%p bra COORD_SEPARATE_8;
+ st.param.u64 [da],%v4;st.param.u64 [dn],%bytes;st.param.u64 [db],%v8;st.param.u64 [dm],8;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+COORD_SEPARATE_8:
+ sub.u32 %c,%first,1;
+COORDINATE:mul.wide.u32 %offset,%c,8;add.u64 %ptr,%v4,%offset;ld.global.b64 %word,[%ptr];st.param.b64 [sinearg],%word;st.param.u32 [modearg],%mode;call.uni (looked),cloud_decorr_lookup,(sinearg,modearg);ld.param.b64 %value,[looked];mov.u32 %error,6212;setp.eq.b64 %p,%value,0x7ff8000000000001;@%p bra ADMIT_DONE;
+ add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra COORDINATE;
+ADMIT_OK:mov.u32 %error,0;
+ADMIT_DONE:st.param.u32 [result],%error;ret;
+}
+
+.visible .entry md2asm_gpu_cloud_overlap_decorr_len(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%ptr;
+ .reg .u32 %thread,%unique,%r,%error,%old;
+ .reg .pred %p;
+ .shared .align 4 .b32 admission;
+ .param .u64 av,cv;.param .u32 rr;
+
+ .reg .u64 %v<9>,%record,%offset;
+ .reg .u32 %first,%last,%mode,%c,%flags,%raised;
+ .reg .b64 %factor,%edge,%water,%ratio,%word,%value,%tmp0;
+ .param .b64 ma,mb,sinearg,looked;.param .u32 modearg;.param .align 8 .b8 math[16];
+ .shared .align 8 .b8 coefficients[40];
+
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %ptr,%ctx,7;setp.ne.u64 %p,%ptr,0;@%p ret;
+ mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
+ mov.u32 %r,%ctaid.x;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.z;or.b32 %unique,%unique,%r;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+ mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,128;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%nctaid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ setp.ne.u32 %p,%thread,0;@%p bra WAIT;
+ st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),md2asm_gpu_cloud_overlap_decorr_len_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
+WAIT:
+ bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %v0,[%args+0];
+ ld.global.u64 %v1,[%args+8];
+ ld.global.u64 %v2,[%args+16];
+ ld.global.u64 %v3,[%args+24];
+ ld.global.u64 %v4,[%args+32];
+ ld.global.u64 %v5,[%args+40];
+ ld.global.u64 %v6,[%args+48];
+ ld.global.u64 %v7,[%args+56];
+ ld.global.u64 %v8,[%args+64];
+ ld.global.u32 %first,[%v1];ld.global.u32 %last,[%v2];ld.global.u32 %mode,[%v5];mov.u32 %flags,0;setp.ne.u32 %p,%thread,0;@%p bra CONSTANT_WAIT;
+ setp.ne.u32 %p,%mode,0;@%p bra COMPUTE_FACTOR;ld.global.b64 %edge,[%v0+136];ld.global.b64 %water,[%v0+144];mov.b64 %factor,0;mov.b64 %ratio,0;setp.eq.u64 %p,%v8,0;@%p bra CONSTANT_DONE;
+ st.param.b64 [ma],%water;st.param.b64 [mb],%edge;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %ratio,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ bra CONSTANT_DONE;
+COMPUTE_FACTOR:ld.global.u64 %record,[%ctx+48];ld.global.u64 %ptr,[%record];ld.global.b64 %word,[%ptr];
+ st.param.b64 [ma],0x4066800000000000;st.param.b64 [mb],%word;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %factor,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ mov.b64 %edge,0;mov.b64 %water,0;mov.b64 %ratio,0x3fe0000000000000;
+CONSTANT_DONE:st.shared.b64 [coefficients],%factor;st.shared.b64 [coefficients+8],%edge;st.shared.b64 [coefficients+16],%water;st.shared.b64 [coefficients+24],%ratio;st.shared.u32 [coefficients+32],%flags;
+CONSTANT_WAIT:bar.sync 0;
+ ld.shared.b64 %factor,[coefficients];ld.shared.b64 %edge,[coefficients+8];ld.shared.b64 %water,[coefficients+16];ld.shared.b64 %ratio,[coefficients+24];ld.shared.u32 %flags,[coefficients+32];
+ setp.ne.u32 %p,%thread,0;@%p bra RATIO_WRITTEN;setp.eq.u64 %p,%v8,0;@%p bra RATIO_WRITTEN;st.global.b64 [%v8],%ratio;
+RATIO_WRITTEN:sub.u32 %c,%first,1;add.u32 %c,%c,%thread;
+CELL:setp.ge.u32 %p,%c,%last;@%p bra COMPLETE;mul.wide.u32 %offset,%c,8;setp.eq.u32 %p,%mode,0;@%p bra STORE;
+ add.u64 %ptr,%v4,%offset;ld.global.b64 %word,[%ptr];st.param.b64 [sinearg],%word;st.param.u32 [modearg],%mode;call.uni (looked),cloud_decorr_lookup,(sinearg,modearg);ld.param.b64 %value,[looked];setp.ne.u32 %p,%mode,1;@%p bra SMOOTH;
+ st.param.b64 [ma],%value;st.param.b64 [mb],%factor;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %tmp0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ and.b64 %tmp0,%tmp0,0x7fffffffffffffff;
+ st.param.b64 [ma],0x3f9c408d8ec95bff;st.param.b64 [mb],%tmp0;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %tmp0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x40073126e978d4fe;st.param.b64 [mb],%tmp0;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %edge,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ bra LENGTH_READY;
+SMOOTH:
+ st.param.b64 [ma],0x40013126e978d4fe;st.param.b64 [mb],%value;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %tmp0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%tmp0;st.param.b64 [mb],%value;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %tmp0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3fe8000000000000;st.param.b64 [mb],%tmp0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %edge,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+
+LENGTH_READY:setp.eq.u64 %p,%v7,0;@%p bra STORE;
+ st.param.b64 [ma],%edge;st.param.b64 [mb],0x3fe0000000000000;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %water,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+
+STORE:add.u64 %ptr,%v6,%offset;st.global.b64 [%ptr],%edge;setp.eq.u64 %p,%v7,0;@%p bra NEXT;add.u64 %ptr,%v7,%offset;st.global.b64 [%ptr],%water;
+NEXT:add.u32 %c,%c,128;bra CELL;
+COMPLETE:atom.global.or.b32 %old,[%ctx+8],%flags;ret;
+
+BAD_LAUNCH:mov.u32 %error,6208;
+REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
+}

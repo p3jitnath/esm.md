@@ -1,0 +1,77 @@
+// Direct spectral rotation coefficient child from revision1 Markdown.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_rn(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_rn(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sqrt_status(.param .b64 a);
+.visible .func (.param .u32 result) openifs_rotation_coefficients_core_fp64(.param .u32 order,.param .u32 maximum,.param .b64 rounded_factor,.param .u64 alpha,.param .u64 denim,.param .u64 epsilon,.param .u64 plus,.param .u64 minus)
+{
+ .reg .u32 %m,%n,%j,%rt,%flags,%raised; .reg .u64 %alpha,%denim,%epsilon,%plus,%minus,%ptr,%offset;
+ .reg .b64 %F,%H,%x,%z,%x1,%u<4>,%A,%D,%E,%negative; .reg .pred %p;
+ .param .b64 a,b; .param .align 8 .b8 r[16];
+ ld.param.u32 %m,[order]; ld.param.u32 %n,[maximum]; ld.param.b64 %F,[rounded_factor]; ld.param.u64 %alpha,[alpha]; ld.param.u64 %denim,[denim]; ld.param.u64 %epsilon,[epsilon]; ld.param.u64 %plus,[plus]; ld.param.u64 %minus,[minus]; mov.u32 %flags,0; cvt.rn.f64.u32 %z,%m;
+
+ st.param.b64 [a],%F; st.param.b64 [b],%z; call.uni (r),md2asm_gpu_mul_rn,(a,b); ld.param.b64 %H,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ mov.u32 %j,%m; setp.ne.u32 %p,%m,0; @%p bra COEFFICIENT;
+ st.global.b64 [%alpha],0;
+ st.global.b64 [%denim],0;
+ st.global.b64 [%epsilon],0;
+ mov.u32 %j,1;
+COEFFICIENT:
+ cvt.rn.f64.u32 %x,%j;
+ st.param.b64 [a],%x; st.param.b64 [b],0x3ff0000000000000; call.uni (r),md2asm_gpu_add_rn,(a,b); ld.param.b64 %x1,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [a],%x; st.param.b64 [b],%x1; call.uni (r),md2asm_gpu_mul_rn,(a,b); ld.param.b64 %u0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [a],%H; st.param.b64 [b],%u0; call.uni (r),md2asm_gpu_div_status,(a,b); ld.param.b64 %A,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [a],%A; st.param.b64 [b],%A; call.uni (r),md2asm_gpu_mul_rn,(a,b); ld.param.b64 %u0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [a],0x3ff0000000000000; st.param.b64 [b],%u0; call.uni (r),md2asm_gpu_add_rn,(a,b); ld.param.b64 %u0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [a],0x3ff0000000000000; st.param.b64 [b],%u0; call.uni (r),md2asm_gpu_div_status,(a,b); ld.param.b64 %D,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [a],%x; st.param.b64 [b],%x; call.uni (r),md2asm_gpu_mul_rn,(a,b); ld.param.b64 %u0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [a],%z; st.param.b64 [b],%z; call.uni (r),md2asm_gpu_mul_rn,(a,b); ld.param.b64 %u1,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ xor.b64 %negative,%u1,0x8000000000000000;
+ st.param.b64 [a],%u0; st.param.b64 [b],%negative; call.uni (r),md2asm_gpu_add_rn,(a,b); ld.param.b64 %u0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [a],0x4010000000000000; st.param.b64 [b],%x; call.uni (r),md2asm_gpu_mul_rn,(a,b); ld.param.b64 %u1,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [a],%u1; st.param.b64 [b],%x; call.uni (r),md2asm_gpu_mul_rn,(a,b); ld.param.b64 %u1,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ xor.b64 %negative,0x3ff0000000000000,0x8000000000000000;
+ st.param.b64 [a],%u1; st.param.b64 [b],%negative; call.uni (r),md2asm_gpu_add_rn,(a,b); ld.param.b64 %u1,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [a],%u0; st.param.b64 [b],%u1; call.uni (r),md2asm_gpu_div_status,(a,b); ld.param.b64 %u0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [a],%u0; call.uni (r),md2asm_gpu_sqrt_status,(a); ld.param.b64 %E,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ mul.wide.u32 %offset,%j,8; add.u64 %ptr,%alpha,%offset; st.global.b64 [%ptr],%A;
+ mul.wide.u32 %offset,%j,8; add.u64 %ptr,%denim,%offset; st.global.b64 [%ptr],%D;
+ mul.wide.u32 %offset,%j,8; add.u64 %ptr,%epsilon,%offset; st.global.b64 [%ptr],%E;
+ add.u32 %j,%j,1; setp.le.u32 %p,%j,%n; @%p bra COEFFICIENT;
+ mul.wide.u32 %offset,%j,8; add.u64 %ptr,%alpha,%offset; st.global.b64 [%ptr],0;
+ mul.wide.u32 %offset,%j,8; add.u64 %ptr,%denim,%offset; st.global.b64 [%ptr],0;
+ mov.u32 %j,%m; setp.ne.u32 %p,%m,0; @%p bra NEIGHBOR_TEST; st.global.b64 [%plus],0; st.global.b64 [%minus],0; mov.u32 %j,1;
+NEIGHBOR_TEST:
+ setp.ge.u32 %p,%j,%n; @%p bra LAST_NEIGHBOR;
+NEIGHBOR:
+ cvt.rn.f64.u32 %x,%j;
+ st.param.b64 [a],%x; st.param.b64 [b],0x3ff0000000000000; call.uni (r),md2asm_gpu_add_rn,(a,b); ld.param.b64 %x1,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [a],%F; st.param.b64 [b],%x; call.uni (r),md2asm_gpu_mul_rn,(a,b); ld.param.b64 %u0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ add.u32 %rt,%j,1;
+ mul.wide.u32 %offset,%rt,8; add.u64 %ptr,%epsilon,%offset; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [a],%u0; st.param.b64 [b],%u1; call.uni (r),md2asm_gpu_mul_rn,(a,b); ld.param.b64 %u0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [a],%u0; st.param.b64 [b],%x1; call.uni (r),md2asm_gpu_div_status,(a,b); ld.param.b64 %u0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ mul.wide.u32 %offset,%j,8; add.u64 %ptr,%plus,%offset; st.global.b64 [%ptr],%u0;
+ st.param.b64 [a],%F; st.param.b64 [b],%x1; call.uni (r),md2asm_gpu_mul_rn,(a,b); ld.param.b64 %u0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ mul.wide.u32 %offset,%j,8; add.u64 %ptr,%epsilon,%offset; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [a],%u0; st.param.b64 [b],%u1; call.uni (r),md2asm_gpu_mul_rn,(a,b); ld.param.b64 %u0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [a],%u0; st.param.b64 [b],%x; call.uni (r),md2asm_gpu_div_status,(a,b); ld.param.b64 %u0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ mul.wide.u32 %offset,%j,8; add.u64 %ptr,%minus,%offset; st.global.b64 [%ptr],%u0;
+ add.u32 %j,%j,1; setp.lt.u32 %p,%j,%n; @%p bra NEIGHBOR;
+LAST_NEIGHBOR:
+ mov.u32 %j,%n; cvt.rn.f64.u32 %x,%j;
+ st.param.b64 [a],%x; st.param.b64 [b],0x3ff0000000000000; call.uni (r),md2asm_gpu_add_rn,(a,b); ld.param.b64 %x1,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ mul.wide.u32 %offset,%j,8; add.u64 %ptr,%plus,%offset; st.global.b64 [%ptr],0;
+ st.param.b64 [a],%F; st.param.b64 [b],%x1; call.uni (r),md2asm_gpu_mul_rn,(a,b); ld.param.b64 %u0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ mul.wide.u32 %offset,%j,8; add.u64 %ptr,%epsilon,%offset; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [a],%u0; st.param.b64 [b],%u1; call.uni (r),md2asm_gpu_mul_rn,(a,b); ld.param.b64 %u0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [a],%u0; st.param.b64 [b],%x; call.uni (r),md2asm_gpu_div_status,(a,b); ld.param.b64 %u0,[r]; ld.param.u32 %raised,[r+8]; or.b32 %flags,%flags,%raised;
+ mul.wide.u32 %offset,%j,8; add.u64 %ptr,%minus,%offset; st.global.b64 [%ptr],%u0;
+ add.u32 %j,%j,1;
+ mul.wide.u32 %offset,%j,8; add.u64 %ptr,%plus,%offset; st.global.b64 [%ptr],0;
+ mul.wide.u32 %offset,%j,8; add.u64 %ptr,%minus,%offset; st.global.b64 [%ptr],0;
+ st.param.u32 [result],%flags; ret;
+}

@@ -1,0 +1,51 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Unverified surface storage support; the retained component contract revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.visible .func (.param .u32 error) md2asm_gpu_surface_owner_range(.param .u64 base,.param .u64 bytes,.param .u64 mask)
+{
+ .reg .u64 %b,%n,%m,%v; .reg .u32 %e; .reg .pred %p;
+ ld.param.u64 %b,[base];ld.param.u64 %n,[bytes];ld.param.u64 %m,[mask];mov.u32 %e,0;
+ setp.eq.u64 %p,%n,0;@%p bra DONE;mov.u32 %e,6399;setp.eq.u64 %p,%b,0;@%p bra DONE;and.b64 %v,%b,%m;setp.ne.u64 %p,%v,0;@%p bra DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff;@%p bra DONE;setp.gt.u64 %p,%n,0x7fffffffffffffff;@%p bra DONE;add.u64 %v,%b,%n;setp.gt.u64 %p,%v,0x7fffffffffffffff;@%p bra DONE;mov.u32 %e,0;
+DONE:st.param.u32 [error],%e;ret;
+}
+.visible .func (.param .u32 error) md2asm_gpu_surface_owner_disjoint(.param .u64 a,.param .u64 an,.param .u64 b,.param .u64 bn)
+{
+ .reg .u64 %a,%an,%b,%bn,%ae,%be; .reg .u32 %e; .reg .pred %p,%q;
+ ld.param.u64 %a,[a];ld.param.u64 %an,[an];ld.param.u64 %b,[b];ld.param.u64 %bn,[bn];mov.u32 %e,0;
+ setp.eq.u64 %p,%an,0;@%p bra DONE;setp.eq.u64 %p,%bn,0;@%p bra DONE;add.u64 %ae,%a,%an;add.u64 %be,%b,%bn;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;selp.u32 %e,6399,0,%p;
+DONE:st.param.u32 [error],%e;ret;
+}
+.visible .func (.param .align 8 .b8 result[64]) md2asm_gpu_surface_descriptor_geometry(.param .u64 descriptor,.param .u32 rank,.param .u32 element_bytes,.param .u64 required0,.param .u64 required1,.param .u64 required2,.param .u32 zero_is_one)
+{
+ .reg .u64 %d,%base,%step<3>,%req<3>,%lo,%hi,%extent,%stride,%magnitude,%last,%product,%high,%positive,%negative,%total,%limit,%low,%span,%end,%offset,%tmp;
+ .reg .u32 %rank,%bytes,%normalize,%dim,%shift,%error,%empty,%normalize_bit; .reg .pred %p;
+ ld.param.u64 %d,[descriptor];ld.param.u32 %rank,[rank];ld.param.u32 %bytes,[element_bytes];ld.param.u64 %req0,[required0];ld.param.u64 %req1,[required1];ld.param.u64 %req2,[required2];ld.param.u32 %normalize,[zero_is_one];
+ mov.u32 %error,6399;mov.u64 %base,0;mov.u64 %step0,0;mov.u64 %step1,0;mov.u64 %step2,0;mov.u64 %low,0;mov.u64 %span,0;
+ setp.lt.u32 %p,%rank,1;@%p bra DONE;setp.gt.u32 %p,%rank,3;@%p bra DONE;setp.eq.u32 %p,%bytes,4;@%p bra FOUR;setp.ne.u32 %p,%bytes,8;@%p bra DONE;mov.u32 %shift,3;mov.u64 %limit,0x0ffffffffffffffe;bra SIZE_READY;
+FOUR:mov.u32 %shift,2;mov.u64 %limit,0x1ffffffffffffffe;
+SIZE_READY:ld.global.u64 %base,[%d];mov.u64 %positive,0;mov.u64 %negative,0;mov.u64 %total,0;mov.u32 %empty,0;mov.u32 %dim,0;mov.u64 %offset,40;
+DIMENSION:
+ add.u64 %tmp,%d,%offset;ld.global.s64 %stride,[%tmp];ld.global.s64 %lo,[%tmp+8];ld.global.s64 %hi,[%tmp+16];setp.ge.s64 %p,%hi,%lo;@%p bra NONEMPTY;
+ setp.eq.u64 %p,%lo,0x8000000000000000;@%p bra DONE;sub.u64 %extent,%lo,1;setp.ne.u64 %p,%hi,%extent;@%p bra DONE;mov.u64 %extent,0;bra EXTENT_READY;
+NONEMPTY:sub.u64 %extent,%hi,%lo;setp.gt.u64 %p,%extent,0x7ffffffffffffffe;@%p bra DONE;add.u64 %extent,%extent,1;
+EXTENT_READY:setp.eq.u32 %p,%dim,0;@%p bra REQUIRE0;setp.eq.u32 %p,%dim,1;@%p bra REQUIRE1;setp.lt.u64 %p,%extent,%req2;@%p bra DONE;bra STRIDE_READY;
+REQUIRE0:setp.lt.u64 %p,%extent,%req0;@%p bra DONE;bra STRIDE_READY;
+REQUIRE1:setp.lt.u64 %p,%extent,%req1;@%p bra DONE;
+STRIDE_READY:shr.u32 %normalize_bit,%normalize,%dim;and.b32 %normalize_bit,%normalize_bit,1;setp.eq.u32 %p,%normalize_bit,0;@%p bra RAW_STRIDE;setp.eq.u64 %p,%stride,0;@%p mov.u64 %stride,1;
+RAW_STRIDE:shl.b64 %tmp,%stride,%shift;setp.eq.u32 %p,%dim,0;@%p mov.u64 %step0,%tmp;setp.eq.u32 %p,%dim,1;@%p mov.u64 %step1,%tmp;setp.eq.u32 %p,%dim,2;@%p mov.u64 %step2,%tmp;
+ setp.eq.u64 %p,%extent,0;@%p bra EMPTY_DIM;sub.u64 %last,%extent,1;mov.u64 %magnitude,%stride;setp.lt.s64 %p,%stride,0;@%p neg.s64 %magnitude,%stride;
+ mul.hi.u64 %high,%last,%magnitude;setp.ne.u64 %p,%high,0;@%p bra DONE;mul.lo.u64 %product,%last,%magnitude;setp.gt.u64 %p,%product,%limit;@%p bra DONE;add.u64 %total,%total,%product;setp.gt.u64 %p,%total,%limit;@%p bra DONE;
+ setp.lt.s64 %p,%stride,0;@%p add.u64 %negative,%negative,%product;@!%p add.u64 %positive,%positive,%product;bra NEXT_DIM;
+EMPTY_DIM:mov.u32 %empty,1;
+NEXT_DIM:add.u32 %dim,%dim,1;add.u64 %offset,%offset,24;setp.lt.u32 %p,%dim,%rank;@%p bra DIMENSION;
+ setp.ne.u32 %p,%empty,0;@%p bra EMPTY;setp.eq.u64 %p,%base,0;@%p bra DONE;setp.gt.u64 %p,%base,0x7fffffffffffffff;@%p bra DONE;sub.u32 %dim,%bytes,1;cvt.u64.u32 %tmp,%dim;and.b64 %tmp,%base,%tmp;setp.ne.u64 %p,%tmp,0;@%p bra DONE;
+ shl.b64 %negative,%negative,%shift;setp.le.u64 %p,%base,%negative;@%p bra DONE;sub.u64 %low,%base,%negative;shl.b64 %span,%total,%shift;cvt.u64.u32 %tmp,%bytes;add.u64 %span,%span,%tmp;add.u64 %end,%low,%span;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra DONE;mov.u32 %error,0;bra DONE;
+EMPTY:
+ // Every dimension has been checked; the complete owner has no elements.
+ mov.u64 %span,0;mov.u64 %low,%base;mov.u32 %error,0;
+DONE:st.param.u64 [result],%base;st.param.u64 [result+8],%step0;st.param.u64 [result+16],%step1;st.param.u64 [result+24],%step2;st.param.u64 [result+32],%low;st.param.u64 [result+40],%span;st.param.u32 [result+48],%error;st.param.u32 [result+52],0;st.param.u64 [result+56],0;ret;
+}

@@ -1,0 +1,409 @@
+// Source ABI: the PTX parameter declarations and guard code define this component interface.
+// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Complete SIMPLICO from skills/md2asm/references/openifs/dynamics/simplico.md revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_rn(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_rn(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.visible .func (.param .u32 result) openifs_simplico_core_fp64(.param .u32 order,.param .u32 maximum,.param .u32 levels,.param .u32 capacity,.param .b64 timestep_squared,.param .u64 alpha,.param .u64 denim,.param .u64 plus,.param .u64 minus,.param .u64 vertical,.param .u64 laplacian,.param .u64 input,.param .u64 output,.param .u64 work)
+{
+ .reg .u32 %m,%n,%l,%s,%degree,%begin,%finish,%parity,%rt,%level,%flags,%raised;
+ .reg .u64 %a,%d,%p,%q,%v,%lap,%Y,%X,%W,%ptr,%tmp,%tempN,%tempDegree,%m64,%s64;
+ .reg .b64 %bdt,%g,%delta,%supR,%supI,%subR,%subI,%G,%Delta,%under,%mu,%nu,%YR,%YI,%XR,%XI,%WR,%WI,%VR,%LR,%u<12>,%negative;
+ .reg .pred %p<3>; .param .b64 ma,mb; .param .align 8 .b8 mr[16];
+ ld.param.u32 %m,[order]; ld.param.u32 %n,[maximum]; ld.param.u32 %l,[levels]; ld.param.u32 %s,[capacity]; ld.param.b64 %bdt,[timestep_squared]; ld.param.u64 %a,[alpha]; ld.param.u64 %d,[denim]; ld.param.u64 %p,[plus]; ld.param.u64 %q,[minus]; ld.param.u64 %v,[vertical]; ld.param.u64 %lap,[laplacian]; ld.param.u64 %Y,[input]; ld.param.u64 %X,[output]; ld.param.u64 %W,[work]; cvt.u64.u32 %m64,%m; cvt.u64.u32 %s64,%s; mov.u32 %flags,0; mov.b64 %delta,0;
+ setp.ne.u32 %p0,%m,0; @%p0 bra PARITY_START; mov.u32 %degree,%m;
+ZERO_DEGREE: mov.u32 %level,0;
+ZERO_LEVEL: setp.ge.u32 %p0,%level,%s; @%p0 bra ZERO_NEXT;
+
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,1; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%Y,%tempDegree;
+ st.global.b64 [%ptr],0;
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,1; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ st.global.b64 [%ptr],0;
+ add.u32 %level,%level,1; bra ZERO_LEVEL;
+ZERO_NEXT:
+ add.u32 %degree,%degree,1; setp.le.u32 %p0,%degree,%n; @%p0 bra ZERO_DEGREE;
+PARITY_START:
+ mov.u32 %parity,0;
+PARITY:
+ add.u32 %begin,%m,%parity; sub.u32 %rt,%n,%m; add.u32 %rt,%rt,%parity; and.b32 %rt,%rt,1; sub.u32 %finish,%n,%rt; mov.u32 %degree,%begin;
+FORWARD_DEGREE:
+ setp.ne.u32 %p0,%m,0; @%p0 bra POSITIVE_COEFFICIENT;
+ setp.ne.u32 %p0,%degree,%begin; @%p0 bra ZERO_LATER_COEFFICIENT;
+ sub.u32 %rt,%degree,%m; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%p,%tmp; ld.global.b64 %u0,[%ptr];
+ sub.u32 %rt,%degree,%m; add.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%q,%tmp; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%u2; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %g,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ setp.ne.u32 %p0,%degree,%begin; @%p0 bra ZERO_LATER_COEFFICIENT; setp.eq.u32 %p0,%parity,0; @%p0 bra ZERO_SUPER;
+ sub.u32 %rt,%degree,%m; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%q,%tmp; ld.global.b64 %u0,[%ptr];
+ sub.u32 %rt,%degree,%m; sub.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%p,%tmp; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%g; st.param.b64 [mb],%u2; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %g,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ bra ZERO_SUPER;
+ZERO_LATER_COEFFICIENT:
+ sub.u32 %rt,%degree,%m; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%q,%tmp; ld.global.b64 %u0,[%ptr];
+ sub.u32 %rt,%degree,%m; sub.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%p,%tmp; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%u2; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %g,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%p,%tmp; ld.global.b64 %u0,[%ptr];
+ sub.u32 %rt,%degree,%m; add.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%q,%tmp; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%g; st.param.b64 [mb],%u2; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %g,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; sub.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%q,%tmp; ld.global.b64 %u0,[%ptr];
+ sub.u32 %rt,%degree,%m; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%q,%tmp; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %subR,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ZERO_SUPER:
+ sub.u32 %rt,%degree,%m; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%p,%tmp; ld.global.b64 %u0,[%ptr];
+ sub.u32 %rt,%degree,%m; add.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%p,%tmp; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %supR,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ bra FORWARD_LEVEL_START;
+POSITIVE_COEFFICIENT:
+ setp.ne.u32 %p0,%degree,%begin; @%p0 bra POSITIVE_LATER;
+ sub.u32 %rt,%degree,%m; add.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%d,%tmp; ld.global.b64 %u0,[%ptr];
+ sub.u32 %rt,%degree,%m; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%p,%tmp; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; add.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%q,%tmp; ld.global.b64 %u3,[%ptr];
+ st.param.b64 [ma],%u2; st.param.b64 [mb],%u3; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u4,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%u4; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %g,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; add.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%a,%tmp; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%p,%tmp; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [ma],%u2; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u2; st.param.b64 [mb],%u3; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%a,%tmp; ld.global.b64 %u1,[%ptr];
+ xor.b64 %u1,%u1,0x8000000000000000;
+ st.param.b64 [ma],%u1; st.param.b64 [mb],%u2; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %delta,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ setp.ne.u32 %p0,%degree,%begin; @%p0 bra POSITIVE_LATER; setp.eq.u32 %p0,%parity,0; @%p0 bra POSITIVE_SUPER;
+ sub.u32 %rt,%degree,%m; sub.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%d,%tmp; ld.global.b64 %u0,[%ptr];
+ sub.u32 %rt,%degree,%m; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%q,%tmp; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; sub.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%p,%tmp; ld.global.b64 %u3,[%ptr];
+ st.param.b64 [ma],%u2; st.param.b64 [mb],%u3; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%g; st.param.b64 [mb],%u2; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %g,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; sub.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%a,%tmp; ld.global.b64 %u2,[%ptr];
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u2; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u2; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u2; st.param.b64 [mb],%u3; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%delta; st.param.b64 [mb],%u2; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %delta,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ bra POSITIVE_SUPER;
+POSITIVE_LATER:
+ sub.u32 %rt,%degree,%m; sub.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%d,%tmp; ld.global.b64 %u0,[%ptr];
+ sub.u32 %rt,%degree,%m; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%q,%tmp; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; sub.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%p,%tmp; ld.global.b64 %u3,[%ptr];
+ st.param.b64 [ma],%u2; st.param.b64 [mb],%u3; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%u2; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %g,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; add.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%d,%tmp; ld.global.b64 %u4,[%ptr];
+ sub.u32 %rt,%degree,%m; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%p,%tmp; ld.global.b64 %u5,[%ptr];
+ st.param.b64 [ma],%u4; st.param.b64 [mb],%u5; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u6,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; add.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%q,%tmp; ld.global.b64 %u7,[%ptr];
+ st.param.b64 [ma],%u6; st.param.b64 [mb],%u7; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u6,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%g; st.param.b64 [mb],%u6; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %g,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%a,%tmp; ld.global.b64 %u2,[%ptr];
+ xor.b64 %u2,%u2,0x8000000000000000;
+ sub.u32 %rt,%degree,%m; sub.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%a,%tmp; ld.global.b64 %u6,[%ptr];
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u6; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u6,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u6; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u6,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u6; st.param.b64 [mb],%u3; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u6,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u2; st.param.b64 [mb],%u6; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %delta,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; add.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%a,%tmp; ld.global.b64 %u6,[%ptr];
+ st.param.b64 [ma],%u4; st.param.b64 [mb],%u6; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u6,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u6; st.param.b64 [mb],%u5; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u6,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u6; st.param.b64 [mb],%u7; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u6,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%delta; st.param.b64 [mb],%u6; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %delta,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; sub.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%q,%tmp; ld.global.b64 %u1,[%ptr];
+ sub.u32 %rt,%degree,%m; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%q,%tmp; ld.global.b64 %u2,[%ptr];
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u3,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u3; st.param.b64 [mb],%u2; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %subR,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; sub.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%a,%tmp; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [ma],%u1; st.param.b64 [mb],%subR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %subI,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+POSITIVE_SUPER:
+ sub.u32 %rt,%degree,%m; add.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%d,%tmp; ld.global.b64 %u0,[%ptr];
+ sub.u32 %rt,%degree,%m; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%p,%tmp; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; add.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%p,%tmp; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [ma],%u2; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %supR,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%degree,%m; add.u32 %rt,%rt,1; mul.wide.u32 %tmp,%rt,8; add.u64 %ptr,%a,%tmp; ld.global.b64 %u1,[%ptr];
+ st.param.b64 [ma],%u1; st.param.b64 [mb],%supR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %supI,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+FORWARD_LEVEL_START:
+ mov.u32 %level,0;
+FORWARD_LEVEL:
+ setp.ge.u32 %p0,%level,%l; @%p0 bra FORWARD_NEXT; mul.wide.u32 %tmp,%level,8; add.u64 %ptr,%v,%tmp; ld.global.b64 %VR,[%ptr]; mul.wide.u32 %tmp,%degree,8; add.u64 %ptr,%lap,%tmp; ld.global.b64 %LR,[%ptr];
+ st.param.b64 [ma],%bdt; st.param.b64 [mb],%VR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%LR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ xor.b64 %negative,%u0,0x8000000000000000;
+ st.param.b64 [ma],%g; st.param.b64 [mb],%negative; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %G,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ mov.b64 %Delta,%delta;
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,0; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%Y,%tempDegree;
+ ld.global.b64 %YR,[%ptr];
+ setp.eq.u32 %p0,%m,0; @%p0 bra ZERO_FORWARD;
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,1; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%Y,%tempDegree;
+ ld.global.b64 %YI,[%ptr];
+ setp.eq.u32 %p0,%degree,%begin; @%p0 bra POSITIVE_INVERSE;
+ cvt.u64.u32 %tempN,%degree; sub.u64 %tempN,%tempN,2;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,0; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%W,%tempDegree;
+ ld.global.b64 %WR,[%ptr];
+ cvt.u64.u32 %tempN,%degree; sub.u64 %tempN,%tempN,2;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,1; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%W,%tempDegree;
+ ld.global.b64 %WI,[%ptr];
+ st.param.b64 [ma],%subR; st.param.b64 [mb],%WR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%G; st.param.b64 [mb],%u0; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %G,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%subI; st.param.b64 [mb],%WI; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ xor.b64 %negative,%u0,0x8000000000000000;
+ st.param.b64 [ma],%G; st.param.b64 [mb],%negative; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %G,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%subI; st.param.b64 [mb],%WR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%Delta; st.param.b64 [mb],%u0; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %Delta,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%subR; st.param.b64 [mb],%WI; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%Delta; st.param.b64 [mb],%u0; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %Delta,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ cvt.u64.u32 %tempN,%degree; sub.u64 %tempN,%tempN,2;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,0; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ ld.global.b64 %XR,[%ptr];
+ cvt.u64.u32 %tempN,%degree; sub.u64 %tempN,%tempN,2;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,1; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ ld.global.b64 %XI,[%ptr];
+ st.param.b64 [ma],%subR; st.param.b64 [mb],%XR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%subI; st.param.b64 [mb],%XI; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u1,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ xor.b64 %negative,%u1,0x8000000000000000;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%negative; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%YR; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %YR,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%subI; st.param.b64 [mb],%XR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%subR; st.param.b64 [mb],%XI; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u1,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%YI; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %YI,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+POSITIVE_INVERSE:
+ st.param.b64 [ma],%G; st.param.b64 [mb],%G; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%Delta; st.param.b64 [mb],%Delta; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u1,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%u0; call.uni (mr),md2asm_gpu_div_status,(ma,mb); ld.param.b64 %under,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ xor.b64 %u0,%G,0x8000000000000000;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%under; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %mu,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%Delta; st.param.b64 [mb],%under; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %nu,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%mu; st.param.b64 [mb],%YR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%nu; st.param.b64 [mb],%YI; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u1,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ xor.b64 %negative,%u1,0x8000000000000000;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%negative; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %XR,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%nu; st.param.b64 [mb],%YR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%mu; st.param.b64 [mb],%YI; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u1,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %XI,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%mu; st.param.b64 [mb],%supR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%nu; st.param.b64 [mb],%supI; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u1,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ xor.b64 %negative,%u1,0x8000000000000000;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%negative; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %WR,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%nu; st.param.b64 [mb],%supR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%mu; st.param.b64 [mb],%supI; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u1,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %WI,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,0; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ st.global.b64 [%ptr],%XR;
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,1; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ st.global.b64 [%ptr],%XI;
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,0; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%W,%tempDegree;
+ st.global.b64 [%ptr],%WR;
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,1; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%W,%tempDegree;
+ st.global.b64 [%ptr],%WI;
+ bra FORWARD_LEVEL_NEXT;
+ZERO_FORWARD:
+ setp.eq.u32 %p0,%degree,%begin; @%p0 bra ZERO_INVERSE;
+ cvt.u64.u32 %tempN,%degree; sub.u64 %tempN,%tempN,2;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,0; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%W,%tempDegree;
+ ld.global.b64 %WR,[%ptr];
+ st.param.b64 [ma],%subR; st.param.b64 [mb],%WR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%G; st.param.b64 [mb],%u0; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %G,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ cvt.u64.u32 %tempN,%degree; sub.u64 %tempN,%tempN,2;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,0; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ ld.global.b64 %XR,[%ptr];
+ st.param.b64 [ma],%subR; st.param.b64 [mb],%XR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%YR; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %YR,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ZERO_INVERSE:
+ st.param.b64 [ma],%G; st.param.b64 [mb],%G; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%u0; call.uni (mr),md2asm_gpu_div_status,(ma,mb); ld.param.b64 %under,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ xor.b64 %u0,%G,0x8000000000000000;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%under; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %mu,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%mu; st.param.b64 [mb],%YR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %XR,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%mu; st.param.b64 [mb],%supR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %WR,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,0; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ st.global.b64 [%ptr],%XR;
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,0; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%W,%tempDegree;
+ st.global.b64 [%ptr],%WR;
+FORWARD_LEVEL_NEXT:
+ add.u32 %level,%level,1; bra FORWARD_LEVEL;
+FORWARD_NEXT:
+ add.u32 %degree,%degree,2; setp.le.u32 %p0,%degree,%finish; @%p0 bra FORWARD_DEGREE; mov.u32 %degree,%finish; mov.u32 %level,0;
+BACKWARD_ENDPOINT:
+ setp.ge.u32 %p0,%level,%l; @%p0 bra BACKWARD_START;
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,0; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ ld.global.b64 %XR,[%ptr];
+ xor.b64 %XR,%XR,0x8000000000000000;
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,0; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ st.global.b64 [%ptr],%XR;
+ setp.eq.u32 %p0,%m,0; @%p0 bra BACKWARD_ENDPOINT_NEXT;
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,1; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ ld.global.b64 %XI,[%ptr];
+ xor.b64 %XI,%XI,0x8000000000000000;
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,1; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ st.global.b64 [%ptr],%XI;
+BACKWARD_ENDPOINT_NEXT:
+ add.u32 %level,%level,1; bra BACKWARD_ENDPOINT;
+BACKWARD_START:
+ setp.eq.u32 %p0,%degree,%begin; @%p0 bra PARITY_NEXT; sub.u32 %degree,%degree,2;
+BACKWARD_DEGREE:
+ mov.u32 %level,0;
+BACKWARD_LEVEL:
+ setp.ge.u32 %p0,%level,%l; @%p0 bra BACKWARD_NEXT;
+ cvt.u64.u32 %tempN,%degree; add.u64 %tempN,%tempN,2;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,0; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ ld.global.b64 %YR,[%ptr];
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,0; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ ld.global.b64 %XR,[%ptr];
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,0; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%W,%tempDegree;
+ ld.global.b64 %WR,[%ptr];
+ setp.eq.u32 %p0,%m,0; @%p0 bra ZERO_BACKWARD;
+ cvt.u64.u32 %tempN,%degree; add.u64 %tempN,%tempN,2;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,1; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ ld.global.b64 %YI,[%ptr];
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,1; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ ld.global.b64 %XI,[%ptr];
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,1; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%W,%tempDegree;
+ ld.global.b64 %WI,[%ptr];
+ st.param.b64 [ma],%WR; st.param.b64 [mb],%YR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%WI; st.param.b64 [mb],%YI; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u1,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ xor.b64 %negative,%u1,0x8000000000000000;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%negative; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ xor.b64 %negative,%XR,0x8000000000000000;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%negative; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %u2,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%WI; st.param.b64 [mb],%YR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%WR; st.param.b64 [mb],%YI; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u1,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%u1; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ xor.b64 %negative,%XI,0x8000000000000000;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%negative; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %XI,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,0; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ st.global.b64 [%ptr],%u2;
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,1; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ st.global.b64 [%ptr],%XI;
+ bra BACKWARD_LEVEL_NEXT;
+ZERO_BACKWARD:
+ st.param.b64 [ma],%WR; st.param.b64 [mb],%YR; call.uni (mr),md2asm_gpu_mul_rn,(ma,mb); ld.param.b64 %u0,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ xor.b64 %negative,%XR,0x8000000000000000;
+ st.param.b64 [ma],%u0; st.param.b64 [mb],%negative; call.uni (mr),md2asm_gpu_add_rn,(ma,mb); ld.param.b64 %XR,[mr]; ld.param.u32 %raised,[mr+8]; or.b32 %flags,%flags,%raised;
+ cvt.u64.u32 %tempN,%degree;
+ add.s64 %tempDegree,%tempN,0; sub.s64 %tempDegree,%tempDegree,%m64; shl.b64 %tempDegree,%tempDegree,1; add.u64 %tempDegree,%tempDegree,0; mul.lo.u64 %tempDegree,%tempDegree,%s64; cvt.u64.u32 %tmp,%level; add.u64 %tempDegree,%tempDegree,%tmp; shl.b64 %tempDegree,%tempDegree,3; add.u64 %ptr,%X,%tempDegree;
+ st.global.b64 [%ptr],%XR;
+BACKWARD_LEVEL_NEXT:
+ add.u32 %level,%level,1; bra BACKWARD_LEVEL;
+BACKWARD_NEXT:
+ setp.eq.u32 %p0,%degree,%begin; @%p0 bra PARITY_NEXT; sub.u32 %degree,%degree,2; bra BACKWARD_DEGREE;
+PARITY_NEXT:
+ setp.eq.u32 %p0,%m,%n; @%p0 bra CORE_DONE; add.u32 %parity,%parity,1; setp.lt.u32 %p0,%parity,2; @%p0 bra PARITY;
+CORE_DONE: st.param.u32 [result],%flags; ret;
+}
+.func (.param .u32 result) si_range(.param .u64 base,.param .u64 bytes,.param .u64 capacity,.param .u64 mask,.param .u64 owners,.param .u32 count)
+{
+ .reg .u64 %b,%n,%c,%m,%list,%t,%end,%o,%on,%oe; .reg .u32 %i,%count,%e; .reg .pred %p,%q;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %c,[capacity]; ld.param.u64 %m,[mask]; ld.param.u64 %list,[owners]; ld.param.u32 %count,[count];
+ mov.u32 %e,0; setp.eq.u64 %p,%n,0; @%p bra HR_DONE;
+ mov.u32 %e,7427; setp.gt.u64 %p,%n,%c; @%p bra HR_DONE;
+ setp.gt.u64 %p,%n,0x7fffffffffffffff; @%p bra HR_DONE;
+ setp.eq.u64 %p,%b,0; @%p bra HR_DONE;
+ and.b64 %t,%b,%m; setp.ne.u64 %p,%t,0; @%p bra HR_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra HR_DONE;
+ add.u64 %end,%b,%n; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra HR_DONE;
+ mov.u32 %i,0;
+HR_OWNERS:
+ setp.ge.u32 %p,%i,%count; @%p bra HR_OK;
+ ld.u64 %o,[%list]; ld.u64 %on,[%list+8]; setp.eq.u64 %p,%on,0; @%p bra HR_NEXT;
+ add.u64 %oe,%o,%on; setp.lt.u64 %p,%b,%oe; setp.lt.u64 %q,%o,%end; and.pred %p,%p,%q; @%p bra HR_DONE;
+HR_NEXT: add.u64 %list,%list,16; add.u32 %i,%i,1; bra HR_OWNERS;
+HR_OK: mov.u32 %e,0;
+HR_DONE: st.param.u32 [result],%e; ret;
+}
+
+.visible .func openifs_simplico_parent_fp64(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %argv,%ctx,%rec,%owners,%ptr,%tmp,%size,%capacity,%fieldbytes,%rotbytes,%vbytes,%lapbytes,%Y,%X,%W,%alpha,%denim,%plus,%minus,%vertical,%laplacian,%m64;
+ .reg .b64 %bdt; .reg .u32 %m,%n,%l,%s,%q,%rt,%error,%unique,%i,%flags; .reg .pred %p0;
+ .local .align 8 .b8 mutable_spans[48]; .param .u64 rb,rn,rc,rm,rl; .param .u32 rct,rr;
+ .param .u32 cm,cn,cl,cs,cf; .param .b64 cb; .param .u64 ca,cd,cp,cq,cv,cr,cy,cx,cw;
+ ld.param.u64 %argv,[original_vector]; ld.param.u64 %ctx,[context]; mov.u32 %unique,%ctaid.x; mov.u32 %rt,%ctaid.y; or.b32 %unique,%unique,%rt; mov.u32 %rt,%ctaid.z; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.x; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.y; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.z; or.b32 %unique,%unique,%rt; setp.ne.u32 %p0,%unique,0; @%p0 ret;
+ ld.global.u32 %error,[%ctx]; setp.ne.u32 %p0,%error,0; @%p0 ret; mov.u32 %error,7424;
+ mov.u32 %rt,%ntid.x; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u32 %rt,%ntid.y; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u32 %rt,%ntid.z; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u32 %rt,%nctaid.x; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u32 %rt,%nctaid.y; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u32 %rt,%nctaid.z; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; ld.global.u32 %rt,[%ctx+4]; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u64 %owners,mutable_spans; cvta.local.u64 %owners,%owners;
+
+ st.param.u64 [rb],%argv; st.param.u64 [rn],104; st.param.u64 [rc],104; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %rec,[%ctx+48]; ld.global.u64 %capacity,[%ctx+56];
+ st.param.u64 [rb],%rec; st.param.u64 [rn],256; st.param.u64 [rc],%capacity; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ mov.u32 %error,7425; mov.u32 %i,112;
+RESERVED:
+ cvt.u64.u32 %tmp,%i; add.u64 %ptr,%rec,%tmp; ld.global.u64 %tmp,[%ptr]; setp.ne.u64 %p0,%tmp,0; @%p0 bra REFUSE; add.u32 %i,%i,8; setp.lt.u32 %p0,%i,256; @%p0 bra RESERVED;
+ ld.global.u64 %ptr,[%argv+0]; ld.global.u64 %capacity,[%rec+0];
+ st.param.u64 [rb],%ptr; st.param.u64 [rn],4; st.param.u64 [rc],%capacity; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.s32 %m,[%ptr];
+ ld.global.u64 %ptr,[%argv+8]; ld.global.u64 %capacity,[%rec+8];
+ st.param.u64 [rb],%ptr; st.param.u64 [rn],4; st.param.u64 [rc],%capacity; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.s32 %n,[%ptr];
+ ld.global.u64 %ptr,[%argv+16]; ld.global.u64 %capacity,[%rec+16];
+ st.param.u64 [rb],%ptr; st.param.u64 [rn],4; st.param.u64 [rc],%capacity; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.s32 %l,[%ptr];
+ ld.global.u64 %ptr,[%argv+24]; ld.global.u64 %capacity,[%rec+24];
+ st.param.u64 [rb],%ptr; st.param.u64 [rn],4; st.param.u64 [rc],%capacity; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.s32 %s,[%ptr];
+ mov.u32 %error,7426; setp.lt.s32 %p0,%m,0; @%p0 bra REFUSE; setp.gt.u32 %p0,%m,%n; @%p0 bra REFUSE; setp.gt.u32 %p0,%n,2147483645; @%p0 bra REFUSE; setp.lt.s32 %p0,%l,0; @%p0 bra REFUSE; setp.lt.s32 %p0,%s,0; @%p0 bra REFUSE; setp.gt.u32 %p0,%l,%s; @%p0 bra REFUSE;
+ sub.u32 %q,%n,%m; add.u32 %q,%q,1; mul.wide.u32 %fieldbytes,%s,%q; mov.u32 %error,7427; setp.gt.u64 %p0,%fieldbytes,0x07ffffffffffffff; @%p0 bra REFUSE; shl.b64 %fieldbytes,%fieldbytes,4; add.u32 %rt,%q,1; mul.wide.u32 %rotbytes,%rt,8; mul.wide.u32 %vbytes,%l,8; add.u32 %rt,%n,1; mul.wide.u32 %lapbytes,%rt,8;
+ ld.global.u64 %Y,[%argv+88]; ld.global.u64 %X,[%argv+96]; ld.global.u64 %W,[%ctx+32]; st.u64 [%owners],%Y; st.u64 [%owners+8],%fieldbytes; st.u64 [%owners+16],%X; st.u64 [%owners+24],%fieldbytes; st.u64 [%owners+32],%W; st.u64 [%owners+40],%fieldbytes;
+ ld.global.u64 %capacity,[%rec+88];
+
+ st.param.u64 [rb],%Y; st.param.u64 [rn],%fieldbytes; st.param.u64 [rc],%capacity; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %capacity,[%rec+96];
+ st.param.u64 [rb],%X; st.param.u64 [rn],%fieldbytes; st.param.u64 [rc],%capacity; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],1; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %capacity,[%ctx+40];
+ st.param.u64 [rb],%W; st.param.u64 [rn],%fieldbytes; st.param.u64 [rc],%capacity; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],2; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [rb],%ctx; st.param.u64 [rn],64; st.param.u64 [rc],64; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],3; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [rb],%rec; st.param.u64 [rn],256; st.param.u64 [rc],256; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],3; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %capacity,[%rec+104];
+ st.param.u64 [rb],%argv; st.param.u64 [rn],104; st.param.u64 [rc],%capacity; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],3; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %ptr,[%argv+0]; ld.global.u64 %capacity,[%rec+0];
+ st.param.u64 [rb],%ptr; st.param.u64 [rn],4; st.param.u64 [rc],%capacity; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],3; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %ptr,[%argv+8]; ld.global.u64 %capacity,[%rec+8];
+ st.param.u64 [rb],%ptr; st.param.u64 [rn],4; st.param.u64 [rc],%capacity; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],3; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %ptr,[%argv+16]; ld.global.u64 %capacity,[%rec+16];
+ st.param.u64 [rb],%ptr; st.param.u64 [rn],4; st.param.u64 [rc],%capacity; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],3; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %ptr,[%argv+24]; ld.global.u64 %capacity,[%rec+24];
+ st.param.u64 [rb],%ptr; st.param.u64 [rn],4; st.param.u64 [rc],%capacity; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],3; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %alpha,[%argv+32]; ld.global.u64 %capacity,[%rec+32];
+ st.param.u64 [rb],%alpha; st.param.u64 [rn],%rotbytes; st.param.u64 [rc],%capacity; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],3; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %denim,[%argv+40]; ld.global.u64 %capacity,[%rec+40];
+ st.param.u64 [rb],%denim; st.param.u64 [rn],%rotbytes; st.param.u64 [rc],%capacity; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],3; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %plus,[%argv+48]; ld.global.u64 %capacity,[%rec+48];
+ st.param.u64 [rb],%plus; st.param.u64 [rn],%rotbytes; st.param.u64 [rc],%capacity; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],3; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %minus,[%argv+56]; ld.global.u64 %capacity,[%rec+56];
+ st.param.u64 [rb],%minus; st.param.u64 [rn],%rotbytes; st.param.u64 [rc],%capacity; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],3; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %vertical,[%argv+64]; ld.global.u64 %capacity,[%rec+64];
+ st.param.u64 [rb],%vertical; st.param.u64 [rn],%vbytes; st.param.u64 [rc],%capacity; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],3; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %laplacian,[%argv+72]; ld.global.u64 %capacity,[%rec+72];
+ st.param.u64 [rb],%laplacian; st.param.u64 [rn],%lapbytes; st.param.u64 [rc],%capacity; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],3; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.u64 %ptr,[%argv+80]; ld.global.u64 %capacity,[%rec+80];
+ st.param.u64 [rb],%ptr; st.param.u64 [rn],8; st.param.u64 [rc],%capacity; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],3; call.uni (rr),si_range,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.global.b64 %bdt,[%ptr]; st.param.u32 [cm],%m; st.param.u32 [cn],%n; st.param.u32 [cl],%l; st.param.u32 [cs],%s; st.param.b64 [cb],%bdt; st.param.u64 [ca],%alpha; st.param.u64 [cd],%denim; st.param.u64 [cp],%plus; st.param.u64 [cq],%minus; st.param.u64 [cv],%vertical; st.param.u64 [cr],%laplacian; st.param.u64 [cy],%Y; st.param.u64 [cx],%X; st.param.u64 [cw],%W; call.uni (cf),openifs_simplico_core_fp64,(cm,cn,cl,cs,cb,ca,cd,cp,cq,cv,cr,cy,cx,cw); ld.param.u32 %flags,[cf]; atom.global.or.b32 %rt,[%ctx+8],%flags; ret;
+REFUSE: st.global.u32 [%ctx],%error; ret;
+}
+.visible .entry openifs_simplico_ptx(.param .u64 original_vector,.param .u64 context)
+{ .reg .u64 %a,%c; .param .u64 a,c; ld.param.u64 %a,[original_vector]; ld.param.u64 %c,[context]; st.param.u64 [a],%a; st.param.u64 [c],%c; call.uni openifs_simplico_parent_fp64,(a,c); ret; }
