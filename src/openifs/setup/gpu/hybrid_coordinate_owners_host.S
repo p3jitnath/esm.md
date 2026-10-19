@@ -1,3 +1,4 @@
+/* GPU contract: skills/md2asm-gpu/references/openifs/setup/hybrid_coordinate_setup.md */
 #include "../../support/gpu/preserved_weather_calls.inc.S"
 .arch armv8.2-a
 .text
@@ -105,51 +106,14 @@ md2asm_initialize_hybrid_coordinate_owners:
  cmp x24,#8
  b.lo .Lhybrid_allocate
  ldr d0,[sp,#80]
- ldr x4,[x19,#128]
- ldr x5,[x19,#64]
- ldr x6,[x19]
- mov x12,#0
-.Lhybrid_copy_interfaces:
- ldr d1,[x21,x12,lsl#3]
- str d1,[x4,x12,lsl#3]
- ldr d2,[x22,x12,lsl#3]
- str d2,[x5,x12,lsl#3]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,3,d3,d1,d0 // fdiv d3,d1,d0
- str d3,[x6,x12,lsl#3]
- add x12,x12,#1
+ mov x0,x19
+ mov w1,w20
+ mov x2,x21
+ mov x3,x22
+ bl md2asm_hybrid_coordinate_setup_gpu_phase
+ ldr d0,[sp,#80]
+ add x12,x20,#1
  cmp x12,x20
- b.ls .Lhybrid_copy_interfaces
- cbz x20,.Lhybrid_ready
- ldr x6,[x19,#192]
- ldr x7,[x19,#256]
- ldr x8,[x19,#320]
- ldr x9,[x19,#384]
- ldr x10,[x19,#448]
- fmov d7,#0.5
- mov x12,#1
-.Lhybrid_layer_coefficients:
- sub x13,x12,#1
- ldr d1,[x4,x12,lsl#3]
- ldr d2,[x5,x13,lsl#3]
- ldr d3,[x4,x13,lsl#3]
- ldr d4,[x5,x12,lsl#3]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,2,d5,d1,d2 // fmul d5,d1,d2
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,2,d6,d3,d4 // fmul d6,d3,d4
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,1,d5,d5,d6 // fsub d5,d5,d6
- str d5,[x6,x13,lsl#3]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,0,d5,d1,d3 // fadd d5,d1,d3
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,2,d5,d7,d5 // fmul d5,d7,d5
- str d5,[x7,x12,lsl#3]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,0,d5,d4,d2 // fadd d5,d4,d2
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,2,d5,d7,d5 // fmul d5,d7,d5
- str d5,[x8,x12,lsl#3]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,1,d5,d1,d3 // fsub d5,d1,d3
- str d5,[x9,x13,lsl#3]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,1,d5,d4,d2 // fsub d5,d4,d2
- str d5,[x10,x13,lsl#3]
- add x12,x12,#1
- cmp x12,x20
- b.ls .Lhybrid_layer_coefficients
 .Lhybrid_ready:
  mov w0,#0
  b .Lhybrid_return

@@ -1,3 +1,4 @@
+/* GPU contract: skills/md2asm-gpu/references/openifs/dynamics/spectral_latitude_derivative.md */
 #include "../../support/gpu/preserved_weather_calls.inc.S"
 /* Direct AArch64 assembly for complete spectral latitude operations.
  * Physics: formulations/openifs/dynamics/spectral_latitude_operators.md
@@ -22,76 +23,7 @@
 SPNSDE_SYMBOL:
     ldrsw x7, [x1]
     cbz x7, .Lnsd_empty
-    lsl x7, x7, #1
-    stp x19, x20, [sp, #-80]!
-    stp x21, x22, [sp, #16]
-    stp x23, x24, [sp, #32]
-    stp x25, x26, [sp, #48]
-    stp x27, x28, [sp, #64]
-    mov x19, x2
-    ldrsw x28, [x0]
-    ldr x20, [x3]
-    ldr x21, [x4]
-    ldr x22, [x3, #40]
-    ldr x23, [x3, #64]
-    ldr x24, [x4, #40]
-    ldr x25, [x4, #64]
-    lsl x22, x22, #3
-    lsl x23, x23, #3
-    lsl x24, x24, #3
-    lsl x25, x25, #3
-    adrp x8, :got:__tpm_dim_MOD_r
-    ldr x8, [x8, :got_lo12:__tpm_dim_MOD_r]
-    ldr x8, [x8]
-    ldrsw x27, [x8]
-    adrp x8, :got:__tpm_fields_MOD_f
-    ldr x8, [x8, :got_lo12:__tpm_fields_MOD_f]
-    ldr x8, [x8]
-    ldr x26, [x8, #408]
-    add x26, x26, #8       /* Address of RN(0), after RN(-1). */
-    mov x17, #1
-    cbnz x28, .Lnsd_step
-    mov x17, #2
-.Lnsd_step:
-    add x9, x27, #1
-.Lnsd_row:
-    sub x8, x9, #1
-    ldr d0, [x26, x8, lsl #3]
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,15,d0,d0 // fneg d0, d0
-    ldr d4, [x19, x9, lsl #3]
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,2,d0,d0,d4 // fmul d0, d0, d4
-    add x8, x9, #2
-    ldr d1, [x26, x8, lsl #3]
-    add x8, x9, #1
-    ldr d4, [x19, x8, lsl #3]
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,2,d1,d1,d4 // fmul d1, d1, d4
-    add x10, x27, #2
-    sub x10, x10, x9
-    madd x11, x10, x22, x20
-    madd x12, x10, x24, x21
-    mov x13, #0
-.Lnsd_column:
-    madd x14, x13, x23, x11
-    madd x15, x13, x25, x12
-    add x16, x14, x22
-    ldr d2, [x16]
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,2,d2,d0,d2 // fmul d2, d0, d2
-    sub x16, x14, x22
-    ldr d3, [x16]
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,2,d3,d1,d3 // fmul d3, d1, d3
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,0,d2,d2,d3 // fadd d2, d2, d3
-    str d2, [x15]
-    add x13, x13, x17
-    cmp x13, x7
-    b.lt .Lnsd_column
-    sub x9, x9, #1
-    cmp x9, x28
-    b.ge .Lnsd_row
-    ldp x21, x22, [sp, #16]
-    ldp x23, x24, [sp, #32]
-    ldp x25, x26, [sp, #48]
-    ldp x27, x28, [sp, #64]
-    ldp x19, x20, [sp], #80
+    b md2asm_spectral_north_south_derivative_gpu_phase
 .Lnsd_empty:
     ret
 .size SPNSDE_SYMBOL,.-SPNSDE_SYMBOL

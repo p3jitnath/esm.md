@@ -1,4 +1,4 @@
-#include "../../support/gpu/preserved_weather_calls.inc.S"
+/* GPU contract: skills/md2asm-gpu/references/openifs/dynamics/inverse_legendre_reconstruction.md */
 .text
 .p2align 4
 .macro COUNT index
@@ -285,34 +285,8 @@ md2asm_ltinv_leinv:
  ret
 .size md2asm_ltinv_leinv,.-md2asm_ltinv_leinv
 .Lleinv_half:
- add x7,x23,x3,lsl #3
- mov x9,#0
-.Lleinv_half_field:
- madd x13,x9,x5,x7
- add x14,x1,x9,lsl #3
- mov x10,#0
-.Lleinv_half_latitude:
- add x15,x0,x10,lsl #3
- mov x16,x13
- mov x11,#0
- fmov d0,xzr
-.Lleinv_half_degree:
- ldr d1,[x15],#128
- ldr d2,[x16],#16
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,2,d3,d1,d2 // fmul d3,d1,d2
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,0,d0,d0,d3 // fadd d0,d0,d3
- add x11,x11,#1
- cmp x11,x4
- b.lo .Lleinv_half_degree
- str d0,[x14]
- add x14,x14,x2
- add x10,x10,#1
- cmp x10,#16
- b.lo .Lleinv_half_latitude
- add x9,x9,x22
- cmp x9,x20
- b.lo .Lleinv_half_field
- ret
+ b md2asm_inverse_legendre_half_gpu_phase
+/* Original metadata decoding follows unchanged. */
 .Lleinv_rank2:
  cbz x0,.Lleinv_bad
  ldr x9,[x0,#16]

@@ -1,0 +1,76 @@
+// GPU contract: skills/md2asm-gpu/references/openifs/dynamics/inverse_legendre_reconstruction.md
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.func (.param .u32 r) leinv_half_range(.param .u64 base,.param .u64 size,.param .u64 cap)
+{.reg .u64 %a,%n,%c,%end;.reg .u32 %e;.reg .pred %p;ld.param.u64 %a,[base];ld.param.u64 %n,[size];ld.param.u64 %c,[cap];mov.u32 %e,27801;setp.eq.u64 %p,%a,0;@%p bra RETURN;and.b64 %end,%a,7;setp.ne.u64 %p,%end,0;@%p bra RETURN;setp.gt.u64 %p,%n,%c;@%p bra RETURN;add.u64 %end,%a,%n;setp.lt.u64 %p,%end,%a;@%p bra RETURN;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra RETURN;mov.u32 %e,0;RETURN:st.param.u32 [r],%e;ret;}
+.visible .entry md2asm_gpu_inverse_legendre_half(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %fastptr,%wideptr,%nf,%nw,%old,%eventword,%mag0,%mag1,%quiet0,%quiet1;
+.reg .u32 %condition,%errno_;
+.reg .b64 %x<5>,%temp,%zero;
+.param .b64 ma,mb,ex,ey;
+.param .align 8 .b8 ar[16],mathret[32];
+.reg .u64 %args,%ctx,%record,%cap,%input,%output,%bits,%off,%rows,%ptr,%a,%n,%ae,%b,%bn,%be;
+.reg .u32 %i,%j,%w,%mode,%error,%flags,%raised,%nvalues;.reg .b64 %value,%rt1,%rt2;.reg .pred %p,%q,%witness;
+.local .align 8 .b8 owners[160];.param .u64 rb,rn,rc,values;.param .u32 rr,mode;.param .align 8 .b8 result[16];
+.reg .u32 %lane,%width,%step,%terms,%firstrow,%fields,%total,%grid,%block,%linear,%fieldid,%latitude,%degree;
+.reg .u64 %basis,%spectral,%resultbase,%basisbytes,%spectralbytes,%outputbytes,%outpitch,%inpitch,%required,%apos,%bpos,%dst,%ix;
+.reg .b64 %accumulator,%product,%basisword,%spectralword;
+.shared .align 4 .u32 block_error;
+.param .b64 ml,mr,al,arhs;.param .align 8 .b8 rm[16],ra[16];
+mov.u32 %lane,%tid.x;setp.ne.u32 %p,%lane,0;@%p bra ADMISSION_BARRIER;
+ld.param.u64 %ctx,[common_context];setp.eq.u64 %p,%ctx,0;@%p bra QUIET_REFUSE;and.b64 %bits,%ctx,7;setp.ne.u64 %p,%bits,0;@%p bra QUIET_REFUSE;ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p bra QUIET_REFUSE;
+
+mov.u32 %w,%ntid.x;mov.u32 %error,27800;setp.ne.u32 %p,%w,128;@%p bra REFUSE;
+mov.u32 %w,%ntid.y;mov.u32 %error,27800;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.z;mov.u32 %error,27800;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.y;mov.u32 %error,27800;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.z;mov.u32 %error,27800;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%dynamic_smem_size;mov.u32 %error,27800;setp.ne.u32 %p,%w,0;@%p bra REFUSE;ld.global.u32 %w,[%ctx+4];setp.ne.u32 %p,%w,1;@%p bra REFUSE;ld.global.u32 %w,[%ctx+12];and.b32 %w,%w,1;setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+ld.param.u64 %args,[original_vector];
+st.param.u64 [rb],%args;st.param.u64 [rn],16;st.param.u64 [rc],16;call.uni (rr),leinv_half_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rc],64;call.uni (rr),leinv_half_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %cap,[%ctx+56];
+st.param.u64 [rb],%record;st.param.u64 [rn],64;st.param.u64 [rc],%cap;call.uni (rr),leinv_half_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %input,[%args];ld.global.u64 %output,[%args+8];ld.global.u64 %cap,[%record];
+st.param.u64 [rb],%input;st.param.u64 [rn],256;st.param.u64 [rc],%cap;call.uni (rr),leinv_half_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;ld.global.u32 %width,[%input+64];ld.global.u32 %step,[%input+68];ld.global.u32 %terms,[%input+72];ld.global.u32 %firstrow,[%input+76];ld.global.u32 %fields,[%input+80];
+ld.global.u64 %basis,[%input+0];ld.global.u64 %spectral,[%input+8];ld.global.u64 %resultbase,[%input+16];ld.global.u64 %basisbytes,[%input+24];ld.global.u64 %spectralbytes,[%input+32];ld.global.u64 %outputbytes,[%input+40];ld.global.u64 %outpitch,[%input+48];ld.global.u64 %inpitch,[%input+56];
+mov.u32 %error,27802;setp.eq.u32 %p,%width,2;setp.eq.u32 %q,%width,4;or.pred %p,%p,%q;setp.eq.u32 %q,%width,38;or.pred %p,%p,%q;setp.eq.u32 %q,%width,76;or.pred %p,%p,%q;setp.eq.u32 %q,%width,194;or.pred %p,%p,%q;setp.eq.u32 %q,%width,232;or.pred %p,%p,%q;@!%p bra REFUSE;setp.lt.u32 %p,%step,1;@%p bra REFUSE;setp.gt.u32 %p,%step,2;@%p bra REFUSE;setp.gt.u32 %p,%fields,%width;@%p bra REFUSE;mul.lo.u32 %w,%fields,%step;setp.ne.u32 %p,%w,%width;@%p bra REFUSE;setp.lt.u32 %p,%terms,1;@%p bra REFUSE;setp.gt.u32 %p,%terms,12;@%p bra REFUSE;setp.lt.u32 %p,%firstrow,1;@%p bra REFUSE;setp.gt.u32 %p,%firstrow,2;@%p bra REFUSE;sub.u32 %w,%terms,1;shl.b32 %w,%w,1;add.u32 %w,%w,%firstrow;add.u32 %w,%w,1;mul.wide.u32 %required,%w,8;setp.lt.u64 %p,%inpitch,%required;@%p bra REFUSE;mul.wide.u32 %required,%width,8;setp.lt.u64 %p,%outpitch,%required;@%p bra REFUSE;setp.gt.u64 %p,%inpitch,8000;@%p bra REFUSE;and.b64 %bits,%inpitch,7;setp.ne.u64 %p,%bits,0;@%p bra REFUSE;setp.gt.u64 %p,%outpitch,8000;@%p bra REFUSE;and.b64 %bits,%outpitch,7;setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u32 %w,[%input+84];setp.ne.u32 %p,%w,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+88];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+96];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+104];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+112];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+120];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+128];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+136];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+144];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+152];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+160];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+168];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+176];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+184];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+192];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+200];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+208];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+216];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+224];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+232];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+240];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;ld.global.u64 %bits,[%input+248];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;add.u32 %grid,%fields,7;shr.u32 %grid,%grid,3;mov.u32 %w,%nctaid.x;mov.u32 %error,27800;setp.ne.u32 %p,%w,%grid;@%p bra REFUSE;
+
+ld.global.u64 %cap,[%record+8];
+st.param.u64 [rb],%output;st.param.u64 [rn],32;st.param.u64 [rc],%cap;call.uni (rr),leinv_half_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u32 %mode,[%record+16];mov.u32 %error,27802;setp.ne.u32 %p,%mode,0;@%p bra REFUSE;ld.global.u32 %w,[%record+20];setp.ne.u32 %p,%w,0;@%p bra REFUSE;ld.global.u64 %bits,[%record+24];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;
+ld.global.u64 %fastptr,[%record+32];ld.global.u64 %cap,[%record+40];st.param.u64 [rb],%fastptr;st.param.u64 [rn],8;st.param.u64 [rc],%cap;call.uni (rr),leinv_half_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;ld.global.u64 %wideptr,[%record+48];ld.global.u64 %cap,[%record+56];st.param.u64 [rb],%wideptr;st.param.u64 [rn],8;st.param.u64 [rc],%cap;call.uni (rr),leinv_half_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;st.local.u64 [owners+0],%input;st.local.u64 [owners+8],256;
+st.local.u64 [owners+16],%output;st.local.u64 [owners+24],32;
+st.local.u64 [owners+32],%args;st.local.u64 [owners+40],16;
+st.local.u64 [owners+48],%ctx;st.local.u64 [owners+56],64;
+st.local.u64 [owners+64],%record;st.local.u64 [owners+72],64;
+st.local.u64 [owners+80],%fastptr;st.local.u64 [owners+88],8;st.local.u64 [owners+96],%wideptr;st.local.u64 [owners+104],8;mul.wide.u32 %required,%terms,128;mov.u32 %error,27801;setp.lt.u64 %p,%basisbytes,%required;@%p bra REFUSE;st.param.u64 [rb],%basis;st.param.u64 [rn],%basisbytes;st.param.u64 [rc],%basisbytes;call.uni (rr),leinv_half_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;st.local.u64 [owners+112],%basis;st.local.u64 [owners+120],%basisbytes;
+cvt.u64.u32 %required,%width;mul.lo.u64 %required,%required,%inpitch;mov.u32 %error,27801;setp.lt.u64 %p,%spectralbytes,%required;@%p bra REFUSE;st.param.u64 [rb],%spectral;st.param.u64 [rn],%spectralbytes;st.param.u64 [rc],%spectralbytes;call.uni (rr),leinv_half_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;st.local.u64 [owners+128],%spectral;st.local.u64 [owners+136],%spectralbytes;
+shl.b64 %required,%outpitch,4;mov.u32 %error,27801;setp.lt.u64 %p,%outputbytes,%required;@%p bra REFUSE;st.param.u64 [rb],%resultbase;st.param.u64 [rn],%outputbytes;st.param.u64 [rc],%outputbytes;call.uni (rr),leinv_half_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;st.local.u64 [owners+144],%resultbase;st.local.u64 [owners+152],%outputbytes;
+cvta.local.u64 %rows,owners;mov.u32 %i,1;PAIR_LEFT:mul.wide.u32 %off,%i,16;add.u64 %ptr,%rows,%off;ld.u64 %a,[%ptr];ld.u64 %n,[%ptr+8];add.u64 %ae,%a,%n;mov.u32 %j,0;
+PAIR_RIGHT:setp.eq.u32 %p,%i,%j;@%p bra PAIR_NEXT;setp.ge.u32 %p,%i,7;setp.lt.u32 %q,%i,9;and.pred %p,%p,%q;setp.ge.u32 %q,%j,7;and.pred %p,%p,%q;setp.lt.u32 %q,%j,9;and.pred %p,%p,%q;@%p bra PAIR_NEXT;mul.wide.u32 %off,%j,16;add.u64 %ptr,%rows,%off;ld.u64 %b,[%ptr];ld.u64 %bn,[%ptr+8];add.u64 %be,%b,%bn;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;mov.u32 %error,27801;@%p bra REFUSE;
+PAIR_NEXT:add.u32 %j,%j,1;setp.lt.u32 %p,%j,10;@%p bra PAIR_RIGHT;add.u32 %i,%i,1;setp.lt.u32 %p,%i,10;@%p bra PAIR_LEFT;
+st.shared.u32 [block_error],0;
+ADMISSION_BARRIER:bar.sync 0;ld.shared.u32 %error,[block_error];setp.ne.u32 %p,%error,0;@%p ret;
+ld.param.u64 %ctx,[common_context];ld.param.u64 %args,[original_vector];ld.global.u64 %input,[%args];ld.global.u64 %output,[%args+8];
+ld.global.u64 %basis,[%input+0];ld.global.u64 %spectral,[%input+8];ld.global.u64 %resultbase,[%input+16];ld.global.u64 %basisbytes,[%input+24];ld.global.u64 %spectralbytes,[%input+32];ld.global.u64 %outputbytes,[%input+40];ld.global.u64 %outpitch,[%input+48];ld.global.u64 %inpitch,[%input+56];
+ld.global.u32 %width,[%input+64];ld.global.u32 %step,[%input+68];ld.global.u32 %terms,[%input+72];ld.global.u32 %firstrow,[%input+76];ld.global.u32 %fields,[%input+80];
+mov.u32 %block,%ctaid.x;mad.lo.u32 %linear,%block,128,%lane;shl.b32 %total,%fields,4;setp.ge.u32 %p,%linear,%total;@%p ret;
+shr.u32 %fieldid,%linear,4;and.b32 %latitude,%linear,15;mul.lo.u32 %fieldid,%fieldid,%step;
+cvt.u64.u32 %ix,%fieldid;mul.lo.u64 %ix,%ix,%inpitch;add.u64 %bpos,%spectral,%ix;mul.wide.u32 %ix,%firstrow,8;add.u64 %bpos,%bpos,%ix;
+mul.wide.u32 %ix,%latitude,8;add.u64 %apos,%basis,%ix;
+cvt.u64.u32 %ix,%latitude;mul.lo.u64 %ix,%ix,%outpitch;add.u64 %dst,%resultbase,%ix;mul.wide.u32 %ix,%fieldid,8;add.u64 %dst,%dst,%ix;
+mov.b64 %accumulator,0;mov.u32 %degree,0;mov.u32 %flags,0;
+DEGREE:ld.global.b64 %basisword,[%apos];ld.global.b64 %spectralword,[%bpos];
+st.param.b64 [ml],%basisword;st.param.b64 [mr],%spectralword;call.uni (rm),md2asm_gpu_mul_status,(ml,mr);ld.param.b64 %product,[rm];ld.param.u32 %raised,[rm+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [al],%accumulator;st.param.b64 [arhs],%product;call.uni (ra),md2asm_gpu_add_status,(al,arhs);ld.param.b64 %accumulator,[ra];ld.param.u32 %raised,[ra+8];or.b32 %flags,%flags,%raised;
+add.u64 %apos,%apos,128;add.u64 %bpos,%bpos,16;add.u32 %degree,%degree,1;setp.lt.u32 %p,%degree,%terms;@%p bra DEGREE;
+st.global.b64 [%dst],%accumulator;atom.global.or.b32 %raised,[%ctx+8],%flags;
+setp.ne.u32 %p,%linear,0;@%p ret;st.global.u64 [%output],0;st.global.u64 [%output+8],0;st.global.u64 [%output+16],0;st.global.u64 [%output+24],0;ret;
+REFUSE:st.global.u32 [%ctx],%error;st.shared.u32 [block_error],%error;bra ADMISSION_BARRIER;
+QUIET_REFUSE:st.shared.u32 [block_error],1;bra ADMISSION_BARRIER;
+}
