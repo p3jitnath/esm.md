@@ -1,0 +1,4862 @@
+// Contract: skills/md2asm-gpu/references/openifs/surface/soil_temperature_step.md.
+/* Complete soil heat step from formulations/openifs/surface/soil_temperature_step.md.
+ * The complete ABI and exact maths are in skills/md2asm/references/openifs/surface/srft.md. */
+#ifndef ORIGINAL_SYMBOL
+#define ORIGINAL_SYMBOL md2asm_srft
+#endif
+.text
+.p2align 4
+.global ORIGINAL_SYMBOL
+.type ORIGINAL_SYMBOL,%function
+.macro ARG reg,index
+ ldr \reg,[x28,#(224+8*\index)]
+.endm
+.macro CONST reg,name
+ adrp x16,.Lstep_\name
+ ldr \reg,[x16,:lo12:.Lstep_\name]
+.endm
+.macro VECTOR reg,index
+ ldr x9,[x28,#(512+80*\index)]
+ ldr x10,[x28,#(520+80*\index)]
+ mul x10,x10,x19
+ ldr \reg,[x9,x10]
+.endm
+.macro MATRIX reg,index
+ ldr x9,[x28,#(512+80*\index)]
+ ldr x10,[x28,#(520+80*\index)]
+ ldr x11,[x28,#(528+80*\index)]
+ mul x10,x10,x19
+ madd x10,x11,x24,x10
+ ldr \reg,[x9,x10]
+.endm
+.macro PUT reg,index
+ ldr x9,[x28,#(512+80*\index)]
+ ldr x10,[x28,#(520+80*\index)]
+ ldr x11,[x28,#(528+80*\index)]
+ mul x10,x10,x19
+ madd x10,x11,x24,x10
+ str \reg,[x9,x10]
+.endm
+.macro LOADBUF reg,slot
+ ldr x9,[x28,#\slot]
+ madd x10,x24,x20,x19
+ ldr \reg,[x9,x10,lsl #3]
+.endm
+.macro STOREBUF reg,slot
+ ldr x9,[x28,#\slot]
+ madd x10,x24,x20,x19
+ str \reg,[x9,x10,lsl #3]
+.endm
+.macro DIAG reg,field
+ ldr x9,[x28,#1552]
+ ldr x10,[x28,#1560]
+ mul x10,x10,x19
+ ldr x11,[x28,#1568]
+ madd x10,x11,x24,x10
+ ldr x11,[x28,#1576]
+ mov x12,#(\field-1)
+ madd x10,x11,x12,x10
+ str \reg,[x9,x10]
+.endm
+ORIGINAL_SYMBOL:
+ mov x17,sp
+ sub sp,sp,#4096
+ stp x19,x20,[sp,#64]
+ stp x21,x22,[sp,#80]
+ stp x23,x24,[sp,#96]
+ stp x25,x26,[sp,#112]
+ stp x27,x28,[sp,#128]
+ stp x29,x30,[sp,#144]
+ stp d8,d9,[sp,#160]
+ stp d10,d11,[sp,#176]
+ stp d12,d13,[sp,#192]
+ stp d14,d15,[sp,#208]
+ mov x28,sp
+ stp x0,x1,[sp,#224]
+ stp x2,x3,[sp,#240]
+ stp x4,x5,[sp,#256]
+ stp x6,x7,[sp,#272]
+ add x9,sp,#288
+ mov x10,#16
+.Lstep_copy_arguments:
+ ldr x11,[x17],#8
+ str x11,[x9],#8
+ subs x10,x10,#1
+ b.ne .Lstep_copy_arguments
+ mrs x9,fpcr
+ cbnz x9,.Lstep_invalid
+ mov x10,#0
+.Lstep_argument_addresses:
+ add x9,x28,#224
+ ldr x11,[x9,x10,lsl #3]
+ cbz x11,.Lstep_invalid
+ mov x12,#7
+ cmp x10,#5
+ b.hs .Lstep_address_alignment
+ mov x12,#3
+.Lstep_address_alignment:
+ tst x11,x12
+ b.ne .Lstep_invalid
+ add x10,x10,#1
+ cmp x10,#24
+ b.lt .Lstep_argument_addresses
+ARG x9,2
+ldrsw x20,[x9]
+cmp x20,#1
+b.lt .Lstep_invalid
+cmp x20,#4096
+b.gt .Lstep_invalid
+ARG x9,4
+ldrsw x21,[x9]
+cmp x21,#2
+b.lt .Lstep_invalid
+cmp x21,#512
+b.gt .Lstep_invalid
+ARG x9,0
+ldrsw x22,[x9]
+subs x22,x22,#1
+b.lt .Lstep_invalid
+cmp x22,x20
+b.ge .Lstep_invalid
+ARG x9,1
+ldrsw x23,[x9]
+cmp x23,#0
+b.lt .Lstep_invalid
+cmp x23,x20
+b.gt .Lstep_invalid
+add x9,x23,#1
+cmp x9,x22
+b.lt .Lstep_invalid
+ARG x9,3
+ldrsw x25,[x9]
+cmp x25,#8
+b.lt .Lstep_invalid
+cmp x25,#16
+b.gt .Lstep_invalid
+ARG x0,6
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#512
+bl .Lstep_decode
+ARG x0,7
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#592
+bl .Lstep_decode
+ARG x0,8
+mov x1,#1
+mov x2,#1
+mov x3,#4
+mov x4,x20
+mov x5,xzr
+add x6,x28,#672
+bl .Lstep_decode
+ARG x0,9
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x25
+add x6,x28,#752
+bl .Lstep_decode
+ARG x0,10
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x25
+add x6,x28,#832
+bl .Lstep_decode
+ARG x0,11
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x25
+add x6,x28,#912
+bl .Lstep_decode
+ARG x0,12
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x25
+add x6,x28,#992
+bl .Lstep_decode
+ARG x0,13
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x25
+add x6,x28,#1072
+bl .Lstep_decode
+ARG x0,14
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,xzr
+add x6,x28,#1152
+bl .Lstep_decode
+ARG x0,15
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#1232
+bl .Lstep_decode
+ARG x0,16
+mov x1,#1
+mov x2,#2
+mov x3,#4
+mov x4,x20
+mov x5,xzr
+add x6,x28,#1312
+bl .Lstep_decode
+ARG x0,21
+mov x1,#2
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#1392
+bl .Lstep_decode
+ARG x0,22
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,xzr
+add x6,x28,#1472
+bl .Lstep_decode
+ARG x0,23
+mov x1,#3
+mov x2,#3
+mov x3,#8
+mov x4,x20
+mov x5,x21
+add x6,x28,#1552
+bl .Lstep_decode
+ldr x9,[x28,#1624]
+str w9,[x28,#2836]
+ARG x9,18
+ldr w9,[x9,#440]
+cmp w9,#1
+b.hi .Lstep_invalid
+str w9,[x28,#2824]
+ARG x9,18
+ldr w9,[x9,#2384]
+cmp w9,#1
+b.hi .Lstep_invalid
+str w9,[x28,#2828]
+ARG x9,19
+ldr w9,[x9,#848]
+cmp w9,#1
+b.hi .Lstep_invalid
+str w9,[x28,#2832]
+cbz w9,.Lstep_lake_shape
+cmp x25,#9
+b.lt .Lstep_invalid
+.Lstep_lake_shape:
+ARG x0,18
+add x0,x0,#1584
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,#1
+mov x5,#0
+add x6,x28,#1632
+bl .Lstep_decode
+ldr x9,[x28,#1696]
+cmp x9,#1
+b.gt .Lstep_invalid
+ldr x10,[x28,#1680]
+add x10,x10,x9
+cmp x10,x21
+b.le .Lstep_invalid
+ldr w9,[x28,#2824]
+cbz w9,.Lstep_tables_ready
+ARG x0,18
+add x0,x0,#880
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,#1
+mov x5,#0
+add x6,x28,#1712
+bl .Lstep_decode
+ARG x0,18
+add x0,x0,#1392
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,#1
+mov x5,#0
+add x6,x28,#1792
+bl .Lstep_decode
+ARG x0,18
+add x0,x0,#1456
+mov x1,#1
+mov x2,#3
+mov x3,#8
+mov x4,#1
+mov x5,#0
+add x6,x28,#1872
+bl .Lstep_decode
+.Lstep_tables_ready:
+ldr x0,[x28,#1424]
+ldr x1,[x28,#1432]
+str x0,[x28,#2864]
+str x1,[x28,#2872]
+ARG x2,0
+adds x3,x2,#4
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,1
+adds x3,x2,#4
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,2
+adds x3,x2,#4
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,3
+adds x3,x2,#4
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,4
+adds x3,x2,#4
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,5
+adds x3,x2,#8
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,6
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,7
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,8
+adds x3,x2,#64
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,9
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,10
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,11
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,12
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,13
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,14
+adds x3,x2,#64
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,15
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,16
+adds x3,x2,#64
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,17
+adds x3,x2,#128
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,18
+adds x3,x2,#2416
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,19
+adds x3,x2,#856
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,20
+adds x3,x2,#472
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,21
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,22
+adds x3,x2,#64
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,23
+adds x3,x2,#112
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#544]
+ldr x3,[x28,#552]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#624]
+ldr x3,[x28,#632]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#704]
+ldr x3,[x28,#712]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#784]
+ldr x3,[x28,#792]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#864]
+ldr x3,[x28,#872]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#944]
+ldr x3,[x28,#952]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1024]
+ldr x3,[x28,#1032]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1104]
+ldr x3,[x28,#1112]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1184]
+ldr x3,[x28,#1192]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1264]
+ldr x3,[x28,#1272]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1344]
+ldr x3,[x28,#1352]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1664]
+ldr x3,[x28,#1672]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr w9,[x28,#2824]
+cbz w9,.Lstep_skip_sep_11_15
+ldr x2,[x28,#1744]
+ldr x3,[x28,#1752]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+.Lstep_skip_sep_11_15:
+ldr w9,[x28,#2824]
+cbz w9,.Lstep_skip_sep_11_16
+ldr x2,[x28,#1824]
+ldr x3,[x28,#1832]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+.Lstep_skip_sep_11_16:
+ldr w9,[x28,#2824]
+cbz w9,.Lstep_skip_sep_11_17
+ldr x2,[x28,#1904]
+ldr x3,[x28,#1912]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+.Lstep_skip_sep_11_17:
+ldr x2,[x28,#1504]
+ldr x3,[x28,#1512]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1584]
+ldr x3,[x28,#1592]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x0,[x28,#1504]
+ldr x1,[x28,#1512]
+str x0,[x28,#2864]
+str x1,[x28,#2872]
+ARG x2,0
+adds x3,x2,#4
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,1
+adds x3,x2,#4
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,2
+adds x3,x2,#4
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,3
+adds x3,x2,#4
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,4
+adds x3,x2,#4
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,5
+adds x3,x2,#8
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,6
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,7
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,8
+adds x3,x2,#64
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,9
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,10
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,11
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,12
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,13
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,14
+adds x3,x2,#64
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,15
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,16
+adds x3,x2,#64
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,17
+adds x3,x2,#128
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,18
+adds x3,x2,#2416
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,19
+adds x3,x2,#856
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,20
+adds x3,x2,#472
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,21
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,22
+adds x3,x2,#64
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,23
+adds x3,x2,#112
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#544]
+ldr x3,[x28,#552]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#624]
+ldr x3,[x28,#632]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#704]
+ldr x3,[x28,#712]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#784]
+ldr x3,[x28,#792]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#864]
+ldr x3,[x28,#872]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#944]
+ldr x3,[x28,#952]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1024]
+ldr x3,[x28,#1032]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1104]
+ldr x3,[x28,#1112]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1184]
+ldr x3,[x28,#1192]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1264]
+ldr x3,[x28,#1272]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1344]
+ldr x3,[x28,#1352]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1664]
+ldr x3,[x28,#1672]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr w9,[x28,#2824]
+cbz w9,.Lstep_skip_sep_12_15
+ldr x2,[x28,#1744]
+ldr x3,[x28,#1752]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+.Lstep_skip_sep_12_15:
+ldr w9,[x28,#2824]
+cbz w9,.Lstep_skip_sep_12_16
+ldr x2,[x28,#1824]
+ldr x3,[x28,#1832]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+.Lstep_skip_sep_12_16:
+ldr w9,[x28,#2824]
+cbz w9,.Lstep_skip_sep_12_17
+ldr x2,[x28,#1904]
+ldr x3,[x28,#1912]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+.Lstep_skip_sep_12_17:
+ldr x2,[x28,#1424]
+ldr x3,[x28,#1432]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1584]
+ldr x3,[x28,#1592]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x0,[x28,#1584]
+ldr x1,[x28,#1592]
+str x0,[x28,#2864]
+str x1,[x28,#2872]
+ARG x2,0
+adds x3,x2,#4
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,1
+adds x3,x2,#4
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,2
+adds x3,x2,#4
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,3
+adds x3,x2,#4
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,4
+adds x3,x2,#4
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,5
+adds x3,x2,#8
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,6
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,7
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,8
+adds x3,x2,#64
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,9
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,10
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,11
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,12
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,13
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,14
+adds x3,x2,#64
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,15
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,16
+adds x3,x2,#64
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,17
+adds x3,x2,#128
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,18
+adds x3,x2,#2416
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,19
+adds x3,x2,#856
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,20
+adds x3,x2,#472
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,21
+adds x3,x2,#88
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,22
+adds x3,x2,#64
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x2,23
+adds x3,x2,#112
+b.cs .Lstep_invalid
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#544]
+ldr x3,[x28,#552]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#624]
+ldr x3,[x28,#632]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#704]
+ldr x3,[x28,#712]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#784]
+ldr x3,[x28,#792]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#864]
+ldr x3,[x28,#872]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#944]
+ldr x3,[x28,#952]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1024]
+ldr x3,[x28,#1032]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1104]
+ldr x3,[x28,#1112]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1184]
+ldr x3,[x28,#1192]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1264]
+ldr x3,[x28,#1272]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1344]
+ldr x3,[x28,#1352]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1664]
+ldr x3,[x28,#1672]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr w9,[x28,#2824]
+cbz w9,.Lstep_skip_sep_13_15
+ldr x2,[x28,#1744]
+ldr x3,[x28,#1752]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+.Lstep_skip_sep_13_15:
+ldr w9,[x28,#2824]
+cbz w9,.Lstep_skip_sep_13_16
+ldr x2,[x28,#1824]
+ldr x3,[x28,#1832]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+.Lstep_skip_sep_13_16:
+ldr w9,[x28,#2824]
+cbz w9,.Lstep_skip_sep_13_17
+ldr x2,[x28,#1904]
+ldr x3,[x28,#1912]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+.Lstep_skip_sep_13_17:
+ldr x2,[x28,#1424]
+ldr x3,[x28,#1432]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ldr x2,[x28,#1504]
+ldr x3,[x28,#1512]
+ldr x0,[x28,#2864]
+ldr x1,[x28,#2872]
+bl .Lstep_separate
+ARG x9,18
+ldr d8,[x9,#144]
+// Complete numerical region110.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d8,[sp,#0]
+str d8,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c0
+// Complete numerical region111.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d8,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c1
+// Complete numerical region112.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d8,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+ARG x9,5
+ldr d9,[x9,#0]
+// Complete numerical region113.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d9,[sp,#0]
+str d9,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c2
+// Complete numerical region114.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d9,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c3
+// Complete numerical region115.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d9,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+ARG x9,17
+ldr d10,[x9,#72]
+// Complete numerical region116.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d10,[sp,#0]
+str d10,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c1
+// Complete numerical region117.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d10,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c3
+// Complete numerical region118.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d10,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+ARG x9,18
+ldr d11,[x9,#208]
+CONST d0,c4
+// Complete numerical region119.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d11,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.ne .Lstep_invalid
+ARG x9,18
+ldr d12,[x9,#216]
+CONST d0,c5
+// Complete numerical region120.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d12,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.ne .Lstep_invalid
+ARG x9,18
+ldr d13,[x9,#224]
+CONST d0,c6
+// Complete numerical region121.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d13,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.ne .Lstep_invalid
+ARG x9,18
+ldr d14,[x9,#232]
+CONST d0,c7
+// Complete numerical region122.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d14,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.ne .Lstep_invalid
+ARG x9,18
+ldr d6,[x9,#48]
+// Complete numerical region123.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c8
+// Complete numerical region124.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c1
+// Complete numerical region125.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+ARG x9,18
+ldr d6,[x9,#56]
+// Complete numerical region126.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c9
+// Complete numerical region127.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c10
+// Complete numerical region128.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+ARG x9,18
+ldr d6,[x9,#64]
+// Complete numerical region129.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c9
+// Complete numerical region130.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c10
+// Complete numerical region131.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+ARG x9,18
+ldr d6,[x9,#32]
+// Complete numerical region132.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c11
+// Complete numerical region133.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c12
+// Complete numerical region134.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+ARG x9,18
+ldr d6,[x9,#40]
+// Complete numerical region135.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c11
+// Complete numerical region136.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c12
+// Complete numerical region137.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+ARG x9,18
+ldr d6,[x9,#8]
+// Complete numerical region138.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c1
+// Complete numerical region139.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c13
+// Complete numerical region140.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+ARG x9,18
+ldr d6,[x9,#392]
+// Complete numerical region141.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c9
+// Complete numerical region142.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c1
+// Complete numerical region143.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+cmp x25,#9
+b.le .Lstep_urban_constants_ready
+ARG x9,20
+ldr d6,[x9,#416]
+// Complete numerical region144.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c14
+// Complete numerical region145.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c13
+// Complete numerical region146.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+ARG x9,20
+ldr d6,[x9,#408]
+// Complete numerical region147.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c1
+// Complete numerical region148.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c13
+// Complete numerical region149.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+.Lstep_urban_constants_ready:
+ldr w9,[x28,#2824]
+cbnz w9,.Lstep_scalar_ready
+ARG x9,18
+ldr d6,[x9,#120]
+// Complete numerical region150.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c15
+// Complete numerical region151.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c1
+// Complete numerical region152.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+ARG x9,18
+ldr d6,[x9,#16]
+// Complete numerical region153.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c14
+// Complete numerical region154.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c16
+// Complete numerical region155.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+ARG x9,18
+ldr d6,[x9,#24]
+// Complete numerical region156.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c14
+// Complete numerical region157.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c16
+// Complete numerical region158.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+.Lstep_scalar_ready:
+mov x24,#0
+.Lstep_depth_check:
+ldr x9,[x28,#1696]
+add x10,x24,#1
+sub x9,x10,x9
+ldr x10,[x28,#1640]
+mul x9,x9,x10
+ldr x10,[x28,#1632]
+ldr d6,[x10,x9]
+// Complete numerical region159.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c2
+// Complete numerical region160.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c16
+// Complete numerical region161.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lstep_depth_check
+// Complete numerical region15.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d9,[sp,#0]
+str d8,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+str d0,[x28,#2848]
+fmov d0,#1.0
+// Complete numerical region16.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d8,[sp,#8]
+mov x0,sp
+mov w1,#3
+bl md2asm_gpu_soil_step_cell_host
+fmov d1,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region17.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#1
+bl md2asm_gpu_soil_step_cell_host
+fmov d1,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+str d1,[x28,#2840]
+// Complete numerical region18.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d9,[sp,#8]
+mov x0,sp
+mov w1,#3
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+str d0,[x28,#2856]
+mov x19,x22
+cmp x19,x23
+b.ge .Lstep_allocate
+.Lstep_admit_column:
+VECTOR w0,10
+cmp w0,#1
+b.hi .Lstep_invalid
+cbz w0,.Lstep_admit_next
+ldr w9,[x28,#2824]
+cbz w9,.Lstep_admit_no_table
+VECTOR w29,2
+ldr x9,[x28,#1776]
+ldr x10,[x28,#1760]
+add x10,x10,x9
+cmp x29,x9
+b.lt .Lstep_invalid
+cmp x29,x10
+b.ge .Lstep_invalid
+ldr x9,[x28,#1776]
+sub x9,x29,x9
+ldr x10,[x28,#1720]
+mul x9,x9,x10
+ldr x10,[x28,#1712]
+ldr d6,[x10,x9]
+// Complete numerical region162.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c15
+// Complete numerical region163.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c1
+// Complete numerical region164.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+ldr x9,[x28,#1856]
+ldr x10,[x28,#1840]
+add x10,x10,x9
+cmp x29,x9
+b.lt .Lstep_invalid
+cmp x29,x10
+b.ge .Lstep_invalid
+ldr x9,[x28,#1856]
+sub x9,x29,x9
+ldr x10,[x28,#1800]
+mul x9,x9,x10
+ldr x10,[x28,#1792]
+ldr d6,[x10,x9]
+// Complete numerical region165.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c14
+// Complete numerical region166.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c16
+// Complete numerical region167.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+ldr x9,[x28,#1936]
+ldr x10,[x28,#1920]
+add x10,x10,x9
+cmp x29,x9
+b.lt .Lstep_invalid
+cmp x29,x10
+b.ge .Lstep_invalid
+ldr x9,[x28,#1936]
+sub x9,x29,x9
+ldr x10,[x28,#1880]
+mul x9,x9,x10
+ldr x10,[x28,#1872]
+ldr d6,[x10,x9]
+// Complete numerical region168.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c14
+// Complete numerical region169.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c16
+// Complete numerical region170.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+.Lstep_admit_no_table:
+VECTOR d6,8
+// Complete numerical region171.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c17
+// Complete numerical region172.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c18
+// Complete numerical region173.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+mov x24,#0
+.Lstep_admit_levels:
+MATRIX d6,0
+// Complete numerical region174.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c19
+// Complete numerical region175.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c20
+// Complete numerical region176.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+MATRIX d6,1
+// Complete numerical region177.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c9
+// Complete numerical region178.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c1
+// Complete numerical region179.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+MATRIX d6,9
+// Complete numerical region180.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c1
+// Complete numerical region181.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c13
+// Complete numerical region182.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lstep_admit_levels
+mov x24,#0
+.Lstep_admit_tiles:
+MATRIX d6,3
+// Complete numerical region183.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c9
+// Complete numerical region184.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c1
+// Complete numerical region185.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+MATRIX d6,4
+// Complete numerical region186.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c17
+// Complete numerical region187.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c18
+// Complete numerical region188.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+MATRIX d6,5
+// Complete numerical region189.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c21
+// Complete numerical region190.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c1
+// Complete numerical region191.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+MATRIX d6,6
+// Complete numerical region192.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c17
+// Complete numerical region193.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c18
+// Complete numerical region194.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+MATRIX d6,7
+// Complete numerical region195.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c17
+// Complete numerical region196.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c18
+// Complete numerical region197.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+add x24,x24,#1
+cmp x24,x25
+b.lt .Lstep_admit_tiles
+cmp x25,#9
+b.le .Lstep_admit_next
+ldr w9,[x28,#2836]
+cbz w9,.Lstep_admit_next
+mov x24,#9
+MATRIX d6,5
+// Complete numerical region198.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str xzr,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.ne .Lstep_invalid
+.Lstep_admit_next:
+add x19,x19,#1
+cmp x19,x23
+b.lt .Lstep_admit_column
+.Lstep_allocate:
+mov x0,x20
+mov x9,#40
+mul x1,x21,x9
+add x1,x1,#12
+bl calloc
+cbz x0,.Lstep_invalid
+mov x26,x0
+str x0,[x28,#2560]
+mul x27,x20,x21
+lsl x27,x27,#3
+str x0,[x28,#2568]
+add x0,x0,x27
+str x0,[x28,#2576]
+add x0,x0,x27
+str x0,[x28,#2584]
+add x0,x0,x27
+str x0,[x28,#2592]
+add x0,x0,x27
+str x0,[x28,#2600]
+add x0,x0,x27
+str x0,[x28,#2608]
+add x0,x0,x20,lsl #3
+str x0,[x28,#2616]
+ldr x0,[x28,#2576]
+mov x1,x20
+mov x2,x21
+mov x3,#2
+mov x4,#3
+mov x5,#8
+add x6,x28,#2080
+bl .Lstep_header
+ldr x0,[x28,#2592]
+mov x1,x20
+mov x2,x21
+mov x3,#2
+mov x4,#3
+mov x5,#8
+add x6,x28,#2168
+bl .Lstep_header
+ldr x0,[x28,#2584]
+mov x1,x20
+mov x2,x21
+mov x3,#2
+mov x4,#3
+mov x5,#8
+add x6,x28,#2256
+bl .Lstep_header
+ldr x0,[x28,#2600]
+mov x1,x20
+mov x2,x21
+mov x3,#2
+mov x4,#3
+mov x5,#8
+add x6,x28,#2344
+bl .Lstep_header
+ldr x0,[x28,#2616]
+mov x1,x20
+mov x2,x21
+mov x3,#1
+mov x4,#2
+mov x5,#4
+add x6,x28,#2432
+bl .Lstep_header
+mov x19,x22
+cmp x19,x23
+b.ge .Lstep_call_child
+.Lstep_prepare_column:
+VECTOR w0,10
+ldr x9,[x28,#2616]
+str w0,[x9,x19,lsl #2]
+cbz w0,.Lstep_prepare_next
+mov x24,#2
+MATRIX d1,3
+MATRIX d2,7
+// Complete numerical region19.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d1,[sp,#0]
+str d2,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+fmov d2,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+fmov d4,d2
+mov x24,#3
+MATRIX d1,3
+MATRIX d2,7
+// Complete numerical region5.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d1,[sp,#8]
+str d2,[sp,#16]
+mov x0,sp
+mov w1,#10
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+mov x24,#5
+MATRIX d1,3
+MATRIX d2,7
+// Complete numerical region6.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d1,[sp,#8]
+str d2,[sp,#16]
+mov x0,sp
+mov w1,#10
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+mov x24,#7
+MATRIX d1,3
+MATRIX d2,7
+// Complete numerical region7.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d1,[sp,#8]
+str d2,[sp,#16]
+mov x0,sp
+mov w1,#10
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+cmp x25,#9
+b.le .Lstep_sum_2688
+mov x24,#9
+MATRIX d1,3
+MATRIX d2,7
+// Complete numerical region8.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d1,[sp,#8]
+str d2,[sp,#16]
+mov x0,sp
+mov w1,#10
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+.Lstep_sum_2688:
+str d4,[x28,#2688]
+mov x24,#2
+MATRIX d1,3
+MATRIX d2,6
+// Complete numerical region20.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d1,[sp,#0]
+str d2,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+fmov d2,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+fmov d4,d2
+mov x24,#3
+MATRIX d1,3
+MATRIX d2,6
+// Complete numerical region9.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d1,[sp,#8]
+str d2,[sp,#16]
+mov x0,sp
+mov w1,#10
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+mov x24,#5
+MATRIX d1,3
+MATRIX d2,6
+// Complete numerical region10.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d1,[sp,#8]
+str d2,[sp,#16]
+mov x0,sp
+mov w1,#10
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+mov x24,#7
+MATRIX d1,3
+MATRIX d2,6
+// Complete numerical region11.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d1,[sp,#8]
+str d2,[sp,#16]
+mov x0,sp
+mov w1,#10
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+cmp x25,#9
+b.le .Lstep_sum_2696
+mov x24,#9
+MATRIX d1,3
+MATRIX d2,6
+// Complete numerical region12.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d1,[sp,#8]
+str d2,[sp,#16]
+mov x0,sp
+mov w1,#10
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+.Lstep_sum_2696:
+str d4,[x28,#2696]
+mov x24,#2
+MATRIX d1,3
+MATRIX d2,4
+MATRIX d3,5
+// Complete numerical region4.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d10,[sp,#0]
+str d3,[sp,#8]
+str d2,[sp,#16]
+str d1,[sp,#24]
+mov x0,sp
+mov w1,#13
+bl md2asm_gpu_soil_step_cell_host
+fmov d2,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+fmov d4,d2
+mov x24,#3
+MATRIX d1,3
+MATRIX d2,4
+MATRIX d3,5
+// Complete numerical region0.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d10,[sp,#0]
+str d3,[sp,#8]
+str d2,[sp,#16]
+str d1,[sp,#24]
+str d4,[sp,#32]
+mov x0,sp
+mov w1,#12
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+mov x24,#5
+MATRIX d1,3
+MATRIX d2,4
+MATRIX d3,5
+// Complete numerical region1.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d10,[sp,#0]
+str d3,[sp,#8]
+str d2,[sp,#16]
+str d1,[sp,#24]
+str d4,[sp,#32]
+mov x0,sp
+mov w1,#12
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+mov x24,#7
+MATRIX d1,3
+MATRIX d2,4
+MATRIX d3,5
+// Complete numerical region2.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d10,[sp,#0]
+str d3,[sp,#8]
+str d2,[sp,#16]
+str d1,[sp,#24]
+str d4,[sp,#32]
+mov x0,sp
+mov w1,#12
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+cmp x25,#9
+b.le .Lstep_sum_2704
+mov x24,#9
+MATRIX d1,3
+MATRIX d2,4
+MATRIX d3,5
+// Complete numerical region3.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d10,[sp,#0]
+str d3,[sp,#8]
+str d2,[sp,#16]
+str d1,[sp,#24]
+str d4,[sp,#32]
+mov x0,sp
+mov w1,#12
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+.Lstep_sum_2704:
+str d4,[x28,#2704]
+ldr d0,[x28,#2688]
+ldr d1,[x28,#2696]
+// Complete numerical region21.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ldr d1,[x28,#2704]
+// Complete numerical region22.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d5,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+VECTOR d6,8
+// Complete numerical region23.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d5,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d7,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ldr w9,[x28,#2832]
+cbz w9,.Lstep_surface_ready
+mov x24,#8
+MATRIX d0,3
+ARG x9,18
+ldr d1,[x9,#392]
+// Complete numerical region199.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.le .Lstep_surface_ready
+fmov d7,d6
+mov x24,#2
+MATRIX d0,3
+fmov d4,d0
+mov x24,#3
+MATRIX d0,3
+// Complete numerical region24.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+mov x24,#5
+MATRIX d0,3
+// Complete numerical region25.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+mov x24,#7
+MATRIX d0,3
+// Complete numerical region26.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ARG x9,18
+ldr d1,[x9,#392]
+// Complete numerical region200.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.le .Lstep_land_fraction
+// Complete numerical region27.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d5,[sp,#0]
+str d4,[sp,#8]
+mov x0,sp
+mov w1,#3
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region28.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d7,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+.Lstep_land_fraction:
+cmp x25,#9
+b.le .Lstep_surface_ready
+mov x24,#9
+MATRIX d0,3
+// Complete numerical region29.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ARG x9,18
+ldr d1,[x9,#392]
+// Complete numerical region201.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.le .Lstep_surface_ready
+// Complete numerical region30.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d5,[sp,#0]
+str d4,[sp,#8]
+mov x0,sp
+mov w1,#3
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region31.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d7,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+.Lstep_surface_ready:
+ldr x9,[x28,#2608]
+str d7,[x9,x19,lsl #3]
+ldr w9,[x28,#2824]
+cbz w9,.Lstep_select_scalar
+VECTOR w29,2
+ldr x9,[x28,#1776]
+sub x9,x29,x9
+ldr x10,[x28,#1720]
+mul x9,x9,x10
+ldr x10,[x28,#1712]
+ldr d15,[x10,x9]
+ldr x9,[x28,#1856]
+sub x9,x29,x9
+ldr x10,[x28,#1800]
+mul x9,x9,x10
+ldr x10,[x28,#1792]
+ldr d0,[x10,x9]
+ldr x9,[x28,#1936]
+sub x9,x29,x9
+ldr x10,[x28,#1880]
+mul x9,x9,x10
+ldr x10,[x28,#1872]
+ldr d1,[x10,x9]
+b .Lstep_material_ready
+.Lstep_select_scalar:
+ARG x9,18
+ldr d15,[x9,#120]
+ARG x9,18
+ldr d0,[x9,#16]
+ARG x9,18
+ldr d1,[x9,#24]
+.Lstep_material_ready:
+str d15,[x28,#2784]
+str d0,[x28,#2792]
+str d1,[x28,#2800]
+mov x24,#0
+.Lstep_conductivity:
+MATRIX d0,0
+// Complete numerical region202.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d11,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.ge .Lstep_phase_zero
+// Complete numerical region203.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d12,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.le .Lstep_phase_one
+// Complete numerical region13.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d13,[sp,#8]
+str d14,[sp,#16]
+mov x0,sp
+mov w1,#9
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region210.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+mov x0,sp
+mov w1,#6
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+fmov d1,#1.0
+// Complete numerical region32.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d1,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#1
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+fmov d1,#0.5
+// Complete numerical region33.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d1,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b .Lstep_phase_ready
+.Lstep_phase_zero:
+fmov d0,xzr
+b .Lstep_phase_ready
+.Lstep_phase_one:
+fmov d0,#1.0
+.Lstep_phase_ready:
+str d0,[x28,#2744]
+fmov d1,#1.0
+// Complete numerical region34.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d1,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#1
+bl md2asm_gpu_soil_step_cell_host
+fmov d1,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region35.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d15,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+fmov d1,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+str d1,[x28,#2752]
+ARG x9,18
+ldr d0,[x9,#40]
+// Complete numerical region213.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#8
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+str d0,[x28,#2760]
+fmov d0,#1.0
+// Complete numerical region36.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d15,[sp,#8]
+mov x0,sp
+mov w1,#3
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+str d0,[x28,#2768]
+ldr d1,[x28,#2752]
+// Complete numerical region37.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d15,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#1
+bl md2asm_gpu_soil_step_cell_host
+fmov d1,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ARG x9,18
+ldr d0,[x9,#32]
+// Complete numerical region214.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#8
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ldr d1,[x28,#2800]
+// Complete numerical region38.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d1,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ldr d1,[x28,#2760]
+// Complete numerical region39.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+str d0,[x28,#2808]
+MATRIX d0,1
+ldr d1,[x28,#2768]
+// Complete numerical region40.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ARG x9,18
+ldr d1,[x9,#48]
+// Complete numerical region41.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#5
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region211.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+mov x0,sp
+mov w1,#7
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ARG x9,18
+ldr d1,[x9,#56]
+// Complete numerical region42.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d1,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ARG x9,18
+ldr d1,[x9,#64]
+// Complete numerical region43.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ldr d1,[x28,#2792]
+ldr d2,[x28,#2808]
+// Complete numerical region14.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d1,[sp,#0]
+str d2,[sp,#8]
+str d0,[sp,#16]
+mov x0,sp
+mov w1,#11
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+str d0,[x28,#2816]
+ldr w9,[x28,#2824]
+cbz w9,.Lstep_conductivity_ready
+ldr w9,[x28,#2828]
+cbz w9,.Lstep_conductivity_mix
+MATRIX d0,1
+// Complete numerical region44.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d15,[sp,#8]
+mov x0,sp
+mov w1,#3
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ARG x9,18
+ldr d1,[x9,#48]
+// Complete numerical region45.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#5
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region212.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+mov x0,sp
+mov w1,#7
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ARG x9,18
+ldr d1,[x9,#56]
+// Complete numerical region46.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d1,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ARG x9,18
+ldr d1,[x9,#64]
+// Complete numerical region47.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+str d0,[x28,#2816]
+ldr d1,[x28,#2744]
+// Complete numerical region48.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d15,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+fmov d1,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ARG x9,18
+ldr d0,[x9,#32]
+// Complete numerical region215.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#8
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+str d0,[x28,#2776]
+ldr d1,[x28,#2752]
+ARG x9,18
+ldr d0,[x9,#40]
+// Complete numerical region216.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#8
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ldr d1,[x28,#2800]
+ldr d2,[x28,#2776]
+// Complete numerical region49.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d1,[sp,#0]
+str d2,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+fmov d1,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region50.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d1,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+fmov d1,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ldr d2,[x28,#2792]
+// Complete numerical region51.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d1,[sp,#0]
+str d2,[sp,#8]
+mov x0,sp
+mov w1,#1
+bl md2asm_gpu_soil_step_cell_host
+fmov d1,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ldr d0,[x28,#2816]
+// Complete numerical region52.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region53.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d2,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+str d0,[x28,#2816]
+.Lstep_conductivity_mix:
+cbnz x24,.Lstep_conductivity_ready
+cmp x25,#9
+b.le .Lstep_conductivity_ready
+str x24,[x28,#2880]
+mov x24,#9
+MATRIX d1,3
+ldr x24,[x28,#2880]
+fmov d2,#1.0
+// Complete numerical region54.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d2,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#1
+bl md2asm_gpu_soil_step_cell_host
+fmov d2,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region55.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d2,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+fmov d2,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ARG x9,20
+ldr d3,[x9,#416]
+// Complete numerical region56.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d1,[sp,#0]
+str d3,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+fmov d1,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region57.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d2,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+.Lstep_conductivity_ready:
+fmov d6,d0
+// Complete numerical region204.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d6,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+CONST d0,c22
+// Complete numerical region205.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.lt .Lstep_invalid
+CONST d0,c13
+// Complete numerical region206.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d6,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+STOREBUF d6,2568
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lstep_conductivity
+.Lstep_prepare_next:
+add x19,x19,#1
+cmp x19,x23
+b.lt .Lstep_prepare_column
+mov x19,x22
+cmp x19,x23
+b.ge .Lstep_call_child
+.Lstep_factors_column:
+VECTOR w0,10
+cbz w0,.Lstep_factors_next
+mov x24,#0
+.Lstep_factors_layer:
+LOADBUF d0,2568
+str d0,[x28,#2896]
+ldr x9,[x28,#1696]
+add x10,x24,#1
+sub x9,x10,x9
+ldr x10,[x28,#1640]
+mul x9,x9,x10
+ldr x10,[x28,#1632]
+ldr d1,[x10,x9]
+str d1,[x28,#2904]
+MATRIX d2,9
+// Complete numerical region58.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d2,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+fmov d2,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+STOREBUF d2,2584
+sub x9,x21,#1
+cmp x24,x9
+b.ge .Lstep_bottom_factor
+add x24,x24,#1
+LOADBUF d0,2568
+ldr x9,[x28,#1696]
+add x10,x24,#1
+sub x9,x10,x9
+ldr x10,[x28,#1640]
+mul x9,x9,x10
+ldr x10,[x28,#1632]
+ldr d1,[x10,x9]
+sub x24,x24,#1
+ldr d3,[x28,#2896]
+// Complete numerical region59.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d3,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ldr d3,[x28,#2848]
+// Complete numerical region60.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d3,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ldr d3,[x28,#2904]
+// Complete numerical region61.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d3,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d1,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region62.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#3
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b .Lstep_factor_ready
+.Lstep_bottom_factor:
+fmov d0,xzr
+.Lstep_factor_ready:
+STOREBUF d0,2576
+fmov d0,xzr
+cbnz x24,.Lstep_rhs_ready
+ldr x9,[x28,#2608]
+ldr d0,[x9,x19,lsl #3]
+// Complete numerical region63.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d9,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+LOADBUF d1,2584
+// Complete numerical region64.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#3
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+.Lstep_rhs_ready:
+STOREBUF d0,2592
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lstep_factors_layer
+.Lstep_factors_next:
+add x19,x19,#1
+cmp x19,x23
+b.lt .Lstep_factors_column
+.Lstep_call_child:
+ARG x0,0
+ARG x1,1
+ARG x2,2
+ARG x3,4
+ARG x4,6
+add x5,x28,#2080
+add x6,x28,#2168
+add x7,x28,#2256
+ARG x9,18
+str x9,[sp,#0]
+add x9,x28,#2344
+str x9,[sp,#8]
+add x9,x28,#2432
+str x9,[sp,#16]
+bl md2asm_soil_column_private_entry
+mov x19,x22
+cmp x19,x23
+b.ge .Lstep_release
+.Lstep_recovery_admit_column:
+VECTOR w0,10
+cbz w0,.Lstep_recovery_admit_next
+mov x24,#0
+.Lstep_recovery_admit_level:
+MATRIX d0,0
+ldr d1,[x28,#2840]
+// Complete numerical region65.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+LOADBUF d1,2600
+// Complete numerical region66.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region207.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.vs .Lstep_invalid
+// Complete numerical region208.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str xzr,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.le .Lstep_invalid
+CONST d1,c23
+// Complete numerical region209.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#4
+bl md2asm_gpu_soil_step_cell_host
+msr nzcv,x0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+b.gt .Lstep_invalid
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lstep_recovery_admit_level
+.Lstep_recovery_admit_next:
+add x19,x19,#1
+cmp x19,x23
+b.lt .Lstep_recovery_admit_column
+mov x19,x22
+.Lstep_output_column:
+VECTOR w0,10
+str w0,[x28,#2912]
+fmov d0,xzr
+cbz w0,.Lstep_output_flux
+mov x24,#1
+LOADBUF d0,2600
+mov x24,#0
+LOADBUF d1,2600
+// Complete numerical region67.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#1
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+LOADBUF d1,2576
+// Complete numerical region68.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ldr d1,[x28,#2856]
+// Complete numerical region69.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+.Lstep_output_flux:
+mov x24,#0
+PUT d0,12
+.Lstep_output_level:
+MATRIX d0,0
+ldr w9,[x28,#2912]
+cbz w9,.Lstep_temperature_write
+ldr d1,[x28,#2840]
+// Complete numerical region70.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+LOADBUF d1,2600
+// Complete numerical region71.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+.Lstep_temperature_write:
+PUT d0,11
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lstep_output_level
+ldr w9,[x28,#2836]
+cbz w9,.Lstep_output_next
+mov x24,#0
+.Lstep_diagnostic_layer:
+ldr w9,[x28,#2912]
+cbz w9,.Lstep_diagnostic_nonland
+ARG x9,18
+ldr d0,[x9,#8]
+ldr x9,[x28,#1696]
+add x10,x24,#1
+sub x9,x10,x9
+ldr x10,[x28,#1640]
+mul x9,x9,x10
+ldr x10,[x28,#1632]
+ldr d1,[x10,x9]
+// Complete numerical region72.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+str d0,[x28,#2920]
+str d1,[x28,#2928]
+cmp x25,#9
+b.le .Lstep_diagnostic_capacity
+str x24,[x28,#2880]
+mov x24,#9
+MATRIX d2,3
+ldr x24,[x28,#2880]
+fmov d3,#1.0
+// Complete numerical region73.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d3,[sp,#0]
+str d2,[sp,#8]
+mov x0,sp
+mov w1,#1
+bl md2asm_gpu_soil_step_cell_host
+fmov d3,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ARG x9,18
+ldr d0,[x9,#8]
+// Complete numerical region74.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d3,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ARG x9,20
+ldr d3,[x9,#408]
+// Complete numerical region75.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d2,[sp,#0]
+str d3,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+fmov d2,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region76.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d2,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ldr d1,[x28,#2928]
+// Complete numerical region77.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+.Lstep_diagnostic_capacity:
+DIAG d0,1
+MATRIX d2,0
+DIAG d2,2
+ldr d0,[x28,#2920]
+// Complete numerical region78.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d2,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+DIAG d0,3
+ldr d0,[x28,#2928]
+DIAG d0,4
+MATRIX d0,9
+ARG x9,18
+ldr d1,[x9,#8]
+// Complete numerical region79.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#1
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+fneg d0,d0
+ldr d1,[x28,#2928]
+// Complete numerical region80.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+MATRIX d2,11
+MATRIX d3,0
+// Complete numerical region81.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d2,[sp,#0]
+str d3,[sp,#8]
+mov x0,sp
+mov w1,#1
+bl md2asm_gpu_soil_step_cell_host
+fmov d2,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region82.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d2,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ldr d1,[x28,#2856]
+// Complete numerical region83.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+DIAG d0,12
+LOADBUF d0,2600
+MATRIX d1,0
+// Complete numerical region84.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#1
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ldr d1,[x28,#2920]
+// Complete numerical region85.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d1,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region86.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d9,[sp,#8]
+mov x0,sp
+mov w1,#3
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+DIAG d0,15
+cbnz x24,.Lstep_diagnostic_lower
+str x24,[x28,#2880]
+mov x24,#2
+MATRIX d0,3
+MATRIX d1,4
+// Complete numerical region87.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+fmov d4,d0
+mov x24,#3
+MATRIX d0,3
+MATRIX d1,4
+// Complete numerical region88.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region89.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+mov x24,#5
+MATRIX d0,3
+MATRIX d1,4
+// Complete numerical region90.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region91.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+mov x24,#7
+MATRIX d0,3
+MATRIX d1,4
+// Complete numerical region92.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region93.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+cmp x25,#9
+b.le .Lstep_diag_sum_9
+mov x24,#9
+MATRIX d0,3
+MATRIX d1,4
+// Complete numerical region94.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region95.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+.Lstep_diag_sum_9:
+ldr x24,[x28,#2880]
+DIAG d4,9
+mov x24,#2
+MATRIX d0,3
+MATRIX d1,5
+// Complete numerical region96.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+fmov d4,d0
+mov x24,#3
+MATRIX d0,3
+MATRIX d1,5
+// Complete numerical region97.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region98.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+mov x24,#5
+MATRIX d0,3
+MATRIX d1,5
+// Complete numerical region99.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region100.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+mov x24,#7
+MATRIX d0,3
+MATRIX d1,5
+// Complete numerical region101.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region102.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region103.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d10,[sp,#0]
+str d4,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+cmp x25,#9
+b.le .Lstep_diag_sum_10
+mov x24,#9
+MATRIX d0,3
+MATRIX d1,5
+// Complete numerical region104.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region105.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d4,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#0
+bl md2asm_gpu_soil_step_cell_host
+fmov d4,d0
+ldr d0,[sp,#80]
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+.Lstep_diag_sum_10:
+ldr x24,[x28,#2880]
+DIAG d4,10
+VECTOR d0,8
+DIAG d0,13
+ldr x9,[x28,#2608]
+ldr d0,[x9,x19,lsl #3]
+fneg d0,d0
+DIAG d0,14
+b .Lstep_diagnostic_transfer
+.Lstep_diagnostic_lower:
+fmov d0,xzr
+DIAG d0,9
+DIAG d0,10
+DIAG d0,13
+DIAG d0,14
+.Lstep_diagnostic_transfer:
+sub x9,x21,#1
+cmp x24,x9
+b.ge .Lstep_diagnostic_zero_transfer
+LOADBUF d0,2600
+add x24,x24,#1
+LOADBUF d1,2600
+sub x24,x24,#1
+// Complete numerical region106.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#1
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+// Complete numerical region107.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d8,[sp,#0]
+str d0,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+LOADBUF d1,2576
+// Complete numerical region108.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+ldr d1,[x28,#2856]
+// Complete numerical region109.
+sub sp,sp,#96
+stp x0,x1,[sp,#64]
+str d0,[sp,#80]
+str d0,[sp,#0]
+str d1,[sp,#8]
+mov x0,sp
+mov w1,#2
+bl md2asm_gpu_soil_step_cell_host
+ldp x0,x1,[sp,#64]
+add sp,sp,#96
+DIAG d0,11
+b .Lstep_diagnostic_next
+.Lstep_diagnostic_zero_transfer:
+fmov d0,xzr
+DIAG d0,11
+b .Lstep_diagnostic_next
+.Lstep_diagnostic_nonland:
+fmov d0,xzr
+DIAG d0,1
+DIAG d0,2
+DIAG d0,3
+DIAG d0,4
+DIAG d0,9
+DIAG d0,10
+DIAG d0,11
+DIAG d0,12
+DIAG d0,13
+DIAG d0,14
+DIAG d0,15
+.Lstep_diagnostic_next:
+add x24,x24,#1
+cmp x24,x21
+b.lt .Lstep_diagnostic_layer
+.Lstep_output_next:
+add x19,x19,#1
+cmp x19,x23
+b.lt .Lstep_output_column
+.Lstep_release:
+mov x0,x26
+bl free
+ldp d8,d9,[sp,#160]
+ldp d10,d11,[sp,#176]
+ldp d12,d13,[sp,#192]
+ldp d14,d15,[sp,#208]
+ldp x19,x20,[sp,#64]
+ldp x21,x22,[sp,#80]
+ldp x23,x24,[sp,#96]
+ldp x25,x26,[sp,#112]
+ldp x27,x28,[sp,#128]
+ldp x29,x30,[sp,#144]
+add sp,sp,#4096
+ret
+.Lstep_decode:
+ ldr x8,[x0,#16]
+ cmp x8,x3
+ b.ne .Lstep_invalid
+ ldr w8,[x0,#24]
+ cbnz w8,.Lstep_invalid
+ ldrb w8,[x0,#28]
+ cmp x8,x1
+ b.ne .Lstep_invalid
+ ldrb w8,[x0,#29]
+ cmp x8,x2
+ b.ne .Lstep_invalid
+ ldrh w8,[x0,#30]
+ cbnz w8,.Lstep_invalid
+ ldr x8,[x0,#32]
+ cmp x8,x3
+ b.ne .Lstep_invalid
+ ldr x10,[x0,#48]
+ ldr x11,[x0,#56]
+ subs x11,x11,x10
+ b.vs .Lstep_invalid
+ adds x11,x11,#1
+ b.vs .Lstep_invalid
+ mov x14,#1
+ mov x15,#1
+ cmp x1,#1
+ b.eq .Lstep_shape_counts
+ ldr x8,[x0,#72]
+ ldr x14,[x0,#80]
+ subs x14,x14,x8
+ b.vs .Lstep_invalid
+ adds x14,x14,#1
+ b.vs .Lstep_invalid
+ cmp x1,#3
+ b.ne .Lstep_shape_counts
+ ldr x8,[x0,#96]
+ ldr x15,[x0,#104]
+ subs x15,x15,x8
+ b.vs .Lstep_invalid
+ adds x15,x15,#1
+ b.vs .Lstep_invalid
+ cmp x11,#0
+ b.lt .Lstep_invalid
+ cmp x14,#0
+ b.lt .Lstep_invalid
+ cmp x15,#0
+ b.lt .Lstep_invalid
+ cbz x11,.Lstep_empty_descriptor
+ cbz x14,.Lstep_empty_descriptor
+ cbz x15,.Lstep_empty_descriptor
+ cmp x15,#15
+ b.lt .Lstep_invalid
+ cmp x15,#32
+ b.gt .Lstep_invalid
+.Lstep_shape_counts:
+ cmp x11,x4
+ b.lt .Lstep_invalid
+ cmp x11,#4096
+ b.gt .Lstep_invalid
+ cmp x14,x5
+ b.lt .Lstep_invalid
+ cmp x14,#512
+ b.gt .Lstep_invalid
+ str x10,[x6,#64]
+ str x11,[x6,#48]
+ str x14,[x6,#56]
+ str x15,[x6,#72]
+ ldr x7,[x0]
+ cbz x7,.Lstep_invalid
+ sub x8,x3,#1
+ tst x7,x8
+ b.ne .Lstep_invalid
+ ldr x8,[x0,#40]
+ cmp x8,#0
+ cneg x9,x8,lt
+ cmp x9,#1
+ b.lt .Lstep_invalid
+ cmp x9,#4096
+ b.gt .Lstep_invalid
+ sub x10,x11,#1
+ mul x10,x10,x9
+ add x10,x10,#1
+ str x7,[x6]
+ mul x9,x8,x3
+ str x9,[x6,#8]
+ sub x11,x11,#1
+ mul x11,x11,x8
+ mov x12,#0
+ mov x13,#0
+ cmp x11,#0
+ csel x12,x11,x12,lt
+ csel x13,x11,x13,gt
+ str xzr,[x6,#16]
+ str xzr,[x6,#24]
+ cmp x1,#1
+ b.eq .Lstep_descriptor_bounds
+ ldr x8,[x0,#64]
+ cmp x8,#0
+ cneg x9,x8,lt
+ cmp x9,x10
+ b.lt .Lstep_invalid
+ mov x16,#1048576
+ cmp x9,x16
+ b.gt .Lstep_invalid
+ sub x14,x14,#1
+ mul x16,x14,x9
+ add x10,x10,x16
+ mul x9,x8,x3
+ str x9,[x6,#16]
+ mul x14,x14,x8
+ mov x9,#0
+ cmp x14,#0
+ csel x9,x14,x9,lt
+ add x12,x12,x9
+ mov x9,#0
+ cmp x14,#0
+ csel x9,x14,x9,gt
+ add x13,x13,x9
+ cmp x1,#2
+ b.eq .Lstep_descriptor_bounds
+ ldr x8,[x0,#88]
+ cmp x8,#0
+ cneg x9,x8,lt
+ cmp x9,x10
+ b.lt .Lstep_invalid
+ mov x16,#268435456
+ cmp x9,x16
+ b.gt .Lstep_invalid
+ mul x9,x8,x3
+ str x9,[x6,#24]
+ sub x15,x15,#1
+ mul x15,x15,x8
+ mov x9,#0
+ cmp x15,#0
+ csel x9,x15,x9,lt
+ add x12,x12,x9
+ mov x9,#0
+ cmp x15,#0
+ csel x9,x15,x9,gt
+ add x13,x13,x9
+.Lstep_descriptor_bounds:
+ mul x12,x12,x3
+ mul x13,x13,x3
+ add x9,x7,x12
+ cmp x9,x7
+ b.hi .Lstep_invalid
+ adds x10,x7,x13
+ b.cs .Lstep_invalid
+ adds x10,x10,x3
+ b.cs .Lstep_invalid
+ cmp x9,x10
+ b.hs .Lstep_invalid
+ str x9,[x6,#32]
+ str x10,[x6,#40]
+ ret
+.Lstep_empty_descriptor:
+ mov x7,#0
+.Lstep_clear_record:
+ str xzr,[x6,x7]
+ add x7,x7,#8
+ cmp x7,#80
+ b.lt .Lstep_clear_record
+ ret
+.Lstep_separate:
+ cmp x0,x1
+ b.eq .Lstep_separate_return
+ cmp x2,x3
+ b.eq .Lstep_separate_return
+ cmp x0,x3
+ b.hs .Lstep_separate_return
+ cmp x2,x1
+ b.lo .Lstep_invalid
+.Lstep_separate_return:
+ ret
+/* Canonical local arrays use one-based descriptor bounds. */
+.Lstep_header:
+ str x0,[x6]
+ mov x7,#-1
+ cmp x3,#2
+ b.ne .Lstep_header_offset
+ sub x7,x7,x1
+.Lstep_header_offset:
+ str x7,[x6,#8]
+ str x5,[x6,#16]
+ str wzr,[x6,#24]
+ strb w3,[x6,#28]
+ strb w4,[x6,#29]
+ strh wzr,[x6,#30]
+ str x5,[x6,#32]
+ mov x7,#1
+ str x7,[x6,#40]
+ str x7,[x6,#48]
+ str x1,[x6,#56]
+ cmp x3,#1
+ b.eq .Lstep_header_return
+ str x1,[x6,#64]
+ str x7,[x6,#72]
+ str x2,[x6,#80]
+.Lstep_header_return:
+ ret
+.Lstep_invalid:
+ bl abort
+ brk #0
+.size ORIGINAL_SYMBOL,.-ORIGINAL_SYMBOL
+.section .rodata
+.p2align 3
+.Lstep_c0:
+.quad 0x3fe0000000000000
+.Lstep_c1:
+.quad 0x3ff0000000000000
+.Lstep_c2:
+.quad 0x3e112e0be826d695
+.Lstep_c3:
+.quad 0x41cdcd6500000000
+.Lstep_c4:
+.quad 0x4071228f5c28f5c3
+.Lstep_c5:
+.quad 0x4070e28f5c28f5c3
+.Lstep_c6:
+.quad 0x4071028f5c28f5c3
+.Lstep_c7:
+.quad 0x3fe921fb54442d18
+.Lstep_c8:
+.quad 0x3d70000000000000
+.Lstep_c9:
+.quad 0x0000000000000000
+.Lstep_c10:
+.quad 0x4030000000000000
+.Lstep_c11:
+.quad 0x3fb999999999999a
+.Lstep_c12:
+.quad 0x4024000000000000
+.Lstep_c13:
+.quad 0x426d1a94a2000000
+.Lstep_c14:
+.quad 0x3eb0c6f7a0b5ed8d
+.Lstep_c15:
+.quad 0x3fa0000000000000
+.Lstep_c16:
+.quad 0x412e848000000000
+.Lstep_c17:
+.quad 0xc16312d000000000
+.Lstep_c18:
+.quad 0x416312d000000000
+.Lstep_c19:
+.quad 0x4059000000000000
+.Lstep_c20:
+.quad 0x407f400000000000
+.Lstep_c21:
+.quad 0xbff0000000000000
+.Lstep_c22:
+.quad 0x39b4484bfeebc2a0
+.Lstep_c23:
+.quad 0x7e37e43c8800759c
+.section .note.GNU-stack,"",%progbits

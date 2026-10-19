@@ -1,0 +1,9 @@
+# Cloud and aerosol visibility on the GPU
+
+Revision 1 replaces the complete original `CLAERVIS` calculation with direct PTX, which is NVIDIA assembly. The original thirteen address arguments, storage frame and optional profiling calls stay in assembly. The GPU computes air density and extinction from aerosols, liquid water, ice, snow and rain, then returns visibility in metres. It preserves every ordered 64-bit operation and both setup divisions, including an empty active range.
+
+The supported grid has 1 to 24 columns and 1 to 19 levels. Only the last supplied level is read. The cloud-fraction argument is unused, so its payload may be absent. The original input limits, exact coefficient words, negative-condensate floors and ice, liquid, snow and rain sum order stay unchanged. The selected POWER function preserves its qualified result, flags, error events and actual counters.
+
+All 44 protected GPU calls match original Fortran and the selected Arm solver across 5,792 complete output bytes. The independent check evaluates 1,452 distinct visibility and attenuation relations at 120 digits. There are 45 refusal controls and four ordinary-device memory checks. All 212 new POWER input pairs pass independent 120- and 240-digit checks, with the largest observed error below 0.499 units in the last place. Both source reviews, the exact 752-byte selected-provider proof and the new native instruction checks pass.
+
+Immediate status and counters use the selected ordered Arm route. Empty original Fortran calls have zero flags, while the two explicit setup divisions in the Arm and GPU routes set the inexact flag. All value bytes still agree, and all nonempty original Fortran flags also agree. This component result gives no complete-forecast or timing result. Detailed sources, inputs, outputs and checks remain in the local research packet.

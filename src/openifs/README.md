@@ -184,7 +184,7 @@ The current [autonomous forecast contract](../../skills/md2asm/references/openif
 
 ## GPU extension
 
-The PTX extension has 237 distinct component-qualified originals. Six complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. The latest run also matches both complete model-history buffers across 1,882,368 bytes. The separate complete-owner GPU gate remains unfinished. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
+The PTX extension has 243 distinct component-qualified originals. Six complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. The latest run also matches both complete model-history buffers across 1,882,368 bytes. The separate complete-owner GPU gate remains unfinished. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
 
 These recent contracts describe complete device stages and their declared limits. Parent and child entries overlap, so their counts must not be added.
 
@@ -228,6 +228,14 @@ These recent contracts describe complete device stages and their declared limits
 | Convective Column Controller On A GPU | [Contract](../../skills/md2asm-gpu/references/openifs/convection/convective_column_controller.md) |
 | Nitrogen decline on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/nitrogen_decline.md) |
 | Aerosol Visibility Extinction On A GPU | [Contract](../../skills/md2asm-gpu/references/openifs/radiation/aerosol_visibility_extinction.md) |
+| Cloud Cover Diagnostics on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/cloud_cover_diagnostics.md) |
+| GPU Tropopause Level | [Contract](../../skills/md2asm-gpu/references/openifs/physics/tropopause_level.md) |
+| Vegetation Evolution on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/vegetation_evolution.md) |
+| Soil Water Exchange on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/soil_water_exchange.md) |
+| Gravity-Wave Stress Profile on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/gravity_wave_stress_profile.md) |
+| Cloud and aerosol visibility on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/cloud_aerosol_visibility.md) |
+| Soil Temperature Step on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/soil_temperature_step.md) |
+| Private Supersaturation GPU Route | [Contract](../../skills/md2asm-gpu/references/openifs/physics/private_supersaturation_route.md) |
 
 ## Local records
 

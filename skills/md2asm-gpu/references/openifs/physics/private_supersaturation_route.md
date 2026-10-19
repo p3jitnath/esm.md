@@ -1,0 +1,11 @@
+# Private Supersaturation GPU Route
+
+Revision 2 carries the already qualified complete supersaturation calculation to its SLTEND private entry. Supersaturation means that air holds more water vapour than its local saturation limit. The calculation returns changes in temperature in kelvin, water and condensate mass fractions in kilograms per kilogram, and cloud fraction. The numerical method and its original sixteen-address interface are unchanged.
+
+The selected provider md2asm_sltend_private_supersatcheck uses sixteen fixed coefficient words owned by SLTEND. The GPU host preserves those exact owners through md2asm_sltend_constant_* addresses. Its original arguments, complete five output owners, status and actual exponential counter storage retain their original meaning. An exact source inverse proves that only two host export names and sixteen coefficient bindings differ from the accepted public host. The host contains zero weather floating-point instructions.
+
+The existing direct PTX source, native object and grid of one block with128threads are unchanged. Its complete device function owns both phase modes, ordered FP64 arithmetic, all five updates, bounds and status. The1024-byte host frame contains a sixteen-address vector,64-byte context and144-byte coefficient and counter record with disjoint storage. It preserves the original saved registers and incoming FPCR, FPSR and error indicator around CUDA services.
+
+The inherited numerical corpus contains73 GPU calls,663800 complete output bytes and99156 independent physical relations. Sixteen new protected GPU and selected CPU calls match eight original Fortran placements across8320 output bytes, with zero differing bytes. These focused calls check all sixteen actual coefficient words, both modes, partial and empty ranges, immediate status, preserved registers,138 physical relations and wrapping exponential counts. Deliberately different live YOM globals confirm that this private route consumes its fixed coefficients.
+
+The dedicated original CPU archive member must be retired when this host is linked, while original SLTEND constant definitions remain. Root verifies the final selected export, coefficient bindings and live forecast calls. This additional route adds zero original routine count and makes no complete GPU forecast or timing claim.

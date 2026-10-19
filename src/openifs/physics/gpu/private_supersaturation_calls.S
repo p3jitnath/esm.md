@@ -1,0 +1,164 @@
+// Contract: skills/md2asm-gpu/references/openifs/physics/private_supersaturation_route.md.
+// Original SLTEND supersaturation ABI with its actual frozen coefficient owners.
+.text
+.p2align 4
+.global md2asm_gpu_host_sltend_supersaturation
+.type md2asm_gpu_host_sltend_supersaturation,%function
+.global md2asm_sltend_private_supersatcheck
+.type md2asm_sltend_private_supersatcheck,%function
+md2asm_gpu_host_sltend_supersaturation:
+md2asm_sltend_private_supersatcheck:
+ mov x17,sp
+ sub sp,sp,#1024
+ stp x29,x30,[sp]
+ mov x29,sp
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ stp x0,x1,[sp,#128]
+ stp x2,x3,[sp,#144]
+ stp x4,x5,[sp,#160]
+ stp x6,x7,[sp,#176]
+ ldr x8,[x17,#0]
+ str x8,[sp,#192]
+ ldr x8,[x17,#8]
+ str x8,[sp,#200]
+ ldr x8,[x17,#16]
+ str x8,[sp,#208]
+ ldr x8,[x17,#24]
+ str x8,[sp,#216]
+ ldr x8,[x17,#32]
+ str x8,[sp,#224]
+ ldr x8,[x17,#40]
+ str x8,[sp,#232]
+ ldr x8,[x17,#48]
+ str x8,[sp,#240]
+ ldr x8,[x17,#56]
+ str x8,[sp,#248]
+ mrs x8,fpcr
+ mrs x9,fpsr
+ stp x8,x9,[sp,#104]
+ bl __errno_location
+ mov x22,x0
+ ldr w8,[x22]
+ str w8,[sp,#120]
+ add x19,sp,#128
+ add x20,sp,#448
+ mov x21,#0
+ bl md2asm_openifs_gpu_prepare
+ cbnz w0,.Lphysics_bulk_failure
+ stp xzr,xzr,[x20]
+ stp xzr,xzr,[x20,#16]
+ stp xzr,xzr,[x20,#32]
+ stp xzr,xzr,[x20,#48]
+ mov w8,#1
+ str w8,[x20,#4]
+ add x8,sp,#512
+ str x8,[x20,#48]
+ mov x8,#144
+ str x8,[x20,#56]
+ adrp x8,:got:md2asm_sltend_constant_retv
+ ldr x8,[x8,:got_lo12:md2asm_sltend_constant_retv]
+ str x8,[sp,#512]
+ adrp x8,:got:md2asm_sltend_constant_rtt
+ ldr x8,[x8,:got_lo12:md2asm_sltend_constant_rtt]
+ str x8,[sp,#520]
+ adrp x8,:got:md2asm_sltend_constant_r2es
+ ldr x8,[x8,:got_lo12:md2asm_sltend_constant_r2es]
+ str x8,[sp,#528]
+ adrp x8,:got:md2asm_sltend_constant_r3les
+ ldr x8,[x8,:got_lo12:md2asm_sltend_constant_r3les]
+ str x8,[sp,#536]
+ adrp x8,:got:md2asm_sltend_constant_r3ies
+ ldr x8,[x8,:got_lo12:md2asm_sltend_constant_r3ies]
+ str x8,[sp,#544]
+ adrp x8,:got:md2asm_sltend_constant_r4les
+ ldr x8,[x8,:got_lo12:md2asm_sltend_constant_r4les]
+ str x8,[sp,#552]
+ adrp x8,:got:md2asm_sltend_constant_r4ies
+ ldr x8,[x8,:got_lo12:md2asm_sltend_constant_r4ies]
+ str x8,[sp,#560]
+ adrp x8,:got:md2asm_sltend_constant_rtwat
+ ldr x8,[x8,:got_lo12:md2asm_sltend_constant_rtwat]
+ str x8,[sp,#568]
+ adrp x8,:got:md2asm_sltend_constant_rtice
+ ldr x8,[x8,:got_lo12:md2asm_sltend_constant_rtice]
+ str x8,[sp,#576]
+ adrp x8,:got:md2asm_sltend_constant_rtwat_rtice_r
+ ldr x8,[x8,:got_lo12:md2asm_sltend_constant_rtwat_rtice_r]
+ str x8,[sp,#584]
+ adrp x8,:got:md2asm_sltend_constant_rkoop1
+ ldr x8,[x8,:got_lo12:md2asm_sltend_constant_rkoop1]
+ str x8,[sp,#592]
+ adrp x8,:got:md2asm_sltend_constant_rkoop2
+ ldr x8,[x8,:got_lo12:md2asm_sltend_constant_rkoop2]
+ str x8,[sp,#600]
+ adrp x8,:got:md2asm_sltend_constant_r5alvcp
+ ldr x8,[x8,:got_lo12:md2asm_sltend_constant_r5alvcp]
+ str x8,[sp,#608]
+ adrp x8,:got:md2asm_sltend_constant_r5alscp
+ ldr x8,[x8,:got_lo12:md2asm_sltend_constant_r5alscp]
+ str x8,[sp,#616]
+ adrp x8,:got:md2asm_sltend_constant_ralvdcp
+ ldr x8,[x8,:got_lo12:md2asm_sltend_constant_ralvdcp]
+ str x8,[sp,#624]
+ adrp x8,:got:md2asm_sltend_constant_ralsdcp
+ ldr x8,[x8,:got_lo12:md2asm_sltend_constant_ralsdcp]
+ str x8,[sp,#632]
+ adrp x8,:got:md2asm_exponential_native_calls_storage
+ ldr x8,[x8,:got_lo12:md2asm_exponential_native_calls_storage]
+ str x8,[sp,#640]
+ mov x9,#8
+ cmp x8,#0
+ csel x9,x9,xzr,ne
+ str x9,[sp,#648]
+ ldp x8,x9,[sp,#104]
+ msr fpcr,x8
+ msr fpsr,x9
+ ldr w8,[sp,#120]
+ str w8,[x22]
+ adrp x0,.Lphysics_entry_1
+ add x0,x0,:lo12:.Lphysics_entry_1
+ mov x1,x19
+ mov x2,x20
+ mov w3,#1
+ mov w4,#128
+ mov w5,#0
+ bl md2asm_openifs_gpu_launch
+ cbnz w0,.Lphysics_bulk_failure
+ mrs x23,fpsr
+ mrs x24,fpcr
+ ldr w25,[x22]
+ cbz x21,.Lphysics_storage_released_1
+ mov x0,x21
+ bl free
+.Lphysics_storage_released_1:
+ msr fpcr,x24
+ msr fpsr,x23
+ str w25,[x22]
+ adrp x8,:got:md2asm_gpu_physics_bulk_dispatch_counts
+ ldr x8,[x8,:got_lo12:md2asm_gpu_physics_bulk_dispatch_counts]
+ ldr x9,[x8,#8]
+ add x9,x9,#1
+ str x9,[x8,#8]
+ ldr x18,[sp,#96]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#1024
+ ret
+.size md2asm_gpu_host_sltend_supersaturation,.-md2asm_gpu_host_sltend_supersaturation
+.size md2asm_sltend_private_supersatcheck,.-md2asm_sltend_private_supersatcheck
+
+.Lphysics_bulk_failure:
+ bl abort
+ brk #0
+.section .rodata
+.Lphysics_entry_1: .asciz "md2asm_gpu_cloud_supersatcheck"
+.section .note.GNU-stack,"",%progbits

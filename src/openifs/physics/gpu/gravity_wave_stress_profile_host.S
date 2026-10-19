@@ -1,0 +1,131 @@
+// Contract: skills/md2asm-gpu/references/openifs/physics/gravity_wave_stress_profile.md.
+// Storage-only original21-address ABI. All weather arithmetic runs in direct PTX.
+#ifndef GWPROFIL_HOST_SYMBOL
+#define GWPROFIL_HOST_SYMBOL gwprofil_
+#endif
+.text
+.p2align 4
+.global GWPROFIL_HOST_SYMBOL
+.type GWPROFIL_HOST_SYMBOL,%function
+GWPROFIL_HOST_SYMBOL:
+ mov x17,sp
+ sub sp,sp,#768
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ stp x0,x1,[sp,#128]
+ stp x2,x3,[sp,#144]
+ stp x4,x5,[sp,#160]
+ stp x6,x7,[sp,#176]
+ add x10,sp,#192
+ mov x11,#13
+.Lgwp_host_args:
+ ldr x12,[x17],#8
+ str x12,[x10],#8
+ subs x11,x11,#1
+ b.ne .Lgwp_host_args
+ mrs x9,fpcr
+ cbnz x9,.Lgwp_host_fail
+ str x9,[sp,#600]
+ mrs x10,fpsr
+ str x10,[sp,#608]
+ bl __errno_location
+ ldr x18,[sp,#96]
+ mov x22,x0
+ ldr w9,[x22]
+ str w9,[sp,#616]
+ bl md2asm_openifs_gpu_prepare
+ ldr x18,[sp,#96]
+ cbnz w0,.Lgwp_host_fail
+ add x20,sp,#320
+ add x21,sp,#384
+ mov x9,#0
+.Lgwp_host_zero:
+ add x10,x20,x9
+ stp xzr,xzr,[x10]
+ add x9,x9,#16
+ cmp x9,#240
+ b.lo .Lgwp_host_zero
+ mov w9,#1
+ str w9,[x20,#4]
+ str x21,[x20,#48]
+ mov x9,#168
+ str x9,[x20,#56]
+ mov x9,#120
+ str x9,[x21]
+ mov x9,#96
+ str x9,[x21,#8]
+ mov x9,#4
+ str x9,[x21,#16]
+ str x9,[x21,#24]
+ str x9,[x21,#32]
+ str x9,[x21,#40]
+ ldr x9,[sp,#160]
+ ldr w23,[x9]
+ ldr x9,[sp,#168]
+ ldr w24,[x9]
+ cmp w23,#4096
+ b.hi .Lgwp_host_fail
+ cmp w24,#2
+ b.lo .Lgwp_host_fail
+ cmp w24,#1024
+ b.hi .Lgwp_host_fail
+ uxtw x23,w23
+ uxtw x24,w24
+ lsl x9,x23,#2
+ str x9,[x21,#48]
+ str x9,[x21,#56]
+ str x9,[x21,#64]
+ str x9,[x21,#72]
+ str x9,[x21,#80]
+ str x9,[x21,#88]
+ add x10,x24,#1
+ mul x9,x23,x10
+ lsl x9,x9,#3
+ str x9,[x21,#96]
+ str x9,[x21,#104]
+ str x9,[x21,#112]
+ str x9,[x21,#120]
+ str x9,[x21,#128]
+ str x9,[x21,#136]
+ lsl x9,x23,#3
+ str x9,[x21,#144]
+ str x9,[x21,#152]
+ str x9,[x21,#160]
+ adrp x0,.Lgwp_host_entry
+ add x0,x0,:lo12:.Lgwp_host_entry
+ add x1,sp,#128
+ mov x2,x20
+ mov w3,#1
+ mov w4,#1
+ mov w5,#0
+ ldr x9,[sp,#600]
+ ldr x10,[sp,#608]
+ msr fpcr,x9
+ msr fpsr,x10
+ ldr w9,[sp,#616]
+ str w9,[x22]
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#96]
+ cbnz w0,.Lgwp_host_fail
+ ldr w9,[x20]
+ cbnz w9,.Lgwp_host_fail
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#768
+ ret
+.Lgwp_host_fail:
+ bl abort
+ brk #0
+.size GWPROFIL_HOST_SYMBOL,.-GWPROFIL_HOST_SYMBOL
+.section .rodata
+.Lgwp_host_entry:.asciz "md2asm_gpu_gwprofil"
+.section .note.GNU-stack,"",%progbits
