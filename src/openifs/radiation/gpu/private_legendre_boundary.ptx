@@ -1,0 +1,64 @@
+// Contract: skills/md2asm-gpu/references/openifs/radiation/private_legendre_basis.md.
+// Complete original RADACT four-address LEGTRI boundary; frozen_route_contract.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.func (.param .u32 error) radact_legendre_owner_range(.param .u64 base,.param .u64 bytes,.param .u64 mask,.param .u64 list,.param .u32 count,.param .u32 skip)
+{
+.reg .u64 %b,%n,%mask,%list,%end,%owner,%size,%stop,%word;.reg .u32 %i,%count,%skip,%error;.reg .pred %p,%q;
+ld.param.u64 %b,[base];ld.param.u64 %n,[bytes];ld.param.u64 %mask,[mask];ld.param.u64 %list,[list];ld.param.u32 %count,[count];ld.param.u32 %skip,[skip];mov.u32 %error,7811;
+setp.eq.u64 %p,%n,0;@%p bra GOOD;setp.eq.u64 %p,%b,0;@%p bra DONE;and.b64 %word,%b,%mask;setp.ne.u64 %p,%word,0;@%p bra DONE;setp.gt.u64 %p,%b,0x7fffffffffffffff;@%p bra DONE;setp.gt.u64 %p,%n,0x7fffffffffffffff;@%p bra DONE;add.u64 %end,%b,%n;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra DONE;mov.u32 %i,0;
+SCAN:setp.ge.u32 %p,%i,%count;@%p bra GOOD;setp.eq.u32 %p,%i,%skip;@%p bra NEXT;ld.u64 %owner,[%list];ld.u64 %size,[%list+8];setp.eq.u64 %p,%size,0;@%p bra NEXT;add.u64 %stop,%owner,%size;setp.lt.u64 %p,%b,%stop;setp.lt.u64 %q,%owner,%end;and.pred %p,%p,%q;@%p bra DONE;
+NEXT:add.u64 %list,%list,16;add.u32 %i,%i,1;bra SCAN;
+GOOD:mov.u32 %error,0;
+DONE:st.param.u32 [error],%error;ret;
+}
+
+
+.visible .func (.param .u32 error) md2asm_gpu_radact_legendre_admit(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%v<4>,%order,%dim,%need,%bytes,%word,%absolute,%list,%off,%ptr;.reg .u32 %error,%count;.reg .pred %p;
+.local .align 8 .b8 owners[128];.param .u64 b,n,m,l;.param .u32 c,s,r;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];mov.u64 %list,owners;cvta.local.u64 %list,%list;mov.u32 %count,0;
+
+st.param.u64 [b],%args;st.param.u64 [n],32;st.param.u64 [m],7;st.param.u64 [l],%list;st.param.u32 [c],0;st.param.u32 [s],4294967295;call.uni (r),radact_legendre_owner_range,(b,n,m,l,c,s);ld.param.u32 %error,[r];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %off,%count,16;add.u64 %ptr,%list,%off;st.u64 [%ptr],%args;st.u64 [%ptr+8],32;add.u32 %count,%count,1;
+st.param.u64 [b],%ctx;st.param.u64 [n],64;st.param.u64 [m],7;st.param.u64 [l],%list;st.param.u32 [c],0;st.param.u32 [s],4294967295;call.uni (r),radact_legendre_owner_range,(b,n,m,l,c,s);ld.param.u32 %error,[r];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %off,%count,16;add.u64 %ptr,%list,%off;st.u64 [%ptr],%ctx;st.u64 [%ptr+8],64;add.u32 %count,%count,1;
+ld.u64 %v0,[%args+0];
+st.param.u64 [b],%v0;st.param.u64 [n],8;st.param.u64 [m],7;st.param.u64 [l],%list;st.param.u32 [c],0;st.param.u32 [s],4294967295;call.uni (r),radact_legendre_owner_range,(b,n,m,l,c,s);ld.param.u32 %error,[r];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %off,%count,16;add.u64 %ptr,%list,%off;st.u64 [%ptr],%v0;st.u64 [%ptr+8],8;add.u32 %count,%count,1;
+ld.u64 %v1,[%args+8];
+st.param.u64 [b],%v1;st.param.u64 [n],4;st.param.u64 [m],3;st.param.u64 [l],%list;st.param.u32 [c],0;st.param.u32 [s],4294967295;call.uni (r),radact_legendre_owner_range,(b,n,m,l,c,s);ld.param.u32 %error,[r];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %off,%count,16;add.u64 %ptr,%list,%off;st.u64 [%ptr],%v1;st.u64 [%ptr+8],4;add.u32 %count,%count,1;
+ld.u64 %v2,[%args+16];
+st.param.u64 [b],%v2;st.param.u64 [n],4;st.param.u64 [m],3;st.param.u64 [l],%list;st.param.u32 [c],0;st.param.u32 [s],4294967295;call.uni (r),radact_legendre_owner_range,(b,n,m,l,c,s);ld.param.u32 %error,[r];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %off,%count,16;add.u64 %ptr,%list,%off;st.u64 [%ptr],%v2;st.u64 [%ptr+8],4;add.u32 %count,%count,1;
+ld.u32 %order,[%v1];ld.u32 %dim,[%v2];mov.u32 %error,7812;setp.lt.u64 %p,%order,2;@%p bra RETURN;setp.gt.u64 %p,%order,256;@%p bra RETURN;add.u64 %need,%order,1;mul.lo.u64 %need,%need,%order;shr.u64 %need,%need,1;setp.lt.u64 %p,%dim,%need;@%p bra RETURN;setp.gt.u64 %p,%dim,1048576;@%p bra RETURN;ld.u64 %word,[%v0];and.b64 %absolute,%word,0x7fffffffffffffff;setp.gt.u64 %p,%absolute,0x3ff0000000000000;@%p bra RETURN;ld.u64 %v3,[%args+24];shl.b64 %bytes,%dim,3;
+st.param.u64 [b],%v3;st.param.u64 [n],%bytes;st.param.u64 [m],7;st.param.u64 [l],%list;st.param.u32 [c],0;st.param.u32 [s],4294967295;call.uni (r),radact_legendre_owner_range,(b,n,m,l,c,s);ld.param.u32 %error,[r];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mul.wide.u32 %off,%count,16;add.u64 %ptr,%list,%off;st.u64 [%ptr],%v3;st.u64 [%ptr+8],%bytes;add.u32 %count,%count,1;
+st.param.u64 [b],%v3;st.param.u64 [n],%bytes;st.param.u64 [m],7;st.param.u64 [l],%list;st.param.u32 [c],%count;st.param.u32 [s],5;call.uni (r),radact_legendre_owner_range,(b,n,m,l,c,s);ld.param.u32 %error,[r];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+st.param.u64 [b],%ctx;st.param.u64 [n],64;st.param.u64 [m],7;st.param.u64 [l],%list;st.param.u32 [c],%count;st.param.u32 [s],1;call.uni (r),radact_legendre_owner_range,(b,n,m,l,c,s);ld.param.u32 %error,[r];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mov.u32 %error,0;
+RETURN:st.param.u32 [error],%error;ret;
+}
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_associated_legendre_values(.param .b64 sine,.param .u32 order,.param .u64 output);
+.visible .func md2asm_gpu_radact_legendre_complete(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%scratch,%ptr,%out;.reg .b64 %sine;.reg .u32 %order;
+.reg .u32 %word,%other,%error,%flags,%old;
+.reg .pred %p;
+.param .u64 a,c,s;.param .b64 mu;.param .u32 cp;.param .u32 refused;.param .align 8 .b8 returned[16];
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];
+mov.u32 %word,%tid.x;mov.u32 %other,%tid.y;or.b32 %word,%word,%other;mov.u32 %other,%tid.z;or.b32 %word,%word,%other;mov.u32 %other,%ctaid.x;or.b32 %word,%word,%other;mov.u32 %other,%ctaid.y;or.b32 %word,%word,%other;mov.u32 %other,%ctaid.z;or.b32 %word,%word,%other;setp.ne.u32 %p,%word,0;@%p ret;
+setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %scratch,%ctx,7;setp.ne.u64 %p,%scratch,0;@%p ret;ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;mov.u32 %error,7810;
+mov.u32 %word,%ntid.x;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%ntid.y;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%ntid.z;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%nctaid.x;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%nctaid.y;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%nctaid.z;setp.ne.u32 %p,%word,1;@%p bra REFUSE;mov.u32 %word,%dynamic_smem_size;setp.ne.u32 %p,%word,0;@%p bra REFUSE;ld.global.u32 %word,[%ctx+4];setp.ne.u32 %p,%word,1;@%p bra REFUSE;ld.global.u32 %word,[%ctx+12];setp.ne.u32 %p,%word,0;@%p bra REFUSE;
+st.param.u64 [a],%args;st.param.u64 [c],%ctx;call.uni (refused),md2asm_gpu_radact_legendre_admit,(a,c);ld.param.u32 %error,[refused];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %ptr,[%args];ld.global.b64 %sine,[%ptr];ld.global.u64 %ptr,[%args+8];ld.global.u32 %order,[%ptr];ld.global.u64 %out,[%args+24];st.param.b64 [mu],%sine;st.param.u32 [cp],%order;st.param.u64 [s],%out;call.uni (returned),md2asm_gpu_associated_legendre_values,(mu,cp,s);ld.param.u32 %flags,[returned];ld.param.u32 %error,[returned+4];setp.ne.u32 %p,%error,0;@%p bra REFUSE;ld.global.u32 %old,[%ctx+8];or.b32 %flags,%flags,%old;st.global.u32 [%ctx+8],%flags;ret;
+REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+.visible .entry md2asm_gpu_radact_legendre(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx;.param .u64 a,c;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];st.param.u64 [a],%args;st.param.u64 [c],%ctx;call.uni md2asm_gpu_radact_legendre_complete,(a,c);ret;
+}

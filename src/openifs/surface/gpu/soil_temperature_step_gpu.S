@@ -4136,7 +4136,22 @@ mov w1,#1
 bl md2asm_gpu_soil_step_cell_host
 ldp x0,x1,[sp,#64]
 add sp,sp,#96
-fneg d0,d0
+ // Preserve the exact sign change through the qualified GPU operation.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str d0,[sp,#0]
+ mov x0,sp
+ mov w1,#15
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
 ldr d1,[x28,#2928]
 // Complete numerical region80.
 sub sp,sp,#96
@@ -4500,7 +4515,22 @@ VECTOR d0,8
 DIAG d0,13
 ldr x9,[x28,#2608]
 ldr d0,[x9,x19,lsl #3]
-fneg d0,d0
+ // Preserve the exact sign change through the qualified GPU operation.
+ sub sp,sp,#128
+ stp x0,x1,[sp,#80]
+ str d0,[sp,#96]
+ str x17,[sp,#104]
+ mrs x17,nzcv
+ str x17,[sp,#112]
+ str d0,[sp,#0]
+ mov x0,sp
+ mov w1,#15
+ bl md2asm_gpu_soil_water_cell_host
+ ldr x17,[sp,#112]
+ msr nzcv,x17
+ ldr x17,[sp,#104]
+ ldp x0,x1,[sp,#80]
+ add sp,sp,#128
 DIAG d0,14
 b .Lstep_diagnostic_transfer
 .Lstep_diagnostic_lower:

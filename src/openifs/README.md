@@ -184,7 +184,7 @@ The current [autonomous forecast contract](../../skills/md2asm/references/openif
 
 ## GPU extension
 
-The PTX extension has 243 distinct component-qualified originals. Six complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. The latest run also matches both complete model-history buffers across 1,882,368 bytes. The separate complete-owner GPU gate remains unfinished. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
+The PTX extension has 247 distinct component-qualified originals. Six complete ordinary forecasts with combined CPU/GPU assembly match all ten saved files and 59 final numerical views. The latest run also matches both complete model-history buffers across 1,882,368 bytes. The separate complete-owner GPU gate remains unfinished. The complete required-routine total and live GPU coverage remain under review. A full autonomous GPU numerical forecast and comparative timing are not yet accepted.
 
 These recent contracts describe complete device stages and their declared limits. Parent and child entries overlap, so their counts must not be added.
 
@@ -236,6 +236,12 @@ These recent contracts describe complete device stages and their declared limits
 | Cloud and aerosol visibility on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/cloud_aerosol_visibility.md) |
 | Soil Temperature Step on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/soil_temperature_step.md) |
 | Private Supersaturation GPU Route | [Contract](../../skills/md2asm-gpu/references/openifs/physics/private_supersaturation_route.md) |
+| Gravity-Wave Momentum Drag on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/gravity_wave_momentum_drag.md) |
+| Slow-Physics Averaging on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/slow_physics_averaging.md) |
+| RADACT Private Legendre Basis | [Contract](../../skills/md2asm-gpu/references/openifs/radiation/private_legendre_basis.md) |
+| Lake Energy Profile Update on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/surface/lake_energy_profile_update.md) |
+| Aerosol and Ozone Visibility Climatology on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/aerosol_visibility_climatology.md) |
+| Complete cloud weather diagnostics on the GPU | [Contract](../../skills/md2asm-gpu/references/openifs/physics/cloud_weather_diagnostics.md) |
 
 ## Local records
 
