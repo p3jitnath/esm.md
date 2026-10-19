@@ -1,6 +1,6 @@
 # Assembly-Owned CUDA Runtime
 
-Revision 3 supplies process services for the PTX forecast. The [assembly module](../../../../src/openifs/support/gpu/cuda_runtime.S) performs no weather calculation. Host assembly retains the original input loading, complete model storage and output rules. The declared NVIDIA device must support coherent ordinary host memory through the host page tables, as checked during initialization.
+Revision 4 supplies process services for the PTX forecast. The [assembly module](../../../../src/openifs/support/gpu/cuda_runtime.S) performs no weather calculation. Host assembly retains the original input loading, complete model storage and output rules. The declared NVIDIA device must support coherent ordinary host memory through the host page tables, as checked during initialization.
 
 The application binary interface (ABI) defines argument and register duties. This AArch64 interface uses the ordinary Arm procedure-call rules. Preserve x18, x19 to x29, the required low halves of v8 to v15 and 16-byte stack alignment. The floating-point control register (FPCR) selects rounding and related settings. The status register (FPSR) records numerical events, and the C error slot (`errno`) records library errors. These entries preserve incoming FPCR and errno across CUDA service calls. The launch entry also combines newly reported numerical flags and the last ordered mathematical error with the incoming state after a successful kernel. Other CUDA effects must not replace numerical status.
 
@@ -14,7 +14,7 @@ The application binary interface (ABI) defines argument and register duties. Thi
 
 ## Persistent Scalar Service
 
-The [soil-water scalar body](../../../../src/openifs/surface/gpu/soil_water_stages.ptx) keeps its complete 17-mode calculation in a callable device function. Its ordinary entry and the [persistent worker](../../../../src/openifs/surface/gpu/soil_water_mailbox_worker.ptx) call that same body. Only the named soil-water entry with one block, one thread and zero shared bytes uses this service. Other launches use the ordinary stream and wait for that stream to complete.
+The [soil-water scalar body](../../../../src/openifs/surface/gpu/soil_water_stages.ptx) keeps its complete 17-mode calculation in a callable device function. Its ordinary entry and the [persistent worker](../../../../src/openifs/surface/gpu/soil_water_mailbox_worker.ptx) call that same body. Only the named soil-water entry with one block, one thread and zero shared bytes uses this service. Before an ordinary lookup or launch, the host stops and joins an active worker under the request lock. The next scalar request starts it again. This lets CUDA prepare larger per-thread working storage while no persistent work is active, following its [context resource rules](https://docs.nvidia.com/cuda/archive/12.6.0/cuda-driver-api/group__CUDA__CTX.html). Ordinary launches use their own stream and wait for that stream to complete.
 
 A mailbox is a small shared request record. This process-owned mailbox has 64 bytes and 64-byte alignment. It remains live until the worker stops and its stream completes.
 

@@ -353,6 +353,26 @@ md2asm_openifs_gpu_launch:
  cbnz w0,.Llaunch_error
  b .Llaunch_status
 .Lordinary_launch:
+ // The request lock guarantees that no borrowed scalar owners remain in flight.
+ // Join the idle worker before CUDA can resize resources for an ordinary launch.
+ adrp x9,.Lworker_active
+ ldr w10,[x9,:lo12:.Lworker_active]
+ cbz w10,.Lordinary_worker_joined
+ adrp x9,.Lmailbox
+ add x9,x9,:lo12:.Lmailbox
+ ldr x10,[x9]
+ add x10,x10,#1
+ str wzr,[x9,#16]
+ str wzr,[x9,#20]
+ stp xzr,xzr,[x9,#24]
+ stlr x10,[x9]
+ adrp x9,.Lworker_stream
+ ldr x0,[x9,:lo12:.Lworker_stream]
+ GPU_CALL cuStreamSynchronize
+ cbnz w0,.Llaunch_error
+ adrp x9,.Lworker_active
+ str wzr,[x9,:lo12:.Lworker_active]
+.Lordinary_worker_joined:
  add x0,sp,#248
  adrp x9,.Lgpu_module
  ldr x1,[x9,:lo12:.Lgpu_module]
@@ -490,7 +510,7 @@ mailbox_finalize_unlocked:
 .section .note.GNU-stack,"",%progbits
 
 // Nonnumerical environment and module lifetime service.
-// ABI and storage: skills/md2asm-gpu/references/openifs/cuda_runtime.md, revision 3.
+// ABI and storage: skills/md2asm-gpu/references/openifs/cuda_runtime.md, revision 4.
 .text
 .p2align 2
 .global md2asm_openifs_gpu_prepare
