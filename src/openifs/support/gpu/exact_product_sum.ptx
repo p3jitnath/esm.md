@@ -7,6 +7,8 @@
  .reg .u64 %a,%b,%c,%ma,%mb,%mc,%pl,%ph,%P,%C,%L,%R,%address,%other,%v0,%v1,%v2,%x,%y,%t,%u,%carry,%borrow,%mag,%sig,%sticky,%mask,%word,%sign,%odd;
  .reg .u32 %ea,%eb,%ec,%sp,%sc,%sr,%pshift,%cshift,%common,%pb,%cb,%width,%class,%i,%q,%bit,%cut,%h,%shift,%guard,%flags,%j,%gbit;
  .reg .s32 %e; .reg .pred %pred,%p1,%p2;
+ .reg .u64 %cxlo,%cxhi,%cylo,%cyhi,%ct,%cu,%cm;
+ .reg .u32 %cps,%ccs,%cbits,%cheight; .reg .s32 %cround;
  .local .align 8 .b8 exact_words[1072];
  ld.param.b64 %a,[first]; ld.param.b64 %b,[second]; ld.param.b64 %c,[addend]; mov.u32 %flags,0; mov.u32 %class,0;
  shr.u64 %x,%a,63; shr.u64 %y,%b,63; xor.b64 %x,%x,%y; cvt.u32.u64 %sp,%x; shr.u64 %x,%c,63; cvt.u32.u64 %sc,%x;
@@ -24,6 +26,66 @@ PRODUCT_BITS_READY:
  bfind.u64 %cb,%mc; add.u32 %cb,%cb,1; min.u32 %common,%pshift,%cshift; sub.u32 %width,%pshift,%common; add.u32 %width,%width,%pb; setp.gt.u32 %pred,%width,127; @%pred mov.u32 %class,1;
  sub.u32 %width,%cshift,%common; add.u32 %width,%width,%cb; setp.gt.u32 %pred,%width,127; @%pred mov.u32 %class,1;
 CLASS_READY:
+ // Existing class zero proves that the aligned nonzero terms fit 127 bits.
+ setp.ne.u32 %pred,%class,0; @%pred bra GENERAL_WORDS;
+ or.b64 %x,%pl,%ph; setp.eq.u64 %pred,%x,0; @%pred bra GENERAL_WORDS;
+ setp.eq.u64 %pred,%mc,0; @%pred bra GENERAL_WORDS;
+ sub.u32 %cps,%pshift,%common; sub.u32 %ccs,%cshift,%common;
+ mov.u64 %cxlo,%pl; mov.u64 %cxhi,%ph;
+ setp.eq.u32 %pred,%cps,0; @%pred bra COMPACT_PRODUCT_ALIGNED;
+ setp.ge.u32 %pred,%cps,64; @%pred bra COMPACT_PRODUCT_HIGH;
+ sub.u32 %cbits,64,%cps; shr.u64 %ct,%pl,%cbits; shl.b64 %cxhi,%ph,%cps; or.b64 %cxhi,%cxhi,%ct; shl.b64 %cxlo,%pl,%cps; bra COMPACT_PRODUCT_ALIGNED;
+COMPACT_PRODUCT_HIGH:
+ sub.u32 %cbits,%cps,64; shl.b64 %cxhi,%pl,%cbits; mov.u64 %cxlo,0;
+COMPACT_PRODUCT_ALIGNED:
+ mov.u64 %cylo,%mc; mov.u64 %cyhi,0;
+ setp.eq.u32 %pred,%ccs,0; @%pred bra COMPACT_ADDEND_ALIGNED;
+ setp.ge.u32 %pred,%ccs,64; @%pred bra COMPACT_ADDEND_HIGH;
+ sub.u32 %cbits,64,%ccs; shr.u64 %cyhi,%mc,%cbits; shl.b64 %cylo,%mc,%ccs; bra COMPACT_ADDEND_ALIGNED;
+COMPACT_ADDEND_HIGH:
+ sub.u32 %cbits,%ccs,64; shl.b64 %cyhi,%mc,%cbits; mov.u64 %cylo,0;
+COMPACT_ADDEND_ALIGNED:
+ mov.u32 %sr,%sp; setp.ne.u32 %pred,%sp,%sc; @%pred bra COMPACT_DIFFERENT_SIGNS;
+ add.u64 %ct,%cxlo,%cylo; setp.lt.u64 %pred,%ct,%cxlo; selp.u64 %cu,1,0,%pred; add.u64 %cxhi,%cxhi,%cyhi; add.u64 %cxhi,%cxhi,%cu; mov.u64 %cxlo,%ct; bra COMPACT_TOP;
+COMPACT_DIFFERENT_SIGNS:
+ setp.gt.u64 %pred,%cxhi,%cyhi; @%pred bra COMPACT_SUBTRACT;
+ setp.lt.u64 %pred,%cxhi,%cyhi; @%pred bra COMPACT_SWAP;
+ setp.gt.u64 %pred,%cxlo,%cylo; @%pred bra COMPACT_SUBTRACT;
+ setp.lt.u64 %pred,%cxlo,%cylo; @%pred bra COMPACT_SWAP;
+ mov.u32 %sr,0; mov.u64 %word,0; bra APPLY_SIGN;
+COMPACT_SWAP:
+ mov.u64 %ct,%cxlo; mov.u64 %cxlo,%cylo; mov.u64 %cylo,%ct; mov.u64 %ct,%cxhi; mov.u64 %cxhi,%cyhi; mov.u64 %cyhi,%ct; mov.u32 %sr,%sc;
+COMPACT_SUBTRACT:
+ sub.u64 %ct,%cxlo,%cylo; setp.lt.u64 %pred,%cxlo,%cylo; selp.u64 %cu,1,0,%pred; sub.u64 %cxhi,%cxhi,%cyhi; sub.u64 %cxhi,%cxhi,%cu; mov.u64 %cxlo,%ct;
+COMPACT_TOP:
+ setp.eq.u64 %pred,%cxhi,0; @%pred bra COMPACT_LOW_TOP;
+ bfind.u64 %cheight,%cxhi; add.u32 %cheight,%cheight,64; bra COMPACT_EXPONENT;
+COMPACT_LOW_TOP:
+ bfind.u64 %cheight,%cxlo;
+COMPACT_EXPONENT:
+ add.u32 %h,%cheight,%common; sub.s32 %e,%h,2148; setp.gt.s32 %pred,%e,1023; @%pred bra OVERFLOW;
+ sub.s32 %cround,1074,%common; setp.lt.s32 %pred,%e,-1022; @%pred bra COMPACT_ROUND_SHIFT;
+ sub.s32 %cround,%cheight,52;
+COMPACT_ROUND_SHIFT:
+ mov.u32 %guard,0; mov.u64 %sticky,0;
+ setp.le.s32 %pred,%cround,0; @%pred bra COMPACT_EXACT_LEFT;
+ setp.gt.s32 %pred,%cround,128; @%pred bra COMPACT_BEYOND;
+ setp.eq.s32 %pred,%cround,128; @%pred bra COMPACT_SHIFT_128;
+ setp.gt.s32 %pred,%cround,64; @%pred bra COMPACT_SHIFT_HIGH;
+ setp.eq.s32 %pred,%cround,64; @%pred bra COMPACT_SHIFT_64;
+ shr.u64 %sig,%cxlo,%cround; sub.u32 %cbits,64,%cround; shl.b64 %ct,%cxhi,%cbits; or.b64 %sig,%sig,%ct;
+ sub.u32 %cbits,%cround,1; shr.u64 %ct,%cxlo,%cbits; and.b64 %ct,%ct,1; cvt.u32.u64 %guard,%ct; shl.b64 %cm,1,%cbits; sub.u64 %cm,%cm,1; and.b64 %sticky,%cxlo,%cm; bra ROUND;
+COMPACT_SHIFT_64:
+ mov.u64 %sig,%cxhi; shr.u64 %ct,%cxlo,63; cvt.u32.u64 %guard,%ct; and.b64 %sticky,%cxlo,0x7fffffffffffffff; bra ROUND;
+COMPACT_SHIFT_HIGH:
+ sub.u32 %cbits,%cround,64; shr.u64 %sig,%cxhi,%cbits; sub.u32 %cbits,%cbits,1; shr.u64 %ct,%cxhi,%cbits; and.b64 %ct,%ct,1; cvt.u32.u64 %guard,%ct; shl.b64 %cm,1,%cbits; sub.u64 %cm,%cm,1; and.b64 %sticky,%cxhi,%cm; or.b64 %sticky,%sticky,%cxlo; bra ROUND;
+COMPACT_SHIFT_128:
+ mov.u64 %sig,0; shr.u64 %ct,%cxhi,63; cvt.u32.u64 %guard,%ct; and.b64 %sticky,%cxhi,0x7fffffffffffffff; or.b64 %sticky,%sticky,%cxlo; bra ROUND;
+COMPACT_BEYOND:
+ mov.u64 %sig,0; or.b64 %sticky,%cxlo,%cxhi; bra ROUND;
+COMPACT_EXACT_LEFT:
+ neg.s32 %cbits,%cround; shl.b64 %sig,%cxlo,%cbits; bra ROUND;
+GENERAL_WORDS:
  mov.u64 %P,exact_words; cvta.local.u64 %P,%P; add.u64 %C,%P,536; mov.u32 %i,0;
 CLEAR:
  mul.wide.u32 %address,%i,8; add.u64 %other,%C,%address; add.u64 %address,%P,%address; st.u64 [%address],0; st.u64 [%other],0; add.u32 %i,%i,1; setp.lt.u32 %pred,%i,67; @%pred bra CLEAR;
