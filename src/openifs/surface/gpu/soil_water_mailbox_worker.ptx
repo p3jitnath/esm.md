@@ -1,17 +1,21 @@
-// Interface and lifetime: skills/md2asm-gpu/references/openifs/cuda_runtime.md revision 3.
+// Interface and lifetime: skills/md2asm-gpu/references/openifs/cuda_runtime.md revision 6.
 .version 8.5
 .target sm_90
 .address_size 64
 .extern .func md2asm_gpu_mailbox_soil_water_body(.param .u64 a,.param .u64 c);
 .extern .func md2asm_gpu_mailbox_lake_controller_body(.param .u64 a,.param .u64 c);
 .extern .func md2asm_gpu_mailbox_startup_integer_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_mailbox_canopy_light_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_mailbox_lake_energy_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_mailbox_output_numeric_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_mailbox_physical_setup_numeric_body(.param .u64 a,.param .u64 c);
 // One serial client; mailbox lives until the stop acknowledgement and stream join.
 .visible .entry md2asm_gpu_soil_water_mailbox_worker(.param .u64 mailbox)
 {
  .reg .u64 %m,%seq,%previous,%argv,%ctx,%done;
  .reg .u32 %op;
  .reg .pred %p;
- .param .u64 a,c,lake_a,lake_c,startup_a,startup_c;
+ .param .u64 a,c,lake_a,lake_c,startup_a,startup_c,canopy_a,canopy_c,lake_energy_a,lake_energy_c,output_numeric_a,output_numeric_c,physical_setup_numeric_a,physical_setup_numeric_c;
  ld.param.u64 %m,[mailbox];
  add.u64 %done,%m,8;
  ld.acquire.sys.global.u64 %previous,[%done];
@@ -42,12 +46,48 @@ CHECK_LAKE:
  bra COMPLETE;
 CHECK_STARTUP:
  setp.ne.u32 %p,%op,3;
- @%p bra INVALID;
+ @%p bra CHECK_CANOPY;
  ld.global.u64 %argv,[%m+24];
  ld.global.u64 %ctx,[%m+32];
  st.param.u64 [startup_a],%argv;
  st.param.u64 [startup_c],%ctx;
  call.uni md2asm_gpu_mailbox_startup_integer_body,(startup_a,startup_c);
+ bra COMPLETE;
+CHECK_CANOPY:
+ setp.ne.u32 %p,%op,4;
+ @%p bra CHECK_LAKE_ENERGY;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ st.param.u64 [canopy_a],%argv;
+ st.param.u64 [canopy_c],%ctx;
+ call.uni md2asm_gpu_mailbox_canopy_light_body,(canopy_a,canopy_c);
+ bra COMPLETE;
+CHECK_LAKE_ENERGY:
+ setp.ne.u32 %p,%op,5;
+ @%p bra CHECK_OUTPUT_NUMERIC;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ st.param.u64 [lake_energy_a],%argv;
+ st.param.u64 [lake_energy_c],%ctx;
+ call.uni md2asm_gpu_mailbox_lake_energy_body,(lake_energy_a,lake_energy_c);
+ bra COMPLETE;
+CHECK_OUTPUT_NUMERIC:
+ setp.ne.u32 %p,%op,6;
+ @%p bra CHECK_PHYSICAL_SETUP_NUMERIC;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ st.param.u64 [output_numeric_a],%argv;
+ st.param.u64 [output_numeric_c],%ctx;
+ call.uni md2asm_gpu_mailbox_output_numeric_body,(output_numeric_a,output_numeric_c);
+ bra COMPLETE;
+CHECK_PHYSICAL_SETUP_NUMERIC:
+ setp.ne.u32 %p,%op,7;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ st.param.u64 [physical_setup_numeric_a],%argv;
+ st.param.u64 [physical_setup_numeric_c],%ctx;
+ call.uni md2asm_gpu_mailbox_physical_setup_numeric_body,(physical_setup_numeric_a,physical_setup_numeric_c);
  bra COMPLETE;
 INVALID:
  st.global.u32 [%m+20],1;

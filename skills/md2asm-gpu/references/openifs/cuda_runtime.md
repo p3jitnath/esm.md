@@ -1,6 +1,6 @@
 # Assembly-Owned CUDA Runtime
 
-Revision 5 supplies process services for the PTX forecast. The [assembly module](../../../../src/openifs/support/gpu/cuda_runtime.S) performs no weather calculation. Host assembly retains the original input loading, complete model storage and output rules. The declared NVIDIA device must support coherent ordinary host memory through the host page tables, as checked during initialization.
+Revision 6 supplies process services for the PTX forecast. The [assembly module](../../../../src/openifs/support/gpu/cuda_runtime.S) performs no weather calculation. Host assembly retains the original input loading, complete model storage and output rules. The declared NVIDIA device must support coherent ordinary host memory through the host page tables, as checked during initialization.
 
 The application binary interface (ABI) defines argument and register duties. This AArch64 interface uses the ordinary Arm procedure-call rules. Preserve x18, x19 to x29, the required low halves of v8 to v15 and 16-byte stack alignment. The floating-point control register (FPCR) selects rounding and related settings. The status register (FPSR) records numerical events, and the C error slot (`errno`) records library errors. These entries preserve incoming FPCR and errno across CUDA service calls. The launch entry also combines newly reported numerical flags and the last ordered mathematical error with the incoming state after a successful kernel. Other CUDA effects must not replace numerical status.
 
@@ -14,9 +14,21 @@ The application binary interface (ABI) defines argument and register duties. Thi
 
 ## Persistent Scalar Service
 
-The [soil-water scalar body](../../../../src/openifs/surface/gpu/soil_water_stages.ptx), [shared lake-dispatch body](../../../../src/openifs/surface/gpu/lake_controller_stages.ptx) and [startup body](../../../../src/openifs/support/gpu/startup_integer_cell.ptx) each keep one complete callable numerical function. Their original thin entries and the [persistent worker](../../../../src/openifs/surface/gpu/soil_water_mailbox_worker.ptx) call those same functions. Only these three exact entry names with one block, one thread and zero shared bytes use the service. The lake-dispatch name is shared by several physical callers and does not identify lake physics alone. Before an ordinary lookup or launch, the host stops and joins an active worker under the request lock. The next scalar request starts it again. This lets CUDA prepare larger per-thread working storage while no persistent work is active, following its [context resource rules](https://docs.nvidia.com/cuda/archive/12.6.0/cuda-driver-api/group__CUDA__CTX.html). Ordinary launches use their own stream and wait for that stream to complete.
+Seven exact scalar entry names share this service. Each original thin entry and the [persistent worker](../../../../src/openifs/surface/gpu/soil_water_mailbox_worker.ptx) call the same complete numerical body. Only one block, one thread and zero shared bytes are eligible. Shared helper names can serve several physical callers and do not identify a physical model alone. Before an ordinary lookup or launch, the host stops and joins an active worker under the request lock. The next scalar request starts it again. This lets CUDA prepare larger per-thread working storage while no persistent work is active, following its [context resource rules](https://docs.nvidia.com/cuda/archive/12.6.0/cuda-driver-api/group__CUDA__CTX.html). Ordinary launches use their own stream and wait for that stream to complete.
 
-The callable names are md2asm_gpu_mailbox_soil_water_body, md2asm_gpu_mailbox_lake_controller_body and md2asm_gpu_mailbox_startup_integer_body. Each takes original_vector:u64 and common_context:u64, where u64 is an unsigned sixty-four-bit address word, and returns no direct value. Each keeps its original complete buffer, alignment, separation, mode and status rules. Results and numerical events remain in the caller-owned output and context. The worker reloads both outgoing arguments before each body call.
+Each callable takes original_vector:u64 and common_context:u64, where u64 is an unsigned sixty-four-bit address word, and returns no direct value. Each keeps its original complete buffer, alignment, separation, mode and status rules. Results and numerical events remain in caller-owned storage. The worker reloads both outgoing arguments before every body call.
+
+| Request Kind | Complete Scalar Family | Result Bytes | Record Bytes | Separate Counters |
+| --- | --- | --- | --- | --- |
+| 1 | [Soil water](../../../../src/openifs/surface/gpu/soil_water_stages.ptx) | 32 | 64 | FAST and WIDE |
+| 2 | [Lake dispatch](../../../../src/openifs/surface/gpu/lake_controller_stages.ptx) | 16 | 32 | None |
+| 3 | [Startup](../../../../src/openifs/support/gpu/startup_integer_cell.ptx) | 32 | 64 | FAST and WIDE |
+| 4 | [Canopy light](../../../../src/openifs/surface/gpu/canopy_light_stages.ptx) | 32 | 64 | FAST and WIDE |
+| 5 | [Lake energy](../../../../src/openifs/surface/gpu/lake_energy_profile_stages.ptx) | 32 | 80 | FAST, WIDE and EXP |
+| 6 | [Output helpers](../../../../src/openifs/support/gpu/output_numeric_cell.ptx) | 32 | 64 | FAST and WIDE |
+| 7 | [Physical setup](../../../../src/openifs/support/gpu/physical_setup_numeric.ptx) | 32 | 64 | FAST and WIDE |
+
+Every family has a 72-byte input, 16-byte pointer vector and 64-byte context. The capacity record declares complete buffer limits and counter addresses. FAST and WIDE count the original exact product-sum work classes; EXP counts original exponential-call events. Each counter occupies a separate eight-byte owner and retains unsigned integer wrap. Lake-energy mode18 increments its EXP owner once, including an exponential error return; the other shared bodies do not add that event. Its extra address and capacity are at record bytes64 and72. The physical equations and all original operation modes remain unchanged.
 
 A mailbox is a small shared request record. This process-owned mailbox has 64 bytes and 64-byte alignment. It remains live until the worker stops and its stream completes.
 
@@ -24,7 +36,7 @@ A mailbox is a small shared request record. This process-owned mailbox has 64 by
 | --- | --- | --- |
 | 0 | Unsigned 64-bit integer | Request sequence |
 | 8 | Unsigned 64-bit integer | Completed sequence |
-| 16 | Unsigned 32-bit integer | Request kind, zero to stop, one for soil water, two for lake dispatch or three for startup |
+| 16 | Unsigned 32-bit integer | Request kind from the table above, or zero to stop |
 | 20 | Unsigned 32-bit integer | Private transport error |
 | 24 | 64-bit address | Original argument vector |
 | 32 | 64-bit address | Original GPU context |
@@ -35,6 +47,8 @@ The host writes a fresh request, then publishes its sequence with a release stor
 Load all entry functions before starting the worker so that later function loading does not wait for the persistent stream. Ordinary work uses its own nonblocking stream and waits only for that stream. For a long pending request, query the worker stream to expose asynchronous driver failure. On shutdown, publish stop and wait for worker-stream completion before releasing its storage.
 
 The three-family extension compares 2,304 retained lake-dispatch calls, 7,528 full-width conversion calls, 114 retained or boundary mathematical calls and 23 mixed, refusal and restart calls. Each comparison covers the complete 280-byte owner image, including guards and inactive bytes, for 2,791,320 bytes with zero differences. Strict saved-register checks, x18, FPCR, FPSR, errno, both actual counter updates with unsigned wrap, ordinary-stream joins and finalisation agree. Missing joint status fields were captured once through the unchanged accepted GPU while rechecking retained output words. Existing independent mathematical and physical checks were reused. A separate peer checks complete source inverses, fresh native arguments and system-scope completion. These are component checks; no complete GPU forecast or performance result follows from them.
+
+The additional four families pass 195 calls and 59,280 complete owner bytes with zero differences. The cases cover all their original modes, mixed requests among all seven families, ordinary-stream joins, mode and overlap refusals, retained domain refusals and reopening the worker. Actual source owners exercise thirteen FAST, four WIDE and seven EXP wraps. Fourteen ambiguous new-status fields were captured once through the accepted GPU while rechecking all retained words, counters and seeded status. Independent peers reconstruct every original module and verify native calls, argument pairs and the unchanged protocol. Earlier unchanged-family corpora and independent mathematical and physical evidence are reused.
 
 The component checks preserve complete owner bytes for all 17 modes, changing requests from eight host threads, shared counters, sequence wrap, refusal, stop and restart. The original runtime ABI checks pass while the worker is active. Two complete soil-water calls also preserve outputs, inactive bytes, read-only inputs, status, actual helper counters and 97 independent physical relations. These results qualify the transport component. Complete-forecast agreement and quiet-node performance remain separate gates.
 

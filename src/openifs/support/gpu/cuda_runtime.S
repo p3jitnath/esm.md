@@ -283,7 +283,41 @@ md2asm_openifs_gpu_launch:
  adrp x1,.Lstartup_hot_name
  add x1,x1,:lo12:.Lstartup_hot_name
  GPU_CALL strcmp
- cbnz w0,.Lordinary_launch
+ cbz w0,.Lscalar_kind_startup
+ mov x0,x19
+ adrp x1,.Lscalar_name_4
+ add x1,x1,:lo12:.Lscalar_name_4
+ GPU_CALL strcmp
+ cbz w0,.Lscalar_kind_canopy
+ mov x0,x19
+ adrp x1,.Lscalar_name_5
+ add x1,x1,:lo12:.Lscalar_name_5
+ GPU_CALL strcmp
+ cbz w0,.Lscalar_kind_lake_energy
+ mov x0,x19
+ adrp x1,.Lscalar_name_6
+ add x1,x1,:lo12:.Lscalar_name_6
+ GPU_CALL strcmp
+ cbz w0,.Lscalar_kind_output_numeric
+ mov x0,x19
+ adrp x1,.Lscalar_name_7
+ add x1,x1,:lo12:.Lscalar_name_7
+ GPU_CALL strcmp
+ cbz w0,.Lscalar_kind_physical_setup_numeric
+ b .Lordinary_launch
+.Lscalar_kind_physical_setup_numeric:
+ mov w9,#7
+ b .Lscalar_kind_ready
+.Lscalar_kind_output_numeric:
+ mov w9,#6
+ b .Lscalar_kind_ready
+.Lscalar_kind_lake_energy:
+ mov w9,#5
+ b .Lscalar_kind_ready
+.Lscalar_kind_canopy:
+ mov w9,#4
+ b .Lscalar_kind_ready
+.Lscalar_kind_startup:
  mov w9,#3
  b .Lscalar_kind_ready
 .Lscalar_kind_lake:
@@ -291,6 +325,7 @@ md2asm_openifs_gpu_launch:
  b .Lscalar_kind_ready
 .Lscalar_kind_soil:
  mov w9,#1
+ b .Lscalar_kind_ready
 .Lscalar_kind_ready:
  str w9,[sp,#264]
  adrp x9,.Lworker_active
@@ -529,7 +564,7 @@ mailbox_finalize_unlocked:
 .section .note.GNU-stack,"",%progbits
 
 // Nonnumerical environment and module lifetime service.
-// ABI and storage: skills/md2asm-gpu/references/openifs/cuda_runtime.md, revision 5.
+// ABI and storage: skills/md2asm-gpu/references/openifs/cuda_runtime.md, revision 6.
 .text
 .p2align 2
 .global md2asm_openifs_gpu_prepare
@@ -580,3 +615,9 @@ md2asm_openifs_gpu_prepare:
 .Lworker_name: .asciz "md2asm_gpu_soil_water_mailbox_worker"
 .Llake_hot_name: .asciz "md2asm_gpu_lake_controller_cell"
 .Lstartup_hot_name: .asciz "md2asm_gpu_startup_integer_cell"
+
+.section .rodata
+.Lscalar_name_4: .asciz "md2asm_gpu_canopy_light_cell"
+.Lscalar_name_5: .asciz "md2asm_gpu_lake_energy_cell"
+.Lscalar_name_6: .asciz "md2asm_gpu_output_numeric_cell"
+.Lscalar_name_7: .asciz "md2asm_gpu_physical_setup_numeric_cell"

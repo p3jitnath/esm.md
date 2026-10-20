@@ -10,7 +10,7 @@
 .extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_power_nonnegative(.param .b64 x,.param .b64 y);
 .func (.param .u32 r) output_numeric_range(.param .u64 base,.param .u64 size,.param .u64 cap)
 {.reg .u64 %a,%n,%c,%end;.reg .u32 %e;.reg .pred %p;ld.param.u64 %a,[base];ld.param.u64 %n,[size];ld.param.u64 %c,[cap];mov.u32 %e,17601;setp.eq.u64 %p,%a,0;@%p bra RETURN;and.b64 %end,%a,7;setp.ne.u64 %p,%end,0;@%p bra RETURN;setp.gt.u64 %p,%n,%c;@%p bra RETURN;add.u64 %end,%a,%n;setp.lt.u64 %p,%end,%a;@%p bra RETURN;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra RETURN;mov.u32 %e,0;RETURN:st.param.u32 [r],%e;ret;}
-.visible .entry md2asm_gpu_output_numeric_cell(.param .u64 original_vector,.param .u64 common_context)
+.visible .func md2asm_gpu_mailbox_output_numeric_body(.param .u64 original_vector,.param .u64 common_context)
 {
 .reg .u64 %fastptr,%wideptr,%nf,%nw,%old,%eventword,%mag0,%mag1,%quiet0,%quiet1;
 .reg .u32 %condition,%errno_;
@@ -131,4 +131,19 @@ NUMERIC_NAN0:mov.b64 %value,%x0;bra FINISH;
 FINISH:st.global.b64 [%output],%value;st.global.u32 [%output+8],%condition;st.global.u32 [%output+12],%errno_;st.global.u64 [%output+16],%nf;st.global.u64 [%output+24],%nw;atom.global.add.u64 %old,[%fastptr],%nf;atom.global.add.u64 %old,[%wideptr],%nw;setp.eq.u32 %p,%errno_,0;@%p bra NO_EVENT;cvt.u64.u32 %eventword,%errno_;or.b64 %eventword,%eventword,256;st.global.u64 [%ctx+16],%eventword;NO_EVENT:st.global.u32 [%ctx+8],%flags;ret;
 
 REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+
+
+
+
+.visible .entry md2asm_gpu_output_numeric_cell(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %a,%c;
+ .param .u64 a,c;
+ ld.param.u64 %a,[original_vector];
+ ld.param.u64 %c,[common_context];
+ st.param.u64 [a],%a;
+ st.param.u64 [c],%c;
+ call.uni md2asm_gpu_mailbox_output_numeric_body,(a,c);
+ ret;
 }
