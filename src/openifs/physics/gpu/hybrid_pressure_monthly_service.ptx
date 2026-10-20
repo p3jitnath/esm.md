@@ -1,0 +1,734 @@
+// Direct PTX from hybrid_pressure_contract.md revision1. GPU contract skills/md2asm-gpu/references/openifs/physics/model_time_and_forcing.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_rn(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_rn(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sqrt_status(.param .b64 a);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_log_positive_finite(.param .b64 a);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_exp_original_rounding(.param .b64 a);
+.func (.param .u32 result) hp_range(.param .u64 base,.param .u64 bytes,.param .u64 capacity,.param .u64 mask,.param .u64 owners,.param .u32 count)
+{
+
+
+ .reg .u64 %b,%n,%c,%m,%list,%t,%end,%o,%on,%oe; .reg .u32 %i,%count,%e; .reg .pred %p,%q;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %c,[capacity]; ld.param.u64 %m,[mask]; ld.param.u64 %list,[owners]; ld.param.u32 %count,[count];
+ mov.u32 %e,0; setp.eq.u64 %p,%n,0; @%p bra HR_DONE;
+ mov.u32 %e,6403; setp.gt.u64 %p,%n,%c; @%p bra HR_DONE;
+ setp.gt.u64 %p,%n,0x7fffffffffffffff; @%p bra HR_DONE;
+ setp.eq.u64 %p,%b,0; @%p bra HR_DONE;
+ and.b64 %t,%b,%m; setp.ne.u64 %p,%t,0; @%p bra HR_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra HR_DONE;
+ add.u64 %end,%b,%n; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra HR_DONE;
+ mov.u32 %i,0;
+HR_OWNERS:
+ setp.ge.u32 %p,%i,%count; @%p bra HR_OK;
+ ld.u64 %o,[%list]; ld.u64 %on,[%list+8]; setp.eq.u64 %p,%on,0; @%p bra HR_NEXT;
+ add.u64 %oe,%o,%on; setp.lt.u64 %p,%b,%oe; setp.lt.u64 %q,%o,%end; and.pred %p,%p,%q; @%p bra HR_DONE;
+HR_NEXT: add.u64 %list,%list,16; add.u32 %i,%i,1; bra HR_OWNERS;
+HR_OK: mov.u32 %e,0;
+HR_DONE: st.param.u32 [result],%e; ret;
+}
+.func (.param .align 8 .b8 result[24]) hp_descriptor(.param .u64 descriptor,.param .u64 first,.param .u64 last,.param .u64 capacity,.param .u64 owners)
+{
+.param .u64 b__call_0;.param .u64 n__call_0;.param .u64 c__call_0;.param .u64 m__call_0;.param .u64 l__call_0;.param .u32 count__call_0;.param .u32 r__call_0;
+
+ .reg .u64 %desc,%data,%capacity,%list,%first,%last,%lo,%hi,%t,%n; .reg .u32 %e; .reg .pred %p;
+ .param .u64 b,n,c,m,l; .param .u32 count,r;
+ ld.param.u64 %desc,[descriptor]; ld.param.u64 %first,[first]; ld.param.u64 %last,[last]; ld.param.u64 %capacity,[capacity]; ld.param.u64 %list,[owners];
+ mov.u32 %e,6404; ld.global.u64 %t,[%desc+16]; setp.ne.u64 %p,%t,8; @%p bra HD_DONE;
+ ld.global.u64 %t,[%desc+32]; setp.ne.u64 %p,%t,8; @%p bra HD_DONE;
+ ld.global.u64 %t,[%desc+40]; setp.ne.u64 %p,%t,1; @%p bra HD_DONE;
+ ld.global.s64 %lo,[%desc+48]; ld.global.s64 %hi,[%desc+56];
+ setp.lt.s64 %p,%lo,-2147483648; @%p bra HD_DONE; setp.gt.s64 %p,%lo,2147483647; @%p bra HD_DONE;
+ setp.lt.s64 %p,%hi,-2147483648; @%p bra HD_DONE; setp.gt.s64 %p,%hi,2147483647; @%p bra HD_DONE;
+ setp.gt.s64 %p,%lo,%first; @%p bra HD_DONE; setp.lt.s64 %p,%hi,%last; @%p bra HD_DONE;
+ sub.s64 %n,%hi,%lo; add.u64 %n,%n,1; shl.b64 %n,%n,3; ld.global.u64 %data,[%desc];
+ st.param.u64 [b__call_0],%data; st.param.u64 [n__call_0],%n; st.param.u64 [c__call_0],%capacity; st.param.u64 [m__call_0],7; st.param.u64 [l__call_0],%list; st.param.u32 [count__call_0],4;
+ call.uni (r__call_0),hp_range,(b__call_0,n__call_0,c__call_0,m__call_0,l__call_0,count__call_0); ld.param.u32 %e,[r__call_0];
+HD_DONE: st.param.u64 [result],%data; st.param.u64 [result+8],%lo; st.param.u32 [result+16],%e; st.param.u32 [result+20],0; ret;
+}
+.visible .func openifs_hybrid_pressure_parent_fp64_monthly_service(.param .u64 original_vector,.param .u64 context)
+{
+.param .u64 rb__call_0;.param .u64 rn__call_0;.param .u64 rc__call_0;.param .u64 rm__call_0;.param .u64 rl__call_0;.param .u32 rct__call_0;.param .u32 rr__call_0;.param .u64 rb__call_1;.param .u64 rn__call_1;.param .u64 rc__call_1;.param .u64 rm__call_1;.param .u64 rl__call_1;.param .u32 rct__call_1;.param .u32 rr__call_1;.param .u64 rb__call_2;.param .u64 rn__call_2;.param .u64 rc__call_2;.param .u64 rm__call_2;.param .u64 rl__call_2;.param .u32 rct__call_2;.param .u32 rr__call_2;.param .u64 rb__call_3;.param .u64 rn__call_3;.param .u64 rc__call_3;.param .u64 rm__call_3;.param .u64 rl__call_3;.param .u32 rct__call_3;.param .u32 rr__call_3;.param .u64 rb__call_4;.param .u64 rn__call_4;.param .u64 rc__call_4;.param .u64 rm__call_4;.param .u64 rl__call_4;.param .u32 rct__call_4;.param .u32 rr__call_4;.param .u64 rb__call_5;.param .u64 rn__call_5;.param .u64 rc__call_5;.param .u64 rm__call_5;.param .u64 rl__call_5;.param .u32 rct__call_5;.param .u32 rr__call_5;.param .u64 rb__call_6;.param .u64 rn__call_6;.param .u64 rc__call_6;.param .u64 rm__call_6;.param .u64 rl__call_6;.param .u32 rct__call_6;.param .u32 rr__call_6;.param .u64 rb__call_7;.param .u64 rn__call_7;.param .u64 rc__call_7;.param .u64 rm__call_7;.param .u64 rl__call_7;.param .u32 rct__call_7;.param .u32 rr__call_7;.param .u64 rb__call_8;.param .u64 rn__call_8;.param .u64 rc__call_8;.param .u64 rm__call_8;.param .u64 rl__call_8;.param .u32 rct__call_8;.param .u32 rr__call_8;.param .u64 rb__call_9;.param .u64 rn__call_9;.param .u64 rc__call_9;.param .u64 rm__call_9;.param .u64 rl__call_9;.param .u32 rct__call_9;.param .u32 rr__call_9;.param .u64 rb__call_10;.param .u64 rn__call_10;.param .u64 rc__call_10;.param .u64 rm__call_10;.param .u64 rl__call_10;.param .u32 rct__call_10;.param .u32 rr__call_10;.param .u64 rb__call_11;.param .u64 rn__call_11;.param .u64 rc__call_11;.param .u64 rm__call_11;.param .u64 rl__call_11;.param .u32 rct__call_11;.param .u32 rr__call_11;.param .u64 rb__call_12;.param .u64 rn__call_12;.param .u64 rc__call_12;.param .u64 rm__call_12;.param .u64 rl__call_12;.param .u32 rct__call_12;.param .u32 rr__call_12;.param .u64 rb__call_13;.param .u64 rn__call_13;.param .u64 rc__call_13;.param .u64 rm__call_13;.param .u64 rl__call_13;.param .u32 rct__call_13;.param .u32 rr__call_13;.param .u64 rb__call_14;.param .u64 rn__call_14;.param .u64 rc__call_14;.param .u64 rm__call_14;.param .u64 rl__call_14;.param .u32 rct__call_14;.param .u32 rr__call_14;.param .u64 rb__call_15;.param .u64 rn__call_15;.param .u64 rc__call_15;.param .u64 rm__call_15;.param .u64 rl__call_15;.param .u32 rct__call_15;.param .u32 rr__call_15;.param .u64 rb__call_16;.param .u64 rn__call_16;.param .u64 rc__call_16;.param .u64 rm__call_16;.param .u64 rl__call_16;.param .u32 rct__call_16;.param .u32 rr__call_16;.param .u64 rb__call_17;.param .u64 rn__call_17;.param .u64 rc__call_17;.param .u64 rm__call_17;.param .u64 rl__call_17;.param .u32 rct__call_17;.param .u32 rr__call_17;.param .u64 rb__call_18;.param .u64 rn__call_18;.param .u64 rc__call_18;.param .u64 rm__call_18;.param .u64 rl__call_18;.param .u32 rct__call_18;.param .u32 rr__call_18;.param .u64 dd__call_19;.param .u64 df__call_19;.param .u64 de__call_19;.param .u64 dc__call_19;.param .u64 dl__call_19;.param .align 8 .b8 dr__call_19[24];.param .u64 dd__call_20;.param .u64 df__call_20;.param .u64 de__call_20;.param .u64 dc__call_20;.param .u64 dl__call_20;.param .align 8 .b8 dr__call_20[24];.param .u64 rb__call_21;.param .u64 rn__call_21;.param .u64 rc__call_21;.param .u64 rm__call_21;.param .u64 rl__call_21;.param .u32 rct__call_21;.param .u32 rr__call_21;.param .u64 rb__call_22;.param .u64 rn__call_22;.param .u64 rc__call_22;.param .u64 rm__call_22;.param .u64 rl__call_22;.param .u32 rct__call_22;.param .u32 rr__call_22;.param .u64 rb__call_23;.param .u64 rn__call_23;.param .u64 rc__call_23;.param .u64 rm__call_23;.param .u64 rl__call_23;.param .u32 rct__call_23;.param .u32 rr__call_23;.param .u64 dd__call_24;.param .u64 df__call_24;.param .u64 de__call_24;.param .u64 dc__call_24;.param .u64 dl__call_24;.param .align 8 .b8 dr__call_24[24];.param .u64 dd__call_25;.param .u64 df__call_25;.param .u64 de__call_25;.param .u64 dc__call_25;.param .u64 dl__call_25;.param .align 8 .b8 dr__call_25[24];.param .u64 dd__call_26;.param .u64 df__call_26;.param .u64 de__call_26;.param .u64 dc__call_26;.param .u64 dl__call_26;.param .align 8 .b8 dr__call_26[24];.param .u64 dd__call_27;.param .u64 df__call_27;.param .u64 de__call_27;.param .u64 dc__call_27;.param .u64 dl__call_27;.param .align 8 .b8 dr__call_27[24];.param .u64 dd__call_28;.param .u64 df__call_28;.param .u64 de__call_28;.param .u64 dc__call_28;.param .u64 dl__call_28;.param .align 8 .b8 dr__call_28[24];.param .b64 ma__call_29;.param .b64 mb__call_29;.param .align 8 .b8 scalar__call_29[16];.param .b64 ma__call_30;.param .b64 mb__call_30;.param .align 8 .b8 scalar__call_30[16];.param .u64 dd__call_31;.param .u64 df__call_31;.param .u64 de__call_31;.param .u64 dc__call_31;.param .u64 dl__call_31;.param .align 8 .b8 dr__call_31[24];.param .u64 rb__call_32;.param .u64 rn__call_32;.param .u64 rc__call_32;.param .u64 rm__call_32;.param .u64 rl__call_32;.param .u32 rct__call_32;.param .u32 rr__call_32;.param .u64 rb__call_33;.param .u64 rn__call_33;.param .u64 rc__call_33;.param .u64 rm__call_33;.param .u64 rl__call_33;.param .u32 rct__call_33;.param .u32 rr__call_33;.param .b64 ma__call_34;.param .b64 mb__call_34;.param .align 8 .b8 scalar__call_34[16];.param .b64 ma__call_35;.param .b64 mb__call_35;.param .align 8 .b8 scalar__call_35[16];.param .b64 ma__call_36;.param .b64 mb__call_36;.param .align 8 .b8 scalar__call_36[16];.param .b64 ma__call_37;.param .b64 mb__call_37;.param .align 8 .b8 scalar__call_37[16];.param .b64 ma__call_38;.param .b64 mb__call_38;.param .align 8 .b8 scalar__call_38[16];.param .b64 ma__call_39;.param .b64 mb__call_39;.param .align 8 .b8 scalar__call_39[16];.param .b64 ma__call_40;.param .b64 mb__call_40;.param .align 8 .b8 scalar__call_40[16];.param .b64 ma__call_41;.param .b64 mb__call_41;.param .align 8 .b8 scalar__call_41[16];.param .b64 ma__call_42;.param .b64 mb__call_42;.param .align 8 .b8 scalar__call_42[16];.param .b64 ma__call_43;.param .b64 mb__call_43;.param .align 8 .b8 scalar__call_43[16];.param .b64 ma__call_44;.param .b64 mb__call_44;.param .align 8 .b8 scalar__call_44[16];.param .b64 ma__call_45;.param .b64 mb__call_45;.param .align 8 .b8 scalar__call_45[16];.param .b64 ma__call_46;.param .b64 mb__call_46;.param .align 8 .b8 scalar__call_46[16];.param .b64 ma__call_47;.param .b64 mb__call_47;.param .align 8 .b8 scalar__call_47[16];.param .b64 ma__call_48;.param .b64 mb__call_48;.param .align 8 .b8 scalar__call_48[16];.param .b64 ma__call_49;.param .b64 mb__call_49;.param .align 8 .b8 scalar__call_49[16];.param .b64 ma__call_50;.param .b64 mb__call_50;.param .align 8 .b8 scalar__call_50[16];.param .b64 ma__call_51;.param .align 8 .b8 scalar__call_51[16];.param .b64 ma__call_52;.param .b64 mb__call_52;.param .align 8 .b8 scalar__call_52[16];.param .b64 ma__call_53;.param .b64 mb__call_53;.param .align 8 .b8 scalar__call_53[16];.param .b64 ma__call_54;.param .b64 mb__call_54;.param .align 8 .b8 scalar__call_54[16];.param .b64 ma__call_55;.param .b64 mb__call_55;.param .align 8 .b8 scalar__call_55[16];.param .b64 ma__call_56;.param .b64 mb__call_56;.param .align 8 .b8 scalar__call_56[16];.param .b64 ma__call_57;.param .b64 mb__call_57;.param .align 8 .b8 scalar__call_57[16];.param .b64 ma__call_58;.param .b64 mb__call_58;.param .align 8 .b8 scalar__call_58[16];.param .b64 ma__call_59;.param .b64 mb__call_59;.param .align 8 .b8 scalar__call_59[16];.param .b64 ma__call_60;.param .b64 mb__call_60;.param .align 8 .b8 scalar__call_60[16];.param .b64 ma__call_61;.param .b64 mb__call_61;.param .align 8 .b8 scalar__call_61[16];.param .b64 ma__call_62;.param .b64 mb__call_62;.param .align 8 .b8 scalar__call_62[16];.param .b64 ma__call_63;.param .align 8 .b8 scalar__call_63[16];.param .b64 ma__call_64;.param .b64 mb__call_64;.param .align 8 .b8 scalar__call_64[16];.param .b64 ma__call_65;.param .b64 mb__call_65;.param .align 8 .b8 scalar__call_65[16];.param .b64 ma__call_66;.param .b64 mb__call_66;.param .align 8 .b8 scalar__call_66[16];.param .b64 ma__call_67;.param .b64 mb__call_67;.param .align 8 .b8 scalar__call_67[16];.param .b64 ma__call_68;.param .b64 mb__call_68;.param .align 8 .b8 scalar__call_68[16];.param .b64 ma__call_69;.param .b64 mb__call_69;.param .align 8 .b8 scalar__call_69[16];.param .b64 ma__call_70;.param .b64 mb__call_70;.param .align 8 .b8 scalar__call_70[16];.param .b64 ma__call_71;.param .b64 mb__call_71;.param .align 8 .b8 scalar__call_71[16];.param .b64 ma__call_72;.param .align 8 .b8 scalar__call_72[16];.param .b64 ma__call_73;.param .b64 mb__call_73;.param .align 8 .b8 scalar__call_73[16];.param .b64 ma__call_74;.param .b64 mb__call_74;.param .align 8 .b8 scalar__call_74[16];.param .b64 ma__call_75;.param .b64 mb__call_75;.param .align 8 .b8 scalar__call_75[16];.param .b64 ma__call_76;.param .b64 mb__call_76;.param .align 8 .b8 scalar__call_76[16];.param .b64 ma__call_77;.param .b64 mb__call_77;.param .align 8 .b8 scalar__call_77[16];.param .b64 ma__call_78;.param .b64 mb__call_78;.param .align 8 .b8 scalar__call_78[16];.param .b64 ma__call_79;.param .b64 mb__call_79;.param .align 8 .b8 scalar__call_79[16];.param .b64 ma__call_80;.param .b64 mb__call_80;.param .align 8 .b8 scalar__call_80[16];.param .b64 ma__call_81;.param .b64 mb__call_81;.param .align 8 .b8 scalar__call_81[16];.param .b64 ma__call_82;.param .b64 mb__call_82;.param .align 8 .b8 scalar__call_82[16];.param .b64 ma__call_83;.param .b64 mb__call_83;.param .align 8 .b8 scalar__call_83[16];.param .b64 ma__call_84;.param .b64 mb__call_84;.param .align 8 .b8 scalar__call_84[16];.param .b64 ma__call_85;.param .b64 mb__call_85;.param .align 8 .b8 scalar__call_85[16];.param .b64 ma__call_86;.param .b64 mb__call_86;.param .align 8 .b8 scalar__call_86[16];.param .b64 ma__call_87;.param .align 8 .b8 scalar__call_87[16];.param .b64 ma__call_88;.param .b64 mb__call_88;.param .align 8 .b8 scalar__call_88[16];.param .b64 ma__call_89;.param .b64 mb__call_89;.param .align 8 .b8 scalar__call_89[16];.param .b64 ma__call_90;.param .b64 mb__call_90;.param .align 8 .b8 scalar__call_90[16];.param .b64 ma__call_91;.param .b64 mb__call_91;.param .align 8 .b8 scalar__call_91[16];.param .b64 ma__call_92;.param .b64 mb__call_92;.param .align 8 .b8 scalar__call_92[16];.param .b64 ma__call_93;.param .b64 mb__call_93;.param .align 8 .b8 scalar__call_93[16];.param .b64 ma__call_94;.param .b64 mb__call_94;.param .align 8 .b8 scalar__call_94[16];.param .b64 ma__call_95;.param .b64 mb__call_95;.param .align 8 .b8 scalar__call_95[16];.param .b64 ma__call_96;.param .b64 mb__call_96;.param .align 8 .b8 scalar__call_96[16];.param .b64 ma__call_97;.param .b64 mb__call_97;.param .align 8 .b8 scalar__call_97[16];.param .b64 ma__call_98;.param .b64 mb__call_98;.param .align 8 .b8 scalar__call_98[16];.param .b64 ma__call_99;.param .align 8 .b8 scalar__call_99[16];.param .b64 ma__call_100;.param .b64 mb__call_100;.param .align 8 .b8 scalar__call_100[16];.param .b64 ma__call_101;.param .b64 mb__call_101;.param .align 8 .b8 scalar__call_101[16];.param .b64 ma__call_102;.param .b64 mb__call_102;.param .align 8 .b8 scalar__call_102[16];.param .b64 ma__call_103;.param .b64 mb__call_103;.param .align 8 .b8 scalar__call_103[16];
+
+ .reg .u64 %argv,%ctx,%rec,%vab,%cver,%ph,%xy,%pf,%map,%topaddr,%rdaddr,%cvaddr,%scratch,%carry;
+ .reg .u64 %pitch,%np64,%fullbytes,%halfbytes,%xybytes,%zbytes,%scratchbytes,%words,%hiword,%capacity,%size,%base,%list,%address,%ptr,%ptr2,%col,%cell,%offset,%next,%bottom,%lastEvent,%desc,%last64;
+ .reg .u64 %coef<7>; .reg .s64 %lower<7>;
+ .reg .b64 %surface,%Pup,%Plo,%W,%E,%D,%A,%T,%H,%Q,%F,%inverse,%Iu,%ca,%cb,%af,%bf,%da,%db,%cv,%top,%RD,%RCVD,%rhydr,%temporary<4>,%negative,%value;
+ .reg .u32 %np,%n,%first,%last,%options,%fe,%mode,%lap,%ifirst,%ndim,%actual,%f<7>,%rt,%i,%j,%k,%flags,%raised,%event,%error,%unique;
+ .reg .pred %p<4>;
+ .local .align 8 .b8 mutable_spans[64];
+ .param .u64 rb,rn,rc,rm,rl; .param .u32 rct,rr;
+ .param .u64 dd,df,de,dc,dl; .param .align 8 .b8 dr[24];
+ .param .b64 ma,mb; .param .align 8 .b8 scalar[16];
+ ld.param.u64 %argv,[original_vector]; ld.param.u64 %ctx,[context];
+ mov.u32 %unique,%ctaid.x; mov.u32 %rt,%ctaid.y; or.b32 %unique,%unique,%rt;
+ mov.u32 %rt,%ctaid.z; or.b32 %unique,%unique,%rt;
+ mov.u32 %rt,%tid.x; or.b32 %unique,%unique,%rt;
+ mov.u32 %rt,%tid.y; or.b32 %unique,%unique,%rt;
+ mov.u32 %rt,%tid.z; or.b32 %unique,%unique,%rt;
+ setp.ne.u32 %p0,%unique,0; @%p0 ret;
+ ld.global.u32 %error,[%ctx]; setp.ne.u32 %p0,%error,0; @%p0 ret;
+ mov.u32 %error,6400;
+ mov.u32 %rt,%ntid.x; setp.ne.u32 %p0,%rt,128; @%p0 bra HP_REFUSE;
+ mov.u32 %rt,%ntid.y; setp.ne.u32 %p0,%rt,1; @%p0 bra HP_REFUSE;
+ mov.u32 %rt,%ntid.z; setp.ne.u32 %p0,%rt,1; @%p0 bra HP_REFUSE;
+ mov.u32 %rt,%nctaid.x; setp.ne.u32 %p0,%rt,1; @%p0 bra HP_REFUSE;
+ mov.u32 %rt,%nctaid.y; setp.ne.u32 %p0,%rt,1; @%p0 bra HP_REFUSE;
+ mov.u32 %rt,%nctaid.z; setp.ne.u32 %p0,%rt,1; @%p0 bra HP_REFUSE;
+ ld.global.u32 %rt,[%ctx+4]; setp.ne.u32 %p0,%rt,1; @%p0 bra HP_REFUSE;
+ mov.u64 %list,mutable_spans; cvta.local.u64 %list,%list;
+ st.param.u64 [rb__call_0],%argv; st.param.u64 [rn__call_0],72; st.param.u64 [rc__call_0],72; st.param.u64 [rm__call_0],7;
+ st.param.u64 [rl__call_0],%list; st.param.u32 [rct__call_0],0; call.uni (rr__call_0),hp_range,(rb__call_0,rn__call_0,rc__call_0,rm__call_0,rl__call_0,rct__call_0);
+ ld.param.u32 %error,[rr__call_0]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.u64 %ptr,[%argv+0];
+ st.param.u64 [rb__call_1],%ptr; st.param.u64 [rn__call_1],4; st.param.u64 [rc__call_1],4; st.param.u64 [rm__call_1],3;
+ st.param.u64 [rl__call_1],%list; st.param.u32 [rct__call_1],0; call.uni (rr__call_1),hp_range,(rb__call_1,rn__call_1,rc__call_1,rm__call_1,rl__call_1,rct__call_1);
+ ld.param.u32 %error,[rr__call_1]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.u64 %ptr,[%argv+8];
+ st.param.u64 [rb__call_2],%ptr; st.param.u64 [rn__call_2],4; st.param.u64 [rc__call_2],4; st.param.u64 [rm__call_2],3;
+ st.param.u64 [rl__call_2],%list; st.param.u32 [rct__call_2],0; call.uni (rr__call_2),hp_range,(rb__call_2,rn__call_2,rc__call_2,rm__call_2,rl__call_2,rct__call_2);
+ ld.param.u32 %error,[rr__call_2]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.u64 %ptr,[%argv+16];
+ st.param.u64 [rb__call_3],%ptr; st.param.u64 [rn__call_3],4; st.param.u64 [rc__call_3],4; st.param.u64 [rm__call_3],3;
+ st.param.u64 [rl__call_3],%list; st.param.u32 [rct__call_3],0; call.uni (rr__call_3),hp_range,(rb__call_3,rn__call_3,rc__call_3,rm__call_3,rl__call_3,rct__call_3);
+ ld.param.u32 %error,[rr__call_3]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.u64 %ptr,[%argv+24];
+ st.param.u64 [rb__call_4],%ptr; st.param.u64 [rn__call_4],4; st.param.u64 [rc__call_4],4; st.param.u64 [rm__call_4],3;
+ st.param.u64 [rl__call_4],%list; st.param.u32 [rct__call_4],0; call.uni (rr__call_4),hp_range,(rb__call_4,rn__call_4,rc__call_4,rm__call_4,rl__call_4,rct__call_4);
+ ld.param.u32 %error,[rr__call_4]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.u64 %ptr,[%argv]; ld.global.s32 %np,[%ptr]; ld.global.u64 %ptr,[%argv+8]; ld.global.s32 %n,[%ptr];
+ ld.global.u64 %ptr,[%argv+16]; ld.global.s32 %first,[%ptr]; ld.global.u64 %ptr,[%argv+24]; ld.global.s32 %last,[%ptr];
+ mov.u32 %error,6402; setp.lt.s32 %p0,%np,1; @%p0 bra HP_REFUSE;
+ setp.lt.s32 %p0,%n,0; @%p0 bra HP_REFUSE;
+ setp.lt.s32 %p0,%first,1; @%p0 bra HP_REFUSE; setp.gt.u32 %p0,%first,%np; @%p0 bra HP_REFUSE;
+ sub.u32 %rt,%first,1; setp.lt.s32 %p0,%last,%rt; @%p0 bra HP_REFUSE; setp.gt.u32 %p0,%last,%np; @%p0 bra HP_REFUSE;
+ ld.global.u64 %xy,[%argv+56]; ld.global.u64 %pf,[%argv+64]; mov.u32 %options,0;
+ setp.ne.u64 %p0,%xy,0; @%p0 or.b32 %options,%options,1; setp.ne.u64 %p0,%pf,0; @%p0 or.b32 %options,%options,2;
+ setp.eq.u32 %p0,%n,0; setp.lt.s32 %p1,%last,%first; or.pred %p0,%p0,%p1; @!%p0 bra HP_ACTIVE;
+ setp.eq.u32 %p0,%options,0; @%p0 ret; bra HP_REFUSE;
+HP_ACTIVE:
+ ld.global.u64 %rec,[%ctx+48]; ld.global.u64 %capacity,[%ctx+56];
+ st.param.u64 [rb__call_5],%rec; st.param.u64 [rn__call_5],256; st.param.u64 [rc__call_5],%capacity; st.param.u64 [rm__call_5],7;
+ st.param.u64 [rl__call_5],%list; st.param.u32 [rct__call_5],0; call.uni (rr__call_5),hp_range,(rb__call_5,rn__call_5,rc__call_5,rm__call_5,rl__call_5,rct__call_5);
+ ld.param.u32 %error,[rr__call_5]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ mov.u32 %error,6401; ld.global.u32 %rt,[%rec+180]; setp.ne.u32 %p0,%rt,0; @%p0 bra HP_REFUSE;
+ mov.u32 %i,184;
+HP_RESERVED:
+ cvt.u64.u32 %address,%i; add.u64 %ptr,%rec,%address; ld.global.u64 %address,[%ptr]; setp.ne.u64 %p0,%address,0; @%p0 bra HP_REFUSE;
+ add.u32 %i,%i,8; setp.lt.u32 %p0,%i,256; @%p0 bra HP_RESERVED;
+ ld.global.u64 %capacity,[%rec+168];
+ st.param.u64 [rb__call_6],%argv; st.param.u64 [rn__call_6],72; st.param.u64 [rc__call_6],%capacity; st.param.u64 [rm__call_6],7;
+ st.param.u64 [rl__call_6],%list; st.param.u32 [rct__call_6],0; call.uni (rr__call_6),hp_range,(rb__call_6,rn__call_6,rc__call_6,rm__call_6,rl__call_6,rct__call_6);
+ ld.param.u32 %error,[rr__call_6]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.u64 %vab,[%argv+32]; ld.global.u64 %capacity,[%rec+32];
+ st.param.u64 [rb__call_7],%vab; st.param.u64 [rn__call_7],512; st.param.u64 [rc__call_7],%capacity; st.param.u64 [rm__call_7],7;
+ st.param.u64 [rl__call_7],%list; st.param.u32 [rct__call_7],0; call.uni (rr__call_7),hp_range,(rb__call_7,rn__call_7,rc__call_7,rm__call_7,rl__call_7,rct__call_7);
+ ld.param.u32 %error,[rr__call_7]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ cvt.u64.u32 %np64,%np; mul.wide.u32 %pitch,%np,8;
+ mul.wide.u32 %words,%np,%n; mov.u32 %error,6403; setp.gt.u64 %p0,%words,0x0fffffffffffffff; @%p0 bra HP_REFUSE;
+ shl.b64 %fullbytes,%words,3; add.u32 %rt,%n,1; mul.wide.u32 %words,%np,%rt;
+ setp.gt.u64 %p0,%words,0x0fffffffffffffff; @%p0 bra HP_REFUSE; shl.b64 %halfbytes,%words,3; sub.u64 %bottom,%halfbytes,%pitch;
+ mov.u64 %xybytes,0; mov.u64 %zbytes,0; mov.u64 %scratch,0; mov.u64 %scratchbytes,0;
+ mov.u32 %fe,0; mov.u32 %mode,0; mov.u32 %lap,0; mov.u32 %ifirst,1;
+ setp.eq.u32 %p0,%options,0; @%p0 bra HP_SIZES_READY;
+ ld.global.u64 %cver,[%argv+40]; ld.global.u64 %capacity,[%rec+40];
+ st.param.u64 [rb__call_8],%cver; st.param.u64 [rn__call_8],216; st.param.u64 [rc__call_8],%capacity; st.param.u64 [rm__call_8],7;
+ st.param.u64 [rl__call_8],%list; st.param.u32 [rct__call_8],0; call.uni (rr__call_8),hp_range,(rb__call_8,rn__call_8,rc__call_8,rm__call_8,rl__call_8,rct__call_8);
+ ld.param.u32 %error,[rr__call_8]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.u32 %fe,[%cver+52]; mov.u32 %error,6404; setp.gt.u32 %p0,%fe,1; @%p0 bra HP_REFUSE;
+ setp.ne.u32 %p0,%fe,0; @%p0 bra HP_MODE_READY;
+ ld.global.u32 %mode,[%cver+4]; setp.gt.u32 %p0,%mode,2; @%p0 bra HP_REFUSE;
+ setp.ne.u32 %p0,%mode,0; @%p0 bra HP_MODE_READY;
+ setp.eq.u64 %p0,%pf,0; @%p0 bra HP_MODE_READY;
+ ld.global.u32 %lap,[%cver]; setp.gt.u32 %p0,%lap,1; @%p0 bra HP_REFUSE;
+HP_MODE_READY:
+ ld.global.u64 %map,[%rec+128]; ld.global.u64 %capacity,[%rec+136];
+ st.param.u64 [rb__call_9],%map; st.param.u64 [rn__call_9],32; st.param.u64 [rc__call_9],%capacity; st.param.u64 [rm__call_9],3;
+ st.param.u64 [rl__call_9],%list; st.param.u32 [rct__call_9],0; call.uni (rr__call_9),hp_range,(rb__call_9,rn__call_9,rc__call_9,rm__call_9,rl__call_9,rct__call_9);
+ ld.param.u32 %error,[rr__call_9]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.s32 %ndim,[%map+28]; mov.u32 %error,6404; setp.lt.s32 %p0,%ndim,1; @%p0 bra HP_REFUSE;
+ mul.wide.u32 %words,%np,%n; cvt.u64.u32 %address,%ndim; mul.hi.u64 %hiword,%words,%address; mul.lo.u64 %words,%words,%address;
+ mov.u32 %error,6403; setp.ne.u64 %p0,%hiword,0; @%p0 bra HP_REFUSE;
+ add.u64 %size,%words,%np64; setp.lt.u64 %p0,%size,%words; @%p0 bra HP_REFUSE;
+ setp.gt.u64 %p0,%size,0x0fffffffffffffff; @%p0 bra HP_REFUSE;
+ shl.b64 %zbytes,%words,3; shl.b64 %scratchbytes,%size,3;
+ ld.global.u64 %scratch,[%ctx+32];
+ setp.eq.u64 %p0,%xy,0; @%p0 bra HP_SIZES_READY;
+ ld.global.s32 %actual,[%rec+176]; mov.u32 %error,6404; setp.lt.s32 %p0,%actual,%ndim; @%p0 bra HP_REFUSE;
+ cvt.u64.u32 %address,%actual; mul.wide.u32 %words,%np,%n; mul.hi.u64 %hiword,%words,%address; mul.lo.u64 %words,%words,%address;
+ mov.u32 %error,6403; setp.ne.u64 %p0,%hiword,0; @%p0 bra HP_REFUSE; setp.gt.u64 %p0,%words,0x0fffffffffffffff; @%p0 bra HP_REFUSE;
+ shl.b64 %xybytes,%words,3;
+HP_SIZES_READY:
+ ld.global.u64 %ph,[%argv+48]; st.u64 [%list],%ph; st.u64 [%list+8],%halfbytes;
+ st.u64 [%list+16],%xy; st.u64 [%list+24],%xybytes;
+ mov.u64 %size,0; setp.ne.u64 %p0,%pf,0; @%p0 mov.u64 %size,%fullbytes;
+ st.u64 [%list+32],%pf; st.u64 [%list+40],%size;
+ st.u64 [%list+48],%scratch; st.u64 [%list+56],%scratchbytes;
+ mov.u32 %i,0;
+HP_MUTABLE_OWNERS:
+ mul.wide.u32 %address,%i,16; add.u64 %ptr2,%list,%address; ld.u64 %base,[%ptr2]; ld.u64 %size,[%ptr2+8];
+ mov.u64 %capacity,0; setp.eq.u32 %p0,%i,3; @%p0 bra HP_SCRATCH_CAP;
+ add.u32 %rt,%i,6; mul.wide.u32 %address,%rt,8; add.u64 %ptr2,%rec,%address; ld.global.u64 %capacity,[%ptr2]; bra HP_CAP_READY;
+HP_SCRATCH_CAP: ld.global.u64 %capacity,[%ctx+40];
+HP_CAP_READY:
+ st.param.u64 [rb__call_10],%base; st.param.u64 [rn__call_10],%size; st.param.u64 [rc__call_10],%capacity; st.param.u64 [rm__call_10],7;
+ st.param.u64 [rl__call_10],%list; st.param.u32 [rct__call_10],%i; call.uni (rr__call_10),hp_range,(rb__call_10,rn__call_10,rc__call_10,rm__call_10,rl__call_10,rct__call_10);
+ ld.param.u32 %error,[rr__call_10]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,4; @%p0 bra HP_MUTABLE_OWNERS;
+ st.param.u64 [rb__call_11],%ctx; st.param.u64 [rn__call_11],64; st.param.u64 [rc__call_11],64; st.param.u64 [rm__call_11],7;
+ st.param.u64 [rl__call_11],%list; st.param.u32 [rct__call_11],4; call.uni (rr__call_11),hp_range,(rb__call_11,rn__call_11,rc__call_11,rm__call_11,rl__call_11,rct__call_11);
+ ld.param.u32 %error,[rr__call_11]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ st.param.u64 [rb__call_12],%rec; st.param.u64 [rn__call_12],256; st.param.u64 [rc__call_12],256; st.param.u64 [rm__call_12],7;
+ st.param.u64 [rl__call_12],%list; st.param.u32 [rct__call_12],4; call.uni (rr__call_12),hp_range,(rb__call_12,rn__call_12,rc__call_12,rm__call_12,rl__call_12,rct__call_12);
+ ld.param.u32 %error,[rr__call_12]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.u64 %capacity,[%rec+168];
+ st.param.u64 [rb__call_13],%argv; st.param.u64 [rn__call_13],72; st.param.u64 [rc__call_13],%capacity; st.param.u64 [rm__call_13],7;
+ st.param.u64 [rl__call_13],%list; st.param.u32 [rct__call_13],4; call.uni (rr__call_13),hp_range,(rb__call_13,rn__call_13,rc__call_13,rm__call_13,rl__call_13,rct__call_13);
+ ld.param.u32 %error,[rr__call_13]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.u64 %ptr,[%argv+0]; ld.global.u64 %capacity,[%rec+0];
+ st.param.u64 [rb__call_14],%ptr; st.param.u64 [rn__call_14],4; st.param.u64 [rc__call_14],%capacity; st.param.u64 [rm__call_14],3;
+ st.param.u64 [rl__call_14],%list; st.param.u32 [rct__call_14],4; call.uni (rr__call_14),hp_range,(rb__call_14,rn__call_14,rc__call_14,rm__call_14,rl__call_14,rct__call_14);
+ ld.param.u32 %error,[rr__call_14]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.u64 %ptr,[%argv+8]; ld.global.u64 %capacity,[%rec+8];
+ st.param.u64 [rb__call_15],%ptr; st.param.u64 [rn__call_15],4; st.param.u64 [rc__call_15],%capacity; st.param.u64 [rm__call_15],3;
+ st.param.u64 [rl__call_15],%list; st.param.u32 [rct__call_15],4; call.uni (rr__call_15),hp_range,(rb__call_15,rn__call_15,rc__call_15,rm__call_15,rl__call_15,rct__call_15);
+ ld.param.u32 %error,[rr__call_15]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.u64 %ptr,[%argv+16]; ld.global.u64 %capacity,[%rec+16];
+ st.param.u64 [rb__call_16],%ptr; st.param.u64 [rn__call_16],4; st.param.u64 [rc__call_16],%capacity; st.param.u64 [rm__call_16],3;
+ st.param.u64 [rl__call_16],%list; st.param.u32 [rct__call_16],4; call.uni (rr__call_16),hp_range,(rb__call_16,rn__call_16,rc__call_16,rm__call_16,rl__call_16,rct__call_16);
+ ld.param.u32 %error,[rr__call_16]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.u64 %ptr,[%argv+24]; ld.global.u64 %capacity,[%rec+24];
+ st.param.u64 [rb__call_17],%ptr; st.param.u64 [rn__call_17],4; st.param.u64 [rc__call_17],%capacity; st.param.u64 [rm__call_17],3;
+ st.param.u64 [rl__call_17],%list; st.param.u32 [rct__call_17],4; call.uni (rr__call_17),hp_range,(rb__call_17,rn__call_17,rc__call_17,rm__call_17,rl__call_17,rct__call_17);
+ ld.param.u32 %error,[rr__call_17]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.u64 %capacity,[%rec+32];
+ st.param.u64 [rb__call_18],%vab; st.param.u64 [rn__call_18],512; st.param.u64 [rc__call_18],%capacity; st.param.u64 [rm__call_18],7;
+ st.param.u64 [rl__call_18],%list; st.param.u32 [rct__call_18],4; call.uni (rr__call_18),hp_range,(rb__call_18,rn__call_18,rc__call_18,rm__call_18,rl__call_18,rct__call_18);
+ ld.param.u32 %error,[rr__call_18]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ sub.u32 %rt,%n,1; cvt.u64.u32 %last64,%rt;
+ add.u64 %desc,%vab,128; ld.global.u64 %capacity,[%rec+72];
+ st.param.u64 [dd__call_19],%desc; st.param.u64 [df__call_19],0; st.param.u64 [de__call_19],%last64; st.param.u64 [dc__call_19],%capacity; st.param.u64 [dl__call_19],%list;
+ call.uni (dr__call_19),hp_descriptor,(dd__call_19,df__call_19,de__call_19,dc__call_19,dl__call_19); ld.param.u32 %error,[dr__call_19+16]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.param.u64 %coef0,[dr__call_19]; ld.param.s64 %lower0,[dr__call_19+8];
+ add.u64 %desc,%vab,64; ld.global.u64 %capacity,[%rec+80];
+ st.param.u64 [dd__call_20],%desc; st.param.u64 [df__call_20],0; st.param.u64 [de__call_20],%last64; st.param.u64 [dc__call_20],%capacity; st.param.u64 [dl__call_20],%list;
+ call.uni (dr__call_20),hp_descriptor,(dd__call_20,df__call_20,de__call_20,dc__call_20,dl__call_20); ld.param.u32 %error,[dr__call_20+16]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.param.u64 %coef1,[dr__call_20]; ld.param.s64 %lower1,[dr__call_20+8];
+ mov.u32 %flags,0; ld.global.u64 %lastEvent,[%ctx+16]; setp.eq.u32 %p0,%options,0; @%p0 bra HP_PREFLIGHT_DONE;
+ ld.global.u64 %capacity,[%rec+40];
+ st.param.u64 [rb__call_21],%cver; st.param.u64 [rn__call_21],216; st.param.u64 [rc__call_21],%capacity; st.param.u64 [rm__call_21],7;
+ st.param.u64 [rl__call_21],%list; st.param.u32 [rct__call_21],4; call.uni (rr__call_21),hp_range,(rb__call_21,rn__call_21,rc__call_21,rm__call_21,rl__call_21,rct__call_21);
+ ld.param.u32 %error,[rr__call_21]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.u64 %capacity,[%rec+136];
+ st.param.u64 [rb__call_22],%map; st.param.u64 [rn__call_22],32; st.param.u64 [rc__call_22],%capacity; st.param.u64 [rm__call_22],3;
+ st.param.u64 [rl__call_22],%list; st.param.u32 [rct__call_22],4; call.uni (rr__call_22),hp_range,(rb__call_22,rn__call_22,rc__call_22,rm__call_22,rl__call_22,rct__call_22);
+ ld.param.u32 %error,[rr__call_22]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.u32 %f0,[%map+0];
+ ld.global.u32 %f1,[%map+4];
+ ld.global.u32 %f2,[%map+8];
+ ld.global.u32 %f3,[%map+12];
+ ld.global.u32 %f4,[%map+16];
+ ld.global.u32 %f5,[%map+20];
+ ld.global.u32 %f6,[%map+24];
+ setp.ne.u32 %p0,%fe,0; selp.u32 %k,5,7,%p0; mov.u32 %i,0; mov.u32 %error,6404;
+ setp.lt.s32 %p0,%f0,1; @%p0 bra HP_REFUSE; setp.gt.u32 %p0,%f0,%ndim; @%p0 bra HP_REFUSE;
+ setp.lt.s32 %p0,%f1,1; @%p0 bra HP_REFUSE; setp.gt.u32 %p0,%f1,%ndim; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f1,%f0; @%p0 bra HP_REFUSE;
+ setp.lt.s32 %p0,%f2,1; @%p0 bra HP_REFUSE; setp.gt.u32 %p0,%f2,%ndim; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f2,%f0; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f2,%f1; @%p0 bra HP_REFUSE;
+ setp.lt.s32 %p0,%f3,1; @%p0 bra HP_REFUSE; setp.gt.u32 %p0,%f3,%ndim; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f3,%f0; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f3,%f1; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f3,%f2; @%p0 bra HP_REFUSE;
+ setp.lt.s32 %p0,%f4,1; @%p0 bra HP_REFUSE; setp.gt.u32 %p0,%f4,%ndim; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f4,%f0; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f4,%f1; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f4,%f2; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f4,%f3; @%p0 bra HP_REFUSE;
+ setp.ne.u32 %p0,%fe,0; @%p0 bra HP_MAP_READY;
+ setp.lt.s32 %p0,%f5,1; @%p0 bra HP_REFUSE; setp.gt.u32 %p0,%f5,%ndim; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f5,%f0; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f5,%f1; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f5,%f2; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f5,%f3; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f5,%f4; @%p0 bra HP_REFUSE;
+ setp.lt.s32 %p0,%f6,1; @%p0 bra HP_REFUSE; setp.gt.u32 %p0,%f6,%ndim; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f6,%f0; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f6,%f1; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f6,%f2; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f6,%f3; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f6,%f4; @%p0 bra HP_REFUSE;
+ setp.eq.u32 %p0,%f6,%f5; @%p0 bra HP_REFUSE;
+HP_MAP_READY:
+ ld.global.u64 %topaddr,[%rec+144];
+ st.param.u64 [rb__call_23],%topaddr; st.param.u64 [rn__call_23],8; st.param.u64 [rc__call_23],8; st.param.u64 [rm__call_23],7;
+ st.param.u64 [rl__call_23],%list; st.param.u32 [rct__call_23],4; call.uni (rr__call_23),hp_range,(rb__call_23,rn__call_23,rc__call_23,rm__call_23,rl__call_23,rct__call_23);
+ ld.param.u32 %error,[rr__call_23]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.b64 %top,[%topaddr]; cvt.u64.u32 %last64,%n; setp.eq.u32 %p0,%fe,0; @%p0 bra HP_CONV_COEFFICIENTS;
+ add.u64 %desc,%vab,256; ld.global.u64 %capacity,[%rec+88];
+ st.param.u64 [dd__call_24],%desc; st.param.u64 [df__call_24],1; st.param.u64 [de__call_24],%last64; st.param.u64 [dc__call_24],%capacity; st.param.u64 [dl__call_24],%list;
+ call.uni (dr__call_24),hp_descriptor,(dd__call_24,df__call_24,de__call_24,dc__call_24,dl__call_24); ld.param.u32 %error,[dr__call_24+16]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.param.u64 %coef2,[dr__call_24]; ld.param.s64 %lower2,[dr__call_24+8];
+ add.u64 %desc,%vab,320; ld.global.u64 %capacity,[%rec+96];
+ st.param.u64 [dd__call_25],%desc; st.param.u64 [df__call_25],1; st.param.u64 [de__call_25],%last64; st.param.u64 [dc__call_25],%capacity; st.param.u64 [dl__call_25],%list;
+ call.uni (dr__call_25),hp_descriptor,(dd__call_25,df__call_25,de__call_25,dc__call_25,dl__call_25); ld.param.u32 %error,[dr__call_25+16]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.param.u64 %coef3,[dr__call_25]; ld.param.s64 %lower3,[dr__call_25+8];
+ add.u64 %desc,%vab,384; ld.global.u64 %capacity,[%rec+104];
+ st.param.u64 [dd__call_26],%desc; st.param.u64 [df__call_26],1; st.param.u64 [de__call_26],%last64; st.param.u64 [dc__call_26],%capacity; st.param.u64 [dl__call_26],%list;
+ call.uni (dr__call_26),hp_descriptor,(dd__call_26,df__call_26,de__call_26,dc__call_26,dl__call_26); ld.param.u32 %error,[dr__call_26+16]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.param.u64 %coef4,[dr__call_26]; ld.param.s64 %lower4,[dr__call_26+8];
+ add.u64 %desc,%vab,448; ld.global.u64 %capacity,[%rec+112];
+ st.param.u64 [dd__call_27],%desc; st.param.u64 [df__call_27],1; st.param.u64 [de__call_27],%last64; st.param.u64 [dc__call_27],%capacity; st.param.u64 [dl__call_27],%list;
+ call.uni (dr__call_27),hp_descriptor,(dd__call_27,df__call_27,de__call_27,dc__call_27,dl__call_27); ld.param.u32 %error,[dr__call_27+16]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.param.u64 %coef5,[dr__call_27]; ld.param.s64 %lower5,[dr__call_27+8];
+ bra HP_TOP_PREFLIGHT;
+HP_CONV_COEFFICIENTS:
+ add.u64 %desc,%vab,448; ld.global.u64 %capacity,[%rec+112];
+ st.param.u64 [dd__call_28],%desc; st.param.u64 [df__call_28],1; st.param.u64 [de__call_28],%last64; st.param.u64 [dc__call_28],%capacity; st.param.u64 [dl__call_28],%list;
+ call.uni (dr__call_28),hp_descriptor,(dd__call_28,df__call_28,de__call_28,dc__call_28,dl__call_28); ld.param.u32 %error,[dr__call_28+16]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.param.u64 %coef5,[dr__call_28]; ld.param.s64 %lower5,[dr__call_28+8];
+HP_TOP_PREFLIGHT:
+ cvt.u64.u32 %address,0; sub.s64 %address,%address,%lower0; shl.b64 %address,%address,3;
+ add.u64 %ptr,%coef0,%address; ld.global.b64 %ca,[%ptr];
+ cvt.u64.u32 %address,0; sub.s64 %address,%address,%lower1; shl.b64 %address,%address,3;
+ add.u64 %ptr,%coef1,%address; ld.global.b64 %cb,[%ptr];
+ sub.u32 %i,%first,1;
+HP_TOP_LOOP:
+ mul.wide.u32 %col,%i,8; add.u64 %ptr,%ph,%bottom; add.u64 %ptr,%ptr,%col; ld.global.b64 %surface,[%ptr];
+ st.param.b64 [ma__call_29],%cb; st.param.b64 [mb__call_29],%surface; call.uni (scalar__call_29),md2asm_gpu_mul_rn,(ma__call_29,mb__call_29);
+ ld.param.b64 %temporary0,[scalar__call_29]; ld.param.u32 %raised,[scalar__call_29+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_30],%ca; st.param.b64 [mb__call_30],%temporary0; call.uni (scalar__call_30),md2asm_gpu_add_rn,(ma__call_30,mb__call_30);
+ ld.param.b64 %F,[scalar__call_30]; ld.param.u32 %raised,[scalar__call_30+8]; or.b32 %flags,%flags,%raised;
+ setp.le.f64 %p0,%F,%top; @%p0 mov.u32 %ifirst,2;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%last; @%p0 bra HP_TOP_LOOP;
+ setp.ne.u32 %p0,%fe,0; @%p0 bra HP_PREFLIGHT_DONE;
+ setp.gt.u32 %p0,%ifirst,%n; @%p0 bra HP_NO_NORMAL_COEFFICIENT;
+ cvt.u64.u32 %address,%ifirst;
+ add.u64 %desc,%vab,192; ld.global.u64 %capacity,[%rec+120];
+ st.param.u64 [dd__call_31],%desc; st.param.u64 [df__call_31],%address; st.param.u64 [de__call_31],%last64; st.param.u64 [dc__call_31],%capacity; st.param.u64 [dl__call_31],%list;
+ call.uni (dr__call_31),hp_descriptor,(dd__call_31,df__call_31,de__call_31,dc__call_31,dl__call_31); ld.param.u32 %error,[dr__call_31+16]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.param.u64 %coef6,[dr__call_31]; ld.param.s64 %lower6,[dr__call_31+8];
+HP_NO_NORMAL_COEFFICIENT:
+ setp.ne.u32 %p0,%ifirst,2; @%p0 bra HP_PREFLIGHT_DONE;
+ setp.ne.u32 %p0,%mode,2; @%p0 bra HP_TOP_CONTROL;
+ mov.u32 %error,6405; setp.lt.u32 %p0,%n,2; @%p0 bra HP_REFUSE;
+HP_TOP_CONTROL:
+ setp.ne.u32 %p0,%mode,0; @%p0 bra HP_TOP_THERMAL;
+ ld.global.b64 %rhydr,[%cver+8]; bra HP_PREFLIGHT_DONE;
+HP_TOP_THERMAL:
+ setp.ne.u32 %p0,%mode,1; @%p0 bra HP_PREFLIGHT_DONE;
+ ld.global.u64 %rdaddr,[%rec+152];
+ st.param.u64 [rb__call_32],%rdaddr; st.param.u64 [rn__call_32],8; st.param.u64 [rc__call_32],8; st.param.u64 [rm__call_32],7;
+ st.param.u64 [rl__call_32],%list; st.param.u32 [rct__call_32],4; call.uni (rr__call_32),hp_range,(rb__call_32,rn__call_32,rc__call_32,rm__call_32,rl__call_32,rct__call_32);
+ ld.param.u32 %error,[rr__call_32]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.u64 %cvaddr,[%rec+160];
+ st.param.u64 [rb__call_33],%cvaddr; st.param.u64 [rn__call_33],8; st.param.u64 [rc__call_33],8; st.param.u64 [rm__call_33],7;
+ st.param.u64 [rl__call_33],%list; st.param.u32 [rct__call_33],4; call.uni (rr__call_33),hp_range,(rb__call_33,rn__call_33,rc__call_33,rm__call_33,rl__call_33,rct__call_33);
+ ld.param.u32 %error,[rr__call_33]; setp.ne.u32 %p0,%error,0; @%p0 bra HP_REFUSE;
+ ld.global.b64 %RD,[%rdaddr]; ld.global.b64 %RCVD,[%cvaddr];
+HP_PREFLIGHT_DONE:
+ mov.u32 %j,0;
+HP_HALF_LEVEL:
+ cvt.u64.u32 %address,%j; sub.s64 %address,%address,%lower0; shl.b64 %address,%address,3;
+ add.u64 %ptr,%coef0,%address; ld.global.b64 %ca,[%ptr];
+ cvt.u64.u32 %address,%j; sub.s64 %address,%address,%lower1; shl.b64 %address,%address,3;
+ add.u64 %ptr,%coef1,%address; ld.global.b64 %cb,[%ptr];
+ sub.u32 %i,%first,1;
+HP_HALF_CELL:
+ mul.wide.u32 %col,%i,8; add.u64 %ptr,%ph,%bottom; add.u64 %ptr,%ptr,%col; ld.global.b64 %surface,[%ptr];
+ st.param.b64 [ma__call_34],%cb; st.param.b64 [mb__call_34],%surface; call.uni (scalar__call_34),md2asm_gpu_mul_rn,(ma__call_34,mb__call_34);
+ ld.param.b64 %temporary0,[scalar__call_34]; ld.param.u32 %raised,[scalar__call_34+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_35],%ca; st.param.b64 [mb__call_35],%temporary0; call.uni (scalar__call_35),md2asm_gpu_add_rn,(ma__call_35,mb__call_35);
+ ld.param.b64 %F,[scalar__call_35]; ld.param.u32 %raised,[scalar__call_35+8]; or.b32 %flags,%flags,%raised;
+ mul.wide.u32 %cell,%j,8; mul.lo.u64 %cell,%cell,%np64; add.u64 %cell,%cell,%col;
+ add.u64 %ptr,%ph,%cell; st.global.b64 [%ptr],%F;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%last; @%p0 bra HP_HALF_CELL;
+ add.u32 %j,%j,1; setp.lt.u32 %p0,%j,%n; @%p0 bra HP_HALF_LEVEL;
+ setp.eq.u32 %p0,%options,0; @%p0 bra HP_DONE;
+ mov.u64 %offset,0;
+HP_ZERO_COEFFICIENTS:
+ setp.ge.u64 %p0,%offset,%zbytes; @%p0 bra HP_COEFFICIENTS_READY;
+ add.u64 %ptr,%scratch,%offset; st.global.u64 [%ptr],0; add.u64 %offset,%offset,8; bra HP_ZERO_COEFFICIENTS;
+HP_COEFFICIENTS_READY:
+ add.u64 %carry,%scratch,%zbytes;
+ setp.eq.u32 %p0,%fe,0; @%p0 bra HP_CONVENTIONAL;
+ mov.u32 %j,1;
+HP_FE_LEVEL:
+ cvt.u64.u32 %address,%j; sub.s64 %address,%address,%lower2; shl.b64 %address,%address,3;
+ add.u64 %ptr,%coef2,%address; ld.global.b64 %af,[%ptr];
+ cvt.u64.u32 %address,%j; sub.s64 %address,%address,%lower3; shl.b64 %address,%address,3;
+ add.u64 %ptr,%coef3,%address; ld.global.b64 %bf,[%ptr];
+ cvt.u64.u32 %address,%j; sub.s64 %address,%address,%lower4; shl.b64 %address,%address,3;
+ add.u64 %ptr,%coef4,%address; ld.global.b64 %da,[%ptr];
+ cvt.u64.u32 %address,%j; sub.s64 %address,%address,%lower5; shl.b64 %address,%address,3;
+ add.u64 %ptr,%coef5,%address; ld.global.b64 %db,[%ptr];
+ sub.u32 %i,%first,1;
+HP_FE_CELL:
+ mul.wide.u32 %col,%i,8; sub.u32 %rt,%j,1; mul.wide.u32 %cell,%rt,8; mul.lo.u64 %cell,%cell,%np64; add.u64 %cell,%cell,%col;
+ add.u64 %ptr,%ph,%bottom; add.u64 %ptr,%ptr,%col; ld.global.b64 %surface,[%ptr];
+ st.param.b64 [ma__call_36],%db; st.param.b64 [mb__call_36],%surface; call.uni (scalar__call_36),md2asm_gpu_mul_rn,(ma__call_36,mb__call_36);
+ ld.param.b64 %temporary0,[scalar__call_36]; ld.param.u32 %raised,[scalar__call_36+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_37],%da; st.param.b64 [mb__call_37],%temporary0; call.uni (scalar__call_37),md2asm_gpu_add_rn,(ma__call_37,mb__call_37);
+ ld.param.b64 %W,[scalar__call_37]; ld.param.u32 %raised,[scalar__call_37+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f0,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%W;
+ st.param.b64 [ma__call_38],0x3ff0000000000000; st.param.b64 [mb__call_38],%W; call.uni (scalar__call_38),md2asm_gpu_div_status,(ma__call_38,mb__call_38);
+ ld.param.b64 %E,[scalar__call_38]; ld.param.u32 %raised,[scalar__call_38+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f1,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%E;
+ st.param.b64 [ma__call_39],%bf; st.param.b64 [mb__call_39],%surface; call.uni (scalar__call_39),md2asm_gpu_mul_rn,(ma__call_39,mb__call_39);
+ ld.param.b64 %temporary0,[scalar__call_39]; ld.param.u32 %raised,[scalar__call_39+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_40],%af; st.param.b64 [mb__call_40],%temporary0; call.uni (scalar__call_40),md2asm_gpu_add_rn,(ma__call_40,mb__call_40);
+ ld.param.b64 %F,[scalar__call_40]; ld.param.u32 %raised,[scalar__call_40+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_41],0x3ff0000000000000; st.param.b64 [mb__call_41],%F; call.uni (scalar__call_41),md2asm_gpu_div_status,(ma__call_41,mb__call_41);
+ ld.param.b64 %inverse,[scalar__call_41]; ld.param.u32 %raised,[scalar__call_41+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_42],%W; st.param.b64 [mb__call_42],%inverse; call.uni (scalar__call_42),md2asm_gpu_mul_rn,(ma__call_42,mb__call_42);
+ ld.param.b64 %D,[scalar__call_42]; ld.param.u32 %raised,[scalar__call_42+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f2,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%D;
+ st.param.b64 [ma__call_43],%bf; st.param.b64 [mb__call_43],%inverse; call.uni (scalar__call_43),md2asm_gpu_mul_rn,(ma__call_43,mb__call_43);
+ ld.param.b64 %T,[scalar__call_43]; ld.param.u32 %raised,[scalar__call_43+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f4,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%T;
+ add.u64 %ptr,%ph,%cell; add.u64 %ptr,%ptr,%pitch; ld.global.b64 %Plo,[%ptr];
+ xor.b64 %negative,%F,0x8000000000000000;
+ st.param.b64 [ma__call_44],%Plo; st.param.b64 [mb__call_44],%negative; call.uni (scalar__call_44),md2asm_gpu_add_rn,(ma__call_44,mb__call_44);
+ ld.param.b64 %temporary0,[scalar__call_44]; ld.param.u32 %raised,[scalar__call_44+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_45],%temporary0; st.param.b64 [mb__call_45],%inverse; call.uni (scalar__call_45),md2asm_gpu_mul_rn,(ma__call_45,mb__call_45);
+ ld.param.b64 %A,[scalar__call_45]; ld.param.u32 %raised,[scalar__call_45+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f3,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%A;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%last; @%p0 bra HP_FE_CELL;
+ add.u32 %j,%j,1; setp.le.u32 %p0,%j,%n; @%p0 bra HP_FE_LEVEL; bra HP_COPY_COEFFICIENTS;
+HP_CONVENTIONAL:
+ setp.ne.u32 %p0,%mode,0; @%p0 bra HP_APPROXIMATE;
+ sub.u32 %j,%ifirst,1; sub.u32 %i,%first,1;
+HP_INITIAL_RECIPROCAL:
+ mul.wide.u32 %col,%i,8; mul.wide.u32 %address,%j,8; mul.lo.u64 %address,%address,%np64; add.u64 %address,%address,%col; add.u64 %ptr,%ph,%address; ld.global.b64 %Pup,[%ptr];
+ st.param.b64 [ma__call_46],0x3ff0000000000000; st.param.b64 [mb__call_46],%Pup; call.uni (scalar__call_46),md2asm_gpu_div_status,(ma__call_46,mb__call_46);
+ ld.param.b64 %Iu,[scalar__call_46]; ld.param.u32 %raised,[scalar__call_46+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %ptr,%carry,%col; st.global.b64 [%ptr],%Iu;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%last; @%p0 bra HP_INITIAL_RECIPROCAL;
+ mov.u32 %j,%ifirst;
+HP_LOG_LEVEL:
+ setp.gt.u32 %p0,%j,%n; @%p0 bra HP_LOG_CLOSED;
+ cvt.u64.u32 %address,%j; sub.s64 %address,%address,%lower5; shl.b64 %address,%address,3;
+ add.u64 %ptr,%coef5,%address; ld.global.b64 %db,[%ptr];
+ cvt.u64.u32 %address,%j; sub.s64 %address,%address,%lower6; shl.b64 %address,%address,3;
+ add.u64 %ptr,%coef6,%address; ld.global.b64 %cv,[%ptr];
+ sub.u32 %i,%first,1;
+HP_LOG_CELL:
+ mul.wide.u32 %col,%i,8; sub.u32 %rt,%j,1; mul.wide.u32 %cell,%rt,8; mul.lo.u64 %cell,%cell,%np64; add.u64 %cell,%cell,%col;
+ add.u64 %ptr,%ph,%cell; ld.global.b64 %Pup,[%ptr]; add.u64 %ptr,%ptr,%pitch; ld.global.b64 %Plo,[%ptr];
+ st.param.b64 [ma__call_47],0x3ff0000000000000; st.param.b64 [mb__call_47],%Plo; call.uni (scalar__call_47),md2asm_gpu_div_status,(ma__call_47,mb__call_47);
+ ld.param.b64 %H,[scalar__call_47]; ld.param.u32 %raised,[scalar__call_47+8]; or.b32 %flags,%flags,%raised;
+ xor.b64 %negative,%Pup,0x8000000000000000;
+ st.param.b64 [ma__call_48],%Plo; st.param.b64 [mb__call_48],%negative; call.uni (scalar__call_48),md2asm_gpu_add_rn,(ma__call_48,mb__call_48);
+ ld.param.b64 %W,[scalar__call_48]; ld.param.u32 %raised,[scalar__call_48+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f0,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%W;
+ st.param.b64 [ma__call_49],0x3ff0000000000000; st.param.b64 [mb__call_49],%W; call.uni (scalar__call_49),md2asm_gpu_div_status,(ma__call_49,mb__call_49);
+ ld.param.b64 %E,[scalar__call_49]; ld.param.u32 %raised,[scalar__call_49+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f1,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%E;
+ add.u64 %ptr,%carry,%col; ld.global.b64 %Iu,[%ptr];
+ st.param.b64 [ma__call_50],%Plo; st.param.b64 [mb__call_50],%Iu; call.uni (scalar__call_50),md2asm_gpu_mul_rn,(ma__call_50,mb__call_50);
+ ld.param.b64 %temporary0,[scalar__call_50]; ld.param.u32 %raised,[scalar__call_50+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_51],%temporary0; call.uni (scalar__call_51),md2asm_gpu_log_positive_finite,(ma__call_51);
+ ld.param.b64 %D,[scalar__call_51]; ld.param.u32 %raised,[scalar__call_51+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f2,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%D;
+ sub.u32 %rt,%f5,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%H;
+ st.param.b64 [ma__call_52],%Pup; st.param.b64 [mb__call_52],%E; call.uni (scalar__call_52),md2asm_gpu_mul_rn,(ma__call_52,mb__call_52);
+ ld.param.b64 %temporary0,[scalar__call_52]; ld.param.u32 %raised,[scalar__call_52+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_53],%temporary0; st.param.b64 [mb__call_53],%D; call.uni (scalar__call_53),md2asm_gpu_mul_rn,(ma__call_53,mb__call_53);
+ ld.param.b64 %temporary0,[scalar__call_53]; ld.param.u32 %raised,[scalar__call_53+8]; or.b32 %flags,%flags,%raised;
+ xor.b64 %negative,%temporary0,0x8000000000000000;
+ st.param.b64 [ma__call_54],0x3ff0000000000000; st.param.b64 [mb__call_54],%negative; call.uni (scalar__call_54),md2asm_gpu_add_rn,(ma__call_54,mb__call_54);
+ ld.param.b64 %A,[scalar__call_54]; ld.param.u32 %raised,[scalar__call_54+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f3,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%A;
+ st.param.b64 [ma__call_55],%H; st.param.b64 [mb__call_55],%Iu; call.uni (scalar__call_55),md2asm_gpu_mul_rn,(ma__call_55,mb__call_55);
+ ld.param.b64 %Q,[scalar__call_55]; ld.param.u32 %raised,[scalar__call_55+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f6,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%Q;
+ st.param.b64 [ma__call_56],%cv; st.param.b64 [mb__call_56],%D; call.uni (scalar__call_56),md2asm_gpu_mul_rn,(ma__call_56,mb__call_56);
+ ld.param.b64 %temporary0,[scalar__call_56]; ld.param.u32 %raised,[scalar__call_56+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_57],%temporary0; st.param.b64 [mb__call_57],%E; call.uni (scalar__call_57),md2asm_gpu_mul_rn,(ma__call_57,mb__call_57);
+ ld.param.b64 %temporary0,[scalar__call_57]; ld.param.u32 %raised,[scalar__call_57+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_58],%db; st.param.b64 [mb__call_58],%temporary0; call.uni (scalar__call_58),md2asm_gpu_add_rn,(ma__call_58,mb__call_58);
+ ld.param.b64 %temporary0,[scalar__call_58]; ld.param.u32 %raised,[scalar__call_58+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_59],%E; st.param.b64 [mb__call_59],%temporary0; call.uni (scalar__call_59),md2asm_gpu_mul_rn,(ma__call_59,mb__call_59);
+ ld.param.b64 %T,[scalar__call_59]; ld.param.u32 %raised,[scalar__call_59+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f4,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%T;
+ add.u64 %ptr,%carry,%col; st.global.b64 [%ptr],%H;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%last; @%p0 bra HP_LOG_CELL;
+ add.u32 %j,%j,1; bra HP_LOG_LEVEL;
+HP_LOG_CLOSED:
+ setp.ne.u32 %p0,%ifirst,2; @%p0 bra HP_COPY_COEFFICIENTS; mov.u32 %j,1;
+ cvt.u64.u32 %address,%j; sub.s64 %address,%address,%lower5; shl.b64 %address,%address,3;
+ add.u64 %ptr,%coef5,%address; ld.global.b64 %db,[%ptr];
+ sub.u32 %i,%first,1;
+HP_LOG_TOP_CELL:
+ mul.wide.u32 %col,%i,8; sub.u32 %rt,%j,1; mul.wide.u32 %cell,%rt,8; mul.lo.u64 %cell,%cell,%np64; add.u64 %cell,%cell,%col;
+ add.u64 %ptr,%ph,%cell; ld.global.b64 %Pup,[%ptr]; add.u64 %ptr,%ptr,%pitch; ld.global.b64 %Plo,[%ptr];
+ xor.b64 %negative,%Pup,0x8000000000000000;
+ st.param.b64 [ma__call_60],%Plo; st.param.b64 [mb__call_60],%negative; call.uni (scalar__call_60),md2asm_gpu_add_rn,(ma__call_60,mb__call_60);
+ ld.param.b64 %W,[scalar__call_60]; ld.param.u32 %raised,[scalar__call_60+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f0,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%W;
+ st.param.b64 [ma__call_61],0x3ff0000000000000; st.param.b64 [mb__call_61],%W; call.uni (scalar__call_61),md2asm_gpu_div_status,(ma__call_61,mb__call_61);
+ ld.param.b64 %E,[scalar__call_61]; ld.param.u32 %raised,[scalar__call_61+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f1,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%E;
+ st.param.b64 [ma__call_62],%Plo; st.param.b64 [mb__call_62],%top; call.uni (scalar__call_62),md2asm_gpu_div_status,(ma__call_62,mb__call_62);
+ ld.param.b64 %temporary0,[scalar__call_62]; ld.param.u32 %raised,[scalar__call_62+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_63],%temporary0; call.uni (scalar__call_63),md2asm_gpu_log_positive_finite,(ma__call_63);
+ ld.param.b64 %D,[scalar__call_63]; ld.param.u32 %raised,[scalar__call_63+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f2,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%D;
+ st.param.b64 [ma__call_64],0x3ff0000000000000; st.param.b64 [mb__call_64],%Plo; call.uni (scalar__call_64),md2asm_gpu_div_status,(ma__call_64,mb__call_64);
+ ld.param.b64 %H,[scalar__call_64]; ld.param.u32 %raised,[scalar__call_64+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f5,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%H;
+ sub.u32 %rt,%f3,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%rhydr;
+ st.param.b64 [ma__call_65],%Plo; st.param.b64 [mb__call_65],%top; call.uni (scalar__call_65),md2asm_gpu_mul_rn,(ma__call_65,mb__call_65);
+ ld.param.b64 %temporary0,[scalar__call_65]; ld.param.u32 %raised,[scalar__call_65+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_66],0x3ff0000000000000; st.param.b64 [mb__call_66],%temporary0; call.uni (scalar__call_66),md2asm_gpu_div_status,(ma__call_66,mb__call_66);
+ ld.param.b64 %Q,[scalar__call_66]; ld.param.u32 %raised,[scalar__call_66+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f6,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%Q;
+ st.param.b64 [ma__call_67],%E; st.param.b64 [mb__call_67],%db; call.uni (scalar__call_67),md2asm_gpu_mul_rn,(ma__call_67,mb__call_67);
+ ld.param.b64 %T,[scalar__call_67]; ld.param.u32 %raised,[scalar__call_67+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f4,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%T;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%last; @%p0 bra HP_LOG_TOP_CELL;
+ bra HP_COPY_COEFFICIENTS;
+HP_APPROXIMATE:
+ mov.u32 %j,%ifirst;
+HP_APPROXIMATE_LEVEL:
+ setp.gt.u32 %p0,%j,%n; @%p0 bra HP_APPROXIMATE_CLOSED;
+ cvt.u64.u32 %address,%j; sub.s64 %address,%address,%lower5; shl.b64 %address,%address,3;
+ add.u64 %ptr,%coef5,%address; ld.global.b64 %db,[%ptr];
+ cvt.u64.u32 %address,%j; sub.s64 %address,%address,%lower6; shl.b64 %address,%address,3;
+ add.u64 %ptr,%coef6,%address; ld.global.b64 %cv,[%ptr];
+ sub.u32 %i,%first,1;
+HP_APPROXIMATE_CELL:
+ mul.wide.u32 %col,%i,8; sub.u32 %rt,%j,1; mul.wide.u32 %cell,%rt,8; mul.lo.u64 %cell,%cell,%np64; add.u64 %cell,%cell,%col;
+ add.u64 %ptr,%ph,%cell; ld.global.b64 %Pup,[%ptr]; add.u64 %ptr,%ptr,%pitch; ld.global.b64 %Plo,[%ptr];
+ xor.b64 %negative,%Pup,0x8000000000000000;
+ st.param.b64 [ma__call_68],%Plo; st.param.b64 [mb__call_68],%negative; call.uni (scalar__call_68),md2asm_gpu_add_rn,(ma__call_68,mb__call_68);
+ ld.param.b64 %W,[scalar__call_68]; ld.param.u32 %raised,[scalar__call_68+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f0,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%W;
+ st.param.b64 [ma__call_69],0x3ff0000000000000; st.param.b64 [mb__call_69],%W; call.uni (scalar__call_69),md2asm_gpu_div_status,(ma__call_69,mb__call_69);
+ ld.param.b64 %E,[scalar__call_69]; ld.param.u32 %raised,[scalar__call_69+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f1,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%E;
+ st.param.b64 [ma__call_70],%Plo; st.param.b64 [mb__call_70],%Pup; call.uni (scalar__call_70),md2asm_gpu_mul_rn,(ma__call_70,mb__call_70);
+ ld.param.b64 %temporary0,[scalar__call_70]; ld.param.u32 %raised,[scalar__call_70+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_71],0x3ff0000000000000; st.param.b64 [mb__call_71],%temporary0; call.uni (scalar__call_71),md2asm_gpu_div_status,(ma__call_71,mb__call_71);
+ ld.param.b64 %Q,[scalar__call_71]; ld.param.u32 %raised,[scalar__call_71+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f6,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%Q;
+ st.param.b64 [ma__call_72],%Q; call.uni (scalar__call_72),md2asm_gpu_sqrt_status,(ma__call_72);
+ ld.param.b64 %temporary0,[scalar__call_72]; ld.param.u32 %raised,[scalar__call_72+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_73],%W; st.param.b64 [mb__call_73],%temporary0; call.uni (scalar__call_73),md2asm_gpu_mul_rn,(ma__call_73,mb__call_73);
+ ld.param.b64 %D,[scalar__call_73]; ld.param.u32 %raised,[scalar__call_73+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f2,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%D;
+ st.param.b64 [ma__call_74],%Pup; st.param.b64 [mb__call_74],%E; call.uni (scalar__call_74),md2asm_gpu_mul_rn,(ma__call_74,mb__call_74);
+ ld.param.b64 %temporary0,[scalar__call_74]; ld.param.u32 %raised,[scalar__call_74+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_75],%temporary0; st.param.b64 [mb__call_75],%D; call.uni (scalar__call_75),md2asm_gpu_mul_rn,(ma__call_75,mb__call_75);
+ ld.param.b64 %temporary0,[scalar__call_75]; ld.param.u32 %raised,[scalar__call_75+8]; or.b32 %flags,%flags,%raised;
+ xor.b64 %negative,%temporary0,0x8000000000000000;
+ st.param.b64 [ma__call_76],0x3ff0000000000000; st.param.b64 [mb__call_76],%negative; call.uni (scalar__call_76),md2asm_gpu_add_rn,(ma__call_76,mb__call_76);
+ ld.param.b64 %A,[scalar__call_76]; ld.param.u32 %raised,[scalar__call_76+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f3,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%A;
+ st.param.b64 [ma__call_77],%cv; st.param.b64 [mb__call_77],%D; call.uni (scalar__call_77),md2asm_gpu_mul_rn,(ma__call_77,mb__call_77);
+ ld.param.b64 %temporary0,[scalar__call_77]; ld.param.u32 %raised,[scalar__call_77+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_78],%temporary0; st.param.b64 [mb__call_78],%E; call.uni (scalar__call_78),md2asm_gpu_mul_rn,(ma__call_78,mb__call_78);
+ ld.param.b64 %temporary0,[scalar__call_78]; ld.param.u32 %raised,[scalar__call_78+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_79],%db; st.param.b64 [mb__call_79],%temporary0; call.uni (scalar__call_79),md2asm_gpu_add_rn,(ma__call_79,mb__call_79);
+ ld.param.b64 %temporary0,[scalar__call_79]; ld.param.u32 %raised,[scalar__call_79+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_80],%E; st.param.b64 [mb__call_80],%temporary0; call.uni (scalar__call_80),md2asm_gpu_mul_rn,(ma__call_80,mb__call_80);
+ ld.param.b64 %T,[scalar__call_80]; ld.param.u32 %raised,[scalar__call_80+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f4,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%T;
+ st.param.b64 [ma__call_81],0x3ff0000000000000; st.param.b64 [mb__call_81],%Plo; call.uni (scalar__call_81),md2asm_gpu_div_status,(ma__call_81,mb__call_81);
+ ld.param.b64 %H,[scalar__call_81]; ld.param.u32 %raised,[scalar__call_81+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f5,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%H;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%last; @%p0 bra HP_APPROXIMATE_CELL;
+ add.u32 %j,%j,1; bra HP_APPROXIMATE_LEVEL;
+HP_APPROXIMATE_CLOSED:
+ setp.ne.u32 %p0,%ifirst,2; @%p0 bra HP_COPY_COEFFICIENTS; mov.u32 %j,1;
+ sub.u32 %i,%first,1;
+HP_APPROXIMATE_TOP_INITIAL:
+ mul.wide.u32 %col,%i,8; sub.u32 %rt,%j,1; mul.wide.u32 %cell,%rt,8; mul.lo.u64 %cell,%cell,%np64; add.u64 %cell,%cell,%col;
+ add.u64 %ptr,%ph,%cell; add.u64 %ptr,%ptr,%pitch; ld.global.b64 %Plo,[%ptr]; mov.b64 %W,%Plo;
+ sub.u32 %rt,%f0,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%W;
+ setp.eq.u32 %p0,%mode,2; @%p0 bra HP_MODE2_TOP;
+ st.param.b64 [ma__call_82],%RCVD; st.param.b64 [mb__call_82],%RD; call.uni (scalar__call_82),md2asm_gpu_div_status,(ma__call_82,mb__call_82);
+ ld.param.b64 %temporary0,[scalar__call_82]; ld.param.u32 %raised,[scalar__call_82+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_83],0x4000000000000000; st.param.b64 [mb__call_83],%temporary0; call.uni (scalar__call_83),md2asm_gpu_add_rn,(ma__call_83,mb__call_83);
+ ld.param.b64 %D,[scalar__call_83]; ld.param.u32 %raised,[scalar__call_83+8]; or.b32 %flags,%flags,%raised;
+ bra HP_TOP_DEPTH_READY;
+HP_MODE2_TOP:
+ add.u64 %next,%cell,%pitch;
+ sub.u32 %rt,%f2,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%next; add.u64 %ptr,%scratch,%address;
+ ld.global.b64 %temporary0,[%ptr];
+ sub.u32 %rt,%f0,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%next; add.u64 %ptr,%scratch,%address;
+ ld.global.b64 %temporary1,[%ptr];
+ st.param.b64 [ma__call_84],%W; st.param.b64 [mb__call_84],%temporary1; call.uni (scalar__call_84),md2asm_gpu_div_status,(ma__call_84,mb__call_84);
+ ld.param.b64 %temporary2,[scalar__call_84]; ld.param.u32 %raised,[scalar__call_84+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_85],%temporary0; st.param.b64 [mb__call_85],%temporary2; call.uni (scalar__call_85),md2asm_gpu_mul_rn,(ma__call_85,mb__call_85);
+ ld.param.b64 %temporary2,[scalar__call_85]; ld.param.u32 %raised,[scalar__call_85+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %ptr,%ph,%next; add.u64 %ptr,%ptr,%pitch; ld.global.b64 %temporary0,[%ptr];
+ st.param.b64 [ma__call_86],%temporary0; st.param.b64 [mb__call_86],%Plo; call.uni (scalar__call_86),md2asm_gpu_div_status,(ma__call_86,mb__call_86);
+ ld.param.b64 %temporary0,[scalar__call_86]; ld.param.u32 %raised,[scalar__call_86+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_87],%temporary0; call.uni (scalar__call_87),md2asm_gpu_sqrt_status,(ma__call_87);
+ ld.param.b64 %temporary0,[scalar__call_87]; ld.param.u32 %raised,[scalar__call_87+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_88],%temporary2; st.param.b64 [mb__call_88],%temporary0; call.uni (scalar__call_88),md2asm_gpu_mul_rn,(ma__call_88,mb__call_88);
+ ld.param.b64 %temporary0,[scalar__call_88]; ld.param.u32 %raised,[scalar__call_88+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_89],0x3ff0000000000000; st.param.b64 [mb__call_89],%temporary0; call.uni (scalar__call_89),md2asm_gpu_add_rn,(ma__call_89,mb__call_89);
+ ld.param.b64 %D,[scalar__call_89]; ld.param.u32 %raised,[scalar__call_89+8]; or.b32 %flags,%flags,%raised;
+HP_TOP_DEPTH_READY:
+ sub.u32 %rt,%f2,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%D;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%last; @%p0 bra HP_APPROXIMATE_TOP_INITIAL;
+ cvt.u64.u32 %address,%j; sub.s64 %address,%address,%lower5; shl.b64 %address,%address,3;
+ add.u64 %ptr,%coef5,%address; ld.global.b64 %db,[%ptr];
+ sub.u32 %i,%first,1;
+HP_APPROXIMATE_TOP_REMAINING:
+ mul.wide.u32 %col,%i,8; sub.u32 %rt,%j,1; mul.wide.u32 %cell,%rt,8; mul.lo.u64 %cell,%cell,%np64; add.u64 %cell,%cell,%col;
+ sub.u32 %rt,%f0,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ ld.global.b64 %W,[%ptr];
+ sub.u32 %rt,%f2,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ ld.global.b64 %D,[%ptr];
+ st.param.b64 [ma__call_90],0x3ff0000000000000; st.param.b64 [mb__call_90],%W; call.uni (scalar__call_90),md2asm_gpu_div_status,(ma__call_90,mb__call_90);
+ ld.param.b64 %E,[scalar__call_90]; ld.param.u32 %raised,[scalar__call_90+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f1,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%E;
+ sub.u32 %rt,%f3,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],0x3ff0000000000000;
+ st.param.b64 [ma__call_91],%E; st.param.b64 [mb__call_91],%db; call.uni (scalar__call_91),md2asm_gpu_mul_rn,(ma__call_91,mb__call_91);
+ ld.param.b64 %T,[scalar__call_91]; ld.param.u32 %raised,[scalar__call_91+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f4,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%T;
+ add.u64 %ptr,%ph,%cell; add.u64 %ptr,%ptr,%pitch; ld.global.b64 %Plo,[%ptr];
+ st.param.b64 [ma__call_92],0x3ff0000000000000; st.param.b64 [mb__call_92],%Plo; call.uni (scalar__call_92),md2asm_gpu_div_status,(ma__call_92,mb__call_92);
+ ld.param.b64 %H,[scalar__call_92]; ld.param.u32 %raised,[scalar__call_92+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f5,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%H;
+ st.param.b64 [ma__call_93],%D; st.param.b64 [mb__call_93],%E; call.uni (scalar__call_93),md2asm_gpu_mul_rn,(ma__call_93,mb__call_93);
+ ld.param.b64 %temporary0,[scalar__call_93]; ld.param.u32 %raised,[scalar__call_93+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_94],%temporary0; st.param.b64 [mb__call_94],%temporary0; call.uni (scalar__call_94),md2asm_gpu_mul_rn,(ma__call_94,mb__call_94);
+ ld.param.b64 %Q,[scalar__call_94]; ld.param.u32 %raised,[scalar__call_94+8]; or.b32 %flags,%flags,%raised;
+ sub.u32 %rt,%f6,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ st.global.b64 [%ptr],%Q;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%last; @%p0 bra HP_APPROXIMATE_TOP_REMAINING;
+HP_COPY_COEFFICIENTS:
+ setp.eq.u64 %p0,%xy,0; @%p0 bra HP_FULL_PRESSURE;
+ mov.u64 %offset,0;
+HP_COPY_WORD:
+ setp.ge.u64 %p0,%offset,%zbytes; @%p0 bra HP_FULL_PRESSURE;
+ add.u64 %ptr,%scratch,%offset; ld.global.b64 %value,[%ptr]; add.u64 %ptr,%xy,%offset; st.global.b64 [%ptr],%value;
+ add.u64 %offset,%offset,8; bra HP_COPY_WORD;
+HP_FULL_PRESSURE:
+ setp.eq.u64 %p0,%pf,0; @%p0 bra HP_DONE;
+ setp.eq.u32 %p0,%fe,0; @%p0 bra HP_FULL_CONVENTIONAL;
+ mov.u32 %j,1;
+HP_FULL_FE_LEVEL:
+ cvt.u64.u32 %address,%j; sub.s64 %address,%address,%lower2; shl.b64 %address,%address,3;
+ add.u64 %ptr,%coef2,%address; ld.global.b64 %af,[%ptr];
+ cvt.u64.u32 %address,%j; sub.s64 %address,%address,%lower3; shl.b64 %address,%address,3;
+ add.u64 %ptr,%coef3,%address; ld.global.b64 %bf,[%ptr];
+ sub.u32 %i,%first,1;
+HP_FULL_FE_CELL:
+ mul.wide.u32 %col,%i,8; sub.u32 %rt,%j,1; mul.wide.u32 %cell,%rt,8; mul.lo.u64 %cell,%cell,%np64; add.u64 %cell,%cell,%col;
+ add.u64 %ptr,%ph,%bottom; add.u64 %ptr,%ptr,%col; ld.global.b64 %surface,[%ptr];
+ st.param.b64 [ma__call_95],%bf; st.param.b64 [mb__call_95],%surface; call.uni (scalar__call_95),md2asm_gpu_mul_rn,(ma__call_95,mb__call_95);
+ ld.param.b64 %temporary0,[scalar__call_95]; ld.param.u32 %raised,[scalar__call_95+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_96],%af; st.param.b64 [mb__call_96],%temporary0; call.uni (scalar__call_96),md2asm_gpu_add_rn,(ma__call_96,mb__call_96);
+ ld.param.b64 %F,[scalar__call_96]; ld.param.u32 %raised,[scalar__call_96+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %ptr,%pf,%cell; st.global.b64 [%ptr],%F;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%last; @%p0 bra HP_FULL_FE_CELL;
+ add.u32 %j,%j,1; setp.le.u32 %p0,%j,%n; @%p0 bra HP_FULL_FE_LEVEL; bra HP_DONE;
+HP_FULL_CONVENTIONAL:
+ setp.ne.u32 %p0,%mode,0; @%p0 bra HP_FULL_APPROXIMATE;
+ mov.u32 %j,1;
+HP_FULL_LOG_LEVEL:
+ sub.u32 %i,%first,1;
+HP_FULL_LOG_CELL:
+ mul.wide.u32 %col,%i,8; sub.u32 %rt,%j,1; mul.wide.u32 %cell,%rt,8; mul.lo.u64 %cell,%cell,%np64; add.u64 %cell,%cell,%col;
+ add.u64 %ptr,%ph,%cell; ld.global.b64 %Pup,[%ptr]; add.u64 %ptr,%ptr,%pitch; ld.global.b64 %Plo,[%ptr];
+ setp.eq.u32 %p0,%lap,0; @%p0 bra HP_FULL_IDENTRIC;
+ st.param.b64 [ma__call_97],%Pup; st.param.b64 [mb__call_97],%Plo; call.uni (scalar__call_97),md2asm_gpu_add_rn,(ma__call_97,mb__call_97);
+ ld.param.b64 %temporary0,[scalar__call_97]; ld.param.u32 %raised,[scalar__call_97+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma__call_98],%temporary0; st.param.b64 [mb__call_98],0x3fe0000000000000; call.uni (scalar__call_98),md2asm_gpu_mul_rn,(ma__call_98,mb__call_98);
+ ld.param.b64 %F,[scalar__call_98]; ld.param.u32 %raised,[scalar__call_98+8]; or.b32 %flags,%flags,%raised;
+ bra HP_FULL_LOG_READY;
+HP_FULL_IDENTRIC:
+ sub.u32 %rt,%f3,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ ld.global.b64 %A,[%ptr];
+ xor.b64 %temporary0,%A,0x8000000000000000;
+ st.param.b64 [ma__call_99],%temporary0; call.uni (scalar__call_99),md2asm_gpu_exp_original_rounding,(ma__call_99);
+ ld.param.b64 %temporary0,[scalar__call_99]; ld.param.u32 %raised,[scalar__call_99+8]; or.b32 %flags,%flags,%raised;
+ ld.param.u32 %event,[scalar__call_99+12]; setp.ne.u32 %p0,%event,0; @%p0 cvt.u64.u32 %lastEvent,%event;
+ st.param.b64 [ma__call_100],%temporary0; st.param.b64 [mb__call_100],%Plo; call.uni (scalar__call_100),md2asm_gpu_mul_rn,(ma__call_100,mb__call_100);
+ ld.param.b64 %F,[scalar__call_100]; ld.param.u32 %raised,[scalar__call_100+8]; or.b32 %flags,%flags,%raised;
+HP_FULL_LOG_READY:
+ add.u64 %ptr,%pf,%cell; st.global.b64 [%ptr],%F;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%last; @%p0 bra HP_FULL_LOG_CELL;
+ add.u32 %j,%j,1; setp.le.u32 %p0,%j,%n; @%p0 bra HP_FULL_LOG_LEVEL; bra HP_DONE;
+HP_FULL_APPROXIMATE:
+ mov.u32 %j,%ifirst;
+HP_FULL_APPROXIMATE_LEVEL:
+ setp.gt.u32 %p0,%j,%n; @%p0 bra HP_FULL_APPROXIMATE_TOP;
+ sub.u32 %i,%first,1;
+HP_FULL_APPROXIMATE_CELL:
+ mul.wide.u32 %col,%i,8; sub.u32 %rt,%j,1; mul.wide.u32 %cell,%rt,8; mul.lo.u64 %cell,%cell,%np64; add.u64 %cell,%cell,%col;
+ sub.u32 %rt,%f3,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ ld.global.b64 %A,[%ptr];
+ xor.b64 %negative,%A,0x8000000000000000;
+ st.param.b64 [ma__call_101],0x3ff0000000000000; st.param.b64 [mb__call_101],%negative; call.uni (scalar__call_101),md2asm_gpu_add_rn,(ma__call_101,mb__call_101);
+ ld.param.b64 %temporary0,[scalar__call_101]; ld.param.u32 %raised,[scalar__call_101+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %ptr,%ph,%cell; add.u64 %ptr,%ptr,%pitch; ld.global.b64 %Plo,[%ptr];
+ st.param.b64 [ma__call_102],%temporary0; st.param.b64 [mb__call_102],%Plo; call.uni (scalar__call_102),md2asm_gpu_mul_rn,(ma__call_102,mb__call_102);
+ ld.param.b64 %F,[scalar__call_102]; ld.param.u32 %raised,[scalar__call_102+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %ptr,%pf,%cell; st.global.b64 [%ptr],%F;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%last; @%p0 bra HP_FULL_APPROXIMATE_CELL;
+ add.u32 %j,%j,1; bra HP_FULL_APPROXIMATE_LEVEL;
+HP_FULL_APPROXIMATE_TOP:
+ setp.ne.u32 %p0,%ifirst,2; @%p0 bra HP_DONE; mov.u32 %j,1;
+ sub.u32 %i,%first,1;
+HP_FULL_TOP_CELL:
+ mul.wide.u32 %col,%i,8; sub.u32 %rt,%j,1; mul.wide.u32 %cell,%rt,8; mul.lo.u64 %cell,%cell,%np64; add.u64 %cell,%cell,%col;
+ sub.u32 %rt,%f2,1; cvt.u64.u32 %address,%rt; mul.lo.u64 %address,%address,%fullbytes; add.u64 %address,%address,%cell; add.u64 %ptr,%scratch,%address;
+ ld.global.b64 %D,[%ptr];
+ add.u64 %ptr,%ph,%cell; add.u64 %ptr,%ptr,%pitch; ld.global.b64 %Plo,[%ptr];
+ st.param.b64 [ma__call_103],%Plo; st.param.b64 [mb__call_103],%D; call.uni (scalar__call_103),md2asm_gpu_div_status,(ma__call_103,mb__call_103);
+ ld.param.b64 %F,[scalar__call_103]; ld.param.u32 %raised,[scalar__call_103+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %ptr,%pf,%cell; st.global.b64 [%ptr],%F;
+ add.u32 %i,%i,1; setp.lt.u32 %p0,%i,%last; @%p0 bra HP_FULL_TOP_CELL;
+HP_DONE:
+ atom.global.or.b32 %raised,[%ctx+8],%flags; st.global.u64 [%ctx+16],%lastEvent; ret;
+HP_REFUSE: st.global.u32 [%ctx],%error; ret;
+}
+.visible .entry openifs_gphpre_ptx_monthly_service(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %a,%c; .param .u64 a,c;
+ ld.param.u64 %a,[original_vector]; ld.param.u64 %c,[context]; st.param.u64 [a],%a; st.param.u64 [c],%c;
+ call.uni openifs_hybrid_pressure_parent_fp64_monthly_service,(a,c); ret;
+}
+

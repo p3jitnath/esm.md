@@ -1,0 +1,73 @@
+// Direct PTX from frozen_contract.md revision1. GPU contract skills/md2asm-gpu/references/openifs/physics/model_time_and_forcing.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+
+.shared .align 8 .b8 mt_monthly_request[80];
+.extern .func md2asm_gpu_model_time_fp64_monthly_service(.param .u64 a,.param .u64 c);
+.func (.param .u32 returned) mt_monthly_point_work()
+{
+.param .b64 ma__call_0;.param .b64 mb__call_0;.param .align 8 .b8 mr__call_0[16];.param .b64 ma__call_1;.param .b64 mb__call_1;.param .align 8 .b8 mr__call_1[16];.param .b64 ma__call_2;.param .b64 mb__call_2;.param .align 8 .b8 mr__call_2[16];
+
+.reg .u64 %in,%out,%count,%i,%x1,%x2,%o,%p;.reg .u32 %m1,%m2,%flags,%raised,%lane;.reg .b64 %a,%b,%v,%w;.reg .pred %q;.param .b64 ma,mb;.param .align 8 .b8 mr[16];
+ld.shared.u64 %in,[mt_monthly_request+8];ld.shared.u64 %out,[mt_monthly_request+16];ld.shared.u64 %count,[mt_monthly_request+24];ld.shared.u32 %m1,[mt_monthly_request+32];ld.shared.u32 %m2,[mt_monthly_request+36];ld.shared.b64 %w,[mt_monthly_request+40];mov.u32 %flags,0;sub.u32 %m1,%m1,1;sub.u32 %m2,%m2,1;cvt.u64.u32 %x1,%m1;cvt.u64.u32 %x2,%m2;mul.lo.u64 %x1,%x1,%count;mul.lo.u64 %x2,%x2,%count;shl.b64 %x1,%x1,3;shl.b64 %x2,%x2,3;add.u64 %x1,%in,%x1;add.u64 %x2,%in,%x2;mov.u32 %lane,%tid.x;cvt.u64.u32 %i,%lane;
+MONTHLY_POINT:setp.ge.u64 %q,%i,%count;@%q bra MONTHLY_DONE;shl.b64 %o,%i,3;add.u64 %p,%x1,%o;ld.global.b64 %a,[%p];add.u64 %p,%x2,%o;ld.global.b64 %b,[%p];
+st.param.b64 [ma__call_0],%a;st.param.b64 [mb__call_0],%b;call.uni (mr__call_0),md2asm_gpu_sub_status,(ma__call_0,mb__call_0);ld.param.b64 %v,[mr__call_0];ld.param.u32 %raised,[mr__call_0+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma__call_1],%v;st.param.b64 [mb__call_1],%w;call.uni (mr__call_1),md2asm_gpu_mul_status,(ma__call_1,mb__call_1);ld.param.b64 %v,[mr__call_1];ld.param.u32 %raised,[mr__call_1+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [ma__call_2],%b;st.param.b64 [mb__call_2],%v;call.uni (mr__call_2),md2asm_gpu_add_status,(ma__call_2,mb__call_2);ld.param.b64 %v,[mr__call_2];ld.param.u32 %raised,[mr__call_2+8];or.b32 %flags,%flags,%raised;
+add.u64 %p,%out,%o;st.global.b64 [%p],%v;add.u64 %i,%i,128;bra MONTHLY_POINT;MONTHLY_DONE:st.param.u32 [returned],%flags;ret;
+}
+
+.func (.param .u32 returned) mt_monthly_work()
+{
+.param .u32 local_flags__call_0;
+
+.reg .u32 %command,%flags,%lane;.reg .u64 %source,%destination,%count,%offset,%p,%word;.reg .pred %q;
+.param .u32 local_flags;
+ld.shared.u32 %command,[mt_monthly_request];setp.eq.u32 %q,%command,1;@%q bra POINT;
+ld.shared.u64 %source,[mt_monthly_request+8];ld.shared.u64 %destination,[mt_monthly_request+16];ld.shared.u64 %count,[mt_monthly_request+24];
+mov.u32 %lane,%tid.x;mul.wide.u32 %offset,%lane,8;
+COPY:setp.ge.u64 %q,%offset,%count;@%q bra COPY_DONE;
+add.u64 %p,%source,%offset;ld.global.u64 %word,[%p];add.u64 %p,%destination,%offset;st.global.u64 [%p],%word;
+add.u64 %offset,%offset,1024;bra COPY;
+COPY_DONE:mov.u32 %flags,0;bra DONE;
+POINT:call.uni (local_flags__call_0),mt_monthly_point_work,();ld.param.u32 %flags,[local_flags__call_0];
+DONE:st.param.u32 [returned],%flags;ret;
+}
+.visible .func (.param .u32 returned) md2asm_gpu_monthly_service_request(.param .u64 input,.param .u64 output,.param .u64 count,.param .u32 first_month,.param .u32 second_month,.param .b64 weight)
+{
+.param .u32 local_flags__call_0;
+
+.reg .u64 %in,%out,%count;.reg .u32 %m1,%m2,%flags,%old;.reg .b64 %w;.param .u32 local_flags;
+ld.param.u64 %in,[input];ld.param.u64 %out,[output];ld.param.u64 %count,[count];ld.param.u32 %m1,[first_month];ld.param.u32 %m2,[second_month];ld.param.b64 %w,[weight];
+st.shared.u64 [mt_monthly_request+8],%in;st.shared.u64 [mt_monthly_request+16],%out;st.shared.u64 [mt_monthly_request+24],%count;
+st.shared.u32 [mt_monthly_request+32],%m1;st.shared.u32 [mt_monthly_request+36],%m2;st.shared.b64 [mt_monthly_request+40],%w;
+st.shared.u32 [mt_monthly_request+4],0;st.shared.u32 [mt_monthly_request],1;barrier.sync 0;
+call.uni (local_flags__call_0),mt_monthly_work,();ld.param.u32 %flags,[local_flags__call_0];atom.shared.or.b32 %old,[mt_monthly_request+4],%flags;barrier.sync 1;
+ld.shared.u32 %flags,[mt_monthly_request+4];st.param.u32 [returned],%flags;ret;
+}
+.visible .func md2asm_gpu_monthly_service_copy(.param .u64 source,.param .u64 destination,.param .u64 bytes)
+{
+.param .u32 local_flags__call_0;
+
+.reg .u64 %source,%destination,%bytes;.reg .u32 %flags,%old;.param .u32 local_flags;
+ld.param.u64 %source,[source];ld.param.u64 %destination,[destination];ld.param.u64 %bytes,[bytes];
+st.shared.u64 [mt_monthly_request+8],%source;st.shared.u64 [mt_monthly_request+16],%destination;st.shared.u64 [mt_monthly_request+24],%bytes;
+st.shared.u32 [mt_monthly_request+4],0;st.shared.u32 [mt_monthly_request],2;barrier.sync 0;
+call.uni (local_flags__call_0),mt_monthly_work,();ld.param.u32 %flags,[local_flags__call_0];barrier.sync 1;ret;
+}
+.visible .entry md2asm_gpu_model_time_monthly_service_entry(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u64 %a,%c;.reg .u32 %lane,%command,%flags,%old;.reg .pred %q;
+.param .u64 a,c;.param .u32 local_flags;
+mov.u32 %lane,%tid.x;setp.ne.u32 %q,%lane,0;@%q bra SERVER;
+ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];st.param.u64 [a],%a;st.param.u64 [c],%c;
+call.uni md2asm_gpu_model_time_fp64_monthly_service,(a,c);
+st.shared.u32 [mt_monthly_request],0;barrier.sync 0;ret;
+SERVER:barrier.sync 0;ld.shared.u32 %command,[mt_monthly_request];setp.eq.u32 %q,%command,0;@%q ret;
+call.uni (local_flags),mt_monthly_work,();ld.param.u32 %flags,[local_flags];atom.shared.or.b32 %old,[mt_monthly_request+4],%flags;barrier.sync 1;bra SERVER;
+}

@@ -1,5 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/model_time_and_forcing.md.
-/* Complete UPDTIM original9 storage transaction. skills/md2asm-gpu/references/openifs/physics/model_time_and_forcing.md revision1.
+/* Complete UPDTIM original9 storage transaction. frozen_contract.md revision1. GPU contract skills/md2asm-gpu/references/openifs/physics/model_time_and_forcing.md.
  * MODEL and every original pointed owner retain complete source bytes.
  */
 .arch armv8-a
@@ -7729,7 +7728,7 @@ add x0,x0,:lo12:.Ltime_host_entry
 mov x1,x20
 mov x2,x23
 mov w3,#1
-mov w4,#1
+mov w4,#128
 mov w5,#0
 time_host_call md2asm_openifs_gpu_launch
 cbnz w0,.Ltime_host_fail
@@ -8377,7 +8376,7 @@ ret
 .weak md2asm_product_sum_fast_calls
 .weak md2asm_product_sum_wide_calls
 .section .rodata
-.Ltime_host_entry:.asciz "md2asm_gpu_model_time_and_forcing"
+.Ltime_host_entry:.asciz "md2asm_gpu_model_time_monthly_service_entry"
 .section .note.GNU-stack,"",%progbits
 
 .section .rodata
