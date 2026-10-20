@@ -3,13 +3,15 @@
 .target sm_90
 .address_size 64
 .extern .func md2asm_gpu_mailbox_soil_water_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_mailbox_lake_controller_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_mailbox_startup_integer_body(.param .u64 a,.param .u64 c);
 // One serial client; mailbox lives until the stop acknowledgement and stream join.
 .visible .entry md2asm_gpu_soil_water_mailbox_worker(.param .u64 mailbox)
 {
  .reg .u64 %m,%seq,%previous,%argv,%ctx,%done;
  .reg .u32 %op;
  .reg .pred %p;
- .param .u64 a,c;
+ .param .u64 a,c,lake_a,lake_c,startup_a,startup_c;
  ld.param.u64 %m,[mailbox];
  add.u64 %done,%m,8;
  ld.acquire.sys.global.u64 %previous,[%done];
@@ -22,12 +24,30 @@ WAIT:
  setp.eq.u32 %p,%op,0;
  @%p bra STOP;
  setp.ne.u32 %p,%op,1;
- @%p bra INVALID;
+ @%p bra CHECK_LAKE;
  ld.global.u64 %argv,[%m+24];
  ld.global.u64 %ctx,[%m+32];
  st.param.u64 [a],%argv;
  st.param.u64 [c],%ctx;
  call.uni md2asm_gpu_mailbox_soil_water_body,(a,c);
+ bra COMPLETE;
+CHECK_LAKE:
+ setp.ne.u32 %p,%op,2;
+ @%p bra CHECK_STARTUP;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ st.param.u64 [lake_a],%argv;
+ st.param.u64 [lake_c],%ctx;
+ call.uni md2asm_gpu_mailbox_lake_controller_body,(lake_a,lake_c);
+ bra COMPLETE;
+CHECK_STARTUP:
+ setp.ne.u32 %p,%op,3;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ st.param.u64 [startup_a],%argv;
+ st.param.u64 [startup_c],%ctx;
+ call.uni md2asm_gpu_mailbox_startup_integer_body,(startup_a,startup_c);
  bra COMPLETE;
 INVALID:
  st.global.u32 [%m+20],1;

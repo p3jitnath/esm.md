@@ -273,7 +273,26 @@ md2asm_openifs_gpu_launch:
  adrp x1,.Lhot_name
  add x1,x1,:lo12:.Lhot_name
  GPU_CALL strcmp
+ cbz w0,.Lscalar_kind_soil
+ mov x0,x19
+ adrp x1,.Llake_hot_name
+ add x1,x1,:lo12:.Llake_hot_name
+ GPU_CALL strcmp
+ cbz w0,.Lscalar_kind_lake
+ mov x0,x19
+ adrp x1,.Lstartup_hot_name
+ add x1,x1,:lo12:.Lstartup_hot_name
+ GPU_CALL strcmp
  cbnz w0,.Lordinary_launch
+ mov w9,#3
+ b .Lscalar_kind_ready
+.Lscalar_kind_lake:
+ mov w9,#2
+ b .Lscalar_kind_ready
+.Lscalar_kind_soil:
+ mov w9,#1
+.Lscalar_kind_ready:
+ str w9,[sp,#264]
  adrp x9,.Lworker_active
  ldr w10,[x9,:lo12:.Lworker_active]
  cbnz w10,.Lmailbox_request
@@ -320,7 +339,7 @@ md2asm_openifs_gpu_launch:
  add x9,x9,:lo12:.Lmailbox
  ldr x10,[x9]
  add x10,x10,#1
- mov w11,#1
+ ldr w11,[sp,#264]
  str w11,[x9,#16]
  str wzr,[x9,#20]
  stp x20,x21,[x9,#24]
@@ -510,7 +529,7 @@ mailbox_finalize_unlocked:
 .section .note.GNU-stack,"",%progbits
 
 // Nonnumerical environment and module lifetime service.
-// ABI and storage: skills/md2asm-gpu/references/openifs/cuda_runtime.md, revision 4.
+// ABI and storage: skills/md2asm-gpu/references/openifs/cuda_runtime.md, revision 5.
 .text
 .p2align 2
 .global md2asm_openifs_gpu_prepare
@@ -559,3 +578,5 @@ md2asm_openifs_gpu_prepare:
 .section .rodata
 .Lhot_name: .asciz "md2asm_gpu_soil_water_cell"
 .Lworker_name: .asciz "md2asm_gpu_soil_water_mailbox_worker"
+.Llake_hot_name: .asciz "md2asm_gpu_lake_controller_cell"
+.Lstartup_hot_name: .asciz "md2asm_gpu_startup_integer_cell"

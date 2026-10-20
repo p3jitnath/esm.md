@@ -1,6 +1,6 @@
 # Assembly-Owned CUDA Runtime
 
-Revision 4 supplies process services for the PTX forecast. The [assembly module](../../../../src/openifs/support/gpu/cuda_runtime.S) performs no weather calculation. Host assembly retains the original input loading, complete model storage and output rules. The declared NVIDIA device must support coherent ordinary host memory through the host page tables, as checked during initialization.
+Revision 5 supplies process services for the PTX forecast. The [assembly module](../../../../src/openifs/support/gpu/cuda_runtime.S) performs no weather calculation. Host assembly retains the original input loading, complete model storage and output rules. The declared NVIDIA device must support coherent ordinary host memory through the host page tables, as checked during initialization.
 
 The application binary interface (ABI) defines argument and register duties. This AArch64 interface uses the ordinary Arm procedure-call rules. Preserve x18, x19 to x29, the required low halves of v8 to v15 and 16-byte stack alignment. The floating-point control register (FPCR) selects rounding and related settings. The status register (FPSR) records numerical events, and the C error slot (`errno`) records library errors. These entries preserve incoming FPCR and errno across CUDA service calls. The launch entry also combines newly reported numerical flags and the last ordered mathematical error with the incoming state after a successful kernel. Other CUDA effects must not replace numerical status.
 
@@ -14,7 +14,9 @@ The application binary interface (ABI) defines argument and register duties. Thi
 
 ## Persistent Scalar Service
 
-The [soil-water scalar body](../../../../src/openifs/surface/gpu/soil_water_stages.ptx) keeps its complete 17-mode calculation in a callable device function. Its ordinary entry and the [persistent worker](../../../../src/openifs/surface/gpu/soil_water_mailbox_worker.ptx) call that same body. Only the named soil-water entry with one block, one thread and zero shared bytes uses this service. Before an ordinary lookup or launch, the host stops and joins an active worker under the request lock. The next scalar request starts it again. This lets CUDA prepare larger per-thread working storage while no persistent work is active, following its [context resource rules](https://docs.nvidia.com/cuda/archive/12.6.0/cuda-driver-api/group__CUDA__CTX.html). Ordinary launches use their own stream and wait for that stream to complete.
+The [soil-water scalar body](../../../../src/openifs/surface/gpu/soil_water_stages.ptx), [shared lake-dispatch body](../../../../src/openifs/surface/gpu/lake_controller_stages.ptx) and [startup body](../../../../src/openifs/support/gpu/startup_integer_cell.ptx) each keep one complete callable numerical function. Their original thin entries and the [persistent worker](../../../../src/openifs/surface/gpu/soil_water_mailbox_worker.ptx) call those same functions. Only these three exact entry names with one block, one thread and zero shared bytes use the service. The lake-dispatch name is shared by several physical callers and does not identify lake physics alone. Before an ordinary lookup or launch, the host stops and joins an active worker under the request lock. The next scalar request starts it again. This lets CUDA prepare larger per-thread working storage while no persistent work is active, following its [context resource rules](https://docs.nvidia.com/cuda/archive/12.6.0/cuda-driver-api/group__CUDA__CTX.html). Ordinary launches use their own stream and wait for that stream to complete.
+
+The callable names are md2asm_gpu_mailbox_soil_water_body, md2asm_gpu_mailbox_lake_controller_body and md2asm_gpu_mailbox_startup_integer_body. Each takes original_vector:u64 and common_context:u64, where u64 is an unsigned sixty-four-bit address word, and returns no direct value. Each keeps its original complete buffer, alignment, separation, mode and status rules. Results and numerical events remain in the caller-owned output and context. The worker reloads both outgoing arguments before each body call.
 
 A mailbox is a small shared request record. This process-owned mailbox has 64 bytes and 64-byte alignment. It remains live until the worker stops and its stream completes.
 
@@ -22,7 +24,7 @@ A mailbox is a small shared request record. This process-owned mailbox has 64 by
 | --- | --- | --- |
 | 0 | Unsigned 64-bit integer | Request sequence |
 | 8 | Unsigned 64-bit integer | Completed sequence |
-| 16 | Unsigned 32-bit integer | Operation, zero to stop or one to call |
+| 16 | Unsigned 32-bit integer | Request kind, zero to stop, one for soil water, two for lake dispatch or three for startup |
 | 20 | Unsigned 32-bit integer | Private transport error |
 | 24 | 64-bit address | Original argument vector |
 | 32 | 64-bit address | Original GPU context |
@@ -31,6 +33,8 @@ A mailbox is a small shared request record. This process-owned mailbox has 64 by
 The host writes a fresh request, then publishes its sequence with a release store. The worker reads it with a system-scope acquire load, which makes the preceding request writes visible. It calls the complete numerical body and publishes completion in the same way. The host waits with an acquire load before reading results. Sequence arithmetic wraps at the unsigned 64-bit limit. Keep the argument vector, context, every referenced buffer and all aliases live until completion. No physical input or result is cached.
 
 Load all entry functions before starting the worker so that later function loading does not wait for the persistent stream. Ordinary work uses its own nonblocking stream and waits only for that stream. For a long pending request, query the worker stream to expose asynchronous driver failure. On shutdown, publish stop and wait for worker-stream completion before releasing its storage.
+
+The three-family extension compares 2,304 retained lake-dispatch calls, 7,528 full-width conversion calls, 114 retained or boundary mathematical calls and 23 mixed, refusal and restart calls. Each comparison covers the complete 280-byte owner image, including guards and inactive bytes, for 2,791,320 bytes with zero differences. Strict saved-register checks, x18, FPCR, FPSR, errno, both actual counter updates with unsigned wrap, ordinary-stream joins and finalisation agree. Missing joint status fields were captured once through the unchanged accepted GPU while rechecking retained output words. Existing independent mathematical and physical checks were reused. A separate peer checks complete source inverses, fresh native arguments and system-scope completion. These are component checks; no complete GPU forecast or performance result follows from them.
 
 The component checks preserve complete owner bytes for all 17 modes, changing requests from eight host threads, shared counters, sequence wrap, refusal, stop and restart. The original runtime ABI checks pass while the worker is active. Two complete soil-water calls also preserve outputs, inactive bytes, read-only inputs, status, actual helper counters and 97 independent physical relations. These results qualify the transport component. Complete-forecast agreement and quiet-node performance remain separate gates.
 

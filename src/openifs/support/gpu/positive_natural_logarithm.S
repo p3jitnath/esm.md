@@ -1,11 +1,11 @@
-/* GPU physical setup route. Original interface and ordered arithmetic are preserved.
- * Contract: skills/md2asm-gpu/references/openifs/support/positive_natural_logarithm.md
+/* Complete positive normal logarithm: original guards and one GPU launch.
+ * Contract: skills/md2asm-gpu/references/openifs/support/positive_normal_logarithm_complete_contract.md
  * Original source: src/openifs/support/positive_natural_logarithm.S
  */
 // Copyright (c) 2018-2025, Arm Limited.
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 // Original contract: skills/md2asm/references/openifs/support/positive_natural_logarithm.md
-#include "preserved_scalar_calls.inc.S"
+// Complete numerical work is supplied by the accepted pure GPU child.
 .arch armv8.2-a
 .text
 .p2align 4
@@ -26,112 +26,9 @@ md2asm_log_positive_normal:
  ldr x10,[x9]
  add x10,x10,#1
  str x10,[x9]
- adrp x9,md2asm_log_source_data
- add x9,x9,:lo12:md2asm_log_source_data
- movz x2,#0x3fee,lsl#48
- sub x3,x1,x2
- movz x4,#0x3ff1,lsl#48
- movk x4,#0x0900,lsl#32
- sub x4,x4,x2
- cmp x3,x4
- b.lo .Lnear_one
- movz x2,#0x3fe6,lsl#48
- sub x2,x1,x2
- ubfx x3,x2,#45,#7
- lsl x3,x3,#4
- asr x4,x2,#52
- and x5,x2,#0xfff0000000000000
- sub x5,x1,x5
- fmov d16,x5
- md2asm_gpu_preserved_scalar md2asm_gpu_startup_integer_cell_host,17,d17,destination,x4,general,x16,160,zero
- add x10,x9,#144
- add x10,x10,x3
- ldp d3,d4,[x10]
- add x10,x9,#2192
- add x10,x10,x3
- ldp d5,d6,[x10]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d18,destination,d16,real,x16,0,d5
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d18,destination,d18,real,x16,0,d6
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d18,destination,d18,real,x16,0,d3
- ldp d1,d2,[x9]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d19,destination,d17,real,x16,0,d1
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d19,destination,d19,real,x16,0,d4
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d20,destination,d19,real,x16,0,d18
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d21,destination,d19,real,x16,0,d20
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d21,destination,d21,real,x16,0,d18
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d25,destination,d17,real,x16,0,d2
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d21,destination,d21,real,x16,0,d25
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d22,destination,d18,real,x16,0,d18
- ldp d3,d4,[x9,#40]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d23,destination,d18,real,x16,0,d4
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d23,destination,d3,real,x16,0,d23
- ldp d3,d4,[x9,#24]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d24,destination,d18,real,x16,0,d4
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d24,destination,d3,real,x16,0,d24
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d25,destination,d22,real,x16,0,d23
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d24,destination,d24,real,x16,0,d25
- ldr d3,[x9,#16]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d25,destination,d22,real,x16,0,d3
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d21,destination,d21,real,x16,0,d25
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d26,destination,d18,real,x16,0,d22
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d26,destination,d26,real,x16,0,d24
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d21,destination,d21,real,x16,0,d26
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d21,real,x16,0,d20
- ret
-.Lnear_one:
- fmov d1,#1.0
- fmov x10,d1
- cmp x1,x10
- b.eq .Lexact_one
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d0,destination,d0,real,x16,0,d1
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d2,destination,d0,real,x16,0,d0
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d3,destination,d0,real,x16,0,d2
- ldp d24,d25,[x9,#112]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d4,destination,d0,real,x16,0,d25
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d4,destination,d24,real,x16,0,d4
- ldr d24,[x9,#128]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d22,destination,d2,real,x16,0,d24
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d4,destination,d4,real,x16,0,d22
- ldr d24,[x9,#136]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d22,destination,d3,real,x16,0,d24
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d4,destination,d4,real,x16,0,d22
- ldp d24,d25,[x9,#88]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d5,destination,d0,real,x16,0,d25
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d5,destination,d24,real,x16,0,d5
- ldr d24,[x9,#104]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d22,destination,d2,real,x16,0,d24
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d5,destination,d5,real,x16,0,d22
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d22,destination,d3,real,x16,0,d4
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d5,destination,d5,real,x16,0,d22
- ldp d24,d25,[x9,#64]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d6,destination,d0,real,x16,0,d25
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d6,destination,d24,real,x16,0,d6
- ldr d24,[x9,#80]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d22,destination,d2,real,x16,0,d24
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d6,destination,d6,real,x16,0,d22
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d22,destination,d3,real,x16,0,d5
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d6,destination,d6,real,x16,0,d22
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d6,destination,d3,real,x16,0,d6
- movz x10,#0x41a0,lsl#48
- fmov d7,x10
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d7,destination,d0,real,x16,0,d7
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d16,destination,d0,real,x16,0,d7
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d16,destination,d16,real,x16,0,d7
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d17,destination,d0,real,x16,0,d16
- ldr d21,[x9,#56]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d18,destination,d16,real,x16,0,d16
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d18,destination,d18,real,x16,0,d21
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d19,destination,d0,real,x16,0,d18
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d20,destination,d0,real,x16,0,d19
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d20,destination,d20,real,x16,0,d18
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d22,destination,d21,real,x16,0,d17
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d23,destination,d16,real,x16,0,d0
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d22,destination,d22,real,x16,0,d23
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d20,destination,d20,real,x16,0,d22
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d6,destination,d6,real,x16,0,d20
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d6,real,x16,0,d19
- ret
-.Lexact_one:
+ movz x2,#0x3ff0,lsl#48
+ cmp x1,x2
+ b.ne md2asm_log_positive_normal_gpu_phase
  fmov d0,xzr
  ret
 .Lreject:
@@ -140,6 +37,155 @@ md2asm_log_positive_normal:
  svc #0
  brk #0
 .size md2asm_log_positive_normal,.-md2asm_log_positive_normal
+
+// Private phase. The four private owners lie inside this 1024-byte frame.
+.p2align 4
+.hidden md2asm_log_positive_normal_gpu_phase
+.type md2asm_log_positive_normal_gpu_phase,%function
+md2asm_log_positive_normal_gpu_phase:
+ sub sp,sp,#1024
+ stp x0,x1,[sp,#0]
+ stp x2,x3,[sp,#16]
+ stp x4,x5,[sp,#32]
+ stp x6,x7,[sp,#48]
+ stp x8,x9,[sp,#64]
+ stp x10,x11,[sp,#80]
+ stp x12,x13,[sp,#96]
+ stp x14,x15,[sp,#112]
+ stp x16,x17,[sp,#128]
+ stp x18,x19,[sp,#144]
+ stp x20,x21,[sp,#160]
+ stp x22,x23,[sp,#176]
+ stp x24,x25,[sp,#192]
+ stp x26,x27,[sp,#208]
+ stp x28,x29,[sp,#224]
+ str x30,[sp,#240]
+ stp q0,q1,[sp,#256]
+ stp q2,q3,[sp,#288]
+ stp q4,q5,[sp,#320]
+ stp q6,q7,[sp,#352]
+ stp q8,q9,[sp,#384]
+ stp q10,q11,[sp,#416]
+ stp q12,q13,[sp,#448]
+ stp q14,q15,[sp,#480]
+ stp q16,q17,[sp,#512]
+ stp q18,q19,[sp,#544]
+ stp q20,q21,[sp,#576]
+ stp q22,q23,[sp,#608]
+ stp q24,q25,[sp,#640]
+ stp q26,q27,[sp,#672]
+ stp q28,q29,[sp,#704]
+ stp q30,q31,[sp,#736]
+ mrs x9,fpcr
+ mrs x10,fpsr
+ mrs x11,nzcv
+ str x9,[sp,#768]
+ str x10,[sp,#776]
+ str x11,[sp,#784]
+ bl __errno_location
+ ldr x18,[sp,#144]
+ str x0,[sp,#792]
+ ldr w9,[x0]
+ str w9,[sp,#800]
+ bl omp_in_parallel
+ ldr x18,[sp,#144]
+ cbnz w0,.Llog_phase_fatal
+ bl md2asm_openifs_gpu_prepare
+ ldr x18,[sp,#144]
+ cbnz w0,.Llog_phase_fatal
+ add x19,sp,#832
+ mov x9,#0
+.Llog_zero_private:
+ str xzr,[x19,x9,lsl #3]
+ add x9,x9,#1
+ cmp x9,#16
+ b.lo .Llog_zero_private
+ add x21,sp,#848
+ add x20,sp,#864
+ ldr x9,[sp,#256]
+ stp x9,x21,[x19]
+ mov w9,#1
+ str w9,[x20,#4]
+ add x16,sp,#928
+ str x16,[x20,#48]
+ mov x9,#32
+ str x9,[x20,#56]
+ mov x9,#16
+ stp x9,x9,[x16]
+ ldr x9,[sp,#768]
+ ldr x10,[sp,#776]
+ msr fpcr,x9
+ msr fpsr,x10
+ ldr x9,[sp,#792]
+ ldr w10,[sp,#800]
+ str w10,[x9]
+ adrp x0,.Llog_complete_entry_name
+ add x0,x0,:lo12:.Llog_complete_entry_name
+ mov x1,x19
+ mov x2,x20
+ mov w3,#1
+ mov w4,#1
+ mov w5,#0
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#144]
+ cbnz w0,.Llog_phase_fatal
+ ldr w9,[x20]
+ cbnz w9,.Llog_phase_fatal
+ ldr w9,[x21,#12]
+ cbnz w9,.Llog_phase_fatal
+ ldr x9,[x21]
+ str x9,[sp,#256]
+ ldr x9,[sp,#768]
+ msr fpcr,x9
+ ldr x9,[sp,#776]
+ ldr w10,[x20,#8]
+ orr x9,x9,x10
+ msr fpsr,x9
+ ldr x9,[sp,#792]
+ ldr w10,[sp,#800]
+ str w10,[x9]
+ ldr x9,[sp,#784]
+ msr nzcv,x9
+ ldp q0,q1,[sp,#256]
+ ldp q2,q3,[sp,#288]
+ ldp q4,q5,[sp,#320]
+ ldp q6,q7,[sp,#352]
+ ldp q8,q9,[sp,#384]
+ ldp q10,q11,[sp,#416]
+ ldp q12,q13,[sp,#448]
+ ldp q14,q15,[sp,#480]
+ ldp q16,q17,[sp,#512]
+ ldp q18,q19,[sp,#544]
+ ldp q20,q21,[sp,#576]
+ ldp q22,q23,[sp,#608]
+ ldp q24,q25,[sp,#640]
+ ldp q26,q27,[sp,#672]
+ ldp q28,q29,[sp,#704]
+ ldp q30,q31,[sp,#736]
+ ldp x0,x1,[sp,#0]
+ ldp x2,x3,[sp,#16]
+ ldp x4,x5,[sp,#32]
+ ldp x6,x7,[sp,#48]
+ ldp x8,x9,[sp,#64]
+ ldp x10,x11,[sp,#80]
+ ldp x12,x13,[sp,#96]
+ ldp x14,x15,[sp,#112]
+ ldp x16,x17,[sp,#128]
+ ldp x18,x19,[sp,#144]
+ ldp x20,x21,[sp,#160]
+ ldp x22,x23,[sp,#176]
+ ldp x24,x25,[sp,#192]
+ ldp x26,x27,[sp,#208]
+ ldp x28,x29,[sp,#224]
+ ldr x30,[sp,#240]
+ add sp,sp,#1024
+ ret
+.Llog_phase_fatal:
+ bl abort
+ brk #0
+.size md2asm_log_positive_normal_gpu_phase,.-md2asm_log_positive_normal_gpu_phase
+.section .rodata
+.Llog_complete_entry_name:.asciz "md2asm_gpu_log_positive_normal"
 .data
 .p2align 3
 .hidden md2asm_log_positive_normal_calls
