@@ -1,0 +1,358 @@
+// Contract: skills/md2asm-gpu/references/openifs/transport/parallel_tracer_mass_correction.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_exp_original_rounding(.param .b64 x);
+.extern .func (.param .align 8 .b8 r[32]) md2asm_gpu_power_nonnegative(.param .b64 x,.param .b64 y);
+.extern .func (.param .align 8 .b8 r[16]) openifs_qmfixer_child_call(.param .u64 a,.param .u64 c,.param .u64 r,.param .u64 m,.param .u64 w,.param .u64 x,.param .u32 k,.param .u32 b,.param .u32 f,.param .u64 s,.param .u64 d,.param .u64 p,.param .u32 n,.param .u32 o,.param .u64 e);
+.extern .func (.param .u32 admitted) openifs_trmfixers_parallel_admit(.param .u64 a,.param .u64 c);
+.extern .func (.param .align 8 .b8 r[16]) openifs_trmfixers_block_child_call(.param .u64 a,.param .u64 c,.param .u64 r,.param .u64 m,.param .u64 w,.param .u64 x,.param .u32 k,.param .u32 b,.param .u32 f,.param .u64 s,.param .u64 d,.param .u64 p,.param .u32 n,.param .u32 o,.param .u64 e,.param .u64 maximum_output);
+.visible .func openifs_trmfixers_parallel_stage(.param .u64 original_vector,.param .u64 context,.param .u32 phase)
+{
+.reg .u64 %args,%ctx,%rec,%arg<15>,%owners,%prospective,%scratch,%scratchBytes,%work,%extra,%W<14>,%norms,%weightNorms,%deltas,%scales,%lambdas,%cap,%ptr,%ptr2,%offset,%offset2,%tmp,%bits,%source,%destination,%pressure,%gaussian,%gravity,%normCounter,%expOwner,%fastOwner,%wideOwner,%event,%newEvent,%expCalls,%fastCalls,%wideCalls,%increment,%previous,%tvab,%veta,%cver,%weights,%coefficient;
+.reg .u32 %unique,%rt,%error,%code,%count,%flags,%raised,%block,%field,%side,%cell,%row,%level,%last,%i,%plane;
+.reg .b64 %x,%y,%z,%value,%difference,%delta,%scale,%thickness,%weighted,%lambda,%change,%minimum,%maximum;
+.reg .pred %pred;
+.local .align 8 .b8 mutable_owners[256],prospective_metadata[1024];
+.param .u64 rb,rn,rc,rm,rl,ca,cc,cr,cm,cw,cx,cs,cd,cp,ce;.param .u32 rct,rr,ck,cb,cf,cn,co;.param .b64 ma,mb,xa,pa,pb;.param .align 8 .b8 mr[16],returned[16],power_result[32];
+.reg .u64 %public,%original,%parentRecord,%base,%head,%blockBase,%effect,%maximumOutput,%word,%saved,%end,%owner,%ownerWork,%baseline,%maximumOrdinal,%lastEvent,%ordinal,%lastOrdinal,%wideIncrement;
+.reg .u32 %lane,%stage,%special,%stop,%markerStage,%serial,%position,%bad,%expectedGrid,%expectedBlock;
+.reg .pred %check,%other;
+.param .u64 aa,ac,cmax;.param .u32 admitted;
+ld.param.u64 %original,[original_vector];ld.param.u64 %public,[context];ld.param.u32 %stage,[phase];mov.u32 %lane,%tid.x;mov.u32 %block,%ctaid.x;mov.u32 %error,15616;
+setp.eq.u64 %check,%public,0;@%check ret;and.b64 %word,%public,7;setp.ne.u64 %check,%word,0;@%check ret;setp.gt.u64 %check,%public,0x7fffffffffffffff;@%check ret;add.u64 %end,%public,64;setp.gt.u64 %check,%end,0x7fffffffffffffff;@%check ret;ld.global.u32 %rt,[%public];setp.ne.u32 %check,%rt,0;@%check ret;
+mov.u32 %special,%tid.y;mov.u32 %rt,%tid.z;or.b32 %special,%special,%rt;mov.u32 %rt,%ctaid.y;or.b32 %special,%special,%rt;mov.u32 %rt,%ctaid.z;or.b32 %special,%special,%rt;setp.ne.u32 %check,%special,0;@%check bra PUBLIC_REFUSE;
+mov.u32 %rt,%ntid.y;setp.ne.u32 %check,%rt,1;@%check bra PUBLIC_REFUSE;mov.u32 %rt,%ntid.z;setp.ne.u32 %check,%rt,1;@%check bra PUBLIC_REFUSE;mov.u32 %rt,%nctaid.y;setp.ne.u32 %check,%rt,1;@%check bra PUBLIC_REFUSE;mov.u32 %rt,%nctaid.z;setp.ne.u32 %check,%rt,1;@%check bra PUBLIC_REFUSE;mov.u32 %rt,%dynamic_smem_size;setp.ne.u32 %check,%rt,0;@%check bra PUBLIC_REFUSE;
+setp.gt.u32 %check,%stage,8;@%check bra PUBLIC_REFUSE;mov.u32 %expectedGrid,1;mov.u32 %expectedBlock,32;setp.eq.u32 %check,%stage,0;@%check mov.u32 %expectedBlock,1;setp.eq.u32 %check,%stage,2;@%check mov.u32 %expectedBlock,1;and.b32 %rt,%stage,1;setp.ne.u32 %check,%rt,0;@%check mov.u32 %expectedGrid,86;
+mov.u32 %rt,%ntid.x;setp.ne.u32 %check,%rt,%expectedBlock;@%check bra PUBLIC_REFUSE;mov.u32 %rt,%nctaid.x;setp.ne.u32 %check,%rt,%expectedGrid;@%check bra PUBLIC_REFUSE;
+ld.global.u32 %rt,[%public+4];setp.ne.u32 %check,%rt,1;@%check bra PUBLIC_REFUSE;setp.eq.u32 %check,%stage,0;@%check bra PREPARE;
+ld.global.u64 %base,[%public+32];ld.global.u64 %cap,[%public+40];mov.u32 %error,15619;setp.lt.u64 %check,%cap,9869184;@%check bra PUBLIC_REFUSE;setp.eq.u64 %check,%base,0;@%check bra PUBLIC_REFUSE;and.b64 %word,%base,7;setp.ne.u64 %check,%word,0;@%check bra PUBLIC_REFUSE;setp.gt.u64 %check,%base,0x7fffffffffffffff;@%check bra PUBLIC_REFUSE;add.u64 %end,%base,9869184;setp.gt.u64 %check,%end,0x7fffffffffffffff;@%check bra PUBLIC_REFUSE;add.u64 %head,%base,2574208;
+ld.global.u64 %word,[%head];setp.ne.u64 %check,%word,0x54524d5041523031;@%check bra PUBLIC_REFUSE;ld.global.u64 %word,[%head+16];setp.ne.u64 %check,%word,%original;@%check bra PUBLIC_REFUSE;ld.global.u64 %word,[%head+24];setp.ne.u64 %check,%word,%public;@%check bra PUBLIC_REFUSE;ld.global.u64 %word,[%head+40];setp.ne.u64 %check,%word,%base;@%check bra PUBLIC_REFUSE;ld.global.u64 %word,[%public+48];ld.global.u64 %owner,[%head+32];setp.ne.u64 %check,%word,%owner;@%check bra PUBLIC_REFUSE;
+ld.global.u64 %word,[%head+8];setp.ne.u64 %check,%word,0;@%check ret;
+add.u64 %args,%head,128;add.u64 %ctx,%head,256;add.u64 %rec,%head,512;add.u64 %scratch,%base,2578304;mov.u64 %scratchBytes,2573936;add.u64 %work,%scratch,4096;add.u64 %extra,%work,2535744;mul.wide.u32 %offset,%block,32768;add.u64 %blockBase,%base,7051136;add.u64 %blockBase,%blockBase,%offset;mul.wide.u32 %offset,%lane,64;add.u64 %effect,%blockBase,27072;add.u64 %effect,%effect,%offset;add.u64 %maximumOutput,%blockBase,23424;
+ld.global.u64 %arg0,[%args+0];
+ld.global.u64 %arg1,[%args+8];
+ld.global.u64 %arg2,[%args+16];
+ld.global.u64 %arg3,[%args+24];
+ld.global.u64 %arg4,[%args+32];
+ld.global.u64 %arg5,[%args+40];
+ld.global.u64 %arg6,[%args+48];
+ld.global.u64 %arg7,[%args+56];
+ld.global.u64 %arg8,[%args+64];
+ld.global.u64 %arg9,[%args+72];
+ld.global.u64 %arg10,[%args+80];
+ld.global.u64 %arg11,[%args+88];
+ld.global.u64 %arg12,[%args+96];
+ld.global.u64 %arg13,[%args+104];
+ld.global.u64 %arg14,[%args+112];
+ld.global.u64 %gravity,[%rec+128];ld.global.u64 %gaussian,[%rec+144];mov.u32 %flags,0;mov.u32 %field,0;mov.u64 %event,0;mov.u64 %lastOrdinal,0;mov.u32 %last,24;setp.eq.u32 %check,%block,85;@%check mov.u32 %last,8;
+add.u64 %W0,%work,0;
+add.u64 %W1,%work,16512;
+add.u64 %W2,%work,33024;
+add.u64 %W3,%work,363264;
+add.u64 %W4,%work,693504;
+add.u64 %W5,%work,697152;
+add.u64 %W6,%work,700800;
+add.u64 %W7,%work,704640;
+add.u64 %W8,%work,708480;
+add.u64 %W9,%work,712128;
+add.u64 %W10,%work,715776;
+add.u64 %W11,%work,719424;
+add.u64 %W12,%work,2288064;
+add.u64 %W13,%work,2453184;
+add.u64 %norms,%scratch,1024;add.u64 %weightNorms,%scratch,1280;add.u64 %deltas,%scratch,1408;add.u64 %scales,%scratch,1456;add.u64 %lambdas,%scratch,1504;mov.u64 %expCalls,0;mov.u64 %fastCalls,0;mov.u64 %wideCalls,0;mov.u32 %field,0;
+setp.eq.u32 %check,%stage,1;@%check bra PRESSURE_EXP;setp.eq.u32 %check,%stage,2;@%check bra PRESSURE_CORRECTION;setp.eq.u32 %check,%stage,3;@%check bra BOUNDARY_MASS;setp.eq.u32 %check,%stage,4;@%check bra MASS_NORM;setp.eq.u32 %check,%stage,5;@%check bra WEIGHTS;setp.eq.u32 %check,%stage,6;@%check bra WEIGHT_NORM;setp.eq.u32 %check,%stage,7;@%check bra LIMITER;bra COMMIT;
+PREPARE:{ .param .u64 private_call_1_aa; .param .u64 private_call_1_ac; .param .u32 private_call_1_admitted; st.param.u64 [private_call_1_aa],%original;st.param.u64 [private_call_1_ac],%public;call.uni (private_call_1_admitted),openifs_trmfixers_parallel_admit,(private_call_1_aa,private_call_1_ac);ld.param.u32 %error,[private_call_1_admitted]; }setp.ne.u32 %check,%error,0;@%check bra PUBLIC_REFUSE;
+ld.global.u64 %base,[%public+32];ld.global.u64 %parentRecord,[%public+48];add.u64 %head,%base,2574208;mov.u32 %i,0;
+PREPARE_CLEAR:mul.wide.u32 %offset,%i,8;add.u64 %ptr,%head,%offset;st.global.u64 [%ptr],0;add.u32 %i,%i,1;setp.lt.u32 %check,%i,512;@%check bra PREPARE_CLEAR;
+st.global.u64 [%head+16],%original;st.global.u64 [%head+24],%public;st.global.u64 [%head+32],%parentRecord;st.global.u64 [%head+40],%base;ld.global.u64 %event,[%public+16];st.global.u64 [%head+72],%event;
+add.u64 %source,%parentRecord,256;add.u64 %destination,%head,512;mov.u32 %i,0;
+PREPARE_RECORD:mul.wide.u32 %offset,%i,8;add.u64 %ptr,%source,%offset;ld.global.u64 %word,[%ptr];add.u64 %ptr,%destination,%offset;st.global.u64 [%ptr],%word;add.u32 %i,%i,1;setp.lt.u32 %check,%i,128;@%check bra PREPARE_RECORD;
+ld.global.u64 %word,[%original+0];
+st.global.u64 [%head+128],%word;
+ld.global.u64 %word,[%original+8];
+st.global.u64 [%head+136],%word;
+ld.global.u64 %word,[%original+16];
+st.global.u64 [%head+144],%word;
+ld.global.u64 %word,[%original+24];
+st.global.u64 [%head+152],%word;
+ld.global.u64 %word,[%original+32];add.u64 %word,%word,184;
+st.global.u64 [%head+160],%word;
+ld.global.u64 %word,[%original+40];
+st.global.u64 [%head+168],%word;
+ld.global.u64 %word,[%original+56];
+st.global.u64 [%head+176],%word;
+ld.global.u64 %word,[%original+64];
+st.global.u64 [%head+184],%word;
+ld.global.u64 %word,[%original+72];
+st.global.u64 [%head+192],%word;
+ld.global.u64 %word,[%original+80];
+st.global.u64 [%head+200],%word;
+ld.global.u64 %word,[%original+88];
+st.global.u64 [%head+208],%word;
+ld.global.u64 %word,[%original+96];
+st.global.u64 [%head+216],%word;
+ld.global.u64 %word,[%original+104];
+st.global.u64 [%head+224],%word;
+ld.global.u64 %word,[%original+112];
+st.global.u64 [%head+232],%word;
+ld.global.u64 %word,[%original+120];
+st.global.u64 [%head+240],%word;
+add.u64 %word,%base,5152256;st.global.u64 [%head+216],%word;add.u64 %word,%base,5168768;st.global.u64 [%head+232],%word;
+ld.global.u64 %source,[%original+96];
+add.u64 %destination,%base,5152256;mov.u32 %i,0;
+PREPARE_SURFACE:mul.wide.u32 %offset,%i,8;add.u64 %ptr,%source,%offset;ld.global.u64 %word,[%ptr];add.u64 %ptr,%destination,%offset;st.global.u64 [%ptr],%word;add.u32 %i,%i,1;setp.lt.u32 %check,%i,2064;@%check bra PREPARE_SURFACE;
+ld.global.u64 %source,[%original+112];
+add.u64 %destination,%base,5168768;mov.u32 %i,0;
+PREPARE_TRACER:mul.wide.u32 %offset,%i,8;add.u64 %ptr,%source,%offset;ld.global.u64 %word,[%ptr];add.u64 %ptr,%destination,%offset;st.global.u64 [%ptr],%word;add.u32 %i,%i,1;setp.lt.u32 %check,%i,235296;@%check bra PREPARE_TRACER;
+mov.u32 %i,0;
+PREPARE_CONTEXT:mul.wide.u32 %offset,%i,8;add.u64 %ptr,%public,%offset;ld.global.u64 %word,[%ptr];add.u64 %ptr,%head,256;add.u64 %ptr,%ptr,%offset;st.global.u64 [%ptr],%word;add.u32 %i,%i,1;setp.lt.u32 %check,%i,8;@%check bra PREPARE_CONTEXT;
+add.u64 %word,%base,2578304;st.global.u64 [%head+288],%word;st.global.u64 [%head+296],2573936;add.u64 %word,%head,512;st.global.u64 [%head+304],%word;st.global.u64 [%head+312],1024;st.global.u32 [%head+264],0;
+ld.global.u64 %owner,[%head+672];add.u64 %ownerWork,%head,1792;st.global.u64 [%head+1536],%owner;st.global.u64 [%head+1544],%ownerWork;st.global.u64 [%head+1552],8;setp.eq.u64 %check,%owner,0;@%check bra PREPARE_OWNER_0_DONE;
+ld.global.u64 %word,[%owner];
+st.global.u64 [%ownerWork],%word;st.global.u64 [%head+1560],%word;st.global.u64 [%head+672],%ownerWork;st.global.u64 [%head+680],8;PREPARE_OWNER_0_DONE:
+ld.global.u64 %owner,[%head+688];add.u64 %ownerWork,%head,1800;st.global.u64 [%head+1568],%owner;st.global.u64 [%head+1576],%ownerWork;st.global.u64 [%head+1584],8;setp.eq.u64 %check,%owner,0;@%check bra PREPARE_OWNER_1_DONE;
+ld.global.u64 %word,[%owner];
+st.global.u64 [%ownerWork],%word;st.global.u64 [%head+1592],%word;st.global.u64 [%head+688],%ownerWork;st.global.u64 [%head+696],8;PREPARE_OWNER_1_DONE:
+ld.global.u64 %owner,[%head+704];add.u64 %ownerWork,%head,1808;st.global.u64 [%head+1600],%owner;st.global.u64 [%head+1608],%ownerWork;st.global.u64 [%head+1616],8;setp.eq.u64 %check,%owner,0;@%check bra PREPARE_OWNER_2_DONE;
+ld.global.u64 %word,[%owner];
+st.global.u64 [%ownerWork],%word;st.global.u64 [%head+1624],%word;st.global.u64 [%head+704],%ownerWork;st.global.u64 [%head+712],8;PREPARE_OWNER_2_DONE:
+ld.global.u64 %owner,[%head+904];add.u64 %ownerWork,%head,1816;st.global.u64 [%head+1632],%owner;st.global.u64 [%head+1640],%ownerWork;st.global.u64 [%head+1648],4;setp.eq.u64 %check,%owner,0;@%check bra PREPARE_OWNER_3_DONE;
+ld.global.u32 %rt,[%owner];cvt.u64.u32 %word,%rt;
+st.global.u64 [%ownerWork],%word;st.global.u64 [%head+1656],%word;st.global.u64 [%head+904],%ownerWork;st.global.u64 [%head+912],4;PREPARE_OWNER_3_DONE:
+ld.global.u64 %owner,[%head+920];add.u64 %ownerWork,%head,1824;st.global.u64 [%head+1664],%owner;st.global.u64 [%head+1672],%ownerWork;st.global.u64 [%head+1680],4;setp.eq.u64 %check,%owner,0;@%check bra PREPARE_OWNER_4_DONE;
+ld.global.u32 %rt,[%owner];cvt.u64.u32 %word,%rt;
+st.global.u64 [%ownerWork],%word;st.global.u64 [%head+1688],%word;st.global.u64 [%head+920],%ownerWork;st.global.u64 [%head+928],4;PREPARE_OWNER_4_DONE:
+ld.global.u64 %owner,[%head+936];add.u64 %ownerWork,%head,1832;st.global.u64 [%head+1696],%owner;st.global.u64 [%head+1704],%ownerWork;st.global.u64 [%head+1712],8;setp.eq.u64 %check,%owner,0;@%check bra PREPARE_OWNER_5_DONE;
+ld.global.u64 %word,[%owner];
+st.global.u64 [%ownerWork],%word;st.global.u64 [%head+1720],%word;st.global.u64 [%head+936],%ownerWork;st.global.u64 [%head+944],8;PREPARE_OWNER_5_DONE:
+mov.u32 %block,0;PREPARE_BLOCK:mul.wide.u32 %offset,%block,32768;add.u64 %blockBase,%base,7051136;add.u64 %blockBase,%blockBase,%offset;mov.u32 %i,0;
+PREPARE_BLOCK_CONTEXT:mul.wide.u32 %offset,%i,8;add.u64 %ptr,%blockBase,1024;add.u64 %ptr,%ptr,%offset;st.global.u64 [%ptr],0;add.u32 %i,%i,1;setp.lt.u32 %check,%i,16;@%check bra PREPARE_BLOCK_CONTEXT;mov.u32 %i,0;
+PREPARE_BLOCK_MARKER:mul.wide.u32 %offset,%i,8;add.u64 %ptr,%blockBase,29120;add.u64 %ptr,%ptr,%offset;st.global.u64 [%ptr],0;add.u32 %i,%i,1;setp.lt.u32 %check,%i,32;@%check bra PREPARE_BLOCK_MARKER;add.u32 %block,%block,1;setp.lt.u32 %check,%block,86;@%check bra PREPARE_BLOCK;
+membar.gl;st.global.u64 [%head],0x54524d5041523031;ret;
+
+PRESSURE_EXP:
+ld.global.u64 %word,[%head+48];setp.ne.u64 %check,%word,0;@%check bra PUBLIC_REFUSE;
+mov.u32 %markerStage,1;mov.u32 %row,%lane;setp.ge.u32 %check,%row,%last;@%check bra JOIN_BLOCK;
+PRESSURE_ROW:mul.wide.u32 %offset,%block,576;mul.wide.u32 %tmp,%row,8;add.u64 %offset,%offset,%tmp;add.u64 %ptr,%arg10,%offset;ld.global.b64 %x,[%ptr];{ .param .b64 private_call_3_xa; .param .align 8 .b8 private_call_3_mr[16]; st.param.b64 [private_call_3_xa],%x;call.uni (private_call_3_mr),md2asm_gpu_exp_original_rounding,(private_call_3_xa);ld.param.b64 %value,[private_call_3_mr];ld.param.u32 %raised,[private_call_3_mr+8];ld.param.u32 %rt,[private_call_3_mr+12]; }or.b32 %flags,%flags,%raised;setp.ne.u32 %pred,%rt,0;cvt.u64.u32 %newEvent,%rt;@%pred mov.u64 %event,%newEvent;mul.lo.u32 %serial,%block,24;add.u32 %serial,%serial,%row;mul.lo.u32 %serial,%serial,2;add.u32 %serial,%serial,1;cvt.u64.u32 %ordinal,%serial;@%pred mov.u64 %lastOrdinal,%ordinal;add.u64 %expCalls,%expCalls,1;mul.wide.u32 %offset,%block,192;add.u64 %offset,%offset,%tmp;add.u64 %ptr,%W0,%offset;st.global.b64 [%ptr],%value;add.u64 %ptr,%arg11,%offset;ld.global.b64 %x,[%ptr];{ .param .b64 private_call_2_xa; .param .align 8 .b8 private_call_2_mr[16]; st.param.b64 [private_call_2_xa],%x;call.uni (private_call_2_mr),md2asm_gpu_exp_original_rounding,(private_call_2_xa);ld.param.b64 %value,[private_call_2_mr];ld.param.u32 %raised,[private_call_2_mr+8];ld.param.u32 %rt,[private_call_2_mr+12]; }or.b32 %flags,%flags,%raised;setp.ne.u32 %pred,%rt,0;cvt.u64.u32 %newEvent,%rt;@%pred mov.u64 %event,%newEvent;mul.lo.u32 %serial,%block,24;add.u32 %serial,%serial,%row;mul.lo.u32 %serial,%serial,2;add.u32 %serial,%serial,2;cvt.u64.u32 %ordinal,%serial;@%pred mov.u64 %lastOrdinal,%ordinal;add.u64 %expCalls,%expCalls,1;add.u64 %ptr,%W1,%offset;st.global.b64 [%ptr],%value;
+bra JOIN_BLOCK;
+PRESSURE_CORRECTION:
+ld.global.u64 %word,[%head+48];setp.ne.u64 %check,%word,0;@%check bra PUBLIC_REFUSE;
+
+mov.u32 %i,0;mov.u32 %bad,0;
+SCAN_PRESSURE:mul.wide.u32 %offset,%i,32768;add.u64 %ptr,%base,7051136;add.u64 %ptr,%ptr,%offset;ld.global.u64 %word,[%ptr+29128];setp.ne.u64 %check,%word,1;selp.u32 %rt,1,0,%check;or.b32 %bad,%bad,%rt;ld.global.u32 %rt,[%ptr+1024];or.b32 %bad,%bad,%rt;add.u32 %i,%i,1;setp.lt.u32 %check,%i,86;@%check bra SCAN_PRESSURE;
+setp.eq.u32 %check,%bad,0;@%check bra SCAN_PRESSURE_DONE;st.global.u64 [%head+8],1;st.global.u64 [%head+104],15625;
+SCAN_PRESSURE_DONE:
+
+ld.global.u64 %word,[%head+8];setp.ne.u64 %check,%word,0;@%check ret;
+
+mov.u64 %maximumOrdinal,0;mov.u64 %lastEvent,0;mov.u32 %i,0;
+EVENT_PRESSURE:mul.wide.u32 %offset,%i,32768;add.u64 %ptr,%base,7052224;add.u64 %ptr,%ptr,%offset;ld.global.u64 %word,[%ptr+16];setp.le.u64 %check,%word,%maximumOrdinal;@%check bra EVENT_PRESSURE_NEXT;mov.u64 %maximumOrdinal,%word;ld.global.u64 %lastEvent,[%ptr+8];
+EVENT_PRESSURE_NEXT:add.u32 %i,%i,1;setp.lt.u32 %check,%i,86;@%check bra EVENT_PRESSURE;setp.eq.u64 %check,%maximumOrdinal,0;@%check bra EVENT_PRESSURE_DONE;st.global.u64 [%head+72],%lastEvent;
+EVENT_PRESSURE_DONE:
+
+ld.global.u64 %event,[%head+72];mov.u32 %block,0;mov.u32 %field,0;
+{ .param .u64 private_call_4_ca; .param .u64 private_call_4_cc; .param .u64 private_call_4_cr; .param .u64 private_call_4_cm; .param .u64 private_call_4_cw; .param .u64 private_call_4_cx; .param .u32 private_call_4_ck; .param .u32 private_call_4_cb; .param .u32 private_call_4_cf; .param .u64 private_call_4_cs; .param .u64 private_call_4_cd; .param .u64 private_call_4_cp; .param .u32 private_call_4_cn; .param .u32 private_call_4_co; .param .u64 private_call_4_ce; .param .align 8 .b8 private_call_4_returned[16]; st.param.u64 [private_call_4_ca],%args;st.param.u64 [private_call_4_cc],%ctx;st.param.u64 [private_call_4_cr],%rec;st.param.u64 [private_call_4_cm],%scratch;st.param.u64 [private_call_4_cw],%work;st.param.u64 [private_call_4_cx],%extra;st.param.u32 [private_call_4_ck],0;st.param.u32 [private_call_4_cb],%block;st.param.u32 [private_call_4_cf],%field;st.param.u64 [private_call_4_cs],0;st.param.u64 [private_call_4_cd],0;st.param.u64 [private_call_4_cp],0;st.param.u32 [private_call_4_cn],0;st.param.u32 [private_call_4_co],0;st.param.u64 [private_call_4_ce],%event;call.uni (private_call_4_returned),openifs_qmfixer_child_call,(private_call_4_ca,private_call_4_cc,private_call_4_cr,private_call_4_cm,private_call_4_cw,private_call_4_cx,private_call_4_ck,private_call_4_cb,private_call_4_cf,private_call_4_cs,private_call_4_cd,private_call_4_cp,private_call_4_cn,private_call_4_co,private_call_4_ce);ld.param.u32 %raised,[private_call_4_returned];ld.param.u32 %code,[private_call_4_returned+4];ld.param.u64 %newEvent,[private_call_4_returned+8]; }or.b32 %flags,%flags,%raised;mov.u64 %event,%newEvent;mov.u32 %error,%code;setp.ne.u32 %check,%code,0;@%check bra PRIVATE_REFUSE;
+atom.global.or.b32 %rt,[%head+64],%flags;st.global.u64 [%head+72],%event;st.global.u64 [%head+48],2;ret;
+BOUNDARY_MASS:
+ld.global.u64 %word,[%head+48];setp.ne.u64 %check,%word,2;@%check bra PUBLIC_REFUSE;
+add.u64 %W4,%blockBase,1152;
+add.u64 %W5,%blockBase,4800;
+add.u64 %W6,%blockBase,8448;
+add.u64 %W7,%blockBase,12288;
+add.u64 %W8,%blockBase,16128;
+add.u64 %W9,%blockBase,19776;
+add.u64 %W10,%blockBase,23424;
+add.u64 %maximumOutput,%blockBase,23424;
+mov.u32 %markerStage,3;mov.u32 %side,0;
+HYBRID_SIDE:
+mov.u64 %source,%W0;mov.u64 %pressure,%W2;setp.eq.u32 %pred,%side,0;@%pred bra HYBRID_POINTER_READY;mov.u64 %source,%W1;mov.u64 %pressure,%W3;
+HYBRID_POINTER_READY:mul.wide.u32 %offset,%block,3840;add.u64 %pressure,%pressure,%offset;mov.u32 %row,%lane;setp.ge.u32 %check,%row,%last;@%check bra HYBRID_BOTTOM_DONE;
+HYBRID_BOTTOM:mul.wide.u32 %offset,%block,192;mul.wide.u32 %tmp,%row,8;add.u64 %offset,%offset,%tmp;add.u64 %ptr,%source,%offset;ld.global.b64 %value,[%ptr];add.u64 %ptr,%pressure,3648;add.u64 %ptr,%ptr,%tmp;st.global.b64 [%ptr],%value;
+HYBRID_BOTTOM_DONE:bar.sync 0;
+{ .param .u64 private_call_5_ca; .param .u64 private_call_5_cc; .param .u64 private_call_5_cr; .param .u64 private_call_5_cm; .param .u64 private_call_5_cw; .param .u64 private_call_5_cx; .param .u32 private_call_5_ck; .param .u32 private_call_5_cb; .param .u32 private_call_5_cf; .param .u64 private_call_5_cs; .param .u64 private_call_5_cd; .param .u64 private_call_5_cp; .param .u32 private_call_5_cn; .param .u32 private_call_5_co; .param .u64 private_call_5_ce; .param .u64 private_call_5_cmax; .param .align 8 .b8 private_call_5_returned[16]; st.param.u64 [private_call_5_ca],%args;st.param.u64 [private_call_5_cc],%ctx;st.param.u64 [private_call_5_cr],%rec;st.param.u64 [private_call_5_cm],%blockBase;st.param.u64 [private_call_5_cw],%work;st.param.u64 [private_call_5_cx],%extra;st.param.u32 [private_call_5_ck],1;st.param.u32 [private_call_5_cb],%block;st.param.u32 [private_call_5_cf],%field;st.param.u64 [private_call_5_cs],0;st.param.u64 [private_call_5_cd],0;st.param.u64 [private_call_5_cp],%pressure;st.param.u32 [private_call_5_cn],0;st.param.u32 [private_call_5_co],0;st.param.u64 [private_call_5_ce],0;st.param.u64 [private_call_5_cmax],%maximumOutput;call.uni (private_call_5_returned),openifs_trmfixers_block_child_call,(private_call_5_ca,private_call_5_cc,private_call_5_cr,private_call_5_cm,private_call_5_cw,private_call_5_cx,private_call_5_ck,private_call_5_cb,private_call_5_cf,private_call_5_cs,private_call_5_cd,private_call_5_cp,private_call_5_cn,private_call_5_co,private_call_5_ce,private_call_5_cmax);ld.param.u32 %raised,[private_call_5_returned];ld.param.u32 %code,[private_call_5_returned+4];ld.param.u64 %newEvent,[private_call_5_returned+8]; }or.b32 %flags,%flags,%raised;mov.u32 %error,%code;setp.ne.u32 %check,%code,0;@%check bra PRIVATE_REFUSE;
+add.u32 %side,%side,1;setp.lt.u32 %check,%side,2;@%check bra HYBRID_SIDE;mov.u32 %field,0;
+MASS_FIELD:mov.u32 %side,0;
+MASS_SIDE:mov.u32 %i,29184;mov.u64 %source,%arg12;mov.u64 %destination,%W4;mov.u64 %pressure,%W2;setp.eq.u32 %pred,%side,0;@%pred bra MASS_POINTER_READY;mov.u32 %i,21888;mov.u64 %source,%arg13;mov.u64 %destination,%W5;mov.u64 %pressure,%W3;
+MASS_POINTER_READY:mul.wide.u32 %offset,%block,%i;mul.wide.u32 %tmp,%field,3648;add.u64 %offset,%offset,%tmp;add.u64 %source,%source,%offset;mul.wide.u32 %offset,%block,3840;add.u64 %pressure,%pressure,%offset;mov.u32 %cell,%lane;
+MASS_COPY:rem.u32 %row,%cell,24;setp.ge.u32 %pred,%row,%last;@%pred bra MASS_COPY_NEXT;mul.wide.u32 %offset,%cell,8;add.u64 %ptr,%source,%offset;ld.global.b64 %value,[%ptr];add.u64 %ptr,%destination,%offset;st.global.b64 [%ptr],%value;
+MASS_COPY_NEXT:add.u32 %cell,%cell,32;setp.lt.u32 %pred,%cell,456;@%pred bra MASS_COPY;bar.sync 0;
+mov.u64 %source,%destination;mov.u64 %destination,%W6;setp.eq.u32 %pred,%side,0;@!%pred mov.u64 %destination,%W7;
+{ .param .u64 private_call_6_ca; .param .u64 private_call_6_cc; .param .u64 private_call_6_cr; .param .u64 private_call_6_cm; .param .u64 private_call_6_cw; .param .u64 private_call_6_cx; .param .u32 private_call_6_ck; .param .u32 private_call_6_cb; .param .u32 private_call_6_cf; .param .u64 private_call_6_cs; .param .u64 private_call_6_cd; .param .u64 private_call_6_cp; .param .u32 private_call_6_cn; .param .u32 private_call_6_co; .param .u64 private_call_6_ce; .param .u64 private_call_6_cmax; .param .align 8 .b8 private_call_6_returned[16]; st.param.u64 [private_call_6_ca],%args;st.param.u64 [private_call_6_cc],%ctx;st.param.u64 [private_call_6_cr],%rec;st.param.u64 [private_call_6_cm],%blockBase;st.param.u64 [private_call_6_cw],%work;st.param.u64 [private_call_6_cx],%extra;st.param.u32 [private_call_6_ck],2;st.param.u32 [private_call_6_cb],%block;st.param.u32 [private_call_6_cf],%field;st.param.u64 [private_call_6_cs],%source;st.param.u64 [private_call_6_cd],%destination;st.param.u64 [private_call_6_cp],%pressure;st.param.u32 [private_call_6_cn],0;st.param.u32 [private_call_6_co],0;st.param.u64 [private_call_6_ce],0;st.param.u64 [private_call_6_cmax],%maximumOutput;call.uni (private_call_6_returned),openifs_trmfixers_block_child_call,(private_call_6_ca,private_call_6_cc,private_call_6_cr,private_call_6_cm,private_call_6_cw,private_call_6_cx,private_call_6_ck,private_call_6_cb,private_call_6_cf,private_call_6_cs,private_call_6_cd,private_call_6_cp,private_call_6_cn,private_call_6_co,private_call_6_ce,private_call_6_cmax);ld.param.u32 %raised,[private_call_6_returned];ld.param.u32 %code,[private_call_6_returned+4];ld.param.u64 %newEvent,[private_call_6_returned+8]; }or.b32 %flags,%flags,%raised;mov.u32 %error,%code;setp.ne.u32 %check,%code,0;@%check bra PRIVATE_REFUSE;
+add.u64 %source,%destination,3648;mul.lo.u32 %i,%block,10;add.u32 %rt,%field,%field;add.u32 %rt,%rt,%side;add.u32 %i,%i,%rt;mul.wide.u32 %offset,%i,192;add.u64 %destination,%W12,%offset;mov.u32 %row,%lane;setp.ge.u32 %check,%row,%last;@%check bra PACK_MASS_DONE;
+PACK_MASS:mul.wide.u32 %offset,%row,8;add.u64 %ptr,%source,%offset;ld.global.b64 %value,[%ptr];add.u64 %ptr,%destination,%offset;st.global.b64 [%ptr],%value;
+PACK_MASS_DONE:bar.sync 0;add.u32 %side,%side,1;setp.lt.u32 %check,%side,2;@%check bra MASS_SIDE;add.u32 %field,%field,1;setp.lt.u32 %check,%field,5;@%check bra MASS_FIELD;bra JOIN_BLOCK;
+MASS_NORM:
+ld.global.u64 %word,[%head+48];setp.ne.u64 %check,%word,2;@%check bra PUBLIC_REFUSE;
+mov.u32 %stop,0;setp.ne.u32 %check,%lane,0;@%check bra MASS_SCAN_DONE;
+
+mov.u32 %i,0;mov.u32 %bad,0;
+SCAN_MASS:mul.wide.u32 %offset,%i,32768;add.u64 %ptr,%base,7051136;add.u64 %ptr,%ptr,%offset;ld.global.u64 %word,[%ptr+29144];setp.ne.u64 %check,%word,1;selp.u32 %rt,1,0,%check;or.b32 %bad,%bad,%rt;ld.global.u32 %rt,[%ptr+1024];or.b32 %bad,%bad,%rt;add.u32 %i,%i,1;setp.lt.u32 %check,%i,86;@%check bra SCAN_MASS;
+setp.eq.u32 %check,%bad,0;@%check bra SCAN_MASS_DONE;st.global.u64 [%head+8],1;st.global.u64 [%head+104],15625;
+SCAN_MASS_DONE:
+
+bra MASS_SCAN_DONE;
+MASS_SCAN_DONE:mov.u32 %stop,0;setp.ne.u32 %check,%lane,0;@%check bra MASS_BROADCAST;ld.global.u64 %word,[%head+8];setp.ne.u64 %check,%word,0;selp.u32 %stop,1,0,%check;
+MASS_BROADCAST:shfl.sync.idx.b32 %stop,%stop,0,31,0xffffffff;setp.ne.u32 %check,%stop,0;@%check ret;
+add.u64 %maximumOutput,%blockBase,23424;mov.u32 %block,0;mov.u32 %field,0;ld.global.u64 %event,[%head+72];
+{ .param .u64 private_call_7_ca; .param .u64 private_call_7_cc; .param .u64 private_call_7_cr; .param .u64 private_call_7_cm; .param .u64 private_call_7_cw; .param .u64 private_call_7_cx; .param .u32 private_call_7_ck; .param .u32 private_call_7_cb; .param .u32 private_call_7_cf; .param .u64 private_call_7_cs; .param .u64 private_call_7_cd; .param .u64 private_call_7_cp; .param .u32 private_call_7_cn; .param .u32 private_call_7_co; .param .u64 private_call_7_ce; .param .u64 private_call_7_cmax; .param .align 8 .b8 private_call_7_returned[16]; st.param.u64 [private_call_7_ca],%args;st.param.u64 [private_call_7_cc],%ctx;st.param.u64 [private_call_7_cr],%rec;st.param.u64 [private_call_7_cm],%scratch;st.param.u64 [private_call_7_cw],%work;st.param.u64 [private_call_7_cx],%extra;st.param.u32 [private_call_7_ck],3;st.param.u32 [private_call_7_cb],%block;st.param.u32 [private_call_7_cf],%field;st.param.u64 [private_call_7_cs],%W12;st.param.u64 [private_call_7_cd],%norms;st.param.u64 [private_call_7_cp],0;st.param.u32 [private_call_7_cn],10;st.param.u32 [private_call_7_co],0;st.param.u64 [private_call_7_ce],%event;st.param.u64 [private_call_7_cmax],%maximumOutput;call.uni (private_call_7_returned),openifs_trmfixers_block_child_call,(private_call_7_ca,private_call_7_cc,private_call_7_cr,private_call_7_cm,private_call_7_cw,private_call_7_cx,private_call_7_ck,private_call_7_cb,private_call_7_cf,private_call_7_cs,private_call_7_cd,private_call_7_cp,private_call_7_cn,private_call_7_co,private_call_7_ce,private_call_7_cmax);ld.param.u32 %raised,[private_call_7_returned];ld.param.u32 %code,[private_call_7_returned+4];ld.param.u64 %newEvent,[private_call_7_returned+8]; }or.b32 %flags,%flags,%raised;mov.u64 %event,%newEvent;mov.u32 %error,%code;setp.ne.u32 %check,%code,0;@%check bra PRIVATE_REFUSE;
+setp.ne.u32 %check,%lane,0;@%check ret;st.global.u64 [%head+72],%event;mov.u32 %field,0;
+SCALE_FIELD:
+mul.wide.u32 %offset,%field,48;add.u64 %ptr,%norms,%offset;ld.global.b64 %x,[%ptr];ld.global.b64 %y,[%ptr+24];
+{ .param .b64 private_call_8_ma; .param .b64 private_call_8_mb; .param .align 8 .b8 private_call_8_mr[16]; st.param.b64 [private_call_8_ma],%y;st.param.b64 [private_call_8_mb],%x;call.uni (private_call_8_mr),md2asm_gpu_sub_status,(private_call_8_ma,private_call_8_mb);ld.param.b64 %delta,[private_call_8_mr];ld.param.u32 %raised,[private_call_8_mr+8]; }or.b32 %flags,%flags,%raised;
+mul.wide.u32 %offset,%field,8;add.u64 %ptr,%deltas,%offset;st.global.b64 [%ptr],%delta;setp.lt.f64 %pred,%delta,0d0000000000000000;@%pred bra NEGATIVE_SCALE;max.f64 %scale,%delta,0d3e45798ee2308c3a;bra SCALE_READY;
+NEGATIVE_SCALE:min.f64 %scale,%delta,0dbe45798ee2308c3a;
+SCALE_READY:add.u64 %ptr,%scales,%offset;st.global.b64 [%ptr],%scale;
+add.u32 %field,%field,1;setp.lt.u32 %check,%field,5;@%check bra SCALE_FIELD;atom.global.or.b32 %rt,[%head+64],%flags;st.global.u64 [%head+48],4;ret;
+WEIGHTS:
+ld.global.u64 %word,[%head+48];setp.ne.u64 %check,%word,4;@%check bra PUBLIC_REFUSE;
+add.u64 %W4,%blockBase,1152;
+add.u64 %W5,%blockBase,4800;
+add.u64 %W6,%blockBase,8448;
+add.u64 %W7,%blockBase,12288;
+add.u64 %W8,%blockBase,16128;
+add.u64 %W9,%blockBase,19776;
+add.u64 %W10,%blockBase,23424;
+add.u64 %maximumOutput,%blockBase,23424;
+mov.u32 %markerStage,5;mov.u32 %field,0;
+WEIGHT_FIELD:mul.wide.u32 %offset,%field,8;add.u64 %ptr,%scales,%offset;ld.global.b64 %scale,[%ptr];
+mul.wide.u32 %offset,%field,368;add.u64 %ptr,%arg4,%offset;ld.global.u32 %plane,[%ptr+4064];sub.u32 %plane,%plane,1;mul.lo.u32 %plane,%plane,21;add.u32 %plane,%plane,63;mul.wide.u32 %offset,%plane,24808;add.u64 %source,%arg8,%offset;
+{ .param .u64 private_call_9_ca; .param .u64 private_call_9_cc; .param .u64 private_call_9_cr; .param .u64 private_call_9_cm; .param .u64 private_call_9_cw; .param .u64 private_call_9_cx; .param .u32 private_call_9_ck; .param .u32 private_call_9_cb; .param .u32 private_call_9_cf; .param .u64 private_call_9_cs; .param .u64 private_call_9_cd; .param .u64 private_call_9_cp; .param .u32 private_call_9_cn; .param .u32 private_call_9_co; .param .u64 private_call_9_ce; .param .u64 private_call_9_cmax; .param .align 8 .b8 private_call_9_returned[16]; st.param.u64 [private_call_9_ca],%args;st.param.u64 [private_call_9_cc],%ctx;st.param.u64 [private_call_9_cr],%rec;st.param.u64 [private_call_9_cm],%blockBase;st.param.u64 [private_call_9_cw],%work;st.param.u64 [private_call_9_cx],%extra;st.param.u32 [private_call_9_ck],4;st.param.u32 [private_call_9_cb],%block;st.param.u32 [private_call_9_cf],%field;st.param.u64 [private_call_9_cs],%source;st.param.u64 [private_call_9_cd],%W8;st.param.u64 [private_call_9_cp],0;st.param.u32 [private_call_9_cn],0;st.param.u32 [private_call_9_co],0;st.param.u64 [private_call_9_ce],0;st.param.u64 [private_call_9_cmax],%maximumOutput;call.uni (private_call_9_returned),openifs_trmfixers_block_child_call,(private_call_9_ca,private_call_9_cc,private_call_9_cr,private_call_9_cm,private_call_9_cw,private_call_9_cx,private_call_9_ck,private_call_9_cb,private_call_9_cf,private_call_9_cs,private_call_9_cd,private_call_9_cp,private_call_9_cn,private_call_9_co,private_call_9_ce,private_call_9_cmax);ld.param.u32 %raised,[private_call_9_returned];ld.param.u32 %code,[private_call_9_returned+4];ld.param.u64 %newEvent,[private_call_9_returned+8]; }or.b32 %flags,%flags,%raised;mov.u32 %error,%code;setp.ne.u32 %check,%code,0;@%check bra PRIVATE_REFUSE;
+mul.wide.u32 %offset,%block,21888;mul.wide.u32 %tmp,%field,3648;add.u64 %offset,%offset,%tmp;add.u64 %destination,%arg13,%offset;mul.wide.u32 %offset,%block,3840;add.u64 %pressure,%W3,%offset;mov.u32 %cell,%lane;
+WEIGHT_CELL:rem.u32 %row,%cell,24;setp.ge.u32 %pred,%row,%last;@%pred bra WEIGHT_CELL_NEXT;mul.wide.u32 %offset,%cell,8;add.u64 %ptr,%destination,%offset;ld.global.b64 %x,[%ptr];add.u64 %ptr,%W8,%offset;ld.global.b64 %y,[%ptr];
+{ .param .b64 private_call_10_ma; .param .b64 private_call_10_mb; .param .align 8 .b8 private_call_10_mr[16]; st.param.b64 [private_call_10_ma],%x;st.param.b64 [private_call_10_mb],%y;call.uni (private_call_10_mr),md2asm_gpu_sub_status,(private_call_10_ma,private_call_10_mb);ld.param.b64 %difference,[private_call_10_mr];ld.param.u32 %raised,[private_call_10_mr+8]; }or.b32 %flags,%flags,%raised;
+{ .param .b64 private_call_11_ma; .param .b64 private_call_11_mb; .param .align 8 .b8 private_call_11_mr[16]; st.param.b64 [private_call_11_ma],%difference;st.param.b64 [private_call_11_mb],%scale;call.uni (private_call_11_mr),md2asm_gpu_div_status,(private_call_11_ma,private_call_11_mb);ld.param.b64 %difference,[private_call_11_mr];ld.param.u32 %raised,[private_call_11_mr+8]; }or.b32 %flags,%flags,%raised;
+mov.b64 %value,0;setp.gt.f64 %pred,%difference,0d3abef2d0f5da7dd9;@!%pred bra STORE_WEIGHT;{ .param .b64 private_call_12_pa; .param .b64 private_call_12_pb; .param .align 8 .b8 private_call_12_power_result[32]; st.param.b64 [private_call_12_pa],%difference;st.param.b64 [private_call_12_pb],0x3ff0000000000000;call.uni (private_call_12_power_result),md2asm_gpu_power_nonnegative,(private_call_12_pa,private_call_12_pb);ld.param.b64 %value,[private_call_12_power_result];ld.param.u32 %raised,[private_call_12_power_result+8];ld.param.u32 %rt,[private_call_12_power_result+12];ld.param.u64 %increment,[private_call_12_power_result+16];ld.param.u64 %wideIncrement,[private_call_12_power_result+24]; }add.u64 %fastCalls,%fastCalls,%increment;add.u64 %wideCalls,%wideCalls,%wideIncrement;or.b32 %flags,%flags,%raised;cvt.u64.u32 %newEvent,%rt;setp.ne.u32 %pred,%rt,0;@%pred mov.u64 %event,%newEvent;mul.lo.u32 %serial,%field,86;add.u32 %serial,%serial,%block;mul.lo.u32 %serial,%serial,19;div.u32 %position,%cell,24;add.u32 %serial,%serial,%position;mul.lo.u32 %serial,%serial,24;add.u32 %serial,%serial,%row;add.u32 %serial,%serial,1;cvt.u64.u32 %ordinal,%serial;@%pred mov.u64 %lastOrdinal,%ordinal;add.u64 %ptr,%pressure,%offset;ld.global.b64 %y,[%ptr];ld.global.b64 %z,[%ptr+192];
+{ .param .b64 private_call_13_ma; .param .b64 private_call_13_mb; .param .align 8 .b8 private_call_13_mr[16]; st.param.b64 [private_call_13_ma],%z;st.param.b64 [private_call_13_mb],%y;call.uni (private_call_13_mr),md2asm_gpu_sub_status,(private_call_13_ma,private_call_13_mb);ld.param.b64 %thickness,[private_call_13_mr];ld.param.u32 %raised,[private_call_13_mr+8]; }or.b32 %flags,%flags,%raised;
+mul.wide.u32 %tmp,%block,192;mul.wide.u32 %offset2,%row,8;add.u64 %tmp,%tmp,%offset2;add.u64 %ptr,%gaussian,%tmp;ld.global.b64 %y,[%ptr];
+{ .param .b64 private_call_14_ma; .param .b64 private_call_14_mb; .param .align 8 .b8 private_call_14_mr[16]; st.param.b64 [private_call_14_ma],%y;st.param.b64 [private_call_14_mb],%thickness;call.uni (private_call_14_mr),md2asm_gpu_mul_status,(private_call_14_ma,private_call_14_mb);ld.param.b64 %weighted,[private_call_14_mr];ld.param.u32 %raised,[private_call_14_mr+8]; }or.b32 %flags,%flags,%raised;
+abs.f64 %weighted,%weighted;
+{ .param .b64 private_call_15_ma; .param .b64 private_call_15_mb; .param .align 8 .b8 private_call_15_mr[16]; st.param.b64 [private_call_15_ma],%value;st.param.b64 [private_call_15_mb],%weighted;call.uni (private_call_15_mr),md2asm_gpu_mul_status,(private_call_15_ma,private_call_15_mb);ld.param.b64 %value,[private_call_15_mr];ld.param.u32 %raised,[private_call_15_mr+8]; }or.b32 %flags,%flags,%raised;
+{ .param .b64 private_call_16_ma; .param .b64 private_call_16_mb; .param .align 8 .b8 private_call_16_mr[16]; st.param.b64 [private_call_16_ma],%value;st.param.b64 [private_call_16_mb],%x;call.uni (private_call_16_mr),md2asm_gpu_mul_status,(private_call_16_ma,private_call_16_mb);ld.param.b64 %value,[private_call_16_mr];ld.param.u32 %raised,[private_call_16_mr+8]; }or.b32 %flags,%flags,%raised;
+STORE_WEIGHT:mul.lo.u32 %i,%block,5;add.u32 %i,%i,%field;mul.wide.u32 %tmp,%i,3648;add.u64 %ptr,%W11,%tmp;add.u64 %ptr,%ptr,%offset;st.global.b64 [%ptr],%value;add.u64 %ptr,%W5,%offset;st.global.b64 [%ptr],%value;
+WEIGHT_CELL_NEXT:add.u32 %cell,%cell,32;setp.lt.u32 %pred,%cell,456;@%pred bra WEIGHT_CELL;bar.sync 0;
+{ .param .u64 private_call_17_ca; .param .u64 private_call_17_cc; .param .u64 private_call_17_cr; .param .u64 private_call_17_cm; .param .u64 private_call_17_cw; .param .u64 private_call_17_cx; .param .u32 private_call_17_ck; .param .u32 private_call_17_cb; .param .u32 private_call_17_cf; .param .u64 private_call_17_cs; .param .u64 private_call_17_cd; .param .u64 private_call_17_cp; .param .u32 private_call_17_cn; .param .u32 private_call_17_co; .param .u64 private_call_17_ce; .param .u64 private_call_17_cmax; .param .align 8 .b8 private_call_17_returned[16]; st.param.u64 [private_call_17_ca],%args;st.param.u64 [private_call_17_cc],%ctx;st.param.u64 [private_call_17_cr],%rec;st.param.u64 [private_call_17_cm],%blockBase;st.param.u64 [private_call_17_cw],%work;st.param.u64 [private_call_17_cx],%extra;st.param.u32 [private_call_17_ck],2;st.param.u32 [private_call_17_cb],%block;st.param.u32 [private_call_17_cf],%field;st.param.u64 [private_call_17_cs],%W5;st.param.u64 [private_call_17_cd],%W7;st.param.u64 [private_call_17_cp],%pressure;st.param.u32 [private_call_17_cn],0;st.param.u32 [private_call_17_co],0;st.param.u64 [private_call_17_ce],0;st.param.u64 [private_call_17_cmax],%maximumOutput;call.uni (private_call_17_returned),openifs_trmfixers_block_child_call,(private_call_17_ca,private_call_17_cc,private_call_17_cr,private_call_17_cm,private_call_17_cw,private_call_17_cx,private_call_17_ck,private_call_17_cb,private_call_17_cf,private_call_17_cs,private_call_17_cd,private_call_17_cp,private_call_17_cn,private_call_17_co,private_call_17_ce,private_call_17_cmax);ld.param.u32 %raised,[private_call_17_returned];ld.param.u32 %code,[private_call_17_returned+4];ld.param.u64 %newEvent,[private_call_17_returned+8]; }or.b32 %flags,%flags,%raised;mov.u32 %error,%code;setp.ne.u32 %check,%code,0;@%check bra PRIVATE_REFUSE;
+mul.lo.u32 %i,%block,5;add.u32 %i,%i,%field;mul.wide.u32 %offset,%i,192;add.u64 %destination,%W13,%offset;mov.u32 %row,%lane;setp.ge.u32 %check,%row,%last;@%check bra PACK_WEIGHT_DONE;
+PACK_WEIGHT:mul.wide.u32 %offset,%row,8;add.u64 %ptr,%W7,3648;add.u64 %ptr,%ptr,%offset;ld.global.b64 %value,[%ptr];add.u64 %ptr,%destination,%offset;st.global.b64 [%ptr],%value;
+PACK_WEIGHT_DONE:bar.sync 0;add.u32 %field,%field,1;setp.lt.u32 %check,%field,5;@%check bra WEIGHT_FIELD;bra JOIN_BLOCK;
+WEIGHT_NORM:
+ld.global.u64 %word,[%head+48];setp.ne.u64 %check,%word,4;@%check bra PUBLIC_REFUSE;
+setp.ne.u32 %check,%lane,0;@%check bra WEIGHT_SCAN_DONE;
+
+mov.u32 %i,0;mov.u32 %bad,0;
+SCAN_WEIGHT:mul.wide.u32 %offset,%i,32768;add.u64 %ptr,%base,7051136;add.u64 %ptr,%ptr,%offset;ld.global.u64 %word,[%ptr+29160];setp.ne.u64 %check,%word,1;selp.u32 %rt,1,0,%check;or.b32 %bad,%bad,%rt;ld.global.u32 %rt,[%ptr+1024];or.b32 %bad,%bad,%rt;add.u32 %i,%i,1;setp.lt.u32 %check,%i,86;@%check bra SCAN_WEIGHT;
+setp.eq.u32 %check,%bad,0;@%check bra SCAN_WEIGHT_DONE;st.global.u64 [%head+8],1;st.global.u64 [%head+104],15625;
+SCAN_WEIGHT_DONE:
+
+
+mov.u64 %maximumOrdinal,0;mov.u64 %lastEvent,0;mov.u32 %i,0;
+EVENT_WEIGHT:mul.wide.u32 %offset,%i,32768;add.u64 %ptr,%base,7052224;add.u64 %ptr,%ptr,%offset;ld.global.u64 %word,[%ptr+16];setp.le.u64 %check,%word,%maximumOrdinal;@%check bra EVENT_WEIGHT_NEXT;mov.u64 %maximumOrdinal,%word;ld.global.u64 %lastEvent,[%ptr+8];
+EVENT_WEIGHT_NEXT:add.u32 %i,%i,1;setp.lt.u32 %check,%i,86;@%check bra EVENT_WEIGHT;setp.eq.u64 %check,%maximumOrdinal,0;@%check bra EVENT_WEIGHT_DONE;st.global.u64 [%head+72],%lastEvent;
+EVENT_WEIGHT_DONE:
+
+WEIGHT_SCAN_DONE:mov.u32 %stop,0;setp.ne.u32 %check,%lane,0;@%check bra WEIGHT_BROADCAST;ld.global.u64 %word,[%head+8];setp.ne.u64 %check,%word,0;selp.u32 %stop,1,0,%check;
+WEIGHT_BROADCAST:shfl.sync.idx.b32 %stop,%stop,0,31,0xffffffff;setp.ne.u32 %check,%stop,0;@%check ret;
+add.u64 %maximumOutput,%blockBase,23424;mov.u32 %block,0;mov.u32 %field,0;ld.global.u64 %event,[%head+72];
+{ .param .u64 private_call_18_ca; .param .u64 private_call_18_cc; .param .u64 private_call_18_cr; .param .u64 private_call_18_cm; .param .u64 private_call_18_cw; .param .u64 private_call_18_cx; .param .u32 private_call_18_ck; .param .u32 private_call_18_cb; .param .u32 private_call_18_cf; .param .u64 private_call_18_cs; .param .u64 private_call_18_cd; .param .u64 private_call_18_cp; .param .u32 private_call_18_cn; .param .u32 private_call_18_co; .param .u64 private_call_18_ce; .param .u64 private_call_18_cmax; .param .align 8 .b8 private_call_18_returned[16]; st.param.u64 [private_call_18_ca],%args;st.param.u64 [private_call_18_cc],%ctx;st.param.u64 [private_call_18_cr],%rec;st.param.u64 [private_call_18_cm],%scratch;st.param.u64 [private_call_18_cw],%work;st.param.u64 [private_call_18_cx],%extra;st.param.u32 [private_call_18_ck],3;st.param.u32 [private_call_18_cb],%block;st.param.u32 [private_call_18_cf],%field;st.param.u64 [private_call_18_cs],%W13;st.param.u64 [private_call_18_cd],%weightNorms;st.param.u64 [private_call_18_cp],0;st.param.u32 [private_call_18_cn],5;st.param.u32 [private_call_18_co],0;st.param.u64 [private_call_18_ce],%event;st.param.u64 [private_call_18_cmax],%maximumOutput;call.uni (private_call_18_returned),openifs_trmfixers_block_child_call,(private_call_18_ca,private_call_18_cc,private_call_18_cr,private_call_18_cm,private_call_18_cw,private_call_18_cx,private_call_18_ck,private_call_18_cb,private_call_18_cf,private_call_18_cs,private_call_18_cd,private_call_18_cp,private_call_18_cn,private_call_18_co,private_call_18_ce,private_call_18_cmax);ld.param.u32 %raised,[private_call_18_returned];ld.param.u32 %code,[private_call_18_returned+4];ld.param.u64 %newEvent,[private_call_18_returned+8]; }or.b32 %flags,%flags,%raised;mov.u64 %event,%newEvent;mov.u32 %error,%code;setp.ne.u32 %check,%code,0;@%check bra PRIVATE_REFUSE;
+setp.ne.u32 %check,%lane,0;@%check ret;st.global.u64 [%head+72],%event;mov.u32 %field,0;
+LAMBDA_FIELD:
+mul.wide.u32 %offset,%field,24;add.u64 %ptr,%weightNorms,%offset;ld.global.b64 %x,[%ptr];max.f64 %y,%x,0d3abef2d0f5da7dd9;mul.wide.u32 %offset,%field,8;add.u64 %ptr,%deltas,%offset;ld.global.b64 %x,[%ptr];
+{ .param .b64 private_call_19_ma; .param .b64 private_call_19_mb; .param .align 8 .b8 private_call_19_mr[16]; st.param.b64 [private_call_19_ma],%x;st.param.b64 [private_call_19_mb],%y;call.uni (private_call_19_mr),md2asm_gpu_div_status,(private_call_19_ma,private_call_19_mb);ld.param.b64 %lambda,[private_call_19_mr];ld.param.u32 %raised,[private_call_19_mr+8]; }or.b32 %flags,%flags,%raised;
+add.u64 %ptr,%lambdas,%offset;st.global.b64 [%ptr],%lambda;
+add.u32 %field,%field,1;setp.lt.u32 %check,%field,5;@%check bra LAMBDA_FIELD;atom.global.or.b32 %rt,[%head+64],%flags;st.global.u64 [%head+48],6;ret;
+LIMITER:
+ld.global.u64 %word,[%head+48];setp.ne.u64 %check,%word,6;@%check bra PUBLIC_REFUSE;
+add.u64 %W4,%blockBase,1152;
+add.u64 %W5,%blockBase,4800;
+add.u64 %W6,%blockBase,8448;
+add.u64 %W7,%blockBase,12288;
+add.u64 %W8,%blockBase,16128;
+add.u64 %W9,%blockBase,19776;
+add.u64 %W10,%blockBase,23424;
+add.u64 %maximumOutput,%blockBase,23424;
+mov.u32 %markerStage,7;mov.u32 %field,0;
+LIMIT_FIELD:mul.wide.u32 %offset,%field,8;add.u64 %ptr,%lambdas,%offset;ld.global.b64 %lambda,[%ptr];
+mul.wide.u32 %offset,%field,368;add.u64 %ptr,%arg4,%offset;ld.global.u32 %plane,[%ptr+4064];sub.u32 %plane,%plane,1;mul.lo.u32 %plane,%plane,21;add.u32 %plane,%plane,63;mul.wide.u32 %offset,%plane,24808;add.u64 %source,%arg8,%offset;
+{ .param .u64 private_call_20_ca; .param .u64 private_call_20_cc; .param .u64 private_call_20_cr; .param .u64 private_call_20_cm; .param .u64 private_call_20_cw; .param .u64 private_call_20_cx; .param .u32 private_call_20_ck; .param .u32 private_call_20_cb; .param .u32 private_call_20_cf; .param .u64 private_call_20_cs; .param .u64 private_call_20_cd; .param .u64 private_call_20_cp; .param .u32 private_call_20_cn; .param .u32 private_call_20_co; .param .u64 private_call_20_ce; .param .u64 private_call_20_cmax; .param .align 8 .b8 private_call_20_returned[16]; st.param.u64 [private_call_20_ca],%args;st.param.u64 [private_call_20_cc],%ctx;st.param.u64 [private_call_20_cr],%rec;st.param.u64 [private_call_20_cm],%blockBase;st.param.u64 [private_call_20_cw],%work;st.param.u64 [private_call_20_cx],%extra;st.param.u32 [private_call_20_ck],5;st.param.u32 [private_call_20_cb],%block;st.param.u32 [private_call_20_cf],%field;st.param.u64 [private_call_20_cs],%source;st.param.u64 [private_call_20_cd],%W9;st.param.u64 [private_call_20_cp],0;st.param.u32 [private_call_20_cn],0;st.param.u32 [private_call_20_co],0;st.param.u64 [private_call_20_ce],0;st.param.u64 [private_call_20_cmax],%maximumOutput;call.uni (private_call_20_returned),openifs_trmfixers_block_child_call,(private_call_20_ca,private_call_20_cc,private_call_20_cr,private_call_20_cm,private_call_20_cw,private_call_20_cx,private_call_20_ck,private_call_20_cb,private_call_20_cf,private_call_20_cs,private_call_20_cd,private_call_20_cp,private_call_20_cn,private_call_20_co,private_call_20_ce,private_call_20_cmax);ld.param.u32 %raised,[private_call_20_returned];ld.param.u32 %code,[private_call_20_returned+4];ld.param.u64 %newEvent,[private_call_20_returned+8]; }or.b32 %flags,%flags,%raised;mov.u32 %error,%code;setp.ne.u32 %check,%code,0;@%check bra PRIVATE_REFUSE;
+mul.wide.u32 %offset,%block,21888;mul.wide.u32 %tmp,%field,3648;add.u64 %offset,%offset,%tmp;add.u64 %destination,%arg13,%offset;mul.lo.u32 %i,%block,5;add.u32 %i,%i,%field;mul.wide.u32 %tmp,%i,3648;add.u64 %pressure,%W11,%tmp;mov.u32 %cell,%lane;
+LIMIT_CELL:rem.u32 %row,%cell,24;setp.ge.u32 %pred,%row,%last;@%pred bra LIMIT_CELL_NEXT;mul.wide.u32 %offset,%cell,8;add.u64 %ptr,%pressure,%offset;ld.global.b64 %y,[%ptr];neg.f64 %x,%lambda;
+{ .param .b64 private_call_21_ma; .param .b64 private_call_21_mb; .param .align 8 .b8 private_call_21_mr[16]; st.param.b64 [private_call_21_ma],%x;st.param.b64 [private_call_21_mb],%y;call.uni (private_call_21_mr),md2asm_gpu_mul_status,(private_call_21_ma,private_call_21_mb);ld.param.b64 %change,[private_call_21_mr];ld.param.u32 %raised,[private_call_21_mr+8]; }or.b32 %flags,%flags,%raised;
+add.u64 %ptr,%destination,%offset;ld.global.b64 %x,[%ptr];
+{ .param .b64 private_call_22_ma; .param .b64 private_call_22_mb; .param .align 8 .b8 private_call_22_mr[16]; st.param.b64 [private_call_22_ma],%x;st.param.b64 [private_call_22_mb],%change;call.uni (private_call_22_mr),md2asm_gpu_add_status,(private_call_22_ma,private_call_22_mb);ld.param.b64 %value,[private_call_22_mr];ld.param.u32 %raised,[private_call_22_mr+8]; }or.b32 %flags,%flags,%raised;
+add.u64 %ptr,%W9,%offset;ld.global.b64 %minimum,[%ptr];setp.lt.f64 %pred,%value,%minimum;@!%pred bra LIMIT_UPPER;setp.lt.f64 %pred,%change,0d0000000000000000;@!%pred bra LIMIT_UPPER;mov.b64 %value,%minimum;bra LIMIT_STORE;
+LIMIT_UPPER:add.u64 %ptr,%W10,%offset;ld.global.b64 %maximum,[%ptr];setp.gt.f64 %pred,%value,%maximum;@!%pred bra LIMIT_STORE;setp.gt.f64 %pred,%change,0d0000000000000000;@%pred mov.b64 %value,%maximum;
+LIMIT_STORE:add.u64 %ptr,%destination,%offset;st.global.b64 [%ptr],%value;
+LIMIT_CELL_NEXT:add.u32 %cell,%cell,32;setp.lt.u32 %pred,%cell,456;@%pred bra LIMIT_CELL;bar.sync 0;add.u32 %field,%field,1;setp.lt.u32 %check,%field,5;@%check bra LIMIT_FIELD;bra JOIN_BLOCK;
+
+JOIN_BLOCK:
+st.global.u32 [%effect],%flags;st.global.u32 [%effect+4],0;st.global.u64 [%effect+8],%event;st.global.u64 [%effect+16],%lastOrdinal;st.global.u64 [%effect+24],%expCalls;st.global.u64 [%effect+32],%fastCalls;st.global.u64 [%effect+40],%wideCalls;st.global.u64 [%effect+48],0;st.global.u64 [%effect+56],0;
+bar.sync 0;setp.ne.u32 %check,%lane,0;@%check ret;
+mov.u32 %i,0;mov.u32 %flags,0;mov.u64 %event,0;mov.u64 %lastOrdinal,0;mov.u64 %expCalls,0;mov.u64 %fastCalls,0;mov.u64 %wideCalls,0;
+JOIN_LANE:mul.wide.u32 %offset,%i,64;add.u64 %ptr,%blockBase,27072;add.u64 %ptr,%ptr,%offset;ld.global.u32 %raised,[%ptr];or.b32 %flags,%flags,%raised;ld.global.u64 %word,[%ptr+24];add.u64 %expCalls,%expCalls,%word;ld.global.u64 %word,[%ptr+32];add.u64 %fastCalls,%fastCalls,%word;ld.global.u64 %word,[%ptr+40];add.u64 %wideCalls,%wideCalls,%word;ld.global.u64 %word,[%ptr+16];setp.le.u64 %check,%word,%lastOrdinal;@%check bra JOIN_LANE_NEXT;mov.u64 %lastOrdinal,%word;ld.global.u64 %event,[%ptr+8];
+JOIN_LANE_NEXT:add.u32 %i,%i,1;setp.lt.u32 %check,%i,32;@%check bra JOIN_LANE;
+atom.global.or.b32 %rt,[%head+64],%flags;atom.global.add.u64 %word,[%head+80],%expCalls;atom.global.add.u64 %word,[%head+88],%fastCalls;atom.global.add.u64 %word,[%head+96],%wideCalls;
+add.u64 %ptr,%blockBase,1088;st.global.u64 [%ptr+8],%event;st.global.u64 [%ptr+16],%lastOrdinal;
+mul.wide.u32 %offset,%markerStage,8;add.u64 %ptr,%blockBase,29120;add.u64 %ptr,%ptr,%offset;membar.gl;st.global.u64 [%ptr],1;ret;
+COMMIT:
+ld.global.u64 %word,[%head+48];setp.ne.u64 %check,%word,6;@%check bra PUBLIC_REFUSE;
+setp.ne.u32 %check,%lane,0;@%check bra COMMIT_SCAN_DONE;
+
+mov.u32 %i,0;mov.u32 %bad,0;
+SCAN_COMMIT:mul.wide.u32 %offset,%i,32768;add.u64 %ptr,%base,7051136;add.u64 %ptr,%ptr,%offset;ld.global.u64 %word,[%ptr+29176];setp.ne.u64 %check,%word,1;selp.u32 %rt,1,0,%check;or.b32 %bad,%bad,%rt;ld.global.u32 %rt,[%ptr+1024];or.b32 %bad,%bad,%rt;add.u32 %i,%i,1;setp.lt.u32 %check,%i,86;@%check bra SCAN_COMMIT;
+setp.eq.u32 %check,%bad,0;@%check bra SCAN_COMMIT_DONE;st.global.u64 [%head+8],1;st.global.u64 [%head+104],15625;
+SCAN_COMMIT_DONE:
+
+COMMIT_SCAN_DONE:mov.u32 %stop,0;setp.ne.u32 %check,%lane,0;@%check bra COMMIT_BROADCAST;ld.global.u64 %word,[%head+8];setp.ne.u64 %check,%word,0;selp.u32 %stop,1,0,%check;
+COMMIT_BROADCAST:shfl.sync.idx.b32 %stop,%stop,0,31,0xffffffff;setp.ne.u32 %check,%stop,0;@%check ret;
+ld.global.u64 %ptr,[%head+16];ld.global.u64 %destination,[%ptr+96];add.u64 %source,%base,5152256;mov.u32 %i,%lane;
+COMMIT_SURFACE:mul.wide.u32 %offset,%i,8;setp.ge.u64 %check,%offset,16512;@%check bra COMMIT_TRACER_BEGIN;add.u64 %ptr,%source,%offset;ld.global.u64 %word,[%ptr];add.u64 %ptr,%destination,%offset;st.global.u64 [%ptr],%word;add.u32 %i,%i,32;bra COMMIT_SURFACE;
+COMMIT_TRACER_BEGIN:ld.global.u64 %ptr,[%head+16];ld.global.u64 %destination,[%ptr+112];add.u64 %source,%base,5168768;mov.u32 %i,%lane;
+COMMIT_TRACER:mul.wide.u32 %offset,%i,8;setp.ge.u64 %check,%offset,1882368;@%check bra COMMIT_EFFECTS;add.u64 %ptr,%source,%offset;ld.global.u64 %word,[%ptr];add.u64 %ptr,%destination,%offset;st.global.u64 [%ptr],%word;add.u32 %i,%i,32;bra COMMIT_TRACER;
+COMMIT_EFFECTS:bar.sync 0;setp.ne.u32 %check,%lane,0;@%check ret;
+
+add.u64 %ptr,%head,1536;ld.global.u64 %owner,[%ptr];setp.eq.u64 %check,%owner,0;@%check bra COMMIT_EFFECT_0_DONE;ld.global.u64 %ownerWork,[%ptr+8];ld.global.u64 %word,[%ownerWork];
+ld.global.u64 %baseline,[%ptr+24];sub.u64 %word,%word,%baseline;
+ld.global.u64 %increment,[%head+80];add.u64 %word,%word,%increment;
+ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%word;st.global.u64 [%owner],%previous;
+COMMIT_EFFECT_0_DONE:
+add.u64 %ptr,%head,1568;ld.global.u64 %owner,[%ptr];setp.eq.u64 %check,%owner,0;@%check bra COMMIT_EFFECT_1_DONE;ld.global.u64 %ownerWork,[%ptr+8];ld.global.u64 %word,[%ownerWork];
+ld.global.u64 %baseline,[%ptr+24];sub.u64 %word,%word,%baseline;
+ld.global.u64 %increment,[%head+88];add.u64 %word,%word,%increment;
+ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%word;st.global.u64 [%owner],%previous;
+COMMIT_EFFECT_1_DONE:
+add.u64 %ptr,%head,1600;ld.global.u64 %owner,[%ptr];setp.eq.u64 %check,%owner,0;@%check bra COMMIT_EFFECT_2_DONE;ld.global.u64 %ownerWork,[%ptr+8];ld.global.u64 %word,[%ownerWork];
+ld.global.u64 %baseline,[%ptr+24];sub.u64 %word,%word,%baseline;
+ld.global.u64 %increment,[%head+96];add.u64 %word,%word,%increment;
+ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%word;st.global.u64 [%owner],%previous;
+COMMIT_EFFECT_2_DONE:
+add.u64 %ptr,%head,1632;ld.global.u64 %owner,[%ptr];setp.eq.u64 %check,%owner,0;@%check bra COMMIT_EFFECT_3_DONE;ld.global.u64 %ownerWork,[%ptr+8];ld.global.u64 %word,[%ownerWork];
+cvt.u32.u64 %rt,%word;st.global.u32 [%owner],%rt;
+COMMIT_EFFECT_3_DONE:
+add.u64 %ptr,%head,1664;ld.global.u64 %owner,[%ptr];setp.eq.u64 %check,%owner,0;@%check bra COMMIT_EFFECT_4_DONE;ld.global.u64 %ownerWork,[%ptr+8];ld.global.u64 %word,[%ownerWork];
+cvt.u32.u64 %rt,%word;st.global.u32 [%owner],%rt;
+COMMIT_EFFECT_4_DONE:
+add.u64 %ptr,%head,1696;ld.global.u64 %owner,[%ptr];setp.eq.u64 %check,%owner,0;@%check bra COMMIT_EFFECT_5_DONE;ld.global.u64 %ownerWork,[%ptr+8];ld.global.u64 %word,[%ownerWork];
+ld.global.u64 %baseline,[%ptr+24];sub.u64 %word,%word,%baseline;
+ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%word;st.global.u64 [%owner],%previous;
+COMMIT_EFFECT_5_DONE:
+ld.global.u32 %flags,[%head+64];atom.global.or.b32 %rt,[%public+8],%flags;ld.global.u64 %event,[%head+72];st.global.u64 [%public+16],%event;membar.gl;st.global.u64 [%head+48],8;st.global.u64 [%head+56],1;ret;
+
+PRIVATE_REFUSE:
+setp.ne.u32 %check,%lane,0;@%check ret;mov.u64 %word,1;atom.global.exch.b64 %saved,[%head+8],%word;cvt.u64.u32 %word,%error;st.global.u64 [%head+104],%word;and.b32 %rt,%stage,1;setp.eq.u32 %check,%rt,0;@%check ret;st.global.u32 [%blockBase+1024],%error;ret;
+PUBLIC_REFUSE:
+mov.u32 %special,%ctaid.x;mov.u32 %rt,%ctaid.y;or.b32 %special,%special,%rt;mov.u32 %rt,%ctaid.z;or.b32 %special,%special,%rt;mov.u32 %rt,%tid.x;or.b32 %special,%special,%rt;mov.u32 %rt,%tid.y;or.b32 %special,%special,%rt;mov.u32 %rt,%tid.z;or.b32 %special,%special,%rt;setp.ne.u32 %check,%special,0;@%check ret;st.global.u32 [%public],%error;ret;
+}
+
+.visible .entry openifs_trmfixers_parallel_prepare(.param .u64 original_vector,.param .u64 context){.reg .u64 %a,%c;.param .u64 aa,ac;.param .u32 astage;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];{ .param .u64 private_call_23_aa; .param .u64 private_call_23_ac; .param .u32 private_call_23_astage; st.param.u64 [private_call_23_aa],%a;st.param.u64 [private_call_23_ac],%c;st.param.u32 [private_call_23_astage],0;call.uni openifs_trmfixers_parallel_stage,(private_call_23_aa,private_call_23_ac,private_call_23_astage); }ret;}
+.visible .entry openifs_trmfixers_parallel_pressure_exp(.param .u64 original_vector,.param .u64 context){.reg .u64 %a,%c;.param .u64 aa,ac;.param .u32 astage;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];{ .param .u64 private_call_24_aa; .param .u64 private_call_24_ac; .param .u32 private_call_24_astage; st.param.u64 [private_call_24_aa],%a;st.param.u64 [private_call_24_ac],%c;st.param.u32 [private_call_24_astage],1;call.uni openifs_trmfixers_parallel_stage,(private_call_24_aa,private_call_24_ac,private_call_24_astage); }ret;}
+.visible .entry openifs_trmfixers_parallel_pressure_correction(.param .u64 original_vector,.param .u64 context){.reg .u64 %a,%c;.param .u64 aa,ac;.param .u32 astage;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];{ .param .u64 private_call_25_aa; .param .u64 private_call_25_ac; .param .u32 private_call_25_astage; st.param.u64 [private_call_25_aa],%a;st.param.u64 [private_call_25_ac],%c;st.param.u32 [private_call_25_astage],2;call.uni openifs_trmfixers_parallel_stage,(private_call_25_aa,private_call_25_ac,private_call_25_astage); }ret;}
+.visible .entry openifs_trmfixers_parallel_boundary_mass(.param .u64 original_vector,.param .u64 context){.reg .u64 %a,%c;.param .u64 aa,ac;.param .u32 astage;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];{ .param .u64 private_call_26_aa; .param .u64 private_call_26_ac; .param .u32 private_call_26_astage; st.param.u64 [private_call_26_aa],%a;st.param.u64 [private_call_26_ac],%c;st.param.u32 [private_call_26_astage],3;call.uni openifs_trmfixers_parallel_stage,(private_call_26_aa,private_call_26_ac,private_call_26_astage); }ret;}
+.visible .entry openifs_trmfixers_parallel_mass_norm(.param .u64 original_vector,.param .u64 context){.reg .u64 %a,%c;.param .u64 aa,ac;.param .u32 astage;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];{ .param .u64 private_call_27_aa; .param .u64 private_call_27_ac; .param .u32 private_call_27_astage; st.param.u64 [private_call_27_aa],%a;st.param.u64 [private_call_27_ac],%c;st.param.u32 [private_call_27_astage],4;call.uni openifs_trmfixers_parallel_stage,(private_call_27_aa,private_call_27_ac,private_call_27_astage); }ret;}
+.visible .entry openifs_trmfixers_parallel_weights(.param .u64 original_vector,.param .u64 context){.reg .u64 %a,%c;.param .u64 aa,ac;.param .u32 astage;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];{ .param .u64 private_call_28_aa; .param .u64 private_call_28_ac; .param .u32 private_call_28_astage; st.param.u64 [private_call_28_aa],%a;st.param.u64 [private_call_28_ac],%c;st.param.u32 [private_call_28_astage],5;call.uni openifs_trmfixers_parallel_stage,(private_call_28_aa,private_call_28_ac,private_call_28_astage); }ret;}
+.visible .entry openifs_trmfixers_parallel_weight_norm(.param .u64 original_vector,.param .u64 context){.reg .u64 %a,%c;.param .u64 aa,ac;.param .u32 astage;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];{ .param .u64 private_call_29_aa; .param .u64 private_call_29_ac; .param .u32 private_call_29_astage; st.param.u64 [private_call_29_aa],%a;st.param.u64 [private_call_29_ac],%c;st.param.u32 [private_call_29_astage],6;call.uni openifs_trmfixers_parallel_stage,(private_call_29_aa,private_call_29_ac,private_call_29_astage); }ret;}
+.visible .entry openifs_trmfixers_parallel_limiter(.param .u64 original_vector,.param .u64 context){.reg .u64 %a,%c;.param .u64 aa,ac;.param .u32 astage;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];{ .param .u64 private_call_30_aa; .param .u64 private_call_30_ac; .param .u32 private_call_30_astage; st.param.u64 [private_call_30_aa],%a;st.param.u64 [private_call_30_ac],%c;st.param.u32 [private_call_30_astage],7;call.uni openifs_trmfixers_parallel_stage,(private_call_30_aa,private_call_30_ac,private_call_30_astage); }ret;}
+.visible .entry openifs_trmfixers_parallel_commit(.param .u64 original_vector,.param .u64 context){.reg .u64 %a,%c;.param .u64 aa,ac;.param .u32 astage;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];{ .param .u64 private_call_31_aa; .param .u64 private_call_31_ac; .param .u32 private_call_31_astage; st.param.u64 [private_call_31_aa],%a;st.param.u64 [private_call_31_ac],%c;st.param.u32 [private_call_31_astage],8;call.uni openifs_trmfixers_parallel_stage,(private_call_31_aa,private_call_31_ac,private_call_31_astage); }ret;}

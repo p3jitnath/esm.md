@@ -1,5 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/transport/tracer_mass_correction.md.
-// Original ABI storage/launch draft from original_host_contract.md revision1.
+// Contract: skills/md2asm-gpu/references/openifs/transport/parallel_tracer_mass_correction.md.
 .text
 .p2align 2
 .macro CONST reg,value
@@ -115,6 +114,102 @@
  bl md2asm_openifs_gpu_launch
  ldr x18,[sp,#224]
  cbnz w0,.Ldraft_failure
+ adrp x0,.Ltrm_pressure_exp
+ add x0,x0,:lo12:.Ltrm_pressure_exp
+ mov x1,x19
+ mov x2,x20
+ mov w3,#86
+ mov w4,#32
+ mov w5,#0
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#224]
+ cbnz w0,.Ldraft_failure
+ adrp x0,.Ltrm_pressure_correction
+ add x0,x0,:lo12:.Ltrm_pressure_correction
+ mov x1,x19
+ mov x2,x20
+ mov w3,#1
+ mov w4,#1
+ mov w5,#0
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#224]
+ cbnz w0,.Ldraft_failure
+ adrp x0,.Ltrm_boundary_mass
+ add x0,x0,:lo12:.Ltrm_boundary_mass
+ mov x1,x19
+ mov x2,x20
+ mov w3,#86
+ mov w4,#32
+ mov w5,#0
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#224]
+ cbnz w0,.Ldraft_failure
+ adrp x0,.Ltrm_mass_norm
+ add x0,x0,:lo12:.Ltrm_mass_norm
+ mov x1,x19
+ mov x2,x20
+ mov w3,#1
+ mov w4,#32
+ mov w5,#0
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#224]
+ cbnz w0,.Ldraft_failure
+ adrp x0,.Ltrm_weights
+ add x0,x0,:lo12:.Ltrm_weights
+ mov x1,x19
+ mov x2,x20
+ mov w3,#86
+ mov w4,#32
+ mov w5,#0
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#224]
+ cbnz w0,.Ldraft_failure
+ adrp x0,.Ltrm_weight_norm
+ add x0,x0,:lo12:.Ltrm_weight_norm
+ mov x1,x19
+ mov x2,x20
+ mov w3,#1
+ mov w4,#32
+ mov w5,#0
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#224]
+ cbnz w0,.Ldraft_failure
+ adrp x0,.Ltrm_limiter
+ add x0,x0,:lo12:.Ltrm_limiter
+ mov x1,x19
+ mov x2,x20
+ mov w3,#86
+ mov w4,#32
+ mov w5,#0
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#224]
+ cbnz w0,.Ldraft_failure
+ adrp x0,.Ltrm_commit
+ add x0,x0,:lo12:.Ltrm_commit
+ mov x1,x19
+ mov x2,x20
+ mov w3,#1
+ mov w4,#32
+ mov w5,#0
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#224]
+ cbnz w0,.Ldraft_failure
+ ldr x9,[x20,#32]
+ CONST x10,2574208
+ add x9,x9,x10
+ ldr x9,[x9,#8]
+ cbz x9,.Ltrm_no_fallback\@
+ adrp x0,.Ltrm_serial
+ add x0,x0,:lo12:.Ltrm_serial
+ mov x1,x19
+ mov x2,x20
+ mov w3,#1
+ mov w4,#1
+ mov w5,#0
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#224]
+ cbnz w0,.Ldraft_failure
+.Ltrm_no_fallback\@:
  .if \release
  ldr x0,[x20,#32]
  cbz x0,.Lreleased\@
@@ -227,11 +322,23 @@ BEGIN gpu_trmfixers,16
  str x9,[x21,#136]
  mov x9,#4
  str x9,[x21,#144]
- CONST x25,2574192
+ CONST x25,9869184
  ALLOC x25
- FINISH gpu_trmfixers,openifs_trmfixers_ptx,gpu_trmfixers_launches,1
+ FINISH gpu_trmfixers,openifs_trmfixers_parallel_prepare,gpu_trmfixers_launches,1
  ALIAS md2asm_trmfixers_address_r2_7358525,gpu_trmfixers
 .Ldraft_failure:
  bl abort
  brk #0
+
+.pushsection .rodata
+.Ltrm_pressure_exp: .asciz "openifs_trmfixers_parallel_pressure_exp"
+.Ltrm_pressure_correction: .asciz "openifs_trmfixers_parallel_pressure_correction"
+.Ltrm_boundary_mass: .asciz "openifs_trmfixers_parallel_boundary_mass"
+.Ltrm_mass_norm: .asciz "openifs_trmfixers_parallel_mass_norm"
+.Ltrm_weights: .asciz "openifs_trmfixers_parallel_weights"
+.Ltrm_weight_norm: .asciz "openifs_trmfixers_parallel_weight_norm"
+.Ltrm_limiter: .asciz "openifs_trmfixers_parallel_limiter"
+.Ltrm_commit: .asciz "openifs_trmfixers_parallel_commit"
+.Ltrm_serial: .asciz "openifs_trmfixers_ptx"
+.popsection
 .section .note.GNU-stack,"",%progbits

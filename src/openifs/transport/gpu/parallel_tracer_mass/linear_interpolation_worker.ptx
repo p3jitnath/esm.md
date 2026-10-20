@@ -1,0 +1,14 @@
+// Contract: skills/md2asm-gpu/references/openifs/transport/parallel_tracer_mass_correction.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func openifs_laitli_fp64_call_sl_worker(.param .u64 original_vector,.param .u64 context);
+.visible .func openifs_laitli_fp64_trmfixers_worker(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %a,%c;
+ .param .u64 worker_vector,worker_context;
+ ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];
+ st.param.u64 [worker_vector],%a;st.param.u64 [worker_context],%c;
+ call.uni openifs_laitli_fp64_call_sl_worker,(worker_vector,worker_context);
+ bar.sync 0;ret;
+}

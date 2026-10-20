@@ -1,0 +1,149 @@
+// Contract: skills/md2asm-gpu/references/openifs/transport/parallel_tracer_mass_correction.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func openifs_pfixer_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_hybrid_pressure_parent_fp64_trmfixers_worker(.param .u64 a,.param .u64 c);
+.extern .func openifs_gpnorm1_parallel_fields(.param .u64 a,.param .u64 c);
+.extern .func openifs_laitli_fp64_trmfixers_worker(.param .u64 a,.param .u64 c);
+.extern .func openifs_laminmaxint_fp64_trmfixers_worker(.param .u64 a,.param .u64 c);
+.extern .func openifs_pressure_integral_parent_fp64_trmfixers_worker(.param .u64 a,.param .u64 c,.param .u32 kind);
+.extern .func (.param .u32 r) openifs_pfixer_admit(.param .u64 a,.param .u64 c);
+.extern .func (.param .u32 r) openifs_gphpre_admit(.param .u64 a,.param .u64 c);
+.extern .func (.param .u32 r) openifs_gpnorm1_admit(.param .u64 a,.param .u64 c);
+.extern .func (.param .u32 r) openifs_qmfixer_laitli_admit(.param .u64 a,.param .u64 c);
+.visible .func (.param .align 8 .b8 result[16]) openifs_trmfixers_block_child_call(
+ .param .u64 original_vector,.param .u64 original_context,.param .u64 parent_record,.param .u64 metadata,.param .u64 numerical_work,.param .u64 extra_workspace,
+ .param .u32 child_kind,.param .u32 block_index,.param .u32 field_index,.param .u64 source_field,.param .u64 output_field,.param .u64 pressure_field,.param .u32 field_count,.param .u32 admission_only,.param .u64 incoming_event,.param .u64 maximum_output)
+{
+ .reg .u64 %a,%ctx,%pr,%meta,%work,%extra,%src,%dst,%pressure,%event,%v,%c,%r,%ints,%ptr,%ptr2,%offset,%word,%g,%gmv,%gfl,%dyn,%sl,%kl,%ls,%pb,%base,%template,%t,%maximum;
+ .reg .u32 %lane,%kind,%block,%field,%nfields,%admit,%i,%last,%bytes,%error,%flags; .reg .pred %p;
+ .param .u64 ca,cc; .param .u32 ck,ar;
+ ld.param.u64 %a,[original_vector]; ld.param.u64 %ctx,[original_context]; ld.param.u64 %pr,[parent_record]; ld.param.u64 %meta,[metadata]; ld.param.u64 %work,[numerical_work]; ld.param.u64 %extra,[extra_workspace];
+ ld.param.u32 %kind,[child_kind]; ld.param.u32 %block,[block_index]; ld.param.u32 %field,[field_index]; ld.param.u64 %src,[source_field]; ld.param.u64 %dst,[output_field]; ld.param.u64 %pressure,[pressure_field]; ld.param.u32 %nfields,[field_count]; ld.param.u32 %admit,[admission_only]; ld.param.u64 %event,[incoming_event];ld.param.u64 %maximum,[maximum_output];mov.u32 %lane,%tid.x;
+ mov.u32 %error,13063; mov.u32 %flags,0;setp.eq.u32 %p,%kind,0;@%p bra RETURN;setp.ne.u32 %p,%admit,0;@%p bra RETURN; setp.gt.u32 %p,%kind,5; @%p bra RETURN; setp.gt.u32 %p,%block,85; @%p bra RETURN; mov.u32 %error,0;
+ mov.u64 %v,%meta; add.u64 %c,%meta,128; add.u64 %r,%meta,256; add.u64 %ints,%meta,768; mov.u32 %i,0;setp.ne.u32 %p,%lane,0;@%p bra BLOCK_READY;
+CLEAR: cvt.u64.u32 %offset,%i; add.u64 %ptr,%meta,%offset; st.u64 [%ptr],0; add.u32 %i,%i,8; setp.lt.u32 %p,%i,1024; @%p bra CLEAR;
+ st.u32 [%ints],24; st.u32 [%ints+4],19; st.u32 [%ints+8],1; mov.u32 %last,24; setp.eq.u32 %p,%block,85; @%p mov.u32 %last,8; st.u32 [%ints+12],%last; st.u32 [%ints+16],3101; st.u32 [%ints+20],0; st.u32 [%ints+24],20; st.u32 [%ints+28],%nfields;
+ ld.u64 %g,[%a]; ld.u64 %gmv,[%a+8]; ld.u64 %gfl,[%a+32]; ld.u64 %dyn,[%a+40]; ld.u64 %kl,[%a+48]; ld.u64 %ls,[%a+56]; ld.u64 %pb,[%a+64]; ld.u64 %sl,[%a+72];
+ mov.u32 %bytes,256; setp.eq.u32 %p,%kind,0; @%p bra BUILD_PRESSURE; setp.eq.u32 %p,%kind,1; @%p bra BUILD_HYBRID; setp.eq.u32 %p,%kind,2; @%p bra BUILD_INTEGRAL; setp.eq.u32 %p,%kind,3; @%p bra BUILD_NORM; setp.eq.u32 %p,%kind,4; @%p bra BUILD_LINEAR; bra BUILD_BOUNDS;
+BUILD_PRESSURE: mov.u32 %bytes,512; add.u64 %template,%pr,256; add.u64 %base,%r,256;
+
+ mov.u32 %i,0;
+COPY_PRESSURE_TEMPLATE: cvt.u64.u32 %offset,%i; add.u64 %ptr,%template,%offset; ld.u64 %word,[%ptr]; add.u64 %ptr,%base,%offset; st.u64 [%ptr],%word; add.u32 %i,%i,8; setp.lt.u32 %p,%i,256; @%p bra COPY_PRESSURE_TEMPLATE;
+ st.u64 [%v+0],%g; st.u64 [%r+0],17096;
+ st.u64 [%v+8],%gmv; st.u64 [%r+8],1560;
+ st.u64 [%v+16],%gfl; st.u64 [%r+16],1359136;
+ add.u64 %ptr,%dyn,456;
+ st.u64 [%v+24],%ptr; st.u64 [%r+24],4720;
+ st.u64 [%v+32],%work; st.u64 [%r+32],16512;
+ add.u64 %ptr2,%work,16512;
+ st.u64 [%v+40],%ptr2; st.u64 [%r+40],16512;
+ ld.u64 %src,[%a+88];
+ st.u64 [%v+48],%src; st.u64 [%r+48],16512;
+ st.u64 [%r+56],56; bra BUILD_CONTEXT;
+BUILD_HYBRID: add.u64 %template,%pr,512;
+ mov.u32 %i,0;
+COPY_HYBRID_TEMPLATE: cvt.u64.u32 %offset,%i; add.u64 %ptr,%template,%offset; ld.u64 %word,[%ptr]; add.u64 %ptr,%r,%offset; st.u64 [%ptr],%word; add.u32 %i,%i,8; setp.lt.u32 %p,%i,256; @%p bra COPY_HYBRID_TEMPLATE;
+ st.u64 [%v+0],%ints; st.u64 [%r+0],4;
+ add.u64 %ptr,%ints,4;
+ st.u64 [%v+8],%ptr; st.u64 [%r+8],4;
+ add.u64 %ptr,%ints,8;
+ st.u64 [%v+16],%ptr; st.u64 [%r+16],4;
+ add.u64 %ptr,%ints,12;
+ st.u64 [%v+24],%ptr; st.u64 [%r+24],4;
+ ld.u64 %base,[%g+3240];
+ st.u64 [%v+32],%base; st.u64 [%r+32],512;
+ ld.u64 %base,[%g+3264];
+ st.u64 [%v+40],%base; st.u64 [%r+40],216;
+ st.u64 [%v+48],%pressure; st.u64 [%r+48],3840;
+ st.u64 [%v+56],0; st.u64 [%r+56],0;
+ st.u64 [%v+64],0; st.u64 [%r+64],0;
+ st.u64 [%r+168],72; bra BUILD_CONTEXT;
+BUILD_INTEGRAL: mov.u32 %bytes,64;
+ st.u64 [%v+0],%ints;
+ add.u64 %ptr,%ints,8;
+ st.u64 [%v+8],%ptr;
+ add.u64 %ptr,%ints,12;
+ st.u64 [%v+16],%ptr;
+ add.u64 %ptr,%ints,4;
+ st.u64 [%v+24],%ptr;
+ st.u64 [%v+32],%dst;
+ st.u64 [%v+40],%src;
+ st.u64 [%v+48],%pressure;
+ ld.u64 %base,[%pr+128]; st.u64 [%r],%base; st.u64 [%r+8],3840; st.u64 [%r+16],3648; st.u64 [%r+24],3840; st.u64 [%r+32],56; bra BUILD_CONTEXT;
+BUILD_NORM: add.u64 %template,%pr,256;
+ mov.u32 %i,0;
+COPY_NORM_TEMPLATE: cvt.u64.u32 %offset,%i; add.u64 %ptr,%template,%offset; ld.u64 %word,[%ptr]; add.u64 %ptr,%r,%offset; st.u64 [%ptr],%word; add.u32 %i,%i,8; setp.lt.u32 %p,%i,256; @%p bra COPY_NORM_TEMPLATE;
+ st.u64 [%v+0],%g; st.u64 [%r+0],17096;
+ mul.wide.u32 %t,%nfields,16512;
+ st.u64 [%v+8],%src; st.u64 [%r+8],%t;
+ add.u64 %ptr,%ints,28;
+ st.u64 [%v+16],%ptr; st.u64 [%r+16],4;
+ add.u64 %ptr,%ints,20;
+ st.u64 [%v+24],%ptr; st.u64 [%r+24],4;
+ st.u64 [%v+32],0; st.u64 [%r+32],0;
+ mul.wide.u32 %t,%nfields,24;
+ st.u64 [%v+40],%dst; st.u64 [%r+40],%t;
+ st.u64 [%v+48],0; st.u64 [%r+48],56; bra BUILD_CONTEXT;
+BUILD_LINEAR:
+ add.u64 %ptr,%ints,16;
+ st.u64 [%v+0],%ptr; st.u64 [%r+0],4;
+ add.u64 %ptr,%ints,0;
+ st.u64 [%v+8],%ptr; st.u64 [%r+8],4;
+ add.u64 %ptr,%ints,8;
+ st.u64 [%v+16],%ptr; st.u64 [%r+16],4;
+ add.u64 %ptr,%ints,12;
+ st.u64 [%v+24],%ptr; st.u64 [%r+24],4;
+ add.u64 %ptr,%ints,4;
+ st.u64 [%v+32],%ptr; st.u64 [%r+32],4;
+ add.u64 %ptr,%ints,20;
+ st.u64 [%v+40],%ptr; st.u64 [%r+40],4;
+ add.u64 %ptr,%ints,24;
+ st.u64 [%v+48],%ptr; st.u64 [%r+48],4;
+ mul.wide.u32 %offset,%block,43776; add.u64 %base,%ls,%offset; add.u64 %ptr,%base,14592;
+ st.u64 [%v+56],%ptr; st.u64 [%r+56],3648;
+ add.u64 %ptr,%base,3648;
+ st.u64 [%v+64],%ptr; st.u64 [%r+64],7296;
+ mul.wide.u32 %offset,%block,7296; add.u64 %ptr,%kl,%offset; add.u64 %ptr,%ptr,1824;
+ st.u64 [%v+72],%ptr; st.u64 [%r+72],3648;
+ add.u64 %ptr,%base,18240;
+ st.u64 [%v+80],%ptr; st.u64 [%r+80],3648;
+ st.u64 [%v+88],%src; st.u64 [%r+88],520968;
+ st.u64 [%v+96],%dst; st.u64 [%r+96],3648;
+ st.u64 [%r+104],104; bra BUILD_CONTEXT;
+BUILD_BOUNDS:
+ add.u64 %ptr,%ints,16;
+ st.u64 [%v+0],%ptr; st.u64 [%r+0],4;
+ add.u64 %ptr,%ints,0;
+ st.u64 [%v+8],%ptr; st.u64 [%r+8],4;
+ add.u64 %ptr,%ints,8;
+ st.u64 [%v+16],%ptr; st.u64 [%r+16],4;
+ add.u64 %ptr,%ints,12;
+ st.u64 [%v+24],%ptr; st.u64 [%r+24],4;
+ add.u64 %ptr,%ints,4;
+ st.u64 [%v+32],%ptr; st.u64 [%r+32],4;
+ add.u64 %ptr,%ints,20;
+ st.u64 [%v+40],%ptr; st.u64 [%r+40],4;
+ add.u64 %ptr,%ints,24;
+ st.u64 [%v+48],%ptr; st.u64 [%r+48],4;
+ mul.wide.u32 %offset,%block,7296; add.u64 %ptr,%kl,%offset;
+ st.u64 [%v+56],%ptr; st.u64 [%r+56],7296;
+ st.u64 [%v+64],%src; st.u64 [%r+64],520968;
+ st.u64 [%v+72],%dst; st.u64 [%r+72],3648;
+ mov.u64 %ptr,%maximum;
+ st.u64 [%v+80],%ptr; st.u64 [%r+80],3648;
+ st.u64 [%r+88],88;
+BUILD_CONTEXT: st.u64 [%c],0x0000000100000000; st.u64 [%c+8],0; ld.u32 %i,[%ctx+12]; st.u32 [%c+12],%i; st.u64 [%c+16],%event; ld.u64 %word,[%ctx+24]; st.u64 [%c+24],%word; st.u64 [%c+48],%r; cvt.u64.u32 %word,%bytes; st.u64 [%c+56],%word; setp.ne.u32 %p,%kind,0; @%p bra CONTEXT_READY; st.u64 [%c+32],%extra; st.u64 [%c+40],34096;
+CONTEXT_READY:
+BLOCK_READY:bar.sync 0;
+EXECUTE: setp.eq.u32 %p,%kind,0; @%p bra CALL_PRESSURE; setp.eq.u32 %p,%kind,1; @%p bra CALL_HYBRID; setp.eq.u32 %p,%kind,2; @%p bra CALL_INTEGRAL; setp.eq.u32 %p,%kind,3; @%p bra CALL_NORM; setp.eq.u32 %p,%kind,4; @%p bra CALL_LINEAR; bra CALL_BOUNDS;
+CALL_PRESSURE: { .param .u64 private_call_1_ca; .param .u64 private_call_1_cc; st.param.u64 [private_call_1_ca],%v; st.param.u64 [private_call_1_cc],%c; call.uni openifs_pfixer_fp64,(private_call_1_ca,private_call_1_cc); } bra READ_CONTEXT;
+CALL_HYBRID: { .param .u64 private_call_2_ca; .param .u64 private_call_2_cc; st.param.u64 [private_call_2_ca],%v; st.param.u64 [private_call_2_cc],%c; call.uni openifs_hybrid_pressure_parent_fp64_trmfixers_worker,(private_call_2_ca,private_call_2_cc); } bra READ_CONTEXT;
+CALL_INTEGRAL: { .param .u64 private_call_3_ca; .param .u64 private_call_3_cc; .param .u32 private_call_3_ck; st.param.u64 [private_call_3_ca],%v; st.param.u64 [private_call_3_cc],%c; st.param.u32 [private_call_3_ck],0; call.uni openifs_pressure_integral_parent_fp64_trmfixers_worker,(private_call_3_ca,private_call_3_cc,private_call_3_ck); } bra READ_CONTEXT;
+CALL_NORM: { .param .u64 private_call_4_ca; .param .u64 private_call_4_cc; st.param.u64 [private_call_4_ca],%v; st.param.u64 [private_call_4_cc],%c; call.uni openifs_gpnorm1_parallel_fields,(private_call_4_ca,private_call_4_cc); } bra READ_CONTEXT;
+CALL_LINEAR: { .param .u64 private_call_5_ca; .param .u64 private_call_5_cc; st.param.u64 [private_call_5_ca],%v; st.param.u64 [private_call_5_cc],%c; call.uni openifs_laitli_fp64_trmfixers_worker,(private_call_5_ca,private_call_5_cc); } bra READ_CONTEXT;
+CALL_BOUNDS: { .param .u64 private_call_6_ca; .param .u64 private_call_6_cc; st.param.u64 [private_call_6_ca],%v; st.param.u64 [private_call_6_cc],%c; call.uni openifs_laminmaxint_fp64_trmfixers_worker,(private_call_6_ca,private_call_6_cc); }
+READ_CONTEXT: bar.sync 0;ld.u32 %error,[%c]; ld.u32 %flags,[%c+8]; ld.u64 %event,[%c+16];
+RETURN: st.param.u32 [result],%flags; st.param.u32 [result+4],%error; st.param.u64 [result+8],%event; ret;
+}
