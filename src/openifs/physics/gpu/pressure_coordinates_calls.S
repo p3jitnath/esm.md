@@ -68,7 +68,7 @@ md2asm_gpu_pressure_coordinates_stage:
  mov x1,x19
  mov x2,x20
  mov w3,#1
- mov w4,#1
+ mov w4,#32
  mov w5,#0
  ldr x9,[sp,#512]
  ldr x10,[sp,#520]
@@ -94,5 +94,5 @@ md2asm_gpu_pressure_coordinates_stage:
  brk #0
 .size md2asm_gpu_pressure_coordinates_stage,.-md2asm_gpu_pressure_coordinates_stage
 .section .rodata
-.Lpi_gpu_entry:.asciz "md2asm_gpu_pressure_coordinates"
+.Lpi_gpu_entry:.asciz "md2asm_gpu_pressure_coordinates_parallel_columns"
 .section .note.GNU-stack,"",%progbits
