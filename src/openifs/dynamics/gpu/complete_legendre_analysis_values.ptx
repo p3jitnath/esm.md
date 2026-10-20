@@ -1,0 +1,169 @@
+.version 8.0 // GPU implementation contract skills/md2asm-gpu/references/openifs/dynamics/complete_legendre_analysis.md
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.visible .func (.param .align 16 .b8 returned[16]) md2asm_gpu_legendre_analysis_values(.param .u64 input_record)
+{
+.reg .u64 %in,%aoa,%soa,%astride,%sstride,%weights,%basisA,%basisS,%out,%pitch,%fields,%step,%scratchA,%scratchS,%counts,%field,%lat,%degree,%offset,%address,%a,%s,%w,%b,%product,%sum,%scratch,%basis,%outindex,%counter;
+.reg .u32 %aDegrees,%sDegrees,%aStart,%sStart,%ndegree,%start,%phase,%flags,%raised;
+.reg .pred %p;
+ld.param.u64 %in,[input_record];
+mov.u32 %flags,0;
+ld.global.u64 %aoa,[%in+0];
+ld.global.u64 %soa,[%in+8];
+ld.global.u64 %astride,[%in+16];
+ld.global.u64 %sstride,[%in+24];
+ld.global.u64 %weights,[%in+32];
+ld.global.u64 %basisA,[%in+40];
+ld.global.u64 %basisS,[%in+48];
+ld.global.u64 %out,[%in+56];
+ld.global.u64 %pitch,[%in+64];
+ld.global.u64 %fields,[%in+72];
+ld.global.u64 %step,[%in+80];
+ld.global.u64 %scratchA,[%in+88];
+ld.global.u64 %scratchS,[%in+96];
+ld.global.u64 %counts,[%in+120];
+ld.global.u32 %aDegrees,[%in+104];
+ld.global.u32 %sDegrees,[%in+108];
+ld.global.u32 %aStart,[%in+112];
+ld.global.u32 %sStart,[%in+116];
+mov.u64 %field,0;
+WEIGHT_FIELD:
+mov.u64 %lat,0;
+WEIGHT_LATITUDE:
+shl.b64 %offset,%lat,3;
+add.u64 %address,%weights,%offset;
+ld.global.b64 %w,[%address];
+mul.lo.u64 %offset,%lat,%astride;
+mad.lo.u64 %offset,%field,%step,%offset;
+shl.b64 %offset,%offset,3;
+add.u64 %address,%aoa,%offset;
+ld.global.b64 %a,[%address];
+mul.lo.u64 %offset,%lat,%sstride;
+mad.lo.u64 %offset,%field,%step,%offset;
+shl.b64 %offset,%offset,3;
+add.u64 %address,%soa,%offset;
+ld.global.b64 %s,[%address];
+{
+.param .b64 left,right;
+.param .align 8 .b8 result[16];
+st.param.b64 [left],%a;
+st.param.b64 [right],%w;
+call.uni (result),md2asm_gpu_mul_status,(left,right);
+ld.param.b64 %a,[result];
+ld.param.u32 %raised,[result+8];
+or.b32 %flags,%flags,%raised;
+}
+{
+.param .b64 left,right;
+.param .align 8 .b8 result[16];
+st.param.b64 [left],%s;
+st.param.b64 [right],%w;
+call.uni (result),md2asm_gpu_mul_status,(left,right);
+ld.param.b64 %s,[result];
+ld.param.u32 %raised,[result+8];
+or.b32 %flags,%flags,%raised;
+}
+shl.b64 %offset,%field,4;
+add.u64 %offset,%offset,%lat;
+shl.b64 %offset,%offset,3;
+add.u64 %address,%scratchA,%offset;
+st.global.b64 [%address],%a;
+add.u64 %address,%scratchS,%offset;
+st.global.b64 [%address],%s;
+add.u64 %lat,%lat,1;
+setp.lt.u64 %p,%lat,16;
+@%p bra WEIGHT_LATITUDE;
+add.u64 %field,%field,1;
+setp.lt.u64 %p,%field,%fields;
+@%p bra WEIGHT_FIELD;
+ld.global.u64 %counter,[%counts+0];
+add.u64 %counter,%counter,1;
+st.global.u64 [%counts+0],%counter;
+ld.global.u64 %counter,[%counts+16];
+add.u64 %counter,%counter,1;
+st.global.u64 [%counts+16],%counter;
+mov.u32 %phase,0;
+mov.u64 %basis,%basisA;
+mov.u64 %scratch,%scratchA;
+mov.u32 %ndegree,%aDegrees;
+mov.u32 %start,%aStart;
+PROJECT_PHASE:
+mov.u64 %field,0;
+PROJECT_FIELD:
+mov.u64 %degree,0;
+PROJECT_DEGREE:
+mov.u64 %sum,0;
+mov.u64 %lat,0;
+PROJECT_LATITUDE:
+shl.b64 %offset,%degree,4;
+add.u64 %offset,%offset,%lat;
+shl.b64 %offset,%offset,3;
+add.u64 %address,%basis,%offset;
+ld.global.b64 %b,[%address];
+shl.b64 %offset,%field,4;
+add.u64 %offset,%offset,%lat;
+shl.b64 %offset,%offset,3;
+add.u64 %address,%scratch,%offset;
+ld.global.b64 %w,[%address];
+{
+.param .b64 left,right;
+.param .align 8 .b8 result[16];
+st.param.b64 [left],%b;
+st.param.b64 [right],%w;
+call.uni (result),md2asm_gpu_mul_status,(left,right);
+ld.param.b64 %product,[result];
+ld.param.u32 %raised,[result+8];
+or.b32 %flags,%flags,%raised;
+}
+{
+.param .b64 left,right;
+.param .align 8 .b8 result[16];
+st.param.b64 [left],%sum;
+st.param.b64 [right],%product;
+call.uni (result),md2asm_gpu_add_status,(left,right);
+ld.param.b64 %sum,[result];
+ld.param.u32 %raised,[result+8];
+or.b32 %flags,%flags,%raised;
+}
+add.u64 %lat,%lat,1;
+setp.lt.u64 %p,%lat,16;
+@%p bra PROJECT_LATITUDE;
+mul.lo.u64 %outindex,%field,%step;
+mul.lo.u64 %outindex,%outindex,%pitch;
+cvt.u64.u32 %offset,%start;
+add.u64 %outindex,%outindex,%offset;
+sub.u64 %outindex,%outindex,1;
+shl.b64 %offset,%degree,1;
+add.u64 %outindex,%outindex,%offset;
+shl.b64 %offset,%outindex,3;
+add.u64 %address,%out,%offset;
+st.global.b64 [%address],%sum;
+add.u64 %degree,%degree,1;
+cvt.u64.u32 %offset,%ndegree;
+setp.lt.u64 %p,%degree,%offset;
+@%p bra PROJECT_DEGREE;
+add.u64 %field,%field,1;
+setp.lt.u64 %p,%field,%fields;
+@%p bra PROJECT_FIELD;
+setp.ne.u32 %p,%phase,0;
+@%p bra SYMMETRIC_DONE;
+ld.global.u64 %counter,[%counts+8];
+add.u64 %counter,%counter,1;
+st.global.u64 [%counts+8],%counter;
+mov.u32 %phase,1;
+mov.u64 %basis,%basisS;
+mov.u64 %scratch,%scratchS;
+mov.u32 %ndegree,%sDegrees;
+mov.u32 %start,%sStart;
+bra PROJECT_PHASE;
+SYMMETRIC_DONE:
+ld.global.u64 %counter,[%counts+24];
+add.u64 %counter,%counter,1;
+st.global.u64 [%counts+24],%counter;
+st.param.u32 [returned],%flags;
+st.param.u32 [returned+4],0;
+st.param.u64 [returned+8],0;
+ret;
+}

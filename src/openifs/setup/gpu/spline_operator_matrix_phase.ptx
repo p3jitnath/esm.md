@@ -1,4 +1,4 @@
-// GPU contract: skills/md2asm-gpu/references/openifs/setup/complete_spline_operator_matrix.md
+// GPU implementation contract skills/md2asm-gpu/references/openifs/setup/complete_spline_operator_matrix.md
 .version 8.5
 .target sm_90
 .address_size 64
@@ -127,7 +127,7 @@ ld.param.u64 %a0,[pieces];ld.param.u64 %a1,[output];ld.param.u32 %n,[nbase];ld.p
 }
 .func (.param .u32 r) spline_matrix_range(.param .u64 base,.param .u64 size,.param .u64 cap)
 {.reg .u64 %a,%n,%c,%end;.reg .u32 %e;.reg .pred %p;ld.param.u64 %a,[base];ld.param.u64 %n,[size];ld.param.u64 %c,[cap];mov.u32 %e,27801;setp.eq.u64 %p,%a,0;@%p bra RETURN;and.b64 %end,%a,7;setp.ne.u64 %p,%end,0;@%p bra RETURN;setp.gt.u64 %p,%n,%c;@%p bra RETURN;add.u64 %end,%a,%n;setp.lt.u64 %p,%end,%a;@%p bra RETURN;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra RETURN;mov.u32 %e,0;RETURN:st.param.u32 [r],%e;ret;}
-.visible .entry md2asm_gpu_spline_operator_matrix(.param .u64 original_vector,.param .u64 common_context)
+.visible .func md2asm_gpu_r23_spline_operator_matrix_body(.param .u64 original_vector,.param .u64 common_context)
 {
 .reg .u64 %fastptr,%wideptr,%nf,%nw,%old,%eventword,%mag0,%mag1,%quiet0,%quiet1;
 .reg .u32 %condition,%errno_;
@@ -345,4 +345,9 @@ sub.u32 %w,%pos,1;mul.lo.u32 %w,%w,%nwgt;mul.wide.u32 %off,%w,8;add.u64 %prev,%c
 st.param.b64 [a33],%v0;st.param.b64 [b33],%v1;call.uni (r33),md2asm_gpu_add_status,(a33,b33);ld.param.b64 %v0,[r33];ld.param.u32 %raised,[r33+8];or.b32 %flags,%flags,%raised;
 add.u64 %ptr,%nextrow,%off;st.global.b64 [%ptr],%v0;add.u32 %i,%i,1;setp.lt.u32 %p,%i,%nwgt;@%p bra WEIGHT_CUM;
 NEXT_INTERVAL:add.u32 %pos,%pos,1;setp.lt.u32 %p,%pos,%total;@%p bra MAIN_INTERVAL;mov.u32 %error,0;bra FINISH;NUMERIC_FAIL:mov.u32 %error,3;FINISH:st.global.u32 [%output],%error;st.global.u32 [%output+4],0;st.global.u64 [%output+8],0;st.global.u64 [%output+16],0;st.global.u64 [%output+24],0;st.global.u32 [%ctx+8],%flags;ret;REFUSE:st.global.u32 [%ctx],%error;ret;QUIET_REFUSE:ret;
+}
+.visible .entry md2asm_gpu_spline_operator_matrix(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %a,%c;.param .u64 a,c;
+ld.param.u64 %a,[original_vector];ld.param.u64 %c,[common_context];st.param.u64 [a],%a;st.param.u64 [c],%c;call.uni md2asm_gpu_r23_spline_operator_matrix_body,(a,c);ret;
 }

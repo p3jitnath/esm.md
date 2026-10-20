@@ -25,3 +25,5 @@ The later forecast stages add 44 genuine shapes with widths 76 and 116. Their un
 ## Focused Native And Source Reference
 
 The complete direct assembly passes all 66 captured calls and 2,108,040 whole-owner bytes, including 387,200 returned bytes, with zero differences. Its seven new boundary cases cover empty calls, aliased inputs and rejection before any output write. The normal relay also passes supported calls, aliases and complete protected owner comparisons. The complete direct parent passes 1,342 forecast calls and 22,387,200 returned bytes with zero differences. All ten saved files match the separately reviewed unfused spectral update, latitude analysis and inverse reconstruction across 618,140 bytes. Previous source and saved files remain local. Whole-forecast independent physics and autonomous execution remain open.
+
+The [complete parallel GPU contract](../../../../md2asm-gpu/references/openifs/dynamics/complete_legendre_analysis.md) maps independent output coefficients to threads while preserving each ordered latitude sum and both projection phases.

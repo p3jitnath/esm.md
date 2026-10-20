@@ -1,0 +1,146 @@
+.version 8.5 // GPU implementation contract skills/md2asm-gpu/references/openifs/dynamics/complete_legendre_analysis.md
+.target sm_90
+.address_size 64
+.extern .func (.param .align 16 .b8 r[16]) md2asm_gpu_legendre_analysis_parallel_output_values(.param .u64 input_record,.param .u32 stage_id,.param .u32 lane_id);
+.func (.param .u32 result) complete_legendre_analysis_range(.param .u64 base,.param .u64 bytes,.param .u64 capacity)
+{
+ .reg .u64 %a,%n,%c,%end;.reg .u32 %error;.reg .pred %p;
+ ld.param.u64 %a,[base];ld.param.u64 %n,[bytes];ld.param.u64 %c,[capacity];mov.u32 %error,37501;
+ setp.eq.u64 %p,%a,0;@%p bra DONE;and.b64 %end,%a,7;setp.ne.u64 %p,%end,0;@%p bra DONE;
+ setp.gt.u64 %p,%n,%c;@%p bra DONE;add.u64 %end,%a,%n;setp.lt.u64 %p,%end,%a;@%p bra DONE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra DONE;
+ mov.u32 %error,0;
+DONE:st.param.u32 [result],%error;ret;
+}
+
+.visible .entry md2asm_gpu_complete_legendre_analysis_parallel_outputs(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%caps,%input,%completion,%capacity,%word,%address,%offset,%rows,%pointer,%abase,%asize,%aend,%bbase,%bsize,%bend,%fields,%step,%astride,%sstride,%pitch,%scratchbytes,%scratchhalf,%expected,%v<8>,%n<8>;
+.reg .u32 %axis,%error,%i,%j,%flags,%raised,%wa,%wb,%aDegrees,%sDegrees,%aStart,%sStart;
+.reg .u32 %lane,%ok,%joined;
+.reg .pred %p,%q;
+.shared .align 4 .u32 accepted;
+.shared .align 4 .u32 collective_flags;
+.local .align 8 .b8 owners[208];
+.param .u64 rb,rn,rcap;.param .u32 range_result;
+mov.u32 %lane,%tid.x;
+mov.u32 %axis,%ntid.x;setp.ne.u32 %p,%axis,128;@%p bra BAD_LAUNCH;
+mov.u32 %axis,%ntid.y;setp.ne.u32 %p,%axis,1;@%p bra BAD_LAUNCH;
+mov.u32 %axis,%ntid.z;setp.ne.u32 %p,%axis,1;@%p bra BAD_LAUNCH;
+mov.u32 %axis,%nctaid.x;setp.ne.u32 %p,%axis,1;@%p bra BAD_LAUNCH;
+mov.u32 %axis,%nctaid.y;setp.ne.u32 %p,%axis,1;@%p bra BAD_LAUNCH;
+mov.u32 %axis,%nctaid.z;setp.ne.u32 %p,%axis,1;@%p bra BAD_LAUNCH;
+mov.u32 %axis,%dynamic_smem_size;setp.ne.u32 %p,%axis,0;@%p bra BAD_LAUNCH;
+setp.ne.u32 %p,%lane,0;@%p bra ADMIT_BARRIER;
+st.shared.u32 [accepted],0;st.shared.u32 [collective_flags],0;
+ ld.param.u64 %ctx,[common_context];setp.eq.u64 %p,%ctx,0;@%p bra ADMIT_DONE;and.b64 %word,%ctx,7;setp.ne.u64 %p,%word,0;@%p bra ADMIT_DONE;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;mov.u32 %error,37500;
+ ld.global.u32 %axis,[%ctx+4];setp.ne.u32 %p,%axis,1;@%p bra REFUSE;ld.global.u32 %axis,[%ctx+12];setp.ne.u32 %p,%axis,0;@%p bra REFUSE;
+
+
+ld.param.u64 %args,[original_vector];
+st.param.u64 [rb],%args;st.param.u64 [rn],16;st.param.u64 [rcap],16;call.uni (range_result),complete_legendre_analysis_range,(rb,rn,rcap);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rcap],64;call.uni (range_result),complete_legendre_analysis_range,(rb,rn,rcap);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %caps,[%ctx+48];ld.global.u64 %capacity,[%ctx+56];
+st.param.u64 [rb],%caps;st.param.u64 [rn],80;st.param.u64 [rcap],%capacity;call.uni (range_result),complete_legendre_analysis_range,(rb,rn,rcap);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %input,[%args];ld.global.u64 %completion,[%args+8];ld.global.u64 %capacity,[%caps];
+st.param.u64 [rb],%input;st.param.u64 [rn],160;st.param.u64 [rcap],%capacity;call.uni (range_result),complete_legendre_analysis_range,(rb,rn,rcap);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %capacity,[%caps+8];
+st.param.u64 [rb],%completion;st.param.u64 [rn],16;st.param.u64 [rcap],%capacity;call.uni (range_result),complete_legendre_analysis_range,(rb,rn,rcap);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %error,37502;ld.global.u64 %fields,[%input+72];setp.eq.u64 %p,%fields,0;@%p bra REFUSE;setp.gt.u64 %p,%fields,116;@%p bra REFUSE;ld.global.u64 %step,[%input+80];setp.lt.u64 %p,%step,1;@%p bra REFUSE;setp.gt.u64 %p,%step,2;@%p bra REFUSE;
+ld.global.u64 %astride,[%input+16];ld.global.u64 %sstride,[%input+24];ld.global.u64 %pitch,[%input+64];setp.lt.u64 %p,%astride,%fields;@%p bra REFUSE;setp.lt.u64 %p,%sstride,%fields;@%p bra REFUSE;setp.lt.u64 %p,%pitch,2;@%p bra REFUSE;
+ld.global.u32 %aDegrees,[%input+104];setp.eq.u32 %p,%aDegrees,0;@%p bra REFUSE;setp.gt.u32 %p,%aDegrees,23;@%p bra REFUSE;
+ld.global.u32 %sDegrees,[%input+108];setp.eq.u32 %p,%sDegrees,0;@%p bra REFUSE;setp.gt.u32 %p,%sDegrees,23;@%p bra REFUSE;
+ld.global.u32 %aStart,[%input+112];setp.eq.u32 %p,%aStart,0;@%p bra REFUSE;setp.gt.u32 %p,%aStart,23;@%p bra REFUSE;
+ld.global.u32 %sStart,[%input+116];setp.eq.u32 %p,%sStart,0;@%p bra REFUSE;setp.gt.u32 %p,%sStart,23;@%p bra REFUSE;
+setp.gt.u32 %p,%aStart,2;@%p bra REFUSE;setp.gt.u32 %p,%sStart,2;@%p bra REFUSE;
+setp.gt.u64 %p,%astride,0x8000000;@%p bra REFUSE;setp.gt.u64 %p,%sstride,0x8000000;@%p bra REFUSE;setp.gt.u64 %p,%pitch,0x8000000;@%p bra REFUSE;mul.lo.u64 %word,%fields,%step;setp.gt.u64 %p,%word,%astride;@%p bra REFUSE;setp.gt.u64 %p,%word,%sstride;@%p bra REFUSE;setp.gt.u64 %p,%word,116;@%p bra REFUSE;
+ld.global.u64 %word,[%input+128];setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ld.global.u64 %word,[%input+136];setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ld.global.u64 %word,[%input+144];setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ld.global.u64 %word,[%input+152];setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ld.global.u64 %v0,[%input+0];ld.global.u64 %n0,[%caps+16];
+ld.global.u64 %v1,[%input+8];ld.global.u64 %n1,[%caps+24];
+ld.global.u64 %v2,[%input+32];ld.global.u64 %n2,[%caps+32];
+ld.global.u64 %v3,[%input+40];ld.global.u64 %n3,[%caps+40];
+ld.global.u64 %v4,[%input+48];ld.global.u64 %n4,[%caps+48];
+ld.global.u64 %v5,[%input+56];ld.global.u64 %n5,[%caps+56];
+ld.global.u64 %v6,[%input+88];ld.global.u64 %n6,[%caps+64];
+ld.global.u64 %v7,[%input+120];ld.global.u64 %n7,[%caps+72];
+mul.lo.u64 %n0,%astride,15;mad.lo.u64 %n0,%fields,%step,%n0;sub.u64 %n0,%n0,%step;add.u64 %n0,%n0,1;shl.b64 %n0,%n0,3;
+mul.lo.u64 %n1,%sstride,15;mad.lo.u64 %n1,%fields,%step,%n1;sub.u64 %n1,%n1,%step;add.u64 %n1,%n1,1;shl.b64 %n1,%n1,3;mov.u64 %n2,128;cvt.u64.u32 %n3,%aDegrees;shl.b64 %n3,%n3,7;cvt.u64.u32 %n4,%sDegrees;shl.b64 %n4,%n4,7;
+cvt.u64.u32 %n5,%aDegrees;sub.u64 %n5,%n5,1;shl.b64 %n5,%n5,1;cvt.u64.u32 %word,%aStart;add.u64 %n5,%n5,%word;cvt.u64.u32 %expected,%sDegrees;sub.u64 %expected,%expected,1;shl.b64 %expected,%expected,1;cvt.u64.u32 %word,%sStart;add.u64 %expected,%expected,%word;max.u64 %expected,%expected,%n5;setp.gt.u64 %p,%expected,%pitch;@%p bra REFUSE;sub.u64 %n5,%fields,1;mul.lo.u64 %n5,%n5,%step;mad.lo.u64 %n5,%n5,%pitch,%expected;shl.b64 %n5,%n5,3;shl.b64 %scratchbytes,%fields,8;mov.u64 %n6,%scratchbytes;mov.u64 %n7,48;shl.b64 %scratchhalf,%fields,7;add.u64 %expected,%v6,%scratchhalf;ld.global.u64 %word,[%input+96];setp.ne.u64 %p,%word,%expected;@%p bra REFUSE;
+ld.global.u64 %capacity,[%caps+16];
+st.param.u64 [rb],%v0;st.param.u64 [rn],%n0;st.param.u64 [rcap],%capacity;call.uni (range_result),complete_legendre_analysis_range,(rb,rn,rcap);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %capacity,[%caps+24];
+st.param.u64 [rb],%v1;st.param.u64 [rn],%n1;st.param.u64 [rcap],%capacity;call.uni (range_result),complete_legendre_analysis_range,(rb,rn,rcap);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %capacity,[%caps+32];
+st.param.u64 [rb],%v2;st.param.u64 [rn],%n2;st.param.u64 [rcap],%capacity;call.uni (range_result),complete_legendre_analysis_range,(rb,rn,rcap);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %capacity,[%caps+40];
+st.param.u64 [rb],%v3;st.param.u64 [rn],%n3;st.param.u64 [rcap],%capacity;call.uni (range_result),complete_legendre_analysis_range,(rb,rn,rcap);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %capacity,[%caps+48];
+st.param.u64 [rb],%v4;st.param.u64 [rn],%n4;st.param.u64 [rcap],%capacity;call.uni (range_result),complete_legendre_analysis_range,(rb,rn,rcap);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %capacity,[%caps+56];
+st.param.u64 [rb],%v5;st.param.u64 [rn],%n5;st.param.u64 [rcap],%capacity;call.uni (range_result),complete_legendre_analysis_range,(rb,rn,rcap);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %capacity,[%caps+64];
+st.param.u64 [rb],%v6;st.param.u64 [rn],%n6;st.param.u64 [rcap],%capacity;call.uni (range_result),complete_legendre_analysis_range,(rb,rn,rcap);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %capacity,[%caps+72];
+st.param.u64 [rb],%v7;st.param.u64 [rn],%n7;st.param.u64 [rcap],%capacity;call.uni (range_result),complete_legendre_analysis_range,(rb,rn,rcap);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.local.u64 [owners+0],%args;st.local.u64 [owners+8],16;
+st.local.u64 [owners+16],%ctx;st.local.u64 [owners+24],64;
+st.local.u64 [owners+32],%caps;st.local.u64 [owners+40],80;
+st.local.u64 [owners+48],%input;st.local.u64 [owners+56],160;
+st.local.u64 [owners+64],%completion;st.local.u64 [owners+72],16;
+st.local.u64 [owners+80],%v0;st.local.u64 [owners+88],%n0;
+st.local.u64 [owners+96],%v1;st.local.u64 [owners+104],%n1;
+st.local.u64 [owners+112],%v2;st.local.u64 [owners+120],%n2;
+st.local.u64 [owners+128],%v3;st.local.u64 [owners+136],%n3;
+st.local.u64 [owners+144],%v4;st.local.u64 [owners+152],%n4;
+st.local.u64 [owners+160],%v5;st.local.u64 [owners+168],%n5;
+st.local.u64 [owners+176],%v6;st.local.u64 [owners+184],%n6;
+st.local.u64 [owners+192],%v7;st.local.u64 [owners+200],%n7;
+cvta.local.u64 %rows,owners;mov.u32 %i,1;
+PAIR_LEFT:mul.wide.u32 %offset,%i,16;add.u64 %pointer,%rows,%offset;ld.u64 %abase,[%pointer];ld.u64 %asize,[%pointer+8];add.u64 %aend,%abase,%asize;mov.u32 %j,0;
+PAIR_RIGHT:setp.lt.u32 %p,%j,5;@%p bra CHECK_PAIR;mov.u32 %wa,7186;shr.u32 %wb,%wa,%i;shr.u32 %wa,%wa,%j;or.b32 %wa,%wa,%wb;and.b32 %wa,%wa,1;setp.eq.u32 %p,%wa,0;@%p bra NEXT_PAIR;
+CHECK_PAIR:mul.wide.u32 %offset,%j,16;add.u64 %pointer,%rows,%offset;ld.u64 %bbase,[%pointer];ld.u64 %bsize,[%pointer+8];add.u64 %bend,%bbase,%bsize;setp.lt.u64 %p,%abase,%bend;setp.lt.u64 %q,%bbase,%aend;and.pred %p,%p,%q;mov.u32 %error,37501;@%p bra REFUSE;
+NEXT_PAIR:add.u32 %j,%j,1;setp.lt.u32 %p,%j,%i;@%p bra PAIR_RIGHT;add.u32 %i,%i,1;setp.lt.u32 %p,%i,13;@%p bra PAIR_LEFT;
+st.shared.u32 [accepted],1;bra ADMIT_DONE;
+REFUSE:st.global.u32 [%ctx],%error;
+ADMIT_DONE:
+ADMIT_BARRIER:bar.sync 0;
+ld.shared.u32 %ok,[accepted];setp.eq.u32 %p,%ok,0;@%p ret;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];ld.global.u64 %input,[%args];ld.global.u64 %completion,[%args+8];
+{.param .u64 stage0_input;.param .u32 stage0_id,stage0_lane;.param .align 16 .b8 stage0_result[16];
+st.param.u64 [stage0_input],%input;st.param.u32 [stage0_id],0;st.param.u32 [stage0_lane],%lane;
+call.uni (stage0_result),md2asm_gpu_legendre_analysis_parallel_output_values,(stage0_input,stage0_id,stage0_lane);ld.param.u32 %raised,[stage0_result];}
+atom.shared.or.b32 %joined,[collective_flags],%raised;
+bar.sync 0;
+setp.ne.u32 %p,%lane,0;@%p bra STAGE_0_DONE;
+ld.global.u64 %pointer,[%input+120];
+ld.global.u64 %word,[%pointer+0];add.u64 %word,%word,1;st.global.u64 [%pointer+0],%word;
+ld.global.u64 %word,[%pointer+16];add.u64 %word,%word,1;st.global.u64 [%pointer+16],%word;
+STAGE_0_DONE:bar.sync 0;
+{.param .u64 stage1_input;.param .u32 stage1_id,stage1_lane;.param .align 16 .b8 stage1_result[16];
+st.param.u64 [stage1_input],%input;st.param.u32 [stage1_id],1;st.param.u32 [stage1_lane],%lane;
+call.uni (stage1_result),md2asm_gpu_legendre_analysis_parallel_output_values,(stage1_input,stage1_id,stage1_lane);ld.param.u32 %raised,[stage1_result];}
+atom.shared.or.b32 %joined,[collective_flags],%raised;
+bar.sync 0;
+setp.ne.u32 %p,%lane,0;@%p bra STAGE_1_DONE;
+ld.global.u64 %pointer,[%input+120];
+ld.global.u64 %word,[%pointer+8];add.u64 %word,%word,1;st.global.u64 [%pointer+8],%word;
+STAGE_1_DONE:bar.sync 0;
+{.param .u64 stage2_input;.param .u32 stage2_id,stage2_lane;.param .align 16 .b8 stage2_result[16];
+st.param.u64 [stage2_input],%input;st.param.u32 [stage2_id],2;st.param.u32 [stage2_lane],%lane;
+call.uni (stage2_result),md2asm_gpu_legendre_analysis_parallel_output_values,(stage2_input,stage2_id,stage2_lane);ld.param.u32 %raised,[stage2_result];}
+atom.shared.or.b32 %joined,[collective_flags],%raised;
+bar.sync 0;
+setp.ne.u32 %p,%lane,0;@%p bra STAGE_2_DONE;
+ld.global.u64 %pointer,[%input+120];
+ld.global.u64 %word,[%pointer+24];add.u64 %word,%word,1;st.global.u64 [%pointer+24],%word;
+STAGE_2_DONE:bar.sync 0;
+setp.ne.u32 %p,%lane,0;@%p ret;
+ld.shared.u32 %raised,[collective_flags];ld.global.u32 %flags,[%ctx+8];or.b32 %flags,%flags,%raised;st.global.u32 [%ctx+8],%flags;
+st.global.u32 [%completion],0;st.global.u32 [%completion+4],%flags;st.global.u64 [%completion+8],0;ret;
+BAD_LAUNCH:
+mov.u32 %axis,%tid.x;mov.u32 %i,%tid.y;or.b32 %axis,%axis,%i;mov.u32 %i,%tid.z;or.b32 %axis,%axis,%i;mov.u32 %i,%ctaid.x;or.b32 %axis,%axis,%i;mov.u32 %i,%ctaid.y;or.b32 %axis,%axis,%i;mov.u32 %i,%ctaid.z;or.b32 %axis,%axis,%i;setp.ne.u32 %p,%axis,0;@%p ret;
+ld.param.u64 %ctx,[common_context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %word,%ctx,7;setp.ne.u64 %p,%word,0;@%p ret;ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;st.global.u32 [%ctx],37500;ret;
+}

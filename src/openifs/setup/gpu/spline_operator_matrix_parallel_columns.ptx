@@ -1,0 +1,587 @@
+// GPU implementation contract skills/md2asm-gpu/references/openifs/setup/complete_spline_operator_matrix.md
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.func (.param .align 8 .b8 retv[16]) parallel_spline_matrix_eval(.param .u32 count,.param .u64 coefficients,.param .b64 x)
+{
+.reg .b64 %v<16>,%bits;.reg .u64 %a<12>,%off;.reg .u32 %i,%j,%k,%n,%m,%count,%raised,%flags,%error;.reg .pred %p;
+.param .b64 a0,b0;.param .align 8 .b8 r0[16];.param .b64 a1,b1;.param .align 8 .b8 r1[16];
+ld.param.u32 %n,[count];ld.param.u64 %a0,[coefficients];ld.param.b64 %v1,[x];mov.u32 %flags,0;mov.u32 %error,0;sub.u32 %i,%n,1;mul.wide.u32 %off,%i,8;add.u64 %a1,%a0,%off;ld.b64 %v0,[%a1];EVAL:sub.u32 %i,%i,1;mul.wide.u32 %off,%i,8;add.u64 %a1,%a0,%off;ld.b64 %v2,[%a1];
+st.param.b64 [a0],%v1;st.param.b64 [b0],%v0;call.uni (r0),md2asm_gpu_mul_status,(a0,b0);ld.param.b64 %v0,[r0];ld.param.u32 %raised,[r0+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a1],%v0;st.param.b64 [b1],%v2;call.uni (r1),md2asm_gpu_add_status,(a1,b1);ld.param.b64 %v0,[r1];ld.param.u32 %raised,[r1+8];or.b32 %flags,%flags,%raised;
+setp.ne.u32 %p,%i,0;@%p bra EVAL;st.param.b64 [retv],%v0;st.param.u32 [retv+8],%flags;st.param.u32 [retv+12],%error;ret;
+}
+
+.func (.param .align 8 .b8 retv[16]) parallel_spline_matrix_integral(.param .u32 count,.param .u64 coefficients,.param .u64 output)
+{
+.reg .b64 %v<16>,%bits;.reg .u64 %a<12>,%off;.reg .u32 %i,%j,%k,%n,%m,%count,%raised,%flags,%error;.reg .pred %p;
+.param .b64 a0,b0;.param .align 8 .b8 r0[16];
+ld.param.u32 %n,[count];ld.param.u64 %a0,[coefficients];ld.param.u64 %a1,[output];mov.u32 %flags,0;mov.u32 %error,0;st.b64 [%a1],0;mov.u32 %i,0;INTEGRAL:mul.wide.u32 %off,%i,8;add.u64 %a2,%a0,%off;ld.b64 %v0,[%a2];add.u32 %j,%i,1;cvt.rn.f64.u32 %v1,%j;
+st.param.b64 [a0],%v0;st.param.b64 [b0],%v1;call.uni (r0),md2asm_gpu_div_status,(a0,b0);ld.param.b64 %v0,[r0];ld.param.u32 %raised,[r0+8];or.b32 %flags,%flags,%raised;
+mul.wide.u32 %off,%j,8;add.u64 %a2,%a1,%off;st.b64 [%a2],%v0;add.u32 %i,%i,1;setp.lt.u32 %p,%i,%n;@%p bra INTEGRAL;mov.b64 %v0,0;st.param.b64 [retv],%v0;st.param.u32 [retv+8],%flags;st.param.u32 [retv+12],%error;ret;
+}
+
+.func (.param .align 8 .b8 retv[16]) parallel_spline_matrix_derivative(.param .u32 count,.param .u64 coefficients,.param .u64 output)
+{
+.reg .b64 %v<16>,%bits;.reg .u64 %a<12>,%off;.reg .u32 %i,%j,%k,%n,%m,%count,%raised,%flags,%error;.reg .pred %p;
+.param .b64 a0,b0;.param .align 8 .b8 r0[16];
+ld.param.u32 %n,[count];ld.param.u64 %a0,[coefficients];ld.param.u64 %a1,[output];mov.u32 %flags,0;mov.u32 %error,0;mov.u32 %i,1;DERIVATIVE:mul.wide.u32 %off,%i,8;add.u64 %a2,%a0,%off;ld.b64 %v0,[%a2];cvt.rn.f64.u32 %v1,%i;
+st.param.b64 [a0],%v0;st.param.b64 [b0],%v1;call.uni (r0),md2asm_gpu_mul_status,(a0,b0);ld.param.b64 %v0,[r0];ld.param.u32 %raised,[r0+8];or.b32 %flags,%flags,%raised;
+sub.u32 %j,%i,1;mul.wide.u32 %off,%j,8;add.u64 %a2,%a1,%off;st.b64 [%a2],%v0;add.u32 %i,%i,1;setp.lt.u32 %p,%i,%n;@%p bra DERIVATIVE;mov.b64 %v0,0;st.param.b64 [retv],%v0;st.param.u32 [retv+8],%flags;st.param.u32 [retv+12],%error;ret;
+}
+
+.func (.param .align 8 .b8 retv[16]) parallel_spline_matrix_product(.param .u32 na,.param .u64 pa,.param .u32 nb,.param .u64 pb,.param .u32 nc,.param .u64 pc)
+{
+.reg .b64 %v<16>,%bits;.reg .u64 %a<12>,%off;.reg .u32 %i,%j,%k,%n,%m,%count,%raised,%flags,%error;.reg .pred %p;
+.param .b64 a0,b0;.param .align 8 .b8 r0[16];.param .b64 a1,b1;.param .align 8 .b8 r1[16];
+ld.param.u32 %n,[na];ld.param.u32 %m,[nb];ld.param.u32 %count,[nc];ld.param.u64 %a0,[pa];ld.param.u64 %a1,[pb];ld.param.u64 %a2,[pc];mov.u32 %flags,0;mov.u32 %error,0;mov.u32 %i,0;COEFFICIENT:mov.b64 %v0,0;mov.u32 %j,0;TERM:sub.u32 %k,%i,%j;setp.ge.u32 %p,%j,%n;@%p bra NEXT_TERM;setp.ge.u32 %p,%k,%m;@%p bra NEXT_TERM;mul.wide.u32 %off,%j,8;add.u64 %a3,%a0,%off;ld.b64 %v1,[%a3];mul.wide.u32 %off,%k,8;add.u64 %a3,%a1,%off;ld.b64 %v2,[%a3];
+st.param.b64 [a0],%v1;st.param.b64 [b0],%v2;call.uni (r0),md2asm_gpu_mul_status,(a0,b0);ld.param.b64 %v1,[r0];ld.param.u32 %raised,[r0+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a1],%v0;st.param.b64 [b1],%v1;call.uni (r1),md2asm_gpu_add_status,(a1,b1);ld.param.b64 %v0,[r1];ld.param.u32 %raised,[r1+8];or.b32 %flags,%flags,%raised;
+NEXT_TERM:add.u32 %j,%j,1;setp.le.u32 %p,%j,%i;@%p bra TERM;mul.wide.u32 %off,%i,8;add.u64 %a3,%a2,%off;st.b64 [%a3],%v0;add.u32 %i,%i,1;setp.lt.u32 %p,%i,%count;@%p bra COEFFICIENT;mov.b64 %v0,0;st.param.b64 [retv],%v0;st.param.u32 [retv+8],%flags;st.param.u32 [retv+12],%error;ret;
+}
+
+.func (.param .align 8 .b8 retv[16]) parallel_spline_matrix_fx2t(.param .b64 lower,.param .b64 upper,.param .b64 x)
+{
+.reg .b64 %v<16>,%bits;.reg .u64 %a<12>,%off;.reg .u32 %i,%j,%k,%n,%m,%count,%raised,%flags,%error;.reg .pred %p;
+.param .b64 a0,b0;.param .align 8 .b8 r0[16];.param .b64 a1,b1;.param .align 8 .b8 r1[16];.param .b64 a2,b2;.param .align 8 .b8 r2[16];
+ld.param.b64 %v0,[lower];ld.param.b64 %v1,[upper];ld.param.b64 %v2,[x];mov.u32 %flags,0;mov.u32 %error,0;
+st.param.b64 [a0],%v2;st.param.b64 [b0],%v0;call.uni (r0),md2asm_gpu_sub_status,(a0,b0);ld.param.b64 %v2,[r0];ld.param.u32 %raised,[r0+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a1],%v1;st.param.b64 [b1],%v0;call.uni (r1),md2asm_gpu_sub_status,(a1,b1);ld.param.b64 %v1,[r1];ld.param.u32 %raised,[r1+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a2],%v2;st.param.b64 [b2],%v1;call.uni (r2),md2asm_gpu_div_status,(a2,b2);ld.param.b64 %v0,[r2];ld.param.u32 %raised,[r2+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [retv],%v0;st.param.u32 [retv+8],%flags;st.param.u32 [retv+12],%error;ret;
+}
+
+.func (.param .align 8 .b8 retv[16]) parallel_spline_matrix_local(.param .u64 transform,.param .b64 lower,.param .b64 upper,.param .u64 coefficients,.param .u64 output)
+{
+.reg .b64 %v<16>,%bits;.reg .u64 %a<12>,%off;.reg .u32 %i,%j,%k,%n,%m,%count,%raised,%flags,%error;.reg .pred %p;.local .align 8 .b8 samples[32];
+.param .b64 a0,b0;.param .align 8 .b8 r0[16];.param .b64 a1,b1;.param .align 8 .b8 r1[16];.param .b64 a2,b2;.param .align 8 .b8 r2[16];.param .b64 a3,b3;.param .align 8 .b8 r3[16];.param .b64 a4,b4;.param .align 8 .b8 r4[16];.param .b64 a5,b5;.param .align 8 .b8 r5[16];.param .b64 a6,b6;.param .align 8 .b8 r6[16];.param .u32 c7_0;.param .u64 c7_1;.param .b64 c7_2;.param .align 8 .b8 c7r[16];.param .b64 a8,b8;.param .align 8 .b8 r8[16];.param .b64 a9,b9;.param .align 8 .b8 r9[16];
+ld.param.u64 %a0,[transform];ld.param.b64 %v4,[lower];ld.param.b64 %v5,[upper];ld.param.u64 %a1,[coefficients];ld.param.u64 %a2,[output];mov.u32 %flags,0;mov.u32 %error,0;and.b64 %bits,%v4,0x7ff0000000000000;setp.eq.u64 %p,%bits,0x7ff0000000000000;@%p bra BAD;and.b64 %bits,%v5,0x7ff0000000000000;setp.eq.u64 %p,%bits,0x7ff0000000000000;@%p bra BAD;setp.le.f64 %p,%v5,%v4;@%p bra BAD;cvta.local.u64 %a3,samples;mov.u32 %i,0;SAMPLE:cvt.rn.f64.u32 %v0,%i;mov.b64 %v1,0x4008000000000000;
+st.param.b64 [a0],%v0;st.param.b64 [b0],%v1;call.uni (r0),md2asm_gpu_div_status,(a0,b0);ld.param.b64 %v0,[r0];ld.param.u32 %raised,[r0+8];or.b32 %flags,%flags,%raised;
+mov.b64 %v1,0;mov.b64 %v2,0x3ff0000000000000;
+st.param.b64 [a1],%v2;st.param.b64 [b1],%v1;call.uni (r1),md2asm_gpu_sub_status,(a1,b1);ld.param.b64 %v2,[r1];ld.param.u32 %raised,[r1+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a2],%v0;st.param.b64 [b2],%v2;call.uni (r2),md2asm_gpu_mul_status,(a2,b2);ld.param.b64 %v0,[r2];ld.param.u32 %raised,[r2+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a3],%v1;st.param.b64 [b3],%v0;call.uni (r3),md2asm_gpu_add_status,(a3,b3);ld.param.b64 %v0,[r3];ld.param.u32 %raised,[r3+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a4],%v5;st.param.b64 [b4],%v4;call.uni (r4),md2asm_gpu_sub_status,(a4,b4);ld.param.b64 %v1,[r4];ld.param.u32 %raised,[r4+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a5],%v0;st.param.b64 [b5],%v1;call.uni (r5),md2asm_gpu_mul_status,(a5,b5);ld.param.b64 %v1,[r5];ld.param.u32 %raised,[r5+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a6],%v4;st.param.b64 [b6],%v1;call.uni (r6),md2asm_gpu_add_status,(a6,b6);ld.param.b64 %v0,[r6];ld.param.u32 %raised,[r6+8];or.b32 %flags,%flags,%raised;
+st.param.u32 [c7_0],4;
+st.param.u64 [c7_1],%a1;
+st.param.b64 [c7_2],%v0;
+call.uni (c7r),parallel_spline_matrix_eval,(c7_0,c7_1,c7_2);ld.param.b64 %v0,[c7r];ld.param.u32 %raised,[c7r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c7r+12];
+mul.wide.u32 %off,%i,8;add.u64 %a4,%a3,%off;st.b64 [%a4],%v0;add.u32 %i,%i,1;setp.lt.u32 %p,%i,4;@%p bra SAMPLE;mov.u32 %i,0;ROW:mov.b64 %v0,0;mov.u32 %j,0;DOT:mad.lo.u32 %k,%j,4,%i;mul.wide.u32 %off,%k,8;add.u64 %a4,%a0,%off;ld.b64 %v1,[%a4];mul.wide.u32 %off,%j,8;add.u64 %a4,%a3,%off;ld.b64 %v2,[%a4];
+st.param.b64 [a8],%v1;st.param.b64 [b8],%v2;call.uni (r8),md2asm_gpu_mul_status,(a8,b8);ld.param.b64 %v1,[r8];ld.param.u32 %raised,[r8+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a9],%v0;st.param.b64 [b9],%v1;call.uni (r9),md2asm_gpu_add_status,(a9,b9);ld.param.b64 %v0,[r9];ld.param.u32 %raised,[r9+8];or.b32 %flags,%flags,%raised;
+add.u32 %j,%j,1;setp.lt.u32 %p,%j,4;@%p bra DOT;mul.wide.u32 %off,%i,8;add.u64 %a4,%a2,%off;st.b64 [%a4],%v0;add.u32 %i,%i,1;setp.lt.u32 %p,%i,4;@%p bra ROW;mov.b64 %v0,0;bra END;BAD:mov.u32 %error,2;END:st.param.b64 [retv],%v0;st.param.u32 [retv+8],%flags;st.param.u32 [retv+12],%error;ret;
+}
+
+.func (.param .align 8 .b8 retv[16]) parallel_spline_matrix_contribution(.param .s32 kind,.param .u64 input,.param .u64 weight,.param .b64 width)
+{
+.reg .b64 %v<16>,%bits;.reg .u64 %a<12>,%off;.reg .u32 %i,%j,%k,%n,%m,%count,%raised,%flags,%error;.reg .pred %p;.local .align 8 .b8 scratch[184];
+.param .u32 c0_0;.param .u64 c0_1;.param .u64 c0_2;.param .align 8 .b8 c0r[16];.param .b64 a1,b1;.param .align 8 .b8 r1[16];.param .u32 c2_0;.param .u64 c2_1;.param .u64 c2_2;.param .align 8 .b8 c2r[16];.param .u32 c3_0;.param .u64 c3_1;.param .u32 c3_2;.param .u64 c3_3;.param .u32 c3_4;.param .u64 c3_5;.param .align 8 .b8 c3r[16];.param .u32 c4_0;.param .u64 c4_1;.param .u64 c4_2;.param .align 8 .b8 c4r[16];.param .u32 c5_0;.param .u64 c5_1;.param .b64 c5_2;.param .align 8 .b8 c5r[16];.param .u32 c6_0;.param .u64 c6_1;.param .b64 c6_2;.param .align 8 .b8 c6r[16];.param .b64 a7,b7;.param .align 8 .b8 r7[16];.param .b64 a8,b8;.param .align 8 .b8 r8[16];
+ld.param.s32 %k,[kind];ld.param.u64 %a0,[input];ld.param.u64 %a1,[weight];ld.param.b64 %v8,[width];mov.u32 %flags,0;mov.u32 %error,0;and.b64 %bits,%v8,0x7ff0000000000000;setp.eq.u64 %p,%bits,0x7ff0000000000000;@%p bra BAD;setp.le.f64 %p,%v8,0d0000000000000000;@%p bra BAD;mov.u32 %i,0;CHECK:mul.wide.u32 %off,%i,8;add.u64 %a2,%a0,%off;ld.b64 %bits,[%a2];and.b64 %bits,%bits,0x7ff0000000000000;setp.eq.u64 %p,%bits,0x7ff0000000000000;@%p bra BAD;add.u64 %a2,%a1,%off;ld.b64 %bits,[%a2];and.b64 %bits,%bits,0x7ff0000000000000;setp.eq.u64 %p,%bits,0x7ff0000000000000;@%p bra BAD;add.u32 %i,%i,1;setp.lt.u32 %p,%i,4;@%p bra CHECK;cvta.local.u64 %a3,scratch;add.u64 %a4,%a3,48;add.u64 %a5,%a3,112;setp.eq.s32 %p,%k,0;@%p bra MASS;setp.eq.s32 %p,%k,1;@%p bra DERIVATIVE;mov.u32 %n,5;
+st.param.u32 [c0_0],4;
+st.param.u64 [c0_1],%a0;
+st.param.u64 [c0_2],%a3;
+call.uni (c0r),parallel_spline_matrix_integral,(c0_0,c0_1,c0_2);ld.param.b64 %v0,[c0r];ld.param.u32 %raised,[c0r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c0r+12];
+st.param.b64 [a1],%v8;st.param.b64 [b1],%v8;call.uni (r1),md2asm_gpu_mul_status,(a1,b1);ld.param.b64 %v8,[r1];ld.param.u32 %raised,[r1+8];or.b32 %flags,%flags,%raised;
+bra PRODUCT;MASS:mov.u32 %n,4;mov.u32 %i,0;COPY:mul.wide.u32 %off,%i,8;add.u64 %a2,%a0,%off;ld.b64 %bits,[%a2];add.u64 %a2,%a3,%off;st.b64 [%a2],%bits;add.u32 %i,%i,1;setp.lt.u32 %p,%i,4;@%p bra COPY;bra PRODUCT;DERIVATIVE:mov.u32 %n,3;mov.b64 %v8,0x3ff0000000000000;
+st.param.u32 [c2_0],4;
+st.param.u64 [c2_1],%a0;
+st.param.u64 [c2_2],%a3;
+call.uni (c2r),parallel_spline_matrix_derivative,(c2_0,c2_1,c2_2);ld.param.b64 %v0,[c2r];ld.param.u32 %raised,[c2r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c2r+12];
+PRODUCT:add.u32 %m,%n,3;
+st.param.u32 [c3_0],%n;
+st.param.u64 [c3_1],%a3;
+st.param.u32 [c3_2],4;
+st.param.u64 [c3_3],%a1;
+st.param.u32 [c3_4],%m;
+st.param.u64 [c3_5],%a4;
+call.uni (c3r),parallel_spline_matrix_product,(c3_0,c3_1,c3_2,c3_3,c3_4,c3_5);ld.param.b64 %v0,[c3r];ld.param.u32 %raised,[c3r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c3r+12];
+st.param.u32 [c4_0],%m;
+st.param.u64 [c4_1],%a4;
+st.param.u64 [c4_2],%a5;
+call.uni (c4r),parallel_spline_matrix_integral,(c4_0,c4_1,c4_2);ld.param.b64 %v0,[c4r];ld.param.u32 %raised,[c4r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c4r+12];
+add.u32 %m,%m,1;
+st.param.u32 [c5_0],%m;
+st.param.u64 [c5_1],%a5;
+st.param.b64 [c5_2],0;
+call.uni (c5r),parallel_spline_matrix_eval,(c5_0,c5_1,c5_2);ld.param.b64 %v9,[c5r];ld.param.u32 %raised,[c5r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c5r+12];
+st.param.u32 [c6_0],%m;
+st.param.u64 [c6_1],%a5;
+st.param.b64 [c6_2],0x3ff0000000000000;
+call.uni (c6r),parallel_spline_matrix_eval,(c6_0,c6_1,c6_2);ld.param.b64 %v0,[c6r];ld.param.u32 %raised,[c6r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c6r+12];
+st.param.b64 [a7],%v0;st.param.b64 [b7],%v9;call.uni (r7),md2asm_gpu_sub_status,(a7,b7);ld.param.b64 %v0,[r7];ld.param.u32 %raised,[r7+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a8],%v8;st.param.b64 [b8],%v0;call.uni (r8),md2asm_gpu_mul_status,(a8,b8);ld.param.b64 %v0,[r8];ld.param.u32 %raised,[r8+8];or.b32 %flags,%flags,%raised;
+bra END;BAD:mov.u32 %error,2;END:st.param.b64 [retv],%v0;st.param.u32 [retv+8],%flags;st.param.u32 [retv+12],%error;ret;
+}
+
+.func (.param .align 8 .b8 retv[16]) parallel_spline_matrix_copy_piece(.param .u64 pieces,.param .u32 nbase,.param .u32 basis,.param .u32 knot,.param .u64 output)
+{
+.reg .b64 %v<16>,%bits;.reg .u64 %a<12>,%off;.reg .u32 %i,%j,%k,%n,%m,%count,%raised,%flags,%error;.reg .pred %p;
+
+ld.param.u64 %a0,[pieces];ld.param.u64 %a1,[output];ld.param.u32 %n,[nbase];ld.param.u32 %i,[basis];ld.param.u32 %j,[knot];sub.u32 %j,%j,%i;sub.u32 %i,%i,1;mad.lo.u32 %k,%j,%n,%i;mul.wide.u32 %off,%k,8;add.u64 %a0,%a0,%off;mul.wide.u32 %a2,%n,32;mov.u32 %i,0;COPY:ld.b64 %bits,[%a0];mul.wide.u32 %off,%i,8;add.u64 %a3,%a1,%off;st.b64 [%a3],%bits;add.u64 %a0,%a0,%a2;add.u32 %i,%i,1;setp.lt.u32 %p,%i,4;@%p bra COPY;mov.u32 %flags,0;mov.u32 %error,0;mov.b64 %v0,0;st.param.b64 [retv],%v0;st.param.u32 [retv+8],%flags;st.param.u32 [retv+12],%error;ret;
+}
+.func (.param .u32 r) parallel_spline_matrix_range(.param .u64 base,.param .u64 size,.param .u64 cap)
+{.reg .u64 %a,%n,%c,%end;.reg .u32 %e;.reg .pred %p;ld.param.u64 %a,[base];ld.param.u64 %n,[size];ld.param.u64 %c,[cap];mov.u32 %e,27801;setp.eq.u64 %p,%a,0;@%p bra RETURN;and.b64 %end,%a,7;setp.ne.u64 %p,%end,0;@%p bra RETURN;setp.gt.u64 %p,%n,%c;@%p bra RETURN;add.u64 %end,%a,%n;setp.lt.u64 %p,%end,%a;@%p bra RETURN;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra RETURN;mov.u32 %e,0;RETURN:st.param.u32 [r],%e;ret;}
+
+.func (.param .align 8 .b8 returned[16]) parallel_spline_matrix_serial_numeric(.param .u64 original_input,.param .u64 workspace,.param .u64 matrix_output,.param .u32 lane_id,.param .u64 failure_slot)
+{
+.reg .u64 %fastptr,%wideptr,%nf,%nw,%old,%eventword,%mag0,%mag1,%quiet0,%quiet1;
+.reg .u32 %condition,%errno_;
+.reg .b64 %x<5>,%temp,%zero;
+.param .b64 ma,mb,ex,ey;
+.param .align 8 .b8 ar[16],mathret[32];
+.reg .u64 %args,%ctx,%record,%cap,%input,%output,%bits,%off,%rows,%ptr,%a,%n,%ae,%b,%bn,%be;
+.reg .u32 %i,%j,%w,%mode,%error,%flags,%raised,%nvalues;.reg .b64 %value,%rt1,%rt2;.reg .pred %p,%q,%witness;
+.reg .u32 %kind,%ni,%nwgt,%oi,%ow,%total,%nr,%pos,%recidx,%bi,%bw,%starti,%stopi,%startw,%stopw,%ki,%kw,%j0,%j1;
+.reg .u64 %owner<8>,%extent,%capacity,%meta,%work,%out,%cumI,%cumW,%tmpI,%tmpW,%pI,%pW,%lI,%lW,%integral,%table,%address,%index,%offset,%prev,%nextrow;
+.reg .b64 %lower,%upper,%width,%loI,%hiI,%spanI,%loW,%hiW,%spanW,%v<16>,%sum,%term,%factor;
+.reg .u32 %nested;.reg .pred %readI,%readJ;
+.local .align 8 .b8 scratch[168];
+.local .align 8 .b8 owners[240];.param .u64 rb,rn,rc,values;.param .u32 rr,mode;.param .align 8 .b8 result[16];
+.param .b64 c0_0;.param .b64 c0_1;.param .b64 c0_2;.param .align 8 .b8 c0r[16];.param .b64 c1_0;.param .b64 c1_1;.param .b64 c1_2;.param .align 8 .b8 c1r[16];.param .b64 a2,b2;.param .align 8 .b8 r2[16];.param .u64 c3_0;.param .u32 c3_1;.param .u32 c3_2;.param .u32 c3_3;.param .u64 c3_4;.param .align 8 .b8 c3r[16];.param .u32 c4_0;.param .u64 c4_1;.param .u64 c4_2;.param .align 8 .b8 c4r[16];.param .u32 c5_0;.param .u64 c5_1;.param .b64 c5_2;.param .align 8 .b8 c5r[16];.param .u32 c6_0;.param .u64 c6_1;.param .b64 c6_2;.param .align 8 .b8 c6r[16];.param .b64 a7,b7;.param .align 8 .b8 r7[16];.param .b64 a8,b8;.param .align 8 .b8 r8[16];.param .b64 a9,b9;.param .align 8 .b8 r9[16];.param .b64 c10_0;.param .b64 c10_1;.param .b64 c10_2;.param .align 8 .b8 c10r[16];.param .b64 c11_0;.param .b64 c11_1;.param .b64 c11_2;.param .align 8 .b8 c11r[16];.param .b64 a12,b12;.param .align 8 .b8 r12[16];.param .b64 c13_0;.param .b64 c13_1;.param .b64 c13_2;.param .align 8 .b8 c13r[16];.param .b64 c14_0;.param .b64 c14_1;.param .b64 c14_2;.param .align 8 .b8 c14r[16];.param .b64 a15,b15;.param .align 8 .b8 r15[16];.param .b64 a16,b16;.param .align 8 .b8 r16[16];.param .b64 a17,b17;.param .align 8 .b8 r17[16];.param .u64 c18_0;.param .u32 c18_1;.param .u32 c18_2;.param .u32 c18_3;.param .u64 c18_4;.param .align 8 .b8 c18r[16];.param .u32 c19_0;.param .u64 c19_1;.param .u64 c19_2;.param .align 8 .b8 c19r[16];.param .u32 c20_0;.param .u64 c20_1;.param .b64 c20_2;.param .align 8 .b8 c20r[16];.param .u32 c21_0;.param .u64 c21_1;.param .b64 c21_2;.param .align 8 .b8 c21r[16];.param .b64 a22,b22;.param .align 8 .b8 r22[16];.param .b64 a23,b23;.param .align 8 .b8 r23[16];.param .u64 c24_0;.param .b64 c24_1;.param .b64 c24_2;.param .u64 c24_3;.param .u64 c24_4;.param .align 8 .b8 c24r[16];.param .u64 c25_0;.param .u32 c25_1;.param .u32 c25_2;.param .u32 c25_3;.param .u64 c25_4;.param .align 8 .b8 c25r[16];.param .u64 c26_0;.param .b64 c26_1;.param .b64 c26_2;.param .u64 c26_3;.param .u64 c26_4;.param .align 8 .b8 c26r[16];.param .s32 c27_0;.param .u64 c27_1;.param .u64 c27_2;.param .b64 c27_3;.param .align 8 .b8 c27r[16];.param .b64 a28,b28;.param .align 8 .b8 r28[16];.param .b64 a29,b29;.param .align 8 .b8 r29[16];.param .b64 a30,b30;.param .align 8 .b8 r30[16];.param .b64 a31,b31;.param .align 8 .b8 r31[16];.param .b64 a32,b32;.param .align 8 .b8 r32[16];.param .b64 a33,b33;.param .align 8 .b8 r33[16];
+ld.param.u64 %input,[original_input];ld.param.u64 %work,[workspace];ld.param.u64 %out,[matrix_output];
+ld.global.u32 %kind,[%input];ld.global.u32 %ni,[%input+4];ld.global.u32 %oi,[%input+8];ld.global.u32 %nwgt,[%input+12];ld.global.u32 %ow,[%input+16];ld.global.u32 %total,[%input+20];ld.global.u32 %nr,[%input+24];
+ld.global.u64 %owner0,[%input+32];
+ld.global.u64 %owner1,[%input+40];
+ld.global.u64 %owner2,[%input+48];
+ld.global.u64 %owner3,[%input+56];
+ld.global.u64 %owner4,[%input+64];
+ld.global.u64 %owner5,[%input+72];
+ld.global.u64 %owner6,[%input+80];
+ld.global.u64 %owner7,[%input+88];
+mov.u32 %flags,0;
+add.u64 %cumI,%work,1760;add.u64 %cumW,%work,12512;add.u64 %tmpI,%work,23264;add.u64 %tmpW,%work,23456;cvta.local.u64 %pI,scratch;add.u64 %pW,%pI,32;add.u64 %lI,%pI,64;add.u64 %lW,%pI,96;add.u64 %integral,%pI,128;mov.u32 %i,0;CLEAR_OUT:mul.wide.u32 %off,%i,8;add.u64 %ptr,%out,%off;st.u64 [%ptr],0;add.u32 %i,%i,1;setp.lt.u32 %p,%i,441;@%p bra CLEAR_OUT;setp.ne.s32 %p,%kind,-1;@%p bra MAIN_START;mul.lo.u32 %j0,%ni,%total;mov.u32 %i,0;CLEAR_INPUT_CUM:mul.wide.u32 %off,%i,8;add.u64 %ptr,%cumI,%off;st.u64 [%ptr],0;add.u32 %i,%i,1;setp.lt.u32 %p,%i,%j0;@%p bra CLEAR_INPUT_CUM;mov.u32 %pos,1;mov.u32 %recidx,0;PREPASS:mov.u32 %i,0;CLEAR_INPUT_TEMP:mul.wide.u32 %off,%i,8;add.u64 %ptr,%tmpI,%off;st.u64 [%ptr],0;add.u32 %i,%i,1;setp.lt.u32 %p,%i,%ni;@%p bra CLEAR_INPUT_TEMP;setp.ge.u32 %p,%recidx,%nr;@%p bra PRE_ACCUMULATE;mul.wide.u32 %off,%recidx,32;add.u64 %meta,%work,%off;ld.u32 %ki,[%meta+24];ld.u32 %kw,[%meta+28];add.u32 %w,%ki,%kw;setp.ne.u32 %p,%pos,%w;@%p bra PRE_ACCUMULATE;
+sub.u32 %w,%ki,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%owner2,%off;ld.b64 %v10,[%ptr];ld.b64 %v11,[%ptr+8];ld.b64 %lower,[%meta];ld.b64 %upper,[%meta+8];
+st.param.b64 [c0_0],%v10;
+st.param.b64 [c0_1],%v11;
+st.param.b64 [c0_2],%lower;
+call.uni (c0r),parallel_spline_matrix_fx2t,(c0_0,c0_1,c0_2);ld.param.b64 %loI,[c0r];ld.param.u32 %raised,[c0r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c0r+12];
+st.param.b64 [c1_0],%v10;
+st.param.b64 [c1_1],%v11;
+st.param.b64 [c1_2],%upper;
+call.uni (c1r),parallel_spline_matrix_fx2t,(c1_0,c1_1,c1_2);ld.param.b64 %hiI,[c1r];ld.param.u32 %raised,[c1r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c1r+12];
+st.param.b64 [a2],%v11;st.param.b64 [b2],%v10;call.uni (r2),md2asm_gpu_sub_status,(a2,b2);ld.param.b64 %spanI,[r2];ld.param.u32 %raised,[r2+8];or.b32 %flags,%flags,%raised;
+sub.s32 %starti,%ki,3;add.u32 %w,%oi,1;max.s32 %starti,%starti,%w;add.u32 %w,%w,20;min.s32 %stopi,%ki,%w;
+mov.u32 %bi,%starti;PRE_BASIS:setp.gt.s32 %p,%bi,%stopi;@%p bra PRE_RECORD_DONE;
+st.param.u64 [c3_0],%owner4;
+st.param.u32 [c3_1],%ni;
+st.param.u32 [c3_2],%bi;
+st.param.u32 [c3_3],%ki;
+st.param.u64 [c3_4],%pI;
+call.uni (c3r),parallel_spline_matrix_copy_piece,(c3_0,c3_1,c3_2,c3_3,c3_4);ld.param.b64 %v0,[c3r];ld.param.u32 %raised,[c3r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c3r+12];
+st.param.u32 [c4_0],4;
+st.param.u64 [c4_1],%pI;
+st.param.u64 [c4_2],%integral;
+call.uni (c4r),parallel_spline_matrix_integral,(c4_0,c4_1,c4_2);ld.param.b64 %v0,[c4r];ld.param.u32 %raised,[c4r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c4r+12];
+st.param.u32 [c5_0],5;
+st.param.u64 [c5_1],%integral;
+st.param.b64 [c5_2],%loI;
+call.uni (c5r),parallel_spline_matrix_eval,(c5_0,c5_1,c5_2);ld.param.b64 %v9,[c5r];ld.param.u32 %raised,[c5r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c5r+12];
+st.param.u32 [c6_0],5;
+st.param.u64 [c6_1],%integral;
+st.param.b64 [c6_2],%hiI;
+call.uni (c6r),parallel_spline_matrix_eval,(c6_0,c6_1,c6_2);ld.param.b64 %v0,[c6r];ld.param.u32 %raised,[c6r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c6r+12];
+st.param.b64 [a7],%v0;st.param.b64 [b7],%v9;call.uni (r7),md2asm_gpu_sub_status,(a7,b7);ld.param.b64 %v0,[r7];ld.param.u32 %raised,[r7+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a8],%v0;st.param.b64 [b8],%spanI;call.uni (r8),md2asm_gpu_mul_status,(a8,b8);ld.param.b64 %v0,[r8];ld.param.u32 %raised,[r8+8];or.b32 %flags,%flags,%raised;
+sub.u32 %w,%bi,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%tmpI,%off;st.b64 [%ptr],%v0;
+add.u32 %bi,%bi,1;bra PRE_BASIS;PRE_RECORD_DONE:add.u32 %recidx,%recidx,1;PRE_ACCUMULATE:
+sub.u32 %w,%pos,1;mul.lo.u32 %w,%w,%ni;mul.wide.u32 %off,%w,8;add.u64 %prev,%cumI,%off;mul.wide.u32 %off,%ni,8;add.u64 %nextrow,%prev,%off;mov.u32 %i,0;PRE_CUM:mul.wide.u32 %off,%i,8;add.u64 %ptr,%prev,%off;ld.b64 %v0,[%ptr];add.u64 %ptr,%tmpI,%off;ld.b64 %v1,[%ptr];
+st.param.b64 [a9],%v0;st.param.b64 [b9],%v1;call.uni (r9),md2asm_gpu_add_status,(a9,b9);ld.param.b64 %v0,[r9];ld.param.u32 %raised,[r9+8];or.b32 %flags,%flags,%raised;
+add.u64 %ptr,%nextrow,%off;st.b64 [%ptr],%v0;add.u32 %i,%i,1;setp.lt.u32 %p,%i,%ni;@%p bra PRE_CUM;
+add.u32 %pos,%pos,1;setp.lt.u32 %p,%pos,%total;@%p bra PREPASS;mul.lo.u32 %j0,%nwgt,%total;mov.u32 %i,0;CLEAR_WEIGHT_CUM:mul.wide.u32 %off,%i,8;add.u64 %ptr,%cumW,%off;st.u64 [%ptr],0;add.u32 %i,%i,1;setp.lt.u32 %p,%i,%j0;@%p bra CLEAR_WEIGHT_CUM;MAIN_START:mov.u32 %pos,1;mov.u32 %recidx,0;MAIN_INTERVAL:setp.ne.s32 %p,%kind,-1;@%p bra MAIN_RECORD;mov.u32 %i,0;CLEAR_WEIGHT_TEMP:mul.wide.u32 %off,%i,8;add.u64 %ptr,%tmpW,%off;st.u64 [%ptr],0;add.u32 %i,%i,1;setp.lt.u32 %p,%i,%nwgt;@%p bra CLEAR_WEIGHT_TEMP;MAIN_RECORD:setp.ge.u32 %p,%recidx,%nr;@%p bra MAIN_ACCUMULATE;mul.wide.u32 %off,%recidx,32;add.u64 %meta,%work,%off;ld.u32 %ki,[%meta+24];ld.u32 %kw,[%meta+28];add.u32 %w,%ki,%kw;setp.ne.u32 %p,%pos,%w;@%p bra MAIN_ACCUMULATE;ld.b64 %width,[%meta+16];
+sub.u32 %w,%kw,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%owner3,%off;ld.b64 %v10,[%ptr];ld.b64 %v11,[%ptr+8];ld.b64 %lower,[%meta];ld.b64 %upper,[%meta+8];
+st.param.b64 [c10_0],%v10;
+st.param.b64 [c10_1],%v11;
+st.param.b64 [c10_2],%lower;
+call.uni (c10r),parallel_spline_matrix_fx2t,(c10_0,c10_1,c10_2);ld.param.b64 %loW,[c10r];ld.param.u32 %raised,[c10r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c10r+12];
+st.param.b64 [c11_0],%v10;
+st.param.b64 [c11_1],%v11;
+st.param.b64 [c11_2],%upper;
+call.uni (c11r),parallel_spline_matrix_fx2t,(c11_0,c11_1,c11_2);ld.param.b64 %hiW,[c11r];ld.param.u32 %raised,[c11r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c11r+12];
+st.param.b64 [a12],%v11;st.param.b64 [b12],%v10;call.uni (r12),md2asm_gpu_sub_status,(a12,b12);ld.param.b64 %spanW,[r12];ld.param.u32 %raised,[r12+8];or.b32 %flags,%flags,%raised;
+sub.u32 %w,%ki,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%owner2,%off;ld.b64 %v10,[%ptr];ld.b64 %v11,[%ptr+8];ld.b64 %lower,[%meta];ld.b64 %upper,[%meta+8];
+st.param.b64 [c13_0],%v10;
+st.param.b64 [c13_1],%v11;
+st.param.b64 [c13_2],%lower;
+call.uni (c13r),parallel_spline_matrix_fx2t,(c13_0,c13_1,c13_2);ld.param.b64 %loI,[c13r];ld.param.u32 %raised,[c13r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c13r+12];
+st.param.b64 [c14_0],%v10;
+st.param.b64 [c14_1],%v11;
+st.param.b64 [c14_2],%upper;
+call.uni (c14r),parallel_spline_matrix_fx2t,(c14_0,c14_1,c14_2);ld.param.b64 %hiI,[c14r];ld.param.u32 %raised,[c14r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c14r+12];
+st.param.b64 [a15],%v11;st.param.b64 [b15],%v10;call.uni (r15),md2asm_gpu_sub_status,(a15,b15);ld.param.b64 %spanI,[r15];ld.param.u32 %raised,[r15+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a16],%hiI;st.param.b64 [b16],%loI;call.uni (r16),md2asm_gpu_sub_status,(a16,b16);ld.param.b64 %v0,[r16];ld.param.u32 %raised,[r16+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a17],%hiW;st.param.b64 [b17],%loW;call.uni (r17),md2asm_gpu_sub_status,(a17,b17);ld.param.b64 %v1,[r17];ld.param.u32 %raised,[r17+8];or.b32 %flags,%flags,%raised;
+sub.s32 %starti,%ki,3;add.u32 %w,%oi,1;max.s32 %starti,%starti,%w;add.u32 %w,%w,20;min.s32 %stopi,%ki,%w;
+sub.s32 %startw,%kw,3;add.u32 %w,%ow,1;max.s32 %startw,%startw,%w;add.u32 %w,%w,20;min.s32 %stopw,%kw,%w;
+mov.u32 %bw,%startw;WEIGHT_BASIS:setp.gt.s32 %p,%bw,%stopw;@%p bra MAIN_RECORD_DONE;
+st.param.u64 [c18_0],%owner5;
+st.param.u32 [c18_1],%nwgt;
+st.param.u32 [c18_2],%bw;
+st.param.u32 [c18_3],%kw;
+st.param.u64 [c18_4],%pW;
+call.uni (c18r),parallel_spline_matrix_copy_piece,(c18_0,c18_1,c18_2,c18_3,c18_4);ld.param.b64 %v0,[c18r];ld.param.u32 %raised,[c18r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c18r+12];
+setp.ne.s32 %p,%kind,-1;@%p bra LOCAL_WEIGHT;
+st.param.u32 [c19_0],4;
+st.param.u64 [c19_1],%pW;
+st.param.u64 [c19_2],%integral;
+call.uni (c19r),parallel_spline_matrix_integral,(c19_0,c19_1,c19_2);ld.param.b64 %v0,[c19r];ld.param.u32 %raised,[c19r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c19r+12];
+st.param.u32 [c20_0],5;
+st.param.u64 [c20_1],%integral;
+st.param.b64 [c20_2],%loW;
+call.uni (c20r),parallel_spline_matrix_eval,(c20_0,c20_1,c20_2);ld.param.b64 %v9,[c20r];ld.param.u32 %raised,[c20r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c20r+12];
+st.param.u32 [c21_0],5;
+st.param.u64 [c21_1],%integral;
+st.param.b64 [c21_2],%hiW;
+call.uni (c21r),parallel_spline_matrix_eval,(c21_0,c21_1,c21_2);ld.param.b64 %v0,[c21r];ld.param.u32 %raised,[c21r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c21r+12];
+st.param.b64 [a22],%v0;st.param.b64 [b22],%v9;call.uni (r22),md2asm_gpu_sub_status,(a22,b22);ld.param.b64 %v0,[r22];ld.param.u32 %raised,[r22+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a23],%v0;st.param.b64 [b23],%spanW;call.uni (r23),md2asm_gpu_mul_status,(a23,b23);ld.param.b64 %v0,[r23];ld.param.u32 %raised,[r23+8];or.b32 %flags,%flags,%raised;
+sub.u32 %w,%bw,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%tmpW,%off;st.b64 [%ptr],%v0;
+LOCAL_WEIGHT:
+st.param.u64 [c24_0],%owner1;
+st.param.b64 [c24_1],%loW;
+st.param.b64 [c24_2],%hiW;
+st.param.u64 [c24_3],%pW;
+st.param.u64 [c24_4],%lW;
+call.uni (c24r),parallel_spline_matrix_local,(c24_0,c24_1,c24_2,c24_3,c24_4);ld.param.b64 %v0,[c24r];ld.param.u32 %raised,[c24r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c24r+12];
+setp.ne.u32 %p,%error,0;@%p bra NUMERIC_FAIL;
+mov.u32 %bi,%starti;INPUT_BASIS:setp.gt.s32 %p,%bi,%stopi;@%p bra INPUT_BASIS_DONE;
+st.param.u64 [c25_0],%owner4;
+st.param.u32 [c25_1],%ni;
+st.param.u32 [c25_2],%bi;
+st.param.u32 [c25_3],%ki;
+st.param.u64 [c25_4],%pI;
+call.uni (c25r),parallel_spline_matrix_copy_piece,(c25_0,c25_1,c25_2,c25_3,c25_4);ld.param.b64 %v0,[c25r];ld.param.u32 %raised,[c25r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c25r+12];
+st.param.u64 [c26_0],%owner0;
+st.param.b64 [c26_1],%loI;
+st.param.b64 [c26_2],%hiI;
+st.param.u64 [c26_3],%pI;
+st.param.u64 [c26_4],%lI;
+call.uni (c26r),parallel_spline_matrix_local,(c26_0,c26_1,c26_2,c26_3,c26_4);ld.param.b64 %v0,[c26r];ld.param.u32 %raised,[c26r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c26r+12];
+setp.ne.u32 %p,%error,0;@%p bra NUMERIC_FAIL;
+st.param.s32 [c27_0],%kind;
+st.param.u64 [c27_1],%lI;
+st.param.u64 [c27_2],%lW;
+st.param.b64 [c27_3],%width;
+call.uni (c27r),parallel_spline_matrix_contribution,(c27_0,c27_1,c27_2,c27_3);ld.param.b64 %v0,[c27r];ld.param.u32 %raised,[c27r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c27r+12];
+setp.ne.u32 %p,%error,0;@%p bra NUMERIC_FAIL;
+sub.u32 %w,%bi,%oi;sub.u32 %w,%w,1;mul.lo.u32 %w,%w,21;sub.u32 %j1,%bw,%ow;sub.u32 %j1,%j1,1;add.u32 %w,%w,%j1;mul.wide.u32 %offset,%w,8;add.u64 %address,%out,%offset;
+ld.b64 %v1,[%address];
+st.param.b64 [a28],%v1;st.param.b64 [b28],%v0;call.uni (r28),md2asm_gpu_add_status,(a28,b28);ld.param.b64 %v0,[r28];ld.param.u32 %raised,[r28+8];or.b32 %flags,%flags,%raised;
+st.b64 [%address],%v0;setp.ne.s32 %p,%kind,-1;@%p bra NEXT_INPUT;
+sub.u32 %w,%bi,%oi;sub.u32 %w,%w,1;mul.lo.u32 %w,%w,21;sub.u32 %j1,%bw,%ow;sub.u32 %j1,%j1,1;add.u32 %w,%w,%j1;mul.wide.u32 %offset,%w,8;add.u64 %address,%out,%offset;
+sub.u32 %w,%bw,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%tmpW,%off;ld.b64 %v1,[%ptr];sub.u32 %w,%pos,1;mul.lo.u32 %w,%w,%ni;add.u32 %w,%w,%bi;sub.u32 %w,%w,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%cumI,%off;ld.b64 %v2,[%ptr];
+st.param.b64 [a29],%v1;st.param.b64 [b29],%v2;call.uni (r29),md2asm_gpu_mul_status,(a29,b29);ld.param.b64 %v1,[r29];ld.param.u32 %raised,[r29+8];or.b32 %flags,%flags,%raised;
+ld.b64 %v0,[%address];
+st.param.b64 [a30],%v0;st.param.b64 [b30],%v1;call.uni (r30),md2asm_gpu_add_status,(a30,b30);ld.param.b64 %v0,[r30];ld.param.u32 %raised,[r30+8];or.b32 %flags,%flags,%raised;
+st.b64 [%address],%v0;
+NEXT_INPUT:add.u32 %bi,%bi,1;bra INPUT_BASIS;INPUT_BASIS_DONE:setp.ne.s32 %p,%kind,-1;@%p bra NEXT_WEIGHT;add.u32 %bi,%oi,1;EARLIER_INPUT:setp.ge.s32 %p,%bi,%starti;@%p bra NEXT_WEIGHT;
+sub.u32 %w,%bi,%oi;sub.u32 %w,%w,1;mul.lo.u32 %w,%w,21;sub.u32 %j1,%bw,%ow;sub.u32 %j1,%j1,1;add.u32 %w,%w,%j1;mul.wide.u32 %offset,%w,8;add.u64 %address,%out,%offset;
+sub.u32 %w,%bw,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%tmpW,%off;ld.b64 %v1,[%ptr];sub.u32 %w,%pos,1;mul.lo.u32 %w,%w,%ni;add.u32 %w,%w,%bi;sub.u32 %w,%w,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%cumI,%off;ld.b64 %v2,[%ptr];
+st.param.b64 [a31],%v1;st.param.b64 [b31],%v2;call.uni (r31),md2asm_gpu_mul_status,(a31,b31);ld.param.b64 %v1,[r31];ld.param.u32 %raised,[r31+8];or.b32 %flags,%flags,%raised;
+ld.b64 %v0,[%address];
+st.param.b64 [a32],%v0;st.param.b64 [b32],%v1;call.uni (r32),md2asm_gpu_add_status,(a32,b32);ld.param.b64 %v0,[r32];ld.param.u32 %raised,[r32+8];or.b32 %flags,%flags,%raised;
+st.b64 [%address],%v0;
+add.u32 %bi,%bi,1;bra EARLIER_INPUT;NEXT_WEIGHT:add.u32 %bw,%bw,1;bra WEIGHT_BASIS;MAIN_RECORD_DONE:add.u32 %recidx,%recidx,1;MAIN_ACCUMULATE:setp.ne.s32 %p,%kind,-1;@%p bra NEXT_INTERVAL;
+sub.u32 %w,%pos,1;mul.lo.u32 %w,%w,%nwgt;mul.wide.u32 %off,%w,8;add.u64 %prev,%cumW,%off;mul.wide.u32 %off,%nwgt,8;add.u64 %nextrow,%prev,%off;mov.u32 %i,0;WEIGHT_CUM:mul.wide.u32 %off,%i,8;add.u64 %ptr,%prev,%off;ld.b64 %v0,[%ptr];add.u64 %ptr,%tmpW,%off;ld.b64 %v1,[%ptr];
+st.param.b64 [a33],%v0;st.param.b64 [b33],%v1;call.uni (r33),md2asm_gpu_add_status,(a33,b33);ld.param.b64 %v0,[r33];ld.param.u32 %raised,[r33+8];or.b32 %flags,%flags,%raised;
+add.u64 %ptr,%nextrow,%off;st.b64 [%ptr],%v0;add.u32 %i,%i,1;setp.lt.u32 %p,%i,%nwgt;@%p bra WEIGHT_CUM;
+NEXT_INTERVAL:add.u32 %pos,%pos,1;setp.lt.u32 %p,%pos,%total;@%p bra MAIN_INTERVAL;mov.u32 %error,0;bra FINISH;NUMERIC_FAIL:mov.u32 %error,3;
+FINISH:st.param.b64 [returned],0;st.param.u32 [returned+8],%flags;st.param.u32 [returned+12],%error;ret;
+}
+
+.func (.param .align 8 .b8 returned[16]) parallel_spline_matrix_parallel_numeric(.param .u64 original_input,.param .u64 workspace,.param .u64 matrix_output,.param .u32 lane_id,.param .u64 failure_slot)
+{
+.reg .u64 %fastptr,%wideptr,%nf,%nw,%old,%eventword,%mag0,%mag1,%quiet0,%quiet1;
+.reg .u32 %condition,%errno_;
+.reg .b64 %x<5>,%temp,%zero;
+.param .b64 ma,mb,ex,ey;
+.param .align 8 .b8 ar[16],mathret[32];
+.reg .u64 %args,%ctx,%record,%cap,%input,%output,%bits,%off,%rows,%ptr,%a,%n,%ae,%b,%bn,%be;
+.reg .u32 %i,%j,%w,%mode,%error,%flags,%raised,%nvalues;.reg .b64 %value,%rt1,%rt2;.reg .pred %p,%q,%witness;
+.reg .u32 %kind,%ni,%nwgt,%oi,%ow,%total,%nr,%pos,%recidx,%bi,%bw,%starti,%stopi,%startw,%stopw,%ki,%kw,%j0,%j1;
+.reg .u64 %owner<8>,%extent,%capacity,%meta,%work,%out,%cumI,%cumW,%tmpI,%tmpW,%pI,%pW,%lI,%lW,%integral,%table,%address,%index,%offset,%prev,%nextrow;
+.reg .b64 %lower,%upper,%width,%loI,%hiI,%spanI,%loW,%hiW,%spanW,%v<16>,%sum,%term,%factor;
+.reg .u32 %nested;.reg .pred %readI,%readJ;
+.local .align 8 .b8 scratch[168];
+.local .align 8 .b8 owners[240];.param .u64 rb,rn,rc,values;.param .u32 rr,mode;.param .align 8 .b8 result[16];
+.param .b64 c0_0;.param .b64 c0_1;.param .b64 c0_2;.param .align 8 .b8 c0r[16];.param .b64 c1_0;.param .b64 c1_1;.param .b64 c1_2;.param .align 8 .b8 c1r[16];.param .b64 a2,b2;.param .align 8 .b8 r2[16];.param .u64 c3_0;.param .u32 c3_1;.param .u32 c3_2;.param .u32 c3_3;.param .u64 c3_4;.param .align 8 .b8 c3r[16];.param .u32 c4_0;.param .u64 c4_1;.param .u64 c4_2;.param .align 8 .b8 c4r[16];.param .u32 c5_0;.param .u64 c5_1;.param .b64 c5_2;.param .align 8 .b8 c5r[16];.param .u32 c6_0;.param .u64 c6_1;.param .b64 c6_2;.param .align 8 .b8 c6r[16];.param .b64 a7,b7;.param .align 8 .b8 r7[16];.param .b64 a8,b8;.param .align 8 .b8 r8[16];.param .b64 a9,b9;.param .align 8 .b8 r9[16];.param .b64 c10_0;.param .b64 c10_1;.param .b64 c10_2;.param .align 8 .b8 c10r[16];.param .b64 c11_0;.param .b64 c11_1;.param .b64 c11_2;.param .align 8 .b8 c11r[16];.param .b64 a12,b12;.param .align 8 .b8 r12[16];.param .b64 c13_0;.param .b64 c13_1;.param .b64 c13_2;.param .align 8 .b8 c13r[16];.param .b64 c14_0;.param .b64 c14_1;.param .b64 c14_2;.param .align 8 .b8 c14r[16];.param .b64 a15,b15;.param .align 8 .b8 r15[16];.param .b64 a16,b16;.param .align 8 .b8 r16[16];.param .b64 a17,b17;.param .align 8 .b8 r17[16];.param .u64 c18_0;.param .u32 c18_1;.param .u32 c18_2;.param .u32 c18_3;.param .u64 c18_4;.param .align 8 .b8 c18r[16];.param .u32 c19_0;.param .u64 c19_1;.param .u64 c19_2;.param .align 8 .b8 c19r[16];.param .u32 c20_0;.param .u64 c20_1;.param .b64 c20_2;.param .align 8 .b8 c20r[16];.param .u32 c21_0;.param .u64 c21_1;.param .b64 c21_2;.param .align 8 .b8 c21r[16];.param .b64 a22,b22;.param .align 8 .b8 r22[16];.param .b64 a23,b23;.param .align 8 .b8 r23[16];.param .u64 c24_0;.param .b64 c24_1;.param .b64 c24_2;.param .u64 c24_3;.param .u64 c24_4;.param .align 8 .b8 c24r[16];.param .u64 c25_0;.param .u32 c25_1;.param .u32 c25_2;.param .u32 c25_3;.param .u64 c25_4;.param .align 8 .b8 c25r[16];.param .u64 c26_0;.param .b64 c26_1;.param .b64 c26_2;.param .u64 c26_3;.param .u64 c26_4;.param .align 8 .b8 c26r[16];.param .s32 c27_0;.param .u64 c27_1;.param .u64 c27_2;.param .b64 c27_3;.param .align 8 .b8 c27r[16];.param .b64 a28,b28;.param .align 8 .b8 r28[16];.param .b64 a29,b29;.param .align 8 .b8 r29[16];.param .b64 a30,b30;.param .align 8 .b8 r30[16];.param .b64 a31,b31;.param .align 8 .b8 r31[16];.param .b64 a32,b32;.param .align 8 .b8 r32[16];.param .b64 a33,b33;.param .align 8 .b8 r33[16];
+.reg .u32 %lane,%own_failure,%joined;.reg .u64 %failptr;
+ld.param.u64 %input,[original_input];ld.param.u64 %work,[workspace];ld.param.u64 %out,[matrix_output];
+ld.global.u32 %kind,[%input];ld.global.u32 %ni,[%input+4];ld.global.u32 %oi,[%input+8];ld.global.u32 %nwgt,[%input+12];ld.global.u32 %ow,[%input+16];ld.global.u32 %total,[%input+20];ld.global.u32 %nr,[%input+24];
+ld.global.u64 %owner0,[%input+32];
+ld.global.u64 %owner1,[%input+40];
+ld.global.u64 %owner2,[%input+48];
+ld.global.u64 %owner3,[%input+56];
+ld.global.u64 %owner4,[%input+64];
+ld.global.u64 %owner5,[%input+72];
+ld.global.u64 %owner6,[%input+80];
+ld.global.u64 %owner7,[%input+88];
+mov.u32 %flags,0;
+ld.param.u32 %lane,[lane_id];ld.param.u64 %failptr,[failure_slot];mov.u32 %own_failure,0;
+add.u64 %cumI,%work,1760;add.u64 %cumW,%work,12512;add.u64 %tmpI,%work,23264;add.u64 %tmpW,%work,23456;cvta.local.u64 %pI,scratch;add.u64 %pW,%pI,32;add.u64 %lI,%pI,64;add.u64 %lW,%pI,96;add.u64 %integral,%pI,128;mov.u32 %i,%lane;setp.ge.u32 %p,%i,441;@%p bra AFTER_CLEAR_OUT;CLEAR_OUT:mul.wide.u32 %off,%i,8;add.u64 %ptr,%out,%off;st.u64 [%ptr],0;add.u32 %i,%i,32;setp.lt.u32 %p,%i,441;@%p bra CLEAR_OUT;AFTER_CLEAR_OUT:bar.sync 0;setp.ne.s32 %p,%kind,-1;@%p bra MAIN_START;mul.lo.u32 %j0,%ni,%total;mov.u32 %i,%lane;setp.ge.u32 %p,%i,%j0;@%p bra AFTER_CLEAR_INPUT_CUM;CLEAR_INPUT_CUM:mul.wide.u32 %off,%i,8;add.u64 %ptr,%cumI,%off;st.u64 [%ptr],0;add.u32 %i,%i,32;setp.lt.u32 %p,%i,%j0;@%p bra CLEAR_INPUT_CUM;AFTER_CLEAR_INPUT_CUM:bar.sync 0;mov.u32 %pos,1;mov.u32 %recidx,0;PREPASS:mov.u32 %i,%lane;setp.ge.u32 %p,%i,%ni;@%p bra AFTER_CLEAR_INPUT_TEMP;CLEAR_INPUT_TEMP:mul.wide.u32 %off,%i,8;add.u64 %ptr,%tmpI,%off;st.u64 [%ptr],0;add.u32 %i,%i,32;setp.lt.u32 %p,%i,%ni;@%p bra CLEAR_INPUT_TEMP;AFTER_CLEAR_INPUT_TEMP:bar.sync 0;setp.ge.u32 %p,%recidx,%nr;@%p bra PRE_ACCUMULATE;mul.wide.u32 %off,%recidx,32;add.u64 %meta,%work,%off;ld.u32 %ki,[%meta+24];ld.u32 %kw,[%meta+28];add.u32 %w,%ki,%kw;setp.ne.u32 %p,%pos,%w;@%p bra PRE_ACCUMULATE;
+sub.u32 %w,%ki,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%owner2,%off;ld.b64 %v10,[%ptr];ld.b64 %v11,[%ptr+8];ld.b64 %lower,[%meta];ld.b64 %upper,[%meta+8];
+st.param.b64 [c0_0],%v10;
+st.param.b64 [c0_1],%v11;
+st.param.b64 [c0_2],%lower;
+call.uni (c0r),parallel_spline_matrix_fx2t,(c0_0,c0_1,c0_2);ld.param.b64 %loI,[c0r];ld.param.u32 %raised,[c0r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c0r+12];
+st.param.b64 [c1_0],%v10;
+st.param.b64 [c1_1],%v11;
+st.param.b64 [c1_2],%upper;
+call.uni (c1r),parallel_spline_matrix_fx2t,(c1_0,c1_1,c1_2);ld.param.b64 %hiI,[c1r];ld.param.u32 %raised,[c1r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c1r+12];
+st.param.b64 [a2],%v11;st.param.b64 [b2],%v10;call.uni (r2),md2asm_gpu_sub_status,(a2,b2);ld.param.b64 %spanI,[r2];ld.param.u32 %raised,[r2+8];or.b32 %flags,%flags,%raised;
+sub.s32 %starti,%ki,3;add.u32 %w,%oi,1;max.s32 %starti,%starti,%w;add.u32 %w,%w,20;min.s32 %stopi,%ki,%w;
+add.u32 %bi,%starti,%lane;PRE_BASIS:setp.gt.s32 %p,%bi,%stopi;@%p bra PRE_RECORD_DONE;
+st.param.u64 [c3_0],%owner4;
+st.param.u32 [c3_1],%ni;
+st.param.u32 [c3_2],%bi;
+st.param.u32 [c3_3],%ki;
+st.param.u64 [c3_4],%pI;
+call.uni (c3r),parallel_spline_matrix_copy_piece,(c3_0,c3_1,c3_2,c3_3,c3_4);ld.param.b64 %v0,[c3r];ld.param.u32 %raised,[c3r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c3r+12];
+st.param.u32 [c4_0],4;
+st.param.u64 [c4_1],%pI;
+st.param.u64 [c4_2],%integral;
+call.uni (c4r),parallel_spline_matrix_integral,(c4_0,c4_1,c4_2);ld.param.b64 %v0,[c4r];ld.param.u32 %raised,[c4r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c4r+12];
+st.param.u32 [c5_0],5;
+st.param.u64 [c5_1],%integral;
+st.param.b64 [c5_2],%loI;
+call.uni (c5r),parallel_spline_matrix_eval,(c5_0,c5_1,c5_2);ld.param.b64 %v9,[c5r];ld.param.u32 %raised,[c5r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c5r+12];
+st.param.u32 [c6_0],5;
+st.param.u64 [c6_1],%integral;
+st.param.b64 [c6_2],%hiI;
+call.uni (c6r),parallel_spline_matrix_eval,(c6_0,c6_1,c6_2);ld.param.b64 %v0,[c6r];ld.param.u32 %raised,[c6r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c6r+12];
+st.param.b64 [a7],%v0;st.param.b64 [b7],%v9;call.uni (r7),md2asm_gpu_sub_status,(a7,b7);ld.param.b64 %v0,[r7];ld.param.u32 %raised,[r7+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a8],%v0;st.param.b64 [b8],%spanI;call.uni (r8),md2asm_gpu_mul_status,(a8,b8);ld.param.b64 %v0,[r8];ld.param.u32 %raised,[r8+8];or.b32 %flags,%flags,%raised;
+sub.u32 %w,%bi,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%tmpI,%off;st.b64 [%ptr],%v0;
+add.u32 %bi,%bi,32;bra PRE_BASIS;PRE_RECORD_DONE:add.u32 %recidx,%recidx,1;PRE_ACCUMULATE:bar.sync 0;
+sub.u32 %w,%pos,1;mul.lo.u32 %w,%w,%ni;mul.wide.u32 %off,%w,8;add.u64 %prev,%cumI,%off;mul.wide.u32 %off,%ni,8;add.u64 %nextrow,%prev,%off;mov.u32 %i,%lane;setp.ge.u32 %p,%i,%ni;@%p bra AFTER_PRE_CUM;PRE_CUM:mul.wide.u32 %off,%i,8;add.u64 %ptr,%prev,%off;ld.b64 %v0,[%ptr];add.u64 %ptr,%tmpI,%off;ld.b64 %v1,[%ptr];
+st.param.b64 [a9],%v0;st.param.b64 [b9],%v1;call.uni (r9),md2asm_gpu_add_status,(a9,b9);ld.param.b64 %v0,[r9];ld.param.u32 %raised,[r9+8];or.b32 %flags,%flags,%raised;
+add.u64 %ptr,%nextrow,%off;st.b64 [%ptr],%v0;add.u32 %i,%i,32;setp.lt.u32 %p,%i,%ni;@%p bra PRE_CUM;AFTER_PRE_CUM:bar.sync 0;
+add.u32 %pos,%pos,1;setp.lt.u32 %p,%pos,%total;@%p bra PREPASS;mul.lo.u32 %j0,%nwgt,%total;mov.u32 %i,%lane;setp.ge.u32 %p,%i,%j0;@%p bra AFTER_CLEAR_WEIGHT_CUM;CLEAR_WEIGHT_CUM:mul.wide.u32 %off,%i,8;add.u64 %ptr,%cumW,%off;st.u64 [%ptr],0;add.u32 %i,%i,32;setp.lt.u32 %p,%i,%j0;@%p bra CLEAR_WEIGHT_CUM;AFTER_CLEAR_WEIGHT_CUM:bar.sync 0;MAIN_START:mov.u32 %pos,1;mov.u32 %recidx,0;MAIN_INTERVAL:setp.ne.s32 %p,%kind,-1;@%p bra MAIN_RECORD;mov.u32 %i,%lane;setp.ge.u32 %p,%i,%nwgt;@%p bra AFTER_CLEAR_WEIGHT_TEMP;CLEAR_WEIGHT_TEMP:mul.wide.u32 %off,%i,8;add.u64 %ptr,%tmpW,%off;st.u64 [%ptr],0;add.u32 %i,%i,32;setp.lt.u32 %p,%i,%nwgt;@%p bra CLEAR_WEIGHT_TEMP;AFTER_CLEAR_WEIGHT_TEMP:bar.sync 0;MAIN_RECORD:setp.ge.u32 %p,%recidx,%nr;@%p bra MAIN_ACCUMULATE;mul.wide.u32 %off,%recidx,32;add.u64 %meta,%work,%off;ld.u32 %ki,[%meta+24];ld.u32 %kw,[%meta+28];add.u32 %w,%ki,%kw;setp.ne.u32 %p,%pos,%w;@%p bra MAIN_ACCUMULATE;ld.b64 %width,[%meta+16];
+sub.u32 %w,%kw,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%owner3,%off;ld.b64 %v10,[%ptr];ld.b64 %v11,[%ptr+8];ld.b64 %lower,[%meta];ld.b64 %upper,[%meta+8];
+st.param.b64 [c10_0],%v10;
+st.param.b64 [c10_1],%v11;
+st.param.b64 [c10_2],%lower;
+call.uni (c10r),parallel_spline_matrix_fx2t,(c10_0,c10_1,c10_2);ld.param.b64 %loW,[c10r];ld.param.u32 %raised,[c10r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c10r+12];
+st.param.b64 [c11_0],%v10;
+st.param.b64 [c11_1],%v11;
+st.param.b64 [c11_2],%upper;
+call.uni (c11r),parallel_spline_matrix_fx2t,(c11_0,c11_1,c11_2);ld.param.b64 %hiW,[c11r];ld.param.u32 %raised,[c11r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c11r+12];
+st.param.b64 [a12],%v11;st.param.b64 [b12],%v10;call.uni (r12),md2asm_gpu_sub_status,(a12,b12);ld.param.b64 %spanW,[r12];ld.param.u32 %raised,[r12+8];or.b32 %flags,%flags,%raised;
+sub.u32 %w,%ki,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%owner2,%off;ld.b64 %v10,[%ptr];ld.b64 %v11,[%ptr+8];ld.b64 %lower,[%meta];ld.b64 %upper,[%meta+8];
+st.param.b64 [c13_0],%v10;
+st.param.b64 [c13_1],%v11;
+st.param.b64 [c13_2],%lower;
+call.uni (c13r),parallel_spline_matrix_fx2t,(c13_0,c13_1,c13_2);ld.param.b64 %loI,[c13r];ld.param.u32 %raised,[c13r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c13r+12];
+st.param.b64 [c14_0],%v10;
+st.param.b64 [c14_1],%v11;
+st.param.b64 [c14_2],%upper;
+call.uni (c14r),parallel_spline_matrix_fx2t,(c14_0,c14_1,c14_2);ld.param.b64 %hiI,[c14r];ld.param.u32 %raised,[c14r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c14r+12];
+st.param.b64 [a15],%v11;st.param.b64 [b15],%v10;call.uni (r15),md2asm_gpu_sub_status,(a15,b15);ld.param.b64 %spanI,[r15];ld.param.u32 %raised,[r15+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a16],%hiI;st.param.b64 [b16],%loI;call.uni (r16),md2asm_gpu_sub_status,(a16,b16);ld.param.b64 %v0,[r16];ld.param.u32 %raised,[r16+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a17],%hiW;st.param.b64 [b17],%loW;call.uni (r17),md2asm_gpu_sub_status,(a17,b17);ld.param.b64 %v1,[r17];ld.param.u32 %raised,[r17+8];or.b32 %flags,%flags,%raised;
+sub.s32 %starti,%ki,3;add.u32 %w,%oi,1;max.s32 %starti,%starti,%w;add.u32 %w,%w,20;min.s32 %stopi,%ki,%w;
+sub.s32 %startw,%kw,3;add.u32 %w,%ow,1;max.s32 %startw,%startw,%w;add.u32 %w,%w,20;min.s32 %stopw,%kw,%w;
+add.u32 %bw,%ow,1;add.u32 %bw,%bw,%lane;setp.lt.s32 %p,%bw,%startw;@%p bra MAIN_RECORD_DONE;WEIGHT_BASIS:setp.gt.s32 %p,%bw,%stopw;@%p bra MAIN_RECORD_DONE;
+st.param.u64 [c18_0],%owner5;
+st.param.u32 [c18_1],%nwgt;
+st.param.u32 [c18_2],%bw;
+st.param.u32 [c18_3],%kw;
+st.param.u64 [c18_4],%pW;
+call.uni (c18r),parallel_spline_matrix_copy_piece,(c18_0,c18_1,c18_2,c18_3,c18_4);ld.param.b64 %v0,[c18r];ld.param.u32 %raised,[c18r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c18r+12];
+setp.ne.s32 %p,%kind,-1;@%p bra LOCAL_WEIGHT;
+st.param.u32 [c19_0],4;
+st.param.u64 [c19_1],%pW;
+st.param.u64 [c19_2],%integral;
+call.uni (c19r),parallel_spline_matrix_integral,(c19_0,c19_1,c19_2);ld.param.b64 %v0,[c19r];ld.param.u32 %raised,[c19r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c19r+12];
+st.param.u32 [c20_0],5;
+st.param.u64 [c20_1],%integral;
+st.param.b64 [c20_2],%loW;
+call.uni (c20r),parallel_spline_matrix_eval,(c20_0,c20_1,c20_2);ld.param.b64 %v9,[c20r];ld.param.u32 %raised,[c20r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c20r+12];
+st.param.u32 [c21_0],5;
+st.param.u64 [c21_1],%integral;
+st.param.b64 [c21_2],%hiW;
+call.uni (c21r),parallel_spline_matrix_eval,(c21_0,c21_1,c21_2);ld.param.b64 %v0,[c21r];ld.param.u32 %raised,[c21r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c21r+12];
+st.param.b64 [a22],%v0;st.param.b64 [b22],%v9;call.uni (r22),md2asm_gpu_sub_status,(a22,b22);ld.param.b64 %v0,[r22];ld.param.u32 %raised,[r22+8];or.b32 %flags,%flags,%raised;
+st.param.b64 [a23],%v0;st.param.b64 [b23],%spanW;call.uni (r23),md2asm_gpu_mul_status,(a23,b23);ld.param.b64 %v0,[r23];ld.param.u32 %raised,[r23+8];or.b32 %flags,%flags,%raised;
+sub.u32 %w,%bw,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%tmpW,%off;st.b64 [%ptr],%v0;
+LOCAL_WEIGHT:
+st.param.u64 [c24_0],%owner1;
+st.param.b64 [c24_1],%loW;
+st.param.b64 [c24_2],%hiW;
+st.param.u64 [c24_3],%pW;
+st.param.u64 [c24_4],%lW;
+call.uni (c24r),parallel_spline_matrix_local,(c24_0,c24_1,c24_2,c24_3,c24_4);ld.param.b64 %v0,[c24r];ld.param.u32 %raised,[c24r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c24r+12];
+setp.ne.u32 %p,%error,0;@%p bra PARALLEL_NUMERIC_FAIL;
+mov.u32 %bi,%starti;INPUT_BASIS:setp.gt.s32 %p,%bi,%stopi;@%p bra INPUT_BASIS_DONE;
+st.param.u64 [c25_0],%owner4;
+st.param.u32 [c25_1],%ni;
+st.param.u32 [c25_2],%bi;
+st.param.u32 [c25_3],%ki;
+st.param.u64 [c25_4],%pI;
+call.uni (c25r),parallel_spline_matrix_copy_piece,(c25_0,c25_1,c25_2,c25_3,c25_4);ld.param.b64 %v0,[c25r];ld.param.u32 %raised,[c25r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c25r+12];
+st.param.u64 [c26_0],%owner0;
+st.param.b64 [c26_1],%loI;
+st.param.b64 [c26_2],%hiI;
+st.param.u64 [c26_3],%pI;
+st.param.u64 [c26_4],%lI;
+call.uni (c26r),parallel_spline_matrix_local,(c26_0,c26_1,c26_2,c26_3,c26_4);ld.param.b64 %v0,[c26r];ld.param.u32 %raised,[c26r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c26r+12];
+setp.ne.u32 %p,%error,0;@%p bra PARALLEL_NUMERIC_FAIL;
+st.param.s32 [c27_0],%kind;
+st.param.u64 [c27_1],%lI;
+st.param.u64 [c27_2],%lW;
+st.param.b64 [c27_3],%width;
+call.uni (c27r),parallel_spline_matrix_contribution,(c27_0,c27_1,c27_2,c27_3);ld.param.b64 %v0,[c27r];ld.param.u32 %raised,[c27r+8];or.b32 %flags,%flags,%raised;ld.param.u32 %error,[c27r+12];
+setp.ne.u32 %p,%error,0;@%p bra PARALLEL_NUMERIC_FAIL;
+sub.u32 %w,%bi,%oi;sub.u32 %w,%w,1;mul.lo.u32 %w,%w,21;sub.u32 %j1,%bw,%ow;sub.u32 %j1,%j1,1;add.u32 %w,%w,%j1;mul.wide.u32 %offset,%w,8;add.u64 %address,%out,%offset;
+ld.b64 %v1,[%address];
+st.param.b64 [a28],%v1;st.param.b64 [b28],%v0;call.uni (r28),md2asm_gpu_add_status,(a28,b28);ld.param.b64 %v0,[r28];ld.param.u32 %raised,[r28+8];or.b32 %flags,%flags,%raised;
+st.b64 [%address],%v0;setp.ne.s32 %p,%kind,-1;@%p bra NEXT_INPUT;
+sub.u32 %w,%bi,%oi;sub.u32 %w,%w,1;mul.lo.u32 %w,%w,21;sub.u32 %j1,%bw,%ow;sub.u32 %j1,%j1,1;add.u32 %w,%w,%j1;mul.wide.u32 %offset,%w,8;add.u64 %address,%out,%offset;
+sub.u32 %w,%bw,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%tmpW,%off;ld.b64 %v1,[%ptr];sub.u32 %w,%pos,1;mul.lo.u32 %w,%w,%ni;add.u32 %w,%w,%bi;sub.u32 %w,%w,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%cumI,%off;ld.b64 %v2,[%ptr];
+st.param.b64 [a29],%v1;st.param.b64 [b29],%v2;call.uni (r29),md2asm_gpu_mul_status,(a29,b29);ld.param.b64 %v1,[r29];ld.param.u32 %raised,[r29+8];or.b32 %flags,%flags,%raised;
+ld.b64 %v0,[%address];
+st.param.b64 [a30],%v0;st.param.b64 [b30],%v1;call.uni (r30),md2asm_gpu_add_status,(a30,b30);ld.param.b64 %v0,[r30];ld.param.u32 %raised,[r30+8];or.b32 %flags,%flags,%raised;
+st.b64 [%address],%v0;
+NEXT_INPUT:add.u32 %bi,%bi,1;bra INPUT_BASIS;INPUT_BASIS_DONE:setp.ne.s32 %p,%kind,-1;@%p bra NEXT_WEIGHT;add.u32 %bi,%oi,1;EARLIER_INPUT:setp.ge.s32 %p,%bi,%starti;@%p bra NEXT_WEIGHT;
+sub.u32 %w,%bi,%oi;sub.u32 %w,%w,1;mul.lo.u32 %w,%w,21;sub.u32 %j1,%bw,%ow;sub.u32 %j1,%j1,1;add.u32 %w,%w,%j1;mul.wide.u32 %offset,%w,8;add.u64 %address,%out,%offset;
+sub.u32 %w,%bw,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%tmpW,%off;ld.b64 %v1,[%ptr];sub.u32 %w,%pos,1;mul.lo.u32 %w,%w,%ni;add.u32 %w,%w,%bi;sub.u32 %w,%w,1;mul.wide.u32 %off,%w,8;add.u64 %ptr,%cumI,%off;ld.b64 %v2,[%ptr];
+st.param.b64 [a31],%v1;st.param.b64 [b31],%v2;call.uni (r31),md2asm_gpu_mul_status,(a31,b31);ld.param.b64 %v1,[r31];ld.param.u32 %raised,[r31+8];or.b32 %flags,%flags,%raised;
+ld.b64 %v0,[%address];
+st.param.b64 [a32],%v0;st.param.b64 [b32],%v1;call.uni (r32),md2asm_gpu_add_status,(a32,b32);ld.param.b64 %v0,[r32];ld.param.u32 %raised,[r32+8];or.b32 %flags,%flags,%raised;
+st.b64 [%address],%v0;
+add.u32 %bi,%bi,1;bra EARLIER_INPUT;NEXT_WEIGHT:bra MAIN_RECORD_DONE;MAIN_RECORD_DONE:add.u32 %recidx,%recidx,1;MAIN_ACCUMULATE:
+atom.shared.or.b32 %joined,[%failptr],%own_failure;
+bar.sync 0;ld.shared.u32 %joined,[%failptr];setp.ne.u32 %p,%joined,0;@%p bra PARALLEL_RETURN_FAILURE;
+setp.ne.s32 %p,%kind,-1;@%p bra NEXT_INTERVAL;
+sub.u32 %w,%pos,1;mul.lo.u32 %w,%w,%nwgt;mul.wide.u32 %off,%w,8;add.u64 %prev,%cumW,%off;mul.wide.u32 %off,%nwgt,8;add.u64 %nextrow,%prev,%off;mov.u32 %i,%lane;setp.ge.u32 %p,%i,%nwgt;@%p bra AFTER_WEIGHT_CUM;WEIGHT_CUM:mul.wide.u32 %off,%i,8;add.u64 %ptr,%prev,%off;ld.b64 %v0,[%ptr];add.u64 %ptr,%tmpW,%off;ld.b64 %v1,[%ptr];
+st.param.b64 [a33],%v0;st.param.b64 [b33],%v1;call.uni (r33),md2asm_gpu_add_status,(a33,b33);ld.param.b64 %v0,[r33];ld.param.u32 %raised,[r33+8];or.b32 %flags,%flags,%raised;
+add.u64 %ptr,%nextrow,%off;st.b64 [%ptr],%v0;add.u32 %i,%i,32;setp.lt.u32 %p,%i,%nwgt;@%p bra WEIGHT_CUM;AFTER_WEIGHT_CUM:bar.sync 0;
+NEXT_INTERVAL:add.u32 %pos,%pos,1;setp.lt.u32 %p,%pos,%total;@%p bra MAIN_INTERVAL;mov.u32 %error,0;bra FINISH;FINISH:st.param.b64 [returned],0;st.param.u32 [returned+8],%flags;st.param.u32 [returned+12],%error;ret;
+PARALLEL_NUMERIC_FAIL:mov.u32 %own_failure,3;bra MAIN_RECORD_DONE;
+PARALLEL_RETURN_FAILURE:mov.u32 %error,3;bra FINISH;
+}
+
+.visible .entry md2asm_gpu_spline_operator_matrix_parallel_columns(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %fastptr,%wideptr,%nf,%nw,%old,%eventword,%mag0,%mag1,%quiet0,%quiet1;
+.reg .u32 %condition,%errno_;
+.reg .b64 %x<5>,%temp,%zero;
+.param .b64 ma,mb,ex,ey;
+.param .align 8 .b8 ar[16],mathret[32];
+.reg .u64 %args,%ctx,%record,%cap,%input,%output,%bits,%off,%rows,%ptr,%a,%n,%ae,%b,%bn,%be;
+.reg .u32 %i,%j,%w,%mode,%error,%flags,%raised,%nvalues;.reg .b64 %value,%rt1,%rt2;.reg .pred %p,%q,%witness;
+.reg .u32 %kind,%ni,%nwgt,%oi,%ow,%total,%nr,%pos,%recidx,%bi,%bw,%starti,%stopi,%startw,%stopw,%ki,%kw,%j0,%j1;
+.reg .u64 %owner<8>,%extent,%capacity,%meta,%work,%out,%cumI,%cumW,%tmpI,%tmpW,%pI,%pW,%lI,%lW,%integral,%table,%address,%index,%offset,%prev,%nextrow;
+.reg .b64 %lower,%upper,%width,%loI,%hiI,%spanI,%loW,%hiW,%spanW,%v<16>,%sum,%term,%factor;
+.reg .u32 %nested;.reg .pred %readI,%readJ;
+.local .align 8 .b8 scratch[168];
+.local .align 8 .b8 owners[240];.param .u64 rb,rn,rc,values;.param .u32 rr,mode;.param .align 8 .b8 result[16];
+.param .b64 c0_0;.param .b64 c0_1;.param .b64 c0_2;.param .align 8 .b8 c0r[16];.param .b64 c1_0;.param .b64 c1_1;.param .b64 c1_2;.param .align 8 .b8 c1r[16];.param .b64 a2,b2;.param .align 8 .b8 r2[16];.param .u64 c3_0;.param .u32 c3_1;.param .u32 c3_2;.param .u32 c3_3;.param .u64 c3_4;.param .align 8 .b8 c3r[16];.param .u32 c4_0;.param .u64 c4_1;.param .u64 c4_2;.param .align 8 .b8 c4r[16];.param .u32 c5_0;.param .u64 c5_1;.param .b64 c5_2;.param .align 8 .b8 c5r[16];.param .u32 c6_0;.param .u64 c6_1;.param .b64 c6_2;.param .align 8 .b8 c6r[16];.param .b64 a7,b7;.param .align 8 .b8 r7[16];.param .b64 a8,b8;.param .align 8 .b8 r8[16];.param .b64 a9,b9;.param .align 8 .b8 r9[16];.param .b64 c10_0;.param .b64 c10_1;.param .b64 c10_2;.param .align 8 .b8 c10r[16];.param .b64 c11_0;.param .b64 c11_1;.param .b64 c11_2;.param .align 8 .b8 c11r[16];.param .b64 a12,b12;.param .align 8 .b8 r12[16];.param .b64 c13_0;.param .b64 c13_1;.param .b64 c13_2;.param .align 8 .b8 c13r[16];.param .b64 c14_0;.param .b64 c14_1;.param .b64 c14_2;.param .align 8 .b8 c14r[16];.param .b64 a15,b15;.param .align 8 .b8 r15[16];.param .b64 a16,b16;.param .align 8 .b8 r16[16];.param .b64 a17,b17;.param .align 8 .b8 r17[16];.param .u64 c18_0;.param .u32 c18_1;.param .u32 c18_2;.param .u32 c18_3;.param .u64 c18_4;.param .align 8 .b8 c18r[16];.param .u32 c19_0;.param .u64 c19_1;.param .u64 c19_2;.param .align 8 .b8 c19r[16];.param .u32 c20_0;.param .u64 c20_1;.param .b64 c20_2;.param .align 8 .b8 c20r[16];.param .u32 c21_0;.param .u64 c21_1;.param .b64 c21_2;.param .align 8 .b8 c21r[16];.param .b64 a22,b22;.param .align 8 .b8 r22[16];.param .b64 a23,b23;.param .align 8 .b8 r23[16];.param .u64 c24_0;.param .b64 c24_1;.param .b64 c24_2;.param .u64 c24_3;.param .u64 c24_4;.param .align 8 .b8 c24r[16];.param .u64 c25_0;.param .u32 c25_1;.param .u32 c25_2;.param .u32 c25_3;.param .u64 c25_4;.param .align 8 .b8 c25r[16];.param .u64 c26_0;.param .b64 c26_1;.param .b64 c26_2;.param .u64 c26_3;.param .u64 c26_4;.param .align 8 .b8 c26r[16];.param .s32 c27_0;.param .u64 c27_1;.param .u64 c27_2;.param .b64 c27_3;.param .align 8 .b8 c27r[16];.param .b64 a28,b28;.param .align 8 .b8 r28[16];.param .b64 a29,b29;.param .align 8 .b8 r29[16];.param .b64 a30,b30;.param .align 8 .b8 r30[16];.param .b64 a31,b31;.param .align 8 .b8 r31[16];.param .b64 a32,b32;.param .align 8 .b8 r32[16];.param .b64 a33,b33;.param .align 8 .b8 r33[16];
+.reg .u32 %lane,%accepted_word,%joined,%numeric_error;.reg .u64 %private_work,%private_out,%failptr;
+.shared .align 8 .b8 saved_work[23648];.shared .align 8 .b8 saved_out[3528];
+.shared .align 4 .u32 admission_ok;.shared .align 4 .u32 all_flags;.shared .align 4 .u32 numerical_failure;
+mov.u32 %lane,%tid.x;
+mov.u32 %w,%ntid.x;setp.ne.u32 %p,%w,32;@%p bra BAD_LAUNCH;
+mov.u32 %w,%ntid.y;setp.ne.u32 %p,%w,1;@%p bra BAD_LAUNCH;
+mov.u32 %w,%ntid.z;setp.ne.u32 %p,%w,1;@%p bra BAD_LAUNCH;
+mov.u32 %w,%nctaid.x;setp.ne.u32 %p,%w,1;@%p bra BAD_LAUNCH;
+mov.u32 %w,%nctaid.y;setp.ne.u32 %p,%w,1;@%p bra BAD_LAUNCH;
+mov.u32 %w,%nctaid.z;setp.ne.u32 %p,%w,1;@%p bra BAD_LAUNCH;
+mov.u32 %w,%dynamic_smem_size;setp.ne.u32 %p,%w,0;@%p bra BAD_LAUNCH;
+setp.ne.u32 %p,%lane,0;@%p bra ADMIT_BARRIER;
+st.shared.u32 [admission_ok],0;st.shared.u32 [all_flags],0;st.shared.u32 [numerical_failure],0;
+ld.param.u64 %ctx,[common_context];setp.eq.u64 %p,%ctx,0;@%p bra ADMIT_DONE;and.b64 %bits,%ctx,7;setp.ne.u64 %p,%bits,0;@%p bra ADMIT_DONE;ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+
+mov.u32 %error,27800;ld.global.u32 %w,[%ctx+4];setp.ne.u32 %p,%w,1;@%p bra REFUSE;ld.global.u32 %w,[%ctx+12];and.b32 %w,%w,1;setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+ld.param.u64 %args,[original_vector];
+st.param.u64 [rb],%args;st.param.u64 [rn],16;st.param.u64 [rc],16;call.uni (rr),parallel_spline_matrix_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rc],64;call.uni (rr),parallel_spline_matrix_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %cap,[%ctx+56];
+st.param.u64 [rb],%record;st.param.u64 [rn],64;st.param.u64 [rc],%cap;call.uni (rr),parallel_spline_matrix_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %input,[%args];ld.global.u64 %output,[%args+8];ld.global.u64 %cap,[%record];
+st.param.u64 [rb],%input;st.param.u64 [rn],256;st.param.u64 [rc],%cap;call.uni (rr),parallel_spline_matrix_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;ld.global.u32 %kind,[%input];ld.global.u32 %ni,[%input+4];ld.global.u32 %oi,[%input+8];ld.global.u32 %nwgt,[%input+12];ld.global.u32 %ow,[%input+16];ld.global.u32 %total,[%input+20];ld.global.u32 %nr,[%input+24];
+mov.u32 %error,27802;add.u32 %w,%kind,1;setp.gt.u32 %p,%w,2;@%p bra REFUSE;sub.u32 %w,%ni,21;setp.gt.u32 %p,%w,3;@%p bra REFUSE;setp.gt.u32 %p,%oi,%w;@%p bra REFUSE;sub.u32 %w,%nwgt,21;setp.gt.u32 %p,%w,3;@%p bra REFUSE;setp.gt.u32 %p,%ow,%w;@%p bra REFUSE;add.u32 %w,%ni,%nwgt;add.u32 %w,%w,8;setp.ne.u32 %p,%total,%w;@%p bra REFUSE;setp.gt.u32 %p,%nr,55;@%p bra REFUSE;ld.global.u32 %w,[%input+28];setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+ld.global.u64 %bits,[%input+160];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;
+ld.global.u64 %bits,[%input+168];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;
+ld.global.u64 %bits,[%input+176];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;
+ld.global.u64 %bits,[%input+184];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;
+ld.global.u64 %bits,[%input+192];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;
+ld.global.u64 %bits,[%input+200];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;
+ld.global.u64 %bits,[%input+208];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;
+ld.global.u64 %bits,[%input+216];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;
+ld.global.u64 %bits,[%input+224];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;
+ld.global.u64 %bits,[%input+232];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;
+ld.global.u64 %bits,[%input+240];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;
+ld.global.u64 %bits,[%input+248];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;
+
+ld.global.u64 %cap,[%record+8];
+st.param.u64 [rb],%output;st.param.u64 [rn],32;st.param.u64 [rc],%cap;call.uni (rr),parallel_spline_matrix_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u32 %mode,[%record+16];mov.u32 %error,27802;setp.ne.u32 %p,%mode,0;@%p bra REFUSE;ld.global.u32 %w,[%record+20];setp.ne.u32 %p,%w,0;@%p bra REFUSE;ld.global.u64 %bits,[%record+24];setp.ne.u64 %p,%bits,0;@%p bra REFUSE;
+ld.global.u64 %fastptr,[%record+32];ld.global.u64 %cap,[%record+40];st.param.u64 [rb],%fastptr;st.param.u64 [rn],8;st.param.u64 [rc],%cap;call.uni (rr),parallel_spline_matrix_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;ld.global.u64 %wideptr,[%record+48];ld.global.u64 %cap,[%record+56];st.param.u64 [rb],%wideptr;st.param.u64 [rn],8;st.param.u64 [rc],%cap;call.uni (rr),parallel_spline_matrix_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;st.local.u64 [owners+0],%input;st.local.u64 [owners+8],256;
+st.local.u64 [owners+16],%output;st.local.u64 [owners+24],32;
+st.local.u64 [owners+32],%args;st.local.u64 [owners+40],16;
+st.local.u64 [owners+48],%ctx;st.local.u64 [owners+56],64;
+st.local.u64 [owners+64],%record;st.local.u64 [owners+72],64;
+st.local.u64 [owners+80],%fastptr;st.local.u64 [owners+88],8;st.local.u64 [owners+96],%wideptr;st.local.u64 [owners+104],8;ld.global.u64 %owner0,[%input+32];ld.global.u64 %cap,[%input+96];
+st.param.u64 [rb],%owner0;st.param.u64 [rn],128;st.param.u64 [rc],%cap;call.uni (rr),parallel_spline_matrix_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;st.local.u64 [owners+112],%owner0;st.local.u64 [owners+120],128;
+ld.global.u64 %owner1,[%input+40];ld.global.u64 %cap,[%input+104];
+st.param.u64 [rb],%owner1;st.param.u64 [rn],128;st.param.u64 [rc],%cap;call.uni (rr),parallel_spline_matrix_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;st.local.u64 [owners+128],%owner1;st.local.u64 [owners+136],128;
+ld.global.u64 %owner2,[%input+48];ld.global.u64 %cap,[%input+112];
+add.u32 %w,%ni,4;mul.wide.u32 %extent,%w,8;
+st.param.u64 [rb],%owner2;st.param.u64 [rn],%extent;st.param.u64 [rc],%cap;call.uni (rr),parallel_spline_matrix_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;st.local.u64 [owners+144],%owner2;st.local.u64 [owners+152],%extent;
+ld.global.u64 %owner3,[%input+56];ld.global.u64 %cap,[%input+120];
+add.u32 %w,%nwgt,4;mul.wide.u32 %extent,%w,8;
+st.param.u64 [rb],%owner3;st.param.u64 [rn],%extent;st.param.u64 [rc],%cap;call.uni (rr),parallel_spline_matrix_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;st.local.u64 [owners+160],%owner3;st.local.u64 [owners+168],%extent;
+ld.global.u64 %owner4,[%input+64];ld.global.u64 %cap,[%input+128];
+mul.wide.u32 %extent,%ni,128;
+st.param.u64 [rb],%owner4;st.param.u64 [rn],%extent;st.param.u64 [rc],%cap;call.uni (rr),parallel_spline_matrix_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;st.local.u64 [owners+176],%owner4;st.local.u64 [owners+184],%extent;
+ld.global.u64 %owner5,[%input+72];ld.global.u64 %cap,[%input+136];
+mul.wide.u32 %extent,%nwgt,128;
+st.param.u64 [rb],%owner5;st.param.u64 [rn],%extent;st.param.u64 [rc],%cap;call.uni (rr),parallel_spline_matrix_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;st.local.u64 [owners+192],%owner5;st.local.u64 [owners+200],%extent;
+ld.global.u64 %owner6,[%input+80];ld.global.u64 %cap,[%input+144];
+mov.u64 %extent,3528;
+st.param.u64 [rb],%owner6;st.param.u64 [rn],%extent;st.param.u64 [rc],%cap;call.uni (rr),parallel_spline_matrix_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;st.local.u64 [owners+208],%owner6;st.local.u64 [owners+216],%extent;
+ld.global.u64 %owner7,[%input+88];ld.global.u64 %cap,[%input+152];
+mov.u64 %extent,23648;
+st.param.u64 [rb],%owner7;st.param.u64 [rn],%extent;st.param.u64 [rc],%cap;call.uni (rr),parallel_spline_matrix_range,(rb,rn,rc);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;st.local.u64 [owners+224],%owner7;st.local.u64 [owners+232],%extent;
+cvta.local.u64 %rows,owners;mov.u32 %i,1;PAIR_LEFT:mul.wide.u32 %off,%i,16;add.u64 %ptr,%rows,%off;ld.u64 %a,[%ptr];ld.u64 %n,[%ptr+8];add.u64 %ae,%a,%n;mov.u32 %j,0;
+PAIR_RIGHT:setp.ge.u32 %readI,%i,7;setp.lt.u32 %readJ,%i,13;and.pred %readI,%readI,%readJ;setp.ge.u32 %readJ,%j,7;and.pred %readI,%readI,%readJ;setp.lt.u32 %readJ,%j,13;and.pred %readI,%readI,%readJ;@%readI bra PAIR_NEXT;setp.eq.u32 %p,%i,%j;@%p bra PAIR_NEXT;mul.wide.u32 %off,%j,16;add.u64 %ptr,%rows,%off;ld.u64 %b,[%ptr];ld.u64 %bn,[%ptr+8];add.u64 %be,%b,%bn;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;mov.u32 %error,27801;@%p bra REFUSE;
+PAIR_NEXT:add.u32 %j,%j,1;setp.lt.u32 %p,%j,15;@%p bra PAIR_RIGHT;add.u32 %i,%i,1;setp.lt.u32 %p,%i,15;@%p bra PAIR_LEFT;
+mov.u32 %i,0;META_CHECK:setp.ge.u32 %p,%i,%nr;@%p bra META_DONE;mul.wide.u32 %off,%i,32;add.u64 %ptr,%owner7,%off;ld.global.u32 %ki,[%ptr+24];ld.global.u32 %kw,[%ptr+28];mov.u32 %error,27802;setp.lt.u32 %p,%ki,1;@%p bra REFUSE;add.u32 %w,%ni,3;setp.gt.u32 %p,%ki,%w;@%p bra REFUSE;setp.lt.u32 %p,%kw,1;@%p bra REFUSE;add.u32 %w,%nwgt,3;setp.gt.u32 %p,%kw,%w;@%p bra REFUSE;add.u32 %w,%ki,%kw;setp.ge.u32 %p,%w,%total;@%p bra REFUSE;ld.global.u64 %a,[%ptr];ld.global.u64 %b,[%ptr+8];setp.ge.u64 %p,%a,%b;@%p bra REFUSE;setp.gt.u64 %p,%b,0x3ff0000000000000;@%p bra REFUSE;add.u32 %i,%i,1;bra META_CHECK;META_DONE:
+ld.global.u32 %flags,[%ctx+8];
+st.shared.u32 [all_flags],%flags;st.shared.u32 [admission_ok],1;bra ADMIT_DONE;
+REFUSE:st.global.u32 [%ctx],%error;
+QUIET_REFUSE:bra ADMIT_DONE;
+ADMIT_DONE:
+ADMIT_BARRIER:bar.sync 0;ld.shared.u32 %accepted_word,[admission_ok];setp.eq.u32 %p,%accepted_word,0;@%p ret;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];ld.global.u64 %input,[%args];ld.global.u64 %output,[%args+8];
+ld.global.u64 %owner6,[%input+80];ld.global.u64 %owner7,[%input+88];
+cvta.shared.u64 %private_work,saved_work;cvta.shared.u64 %private_out,saved_out;mov.u64 %failptr,numerical_failure;
+mov.u32 %i,%lane;
+COPY_PRIVATE_WORK:mul.wide.u32 %off,%i,8;add.u64 %ptr,%owner7,%off;ld.global.b64 %bits,[%ptr];add.u64 %ptr,%private_work,%off;st.b64 [%ptr],%bits;add.u32 %i,%i,32;setp.lt.u32 %p,%i,2956;@%p bra COPY_PRIVATE_WORK;
+bar.sync 0;
+{.param .u64 a0,a1,a2,a4;.param .u32 a3;.param .align 8 .b8 r[16];
+st.param.u64 [a0],%input;st.param.u64 [a1],%private_work;st.param.u64 [a2],%private_out;st.param.u32 [a3],%lane;st.param.u64 [a4],%failptr;
+call.uni (r),parallel_spline_matrix_parallel_numeric,(a0,a1,a2,a3,a4);ld.param.u32 %raised,[r+8];ld.param.u32 %numeric_error,[r+12];}
+bar.sync 0;ld.shared.u32 %joined,[numerical_failure];setp.ne.u32 %p,%joined,0;@%p bra SERIAL_FALLBACK;
+atom.shared.or.b32 %joined,[all_flags],%raised;bar.sync 0;
+mov.u32 %i,%lane;
+COMMIT_WORK:mul.wide.u32 %off,%i,8;add.u64 %ptr,%private_work,%off;ld.b64 %bits,[%ptr];add.u64 %ptr,%owner7,%off;st.global.b64 [%ptr],%bits;add.u32 %i,%i,32;setp.lt.u32 %p,%i,2956;@%p bra COMMIT_WORK;
+mov.u32 %i,%lane;
+COMMIT_OUT:mul.wide.u32 %off,%i,8;add.u64 %ptr,%private_out,%off;ld.b64 %bits,[%ptr];add.u64 %ptr,%owner6,%off;st.global.b64 [%ptr],%bits;add.u32 %i,%i,32;setp.lt.u32 %p,%i,441;@%p bra COMMIT_OUT;
+bar.sync 0;setp.ne.u32 %p,%lane,0;@%p ret;mov.u32 %error,0;ld.shared.u32 %flags,[all_flags];bra PUBLISH;
+SERIAL_FALLBACK:setp.ne.u32 %p,%lane,0;@%p ret;
+{.param .u64 b0,b1,b2,b4;.param .u32 b3;.param .align 8 .b8 r[16];
+st.param.u64 [b0],%input;st.param.u64 [b1],%owner7;st.param.u64 [b2],%owner6;st.param.u32 [b3],0;st.param.u64 [b4],%failptr;
+call.uni (r),parallel_spline_matrix_serial_numeric,(b0,b1,b2,b3,b4);ld.param.u32 %raised,[r+8];ld.param.u32 %error,[r+12];}
+ld.shared.u32 %flags,[all_flags];or.b32 %flags,%flags,%raised;
+PUBLISH:st.global.u32 [%output],%error;st.global.u32 [%output+4],0;st.global.u64 [%output+8],0;st.global.u64 [%output+16],0;st.global.u64 [%output+24],0;st.global.u32 [%ctx+8],%flags;ret;
+BAD_LAUNCH:
+mov.u32 %i,%tid.x;mov.u32 %j,%tid.y;or.b32 %i,%i,%j;mov.u32 %j,%tid.z;or.b32 %i,%i,%j;mov.u32 %j,%ctaid.x;or.b32 %i,%i,%j;mov.u32 %j,%ctaid.y;or.b32 %i,%i,%j;mov.u32 %j,%ctaid.z;or.b32 %i,%i,%j;setp.ne.u32 %p,%i,0;@%p ret;
+ld.param.u64 %ctx,[common_context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %bits,%ctx,7;setp.ne.u64 %p,%bits,0;@%p ret;ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;st.global.u32 [%ctx],27800;ret;
+}

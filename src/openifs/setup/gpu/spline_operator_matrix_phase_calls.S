@@ -1,5 +1,4 @@
-/* GPU contract: skills/md2asm-gpu/references/openifs/setup/complete_spline_operator_matrix.md */
-/* Complete source-ordered spline matrix phase; skills/md2asm-gpu/references/openifs/setup/complete_spline_operator_matrix.md. */
+// GPU implementation contract skills/md2asm-gpu/references/openifs/setup/complete_spline_operator_matrix.md
 .arch armv8-a
 .text
 .p2align 4
@@ -146,7 +145,7 @@ md2asm_spline_operator_matrix_gpu_phase:
  add x0,x0,:lo12:.Lmatrix_entry
  mov x2,x20
  mov w3,#1
- mov w4,#1
+ mov w4,#32
  mov w5,#0
  matrix_service md2asm_openifs_gpu_launch
  cbnz w0,.Lmatrix_fatal
@@ -203,5 +202,5 @@ md2asm_spline_operator_matrix_gpu_phase:
  brk #0
 .size md2asm_spline_operator_matrix_gpu_phase,.-md2asm_spline_operator_matrix_gpu_phase
 .section .rodata
-.Lmatrix_entry:.asciz "md2asm_gpu_spline_operator_matrix"
+.Lmatrix_entry:.asciz "md2asm_gpu_spline_operator_matrix_parallel_columns"
 .section .note.GNU-stack,"",%progbits

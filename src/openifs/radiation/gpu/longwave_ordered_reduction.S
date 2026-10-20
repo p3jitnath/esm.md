@@ -1,4 +1,4 @@
-/* Complete ordered radiation field. Contract: skills/md2asm-gpu/references/openifs/radiation/ordered_radiation_field_reduction.md. */
+// GPU implementation contract skills/md2asm-gpu/references/openifs/radiation/ordered_radiation_field_reduction.md
 .arch armv8.2-a
 .text
 .p2align 4
@@ -129,6 +129,80 @@ md2asm_reduce_longwave_field:
  lsl x15,x14,#3
  str x15,[x21,#40]
 .Lfield_no_weight_extent:
+ // The serial entry covers every original alias layout.
+ adrp x22,.Lfield_complete_entry_name
+ add x22,x22,:lo12:.Lfield_complete_entry_name
+ mov x23,#1
+ mov x24,#1
+ ldr x9,[x19,#40]
+ cmp x9,#1
+ b.ls .Lfield_route_selected
+ sub x25,x9,#1
+ lsr x25,x25,#7
+ add x25,x25,#1
+ mov x26,#0x7fffffff
+ cmp x25,x26
+ b.hi .Lfield_route_selected
+ ldp x10,x11,[x19,#48]
+ ldp x12,x13,[x19,#64]
+ orr x10,x10,x11
+ orr x10,x10,x12
+ orr x10,x10,x13
+ tst x10,#7
+ b.ne .Lfield_route_selected
+ cmp x12,#8
+ b.lo .Lfield_route_selected
+ // Either cell-major or group-major output intervals are disjoint.
+ ldr x10,[x19,#32]
+ sub x10,x10,#1
+ mul x10,x10,x13
+ add x10,x10,#8
+ cmp x12,x10
+ b.hs .Lfield_output_layout_valid
+ sub x10,x9,#1
+ mul x10,x10,x12
+ add x10,x10,#8
+ cmp x13,x10
+ b.lo .Lfield_route_selected
+.Lfield_output_layout_valid:
+ ldr x9,[x19,#8]
+ ldr x10,[x21,#24]
+ adds x10,x9,x10
+ b.cs .Lfield_route_selected
+ // Output must be separate from every live input interval.
+ ldr x11,[x19]
+ ldr x12,[x21,#16]
+ adds x12,x11,x12
+ b.cs .Lfield_route_selected
+ cmp x9,x12
+ b.hs .Lfield_source_disjoint
+ cmp x11,x10
+ b.lo .Lfield_route_selected
+.Lfield_source_disjoint:
+ ldr x11,[x19,#16]
+ ldr x12,[x21,#32]
+ adds x12,x11,x12
+ b.cs .Lfield_route_selected
+ cmp x9,x12
+ b.hs .Lfield_counts_disjoint
+ cmp x11,x10
+ b.lo .Lfield_route_selected
+.Lfield_counts_disjoint:
+ ldr x11,[x19,#24]
+ cbz x11,.Lfield_parallel_selected
+ ldr x12,[x21,#40]
+ adds x12,x11,x12
+ b.cs .Lfield_route_selected
+ cmp x9,x12
+ b.hs .Lfield_parallel_selected
+ cmp x11,x10
+ b.lo .Lfield_route_selected
+.Lfield_parallel_selected:
+ adrp x22,.Lfield_parallel_entry_name
+ add x22,x22,:lo12:.Lfield_parallel_entry_name
+ mov x23,x25
+ mov x24,#128
+.Lfield_route_selected:
  mov x9,#96
  mov x10,#64
  stp x9,x10,[x21]
@@ -144,12 +218,11 @@ md2asm_reduce_longwave_field:
  ldr x9,[sp,#792]
  ldr w10,[sp,#800]
  str w10,[x9]
- adrp x0,.Lfield_complete_entry_name
- add x0,x0,:lo12:.Lfield_complete_entry_name
+ mov x0,x22
  mov x1,x19
  mov x2,x20
- mov w3,#1
- mov w4,#1
+ mov w3,w23
+ mov w4,w24
  mov w5,#0
  bl md2asm_openifs_gpu_launch
  ldr x18,[sp,#144]
@@ -209,4 +282,5 @@ md2asm_reduce_longwave_field:
 .size md2asm_reduce_longwave_field,.-md2asm_reduce_longwave_field
 .section .rodata
 .Lfield_complete_entry_name:.asciz "md2asm_gpu_reduce_longwave_field"
+.Lfield_parallel_entry_name:.asciz "md2asm_gpu_reduce_radiation_field_cells"
 .section .note.GNU-stack,"",%progbits

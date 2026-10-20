@@ -1,5 +1,4 @@
-#include "../../support/gpu/preserved_weather_calls.inc.S"
-.text
+.text // GPU implementation contract skills/md2asm-gpu/references/openifs/dynamics/complete_legendre_analysis.md
 .p2align 4
 .global md2asm_ltdir_ledir_child_7358525
 .type md2asm_ltdir_ledir_child_7358525,%function
@@ -222,47 +221,7 @@ md2asm_ltdir_ledir_child_7358525:
  str x0,[sp,#312]
  add x1,x0,x21,lsl #7
  str x1,[sp,#432]
- mov x9,#0
- mov x10,x23
- mov x11,x24
- lsl x12,x22,#3
- mov x13,x12
-.Lledir_weight_column:
- mov x14,#0
-.Lledir_weight_latitude:
- ldr d0,[x26,x14,lsl #3]
- ldr x15,[sp,#280]
- mul x15,x15,x14
- ldr d1,[x10,x15,lsl #3]
- ldr x15,[sp,#288]
- mul x15,x15,x14
- ldr d2,[x11,x15,lsl #3]
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,2,d1,d1,d0 // fmul d1,d1,d0
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,2,d2,d2,d0 // fmul d2,d2,d0
- str d1,[x0],#8
- str d2,[x1],#8
- add x14,x14,#1
- cmp x14,#16
- b.lt .Lledir_weight_latitude
- add x10,x10,x12
- add x11,x11,x13
- add x9,x9,#1
- cmp x9,x21
- b.lt .Lledir_weight_column
- COUNT 0
- COUNT 2
- mov x0,x27
- ldr x1,[sp,#312]
- ldr w2,[sp,#360]
- ldr w3,[sp,#352]
- bl .Lledir_project
- COUNT 1
- mov x0,x28
- ldr x1,[sp,#432]
- ldr w2,[sp,#364]
- ldr w3,[sp,#356]
- bl .Lledir_project
- COUNT 3
+ bl md2asm_gpu_complete_legendre_analysis_phase_host
  ldr x0,[sp,#312]
  bl free
  COUNT 4
@@ -284,37 +243,6 @@ md2asm_ltdir_ledir_child_7358525:
  add sp,sp,#512
  ret
 .size md2asm_ltdir_ledir_child_7358525,.-md2asm_ltdir_ledir_child_7358525
-.Lledir_project:
- mov x9,#0
-.Lledir_project_column:
- mov x10,#0
-.Lledir_project_degree:
- add x11,x0,x10,lsl #7
- mov x12,x1
- mov x13,#16
- fmov d0,xzr
-.Lledir_project_latitude:
- ldr d1,[x11],#8
- ldr d2,[x12],#8
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,2,d1,d1,d2 // fmul d1,d1,d2
- md2asm_gpu_full_scalar md2asm_gpu_soil_water_cell_host,0,d0,d0,d1 // fadd d0,d0,d1
- subs x13,x13,#1
- b.ne .Lledir_project_latitude
- ldr x14,[sp,#296]
- mul x15,x9,x22
- mul x15,x15,x14
- add x15,x15,w3,uxtw
- sub x15,x15,#1
- add x15,x15,x10,lsl #1
- str d0,[x25,x15,lsl #3]
- add x10,x10,#1
- cmp x10,x2
- b.lt .Lledir_project_degree
- add x1,x1,#128
- add x9,x9,#1
- cmp x9,x21
- b.lt .Lledir_project_column
- ret
 .Lledir_rank2:
  cbz x0,.Lledir_bad
  ldr x9,[x0,#16]
@@ -392,4 +320,218 @@ md2asm_ltdir_ledir_child_count_7358525:
 .p2align 3
 .Lledir_counts:
  .skip 48
+.section .note.GNU-stack,"",%progbits
+
+// Contract: /lus/lfs1aip2/projects/u6yq/users/p3jitnath/esm.md/.runtime/openifs/gpu_forecast_7510938/next_complete_autonomous_gpu_forecast/optimization_20261019/whole_forecast_bulk_batch_r23/dynamics_output_runtime/legendre_analysis/frozen_contract.md.
+.arch armv8-a
+.text
+.p2align 4
+.macro complete_legendre_analysis_service target
+ bl \target
+ ldr x18,[sp,#144]
+.endm
+.global md2asm_gpu_complete_legendre_analysis_phase_host
+.type md2asm_gpu_complete_legendre_analysis_phase_host,%function
+md2asm_gpu_complete_legendre_analysis_phase_host:
+ sub sp,sp,#2048
+ stp x0,x1,[sp,#0]
+ stp x2,x3,[sp,#16]
+ stp x4,x5,[sp,#32]
+ stp x6,x7,[sp,#48]
+ stp x8,x9,[sp,#64]
+ stp x10,x11,[sp,#80]
+ stp x12,x13,[sp,#96]
+ stp x14,x15,[sp,#112]
+ stp x16,x17,[sp,#128]
+ stp x18,x19,[sp,#144]
+ stp x20,x21,[sp,#160]
+ stp x22,x23,[sp,#176]
+ stp x24,x25,[sp,#192]
+ stp x26,x27,[sp,#208]
+ stp x28,x29,[sp,#224]
+ str x30,[sp,#240]
+ stp q0,q1,[sp,#256]
+ stp q2,q3,[sp,#288]
+ stp q4,q5,[sp,#320]
+ stp q6,q7,[sp,#352]
+ stp q8,q9,[sp,#384]
+ stp q10,q11,[sp,#416]
+ stp q12,q13,[sp,#448]
+ stp q14,q15,[sp,#480]
+ stp q16,q17,[sp,#512]
+ stp q18,q19,[sp,#544]
+ stp q20,q21,[sp,#576]
+ stp q22,q23,[sp,#608]
+ stp q24,q25,[sp,#640]
+ stp q26,q27,[sp,#672]
+ stp q28,q29,[sp,#704]
+ stp q30,q31,[sp,#736]
+ mrs x9,fpcr
+ mrs x10,fpsr
+ mrs x11,nzcv
+ str x9,[sp,#768]
+ str x10,[sp,#776]
+ str x11,[sp,#784]
+ cbnz x9,.Lcomplete_legendre_analysis_fatal
+ complete_legendre_analysis_service __errno_location
+ str x0,[sp,#792]
+ ldr w9,[x0]
+ str w9,[sp,#800]
+ complete_legendre_analysis_service omp_in_parallel
+ cbnz w0,.Lcomplete_legendre_analysis_fatal
+ complete_legendre_analysis_service md2asm_openifs_gpu_prepare
+ cbnz w0,.Lcomplete_legendre_analysis_fatal
+ add x19,sp,#832
+ mov x9,#0
+.Lcomplete_legendre_analysis_zero:
+ str xzr,[x19,x9,lsl #3]
+ add x9,x9,#1
+ cmp x9,#42
+ b.lo .Lcomplete_legendre_analysis_zero
+ add x28,sp,#2048
+ ldr x9,[sp,#184]
+ str x9,[x19,#0]
+ ldr x9,[sp,#192]
+ str x9,[x19,#8]
+ ldr x9,[sp,#208]
+ str x9,[x19,#32]
+ ldr x9,[sp,#216]
+ str x9,[x19,#40]
+ ldr x9,[sp,#224]
+ str x9,[x19,#48]
+ ldr x9,[sp,#200]
+ str x9,[x19,#56]
+ ldr x9,[sp,#168]
+ str x9,[x19,#72]
+ ldr x9,[sp,#176]
+ str x9,[x19,#80]
+ ldr x9,[x28,#280]
+ str x9,[x19,#16]
+ ldr x9,[x28,#288]
+ str x9,[x19,#24]
+ ldr x9,[x28,#296]
+ str x9,[x19,#64]
+ ldr x9,[x28,#312]
+ str x9,[x19,#88]
+ ldr x9,[x28,#432]
+ str x9,[x19,#96]
+ ldr w9,[x28,#360]
+ str w9,[x19,#104]
+ ldr w9,[x28,#364]
+ str w9,[x19,#108]
+ ldr w9,[x28,#352]
+ str w9,[x19,#112]
+ ldr w9,[x28,#356]
+ str w9,[x19,#116]
+ adrp x9,.Lledir_counts
+ add x9,x9,:lo12:.Lledir_counts
+ str x9,[x19,#120]
+ add x21,sp,#992
+ add x20,sp,#1008
+ mov w14,#1
+ str w14,[x20,#4]
+ ldr w14,[sp,#776]
+ str w14,[x20,#8]
+ add x16,sp,#1072
+ str x16,[x20,#48]
+ mov x15,#80
+ str x15,[x20,#56]
+ mov x14,#160
+ str x14,[x16]
+ mov x14,#16
+ str x14,[x16,#8]
+ ldr x14,[x28,#336]
+ str x14,[x16,#16]
+ ldr x14,[x28,#344]
+ str x14,[x16,#24]
+ ldr x14,[x28,#320]
+ str x14,[x16,#40]
+ ldr x14,[x28,#328]
+ str x14,[x16,#48]
+ ldr x14,[x28,#304]
+ str x14,[x16,#56]
+ mov x14,#128
+ str x14,[x16,#32]
+ ldr x14,[sp,#168]
+ lsl x14,x14,#8
+ str x14,[x16,#64]
+ mov x14,#48
+ str x14,[x16,#72]
+ add x17,sp,#1152
+ stp x19,x21,[x17]
+ ldr x9,[sp,#768]
+ ldr x10,[sp,#776]
+ msr fpcr,x9
+ msr fpsr,x10
+ ldr x9,[sp,#792]
+ ldr w10,[sp,#800]
+ str w10,[x9]
+ adrp x0,.Lcomplete_legendre_analysis_entry
+ add x0,x0,:lo12:.Lcomplete_legendre_analysis_entry
+ add x1,sp,#1152
+ mov x2,x20
+ mov w3,#1
+ mov w4,#128
+ mov w5,#0
+ complete_legendre_analysis_service md2asm_openifs_gpu_launch
+ cbnz w0,.Lcomplete_legendre_analysis_fatal
+ ldr w9,[x20]
+ cbnz w9,.Lcomplete_legendre_analysis_fatal
+ ldr w9,[x21]
+ str w9,[sp,#1168]
+ ldr x9,[sp,#768]
+ msr fpcr,x9
+ ldr x9,[sp,#776]
+ ldr w10,[x20,#8]
+ orr x9,x9,x10
+ msr fpsr,x9
+ ldr x9,[sp,#792]
+ ldr w10,[sp,#800]
+ ldr w11,[x21,#12]
+ cbz w11,.Lcomplete_legendre_analysis_errno_ready
+ ldr w10,[x21,#8]
+.Lcomplete_legendre_analysis_errno_ready:
+ str w10,[x9]
+ ldr x9,[sp,#784]
+ msr nzcv,x9
+ ldp q0,q1,[sp,#256]
+ ldp q2,q3,[sp,#288]
+ ldp q4,q5,[sp,#320]
+ ldp q6,q7,[sp,#352]
+ ldp q8,q9,[sp,#384]
+ ldp q10,q11,[sp,#416]
+ ldp q12,q13,[sp,#448]
+ ldp q14,q15,[sp,#480]
+ ldp q16,q17,[sp,#512]
+ ldp q18,q19,[sp,#544]
+ ldp q20,q21,[sp,#576]
+ ldp q22,q23,[sp,#608]
+ ldp q24,q25,[sp,#640]
+ ldp q26,q27,[sp,#672]
+ ldp q28,q29,[sp,#704]
+ ldp q30,q31,[sp,#736]
+ ldp x0,x1,[sp,#0]
+ ldp x2,x3,[sp,#16]
+ ldp x4,x5,[sp,#32]
+ ldp x6,x7,[sp,#48]
+ ldp x8,x9,[sp,#64]
+ ldp x10,x11,[sp,#80]
+ ldp x12,x13,[sp,#96]
+ ldp x14,x15,[sp,#112]
+ ldp x16,x17,[sp,#128]
+ ldp x18,x19,[sp,#144]
+ ldp x20,x21,[sp,#160]
+ ldp x22,x23,[sp,#176]
+ ldp x24,x25,[sp,#192]
+ ldp x26,x27,[sp,#208]
+ ldp x28,x29,[sp,#224]
+ ldr x30,[sp,#240]
+ add sp,sp,#2048
+ ret
+.Lcomplete_legendre_analysis_fatal:
+ bl abort
+ brk #0
+.size md2asm_gpu_complete_legendre_analysis_phase_host,.-md2asm_gpu_complete_legendre_analysis_phase_host
+.section .rodata
+.Lcomplete_legendre_analysis_entry:.asciz "md2asm_gpu_complete_legendre_analysis_parallel_outputs"
 .section .note.GNU-stack,"",%progbits
