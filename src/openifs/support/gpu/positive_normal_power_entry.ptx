@@ -1,0 +1,53 @@
+// Contract: skills/md2asm-gpu/references/openifs/support/positive_normal_power_complete_contract.md
+// One-call boundary for the unchanged accepted nonnegative power child.
+// Algorithm and mathematical data derived from GLIBC2.38.
+// Copyright (C) 2018-2023 Free Software Foundation, Inc.
+// SPDX-License-Identifier: LGPL-2.1-or-later
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[32]) md2asm_gpu_power_nonnegative(.param .b64 base_word,.param .b64 exponent_word);
+.func (.param .u32 result) positive_power_range(.param .u64 base,.param .u64 bytes,.param .u64 capacity)
+{
+ .reg .u64 %base,%bytes,%capacity,%end;.reg .u32 %error;.reg .pred %p;
+ ld.param.u64 %base,[base];ld.param.u64 %bytes,[bytes];ld.param.u64 %capacity,[capacity];mov.u32 %error,28601;
+ setp.eq.u64 %p,%base,0;@%p bra DONE;and.b64 %end,%base,7;setp.ne.u64 %p,%end,0;@%p bra DONE;
+ setp.gt.u64 %p,%bytes,%capacity;@%p bra DONE;add.u64 %end,%base,%bytes;setp.lt.u64 %p,%end,%base;@%p bra DONE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra DONE;
+ mov.u32 %error,0;
+DONE:st.param.u32 [result],%error;ret;
+}
+.visible .entry md2asm_gpu_positive_normal_power(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %args,%ctx,%record,%output,%capacity,%word,%value,%offset,%pointer,%abase,%asize,%aend,%bbase,%bsize,%bend,%rows,%exponent,%fast,%wide,%event_word;
+ .reg .u32 %origin,%axis,%error,%i,%j,%flags,%event,%old,%ye;.reg .pred %p,%q;
+ .local .align 8 .b8 owners[64];
+ .param .u64 rb,rn,rcap;.param .u32 range_result;.param .b64 base_word,exponent_word;.param .align 8 .b8 result[32];
+ mov.u32 %origin,%tid.x;mov.u32 %axis,%tid.y;or.b32 %origin,%origin,%axis;mov.u32 %axis,%tid.z;or.b32 %origin,%origin,%axis;
+ mov.u32 %axis,%ctaid.x;or.b32 %origin,%origin,%axis;mov.u32 %axis,%ctaid.y;or.b32 %origin,%origin,%axis;mov.u32 %axis,%ctaid.z;or.b32 %origin,%origin,%axis;setp.ne.u32 %p,%origin,0;@%p ret;
+ ld.param.u64 %ctx,[common_context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %word,%ctx,7;setp.ne.u64 %p,%word,0;@%p ret;add.u64 %word,%ctx,64;setp.lt.u64 %p,%word,%ctx;@%p ret;setp.gt.u64 %p,%word,0x7fffffffffffffff;@%p ret;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;mov.u32 %error,28600;
+ mov.u32 %axis,%ntid.x;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;mov.u32 %axis,%ntid.y;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;mov.u32 %axis,%ntid.z;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;
+ mov.u32 %axis,%nctaid.x;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;mov.u32 %axis,%nctaid.y;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;mov.u32 %axis,%nctaid.z;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;mov.u32 %axis,%dynamic_smem_size;setp.ne.u32 %p,%axis,0;@%p bra REFUSE;
+ ld.global.u32 %axis,[%ctx+4];setp.ne.u32 %p,%axis,1;@%p bra REFUSE;ld.global.u32 %axis,[%ctx+12];setp.ne.u32 %p,%axis,0;@%p bra REFUSE;
+ ld.param.u64 %args,[original_vector];st.param.u64 [rb],%args;st.param.u64 [rn],24;st.param.u64 [rcap],24;call.uni (range_result),positive_power_range,(rb,rn,rcap);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %record,[%ctx+48];ld.global.u64 %capacity,[%ctx+56];st.param.u64 [rb],%record;st.param.u64 [rn],32;st.param.u64 [rcap],%capacity;call.uni (range_result),positive_power_range,(rb,rn,rcap);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %capacity,[%record];setp.lt.u64 %p,%capacity,24;mov.u32 %error,28601;@%p bra REFUSE;
+ ld.global.u64 %output,[%args+16];ld.global.u64 %capacity,[%record+8];st.param.u64 [rb],%output;st.param.u64 [rn],32;st.param.u64 [rcap],%capacity;call.uni (range_result),positive_power_range,(rb,rn,rcap);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ st.local.u64 [owners],%args;st.local.u64 [owners+8],24;st.local.u64 [owners+16],%ctx;st.local.u64 [owners+24],64;
+ st.local.u64 [owners+32],%record;st.local.u64 [owners+40],32;st.local.u64 [owners+48],%output;st.local.u64 [owners+56],32;
+ cvta.local.u64 %rows,owners;mov.u32 %i,1;
+PAIR_LEFT:
+ mul.wide.u32 %offset,%i,16;add.u64 %pointer,%rows,%offset;ld.u64 %abase,[%pointer];ld.u64 %asize,[%pointer+8];add.u64 %aend,%abase,%asize;mov.u32 %j,0;
+PAIR_RIGHT:
+ mul.wide.u32 %offset,%j,16;add.u64 %pointer,%rows,%offset;ld.u64 %bbase,[%pointer];ld.u64 %bsize,[%pointer+8];add.u64 %bend,%bbase,%bsize;
+ setp.lt.u64 %p,%abase,%bend;setp.lt.u64 %q,%bbase,%aend;and.pred %p,%p,%q;mov.u32 %error,28601;@%p bra REFUSE;
+ add.u32 %j,%j,1;setp.lt.u32 %p,%j,%i;@%p bra PAIR_RIGHT;add.u32 %i,%i,1;setp.lt.u32 %p,%i,4;@%p bra PAIR_LEFT;
+ mov.u32 %error,28602;ld.global.u64 %word,[%record+16];setp.ne.u64 %p,%word,0;@%p bra REFUSE;ld.global.u64 %word,[%record+24];setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ ld.global.u64 %word,[%args];setp.lt.u64 %p,%word,0x0010000000000000;@%p bra REFUSE;setp.ge.u64 %p,%word,0x7ff0000000000000;@%p bra REFUSE;
+ ld.global.u64 %exponent,[%args+8];shr.u64 %event_word,%exponent,52;and.b64 %event_word,%event_word,2047;cvt.u32.u64 %ye,%event_word;setp.lt.u32 %p,%ye,958;@%p bra REFUSE;setp.gt.u32 %p,%ye,1085;@%p bra REFUSE;
+ st.param.b64 [base_word],%word;st.param.b64 [exponent_word],%exponent;call.uni (result),md2asm_gpu_power_nonnegative,(base_word,exponent_word);
+ ld.param.u64 %value,[result];ld.param.u32 %flags,[result+8];ld.param.u32 %event,[result+12];ld.param.u64 %fast,[result+16];ld.param.u64 %wide,[result+24];
+ st.global.u64 [%output],%value;st.global.u32 [%output+8],%flags;st.global.u32 [%output+12],%event;st.global.u64 [%output+16],%fast;st.global.u64 [%output+24],%wide;
+ ld.global.u32 %old,[%ctx+8];or.b32 %flags,%flags,%old;st.global.u32 [%ctx+8],%flags;setp.eq.u32 %p,%event,0;@%p ret;cvt.u64.u32 %event_word,%event;or.b64 %event_word,%event_word,256;st.global.u64 [%ctx+16],%event_word;ret;
+REFUSE:st.global.u32 [%ctx],%error;ret;
+}

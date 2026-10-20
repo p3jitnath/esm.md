@@ -1,5 +1,5 @@
-/* GPU physical setup route. Original interface and ordered arithmetic are preserved.
- * Contract: skills/md2asm-gpu/references/openifs/setup/physical_setup.md
+/* Complete longwave transmission table and preserved setup siblings.
+ * Contract: skills/md2asm-gpu/references/openifs/radiation/longwave_transmission_table_complete_contract.md
  * Original source: src/openifs/radiation/longwave_reference_setup.S
  */
 // Original contract: skills/md2asm/references/openifs/radiation/longwave_reference_setup.md
@@ -148,45 +148,7 @@ md2asm_longwave_mass_mixing_ratios:
 .global md2asm_longwave_transmission_table
 .type md2asm_longwave_transmission_table,%function
 md2asm_longwave_transmission_table:
- sub sp,sp,#64
- stp x29,x30,[sp]
- stp x19,x20,[sp,#16]
- str x18,[sp,#32]
- mov x29,sp
- mov x19,x0
- adrp x9,.Ltrans_constants
- add x9,x9,:lo12:.Ltrans_constants
- ldr d0,[x9]
- mov x10,#40008
- str d0,[x19,x10]
- fmov d0,#1.0
- str d0,[x19]
- mov x10,#40000
- str xzr,[x19,x10]
- mov x20,#1
-.Ltrans_loop:
- md2asm_gpu_preserved_scalar md2asm_gpu_startup_integer_cell_host,17,d0,destination,x20,general,x16,288,zero
- adrp x9,.Ltrans_constants
- add x9,x9,:lo12:.Ltrans_constants
- ldp d1,d2,[x9]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d2
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d1,destination,d1,real,x16,0,d0
- fmov d2,#1.0
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,1,d2,destination,d2,real,x16,0,d0
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d1,real,x16,0,d2
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,8,d0,destination,d0,real,x16,0,zero
- bl md2asm_exp_original_rounding
- ldr x18,[sp,#32]
- str d0,[x19,x20,lsl#3]
- add x20,x20,#1
- mov x9,#5000
- cmp x20,x9
- b.lo .Ltrans_loop
- ldr x18,[sp,#32]
- ldp x19,x20,[sp,#16]
- ldp x29,x30,[sp]
- add sp,sp,#64
- ret
+ b md2asm_gpu_longwave_transmission_phase_host
 .size md2asm_longwave_transmission_table,.-md2asm_longwave_transmission_table
 .section .rodata
 .p2align 3

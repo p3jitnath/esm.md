@@ -1,0 +1,39 @@
+// Contract: skills/md2asm-gpu/references/openifs/radiation/longwave_transmission_table_complete_contract.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_exp_original_rounding(.param .b64 a);
+.visible .func (.param .align 8 .b8 result[16]) md2asm_gpu_longwave_transmission_values(.param .u32 lane,.param .u64 table)
+{
+ .reg .b64 %d<3>;.reg .u64 %table,%offset,%address;
+ .reg .u32 %lane,%index,%flags,%error,%ordinal,%raised,%child_error;.reg .f64 %convert;.reg .pred %p;
+ ld.param.u32 %lane,[lane];ld.param.u64 %table,[table];add.u32 %index,%lane,1;
+ mov.u32 %flags,0;mov.u32 %error,0;mov.u32 %ordinal,0;
+CELL:
+ cvt.rn.f64.u32 %convert,%index;mov.b64 %d0,%convert;
+ mov.b64 %d1,0x400cc6e80ebbdb2a;mov.b64 %d2,0x40b3880000000000;
+ { .param .b64 a0,b0;.param .align 8 .b8 r0[16];
+ st.param.b64 [a0],%d0;st.param.b64 [b0],%d2;call.uni (r0),md2asm_gpu_div_status,(a0,b0);
+ ld.param.b64 %d0,[r0];ld.param.u32 %raised,[r0+8];or.b32 %flags,%flags,%raised; }
+ { .param .b64 a1,b1;.param .align 8 .b8 r1[16];
+ st.param.b64 [a1],%d1;st.param.b64 [b1],%d0;call.uni (r1),md2asm_gpu_mul_status,(a1,b1);
+ ld.param.b64 %d1,[r1];ld.param.u32 %raised,[r1+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %d2,0x3ff0000000000000;
+ { .param .b64 a2,b2;.param .align 8 .b8 r2[16];
+ st.param.b64 [a2],%d2;st.param.b64 [b2],%d0;call.uni (r2),md2asm_gpu_sub_status,(a2,b2);
+ ld.param.b64 %d2,[r2];ld.param.u32 %raised,[r2+8];or.b32 %flags,%flags,%raised; }
+ { .param .b64 a3,b3;.param .align 8 .b8 r3[16];
+ st.param.b64 [a3],%d1;st.param.b64 [b3],%d2;call.uni (r3),md2asm_gpu_div_status,(a3,b3);
+ ld.param.b64 %d0,[r3];ld.param.u32 %raised,[r3+8];or.b32 %flags,%flags,%raised; }
+ xor.b64 %d0,%d0,0x8000000000000000;
+ { .param .b64 a4;.param .align 8 .b8 r4[16];
+ st.param.b64 [a4],%d0;call.uni (r4),md2asm_gpu_exp_original_rounding,(a4);
+ ld.param.b64 %d0,[r4];ld.param.u32 %raised,[r4+8];or.b32 %flags,%flags,%raised;
+ ld.param.u32 %child_error,[r4+12];setp.ne.u32 %p,%child_error,0;@%p mov.u32 %error,%child_error;@%p mov.u32 %ordinal,%index; }
+ mul.wide.u32 %offset,%index,8;add.u64 %address,%table,%offset;st.global.b64 [%address],%d0;
+ add.u32 %index,%index,256;setp.lt.u32 %p,%index,5000;@%p bra CELL;
+ st.param.u32 [result],%flags;st.param.u32 [result+4],%error;st.param.u32 [result+8],%ordinal;st.param.u32 [result+12],0;ret;
+}
