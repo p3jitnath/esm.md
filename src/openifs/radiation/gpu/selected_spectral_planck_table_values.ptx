@@ -1,0 +1,189 @@
+// Contract: skills/md2asm-gpu/references/openifs/radiation/selected_spectral_planck_table_complete_contract.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_exp_original_rounding(.param .b64 a);
+.func (.param .align 8 .b8 result[16]) selected_planck_extremum(.param .b64 a,.param .b64 b,.param .u32 minimum)
+{
+ .reg .b64 %x0,%x1,%value,%mag0,%mag1;.reg .u32 %flags,%raised,%minimum;.reg .pred %p,%q;
+ .param .b64 ma,mb;.param .align 8 .b8 ar[16];
+ ld.param.b64 %x0,[a];ld.param.b64 %x1,[b];ld.param.u32 %minimum,[minimum];mov.u32 %flags,0;setp.ne.u32 %p,%minimum,0;@%p bra MINIMUM;
+MAXIMUM:and.b64 %mag0,%x0,0x7fffffffffffffff;and.b64 %mag1,%x1,0x7fffffffffffffff;setp.gt.u64 %p,%mag0,0x7ff0000000000000;setp.gt.u64 %q,%mag1,0x7ff0000000000000;or.pred %p,%p,%q;@%p bra EXTREMUM_NAN;setp.gt.f64 %p,%x0,%x1;selp.b64 %value,%x0,%x1,%p;or.b64 %mag0,%mag0,%mag1;setp.eq.u64 %p,%mag0,0;and.b64 %mag1,%x0,%x1;@%p mov.b64 %value,%mag1;bra FINISH;
+MINIMUM:and.b64 %mag0,%x0,0x7fffffffffffffff;and.b64 %mag1,%x1,0x7fffffffffffffff;setp.gt.u64 %p,%mag0,0x7ff0000000000000;setp.gt.u64 %q,%mag1,0x7ff0000000000000;or.pred %p,%p,%q;@%p bra EXTREMUM_NAN;setp.lt.f64 %p,%x0,%x1;selp.b64 %value,%x0,%x1,%p;or.b64 %mag0,%mag0,%mag1;setp.eq.u64 %p,%mag0,0;or.b64 %mag1,%x0,%x1;@%p mov.b64 %value,%mag1;bra FINISH;
+EXTREMUM_NAN:
+st.param.b64 [ma],%x0;st.param.b64 [mb],%x1;call.uni (ar),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %value,[ar];ld.param.u32 %raised,[ar+8];or.b32 %flags,%flags,%raised;bra FINISH;
+
+FINISH:st.param.b64 [result],%value;st.param.u32 [result+8],%flags;st.param.u32 [result+12],0;ret;
+}
+.visible .func (.param .align 8 .b8 result[24]) md2asm_gpu_selected_planck_coefficients(.param .u64 physical_constants)
+{
+ .reg .b64 %d<3>,%s<21>,%word;.reg .u64 %record,%constants,%table,%bounds,%map,%cell,%offset;.reg .u32 %temperature,%range,%wavelength,%w9,%flags,%raised,%error,%event,%child_error;.reg .f64 %convert;.reg .pred %p;
+ ld.param.u64 %constants,[physical_constants];mov.u32 %flags,0;
+ mov.b64 %d0,0x4000000000000000;
+ ld.global.b64 %d1,[%constants+0];
+ { .param .b64 a0,b0;.param .u32 m0;.param .align 8 .b8 r0[16];
+ st.param.b64 [a0],%d0;st.param.b64 [b0],%d1;call.uni (r0),md2asm_gpu_mul_status,(a0,b0);
+ ld.param.b64 %d0,[r0];ld.param.u32 %raised,[r0+8];or.b32 %flags,%flags,%raised; }
+ ld.global.b64 %d1,[%constants+16];
+ { .param .b64 a1,b1;.param .u32 m1;.param .align 8 .b8 r1[16];
+ st.param.b64 [a1],%d0;st.param.b64 [b1],%d1;call.uni (r1),md2asm_gpu_mul_status,(a1,b1);
+ ld.param.b64 %d0,[r1];ld.param.u32 %raised,[r1+8];or.b32 %flags,%flags,%raised; }
+ ld.global.b64 %d1,[%constants+8];
+ { .param .b64 a2,b2;.param .u32 m2;.param .align 8 .b8 r2[16];
+ st.param.b64 [a2],%d0;st.param.b64 [b2],%d1;call.uni (r2),md2asm_gpu_mul_status,(a2,b2);
+ ld.param.b64 %d0,[r2];ld.param.u32 %raised,[r2+8];or.b32 %flags,%flags,%raised; }
+ { .param .b64 a3,b3;.param .u32 m3;.param .align 8 .b8 r3[16];
+ st.param.b64 [a3],%d0;st.param.b64 [b3],%d1;call.uni (r3),md2asm_gpu_mul_status,(a3,b3);
+ ld.param.b64 %d0,[r3];ld.param.u32 %raised,[r3+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %s12,%d0;
+ ld.global.b64 %d0,[%constants+16];
+ { .param .b64 a4,b4;.param .u32 m4;.param .align 8 .b8 r4[16];
+ st.param.b64 [a4],%d0;st.param.b64 [b4],%d1;call.uni (r4),md2asm_gpu_mul_status,(a4,b4);
+ ld.param.b64 %d0,[r4];ld.param.u32 %raised,[r4+8];or.b32 %flags,%flags,%raised; }
+ ld.global.b64 %d1,[%constants+24];
+ { .param .b64 a5,b5;.param .u32 m5;.param .align 8 .b8 r5[16];
+ st.param.b64 [a5],%d0;st.param.b64 [b5],%d1;call.uni (r5),md2asm_gpu_div_status,(a5,b5);
+ ld.param.b64 %d0,[r5];ld.param.u32 %raised,[r5+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %s13,%d0;
+ st.param.b64 [result],%s12;st.param.b64 [result+8],%s13;st.param.u32 [result+16],%flags;st.param.u32 [result+20],0;ret;
+}
+.visible .func (.param .align 8 .b8 result[16]) md2asm_gpu_selected_planck_row(.param .u32 temperature,.param .u64 record,.param .b64 c1,.param .b64 c2)
+{
+ .reg .b64 %d<3>,%s<21>,%word;.reg .u64 %record,%constants,%table,%bounds,%map,%cell,%offset;.reg .u32 %temperature,%range,%wavelength,%w9,%flags,%raised,%error,%event,%child_error;.reg .f64 %convert;.reg .pred %p;
+ ld.param.u32 %temperature,[temperature];ld.param.u64 %record,[record];ld.param.b64 %s12,[c1];ld.param.b64 %s13,[c2];ld.global.u64 %table,[%record+24];ld.global.u64 %bounds,[%record+112];ld.global.u64 %map,[%record+176];mov.u32 %flags,0;mov.u32 %error,0;mov.u32 %event,0;
+ cvt.rn.f64.u32 %convert,%temperature;mov.b64 %d0,%convert;
+ ld.global.b64 %d1,[%record+16];
+ { .param .b64 a6,b6;.param .u32 m6;.param .align 8 .b8 r6[16];
+ st.param.b64 [a6],%d0;st.param.b64 [b6],%d1;call.uni (r6),md2asm_gpu_mul_status,(a6,b6);
+ ld.param.b64 %d0,[r6];ld.param.u32 %raised,[r6+8];or.b32 %flags,%flags,%raised; }
+ ld.global.b64 %d1,[%record+8];
+ { .param .b64 a7,b7;.param .u32 m7;.param .align 8 .b8 r7[16];
+ st.param.b64 [a7],%d1;st.param.b64 [b7],%d0;call.uni (r7),md2asm_gpu_add_status,(a7,b7);
+ ld.param.b64 %d0,[r7];ld.param.u32 %raised,[r7+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %s14,%d0;
+ mov.u32 %range,0;
+spt_range:
+ setp.eq.u32 %p,%range,0;@%p bra spt_first;
+ setp.eq.u32 %p,%range,2;@%p bra spt_last;
+ ld.global.b64 %d0,[%bounds];ld.global.b64 %d1,[%bounds+8];
+ bra spt_bounds;
+spt_first:
+ ld.global.b64 %d1,[%bounds+0];
+ mov.b64 %d0,0x3fe999999999999a;
+ { .param .b64 a8,b8;.param .u32 m8;.param .align 8 .b8 r8[16];
+ st.param.b64 [a8],%d0;st.param.b64 [b8],%d1;call.uni (r8),md2asm_gpu_mul_status,(a8,b8);
+ ld.param.b64 %d0,[r8];ld.param.u32 %raised,[r8+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %d2,0x3eb0c6f7a0b5ed8d;
+ { .param .b64 a9,b9;.param .u32 m9;.param .align 8 .b8 r9[16];
+ st.param.b64 [a9],%d2;st.param.b64 [b9],%d0;st.param.u32 [m9],1;call.uni (r9),selected_planck_extremum,(a9,b9,m9);
+ ld.param.b64 %d0,[r9];ld.param.u32 %raised,[r9+8];or.b32 %flags,%flags,%raised; }
+ bra spt_bounds;
+spt_last:
+ ld.global.b64 %d0,[%bounds+8];
+ mov.b64 %d1,0x3f2a36e2eb1c432d;mov.b64 %d2,0x3ef4f8b588e368f1;
+ { .param .b64 a10,b10;.param .u32 m10;.param .align 8 .b8 r10[16];
+ st.param.b64 [a10],%d0;st.param.b64 [b10],%d2;call.uni (r10),md2asm_gpu_add_status,(a10,b10);
+ ld.param.b64 %d2,[r10];ld.param.u32 %raised,[r10+8];or.b32 %flags,%flags,%raised; }
+ { .param .b64 a11,b11;.param .u32 m11;.param .align 8 .b8 r11[16];
+ st.param.b64 [a11],%d1;st.param.b64 [b11],%d2;st.param.u32 [m11],0;call.uni (r11),selected_planck_extremum,(a11,b11,m11);
+ ld.param.b64 %d1,[r11];ld.param.u32 %raised,[r11+8];or.b32 %flags,%flags,%raised; }
+spt_bounds:
+ mov.b64 %s15,%d0;
+ { .param .b64 a12,b12;.param .u32 m12;.param .align 8 .b8 r12[16];
+ st.param.b64 [a12],%d1;st.param.b64 [b12],%d0;call.uni (r12),md2asm_gpu_sub_status,(a12,b12);
+ ld.param.b64 %d0,[r12];ld.param.u32 %raised,[r12+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %d1,0x4059000000000000;
+ { .param .b64 a13,b13;.param .u32 m13;.param .align 8 .b8 r13[16];
+ st.param.b64 [a13],%d0;st.param.b64 [b13],%d1;call.uni (r13),md2asm_gpu_div_status,(a13,b13);
+ ld.param.b64 %d0,[r13];ld.param.u32 %raised,[r13+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %s16,%d0;
+ mov.b64 %s17,0;
+ mov.u32 %wavelength,0;
+spt_wavelength:
+ mov.u32 %w9,1;
+ setp.eq.u32 %p,%wavelength,0;@%p bra spt_weight;
+ setp.eq.u32 %p,%wavelength,100;@%p bra spt_weight;
+ and.b32 %w9,%wavelength,1;
+ shl.b32 %w9,%w9,1;
+ add.u32 %w9,%w9,2;
+spt_weight:
+ cvt.rn.f64.u32 %convert,%w9;mov.b64 %d0,%convert;
+ mov.b64 %s20,%d0;
+ cvt.rn.f64.u32 %convert,%wavelength;mov.b64 %d0,%convert;
+ mov.b64 %d1,%s16;
+ { .param .b64 a14,b14;.param .u32 m14;.param .align 8 .b8 r14[16];
+ st.param.b64 [a14],%d1;st.param.b64 [b14],%d0;call.uni (r14),md2asm_gpu_mul_status,(a14,b14);
+ ld.param.b64 %d0,[r14];ld.param.u32 %raised,[r14+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %d1,%s15;
+ { .param .b64 a15,b15;.param .u32 m15;.param .align 8 .b8 r15[16];
+ st.param.b64 [a15],%d1;st.param.b64 [b15],%d0;call.uni (r15),md2asm_gpu_add_status,(a15,b15);
+ ld.param.b64 %d0,[r15];ld.param.u32 %raised,[r15+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %s18,%d0;
+ { .param .b64 a16,b16;.param .u32 m16;.param .align 8 .b8 r16[16];
+ st.param.b64 [a16],%d0;st.param.b64 [b16],%d0;call.uni (r16),md2asm_gpu_mul_status,(a16,b16);
+ ld.param.b64 %d1,[r16];ld.param.u32 %raised,[r16+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %s19,%d1;
+ mov.b64 %d1,%s14;
+ { .param .b64 a17,b17;.param .u32 m17;.param .align 8 .b8 r17[16];
+ st.param.b64 [a17],%d0;st.param.b64 [b17],%d1;call.uni (r17),md2asm_gpu_mul_status,(a17,b17);
+ ld.param.b64 %d0,[r17];ld.param.u32 %raised,[r17+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %d1,%s13;
+ { .param .b64 a18,b18;.param .u32 m18;.param .align 8 .b8 r18[16];
+ st.param.b64 [a18],%d1;st.param.b64 [b18],%d0;call.uni (r18),md2asm_gpu_div_status,(a18,b18);
+ ld.param.b64 %d0,[r18];ld.param.u32 %raised,[r18+8];or.b32 %flags,%flags,%raised; }
+ { .param .b64 a19;.param .align 8 .b8 r19[16];st.param.b64 [a19],%d0;call.uni (r19),md2asm_gpu_exp_original_rounding,(a19);ld.param.b64 %d0,[r19];ld.param.u32 %raised,[r19+8];or.b32 %flags,%flags,%raised;ld.param.u32 %child_error,[r19+12];setp.ne.u32 %p,%child_error,0;@%p mov.u32 %error,%child_error;@%p mad.lo.u32 %event,%temperature,3,%range;@%p mad.lo.u32 %event,%event,101,%wavelength;@%p add.u32 %event,%event,1; }
+ mov.b64 %d1,0x3ff0000000000000;
+ { .param .b64 a20,b20;.param .u32 m20;.param .align 8 .b8 r20[16];
+ st.param.b64 [a20],%d0;st.param.b64 [b20],%d1;call.uni (r20),md2asm_gpu_sub_status,(a20,b20);
+ ld.param.b64 %d0,[r20];ld.param.u32 %raised,[r20+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %d1,%s19;
+ { .param .b64 a21,b21;.param .u32 m21;.param .align 8 .b8 r21[16];
+ st.param.b64 [a21],%d1;st.param.b64 [b21],%d1;call.uni (r21),md2asm_gpu_mul_status,(a21,b21);
+ ld.param.b64 %d1,[r21];ld.param.u32 %raised,[r21+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %d2,%s18;
+ { .param .b64 a22,b22;.param .u32 m22;.param .align 8 .b8 r22[16];
+ st.param.b64 [a22],%d1;st.param.b64 [b22],%d2;call.uni (r22),md2asm_gpu_mul_status,(a22,b22);
+ ld.param.b64 %d1,[r22];ld.param.u32 %raised,[r22+8];or.b32 %flags,%flags,%raised; }
+ { .param .b64 a23,b23;.param .u32 m23;.param .align 8 .b8 r23[16];
+ st.param.b64 [a23],%d1;st.param.b64 [b23],%d0;call.uni (r23),md2asm_gpu_mul_status,(a23,b23);
+ ld.param.b64 %d0,[r23];ld.param.u32 %raised,[r23+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %d1,%s20;
+ { .param .b64 a24,b24;.param .u32 m24;.param .align 8 .b8 r24[16];
+ st.param.b64 [a24],%d1;st.param.b64 [b24],%d0;call.uni (r24),md2asm_gpu_div_status,(a24,b24);
+ ld.param.b64 %d0,[r24];ld.param.u32 %raised,[r24+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %d1,%s17;
+ { .param .b64 a25,b25;.param .u32 m25;.param .align 8 .b8 r25[16];
+ st.param.b64 [a25],%d1;st.param.b64 [b25],%d0;call.uni (r25),md2asm_gpu_add_status,(a25,b25);
+ ld.param.b64 %d0,[r25];ld.param.u32 %raised,[r25+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %s17,%d0;
+ add.u32 %wavelength,%wavelength,1;
+ setp.le.u32 %p,%wavelength,100;@%p bra spt_wavelength;
+ mov.b64 %d0,%s12;
+ mov.b64 %d1,%s17;
+ { .param .b64 a26,b26;.param .u32 m26;.param .align 8 .b8 r26[16];
+ st.param.b64 [a26],%d0;st.param.b64 [b26],%d1;call.uni (r26),md2asm_gpu_mul_status,(a26,b26);
+ ld.param.b64 %d0,[r26];ld.param.u32 %raised,[r26+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %d1,%s16;
+ { .param .b64 a27,b27;.param .u32 m27;.param .align 8 .b8 r27[16];
+ st.param.b64 [a27],%d0;st.param.b64 [b27],%d1;call.uni (r27),md2asm_gpu_mul_status,(a27,b27);
+ ld.param.b64 %d0,[r27];ld.param.u32 %raised,[r27+8];or.b32 %flags,%flags,%raised; }
+ mov.b64 %d1,0x4008000000000000;
+ { .param .b64 a28,b28;.param .u32 m28;.param .align 8 .b8 r28[16];
+ st.param.b64 [a28],%d0;st.param.b64 [b28],%d1;call.uni (r28),md2asm_gpu_div_status,(a28,b28);
+ ld.param.b64 %d0,[r28];ld.param.u32 %raised,[r28+8];or.b32 %flags,%flags,%raised; }
+ mul.wide.u32 %offset,%range,4;add.u64 %cell,%map,%offset;ld.global.u32 %w9,[%cell];
+ sub.u32 %w9,%w9,1;
+ mad.lo.u32 %w9,%temperature,2,%w9;mul.wide.u32 %offset,%w9,8;add.u64 %cell,%table,%offset;
+ ld.global.b64 %d1,[%cell];
+ { .param .b64 a29,b29;.param .u32 m29;.param .align 8 .b8 r29[16];
+ st.param.b64 [a29],%d1;st.param.b64 [b29],%d0;call.uni (r29),md2asm_gpu_add_status,(a29,b29);
+ ld.param.b64 %d0,[r29];ld.param.u32 %raised,[r29+8];or.b32 %flags,%flags,%raised; }
+ st.global.b64 [%cell],%d0;
+ add.u32 %range,%range,1;
+ setp.lt.u32 %p,%range,3;@%p bra spt_range;
+ st.param.u32 [result],%flags;st.param.u32 [result+4],%error;st.param.u32 [result+8],%event;st.param.u32 [result+12],0;ret;
+}
