@@ -114,6 +114,16 @@
  bl md2asm_openifs_gpu_launch
  ldr x18,[sp,#224]
  cbnz w0,.Ldraft_failure
+ adrp x0,.Ltrm_owner_copy
+ add x0,x0,:lo12:.Ltrm_owner_copy
+ mov x1,x19
+ mov x2,x20
+ mov w3,#1
+ mov w4,#256
+ mov w5,#0
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#224]
+ cbnz w0,.Ldraft_failure
  adrp x0,.Ltrm_pressure_exp
  add x0,x0,:lo12:.Ltrm_pressure_exp
  mov x1,x19
@@ -331,6 +341,7 @@ BEGIN gpu_trmfixers,16
  brk #0
 
 .pushsection .rodata
+.Ltrm_owner_copy: .asciz "openifs_trmfixers_parallel_copy_owners"
 .Ltrm_pressure_exp: .asciz "openifs_trmfixers_parallel_pressure_exp"
 .Ltrm_pressure_correction: .asciz "openifs_trmfixers_parallel_pressure_correction"
 .Ltrm_boundary_mass: .asciz "openifs_trmfixers_parallel_boundary_mass"

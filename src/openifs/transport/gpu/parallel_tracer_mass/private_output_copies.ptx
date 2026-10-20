@@ -1,0 +1,35 @@
+// Contract: skills/md2asm-gpu/references/openifs/transport/parallel_tracer_mass_correction.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.visible .entry openifs_trmfixers_parallel_copy_owners(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%base,%cap,%head,%source,%destination,%ptr,%offset,%word,%end;
+ .reg .u32 %lane,%rt,%i,%error,%unique;
+ .reg .pred %p;
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];mov.u32 %lane,%tid.x;
+ setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %word,%ctx,7;setp.ne.u64 %p,%word,0;@%p ret;setp.gt.u64 %p,%ctx,0x7fffffffffffffff;@%p ret;add.u64 %end,%ctx,64;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p ret;
+ ld.global.u32 %rt,[%ctx];setp.ne.u32 %p,%rt,0;@%p ret;mov.u32 %error,15616;
+ mov.u32 %rt,%ntid.x;setp.ne.u32 %p,%rt,256;@%p bra REFUSE;
+ mov.u32 %rt,%ntid.y;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%ntid.z;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+ mov.u32 %rt,%nctaid.x;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%nctaid.y;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,%nctaid.z;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+ mov.u32 %rt,%dynamic_smem_size;setp.ne.u32 %p,%rt,0;@%p bra REFUSE;
+ ld.global.u32 %rt,[%ctx+4];setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+ mov.u32 %error,15619;ld.global.u64 %base,[%ctx+32];ld.global.u64 %cap,[%ctx+40];setp.lt.u64 %p,%cap,9869184;@%p bra REFUSE;
+ setp.eq.u64 %p,%base,0;@%p bra REFUSE;and.b64 %word,%base,7;setp.ne.u64 %p,%word,0;@%p bra REFUSE;setp.gt.u64 %p,%base,0x7fffffffffffffff;@%p bra REFUSE;add.u64 %end,%base,9869184;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+ add.u64 %head,%base,2574208;ld.global.u64 %word,[%head];setp.ne.u64 %p,%word,0x54524d5041523031;@%p bra REFUSE;
+ ld.global.u64 %word,[%head+16];setp.ne.u64 %p,%word,%args;@%p bra REFUSE;ld.global.u64 %word,[%head+24];setp.ne.u64 %p,%word,%ctx;@%p bra REFUSE;
+ ld.global.u64 %word,[%head+40];setp.ne.u64 %p,%word,%base;@%p bra REFUSE;ld.global.u64 %word,[%head+32];ld.global.u64 %ptr,[%ctx+48];setp.ne.u64 %p,%word,%ptr;@%p bra REFUSE;
+ ld.global.u64 %word,[%head+48];setp.ne.u64 %p,%word,0;@%p bra REFUSE;ld.global.u64 %word,[%head+8];setp.ne.u64 %p,%word,0;@%p ret;
+ ld.global.u64 %source,[%args+96];add.u64 %destination,%base,5152256;mov.u32 %i,%lane;
+COPY_SURFACE:
+ setp.ge.u32 %p,%i,2064;@%p bra TRACER_BEGIN;mul.wide.u32 %offset,%i,8;add.u64 %ptr,%source,%offset;ld.global.u64 %word,[%ptr];add.u64 %ptr,%destination,%offset;st.global.u64 [%ptr],%word;add.u32 %i,%i,256;bra COPY_SURFACE;
+TRACER_BEGIN:
+ ld.global.u64 %source,[%args+112];add.u64 %destination,%base,5168768;mov.u32 %i,%lane;
+COPY_TRACER:
+ setp.ge.u32 %p,%i,235296;@%p bra COPY_JOIN;mul.wide.u32 %offset,%i,8;add.u64 %ptr,%source,%offset;ld.global.u64 %word,[%ptr];add.u64 %ptr,%destination,%offset;st.global.u64 [%ptr],%word;add.u32 %i,%i,256;bra COPY_TRACER;
+COPY_JOIN:
+ bar.sync 0;setp.ne.u32 %p,%lane,0;@%p ret;membar.gl;st.global.u64 [%head+112],1;ret;
+REFUSE:
+ mov.u32 %unique,%ctaid.x;mov.u32 %rt,%ctaid.y;or.b32 %unique,%unique,%rt;mov.u32 %rt,%ctaid.z;or.b32 %unique,%unique,%rt;or.b32 %unique,%unique,%lane;mov.u32 %rt,%tid.y;or.b32 %unique,%unique,%rt;mov.u32 %rt,%tid.z;or.b32 %unique,%unique,%rt;setp.ne.u32 %p,%unique,0;@%p ret;st.global.u32 [%ctx],%error;ret;
+}
