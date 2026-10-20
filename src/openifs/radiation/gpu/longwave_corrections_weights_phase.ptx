@@ -1,0 +1,107 @@
+// Contract: skills/md2asm-gpu/references/openifs/radiation/longwave_corrections_weights_complete_contract.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_longwave_corrections_weights_values(.param .u32 lane,.param .u64 table,.param .u32 group_start);
+.func (.param .u32 result) longwave_corrections_weights_range(.param .u64 base,.param .u64 bytes,.param .u64 capacity,.param .u64 mask)
+{
+ .reg .u64 %base,%bytes,%capacity,%mask,%end;.reg .u32 %error;.reg .pred %p;
+ ld.param.u64 %base,[base];ld.param.u64 %bytes,[bytes];ld.param.u64 %capacity,[capacity];ld.param.u64 %mask,[mask];mov.u32 %error,36001;
+ setp.eq.u64 %p,%base,0;@%p bra DONE;and.b64 %end,%base,%mask;setp.ne.u64 %p,%end,0;@%p bra DONE;
+ setp.gt.u64 %p,%bytes,%capacity;@%p bra DONE;add.u64 %end,%base,%bytes;setp.lt.u64 %p,%end,%base;@%p bra DONE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra DONE;
+ mov.u32 %error,0;
+DONE:st.param.u32 [result],%error;ret;
+}
+.visible .entry md2asm_gpu_longwave_corrections_weights(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %args,%ctx,%caps,%input,%completion,%table,%capacity,%word,%rows,%offset,%pointer,%abase,%asize,%aend,%bbase,%bsize,%bend;
+ .reg .u32 %lane_index,%origin,%axis,%error,%i,%j,%flags,%old,%rowerror,%ordinal,%rowordinal,%wa,%wb,%mask;
+ .reg .u32 %band,%cursor,%sumlength,%length,%control,%group_start;
+ .reg .pred %p,%q;
+ .local .align 8 .b8 owners[96];
+ .shared .align 8 .b8 shared_state[64];
+ .shared .align 8 .b8 row_results[4096];
+ .shared .align 4 .b8 group_starts[64];
+ .param .u64 rb,rn,rcap,rm,table_arg;.param .u32 range_result,lane_arg,group_arg;
+ .param .align 8 .b8 row_result[16];
+ mov.u32 %axis,%ctaid.x;mov.u32 %origin,%ctaid.y;or.b32 %axis,%axis,%origin;mov.u32 %origin,%ctaid.z;or.b32 %axis,%axis,%origin;setp.ne.u32 %p,%axis,0;@%p ret;
+ mov.u32 %lane_index,%tid.x;mov.u32 %origin,%tid.y;or.b32 %origin,%origin,%lane_index;mov.u32 %axis,%tid.z;or.b32 %origin,%origin,%axis;
+ setp.ne.u32 %p,%origin,0;@%p bra ADMISSION_WAIT;
+ st.shared.u32 [shared_state],0;
+ ld.param.u64 %ctx,[common_context];setp.eq.u64 %p,%ctx,0;@%p bra ADMISSION_WAIT;and.b64 %word,%ctx,7;setp.ne.u64 %p,%word,0;@%p bra ADMISSION_WAIT;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p bra ADMISSION_WAIT;
+ mov.u32 %error,36000;
+ mov.u32 %axis,%ntid.x;setp.ne.u32 %p,%axis,256;@%p bra REFUSE;mov.u32 %axis,%ntid.y;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;mov.u32 %axis,%ntid.z;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;
+ mov.u32 %axis,%nctaid.x;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;mov.u32 %axis,%nctaid.y;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;mov.u32 %axis,%nctaid.z;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;
+ mov.u32 %axis,%dynamic_smem_size;setp.ne.u32 %p,%axis,0;@%p bra REFUSE;
+ ld.global.u32 %axis,[%ctx+4];setp.ne.u32 %p,%axis,1;@%p bra REFUSE;ld.global.u32 %axis,[%ctx+12];setp.ne.u32 %p,%axis,0;@%p bra REFUSE;
+ ld.param.u64 %args,[original_vector];
+ st.param.u64 [rb],%args;st.param.u64 [rn],16;st.param.u64 [rcap],16;st.param.u64 [rm],7;call.uni (range_result),longwave_corrections_weights_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rcap],64;st.param.u64 [rm],7;call.uni (range_result),longwave_corrections_weights_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %caps,[%ctx+48];ld.global.u64 %capacity,[%ctx+56];
+ st.param.u64 [rb],%caps;st.param.u64 [rn],32;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),longwave_corrections_weights_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %input,[%args];ld.global.u64 %completion,[%args+8];ld.global.u64 %capacity,[%caps];
+ st.param.u64 [rb],%input;st.param.u64 [rn],16;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),longwave_corrections_weights_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %capacity,[%caps+8];
+ st.param.u64 [rb],%completion;st.param.u64 [rn],16;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),longwave_corrections_weights_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %table,[%input];ld.global.u64 %capacity,[%caps+16];
+ st.param.u64 [rb],%table;st.param.u64 [rn],8592;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),longwave_corrections_weights_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ mov.u32 %error,36002;ld.global.u64 %word,[%input+8];setp.ne.u64 %p,%word,0;@%p bra REFUSE;ld.global.u64 %word,[%caps+24];setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ st.local.u64 [owners+0],%args;st.local.u64 [owners+8],16;
+ st.local.u64 [owners+16],%ctx;st.local.u64 [owners+24],64;
+ st.local.u64 [owners+32],%caps;st.local.u64 [owners+40],32;
+ st.local.u64 [owners+48],%input;st.local.u64 [owners+56],16;
+ st.local.u64 [owners+64],%completion;st.local.u64 [owners+72],16;
+ st.local.u64 [owners+80],%table;st.local.u64 [owners+88],8592;
+ cvta.local.u64 %rows,owners;mov.u32 %i,1;
+PAIR_LEFT:
+ mul.wide.u32 %offset,%i,16;add.u64 %pointer,%rows,%offset;ld.u64 %abase,[%pointer];ld.u64 %asize,[%pointer+8];add.u64 %aend,%abase,%asize;mov.u32 %j,0;
+PAIR_RIGHT:
+ mov.u32 %mask,50;shr.u32 %wa,%mask,%i;shr.u32 %wb,%mask,%j;or.b32 %wa,%wa,%wb;and.b32 %wa,%wa,1;setp.eq.u32 %p,%wa,0;@%p bra NEXT_PAIR;
+ mul.wide.u32 %offset,%j,16;add.u64 %pointer,%rows,%offset;ld.u64 %bbase,[%pointer];ld.u64 %bsize,[%pointer+8];add.u64 %bend,%bbase,%bsize;
+ setp.lt.u64 %p,%abase,%bend;setp.lt.u64 %q,%bbase,%aend;and.pred %p,%p,%q;mov.u32 %error,36001;@%p bra REFUSE;
+NEXT_PAIR:
+ add.u32 %j,%j,1;setp.lt.u32 %p,%j,%i;@%p bra PAIR_RIGHT;add.u32 %i,%i,1;setp.lt.u32 %p,%i,6;@%p bra PAIR_LEFT;
+ mov.u32 %band,0;mov.u32 %cursor,0;mov.u32 %error,36002;
+MAP_BAND:
+ mul.wide.u32 %offset,%band,4;add.u64 %pointer,%table,%offset;ld.global.u32 %control,[%pointer];
+ mov.u64 %pointer,group_starts;add.u64 %pointer,%pointer,%offset;st.shared.u32 [%pointer],%cursor;
+ setp.eq.u32 %p,%control,16;@%p bra MAP_SKIP;mov.u32 %sumlength,0;
+MAP_GROUP:
+ setp.ge.u32 %p,%cursor,256;@%p bra REFUSE;
+ mul.wide.u32 %offset,%cursor,4;add.u64 %pointer,%table,%offset;ld.global.u32 %length,[%pointer+128];
+ setp.eq.u32 %p,%length,0;@%p bra REFUSE;setp.gt.u32 %p,%length,16;@%p bra REFUSE;
+ add.u32 %sumlength,%sumlength,%length;setp.gt.u32 %p,%sumlength,16;@%p bra REFUSE;
+ add.u32 %cursor,%cursor,1;setp.lt.u32 %p,%sumlength,16;@%p bra MAP_GROUP;bra MAP_NEXT;
+MAP_SKIP:
+ add.u32 %cursor,%cursor,16;setp.gt.u32 %p,%cursor,256;@%p bra REFUSE;
+MAP_NEXT:
+ add.u32 %band,%band,1;setp.lt.u32 %p,%band,16;@%p bra MAP_BAND;
+ st.shared.u64 [shared_state+8],%table;st.shared.u64 [shared_state+24],%completion;st.shared.u64 [shared_state+32],%ctx;st.shared.u32 [shared_state],1;bra ADMISSION_WAIT;
+REFUSE:st.global.u32 [%ctx],%error;
+ADMISSION_WAIT:
+ bar.sync 0;
+ ld.shared.u32 %axis,[shared_state];setp.eq.u32 %p,%axis,0;@%p ret;
+ setp.ne.u32 %p,%lane_index,0;@%p bra PRESTORE_WAIT;
+ ld.shared.u64 %table,[shared_state+8];mov.b64 %word,0x3ff0000000000000;
+ st.global.b64 [%table+3328],%word;st.global.b64 [%table+4936],%word;st.global.b64 [%table+4928],%word;st.global.b64 [%table+6536],%word;
+PRESTORE_WAIT:
+ bar.sync 0;
+ ld.shared.u64 %table,[shared_state+8];mov.u32 %group_start,0;
+ setp.ge.u32 %p,%lane_index,16;@%p bra GROUP_START_READY;
+ mul.wide.u32 %offset,%lane_index,4;mov.u64 %pointer,group_starts;add.u64 %pointer,%pointer,%offset;ld.shared.u32 %group_start,[%pointer];
+GROUP_START_READY:
+ st.param.u32 [lane_arg],%lane_index;st.param.u64 [table_arg],%table;st.param.u32 [group_arg],%group_start;
+ call.uni (row_result),md2asm_gpu_longwave_corrections_weights_values,(lane_arg,table_arg,group_arg);
+ ld.param.u32 %flags,[row_result];mov.u32 %rowerror,0;mov.u32 %ordinal,0;
+ mul.wide.u32 %offset,%lane_index,16;mov.u64 %pointer,row_results;add.u64 %pointer,%pointer,%offset;st.shared.u32 [%pointer],%flags;st.shared.u32 [%pointer+4],%rowerror;st.shared.u32 [%pointer+8],%ordinal;st.shared.u32 [%pointer+12],0;
+ bar.sync 0;
+ setp.ne.u32 %p,%lane_index,0;@%p ret;
+ mov.u32 %flags,0;mov.u32 %rowerror,0;mov.u32 %ordinal,0;mov.u32 %i,0;
+JOIN_ROW:
+ mul.wide.u32 %offset,%i,16;mov.u64 %pointer,row_results;add.u64 %pointer,%pointer,%offset;ld.shared.u32 %old,[%pointer];or.b32 %flags,%flags,%old;
+ add.u32 %i,%i,1;setp.lt.u32 %p,%i,256;@%p bra JOIN_ROW;
+ ld.shared.u64 %completion,[shared_state+24];ld.shared.u64 %ctx,[shared_state+32];
+ st.global.u32 [%completion],0;st.global.u32 [%completion+4],%flags;st.global.u32 [%completion+8],%rowerror;st.global.u32 [%completion+12],%ordinal;
+ ld.global.u32 %old,[%ctx+8];or.b32 %flags,%flags,%old;st.global.u32 [%ctx+8],%flags;ret;
+}

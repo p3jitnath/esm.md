@@ -1,5 +1,5 @@
-/* GPU physical setup route. Original interface and ordered arithmetic are preserved.
- * Contract: skills/md2asm-gpu/references/openifs/setup/physical_setup.md
+/* Complete orographic parameter field with preserved cloud and wave siblings.
+ * Contract: skills/md2asm-gpu/references/openifs/setup/orographic_parameter_field_complete_contract.md
  * Original source: src/openifs/setup/cloud_gravity_wave_parameter_fields.S
  */
 // Original contract: skills/md2asm/references/openifs/setup/cloud_gravity_wave_setup.md
@@ -46,96 +46,7 @@ md2asm_diagnostic_cloud_parameter_fields:
 .global md2asm_orographic_gravity_wave_parameter_fields
 .type md2asm_orographic_gravity_wave_parameter_fields,%function
 md2asm_orographic_gravity_wave_parameter_fields:
- sub sp,sp,#160
- adrp x6,.Lwave_constants
- add x6,x6,:lo12:.Lwave_constants
- ldp d16,d17,[x6]
- ldp d18,d19,[x6,#16]
- mov w6,#19
- str w6,[x0]
- mov x6,#144
-.Lorographic_midpoint:
- ldr d0,[x2,x6]
- add x7,x6,#8
- ldr d1,[x2,x7]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d1
- ldr d2,[x3,x6]
- ldr d3,[x3,x7]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d2,destination,d2,real,x16,0,d3
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d2,destination,d16,real,x16,0,d2
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,0,d0,destination,d0,real,x16,0,d2
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,2,d0,destination,d17,real,x16,0,d0
- str d0,[sp,x6]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d1,destination,d0,real,x16,0,d16
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,4,none,comparison,d1,real,x16,0,d18
- b.lt .Lorographic_next
- lsr w7,w6,#3
- add w7,w7,#1
- str w7,[x0]
-.Lorographic_next:
- subs x6,x6,#8
- b.pl .Lorographic_midpoint
- str d19,[x0,#80]
- mov w6,#1
- str w6,[x0,#8]
- mov x6,#0
-.Lorographic_top:
- ldr d0,[sp,x6]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,4,none,comparison,d0,real,x16,0,d19
- b.ge .Lorographic_top_next
- lsr w7,w6,#3
- add w7,w7,#1
- str w7,[x0,#8]
-.Lorographic_top_next:
- add x6,x6,#8
- cmp x6,#152
- b.lo .Lorographic_top
- adrp x6,.Lwave_drag_constants
- add x6,x6,:lo12:.Lwave_drag_constants
- ldp x7,x8,[x6]
- stp x7,x8,[x0,#32]
- ldp x7,x8,[x6,#16]
- stp x7,x8,[x0,#32]
- ldp x7,x8,[x6,#32]
- str x7,[x0,#24]
- str x8,[x0,#16]
- ldp x7,x8,[x6,#48]
- str x7,[x0,#64]
- str x8,[x0,#48]
- ldr x7,[x6,#64]
- str x7,[x0,#56]
- mov w6,#0
- str w6,[x0,#4]
- ldr d16,[x4]
- adrp x6,.Lwave_limiter_pressure
- ldr d17,[x6,:lo12:.Lwave_limiter_pressure]
- mov x6,#144
-.Lorographic_limit:
- ldr d0,[x1,x6]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,4,none,comparison,d0,real,x16,0,d17
- b.lt .Lorographic_limit_next
- lsr w7,w6,#3
- add w7,w7,#1
- str w7,[x0,#4]
-.Lorographic_limit_next:
- subs x6,x6,#8
- b.pl .Lorographic_limit
- cbnz w5,.Lorographic_physics
- str wzr,[x0,#4]
-.Lorographic_physics:
- adrp x6,.Lwave_tendency_constants
- add x6,x6,:lo12:.Lwave_tendency_constants
- ldp d0,d1,[x6]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d0,destination,d0,real,x16,0,d16
- str d0,[x0,#72]
- md2asm_gpu_preserved_scalar md2asm_gpu_lake_controller_cell_host,3,d1,destination,d1,real,x16,0,d16
- str d1,[x0,#72]
- str wzr,[x0,#88]
- mov w6,#5
- str w6,[x0,#12]
- str wzr,[x0,#92]
- add sp,sp,#160
- ret
+ b md2asm_gpu_orographic_parameter_field_phase_host
 .size md2asm_orographic_gravity_wave_parameter_fields,.-md2asm_orographic_gravity_wave_parameter_fields
 .p2align 4
 .global md2asm_nonorographic_gravity_wave_parameter_fields

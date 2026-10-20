@@ -1,0 +1,68 @@
+// Contract: skills/md2asm-gpu/references/openifs/radiation/longwave_corrections_weights_complete_contract.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sqrt_status(.param .b64 a);
+.visible .func (.param .align 8 .b8 result[16]) md2asm_gpu_longwave_corrections_weights_values(.param .u32 lane,.param .u64 record,.param .u32 group_start)
+{
+ .reg .u64 %record,%pointer,%offset,%map,%destination;
+ .reg .b64 %x,%root,%one,%step,%left,%right,%first,%second,%sum,%value,%quotient;
+ .reg .u32 %lane,%index,%cursor,%begin,%end,%length,%control,%flags,%raised;
+ .reg .f64 %converted;.reg .pred %p;
+ ld.param.u32 %lane,[lane];ld.param.u64 %record,[record];ld.param.u32 %cursor,[group_start];
+ mov.u32 %flags,0;mov.b64 %one,0x3ff0000000000000;add.u32 %index,%lane,1;
+ setp.ge.u32 %p,%index,200;@%p bra WEIGHTS;
+ cvt.rn.f64.u32 %converted,%index;mov.b64 %x,%converted;mov.b64 %step,0x3f747ae147ae147b;
+ { .param .b64 a0,b0;.param .align 8 .b8 r0[16];
+ st.param.b64 [a0],%step;st.param.b64 [b0],%x;call.uni (r0),md2asm_gpu_mul_status,(a0,b0);
+ ld.param.b64 %x,[r0];ld.param.u32 %raised,[r0+8];or.b32 %flags,%flags,%raised; }
+ { .param .b64 a1;.param .align 8 .b8 r1[16];
+ st.param.b64 [a1],%x;call.uni (r1),md2asm_gpu_sqrt_status,(a1);
+ ld.param.b64 %root,[r1];ld.param.u32 %raised,[r1+8];or.b32 %flags,%flags,%raised; }
+ { .param .b64 a2,b2;.param .align 8 .b8 r2[16];
+ st.param.b64 [a2],%root;st.param.b64 [b2],%x;call.uni (r2),md2asm_gpu_div_status,(a2,b2);
+ ld.param.b64 %first,[r2];ld.param.u32 %raised,[r2+8];or.b32 %flags,%flags,%raised; }
+ { .param .b64 a3,b3;.param .align 8 .b8 r3[16];
+ st.param.b64 [a3],%one;st.param.b64 [b3],%root;call.uni (r3),md2asm_gpu_sub_status,(a3,b3);
+ ld.param.b64 %left,[r3];ld.param.u32 %raised,[r3+8];or.b32 %flags,%flags,%raised; }
+ { .param .b64 a4,b4;.param .align 8 .b8 r4[16];
+ st.param.b64 [a4],%one;st.param.b64 [b4],%x;call.uni (r4),md2asm_gpu_sub_status,(a4,b4);
+ ld.param.b64 %right,[r4];ld.param.u32 %raised,[r4+8];or.b32 %flags,%flags,%raised; }
+ { .param .b64 a5,b5;.param .align 8 .b8 r5[16];
+ st.param.b64 [a5],%left;st.param.b64 [b5],%right;call.uni (r5),md2asm_gpu_div_status,(a5,b5);
+ ld.param.b64 %second,[r5];ld.param.u32 %raised,[r5+8];or.b32 %flags,%flags,%raised; }
+ mul.wide.u32 %offset,%index,8;add.u64 %pointer,%record,%offset;
+ st.global.b64 [%pointer+3328],%first;st.global.b64 [%pointer+4936],%second;
+WEIGHTS:
+ setp.ge.u32 %p,%lane,16;@%p bra RETURN;
+ mul.wide.u32 %offset,%lane,4;add.u64 %pointer,%record,%offset;ld.global.u32 %control,[%pointer];
+ mul.wide.u32 %offset,%lane,128;add.u64 %destination,%record,%offset;add.u64 %destination,%destination,6544;
+ mov.u32 %begin,0;setp.eq.u32 %p,%control,16;@%p bra UNIT;
+ mul.wide.u32 %offset,%cursor,4;add.u64 %map,%record,%offset;add.u64 %map,%map,128;
+GROUP:
+ ld.global.u32 %length,[%map];add.u64 %map,%map,4;add.u32 %end,%begin,%length;
+ mov.u32 %index,%begin;mov.b64 %sum,0;
+SUM:
+ mul.wide.u32 %offset,%index,8;add.u64 %pointer,%record,%offset;ld.global.b64 %value,[%pointer+3200];
+ { .param .b64 a6,b6;.param .align 8 .b8 r6[16];
+ st.param.b64 [a6],%sum;st.param.b64 [b6],%value;call.uni (r6),md2asm_gpu_add_status,(a6,b6);
+ ld.param.b64 %sum,[r6];ld.param.u32 %raised,[r6+8];or.b32 %flags,%flags,%raised; }
+ add.u32 %index,%index,1;setp.lt.u32 %p,%index,%end;@%p bra SUM;
+DIVIDE:
+ mul.wide.u32 %offset,%begin,8;add.u64 %pointer,%record,%offset;ld.global.b64 %value,[%pointer+3200];
+ { .param .b64 a7,b7;.param .align 8 .b8 r7[16];
+ st.param.b64 [a7],%value;st.param.b64 [b7],%sum;call.uni (r7),md2asm_gpu_div_status,(a7,b7);
+ ld.param.b64 %quotient,[r7];ld.param.u32 %raised,[r7+8];or.b32 %flags,%flags,%raised; }
+ add.u64 %pointer,%destination,%offset;st.global.b64 [%pointer],%quotient;
+ add.u32 %begin,%begin,1;setp.lt.u32 %p,%begin,%end;@%p bra DIVIDE;
+ setp.lt.u32 %p,%begin,16;@%p bra GROUP;bra RETURN;
+UNIT:
+ mul.wide.u32 %offset,%begin,8;add.u64 %pointer,%destination,%offset;st.global.b64 [%pointer],%one;
+ add.u32 %begin,%begin,1;setp.lt.u32 %p,%begin,16;@%p bra UNIT;
+RETURN:
+ st.param.u32 [result],%flags;st.param.u32 [result+4],0;st.param.u32 [result+8],0;st.param.u32 [result+12],0;ret;
+}

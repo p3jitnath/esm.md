@@ -1,0 +1,175 @@
+// Contract: skills/md2asm-gpu/references/openifs/setup/orographic_parameter_field_complete_contract.md.
+.arch armv8-a
+.text
+.p2align 4
+.macro orographic_parameter_field_service target
+ bl \target
+ ldr x18,[sp,#144]
+.endm
+.global md2asm_gpu_orographic_parameter_field_phase_host
+.type md2asm_gpu_orographic_parameter_field_phase_host,%function
+md2asm_gpu_orographic_parameter_field_phase_host:
+ sub sp,sp,#2048
+ stp x0,x1,[sp,#0]
+ stp x2,x3,[sp,#16]
+ stp x4,x5,[sp,#32]
+ stp x6,x7,[sp,#48]
+ stp x8,x9,[sp,#64]
+ stp x10,x11,[sp,#80]
+ stp x12,x13,[sp,#96]
+ stp x14,x15,[sp,#112]
+ stp x16,x17,[sp,#128]
+ stp x18,x19,[sp,#144]
+ stp x20,x21,[sp,#160]
+ stp x22,x23,[sp,#176]
+ stp x24,x25,[sp,#192]
+ stp x26,x27,[sp,#208]
+ stp x28,x29,[sp,#224]
+ str x30,[sp,#240]
+ stp q0,q1,[sp,#256]
+ stp q2,q3,[sp,#288]
+ stp q4,q5,[sp,#320]
+ stp q6,q7,[sp,#352]
+ stp q8,q9,[sp,#384]
+ stp q10,q11,[sp,#416]
+ stp q12,q13,[sp,#448]
+ stp q14,q15,[sp,#480]
+ stp q16,q17,[sp,#512]
+ stp q18,q19,[sp,#544]
+ stp q20,q21,[sp,#576]
+ stp q22,q23,[sp,#608]
+ stp q24,q25,[sp,#640]
+ stp q26,q27,[sp,#672]
+ stp q28,q29,[sp,#704]
+ stp q30,q31,[sp,#736]
+ mrs x9,fpcr
+ mrs x10,fpsr
+ mrs x11,nzcv
+ str x9,[sp,#768]
+ str x10,[sp,#776]
+ str x11,[sp,#784]
+ cbnz x9,.Lorographic_parameter_field_fatal
+ orographic_parameter_field_service __errno_location
+ str x0,[sp,#792]
+ ldr w9,[x0]
+ str w9,[sp,#800]
+ orographic_parameter_field_service omp_in_parallel
+ cbnz w0,.Lorographic_parameter_field_fatal
+ orographic_parameter_field_service md2asm_openifs_gpu_prepare
+ cbnz w0,.Lorographic_parameter_field_fatal
+ add x19,sp,#832
+ mov x9,#0
+.Lorographic_parameter_field_zero:
+ str xzr,[x19,x9,lsl #3]
+ add x9,x9,#1
+ cmp x9,#27
+ b.lo .Lorographic_parameter_field_zero
+ ldp x9,x10,[sp]
+ stp x9,x10,[x19]
+ ldp x9,x10,[sp,#16]
+ stp x9,x10,[x19,#16]
+ ldr x9,[sp,#32]
+ str x9,[x19,#32]
+ ldr w9,[sp,#40]
+ str w9,[x19,#40]
+ add x21,sp,#880
+ add x20,sp,#896
+ mov w14,#1
+ str w14,[x20,#4]
+ ldr w14,[sp,#776]
+ str w14,[x20,#8]
+ add x16,sp,#960
+ str x16,[x20,#48]
+ mov x15,#64
+ str x15,[x20,#56]
+ mov x14,#48
+ str x14,[x16]
+ mov x14,#16
+ str x14,[x16,#8]
+ mov x14,#96
+ str x14,[x16,#16]
+ mov x14,#152
+ str x14,[x16,#24]
+ mov x14,#160
+ stp x14,x14,[x16,#32]
+ mov x14,#8
+ str x14,[x16,#48]
+ add x17,sp,#1024
+ stp x19,x21,[x17]
+ ldr x9,[sp,#768]
+ ldr x10,[sp,#776]
+ msr fpcr,x9
+ msr fpsr,x10
+ ldr x9,[sp,#792]
+ ldr w10,[sp,#800]
+ str w10,[x9]
+ adrp x0,.Lorographic_parameter_field_entry
+ add x0,x0,:lo12:.Lorographic_parameter_field_entry
+ add x1,sp,#1024
+ mov x2,x20
+ mov w3,#1
+ mov w4,#1
+ mov w5,#0
+ orographic_parameter_field_service md2asm_openifs_gpu_launch
+ cbnz w0,.Lorographic_parameter_field_fatal
+ ldr w9,[x20]
+ cbnz w9,.Lorographic_parameter_field_fatal
+ ldr w9,[x21]
+ str w9,[sp,#1040]
+ ldr x9,[sp,#768]
+ msr fpcr,x9
+ ldr x9,[sp,#776]
+ ldr w10,[x20,#8]
+ orr x9,x9,x10
+ msr fpsr,x9
+ ldr x9,[sp,#792]
+ ldr w10,[sp,#800]
+ ldr w11,[x21,#12]
+ cbz w11,.Lorographic_parameter_field_errno_ready
+ ldr w10,[x21,#8]
+.Lorographic_parameter_field_errno_ready:
+ str w10,[x9]
+ ldr x9,[sp,#784]
+ msr nzcv,x9
+ ldp q0,q1,[sp,#256]
+ ldp q2,q3,[sp,#288]
+ ldp q4,q5,[sp,#320]
+ ldp q6,q7,[sp,#352]
+ ldp q8,q9,[sp,#384]
+ ldp q10,q11,[sp,#416]
+ ldp q12,q13,[sp,#448]
+ ldp q14,q15,[sp,#480]
+ ldp q16,q17,[sp,#512]
+ ldp q18,q19,[sp,#544]
+ ldp q20,q21,[sp,#576]
+ ldp q22,q23,[sp,#608]
+ ldp q24,q25,[sp,#640]
+ ldp q26,q27,[sp,#672]
+ ldp q28,q29,[sp,#704]
+ ldp q30,q31,[sp,#736]
+ ldp x0,x1,[sp,#0]
+ ldp x2,x3,[sp,#16]
+ ldp x4,x5,[sp,#32]
+ ldp x6,x7,[sp,#48]
+ ldp x8,x9,[sp,#64]
+ ldp x10,x11,[sp,#80]
+ ldp x12,x13,[sp,#96]
+ ldp x14,x15,[sp,#112]
+ ldp x16,x17,[sp,#128]
+ ldp x18,x19,[sp,#144]
+ ldp x20,x21,[sp,#160]
+ ldp x22,x23,[sp,#176]
+ ldp x24,x25,[sp,#192]
+ ldp x26,x27,[sp,#208]
+ ldp x28,x29,[sp,#224]
+ ldr x30,[sp,#240]
+ ldr w0,[sp,#1040]
+ add sp,sp,#2048
+ ret
+.Lorographic_parameter_field_fatal:
+ bl abort
+ brk #0
+.size md2asm_gpu_orographic_parameter_field_phase_host,.-md2asm_gpu_orographic_parameter_field_phase_host
+.section .rodata
+.Lorographic_parameter_field_entry:.asciz "md2asm_gpu_orographic_parameter_field"
+.section .note.GNU-stack,"",%progbits

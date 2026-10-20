@@ -1,0 +1,119 @@
+// Contract: skills/md2asm-gpu/references/openifs/radiation/ordered_radiation_field_reduction.md.
+// Complete source-ordered radiation field; no arithmetic contraction.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.func (.param .u32 r) field_range(.param .u64 base,.param .u64 size,.param .u64 cap,.param .u64 mask)
+{
+.reg .u64 %a,%n,%c,%m,%e;.reg .u32 %x;.reg .pred %p;
+ld.param.u64 %a,[base];ld.param.u64 %n,[size];ld.param.u64 %c,[cap];ld.param.u64 %m,[mask];
+mov.u32 %x,32101;setp.eq.u64 %p,%a,0;@%p bra R;
+and.b64 %e,%a,%m;setp.ne.u64 %p,%e,0;@%p bra R;
+setp.gt.u64 %p,%n,%c;@%p bra R;
+add.u64 %e,%a,%n;setp.lt.u64 %p,%e,%a;@%p bra R;
+setp.gt.u64 %p,%e,0x7fffffffffffffff;@%p bra R;
+mov.u32 %x,0;R:st.param.u32 [r],%x;ret;
+}
+.visible .entry md2asm_gpu_reduce_longwave_field(.param .u64 vector,.param .u64 context)
+{
+.reg .u64 %a<7>,%n<7>,%e<7>,%c<7>;
+.reg .u64 %v,%ctx,%rec,%tmp,%tmp2,%hi,%groups,%cells,%sc,%st,%dc,%dg,%terms,%k,%g,%cell,%remaining,%ptr,%sb,%db;
+.reg .u32 %error,%flags,%raised,%w,%count;.reg .b64 %value,%sum,%weight;.reg .pred %p,%q;
+.param .u64 pa,pn,pc,pm;.param .u32 pr;
+.param .b64 fa,fb;.param .align 8 .b8 fr[16];
+ld.param.u64 %v,[vector];ld.param.u64 %ctx,[context];
+st.param.u64 [pa],%ctx;st.param.u64 [pn],64;st.param.u64 [pc],64;st.param.u64 [pm],7;call.uni (pr),field_range,(pa,pn,pc,pm);ld.param.u32 %error,[pr];setp.ne.u32 %p,%error,0;@%p exit;
+ld.global.u32 %w,[%ctx];setp.ne.u32 %p,%w,0;@%p exit;
+mov.u32 %error,32102;
+ld.global.u32 %w,[%ctx+4];setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+ld.global.u32 %w,[%ctx+12];setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+ld.global.u64 %tmp,[%ctx+24];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+ld.global.u64 %tmp,[%ctx+32];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+ld.global.u64 %tmp,[%ctx+40];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,32103;
+mov.u32 %w,%ntid.x;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.y;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.z;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.x;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.y;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.z;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%tid.x;setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+mov.u32 %w,%tid.y;setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+mov.u32 %w,%tid.z;setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+mov.u32 %w,%ctaid.x;setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+mov.u32 %w,%ctaid.y;setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+mov.u32 %w,%ctaid.z;setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+mov.u32 %w,%dynamic_smem_size;setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+ld.global.u64 %rec,[%ctx+48];ld.global.u64 %tmp,[%ctx+56];
+st.param.u64 [pa],%rec;st.param.u64 [pn],64;st.param.u64 [pc],%tmp;st.param.u64 [pm],7;call.uni (pr),field_range,(pa,pn,pc,pm);ld.param.u32 %error,[pr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %tmp,[%rec+48];ld.global.u64 %tmp2,[%rec+56];or.b64 %tmp,%tmp,%tmp2;mov.u32 %error,32104;setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u64 %a0,%v;mov.u64 %n0,96;ld.global.u64 %c0,[%rec];
+mov.u64 %a1,%ctx;mov.u64 %n1,64;ld.global.u64 %c1,[%rec+8];
+mov.u64 %a2,%rec;mov.u64 %n2,64;ld.global.u64 %c2,[%ctx+56];
+st.param.u64 [pa],%a0;st.param.u64 [pn],%n0;st.param.u64 [pc],%c0;st.param.u64 [pm],7;call.uni (pr),field_range,(pa,pn,pc,pm);ld.param.u32 %error,[pr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [pa],%a1;st.param.u64 [pn],%n1;st.param.u64 [pc],%c1;st.param.u64 [pm],7;call.uni (pr),field_range,(pa,pn,pc,pm);ld.param.u32 %error,[pr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %tmp,[%v+80];ld.global.u64 %tmp2,[%v+88];or.b64 %tmp,%tmp,%tmp2;mov.u32 %error,32104;setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+ld.global.u64 %a3,[%v];ld.global.u64 %a4,[%v+8];ld.global.u64 %a5,[%v+16];ld.global.u64 %a6,[%v+24];
+ld.global.u64 %groups,[%v+32];ld.global.u64 %cells,[%v+40];ld.global.u64 %sc,[%v+48];ld.global.u64 %st,[%v+56];ld.global.u64 %dc,[%v+64];ld.global.u64 %dg,[%v+72];
+mov.u32 %error,32105;setp.eq.u64 %p,%groups,0;setp.eq.u64 %q,%cells,0;or.pred %p,%p,%q;@%p bra REFUSE;
+shr.u64 %hi,%groups,62;setp.ne.u64 %p,%hi,0;@%p bra REFUSE;shl.b64 %n5,%groups,2;ld.global.u64 %c5,[%rec+32];
+st.param.u64 [pa],%a5;st.param.u64 [pn],%n5;st.param.u64 [pc],%c5;st.param.u64 [pm],3;call.uni (pr),field_range,(pa,pn,pc,pm);ld.param.u32 %error,[pr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u64 %terms,0;mov.u64 %g,0;
+COUNT:shl.b64 %tmp,%g,2;add.u64 %ptr,%a5,%tmp;ld.global.u32 %count,[%ptr];mov.u32 %error,32105;setp.eq.u32 %p,%count,0;@%p bra REFUSE;cvt.u64.u32 %tmp,%count;add.u64 %tmp2,%terms,%tmp;setp.lt.u64 %p,%tmp2,%terms;@%p bra REFUSE;mov.u64 %terms,%tmp2;add.u64 %g,%g,1;setp.lt.u64 %p,%g,%groups;@%p bra COUNT;
+sub.u64 %tmp,%cells,1;sub.u64 %tmp2,%terms,1;
+mul.hi.u64 %hi,%tmp,%sc;setp.ne.u64 %p,%hi,0;@%p bra REFUSE;mul.lo.u64 %n3,%tmp,%sc;
+mul.hi.u64 %hi,%tmp2,%st;setp.ne.u64 %p,%hi,0;@%p bra REFUSE;mul.lo.u64 %hi,%tmp2,%st;add.u64 %tmp2,%n3,%hi;setp.lt.u64 %p,%tmp2,%n3;@%p bra REFUSE;add.u64 %n3,%tmp2,8;setp.lt.u64 %p,%n3,%tmp2;@%p bra REFUSE;
+sub.u64 %tmp2,%groups,1;
+mul.hi.u64 %hi,%tmp,%dc;setp.ne.u64 %p,%hi,0;@%p bra REFUSE;mul.lo.u64 %n4,%tmp,%dc;
+mul.hi.u64 %hi,%tmp2,%dg;setp.ne.u64 %p,%hi,0;@%p bra REFUSE;mul.lo.u64 %hi,%tmp2,%dg;add.u64 %tmp2,%n4,%hi;setp.lt.u64 %p,%tmp2,%n4;@%p bra REFUSE;add.u64 %n4,%tmp2,8;setp.lt.u64 %p,%n4,%tmp2;@%p bra REFUSE;
+ld.global.u64 %c3,[%rec+16];ld.global.u64 %c4,[%rec+24];ld.global.u64 %c6,[%rec+40];
+mov.u64 %n6,0;setp.eq.u64 %p,%a6,0;@%p bra NO_WEIGHT_EXTENT;
+shr.u64 %hi,%terms,61;setp.ne.u64 %p,%hi,0;@%p bra REFUSE;shl.b64 %n6,%terms,3;
+NO_WEIGHT_EXTENT:
+st.param.u64 [pa],%a3;st.param.u64 [pn],%n3;st.param.u64 [pc],%c3;st.param.u64 [pm],7;call.uni (pr),field_range,(pa,pn,pc,pm);ld.param.u32 %error,[pr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [pa],%a4;st.param.u64 [pn],%n4;st.param.u64 [pc],%c4;st.param.u64 [pm],7;call.uni (pr),field_range,(pa,pn,pc,pm);ld.param.u32 %error,[pr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+setp.eq.u64 %p,%a6,0;@%p bra WEIGHT_VALID;
+st.param.u64 [pa],%a6;st.param.u64 [pn],%n6;st.param.u64 [pc],%c6;st.param.u64 [pm],7;call.uni (pr),field_range,(pa,pn,pc,pm);ld.param.u32 %error,[pr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+WEIGHT_VALID:
+add.u64 %e0,%a0,%n0;
+add.u64 %e1,%a1,%n1;
+add.u64 %e2,%a2,%n2;
+add.u64 %e3,%a3,%n3;
+add.u64 %e4,%a4,%n4;
+add.u64 %e5,%a5,%n5;
+add.u64 %e6,%a6,%n6;
+mov.u32 %error,32106;
+setp.lt.u64 %p,%a0,%e1;setp.lt.u64 %q,%a1,%e0;and.pred %p,%p,%q;@%p bra REFUSE;DISJOINT_0_1:
+setp.lt.u64 %p,%a0,%e2;setp.lt.u64 %q,%a2,%e0;and.pred %p,%p,%q;@%p bra REFUSE;DISJOINT_0_2:
+setp.lt.u64 %p,%a0,%e3;setp.lt.u64 %q,%a3,%e0;and.pred %p,%p,%q;@%p bra REFUSE;DISJOINT_0_3:
+setp.lt.u64 %p,%a0,%e4;setp.lt.u64 %q,%a4,%e0;and.pred %p,%p,%q;@%p bra REFUSE;DISJOINT_0_4:
+setp.lt.u64 %p,%a0,%e5;setp.lt.u64 %q,%a5,%e0;and.pred %p,%p,%q;@%p bra REFUSE;DISJOINT_0_5:
+setp.eq.u64 %p,%a6,0;@%p bra DISJOINT_0_6;
+setp.lt.u64 %p,%a0,%e6;setp.lt.u64 %q,%a6,%e0;and.pred %p,%p,%q;@%p bra REFUSE;DISJOINT_0_6:
+setp.lt.u64 %p,%a1,%e2;setp.lt.u64 %q,%a2,%e1;and.pred %p,%p,%q;@%p bra REFUSE;DISJOINT_1_2:
+setp.lt.u64 %p,%a1,%e3;setp.lt.u64 %q,%a3,%e1;and.pred %p,%p,%q;@%p bra REFUSE;DISJOINT_1_3:
+setp.lt.u64 %p,%a1,%e4;setp.lt.u64 %q,%a4,%e1;and.pred %p,%p,%q;@%p bra REFUSE;DISJOINT_1_4:
+setp.lt.u64 %p,%a1,%e5;setp.lt.u64 %q,%a5,%e1;and.pred %p,%p,%q;@%p bra REFUSE;DISJOINT_1_5:
+setp.eq.u64 %p,%a6,0;@%p bra DISJOINT_1_6;
+setp.lt.u64 %p,%a1,%e6;setp.lt.u64 %q,%a6,%e1;and.pred %p,%p,%q;@%p bra REFUSE;DISJOINT_1_6:
+setp.lt.u64 %p,%a2,%e3;setp.lt.u64 %q,%a3,%e2;and.pred %p,%p,%q;@%p bra REFUSE;DISJOINT_2_3:
+setp.lt.u64 %p,%a2,%e4;setp.lt.u64 %q,%a4,%e2;and.pred %p,%p,%q;@%p bra REFUSE;DISJOINT_2_4:
+setp.lt.u64 %p,%a2,%e5;setp.lt.u64 %q,%a5,%e2;and.pred %p,%p,%q;@%p bra REFUSE;DISJOINT_2_5:
+setp.eq.u64 %p,%a6,0;@%p bra DISJOINT_2_6;
+setp.lt.u64 %p,%a2,%e6;setp.lt.u64 %q,%a6,%e2;and.pred %p,%p,%q;@%p bra REFUSE;DISJOINT_2_6:
+ld.global.u32 %flags,[%ctx+8];mov.u64 %sb,%a3;mov.u64 %db,%a4;mov.u64 %cell,0;
+CELL:mov.u64 %g,0;mov.u64 %k,0;
+GROUP:shl.b64 %tmp,%g,2;add.u64 %ptr,%a5,%tmp;ld.global.u32 %count,[%ptr];mov.b64 %sum,0;
+TERM:mul.lo.u64 %tmp,%k,%st;add.u64 %ptr,%sb,%tmp;ld.global.b64 %value,[%ptr];setp.eq.u64 %p,%a6,0;@%p bra ADD;
+shl.b64 %tmp,%k,3;add.u64 %ptr,%a6,%tmp;ld.global.b64 %weight,[%ptr];
+st.param.b64 [fa],%value;st.param.b64 [fb],%weight;call.uni (fr),md2asm_gpu_mul_status,(fa,fb);ld.param.b64 %value,[fr];ld.param.u32 %raised,[fr+8];or.b32 %flags,%flags,%raised;
+ADD:st.param.b64 [fa],%sum;st.param.b64 [fb],%value;call.uni (fr),md2asm_gpu_add_status,(fa,fb);ld.param.b64 %sum,[fr];ld.param.u32 %raised,[fr+8];or.b32 %flags,%flags,%raised;
+add.u64 %k,%k,1;sub.u32 %count,%count,1;setp.ne.u32 %p,%count,0;@%p bra TERM;
+mul.lo.u64 %tmp,%g,%dg;add.u64 %ptr,%db,%tmp;st.global.b64 [%ptr],%sum;
+add.u64 %g,%g,1;setp.lt.u64 %p,%g,%groups;@%p bra GROUP;
+add.u64 %sb,%sb,%sc;add.u64 %db,%db,%dc;add.u64 %cell,%cell,1;setp.lt.u64 %p,%cell,%cells;@%p bra CELL;
+st.global.u32 [%ctx+8],%flags;exit;
+REFUSE:st.global.u32 [%ctx],%error;exit;
+}
