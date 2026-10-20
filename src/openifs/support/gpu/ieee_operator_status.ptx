@@ -330,8 +330,29 @@ SQRT_DONE:
 .visible .func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_add_status(.param .b64 word_a,.param .b64 word_b)
 {
  .reg .b64 %a,%b,%lo,%hi;
+ .reg .b64 %finite_a,%finite_b,%maximum;
+ .reg .pred %special;
  ld.param.b64 %a,[word_a];
  ld.param.b64 %b,[word_b];
+ and.b64 %finite_a,%a,0x7fffffffffffffff;
+ and.b64 %finite_b,%b,0x7fffffffffffffff;
+ max.u64 %maximum,%finite_a,%finite_b;
+ setp.ge.u64 %special,%maximum,0x7ff0000000000000;
+ @%special bra ORIGINAL_COMPLETE_PATH;
+ mov.b64 %finite_b,%b;
+ {
+ .param .b64 finite_left,finite_right;
+ .param .align 8 .b8 finite_returned[16];
+ st.param.b64 [finite_left],%a;
+ st.param.b64 [finite_right],%finite_b;
+ call.uni (finite_returned),md2asm_gpu_add_rn,(finite_left,finite_right);
+ ld.param.b64 %lo,[finite_returned];
+ ld.param.b64 %hi,[finite_returned+8];
+ }
+ st.param.b64 [result_flags_event],%lo;
+ st.param.b64 [result_flags_event+8],%hi;
+ ret;
+ORIGINAL_COMPLETE_PATH:
  {
  .param .b64 a,b;
  .param .u32 operation;
@@ -351,8 +372,29 @@ SQRT_DONE:
 .visible .func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_sub_status(.param .b64 word_a,.param .b64 word_b)
 {
  .reg .b64 %a,%b,%lo,%hi;
+ .reg .b64 %finite_a,%finite_b,%maximum;
+ .reg .pred %special;
  ld.param.b64 %a,[word_a];
  ld.param.b64 %b,[word_b];
+ and.b64 %finite_a,%a,0x7fffffffffffffff;
+ and.b64 %finite_b,%b,0x7fffffffffffffff;
+ max.u64 %maximum,%finite_a,%finite_b;
+ setp.ge.u64 %special,%maximum,0x7ff0000000000000;
+ @%special bra ORIGINAL_COMPLETE_PATH;
+ xor.b64 %finite_b,%b,0x8000000000000000;
+ {
+ .param .b64 finite_left,finite_right;
+ .param .align 8 .b8 finite_returned[16];
+ st.param.b64 [finite_left],%a;
+ st.param.b64 [finite_right],%finite_b;
+ call.uni (finite_returned),md2asm_gpu_add_rn,(finite_left,finite_right);
+ ld.param.b64 %lo,[finite_returned];
+ ld.param.b64 %hi,[finite_returned+8];
+ }
+ st.param.b64 [result_flags_event],%lo;
+ st.param.b64 [result_flags_event+8],%hi;
+ ret;
+ORIGINAL_COMPLETE_PATH:
  {
  .param .b64 a,b;
  .param .u32 operation;
@@ -372,8 +414,29 @@ SQRT_DONE:
 .visible .func (.param .align 8 .b8 result_flags_event[16]) md2asm_gpu_mul_status(.param .b64 word_a,.param .b64 word_b)
 {
  .reg .b64 %a,%b,%lo,%hi;
+ .reg .b64 %finite_a,%finite_b,%maximum;
+ .reg .pred %special;
  ld.param.b64 %a,[word_a];
  ld.param.b64 %b,[word_b];
+ and.b64 %finite_a,%a,0x7fffffffffffffff;
+ and.b64 %finite_b,%b,0x7fffffffffffffff;
+ max.u64 %maximum,%finite_a,%finite_b;
+ setp.ge.u64 %special,%maximum,0x7ff0000000000000;
+ @%special bra ORIGINAL_COMPLETE_PATH;
+ mov.b64 %finite_b,%b;
+ {
+ .param .b64 finite_left,finite_right;
+ .param .align 8 .b8 finite_returned[16];
+ st.param.b64 [finite_left],%a;
+ st.param.b64 [finite_right],%finite_b;
+ call.uni (finite_returned),md2asm_gpu_mul_rn,(finite_left,finite_right);
+ ld.param.b64 %lo,[finite_returned];
+ ld.param.b64 %hi,[finite_returned+8];
+ }
+ st.param.b64 [result_flags_event],%lo;
+ st.param.b64 [result_flags_event+8],%hi;
+ ret;
+ORIGINAL_COMPLETE_PATH:
  {
  .param .b64 a,b;
  .param .u32 operation;
