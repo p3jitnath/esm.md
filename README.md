@@ -62,7 +62,7 @@ The OpenIFS GPU extension has passed six complete 24-hour forecasts with combine
 
 Complete GPU timing candidates have a 14.13-second process limit, matching the accepted CPU median. A full verification screen may run for up to 60 seconds. The latest verification screen reached that limit before final outputs, so no complete GPU runtime or speedup is accepted.
 
-The [parallel radiation climatology stage](skills/md2asm-gpu/references/openifs/radiation/parallel_radiation_climatology.md) reproduces the accepted serial stage byte for byte, both normally and after a missing worker triggers recovery.
+The [parallel radiation climatology stage](skills/md2asm-gpu/references/openifs/radiation/parallel_radiation_climatology.md) reproduces the accepted serial stage byte for byte, both normally and after a missing worker triggers recovery. A bounded [turbulence output copy](skills/md2asm-gpu/references/openifs/surface/turbulence_diffusion_entry.md) also passes its retained private-composition and complete-buffer checks.
 
 Separately, 257 distinct original routines have passed their component checks. The complete required-routine total and the number used on the GPU during a forecast remain under review, so these results do not give a completion percentage.
 

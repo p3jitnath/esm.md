@@ -1,0 +1,101 @@
+// Contract: skills/md2asm-gpu/references/openifs/surface/turbulence_diffusion_entry.md. Ordered diffusion with bounded owner copies.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .u32 result) md2asm_gpu_vdfouter_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 returned[72]) md2asm_gpu_vertical_diffusion_outer_values(.param .u64 vector,.param .u64 record,.param .u64 scratch);
+.extern .func md2asm_gpu_turbulence_local_complete(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 returned[16]) md2asm_r23_root_root_turbulence_post(.param .u64 state,.param .u64 environment);
+.visible .entry md2asm_gpu_r23_turbulence_diffusion(.param .u64 original_vector,.param .u64 context)
+{
+
+ .reg .u64 %esm_parent,%esm_state,%esm_env,%esm_vector,%esm_caps,%esm_local_ctx,%esm_word,%esm_other,%esm_offset,%esm_pointer,%esm_end,%esm_record,%esm_size;
+ .reg .u32 %esm_flags,%esm_error;.reg .pred %esm_p;
+ .param .u64 esm_state_arg,esm_env_arg,esm_vector_arg,esm_context_arg;.param .align 8 .b8 esm_return[16];
+ .reg .u64 %args,%ctx,%ptr;
+ .reg .u32 %thread,%unique,%r,%error,%old;
+ .reg .pred %p;
+ .shared .align 4 .b32 admission;
+ .param .u64 av,cv;.param .u32 rr;
+  .param .u64 va,ra,sa;.param .align 8 .b8 returned[72];.reg .u64 %record,%scratch,%main_scratch,%event,%count<6>,%source,%destination,%length,%position,%owner,%previous,%seed_bytes;.reg .u32 %saved_flags,%returned_error,%field,%byte,%P,%N;
+
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %ptr,%ctx,7;setp.ne.u64 %p,%ptr,0;@%p ret;
+ mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
+ mov.u32 %r,%ctaid.x;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.z;or.b32 %unique,%unique,%r;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+ mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%nctaid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ ld.global.u32 %r,[%ctx+12];and.b32 %r,%r,1;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;
+ // This private vector is packed directly below its source layer frame.
+ mov.u32 %error,8260;
+ setp.eq.u64 %p,%args,0;@%p bra REFUSE;and.b64 %esm_word,%args,7;setp.ne.u64 %p,%esm_word,0;@%p bra REFUSE;
+ add.u64 %esm_end,%args,1368;setp.lt.u64 %p,%esm_end,%args;@%p bra REFUSE;setp.gt.u64 %p,%esm_end,0x7fffffffffffffff;@%p bra REFUSE;
+ add.u64 %esm_word,%args,1408;setp.ne.u64 %p,%esm_word,%ctx;@%p bra REFUSE;
+ ld.global.u64 %esm_parent,[%args+1360];add.u64 %esm_word,%args,7936;setp.ne.u64 %p,%esm_parent,%esm_word;@%p bra REFUSE;
+ and.b64 %esm_word,%esm_parent,15;setp.ne.u64 %p,%esm_word,0;@%p bra REFUSE;add.u64 %esm_end,%esm_parent,32768;setp.lt.u64 %p,%esm_end,%esm_parent;@%p bra REFUSE;setp.gt.u64 %p,%esm_end,0x7fffffffffffffff;@%p bra REFUSE;
+ ld.global.u64 %esm_record,[%ctx+48];add.u64 %esm_word,%args,1472;setp.ne.u64 %p,%esm_record,%esm_word;@%p bra REFUSE;ld.global.u64 %esm_word,[%ctx+56];setp.ne.u64 %p,%esm_word,1280;@%p bra REFUSE;
+ add.u64 %esm_state,%esm_parent,16384;add.u64 %esm_env,%esm_parent,17216;add.u64 %esm_vector,%esm_parent,17408;add.u64 %esm_caps,%esm_parent,17440;add.u64 %esm_local_ctx,%esm_parent,17504;
+ mov.u64 %esm_offset,0;
+ESM_ZERO_PRIVATE:
+ add.u64 %esm_pointer,%esm_state,%esm_offset;st.global.u64 [%esm_pointer],0;add.u64 %esm_offset,%esm_offset,8;setp.lt.u64 %p,%esm_offset,1184;@%p bra ESM_ZERO_PRIVATE;
+ ld.global.u64 %esm_word,[%esm_record+16];st.global.u64 [%esm_vector],%esm_word;st.global.u64 [%esm_vector+8],0;add.u64 %esm_word,%esm_parent,4040;st.global.u64 [%esm_vector+16],%esm_word;
+ st.global.u64 [%esm_caps],8;st.global.u64 [%esm_caps+8],0;st.global.u64 [%esm_caps+16],8;st.global.u32 [%esm_caps+24],0;st.global.u32 [%esm_caps+28],1;st.global.u32 [%esm_caps+32],0;st.global.u32 [%esm_caps+36],1;
+ st.global.u32 [%esm_local_ctx+4],1;ld.global.u32 %esm_flags,[%ctx+8];st.global.u32 [%esm_local_ctx+8],%esm_flags;st.global.u64 [%esm_local_ctx+48],%esm_caps;st.global.u64 [%esm_local_ctx+56],64;
+ st.param.u64 [esm_vector_arg],%esm_vector;st.param.u64 [esm_context_arg],%esm_local_ctx;call.uni md2asm_gpu_turbulence_local_complete,(esm_vector_arg,esm_context_arg);
+ ld.global.u32 %esm_flags,[%esm_local_ctx+8];st.global.u32 [%ctx+8],%esm_flags;ld.global.u32 %error,[%esm_local_ctx];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ setp.ne.u32 %p,%thread,0;@%p bra WAIT;
+ st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),md2asm_gpu_vdfouter_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
+WAIT:
+ bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];st.param.u64 [va],%args;st.param.u64 [ra],%record;st.param.u64 [sa],%scratch;call.uni (returned),md2asm_gpu_vertical_diffusion_outer_values,(va,ra,sa);ld.param.u32 %saved_flags,[returned];ld.param.u32 %returned_error,[returned+4];ld.param.u64 %event,[returned+8];
+ld.param.u64 %count0,[returned+16];
+ld.param.u64 %count1,[returned+24];
+ld.param.u64 %count2,[returned+32];
+ld.param.u64 %count3,[returned+40];
+ld.param.u64 %count4,[returned+48];
+ld.param.u64 %count5,[returned+56];
+setp.ne.u32 %p,%returned_error,0;@%p bra NUMERICAL_ERROR;ld.global.u64 %ptr,[%args+32];ld.global.u32 %P,[%ptr];ld.global.u64 %ptr,[%args+40];ld.global.u32 %N,[%ptr];mul.wide.u32 %seed_bytes,%P,56;cvt.u64.u32 %position,%N;mul.lo.u64 %seed_bytes,%seed_bytes,%position;add.u64 %main_scratch,%scratch,8192;add.u64 %main_scratch,%main_scratch,%seed_bytes;mov.u32 %field,0;COMMIT_OWNER:mul.wide.u32 %position,%field,24;add.u64 %ptr,%main_scratch,2048;add.u64 %ptr,%ptr,%position;ld.global.u64 %destination,[%ptr];ld.global.u64 %source,[%ptr+8];ld.global.u64 %length,[%ptr+16];mov.u64 %position,0;
+// Preserve original owner order. Use words only for aligned, disjoint ranges.
+.reg .u64 %esm_copy_word,%esm_copy_end_src,%esm_copy_end_dst,%esm_copy_bits,%esm_copy_remaining;
+.reg .pred %esm_copy_p,%esm_copy_q;
+or.b64 %esm_copy_bits,%source,%destination;and.b64 %esm_copy_bits,%esm_copy_bits,7;
+setp.ne.u64 %esm_copy_p,%esm_copy_bits,0;@%esm_copy_p bra COMMIT_BYTE;
+add.u64 %esm_copy_end_src,%source,%length;add.u64 %esm_copy_end_dst,%destination,%length;
+setp.lt.u64 %esm_copy_p,%esm_copy_end_src,%source;@%esm_copy_p bra COMMIT_BYTE;
+setp.lt.u64 %esm_copy_p,%esm_copy_end_dst,%destination;@%esm_copy_p bra COMMIT_BYTE;
+setp.lt.u64 %esm_copy_p,%source,%esm_copy_end_dst;setp.lt.u64 %esm_copy_q,%destination,%esm_copy_end_src;
+and.pred %esm_copy_p,%esm_copy_p,%esm_copy_q;@%esm_copy_p bra COMMIT_BYTE;
+COMMIT_WORD:
+sub.u64 %esm_copy_remaining,%length,%position;setp.lt.u64 %esm_copy_p,%esm_copy_remaining,8;@%esm_copy_p bra COMMIT_BYTE;
+add.u64 %ptr,%source,%position;ld.global.u64 %esm_copy_word,[%ptr];
+add.u64 %ptr,%destination,%position;st.global.u64 [%ptr],%esm_copy_word;
+add.u64 %position,%position,8;bra COMMIT_WORD;
+COMMIT_BYTE:setp.ge.u64 %p,%position,%length;@%p bra COMMIT_NEXT;add.u64 %ptr,%source,%position;ld.global.u8 %byte,[%ptr];add.u64 %ptr,%destination,%position;st.global.u8 [%ptr],%byte;add.u64 %position,%position,1;bra COMMIT_BYTE;COMMIT_NEXT:add.u32 %field,%field,1;setp.lt.u32 %p,%field,72;@%p bra COMMIT_OWNER;atom.global.or.b32 %old,[%ctx+8],%saved_flags;setp.eq.u64 %p,%event,0;@%p bra EVENT_JOINED;st.global.u64 [%ctx+16],%event;EVENT_JOINED:
+ld.global.u64 %owner,[%record+416];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_0;setp.eq.u64 %p,%count0,0;@%p bra COUNTER_JOINED_0;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count0;st.global.u64 [%owner],%previous;COUNTER_JOINED_0:
+ld.global.u64 %owner,[%record+424];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_1;setp.eq.u64 %p,%count1,0;@%p bra COUNTER_JOINED_1;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count1;st.global.u64 [%owner],%previous;COUNTER_JOINED_1:
+ld.global.u64 %owner,[%record+432];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_2;setp.eq.u64 %p,%count2,0;@%p bra COUNTER_JOINED_2;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count2;st.global.u64 [%owner],%previous;COUNTER_JOINED_2:
+ld.global.u64 %owner,[%record+440];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_3;setp.eq.u64 %p,%count3,0;@%p bra COUNTER_JOINED_3;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count3;st.global.u64 [%owner],%previous;COUNTER_JOINED_3:
+ld.global.u64 %owner,[%record+448];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_4;setp.eq.u64 %p,%count4,0;@%p bra COUNTER_JOINED_4;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count4;st.global.u64 [%owner],%previous;COUNTER_JOINED_4:
+ld.global.u64 %owner,[%record+456];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_5;setp.eq.u64 %p,%count5,0;@%p bra COUNTER_JOINED_5;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count5;st.global.u64 [%owner],%previous;COUNTER_JOINED_5:
+
+ // Build only the source registers that the literal closing region consumes.
+ st.global.u64 [%esm_state+248],%esm_parent;add.u64 %esm_word,%esm_parent,1536;st.global.u64 [%esm_state+152],%esm_word;
+ ld.global.u64 %esm_word,[%esm_word+8];st.global.u64 [%esm_state+160],%esm_word;
+ ld.global.u64 %esm_pointer,[%args+32];ld.global.u32 %esm_flags,[%esm_pointer];cvt.u64.u32 %esm_word,%esm_flags;st.global.u64 [%esm_state+168],%esm_word;
+ ld.global.u64 %esm_pointer,[%args+40];ld.global.u32 %esm_flags,[%esm_pointer];cvt.u64.u32 %esm_word,%esm_flags;st.global.u64 [%esm_state+176],%esm_word;
+ ld.global.u64 %esm_pointer,[%args+16];ld.global.s32 %esm_flags,[%esm_pointer];cvt.s64.s32 %esm_word,%esm_flags;sub.u64 %esm_word,%esm_word,1;st.global.u64 [%esm_state+184],%esm_word;
+ ld.global.u64 %esm_pointer,[%args+24];ld.global.s32 %esm_flags,[%esm_pointer];cvt.s64.s32 %esm_word,%esm_flags;st.global.u64 [%esm_state+192],%esm_word;
+ add.u64 %esm_pointer,%esm_parent,3600;ld.global.u64 %esm_word,[%esm_pointer];st.global.u64 [%esm_state+200],%esm_word;
+ ld.global.u32 %esm_flags,[%ctx+8];st.global.u32 [%esm_state+776],%esm_flags;
+ st.global.u64 [%esm_env],%ctx;st.global.u64 [%esm_env+8],%esm_vector;st.global.u64 [%esm_env+16],%esm_caps;st.global.u64 [%esm_env+24],%esm_local_ctx;
+ st.param.u64 [esm_state_arg],%esm_state;st.param.u64 [esm_env_arg],%esm_env;call.uni (esm_return),md2asm_r23_root_root_turbulence_post,(esm_state_arg,esm_env_arg);
+ ld.param.u32 %esm_flags,[esm_return];ld.param.u32 %esm_error,[esm_return+4];setp.ne.u32 %p,%esm_error,0;@%p mov.u32 %error,8263;setp.eq.u32 %esm_p,%esm_error,1;@%esm_p mov.u32 %error,8262;@%p mov.u32 %esm_error,%error;ld.global.u32 %old,[%ctx+8];or.b32 %old,%old,%esm_flags;st.global.u32 [%ctx+8],%old;
+ ld.global.u64 %esm_word,[%esm_state+248];setp.ne.u64 %p,%esm_word,%esm_parent;@%p mov.u32 %esm_error,8261;
+ setp.ne.u32 %p,%esm_error,0;@%p st.global.u32 [%ctx],%esm_error;
+ret;NUMERICAL_ERROR:st.global.u32 [%ctx],%returned_error;ret;
+
+BAD_LAUNCH:mov.u32 %error,8200;
+REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
+}
