@@ -1,0 +1,291 @@
+.version 8.5 // Contract skills/md2asm-gpu/references/openifs/surface/parallel_surface_radiation_columns.md.
+.target sm_90
+.address_size 64
+.extern .func md2asm_gpu_mailbox_soil_water_body_surface_columns(.param .u64 original_vector,.param .u64 common_context);
+.extern .func md2asm_gpu_mailbox_canopy_light_body_surface_columns(.param .u64 original_vector,.param .u64 common_context);
+.extern .func md2asm_gpu_mailbox_lake_energy_body_surface_columns(.param .u64 original_vector,.param .u64 common_context);
+.extern .func md2asm_gpu_r23_radiation_controller_body_surface_columns(.param .u64 original_vector,.param .u64 common_context);
+.extern .func md2asm_gpu_r23_tile_boundary_body_surface_columns(.param .u64 original_vector,.param .u64 common_context);
+.visible .func surface_cache_soil_water(.param .u64 source_vector,.param .u64 source_context,.param .u64 source_environment)
+{
+.reg .u64 %env,%vector,%ctx,%old,%physical,%span,%in,%out,%rec,%vin,%vout,%vrec,%a,%b,%off,%row,%cache,%cursor,%site,%phase,%fail,%ptr,%value,%delta,%counter,%saved<4>;
+.reg .u32 %w,%flags,%raised,%mode,%i;.reg .pred %p,%q;
+.param .u64 vector_arg,context_arg;
+ld.param.u64 %env,[source_environment];ld.param.u64 %vector,[source_vector];ld.param.u64 %ctx,[source_context];
+ld.global.u64 %old,[%env+160];ld.global.u64 %physical,[%env+168];ld.global.u64 %span,[%env+176];
+sub.u64 %off,%vector,%old;add.u64 %vector,%physical,%off;sub.u64 %off,%ctx,%old;add.u64 %ctx,%physical,%off;
+ld.global.u64 %vin,[%vector];ld.global.u64 %vout,[%vector+8];ld.global.u64 %vrec,[%ctx+48];
+sub.u64 %off,%vin,%old;add.u64 %in,%physical,%off;sub.u64 %off,%vout,%old;add.u64 %out,%physical,%off;sub.u64 %off,%vrec,%old;add.u64 %rec,%physical,%off;
+sub.u64 %row,%env,832;
+ld.global.u64 %cursor,[%env+216];add.u64 %cursor,%cursor,1;st.global.u64 [%env+216],%cursor;
+ld.global.u64 %value,[%row+1408];setp.ne.u64 %p,%value,0;selp.u32 %w,1,0,%p;st.global.u32 [%row+1420],%w;
+add.u64 %vector,%row,1120;add.u64 %a,%row,1152;add.u64 %b,%row,1216;
+st.global.u64 [%vector],%in;st.global.u64 [%vector+8],%out;
+ld.global.u64 %value,[%ctx+0];st.global.u64 [%a+0],%value;
+ld.global.u64 %value,[%ctx+8];st.global.u64 [%a+8],%value;
+ld.global.u64 %value,[%ctx+16];st.global.u64 [%a+16],%value;
+ld.global.u64 %value,[%ctx+24];st.global.u64 [%a+24],%value;
+ld.global.u64 %value,[%ctx+32];st.global.u64 [%a+32],%value;
+ld.global.u64 %value,[%ctx+40];st.global.u64 [%a+40],%value;
+ld.global.u64 %value,[%ctx+48];st.global.u64 [%a+48],%value;
+ld.global.u64 %value,[%ctx+56];st.global.u64 [%a+56],%value;
+ld.global.u64 %value,[%rec+0];st.global.u64 [%b+0],%value;
+ld.global.u64 %value,[%rec+8];st.global.u64 [%b+8],%value;
+ld.global.u64 %value,[%rec+16];st.global.u64 [%b+16],%value;
+ld.global.u64 %value,[%rec+24];st.global.u64 [%b+24],%value;
+ld.global.u64 %value,[%rec+32];st.global.u64 [%b+32],%value;
+ld.global.u64 %value,[%rec+40];st.global.u64 [%b+40],%value;
+ld.global.u64 %value,[%rec+48];st.global.u64 [%b+48],%value;
+ld.global.u64 %value,[%rec+56];st.global.u64 [%b+56],%value;
+st.global.u64 [%a+48],%b;add.u64 %counter,%row,1344;st.global.u64 [%b+32],%counter;add.u64 %counter,%row,1352;st.global.u64 [%b+48],%counter;
+add.u64 %counter,%row,1344;ld.global.u64 %saved0,[%counter];
+add.u64 %counter,%row,1352;ld.global.u64 %saved1,[%counter];
+add.u64 %counter,%row,1360;ld.global.u64 %saved2,[%counter];
+add.u64 %counter,%row,1368;ld.global.u64 %saved3,[%counter];
+st.param.u64 [vector_arg],%vector;st.param.u64 [context_arg],%a;
+call.uni md2asm_gpu_mailbox_soil_water_body_surface_columns,(vector_arg,context_arg);
+ld.global.u64 %value,[%a+0];st.global.u64 [%ctx+0],%value;
+ld.global.u64 %value,[%a+8];st.global.u64 [%ctx+8],%value;
+ld.global.u64 %value,[%a+16];st.global.u64 [%ctx+16],%value;
+
+
+
+
+
+
+
+
+ld.global.u32 %w,[%ctx];setp.ne.u32 %p,%w,0;@%p bra BAD;
+ld.global.u64 %value,[%ctx+16];and.b64 %delta,%value,256;setp.ne.u64 %p,%delta,0;
+@%p st.global.u64 [%row+1408],%cursor;and.b64 %delta,%value,255;cvt.u32.u64 %w,%delta;@%p st.global.u32 [%row+1416],%w;
+ret;
+BAD:ld.global.u64 %fail,[%env+224];atom.global.or.b32 %w,[%fail],1;mov.u32 %w,1;st.global.u32 [%ctx],%w;ret;
+}
+
+.visible .func surface_cache_canopy_light(.param .u64 source_vector,.param .u64 source_context,.param .u64 source_environment)
+{
+.reg .u64 %env,%vector,%ctx,%old,%physical,%span,%in,%out,%rec,%vin,%vout,%vrec,%a,%b,%off,%row,%cache,%cursor,%site,%phase,%fail,%ptr,%value,%delta,%counter,%saved<4>;
+.reg .u32 %w,%flags,%raised,%mode,%i;.reg .pred %p,%q;
+.param .u64 vector_arg,context_arg;
+ld.param.u64 %env,[source_environment];ld.param.u64 %vector,[source_vector];ld.param.u64 %ctx,[source_context];
+ld.global.u64 %old,[%env+160];ld.global.u64 %physical,[%env+168];ld.global.u64 %span,[%env+176];
+sub.u64 %off,%vector,%old;add.u64 %vector,%physical,%off;sub.u64 %off,%ctx,%old;add.u64 %ctx,%physical,%off;
+ld.global.u64 %vin,[%vector];ld.global.u64 %vout,[%vector+8];ld.global.u64 %vrec,[%ctx+48];
+sub.u64 %off,%vin,%old;add.u64 %in,%physical,%off;sub.u64 %off,%vout,%old;add.u64 %out,%physical,%off;sub.u64 %off,%vrec,%old;add.u64 %rec,%physical,%off;
+sub.u64 %row,%env,832;
+ld.global.u64 %cursor,[%env+216];add.u64 %cursor,%cursor,1;st.global.u64 [%env+216],%cursor;
+ld.global.u64 %value,[%row+1408];setp.ne.u64 %p,%value,0;selp.u32 %w,1,0,%p;st.global.u32 [%row+1420],%w;
+add.u64 %vector,%row,1120;add.u64 %a,%row,1152;add.u64 %b,%row,1216;
+st.global.u64 [%vector],%in;st.global.u64 [%vector+8],%out;
+ld.global.u64 %value,[%ctx+0];st.global.u64 [%a+0],%value;
+ld.global.u64 %value,[%ctx+8];st.global.u64 [%a+8],%value;
+ld.global.u64 %value,[%ctx+16];st.global.u64 [%a+16],%value;
+ld.global.u64 %value,[%ctx+24];st.global.u64 [%a+24],%value;
+ld.global.u64 %value,[%ctx+32];st.global.u64 [%a+32],%value;
+ld.global.u64 %value,[%ctx+40];st.global.u64 [%a+40],%value;
+ld.global.u64 %value,[%ctx+48];st.global.u64 [%a+48],%value;
+ld.global.u64 %value,[%ctx+56];st.global.u64 [%a+56],%value;
+ld.global.u64 %value,[%rec+0];st.global.u64 [%b+0],%value;
+ld.global.u64 %value,[%rec+8];st.global.u64 [%b+8],%value;
+ld.global.u64 %value,[%rec+16];st.global.u64 [%b+16],%value;
+ld.global.u64 %value,[%rec+24];st.global.u64 [%b+24],%value;
+ld.global.u64 %value,[%rec+32];st.global.u64 [%b+32],%value;
+ld.global.u64 %value,[%rec+40];st.global.u64 [%b+40],%value;
+ld.global.u64 %value,[%rec+48];st.global.u64 [%b+48],%value;
+ld.global.u64 %value,[%rec+56];st.global.u64 [%b+56],%value;
+st.global.u64 [%a+48],%b;add.u64 %counter,%row,1344;st.global.u64 [%b+32],%counter;add.u64 %counter,%row,1352;st.global.u64 [%b+48],%counter;
+add.u64 %counter,%row,1344;ld.global.u64 %saved0,[%counter];
+add.u64 %counter,%row,1352;ld.global.u64 %saved1,[%counter];
+add.u64 %counter,%row,1360;ld.global.u64 %saved2,[%counter];
+add.u64 %counter,%row,1368;ld.global.u64 %saved3,[%counter];
+st.param.u64 [vector_arg],%vector;st.param.u64 [context_arg],%a;
+call.uni md2asm_gpu_mailbox_canopy_light_body_surface_columns,(vector_arg,context_arg);
+ld.global.u64 %value,[%a+0];st.global.u64 [%ctx+0],%value;
+ld.global.u64 %value,[%a+8];st.global.u64 [%ctx+8],%value;
+ld.global.u64 %value,[%a+16];st.global.u64 [%ctx+16],%value;
+
+
+
+
+
+
+
+
+ld.global.u32 %w,[%ctx];setp.ne.u32 %p,%w,0;@%p bra BAD;
+ld.global.u64 %value,[%ctx+16];and.b64 %delta,%value,256;setp.ne.u64 %p,%delta,0;
+@%p st.global.u64 [%row+1408],%cursor;and.b64 %delta,%value,255;cvt.u32.u64 %w,%delta;@%p st.global.u32 [%row+1416],%w;
+ret;
+BAD:ld.global.u64 %fail,[%env+224];atom.global.or.b32 %w,[%fail],1;mov.u32 %w,1;st.global.u32 [%ctx],%w;ret;
+}
+
+.visible .func surface_cache_lake_energy(.param .u64 source_vector,.param .u64 source_context,.param .u64 source_environment)
+{
+.reg .u64 %env,%vector,%ctx,%old,%physical,%span,%in,%out,%rec,%vin,%vout,%vrec,%a,%b,%off,%row,%cache,%cursor,%site,%phase,%fail,%ptr,%value,%delta,%counter,%saved<4>;
+.reg .u32 %w,%flags,%raised,%mode,%i;.reg .pred %p,%q;
+.param .u64 vector_arg,context_arg;
+ld.param.u64 %env,[source_environment];ld.param.u64 %vector,[source_vector];ld.param.u64 %ctx,[source_context];
+ld.global.u64 %old,[%env+160];ld.global.u64 %physical,[%env+168];ld.global.u64 %span,[%env+176];
+sub.u64 %off,%vector,%old;add.u64 %vector,%physical,%off;sub.u64 %off,%ctx,%old;add.u64 %ctx,%physical,%off;
+ld.global.u64 %vin,[%vector];ld.global.u64 %vout,[%vector+8];ld.global.u64 %vrec,[%ctx+48];
+sub.u64 %off,%vin,%old;add.u64 %in,%physical,%off;sub.u64 %off,%vout,%old;add.u64 %out,%physical,%off;sub.u64 %off,%vrec,%old;add.u64 %rec,%physical,%off;
+sub.u64 %row,%env,832;
+ld.global.u64 %cursor,[%env+216];add.u64 %cursor,%cursor,1;st.global.u64 [%env+216],%cursor;
+ld.global.u64 %value,[%row+1408];setp.ne.u64 %p,%value,0;selp.u32 %w,1,0,%p;st.global.u32 [%row+1420],%w;
+add.u64 %vector,%row,1120;add.u64 %a,%row,1152;add.u64 %b,%row,1216;
+st.global.u64 [%vector],%in;st.global.u64 [%vector+8],%out;
+ld.global.u64 %value,[%ctx+0];st.global.u64 [%a+0],%value;
+ld.global.u64 %value,[%ctx+8];st.global.u64 [%a+8],%value;
+ld.global.u64 %value,[%ctx+16];st.global.u64 [%a+16],%value;
+ld.global.u64 %value,[%ctx+24];st.global.u64 [%a+24],%value;
+ld.global.u64 %value,[%ctx+32];st.global.u64 [%a+32],%value;
+ld.global.u64 %value,[%ctx+40];st.global.u64 [%a+40],%value;
+ld.global.u64 %value,[%ctx+48];st.global.u64 [%a+48],%value;
+ld.global.u64 %value,[%ctx+56];st.global.u64 [%a+56],%value;
+ld.global.u64 %value,[%rec+0];st.global.u64 [%b+0],%value;
+ld.global.u64 %value,[%rec+8];st.global.u64 [%b+8],%value;
+ld.global.u64 %value,[%rec+16];st.global.u64 [%b+16],%value;
+ld.global.u64 %value,[%rec+24];st.global.u64 [%b+24],%value;
+ld.global.u64 %value,[%rec+32];st.global.u64 [%b+32],%value;
+ld.global.u64 %value,[%rec+40];st.global.u64 [%b+40],%value;
+ld.global.u64 %value,[%rec+48];st.global.u64 [%b+48],%value;
+ld.global.u64 %value,[%rec+56];st.global.u64 [%b+56],%value;
+ld.global.u64 %value,[%rec+64];st.global.u64 [%b+64],%value;
+ld.global.u64 %value,[%rec+72];st.global.u64 [%b+72],%value;
+st.global.u64 [%a+48],%b;add.u64 %counter,%row,1344;st.global.u64 [%b+32],%counter;add.u64 %counter,%row,1352;st.global.u64 [%b+48],%counter;
+add.u64 %counter,%row,1360;st.global.u64 [%b+64],%counter;
+add.u64 %counter,%row,1344;ld.global.u64 %saved0,[%counter];
+add.u64 %counter,%row,1352;ld.global.u64 %saved1,[%counter];
+add.u64 %counter,%row,1360;ld.global.u64 %saved2,[%counter];
+add.u64 %counter,%row,1368;ld.global.u64 %saved3,[%counter];
+st.param.u64 [vector_arg],%vector;st.param.u64 [context_arg],%a;
+call.uni md2asm_gpu_mailbox_lake_energy_body_surface_columns,(vector_arg,context_arg);
+ld.global.u64 %value,[%a+0];st.global.u64 [%ctx+0],%value;
+ld.global.u64 %value,[%a+8];st.global.u64 [%ctx+8],%value;
+ld.global.u64 %value,[%a+16];st.global.u64 [%ctx+16],%value;
+
+
+
+
+
+
+
+
+ld.global.u32 %w,[%ctx];setp.ne.u32 %p,%w,0;@%p bra BAD;
+ld.global.u64 %value,[%ctx+16];and.b64 %delta,%value,256;setp.ne.u64 %p,%delta,0;
+@%p st.global.u64 [%row+1408],%cursor;and.b64 %delta,%value,255;cvt.u32.u64 %w,%delta;@%p st.global.u32 [%row+1416],%w;
+mov.u32 %w,1;st.global.u32 [%row+1424],%w;
+ret;
+BAD:ld.global.u64 %fail,[%env+224];atom.global.or.b32 %w,[%fail],1;mov.u32 %w,1;st.global.u32 [%ctx],%w;ret;
+}
+
+.visible .func surface_cache_radiation_controller(.param .u64 source_vector,.param .u64 source_context,.param .u64 source_environment)
+{
+.reg .u64 %env,%vector,%ctx,%old,%physical,%span,%in,%out,%rec,%vin,%vout,%vrec,%a,%b,%off,%row,%cache,%cursor,%site,%phase,%fail,%ptr,%value,%delta,%counter,%saved<4>;
+.reg .u32 %w,%flags,%raised,%mode,%i;.reg .pred %p,%q;
+.param .u64 vector_arg,context_arg;
+ld.param.u64 %env,[source_environment];ld.param.u64 %vector,[source_vector];ld.param.u64 %ctx,[source_context];
+ld.global.u64 %old,[%env+160];ld.global.u64 %physical,[%env+168];ld.global.u64 %span,[%env+176];
+sub.u64 %off,%vector,%old;add.u64 %vector,%physical,%off;sub.u64 %off,%ctx,%old;add.u64 %ctx,%physical,%off;
+ld.global.u64 %vin,[%vector];ld.global.u64 %vout,[%vector+8];ld.global.u64 %vrec,[%ctx+48];
+sub.u64 %off,%vin,%old;add.u64 %in,%physical,%off;sub.u64 %off,%vout,%old;add.u64 %out,%physical,%off;sub.u64 %off,%vrec,%old;add.u64 %rec,%physical,%off;
+sub.u64 %row,%env,832;
+ld.global.u64 %cursor,[%env+216];add.u64 %cursor,%cursor,1;st.global.u64 [%env+216],%cursor;
+ld.global.u64 %value,[%row+1408];setp.ne.u64 %p,%value,0;selp.u32 %w,1,0,%p;st.global.u32 [%row+1420],%w;
+add.u64 %vector,%row,1120;add.u64 %a,%row,1152;add.u64 %b,%row,1216;
+st.global.u64 [%vector],%in;st.global.u64 [%vector+8],%out;
+ld.global.u64 %value,[%ctx+0];st.global.u64 [%a+0],%value;
+ld.global.u64 %value,[%ctx+8];st.global.u64 [%a+8],%value;
+ld.global.u64 %value,[%ctx+16];st.global.u64 [%a+16],%value;
+ld.global.u64 %value,[%ctx+24];st.global.u64 [%a+24],%value;
+ld.global.u64 %value,[%ctx+32];st.global.u64 [%a+32],%value;
+ld.global.u64 %value,[%ctx+40];st.global.u64 [%a+40],%value;
+ld.global.u64 %value,[%ctx+48];st.global.u64 [%a+48],%value;
+ld.global.u64 %value,[%ctx+56];st.global.u64 [%a+56],%value;
+ld.global.u64 %value,[%rec+0];st.global.u64 [%b+0],%value;
+ld.global.u64 %value,[%rec+8];st.global.u64 [%b+8],%value;
+ld.global.u64 %value,[%rec+16];st.global.u64 [%b+16],%value;
+ld.global.u64 %value,[%rec+24];st.global.u64 [%b+24],%value;
+ld.global.u64 %value,[%rec+32];st.global.u64 [%b+32],%value;
+ld.global.u64 %value,[%rec+40];st.global.u64 [%b+40],%value;
+ld.global.u64 %value,[%rec+48];st.global.u64 [%b+48],%value;
+ld.global.u64 %value,[%rec+56];st.global.u64 [%b+56],%value;
+st.global.u64 [%a+48],%b;add.u64 %counter,%row,1344;st.global.u64 [%b+32],%counter;add.u64 %counter,%row,1352;st.global.u64 [%b+48],%counter;
+add.u64 %counter,%row,1344;ld.global.u64 %saved0,[%counter];
+add.u64 %counter,%row,1352;ld.global.u64 %saved1,[%counter];
+add.u64 %counter,%row,1360;ld.global.u64 %saved2,[%counter];
+add.u64 %counter,%row,1368;ld.global.u64 %saved3,[%counter];
+st.param.u64 [vector_arg],%vector;st.param.u64 [context_arg],%a;
+call.uni md2asm_gpu_r23_radiation_controller_body_surface_columns,(vector_arg,context_arg);
+ld.global.u64 %value,[%a+0];st.global.u64 [%ctx+0],%value;
+ld.global.u64 %value,[%a+8];st.global.u64 [%ctx+8],%value;
+ld.global.u64 %value,[%a+16];st.global.u64 [%ctx+16],%value;
+
+
+
+
+
+
+
+
+ld.global.u32 %w,[%ctx];setp.ne.u32 %p,%w,0;@%p bra BAD;
+ld.global.u64 %value,[%ctx+16];and.b64 %delta,%value,256;setp.ne.u64 %p,%delta,0;
+@%p st.global.u64 [%row+1408],%cursor;and.b64 %delta,%value,255;cvt.u32.u64 %w,%delta;@%p st.global.u32 [%row+1416],%w;
+ret;
+BAD:ld.global.u64 %fail,[%env+224];atom.global.or.b32 %w,[%fail],1;mov.u32 %w,1;st.global.u32 [%ctx],%w;ret;
+}
+
+.visible .func surface_cache_tile_boundary(.param .u64 source_vector,.param .u64 source_context,.param .u64 source_environment)
+{
+.reg .u64 %env,%vector,%ctx,%old,%physical,%span,%in,%out,%rec,%vin,%vout,%vrec,%a,%b,%off,%row,%cache,%cursor,%site,%phase,%fail,%ptr,%value,%delta,%counter,%saved<4>;
+.reg .u32 %w,%flags,%raised,%mode,%i;.reg .pred %p,%q;
+.param .u64 vector_arg,context_arg;
+ld.param.u64 %env,[source_environment];ld.param.u64 %vector,[source_vector];ld.param.u64 %ctx,[source_context];
+ld.global.u64 %old,[%env+160];ld.global.u64 %physical,[%env+168];ld.global.u64 %span,[%env+176];
+sub.u64 %off,%vector,%old;add.u64 %vector,%physical,%off;sub.u64 %off,%ctx,%old;add.u64 %ctx,%physical,%off;
+ld.global.u64 %vin,[%vector];ld.global.u64 %vout,[%vector+8];ld.global.u64 %vrec,[%ctx+48];
+sub.u64 %off,%vin,%old;add.u64 %in,%physical,%off;sub.u64 %off,%vout,%old;add.u64 %out,%physical,%off;sub.u64 %off,%vrec,%old;add.u64 %rec,%physical,%off;
+sub.u64 %row,%env,832;
+ld.global.u64 %cursor,[%env+216];add.u64 %cursor,%cursor,1;st.global.u64 [%env+216],%cursor;
+ld.global.u64 %value,[%row+1408];setp.ne.u64 %p,%value,0;selp.u32 %w,1,0,%p;st.global.u32 [%row+1420],%w;
+add.u64 %vector,%row,1120;add.u64 %a,%row,1152;add.u64 %b,%row,1216;
+st.global.u64 [%vector],%in;st.global.u64 [%vector+8],%out;
+ld.global.u64 %value,[%ctx+0];st.global.u64 [%a+0],%value;
+ld.global.u64 %value,[%ctx+8];st.global.u64 [%a+8],%value;
+ld.global.u64 %value,[%ctx+16];st.global.u64 [%a+16],%value;
+ld.global.u64 %value,[%ctx+24];st.global.u64 [%a+24],%value;
+ld.global.u64 %value,[%ctx+32];st.global.u64 [%a+32],%value;
+ld.global.u64 %value,[%ctx+40];st.global.u64 [%a+40],%value;
+ld.global.u64 %value,[%ctx+48];st.global.u64 [%a+48],%value;
+ld.global.u64 %value,[%ctx+56];st.global.u64 [%a+56],%value;
+ld.global.u64 %value,[%rec+0];st.global.u64 [%b+0],%value;
+ld.global.u64 %value,[%rec+8];st.global.u64 [%b+8],%value;
+ld.global.u64 %value,[%rec+16];st.global.u64 [%b+16],%value;
+ld.global.u64 %value,[%rec+24];st.global.u64 [%b+24],%value;
+ld.global.u64 %value,[%rec+32];st.global.u64 [%b+32],%value;
+ld.global.u64 %value,[%rec+40];st.global.u64 [%b+40],%value;
+ld.global.u64 %value,[%rec+48];st.global.u64 [%b+48],%value;
+ld.global.u64 %value,[%rec+56];st.global.u64 [%b+56],%value;
+st.global.u64 [%a+48],%b;add.u64 %counter,%row,1344;st.global.u64 [%b+32],%counter;add.u64 %counter,%row,1352;st.global.u64 [%b+48],%counter;
+add.u64 %counter,%row,1344;ld.global.u64 %saved0,[%counter];
+add.u64 %counter,%row,1352;ld.global.u64 %saved1,[%counter];
+add.u64 %counter,%row,1360;ld.global.u64 %saved2,[%counter];
+add.u64 %counter,%row,1368;ld.global.u64 %saved3,[%counter];
+st.param.u64 [vector_arg],%vector;st.param.u64 [context_arg],%a;
+call.uni md2asm_gpu_r23_tile_boundary_body_surface_columns,(vector_arg,context_arg);
+ld.global.u64 %value,[%a+0];st.global.u64 [%ctx+0],%value;
+ld.global.u64 %value,[%a+8];st.global.u64 [%ctx+8],%value;
+ld.global.u64 %value,[%a+16];st.global.u64 [%ctx+16],%value;
+
+
+
+
+
+
+
+
+ld.global.u32 %w,[%ctx];setp.ne.u32 %p,%w,0;@%p bra BAD;
+ld.global.u64 %value,[%ctx+16];and.b64 %delta,%value,256;setp.ne.u64 %p,%delta,0;
+@%p st.global.u64 [%row+1408],%cursor;and.b64 %delta,%value,255;cvt.u32.u64 %w,%delta;@%p st.global.u32 [%row+1416],%w;
+ret;
+BAD:ld.global.u64 %fail,[%env+224];atom.global.or.b32 %w,[%fail],1;mov.u32 %w,1;st.global.u32 [%ctx],%w;ret;
+}

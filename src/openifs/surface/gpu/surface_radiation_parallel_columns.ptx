@@ -1,0 +1,448 @@
+.version 8.5 // Contract skills/md2asm-gpu/references/openifs/surface/parallel_surface_radiation_columns.md.
+.target sm_90
+.address_size 64
+.const .align 2 .u16 surface_radiation_object_sizes[43]={4,4,64,4,4,4,4,4,4,4,64,64,64,64,88,64,64,64,64,64,64,64,64,88,64,64,128,304,240,48,1256,2416,856,472,88,88,64,88,64,88,64,64,4};
+.extern .func (.param .align 8 .b8 returned[16]) bulk_state_md2asm_r23_surface_radiation_wrapper_controller_complete_source_values_surface_columns(.param .u64 source_state,.param .u64 source_environment);
+.visible .entry md2asm_gpu_surface_direct_columns_prepare(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .b64 %vector,%ctx,%caps,%state,%env,%out,%gap,%gapn,%table,%end,%sp,%addr,%base,%bytes,%mask,%last,%a,%an,%b,%bn,%ae,%be,%off,%t;
+.reg .b32 %w,%mode,%i,%j,%flags,%error,%wa,%wb,%ix,%iy;
+.reg .pred %p,%q,%r,%leader;
+.reg .u32 %lane,%k,%n,%plane,%arg;
+.reg .u64 %arena,%row,%ctl,%first,%count,%column,%map,%data,%src,%dst,%v,%stride,%pitch,%planes,%offset,%basearg,%coloff,%localenv,%originalstate,%originalenv,%originalgap,%originalout;
+.local .align 8 .b8 owners[160];
+ld.param.u64 %vector,[original_vector];ld.param.u64 %ctx,[common_context];
+mov.u32 %lane,%tid.x;setp.eq.u32 %leader,%lane,0;
+mov.u32 %w,%tid.y;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%tid.z;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%ctaid.x;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%ctaid.y;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%ctaid.z;setp.ne.u32 %p,%w,0;@%p ret;
+setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %t,%ctx,7;setp.ne.u64 %p,%t,0;@%p ret;
+add.u64 %end,%ctx,64;setp.lt.u64 %p,%end,%ctx;@%p ret;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p ret;
+ld.global.u32 %w,[%ctx];setp.ne.u32 %p,%w,0;@%p ret;
+ld.global.u32 %w,[%ctx+4];setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.x;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.y;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.z;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.x;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.y;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.z;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%dynamic_smem_size;setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+ld.global.u32 %w,[%ctx+12];setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+setp.eq.u64 %p,%vector,0;@%p bra REFUSE;and.b64 %t,%vector,7;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+add.u64 %end,%vector,48;setp.lt.u64 %p,%end,%vector;@%p bra REFUSE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+ld.global.u64 %caps,[%ctx+48];ld.global.u64 %t,[%ctx+56];setp.ne.u64 %p,%t,96;@%p bra REFUSE;
+setp.eq.u64 %p,%caps,0;@%p bra REFUSE;and.b64 %t,%caps,7;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+add.u64 %end,%caps,96;setp.lt.u64 %p,%end,%caps;@%p bra REFUSE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+ld.global.u64 %state,[%vector];ld.global.u64 %env,[%vector+8];ld.global.u64 %out,[%vector+16];
+ld.global.u64 %t,[%caps];setp.ne.u64 %p,%t,832;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+8];setp.ne.u64 %p,%t,160;@%p bra REFUSE;
+ld.global.u64 %gap,[%caps+16];ld.global.u64 %gapn,[%caps+24];setp.ne.u64 %p,%gapn,14336;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+32];setp.ne.u64 %p,%t,8;@%p bra REFUSE;
+ld.global.u32 %mode,[%caps+48];setp.ge.u32 %p,%mode,3;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+40];setp.ne.u64 %p,%t,36864;@%p bra REFUSE;
+ld.global.u32 %w,[%caps+52];setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+72];setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+80];setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+88];setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+mov.u64 %addr,owners;
+st.local.u64 [%addr],%vector;mov.u64 %t,48;st.local.u64 [%addr+8],%t;
+st.local.u64 [%addr+16],%ctx;mov.u64 %t,64;st.local.u64 [%addr+24],%t;
+st.local.u64 [%addr+32],%caps;mov.u64 %t,96;st.local.u64 [%addr+40],%t;
+st.local.u64 [%addr+48],%state;mov.u64 %t,832;st.local.u64 [%addr+56],%t;
+st.local.u64 [%addr+64],%env;mov.u64 %t,160;st.local.u64 [%addr+72],%t;
+st.local.u64 [%addr+80],%out;mov.u64 %t,32;st.local.u64 [%addr+88],%t;
+st.local.u64 [%addr+96],%gap;st.local.u64 [%addr+104],%gapn;
+ld.global.u64 %arena,[%vector+24];ld.global.u64 %t,[%vector+32];setp.ne.u64 %p,%t,19546112;@%p bra REFUSE;
+st.local.u64 [%addr+112],%arena;mov.u64 %t,19546112;st.local.u64 [%addr+120],%t;
+mov.u32 %i,0;
+PRIVATE_RANGE:
+mul.wide.u32 %off,%i,16;add.u64 %last,%addr,%off;
+ld.local.u64 %base,[%last];ld.local.u64 %bytes,[%last+8];
+setp.eq.u64 %p,%base,0;@%p bra REFUSE;and.b64 %t,%base,7;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+add.u64 %end,%base,%bytes;setp.lt.u64 %p,%end,%base;@%p bra REFUSE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+add.u32 %i,%i,1;setp.lt.u32 %p,%i,8;@%p bra PRIVATE_RANGE;
+ld.global.u32 %w,[%env+48];setp.ne.u32 %p,%w,%mode;@%p bra REFUSE;
+ld.global.u64 %t,[%state+768];setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+ld.global.u64 %sp,[%state+248];add.u64 %end,%gap,%gapn;setp.ne.u64 %p,%sp,%end;@%p bra REFUSE;
+and.b64 %t,%sp,15;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+56];setp.ne.u64 %p,%t,%sp;@%p bra REFUSE;
+ld.global.u64 %table,[%env+64];st.local.u64 [%addr+128],%table;mov.u64 %t,8;st.local.u64 [%addr+136],%t;
+ld.global.u64 %base,[%env+56];ld.global.u64 %t,[%caps+64];setp.ne.u64 %p,%base,%t;@%p bra REFUSE;
+setp.eq.u32 %p,%mode,0;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,1;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,2;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+st.local.u64 [%addr+144],%base;mov.u64 %t,36864;st.local.u64 [%addr+152],%t;
+mov.u32 %i,8;
+SOURCE_RANGES:
+mul.wide.u32 %off,%i,16;add.u64 %last,%addr,%off;ld.local.u64 %base,[%last];ld.local.u64 %bytes,[%last+8];
+setp.eq.u64 %p,%base,0;@%p bra REFUSE;and.b64 %t,%base,7;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+add.u64 %end,%base,%bytes;setp.lt.u64 %p,%end,%base;@%p bra REFUSE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+add.u32 %i,%i,1;setp.lt.u32 %p,%i,10;@%p bra SOURCE_RANGES;
+mov.u32 %i,0;
+PAIR_I:
+add.u32 %j,%i,1;
+PAIR_J:
+setp.lt.u32 %p,%i,8;
+@!%p bra NEXT_PAIR;
+mul.wide.u32 %off,%i,16;add.u64 %last,%addr,%off;ld.local.u64 %a,[%last];ld.local.u64 %an,[%last+8];add.u64 %ae,%a,%an;
+mul.wide.u32 %off,%j,16;add.u64 %last,%addr,%off;ld.local.u64 %b,[%last];ld.local.u64 %bn,[%last+8];add.u64 %be,%b,%bn;
+setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;
+NEXT_PAIR:
+add.u32 %j,%j,1;setp.lt.u32 %p,%j,10;@%p bra PAIR_J;
+add.u32 %i,%i,1;setp.lt.u32 %p,%i,9;@%p bra PAIR_I;
+mov.u64 %a,%arena;add.u64 %ae,%arena,19546112;mov.u32 %iy,0;
+ARENA_DATA:mul.wide.u32 %off,%iy,32;add.u64 %addr,%sp,512;add.u64 %addr,%addr,%off;ld.global.u64 %b,[%addr];ld.global.u64 %be,[%addr+24];setp.eq.u64 %p,%b,0;@%p bra ARENA_DATA_NEXT;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;
+ARENA_DATA_NEXT:add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,43;@%p bra ARENA_DATA;mov.u32 %iy,0;
+ARENA_OBJECT:mul.wide.u32 %off,%iy,8;add.u64 %addr,%sp,128;add.u64 %addr,%addr,%off;ld.global.u64 %b,[%addr];mul.wide.u32 %off,%iy,2;mov.u64 %addr,surface_radiation_object_sizes;add.u64 %addr,%addr,%off;ld.const.u16 %w,[%addr];cvt.u64.u32 %bn,%w;add.u64 %be,%b,%bn;setp.lt.u64 %p,%be,%b;@%p bra REFUSE;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,43;@%p bra ARENA_OBJECT;mov.u32 %iy,0;
+ARENA_NESTED:mul.wide.u32 %off,%iy,32;add.u64 %addr,%sp,2880;add.u64 %addr,%addr,%off;ld.global.u64 %b,[%addr];ld.global.u64 %be,[%addr+24];setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,5;@%p bra ARENA_NESTED;ld.global.u64 %b,[%state+208];add.u64 %be,%b,288;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;mov.u32 %iy,0;
+ARENA_COUNTER:mul.wide.u32 %off,%iy,8;add.u64 %addr,%env,%off;ld.global.u64 %b,[%addr];add.u64 %be,%b,8;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,4;@%p bra ARENA_COUNTER;
+setp.ne.u32 %p,%mode,2;@%p bra REFUSE;ld.global.u64 %first,[%state+152];ld.global.u64 %last,[%state+216];sub.u64 %count,%last,%first;setp.eq.u64 %p,%count,0;@%p bra REFUSE;setp.gt.u64 %p,%count,32;@%p bra REFUSE;add.u64 %ctl,%arena,19464192;mov.u64 %originalstate,%state;mov.u64 %originalenv,%env;mov.u64 %originalgap,%gap;mov.u64 %originalout,%out;st.global.u32 [%ctl],0;st.global.u32 [%ctl+4],0;st.global.u64 [%ctl+8],%count;st.global.u64 [%ctl+16],%first;mov.u32 %lane,0;CLEAR_MARKERS:mul.wide.u32 %offset,%lane,4;add.u64 %addr,%ctl,32;add.u64 %addr,%addr,%offset;st.global.u32 [%addr],0;add.u32 %lane,%lane,1;setp.lt.u32 %p,%lane,32;@%p bra CLEAR_MARKERS;
+mov.u32 %ix,0;
+COUNTER_GUARD:mul.wide.u32 %off,%ix,8;add.u64 %addr,%env,%off;ld.global.u64 %a,[%addr];add.u64 %ae,%a,8;setp.eq.u64 %p,%a,0;@%p bra COUNTER_SERIAL;setp.lt.u64 %p,%ae,%a;@%p bra COUNTER_SERIAL;mov.u32 %iy,0;
+COUNTER_DATA:mul.wide.u32 %off,%iy,32;add.u64 %addr,%sp,512;add.u64 %addr,%addr,%off;ld.global.u64 %b,[%addr];ld.global.u64 %be,[%addr+24];setp.eq.u64 %p,%b,0;@%p bra COUNTER_DATA_NEXT;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra COUNTER_SERIAL;
+COUNTER_DATA_NEXT:add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,43;@%p bra COUNTER_DATA;mov.u32 %iy,0;
+COUNTER_OBJECT:mul.wide.u32 %off,%iy,8;add.u64 %addr,%sp,128;add.u64 %addr,%addr,%off;ld.global.u64 %b,[%addr];mul.wide.u32 %off,%iy,2;mov.u64 %addr,surface_radiation_object_sizes;add.u64 %addr,%addr,%off;ld.const.u16 %w,[%addr];cvt.u64.u32 %bn,%w;add.u64 %be,%b,%bn;setp.lt.u64 %p,%be,%b;@%p bra COUNTER_SERIAL;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra COUNTER_SERIAL;add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,43;@%p bra COUNTER_OBJECT;mov.u32 %iy,0;
+COUNTER_NESTED:mul.wide.u32 %off,%iy,32;add.u64 %addr,%sp,2880;add.u64 %addr,%addr,%off;ld.global.u64 %b,[%addr];ld.global.u64 %be,[%addr+24];setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra COUNTER_SERIAL;add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,5;@%p bra COUNTER_NESTED;add.u32 %ix,%ix,1;setp.lt.u32 %p,%ix,4;@%p bra COUNTER_GUARD;bra COUNTER_INDEPENDENT;
+COUNTER_SERIAL:st.global.u32 [%ctl],1;bra PREP_DONE;
+COUNTER_INDEPENDENT:
+
+// Additional eligibility conditions select the untouched serial route.
+mov.u32 %ix,0;
+SOURCE_OWNER_I:
+setp.eq.u32 %p,%ix,0;@%p mov.u64 %a,%gap;@%p add.u64 %ae,%gap,51200;
+setp.eq.u32 %p,%ix,1;@%p mov.u64 %a,%state;@%p add.u64 %ae,%state,832;
+setp.eq.u32 %p,%ix,2;@%p mov.u64 %a,%env;@%p add.u64 %ae,%env,160;
+setp.eq.u32 %p,%ix,3;@%p mov.u64 %a,%vector;@%p add.u64 %ae,%vector,48;
+setp.eq.u32 %p,%ix,4;@%p mov.u64 %a,%ctx;@%p add.u64 %ae,%ctx,64;
+setp.eq.u32 %p,%ix,5;@%p mov.u64 %a,%caps;@%p add.u64 %ae,%caps,96;
+setp.eq.u32 %p,%ix,6;@%p mov.u64 %a,%out;@%p add.u64 %ae,%out,32;
+setp.eq.u32 %p,%ix,7;@%p mov.u64 %a,%table;@%p add.u64 %ae,%table,8;
+setp.ge.u32 %p,%ix,3;@%p bra SOURCE_OWNER_COUNTER_INIT;
+mov.u32 %iy,0;
+SOURCE_OWNER_DATA:mul.wide.u32 %off,%iy,32;add.u64 %addr,%sp,512;add.u64 %addr,%addr,%off;ld.global.u64 %b,[%addr];ld.global.u64 %be,[%addr+24];setp.eq.u64 %p,%b,0;@%p bra SOURCE_OWNER_DATA_NEXT;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra COUNTER_SERIAL;
+SOURCE_OWNER_DATA_NEXT:add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,43;@%p bra SOURCE_OWNER_DATA;mov.u32 %iy,0;
+SOURCE_OWNER_OBJECT:mul.wide.u32 %off,%iy,8;add.u64 %addr,%sp,128;add.u64 %addr,%addr,%off;ld.global.u64 %b,[%addr];mul.wide.u32 %off,%iy,2;mov.u64 %addr,surface_radiation_object_sizes;add.u64 %addr,%addr,%off;ld.const.u16 %w,[%addr];cvt.u64.u32 %bn,%w;add.u64 %be,%b,%bn;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra COUNTER_SERIAL;add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,43;@%p bra SOURCE_OWNER_OBJECT;mov.u32 %iy,0;
+SOURCE_OWNER_NESTED:mul.wide.u32 %off,%iy,32;add.u64 %addr,%sp,2880;add.u64 %addr,%addr,%off;ld.global.u64 %b,[%addr];ld.global.u64 %be,[%addr+24];setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra COUNTER_SERIAL;add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,5;@%p bra SOURCE_OWNER_NESTED;
+ld.global.u64 %b,[%state+208];add.u64 %be,%b,288;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra COUNTER_SERIAL;
+SOURCE_OWNER_COUNTER_INIT:mov.u32 %iy,0;
+SOURCE_OWNER_COUNTER:mul.wide.u32 %off,%iy,8;add.u64 %addr,%env,%off;ld.global.u64 %b,[%addr];add.u64 %be,%b,8;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra COUNTER_SERIAL;add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,4;@%p bra SOURCE_OWNER_COUNTER;
+add.u32 %ix,%ix,1;setp.lt.u32 %p,%ix,8;@%p bra SOURCE_OWNER_I;
+ld.global.u64 %bn,[%state+160];shl.b64 %bn,%bn,3;mov.u32 %iy,34;
+INJECTIVE_OUTPUT:mul.wide.u32 %off,%iy,32;add.u64 %addr,%sp,512;add.u64 %addr,%addr,%off;ld.global.u64 %stride,[%addr+8];setp.ne.u64 %p,%stride,8;@%p bra COUNTER_SERIAL;
+setp.eq.u32 %p,%iy,34;setp.eq.u32 %q,%iy,35;or.pred %p,%p,%q;setp.eq.u32 %q,%iy,37;or.pred %p,%p,%q;setp.eq.u32 %q,%iy,39;or.pred %p,%p,%q;@!%p bra INJECTIVE_NEXT;ld.global.u64 %pitch,[%addr+16];setp.lt.u64 %p,%pitch,%bn;@%p bra COUNTER_SERIAL;
+INJECTIVE_NEXT:add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,42;@%p bra INJECTIVE_OUTPUT;
+add.u64 %data,%arena,19465216;
+add.u64 %src,%sp,1600;ld.global.u64 %basearg,[%src];ld.global.u64 %stride,[%src+8];ld.global.u64 %pitch,[%src+16];add.u64 %map,%arena,19464448;st.global.u64 [%map],%basearg;st.global.u64 [%map+8],%stride;st.global.u64 [%map+16],%pitch;st.global.u64 [%map+24],%data;
+ld.global.u64 %planes,[%state+176];
+st.global.u64 [%map+32],%planes;shl.b64 %offset,%planes,8;add.u64 %data,%data,%offset;
+add.u64 %src,%sp,1632;ld.global.u64 %basearg,[%src];ld.global.u64 %stride,[%src+8];ld.global.u64 %pitch,[%src+16];add.u64 %map,%arena,19464488;st.global.u64 [%map],%basearg;st.global.u64 [%map+8],%stride;st.global.u64 [%map+16],%pitch;st.global.u64 [%map+24],%data;
+ld.global.u64 %planes,[%state+176];
+st.global.u64 [%map+32],%planes;shl.b64 %offset,%planes,8;add.u64 %data,%data,%offset;
+add.u64 %src,%sp,1664;ld.global.u64 %basearg,[%src];ld.global.u64 %stride,[%src+8];ld.global.u64 %pitch,[%src+16];add.u64 %map,%arena,19464528;st.global.u64 [%map],%basearg;st.global.u64 [%map+8],%stride;st.global.u64 [%map+16],%pitch;st.global.u64 [%map+24],%data;
+mov.u64 %planes,1;
+st.global.u64 [%map+32],%planes;shl.b64 %offset,%planes,8;add.u64 %data,%data,%offset;
+add.u64 %src,%sp,1696;ld.global.u64 %basearg,[%src];ld.global.u64 %stride,[%src+8];ld.global.u64 %pitch,[%src+16];add.u64 %map,%arena,19464568;st.global.u64 [%map],%basearg;st.global.u64 [%map+8],%stride;st.global.u64 [%map+16],%pitch;st.global.u64 [%map+24],%data;
+ld.global.u64 %planes,[%state+184];
+st.global.u64 [%map+32],%planes;shl.b64 %offset,%planes,8;add.u64 %data,%data,%offset;
+add.u64 %src,%sp,1728;ld.global.u64 %basearg,[%src];ld.global.u64 %stride,[%src+8];ld.global.u64 %pitch,[%src+16];add.u64 %map,%arena,19464608;st.global.u64 [%map],%basearg;st.global.u64 [%map+8],%stride;st.global.u64 [%map+16],%pitch;st.global.u64 [%map+24],%data;
+mov.u64 %planes,1;
+st.global.u64 [%map+32],%planes;shl.b64 %offset,%planes,8;add.u64 %data,%data,%offset;
+add.u64 %src,%sp,1760;ld.global.u64 %basearg,[%src];ld.global.u64 %stride,[%src+8];ld.global.u64 %pitch,[%src+16];add.u64 %map,%arena,19464648;st.global.u64 [%map],%basearg;st.global.u64 [%map+8],%stride;st.global.u64 [%map+16],%pitch;st.global.u64 [%map+24],%data;
+ld.global.u64 %planes,[%state+192];
+st.global.u64 [%map+32],%planes;shl.b64 %offset,%planes,8;add.u64 %data,%data,%offset;
+add.u64 %src,%sp,1792;ld.global.u64 %basearg,[%src];ld.global.u64 %stride,[%src+8];ld.global.u64 %pitch,[%src+16];add.u64 %map,%arena,19464688;st.global.u64 [%map],%basearg;st.global.u64 [%map+8],%stride;st.global.u64 [%map+16],%pitch;st.global.u64 [%map+24],%data;
+mov.u64 %planes,1;
+st.global.u64 [%map+32],%planes;shl.b64 %offset,%planes,8;add.u64 %data,%data,%offset;
+add.u64 %src,%sp,1824;ld.global.u64 %basearg,[%src];ld.global.u64 %stride,[%src+8];ld.global.u64 %pitch,[%src+16];add.u64 %map,%arena,19464728;st.global.u64 [%map],%basearg;st.global.u64 [%map+8],%stride;st.global.u64 [%map+16],%pitch;st.global.u64 [%map+24],%data;
+mov.u64 %planes,1;
+st.global.u64 [%map+32],%planes;shl.b64 %offset,%planes,8;add.u64 %data,%data,%offset;
+mov.u32 %arg,0;
+INITIAL_OUTPUTS_ARG:mul.wide.u32 %offset,%arg,40;add.u64 %map,%arena,19464448;add.u64 %map,%map,%offset;ld.global.u64 %basearg,[%map];ld.global.u64 %stride,[%map+8];ld.global.u64 %pitch,[%map+16];ld.global.u64 %data,[%map+24];ld.global.u64 %planes,[%map+32];mov.u32 %plane,0;
+INITIAL_OUTPUTS_PLANE:mov.u32 %k,0;
+INITIAL_OUTPUTS_COL:
+cvt.u64.u32 %column,%k;add.u64 %column,%column,%first;mul.lo.u64 %coloff,%column,%stride;cvt.u64.u32 %offset,%plane;mul.lo.u64 %offset,%offset,%pitch;add.u64 %src,%basearg,%coloff;add.u64 %src,%src,%offset;mul.wide.u32 %offset,%plane,256;mul.wide.u32 %coloff,%k,8;add.u64 %dst,%data,%offset;add.u64 %dst,%dst,%coloff;
+ld.global.u64 %v,[%src];st.global.u64 [%dst],%v;
+add.u32 %k,%k,1;cvt.u64.u32 %offset,%k;setp.lt.u64 %p,%offset,%count;@%p bra INITIAL_OUTPUTS_COL;add.u32 %plane,%plane,1;cvt.u64.u32 %offset,%plane;setp.lt.u64 %p,%offset,%planes;@%p bra INITIAL_OUTPUTS_PLANE;add.u32 %arg,%arg,1;setp.lt.u32 %p,%arg,8;@%p bra INITIAL_OUTPUTS_ARG;
+PREP_DONE:ret;
+REFUSE:
+mov.u32 %w,1;@%leader st.global.u32 [%ctx],%w;ret;
+}
+
+
+.visible .entry md2asm_gpu_surface_direct_columns_workers(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .b64 %vector,%ctx,%caps,%state,%env,%out,%gap,%gapn,%table,%end,%sp,%addr,%base,%bytes,%mask,%last,%a,%an,%b,%bn,%ae,%be,%off,%t;
+.reg .b32 %w,%mode,%i,%j,%flags,%error,%wa,%wb,%ix,%iy;
+.reg .pred %p,%q,%r,%leader;
+.reg .u32 %lane,%k,%n,%plane,%arg;
+.reg .u64 %arena,%row,%ctl,%first,%count,%column,%map,%data,%src,%dst,%v,%stride,%pitch,%planes,%offset,%basearg,%coloff,%localenv,%originalstate,%originalenv,%originalgap,%originalout;
+.local .align 8 .b8 owners[160];
+ld.param.u64 %vector,[original_vector];ld.param.u64 %ctx,[common_context];
+mov.u32 %w,%tid.x;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%tid.y;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%tid.z;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %lane,%ctaid.x;setp.eq.u32 %leader,%lane,0;
+mov.u32 %w,%ctaid.y;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%ctaid.z;setp.ne.u32 %p,%w,0;@%p ret;
+setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %t,%ctx,7;setp.ne.u64 %p,%t,0;@%p ret;
+add.u64 %end,%ctx,64;setp.lt.u64 %p,%end,%ctx;@%p ret;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p ret;
+ld.global.u32 %w,[%ctx];setp.ne.u32 %p,%w,0;@%p ret;
+ld.global.u32 %w,[%ctx+4];setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.x;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.y;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.z;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.x;setp.ne.u32 %p,%w,32;@%p bra REFUSE;
+mov.u32 %w,%nctaid.y;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.z;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%dynamic_smem_size;setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+ld.global.u32 %w,[%ctx+12];setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+setp.eq.u64 %p,%vector,0;@%p bra REFUSE;and.b64 %t,%vector,7;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+add.u64 %end,%vector,48;setp.lt.u64 %p,%end,%vector;@%p bra REFUSE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+ld.global.u64 %caps,[%ctx+48];ld.global.u64 %t,[%ctx+56];setp.ne.u64 %p,%t,96;@%p bra REFUSE;
+setp.eq.u64 %p,%caps,0;@%p bra REFUSE;and.b64 %t,%caps,7;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+add.u64 %end,%caps,96;setp.lt.u64 %p,%end,%caps;@%p bra REFUSE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+ld.global.u64 %state,[%vector];ld.global.u64 %env,[%vector+8];ld.global.u64 %out,[%vector+16];
+ld.global.u64 %t,[%caps];setp.ne.u64 %p,%t,832;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+8];setp.ne.u64 %p,%t,160;@%p bra REFUSE;
+ld.global.u64 %gap,[%caps+16];ld.global.u64 %gapn,[%caps+24];setp.ne.u64 %p,%gapn,14336;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+32];setp.ne.u64 %p,%t,8;@%p bra REFUSE;
+ld.global.u32 %mode,[%caps+48];setp.ge.u32 %p,%mode,3;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+40];setp.ne.u64 %p,%t,36864;@%p bra REFUSE;
+ld.global.u32 %w,[%caps+52];setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+72];setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+80];setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+88];setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+mov.u64 %addr,owners;
+st.local.u64 [%addr],%vector;mov.u64 %t,48;st.local.u64 [%addr+8],%t;
+st.local.u64 [%addr+16],%ctx;mov.u64 %t,64;st.local.u64 [%addr+24],%t;
+st.local.u64 [%addr+32],%caps;mov.u64 %t,96;st.local.u64 [%addr+40],%t;
+st.local.u64 [%addr+48],%state;mov.u64 %t,832;st.local.u64 [%addr+56],%t;
+st.local.u64 [%addr+64],%env;mov.u64 %t,160;st.local.u64 [%addr+72],%t;
+st.local.u64 [%addr+80],%out;mov.u64 %t,32;st.local.u64 [%addr+88],%t;
+st.local.u64 [%addr+96],%gap;st.local.u64 [%addr+104],%gapn;
+ld.global.u64 %arena,[%vector+24];ld.global.u64 %t,[%vector+32];setp.ne.u64 %p,%t,19546112;@%p bra REFUSE;
+st.local.u64 [%addr+112],%arena;mov.u64 %t,19546112;st.local.u64 [%addr+120],%t;
+mov.u32 %i,0;
+PRIVATE_RANGE:
+mul.wide.u32 %off,%i,16;add.u64 %last,%addr,%off;
+ld.local.u64 %base,[%last];ld.local.u64 %bytes,[%last+8];
+setp.eq.u64 %p,%base,0;@%p bra REFUSE;and.b64 %t,%base,7;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+add.u64 %end,%base,%bytes;setp.lt.u64 %p,%end,%base;@%p bra REFUSE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+add.u32 %i,%i,1;setp.lt.u32 %p,%i,8;@%p bra PRIVATE_RANGE;
+ld.global.u32 %w,[%env+48];setp.ne.u32 %p,%w,%mode;@%p bra REFUSE;
+ld.global.u64 %t,[%state+768];setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+ld.global.u64 %sp,[%state+248];add.u64 %end,%gap,%gapn;setp.ne.u64 %p,%sp,%end;@%p bra REFUSE;
+and.b64 %t,%sp,15;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+56];setp.ne.u64 %p,%t,%sp;@%p bra REFUSE;
+ld.global.u64 %table,[%env+64];st.local.u64 [%addr+128],%table;mov.u64 %t,8;st.local.u64 [%addr+136],%t;
+ld.global.u64 %base,[%env+56];ld.global.u64 %t,[%caps+64];setp.ne.u64 %p,%base,%t;@%p bra REFUSE;
+setp.eq.u32 %p,%mode,0;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,1;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,2;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+st.local.u64 [%addr+144],%base;mov.u64 %t,36864;st.local.u64 [%addr+152],%t;
+mov.u32 %i,8;
+SOURCE_RANGES:
+mul.wide.u32 %off,%i,16;add.u64 %last,%addr,%off;ld.local.u64 %base,[%last];ld.local.u64 %bytes,[%last+8];
+setp.eq.u64 %p,%base,0;@%p bra REFUSE;and.b64 %t,%base,7;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+add.u64 %end,%base,%bytes;setp.lt.u64 %p,%end,%base;@%p bra REFUSE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+add.u32 %i,%i,1;setp.lt.u32 %p,%i,10;@%p bra SOURCE_RANGES;
+mov.u32 %i,0;
+PAIR_I:
+add.u32 %j,%i,1;
+PAIR_J:
+setp.lt.u32 %p,%i,8;
+@!%p bra NEXT_PAIR;
+mul.wide.u32 %off,%i,16;add.u64 %last,%addr,%off;ld.local.u64 %a,[%last];ld.local.u64 %an,[%last+8];add.u64 %ae,%a,%an;
+mul.wide.u32 %off,%j,16;add.u64 %last,%addr,%off;ld.local.u64 %b,[%last];ld.local.u64 %bn,[%last+8];add.u64 %be,%b,%bn;
+setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;
+NEXT_PAIR:
+add.u32 %j,%j,1;setp.lt.u32 %p,%j,10;@%p bra PAIR_J;
+add.u32 %i,%i,1;setp.lt.u32 %p,%i,9;@%p bra PAIR_I;
+mov.u64 %a,%arena;add.u64 %ae,%arena,19546112;mov.u32 %iy,0;
+ARENA_DATA:mul.wide.u32 %off,%iy,32;add.u64 %addr,%sp,512;add.u64 %addr,%addr,%off;ld.global.u64 %b,[%addr];ld.global.u64 %be,[%addr+24];setp.eq.u64 %p,%b,0;@%p bra ARENA_DATA_NEXT;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;
+ARENA_DATA_NEXT:add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,43;@%p bra ARENA_DATA;mov.u32 %iy,0;
+ARENA_OBJECT:mul.wide.u32 %off,%iy,8;add.u64 %addr,%sp,128;add.u64 %addr,%addr,%off;ld.global.u64 %b,[%addr];mul.wide.u32 %off,%iy,2;mov.u64 %addr,surface_radiation_object_sizes;add.u64 %addr,%addr,%off;ld.const.u16 %w,[%addr];cvt.u64.u32 %bn,%w;add.u64 %be,%b,%bn;setp.lt.u64 %p,%be,%b;@%p bra REFUSE;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,43;@%p bra ARENA_OBJECT;mov.u32 %iy,0;
+ARENA_NESTED:mul.wide.u32 %off,%iy,32;add.u64 %addr,%sp,2880;add.u64 %addr,%addr,%off;ld.global.u64 %b,[%addr];ld.global.u64 %be,[%addr+24];setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,5;@%p bra ARENA_NESTED;ld.global.u64 %b,[%state+208];add.u64 %be,%b,288;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;mov.u32 %iy,0;
+ARENA_COUNTER:mul.wide.u32 %off,%iy,8;add.u64 %addr,%env,%off;ld.global.u64 %b,[%addr];add.u64 %be,%b,8;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,4;@%p bra ARENA_COUNTER;
+setp.ne.u32 %p,%mode,2;@%p bra REFUSE;ld.global.u64 %first,[%state+152];ld.global.u64 %last,[%state+216];sub.u64 %count,%last,%first;setp.eq.u64 %p,%count,0;@%p bra REFUSE;setp.gt.u64 %p,%count,32;@%p bra REFUSE;add.u64 %ctl,%arena,19464192;mov.u64 %originalstate,%state;mov.u64 %originalenv,%env;mov.u64 %originalgap,%gap;mov.u64 %originalout,%out;ld.global.u32 %w,[%ctl];setp.ne.u32 %p,%w,0;@%p ret;
+cvt.u64.u32 %column,%lane;setp.ge.u64 %p,%column,%count;@%p ret;mul.wide.u32 %offset,%lane,589824;add.u64 %row,%arena,%offset;add.u64 %column,%column,%first;
+mov.u64 %src,%originalstate;mov.u64 %dst,%row;mov.u32 %k,0;
+WORK_STATE:
+ld.global.u64 %v,[%src];st.global.u64 [%dst],%v;add.u64 %src,%src,8;add.u64 %dst,%dst,8;add.u32 %k,%k,8;setp.lt.u32 %p,%k,832;@%p bra WORK_STATE;
+add.u64 %localenv,%row,832;
+mov.u64 %src,%originalenv;mov.u64 %dst,%localenv;mov.u32 %k,0;
+WORK_ENV:
+ld.global.u64 %v,[%src];st.global.u64 [%dst],%v;add.u64 %src,%src,8;add.u64 %dst,%dst,8;add.u32 %k,%k,8;setp.lt.u32 %p,%k,160;@%p bra WORK_ENV;
+add.u64 %dst,%row,2048;
+mov.u64 %src,%originalgap;mov.u64 %dst,%dst;mov.u32 %k,0;
+WORK_SOURCE:
+ld.global.u64 %v,[%src];st.global.u64 [%dst],%v;add.u64 %src,%src,8;add.u64 %dst,%dst,8;add.u32 %k,%k,8;setp.lt.u32 %p,%k,51200;@%p bra WORK_SOURCE;
+st.global.u64 [%row+1344],0;
+st.global.u64 [%row+1352],0;
+st.global.u64 [%row+1360],0;
+st.global.u64 [%row+1368],0;st.global.u64 [%localenv+216],0;st.global.u64 [%row+1408],0;st.global.u64 [%row+1416],0;st.global.u64 [%row+1424],0;
+st.global.u64 [%localenv+160],%originalgap;add.u64 %v,%row,2048;st.global.u64 [%localenv+168],%v;st.global.u64 [%localenv+176],51200;add.u64 %v,%arena,19464448;st.global.u64 [%localenv+184],%v;st.global.u64 [%localenv+192],%first;st.global.u64 [%localenv+208],%count;st.global.u64 [%localenv+224],%ctl;st.global.u64 [%localenv+232],%arena;st.global.u64 [%localenv+248],0;
+st.global.u64 [%row+152],%column;add.u64 %src,%sp,1088;ld.global.u64 %basearg,[%src];ld.global.u64 %stride,[%src+8];mul.lo.u64 %offset,%column,%stride;add.u64 %src,%basearg,%offset;ld.global.u64 %v,[%src];st.global.u64 [%row+256],%v;st.global.u64 [%row+264],0;
+{
+.param .u64 work_state,work_env;
+.param .align 8 .b8 work_result[16];
+st.param.u64 [work_state],%row;st.param.u64 [work_env],%localenv;
+call.uni (work_result),bulk_state_md2asm_r23_surface_radiation_wrapper_controller_complete_source_values_surface_columns,(work_state,work_env);
+ld.param.u32 %flags,[work_result];ld.param.u32 %error,[work_result+4];ld.param.u32 %mode,[work_result+8];
+setp.ne.u32 %p,%error,0;@%p atom.global.or.b32 %w,[%ctl],1;
+}
+st.global.u32 [%row+1376],%error;st.global.u32 [%row+1380],%mode;mul.wide.u32 %offset,%lane,4;add.u64 %addr,%ctl,32;add.u64 %addr,%addr,%offset;st.global.u32 [%addr],1;ret;
+REFUSE:
+mov.u32 %w,1;@%leader st.global.u32 [%ctx],%w;ret;
+}
+
+
+.visible .entry md2asm_gpu_surface_direct_columns_join(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %sum<4>,%lakeRow,%lastRow,%currentRow,%evord;
+.reg .u32 %errPrefix,%localBefore,%localCode,%flagPrefix;
+
+.reg .b64 %vector,%ctx,%caps,%state,%env,%out,%gap,%gapn,%table,%end,%sp,%addr,%base,%bytes,%mask,%last,%a,%an,%b,%bn,%ae,%be,%off,%t;
+.reg .b32 %w,%mode,%i,%j,%flags,%error,%wa,%wb,%ix,%iy;
+.reg .pred %p,%q,%r,%leader;
+.reg .u32 %lane,%k,%n,%plane,%arg;
+.reg .u64 %arena,%row,%ctl,%first,%count,%column,%map,%data,%src,%dst,%v,%stride,%pitch,%planes,%offset,%basearg,%coloff,%localenv,%originalstate,%originalenv,%originalgap,%originalout;
+.local .align 8 .b8 owners[160];
+ld.param.u64 %vector,[original_vector];ld.param.u64 %ctx,[common_context];
+mov.u32 %lane,%tid.x;setp.eq.u32 %leader,%lane,0;
+mov.u32 %w,%tid.y;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%tid.z;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%ctaid.x;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%ctaid.y;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%ctaid.z;setp.ne.u32 %p,%w,0;@%p ret;
+setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %t,%ctx,7;setp.ne.u64 %p,%t,0;@%p ret;
+add.u64 %end,%ctx,64;setp.lt.u64 %p,%end,%ctx;@%p ret;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p ret;
+ld.global.u32 %w,[%ctx];setp.ne.u32 %p,%w,0;@%p ret;
+ld.global.u32 %w,[%ctx+4];setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.x;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.y;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.z;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.x;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.y;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.z;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%dynamic_smem_size;setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+ld.global.u32 %w,[%ctx+12];setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+setp.eq.u64 %p,%vector,0;@%p bra REFUSE;and.b64 %t,%vector,7;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+add.u64 %end,%vector,48;setp.lt.u64 %p,%end,%vector;@%p bra REFUSE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+ld.global.u64 %caps,[%ctx+48];ld.global.u64 %t,[%ctx+56];setp.ne.u64 %p,%t,96;@%p bra REFUSE;
+setp.eq.u64 %p,%caps,0;@%p bra REFUSE;and.b64 %t,%caps,7;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+add.u64 %end,%caps,96;setp.lt.u64 %p,%end,%caps;@%p bra REFUSE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+ld.global.u64 %state,[%vector];ld.global.u64 %env,[%vector+8];ld.global.u64 %out,[%vector+16];
+ld.global.u64 %t,[%caps];setp.ne.u64 %p,%t,832;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+8];setp.ne.u64 %p,%t,160;@%p bra REFUSE;
+ld.global.u64 %gap,[%caps+16];ld.global.u64 %gapn,[%caps+24];setp.ne.u64 %p,%gapn,14336;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+32];setp.ne.u64 %p,%t,8;@%p bra REFUSE;
+ld.global.u32 %mode,[%caps+48];setp.ge.u32 %p,%mode,3;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+40];setp.ne.u64 %p,%t,36864;@%p bra REFUSE;
+ld.global.u32 %w,[%caps+52];setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+72];setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+80];setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+88];setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+mov.u64 %addr,owners;
+st.local.u64 [%addr],%vector;mov.u64 %t,48;st.local.u64 [%addr+8],%t;
+st.local.u64 [%addr+16],%ctx;mov.u64 %t,64;st.local.u64 [%addr+24],%t;
+st.local.u64 [%addr+32],%caps;mov.u64 %t,96;st.local.u64 [%addr+40],%t;
+st.local.u64 [%addr+48],%state;mov.u64 %t,832;st.local.u64 [%addr+56],%t;
+st.local.u64 [%addr+64],%env;mov.u64 %t,160;st.local.u64 [%addr+72],%t;
+st.local.u64 [%addr+80],%out;mov.u64 %t,32;st.local.u64 [%addr+88],%t;
+st.local.u64 [%addr+96],%gap;st.local.u64 [%addr+104],%gapn;
+ld.global.u64 %arena,[%vector+24];ld.global.u64 %t,[%vector+32];setp.ne.u64 %p,%t,19546112;@%p bra REFUSE;
+st.local.u64 [%addr+112],%arena;mov.u64 %t,19546112;st.local.u64 [%addr+120],%t;
+mov.u32 %i,0;
+PRIVATE_RANGE:
+mul.wide.u32 %off,%i,16;add.u64 %last,%addr,%off;
+ld.local.u64 %base,[%last];ld.local.u64 %bytes,[%last+8];
+setp.eq.u64 %p,%base,0;@%p bra REFUSE;and.b64 %t,%base,7;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+add.u64 %end,%base,%bytes;setp.lt.u64 %p,%end,%base;@%p bra REFUSE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+add.u32 %i,%i,1;setp.lt.u32 %p,%i,8;@%p bra PRIVATE_RANGE;
+ld.global.u32 %w,[%env+48];setp.ne.u32 %p,%w,%mode;@%p bra REFUSE;
+ld.global.u64 %t,[%state+768];setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+ld.global.u64 %sp,[%state+248];add.u64 %end,%gap,%gapn;setp.ne.u64 %p,%sp,%end;@%p bra REFUSE;
+and.b64 %t,%sp,15;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+56];setp.ne.u64 %p,%t,%sp;@%p bra REFUSE;
+ld.global.u64 %table,[%env+64];st.local.u64 [%addr+128],%table;mov.u64 %t,8;st.local.u64 [%addr+136],%t;
+ld.global.u64 %base,[%env+56];ld.global.u64 %t,[%caps+64];setp.ne.u64 %p,%base,%t;@%p bra REFUSE;
+setp.eq.u32 %p,%mode,0;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,1;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,2;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+st.local.u64 [%addr+144],%base;mov.u64 %t,36864;st.local.u64 [%addr+152],%t;
+mov.u32 %i,8;
+SOURCE_RANGES:
+mul.wide.u32 %off,%i,16;add.u64 %last,%addr,%off;ld.local.u64 %base,[%last];ld.local.u64 %bytes,[%last+8];
+setp.eq.u64 %p,%base,0;@%p bra REFUSE;and.b64 %t,%base,7;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+add.u64 %end,%base,%bytes;setp.lt.u64 %p,%end,%base;@%p bra REFUSE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+add.u32 %i,%i,1;setp.lt.u32 %p,%i,10;@%p bra SOURCE_RANGES;
+mov.u32 %i,0;
+PAIR_I:
+add.u32 %j,%i,1;
+PAIR_J:
+setp.lt.u32 %p,%i,8;
+@!%p bra NEXT_PAIR;
+mul.wide.u32 %off,%i,16;add.u64 %last,%addr,%off;ld.local.u64 %a,[%last];ld.local.u64 %an,[%last+8];add.u64 %ae,%a,%an;
+mul.wide.u32 %off,%j,16;add.u64 %last,%addr,%off;ld.local.u64 %b,[%last];ld.local.u64 %bn,[%last+8];add.u64 %be,%b,%bn;
+setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;
+NEXT_PAIR:
+add.u32 %j,%j,1;setp.lt.u32 %p,%j,10;@%p bra PAIR_J;
+add.u32 %i,%i,1;setp.lt.u32 %p,%i,9;@%p bra PAIR_I;
+mov.u64 %a,%arena;add.u64 %ae,%arena,19546112;mov.u32 %iy,0;
+ARENA_DATA:mul.wide.u32 %off,%iy,32;add.u64 %addr,%sp,512;add.u64 %addr,%addr,%off;ld.global.u64 %b,[%addr];ld.global.u64 %be,[%addr+24];setp.eq.u64 %p,%b,0;@%p bra ARENA_DATA_NEXT;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;
+ARENA_DATA_NEXT:add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,43;@%p bra ARENA_DATA;mov.u32 %iy,0;
+ARENA_OBJECT:mul.wide.u32 %off,%iy,8;add.u64 %addr,%sp,128;add.u64 %addr,%addr,%off;ld.global.u64 %b,[%addr];mul.wide.u32 %off,%iy,2;mov.u64 %addr,surface_radiation_object_sizes;add.u64 %addr,%addr,%off;ld.const.u16 %w,[%addr];cvt.u64.u32 %bn,%w;add.u64 %be,%b,%bn;setp.lt.u64 %p,%be,%b;@%p bra REFUSE;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,43;@%p bra ARENA_OBJECT;mov.u32 %iy,0;
+ARENA_NESTED:mul.wide.u32 %off,%iy,32;add.u64 %addr,%sp,2880;add.u64 %addr,%addr,%off;ld.global.u64 %b,[%addr];ld.global.u64 %be,[%addr+24];setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,5;@%p bra ARENA_NESTED;ld.global.u64 %b,[%state+208];add.u64 %be,%b,288;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;mov.u32 %iy,0;
+ARENA_COUNTER:mul.wide.u32 %off,%iy,8;add.u64 %addr,%env,%off;ld.global.u64 %b,[%addr];add.u64 %be,%b,8;setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;add.u32 %iy,%iy,1;setp.lt.u32 %p,%iy,4;@%p bra ARENA_COUNTER;
+setp.ne.u32 %p,%mode,2;@%p bra REFUSE;ld.global.u64 %first,[%state+152];ld.global.u64 %last,[%state+216];sub.u64 %count,%last,%first;setp.eq.u64 %p,%count,0;@%p bra REFUSE;setp.gt.u64 %p,%count,32;@%p bra REFUSE;add.u64 %ctl,%arena,19464192;mov.u64 %originalstate,%state;mov.u64 %originalenv,%env;mov.u64 %originalgap,%gap;mov.u64 %originalout,%out;ld.global.u64 %t,[%vector+40];setp.eq.u64 %p,%t,2;@%p st.global.u32 [%ctl+32],0;ld.global.u32 %w,[%ctl];setp.ne.u32 %p,%w,0;@%p bra FALLBACK;mov.u32 %lane,0;CHECK_MARKERS:cvt.u64.u32 %offset,%lane;setp.ge.u64 %p,%offset,%count;@%p bra MARKERS_DONE;mul.wide.u32 %offset,%lane,4;add.u64 %addr,%ctl,32;add.u64 %addr,%addr,%offset;ld.global.u32 %w,[%addr];setp.ne.u32 %p,%w,1;@%p bra FALLBACK;mul.wide.u32 %offset,%lane,589824;add.u64 %addr,%arena,%offset;ld.global.u32 %w,[%addr+1376];setp.ne.u32 %p,%w,0;@%p bra FALLBACK;add.u32 %lane,%lane,1;bra CHECK_MARKERS;MARKERS_DONE:ld.global.u64 %t,[%vector+40];setp.eq.u64 %p,%t,1;@%p bra FALLBACK;
+ld.global.u32 %flagPrefix,[%originalstate+776];ld.global.u32 %errPrefix,[%originalstate+800];
+mov.u64 %sum0,0;mov.u64 %sum1,0;mov.u64 %sum2,0;mov.u64 %sum3,0;mov.u64 %lakeRow,0;
+sub.u64 %offset,%count,1;mul.lo.u64 %offset,%offset,589824;add.u64 %lastRow,%arena,%offset;mov.u32 %lane,0;
+SPARSE_COLUMN:
+mul.wide.u32 %offset,%lane,589824;add.u64 %currentRow,%arena,%offset;
+setp.ne.u64 %p,%currentRow,%lastRow;@%p bra SPARSE_PREFIX;
+ld.global.u32 %wa,[%lastRow+15472];or.b32 %wa,%wa,%flagPrefix;st.global.u32 [%lastRow+15472],%wa;
+ld.global.u32 %wa,[%lastRow+15560];or.b32 %wa,%wa,%flagPrefix;st.global.u32 [%lastRow+15560],%wa;
+ld.global.u32 %localBefore,[%lastRow+1420];setp.eq.u32 %p,%localBefore,0;@%p st.global.u32 [%lastRow+15480],%errPrefix;
+SPARSE_PREFIX:
+ld.global.u32 %wa,[%currentRow+776];or.b32 %flagPrefix,%flagPrefix,%wa;
+ld.global.u64 %evord,[%currentRow+1408];setp.ne.u64 %p,%evord,0;@%p ld.global.u32 %errPrefix,[%currentRow+1416];
+ld.global.u32 %wa,[%currentRow+1424];setp.ne.u32 %p,%wa,0;@%p mov.u64 %lakeRow,%currentRow;
+ld.global.u64 %v,[%currentRow+1344];add.u64 %sum0,%sum0,%v;
+ld.global.u64 %v,[%currentRow+1352];add.u64 %sum1,%sum1,%v;
+ld.global.u64 %v,[%currentRow+1360];add.u64 %sum2,%sum2,%v;
+ld.global.u64 %v,[%currentRow+1368];add.u64 %sum3,%sum3,%v;
+add.u32 %lane,%lane,1;cvt.u64.u32 %offset,%lane;setp.lt.u64 %p,%offset,%count;@%p bra SPARSE_COLUMN;
+st.global.u32 [%lastRow+776],%flagPrefix;st.global.u32 [%lastRow+800],%errPrefix;
+setp.eq.u64 %p,%lakeRow,0;@%p bra SPARSE_LAKE_DONE;
+ld.global.u64 %v,[%lakeRow+15680];st.global.u64 [%lastRow+15680],%v;
+ld.global.u64 %v,[%lakeRow+15688];st.global.u64 [%lastRow+15688],%v;
+SPARSE_LAKE_DONE:
+st.global.u64 [%lastRow+1344],%sum0;st.global.u64 [%lastRow+1352],%sum1;st.global.u64 [%lastRow+1360],%sum2;st.global.u64 [%lastRow+1368],%sum3;
+mov.u64 %row,%lastRow;ld.global.u32 %mode,[%row+1380];
+add.u64 %src,%row,2048;
+mov.u64 %src,%src;mov.u64 %dst,%originalgap;mov.u32 %k,0;
+COMMIT_SOURCE:
+ld.global.u64 %v,[%src];st.global.u64 [%dst],%v;add.u64 %src,%src,8;add.u64 %dst,%dst,8;add.u32 %k,%k,8;setp.lt.u32 %p,%k,51200;@%p bra COMMIT_SOURCE;
+mov.u64 %src,%row;mov.u64 %dst,%originalstate;mov.u32 %k,0;
+COMMIT_STATE:
+ld.global.u64 %v,[%src];st.global.u64 [%dst],%v;add.u64 %src,%src,8;add.u64 %dst,%dst,8;add.u32 %k,%k,8;setp.lt.u32 %p,%k,832;@%p bra COMMIT_STATE;
+mov.u32 %arg,0;
+COMMIT_OUTPUTS_ARG:mul.wide.u32 %offset,%arg,40;add.u64 %map,%arena,19464448;add.u64 %map,%map,%offset;ld.global.u64 %basearg,[%map];ld.global.u64 %stride,[%map+8];ld.global.u64 %pitch,[%map+16];ld.global.u64 %data,[%map+24];ld.global.u64 %planes,[%map+32];mov.u32 %plane,0;
+COMMIT_OUTPUTS_PLANE:mov.u32 %k,0;
+COMMIT_OUTPUTS_COL:
+cvt.u64.u32 %column,%k;add.u64 %column,%column,%first;mul.lo.u64 %coloff,%column,%stride;cvt.u64.u32 %offset,%plane;mul.lo.u64 %offset,%offset,%pitch;add.u64 %src,%basearg,%coloff;add.u64 %src,%src,%offset;mul.wide.u32 %offset,%plane,256;mul.wide.u32 %coloff,%k,8;add.u64 %dst,%data,%offset;add.u64 %dst,%dst,%coloff;
+ld.global.u64 %v,[%dst];st.global.u64 [%src],%v;
+add.u32 %k,%k,1;cvt.u64.u32 %offset,%k;setp.lt.u64 %p,%offset,%count;@%p bra COMMIT_OUTPUTS_COL;add.u32 %plane,%plane,1;cvt.u64.u32 %offset,%plane;setp.lt.u64 %p,%offset,%planes;@%p bra COMMIT_OUTPUTS_PLANE;add.u32 %arg,%arg,1;setp.lt.u32 %p,%arg,8;@%p bra COMMIT_OUTPUTS_ARG;
+ld.global.u64 %basearg,[%originalenv+0];ld.global.u64 %v,[%row+1344];ld.global.u64 %t,[%basearg];add.u64 %t,%t,%v;st.global.u64 [%basearg],%t;
+ld.global.u64 %basearg,[%originalenv+8];ld.global.u64 %v,[%row+1352];ld.global.u64 %t,[%basearg];add.u64 %t,%t,%v;st.global.u64 [%basearg],%t;
+ld.global.u64 %basearg,[%originalenv+16];ld.global.u64 %v,[%row+1360];ld.global.u64 %t,[%basearg];add.u64 %t,%t,%v;st.global.u64 [%basearg],%t;
+ld.global.u64 %basearg,[%originalenv+24];ld.global.u64 %v,[%row+1368];ld.global.u64 %t,[%basearg];add.u64 %t,%t,%v;st.global.u64 [%basearg],%t;
+ld.global.u32 %flags,[%row+776];ld.global.u32 %w,[%ctx+8];or.b32 %w,%w,%flags;st.global.u32 [%ctx+8],%w;mov.u32 %w,0;st.global.u32 [%originalout],%w;st.global.u32 [%originalout+4],%w;st.global.u32 [%originalout+16],%mode;st.global.u32 [%originalout+20],%w;st.global.u64 [%originalout+24],0;ld.global.u32 %w,[%row+800];st.global.u32 [%originalout+8],%w;st.global.u32 [%originalout+12],1;st.global.u32 [%ctl+4],1;ret;
+FALLBACK:st.global.u32 [%ctl+4],2;ret;
+REFUSE:
+mov.u32 %w,1;@%leader st.global.u32 [%ctx],%w;ret;
+}
