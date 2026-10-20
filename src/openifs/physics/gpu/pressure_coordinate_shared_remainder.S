@@ -1,5 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/fullpos/complete_pressure_output_provider.md.
-#include "../../support/gpu/preserved_scalar_calls.inc.S"
+#include "../../support/gpu/preserved_scalar_calls.inc.S" // Contract: skills/md2asm-gpu/references/openifs/fullpos/complete_pressure_output_provider.md.
 .text
 .p2align 4
 .global md2asm_ppflev_7358525
@@ -1360,7 +1359,7 @@ md2asm_gpu_r23_ppintp_complete_phase_host:
  add x1,sp,#976
  mov x2,x20
  mov w3,#1
- mov w4,#1
+ mov w4,#128
  mov w5,#0
  r23_ppintp_complete_service md2asm_openifs_gpu_launch
  cbnz w0,.Lr23_ppintp_complete_fatal
@@ -1420,7 +1419,7 @@ md2asm_gpu_r23_ppintp_complete_phase_host:
  brk #0
 .size md2asm_gpu_r23_ppintp_complete_phase_host,.-md2asm_gpu_r23_ppintp_complete_phase_host
 .section .rodata
-.Lr23_ppintp_complete_entry:.asciz "md2asm_gpu_r23_ppintp_complete"
+.Lr23_ppintp_complete_entry:.asciz "md2asm_gpu_pressure_interpolation_parallel_cells"
 .section .note.GNU-stack,"",%progbits
 
 .text
@@ -2347,3 +2346,4 @@ md2asm_r24_pressure_standard_loop_phase_host:
 .size md2asm_r24_pressure_standard_loop_phase_host,.-md2asm_r24_pressure_standard_loop_phase_host
 .section .rodata
 .Lr24_pressure_standard_loop_entry:.asciz "md2asm_gpu_pressure_standard_parallel_cells"
+
