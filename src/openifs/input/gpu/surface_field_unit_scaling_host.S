@@ -1,4 +1,4 @@
-#include "../../support/gpu/preserved_weather_calls.inc.S"
+/* Complete GPU phase. Contract: skills/md2asm-gpu/references/openifs/input/complete_surface_initial_conversion.md */
 /*
  * Surface field unit scaling, revision 1.
  * Physics: formulations/openifs/input/surface_field_unit_scaling.md
@@ -63,69 +63,8 @@ md2asm_scale_initial_surface_fields:
  DISJOINT x2,x10,x6,x12
  mrs x8,fpcr
  cbnz x8,.Lbad_mode
- mov x7,#0
-.Lfield2:
- ldr w8,[x4,x7,lsl#2]
- fmov d1,#1.0
- cmp w8,#173
- b.eq .Lgravity2
- cmp w8,#244
- b.eq .Lgravity2
- cmp w8,#160
- b.eq .Lgravity2
- cmp w8,#198
- b.eq .Lwater2
- b .Lfactor2_ready
-.Lgravity2:
- ldr d1,[x6]
- b .Lfactor2_ready
-.Lwater2:
- ldr d1,[x6,#8]
-.Lfactor2_ready:
- mov x8,#2048
-.Lpoint2:
- ldr d0,[x0]
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,2,d0,d1,d0 // fmul d0,d1,d0
- str d0,[x0],#8
- subs x8,x8,#1
- b.ne .Lpoint2
- add x7,x7,#1
- cmp x7,#47
- b.ne .Lfield2
- add x4,x4,#188
- mov x7,#0
-.Lfield3:
- ldr w8,[x4,x7,lsl#2]
- fmov d1,#1.0
- cmp w8,#173
- b.eq .Lgravity3
- cmp w8,#244
- b.eq .Lgravity3
- cmp w8,#160
- b.eq .Lgravity3
- cmp w8,#141
- b.eq .Lwater3
- cmp w8,#198
- b.eq .Lwater3
- b .Lfactor3_ready
-.Lgravity3:
- ldr d1,[x6]
- b .Lfactor3_ready
-.Lwater3:
- ldr d1,[x6,#8]
-.Lfactor3_ready:
- mov x8,#10240
-.Lpoint3:
- ldr d0,[x2]
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,2,d0,d1,d0 // fmul d0,d1,d0
- str d0,[x2],#8
- subs x8,x8,#1
- b.ne .Lpoint3
- add x7,x7,#1
- cmp x7,#5
- b.ne .Lfield3
- mov w0,#0
- ret
+ mov x8,#0
+ b md2asm_initial_surface_complete_phase
 .Lbad:
  mov w0,#1
  ret

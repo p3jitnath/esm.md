@@ -1,4 +1,4 @@
-#include "../../support/gpu/preserved_weather_calls.inc.S"
+/* Complete GPU phase. Contract: skills/md2asm-gpu/references/openifs/input/complete_surface_initial_conversion.md */
 /*
  * Surface initial-state conversion, revision 1.
  * Physics: formulations/openifs/input/surface_initial_state_conversion.md
@@ -174,34 +174,8 @@ md2asm_convert_initial_surface_state:
  add x13,x13,#1
  cmp x13,#3
  b.ne .Lfind3d_field
- // Source NINT rounds a half away from zero. Require each table index in 0..N.
- md2asm_gpu_upper_operation md2asm_gpu_startup_integer_cell_host,17,d1,x24 // scvtf d1,x24
- fmov d2,#0.5
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,0,d1,d1,d2 // fadd d1,d1,d2
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,15,d2,d2 // fneg d2,d2
- mov x23,#0
-.Lpreflight_vegetation:
- LOAD_FIELD d0,15
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,4,none,d0,d2,real,late,comparison // fcmp d0,d2
- b.vs .Lvegetation_bad
- b.le .Lvegetation_bad
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,4,none,d0,d1,real,late,comparison // fcmp d0,d1
- b.ge .Lvegetation_bad
- LOAD_FIELD d0,16
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,4,none,d0,d2,real,late,comparison // fcmp d0,d2
- b.vs .Lvegetation_bad
- b.le .Lvegetation_bad
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,4,none,d0,d1,real,late,comparison // fcmp d0,d1
- b.ge .Lvegetation_bad
- add x23,x23,#1
- cmp x23,#2048
- b.ne .Lpreflight_vegetation
- ldr x8,[sp,#352]
- msr fpsr,x8
- ldr x8,[x22,#64]
- str x8,[sp,#336]
- ldr x8,[x22,#80]
- str x8,[sp,#344]
+
+ // The complete phase retains preflight, scaling and conversion in one launch.
  mov x0,x19
  movz x1,#0xc000
  movk x1,#11,lsl#16
@@ -210,171 +184,10 @@ md2asm_convert_initial_surface_state:
  movk x3,#6,lsl#16
  mov x4,x21
  mov x5,#208
- add x6,sp,#336
- mov x7,#16
- bl md2asm_scale_initial_surface_fields
- // The validated child has no remaining reject route for these arguments.
- cbnz w0,.Lreturn
- fmov d31,xzr
- fmov d30,#0.5
- ldr d29,[x22,#72]
- ldr d28,[x22,#96]
- ldr d27,[x22,#88]
- fmov d26,#2.0
- adrp x8,.Lfreeze_temperature
- ldr d25,[x8,:lo12:.Lfreeze_temperature]
- adrp x8,.Lmissing
- ldr d24,[x8,:lo12:.Lmissing]
- add x27,x22,#256
- add x28,x22,#1280
- mov x23,#0
-.Lpoint:
- LOAD_FIELD d0,14
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,4,none,d0,d24,real,late,comparison // fcmp d0,d24
- b.ne .Lsst_ready
- STORE_FIELD d29,14
-.Lsst_ready:
- LOAD_FIELD d0,20
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,4,none,d0,d24,real,late,comparison // fcmp d0,d24
- b.ne .Lice_missing_ready
- STORE_FIELD d31,20
-.Lice_missing_ready:
- LOAD_FIELD d0,0
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,4,none,d0,d30,real,late,comparison // fcmp d0,d30
- b.gt .Lland_adjusted
- LOAD_FIELD d1,2
- ldr x8,[x22,#40]
- cbnz x8,.Locean_skin_ready
- ldr x8,[x22,#48]
- cbnz x8,.Locean_skin_ready
- STORE_FIELD d1,1
-.Locean_skin_ready:
- STORE_FIELD d1,4
- STORE_FIELD d1,5
- STORE_FIELD d31,6
- STORE_FIELD d31,9
- STORE_FIELD d31,10
- ldr x8,[sp,#312]
- add x8,x8,x23,lsl#3
- mov x9,#5
-.Lsea_snow_zero:
- str d31,[x8]
- add x8,x8,#16384
- subs x9,x9,#1
- b.ne .Lsea_snow_zero
- STORE_FIELD d1,3
- STORE_FIELD d31,7
- STORE_FIELD d31,8
-.Lland_adjusted:
- ldr x8,[sp,#312]
- add x8,x8,x23,lsl#3
- mov x9,#5
- fmov d16,xzr
-.Lsnow_depth:
- ldr d0,[x8]
- md2asm_gpu_upper_operation md2asm_gpu_output_numeric_cell_host,17,d0,d31,d0 // fmaxnm d0,d31,d0
- str d0,[x8]
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,0,d16,d16,d0 // fadd d16,d16,d0
- add x8,x8,#16384
- subs x9,x9,#1
- b.ne .Lsnow_depth
- ldr x8,[sp,#328]
- add x8,x8,x23,lsl#3
- mov x9,#5
- fmov d17,xzr
-.Lsnow_water:
- ldr d0,[x8]
- md2asm_gpu_upper_operation md2asm_gpu_output_numeric_cell_host,17,d0,d31,d0 // fmaxnm d0,d31,d0
- str d0,[x8]
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,0,d17,d17,d0 // fadd d17,d17,d0
- add x8,x8,#16384
- subs x9,x9,#1
- b.ne .Lsnow_water
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,1,d0,d16,d17 // fsub d0,d16,d17
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,4,none,d0,d31,real,late,comparison // fcmpe d0,d31
- b.hi .Lsnow_kept
- ldr x8,[sp,#312]
- ldr x10,[sp,#328]
- add x8,x8,x23,lsl#3
- add x10,x10,x23,lsl#3
- mov x9,#5
-.Lsnow_no_ice_zero:
- str d31,[x8]
- str d31,[x10]
- add x8,x8,#16384
- add x10,x10,#16384
- subs x9,x9,#1
- b.ne .Lsnow_no_ice_zero
-.Lsnow_kept:
- ldr x8,[sp,#320]
- add x8,x8,x23,lsl#3
- mov x9,#5
-.Lsnow_temperature:
- ldr d0,[x8]
- md2asm_gpu_upper_operation md2asm_gpu_output_numeric_cell_host,18,d0,d0,d29 // fminnm d0,d0,d29
- str d0,[x8]
- add x8,x8,#16384
- subs x9,x9,#1
- b.ne .Lsnow_temperature
- LOAD_FIELD d0,15
- md2asm_gpu_upper_operation md2asm_gpu_startup_integer_cell_host,20,w9,d0,zero,real,late,integer,256,direct_after_upper // fcvtas w9,d0
- LOAD_FIELD d0,16
- md2asm_gpu_upper_operation md2asm_gpu_startup_integer_cell_host,20,w10,d0,zero,real,late,integer,256,direct_after_upper // fcvtas w10,d0
- ldr d1,[x27,w9,sxtw#3]
- LOAD_FIELD d0,17
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,2,d16,d0,d1 // fmul d16,d0,d1
- ldr d1,[x27,w10,sxtw#3]
- LOAD_FIELD d0,18
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,2,d17,d0,d1 // fmul d17,d0,d1
- fmov d0,#1.0
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,1,d18,d0,d16 // fsub d18,d0,d16
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,1,d18,d18,d17 // fsub d18,d18,d17
- ldr d1,[x28,w9,sxtw#3]
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,2,d19,d16,d1 // fmul d19,d16,d1
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,0,d18,d18,d19 // fadd d18,d18,d19
- ldr d1,[x28,w10,sxtw#3]
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,2,d19,d17,d1 // fmul d19,d17,d1
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,0,d18,d18,d19 // fadd d18,d18,d19
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,2,d18,d27,d18 // fmul d18,d27,d18
- LOAD_FIELD d0,6
- md2asm_gpu_upper_operation md2asm_gpu_output_numeric_cell_host,18,d0,d18,d0 // fminnm d0,d18,d0
- md2asm_gpu_upper_operation md2asm_gpu_output_numeric_cell_host,17,d0,d31,d0 // fmaxnm d0,d31,d0
- STORE_FIELD d0,6
- LOAD_FIELD d0,20
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,4,none,d0,d28,real,late,comparison // fcmp d0,d28
- b.gt .Lsea_ice_ready
- STORE_FIELD d31,20
-.Lsea_ice_ready:
- LOAD_FIELD d0,13
- md2asm_gpu_upper_operation md2asm_gpu_output_numeric_cell_host,17,d0,d26,d0 // fmaxnm d0,d26,d0
- LOAD_FIELD d1,11
- md2asm_gpu_upper_operation md2asm_gpu_output_numeric_cell_host,18,d0,d0,d1 // fminnm d0,d0,d1
- md2asm_gpu_upper_operation md2asm_gpu_output_numeric_cell_host,17,d0,d31,d0 // fmaxnm d0,d31,d0
- STORE_FIELD d0,11
- LOAD_FIELD d0,12
- md2asm_gpu_upper_operation md2asm_gpu_output_numeric_cell_host,17,d0,d25,d0 // fmaxnm d0,d25,d0
- STORE_FIELD d0,12
- cbz x25,.Lcurrents_ready
- LOAD_FIELD d0,21
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,4,none,d0,d24,real,late,comparison // fcmp d0,d24
- b.ne .Lcurrent_u_ready
- STORE_FIELD d31,21
-.Lcurrent_u_ready:
- LOAD_FIELD d0,22
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,4,none,d0,d24,real,late,comparison // fcmp d0,d24
- b.ne .Lcurrent_v_ready
- STORE_FIELD d31,22
-.Lcurrent_v_ready:
- LOAD_FIELD d0,0
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,4,none,d0,d30,real,late,comparison // fcmp d0,d30
- b.le .Lcurrents_ready
- STORE_FIELD d31,21
- STORE_FIELD d31,22
-.Lcurrents_ready:
- add x23,x23,#1
- cmp x23,#2048
- b.ne .Lpoint
- mov w0,#0
+ mov x6,x22
+ mov x7,#2304
+ mov x8,#1
+ bl md2asm_initial_surface_complete_phase
  b .Lreturn
 .Lvegetation_bad:
  mov w0,#5
@@ -411,4 +224,179 @@ md2asm_convert_initial_surface_state:
  .double 273.15
 .Lmissing:
  .double -9999.0
+
+
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_initial_surface_complete_phase
+.hidden md2asm_initial_surface_complete_phase
+.type md2asm_initial_surface_complete_phase,%function
+md2asm_initial_surface_complete_phase:
+ sub sp,sp,#1536
+ stp x0,x1,[sp,#0]
+ stp x2,x3,[sp,#16]
+ stp x4,x5,[sp,#32]
+ stp x6,x7,[sp,#48]
+ stp x8,x9,[sp,#64]
+ stp x10,x11,[sp,#80]
+ stp x12,x13,[sp,#96]
+ stp x14,x15,[sp,#112]
+ stp x16,x17,[sp,#128]
+ stp x18,x19,[sp,#144]
+ stp x20,x21,[sp,#160]
+ stp x22,x23,[sp,#176]
+ stp x24,x25,[sp,#192]
+ stp x26,x27,[sp,#208]
+ stp x28,x29,[sp,#224]
+ str x30,[sp,#240]
+ stp q0,q1,[sp,#256]
+ stp q2,q3,[sp,#288]
+ stp q4,q5,[sp,#320]
+ stp q6,q7,[sp,#352]
+ stp q8,q9,[sp,#384]
+ stp q10,q11,[sp,#416]
+ stp q12,q13,[sp,#448]
+ stp q14,q15,[sp,#480]
+ stp q16,q17,[sp,#512]
+ stp q18,q19,[sp,#544]
+ stp q20,q21,[sp,#576]
+ stp q22,q23,[sp,#608]
+ stp q24,q25,[sp,#640]
+ stp q26,q27,[sp,#672]
+ stp q28,q29,[sp,#704]
+ stp q30,q31,[sp,#736]
+ mrs x9,fpcr
+ mrs x10,fpsr
+ mrs x11,nzcv
+ str x9,[sp,#768]
+ str x10,[sp,#776]
+ str x11,[sp,#784]
+ cbnz x9,.Lsurface_phase_fatal
+ bl __errno_location
+ ldr x18,[sp,#144]
+ str x0,[sp,#792]
+ ldr w9,[x0]
+ str w9,[sp,#800]
+ bl omp_in_parallel
+ ldr x18,[sp,#144]
+ cbnz w0,.Lsurface_phase_fatal
+ bl md2asm_openifs_gpu_prepare
+ ldr x18,[sp,#144]
+ cbnz w0,.Lsurface_phase_fatal
+ add x19,sp,#832
+ add x20,sp,#896
+ add x21,sp,#960
+ mov x9,#0
+.Lsurface_zero_private:
+ str xzr,[x19,x9,lsl #3]
+ add x9,x9,#1
+ cmp x9,#24
+ b.lo .Lsurface_zero_private
+ ldr x9,[sp]
+ ldr x10,[sp,#16]
+ stp x9,x10,[x19]
+ ldr x9,[sp,#32]
+ ldr x10,[sp,#48]
+ stp x9,x10,[x19,#16]
+ ldr x9,[sp,#64]
+ str x9,[x19,#32]
+ mov x9,#64
+ stp x9,x9,[x21]
+ movz x9,#0xc000
+ movk x9,#11,lsl#16
+ str x9,[x21,#16]
+ movz x9,#0x4000
+ movk x9,#6,lsl#16
+ str x9,[x21,#24]
+ mov x9,#208
+ str x9,[x21,#32]
+ mov x9,#16
+ ldr x10,[sp,#64]
+ cbz x10,.Lsurface_cfg_capacity_ready
+ mov x9,#2304
+.Lsurface_cfg_capacity_ready:
+ str x9,[x21,#40]
+ mov w9,#1
+ str w9,[x20,#4]
+ str x21,[x20,#48]
+ mov x9,#64
+ str x9,[x20,#56]
+ ldr x9,[sp,#768]
+ ldr x10,[sp,#776]
+ msr fpcr,x9
+ msr fpsr,x10
+ ldr x9,[sp,#792]
+ ldr w10,[sp,#800]
+ str w10,[x9]
+ adrp x0,.Lsurface_complete_entry_name
+ add x0,x0,:lo12:.Lsurface_complete_entry_name
+ mov x1,x19
+ mov x2,x20
+ mov w3,#1
+ mov w4,#128
+ mov w5,#0
+ bl md2asm_openifs_gpu_launch
+ ldr x18,[sp,#144]
+ cbnz w0,.Lsurface_phase_fatal
+ ldr w9,[x20]
+ cbnz w9,.Lsurface_phase_fatal
+ ldr x9,[x20,#16]
+ cbnz x9,.Lsurface_phase_fatal
+ ldr w9,[x20,#32]
+ cmp w9,#5
+ b.hi .Lsurface_phase_fatal
+ str w9,[sp,#808]
+ ldr x9,[sp,#768]
+ msr fpcr,x9
+ ldr x9,[sp,#776]
+ ldr w10,[x20,#8]
+ orr x9,x9,x10
+ msr fpsr,x9
+ ldr x9,[sp,#792]
+ ldr w10,[sp,#800]
+ str w10,[x9]
+ ldr x9,[sp,#784]
+ msr nzcv,x9
+ ldp q0,q1,[sp,#256]
+ ldp q2,q3,[sp,#288]
+ ldp q4,q5,[sp,#320]
+ ldp q6,q7,[sp,#352]
+ ldp q8,q9,[sp,#384]
+ ldp q10,q11,[sp,#416]
+ ldp q12,q13,[sp,#448]
+ ldp q14,q15,[sp,#480]
+ ldp q16,q17,[sp,#512]
+ ldp q18,q19,[sp,#544]
+ ldp q20,q21,[sp,#576]
+ ldp q22,q23,[sp,#608]
+ ldp q24,q25,[sp,#640]
+ ldp q26,q27,[sp,#672]
+ ldp q28,q29,[sp,#704]
+ ldp q30,q31,[sp,#736]
+ ldp x0,x1,[sp,#0]
+ ldp x2,x3,[sp,#16]
+ ldp x4,x5,[sp,#32]
+ ldp x6,x7,[sp,#48]
+ ldp x8,x9,[sp,#64]
+ ldp x10,x11,[sp,#80]
+ ldp x12,x13,[sp,#96]
+ ldp x14,x15,[sp,#112]
+ ldp x16,x17,[sp,#128]
+ ldp x18,x19,[sp,#144]
+ ldp x20,x21,[sp,#160]
+ ldp x22,x23,[sp,#176]
+ ldp x24,x25,[sp,#192]
+ ldp x26,x27,[sp,#208]
+ ldp x28,x29,[sp,#224]
+ ldr x30,[sp,#240]
+ ldr w0,[sp,#808]
+ add sp,sp,#1536
+ ret
+.Lsurface_phase_fatal:
+ bl abort
+ brk #0
+.size md2asm_initial_surface_complete_phase,.-md2asm_initial_surface_complete_phase
+.section .rodata
+.Lsurface_complete_entry_name:.asciz "md2asm_gpu_initial_surface_complete"
 .section .note.GNU-stack,"",%progbits

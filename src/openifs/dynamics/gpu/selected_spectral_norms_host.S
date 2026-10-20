@@ -1,4 +1,5 @@
-#include "../../support/gpu/preserved_weather_calls.inc.S"
+// Complete selected spectral norms; the original host preflight remains unchanged.
+// Contract: skills/md2asm-gpu/references/openifs/dynamics/selected_spectral_norm_complete_contract.md.
 .text
 .p2align 4
 .global md2asm_compute_selected_spectral_norms
@@ -112,168 +113,12 @@ md2asm_compute_selected_spectral_norms:
  b.lt .Lpreflight_map
 .Lparent_h0:
  mov x0,x19
- mov x9,#1520
- add x1,x20,x9
- mov x2,#0
- mov x3,#19
- mov x9,#0
- add x4,x21,x9
+ mov x1,x20
+ ldr x2,[sp,#160]
+ mov x3,x21
  str x18,[sp,#240]
- bl md2asm_spectral_norm_matrix_7358525
+ bl md2asm_gpu_selected_spectral_norm_phase_host
  ldr x18,[sp,#240]
- mov x0,x19
- mov x9,#1608
- add x1,x20,x9
- mov x2,#0
- mov x3,#19
- mov x9,#3344
- add x4,x21,x9
- str x18,[sp,#240]
- bl md2asm_spectral_norm_matrix_7358525
- ldr x18,[sp,#240]
- mov x0,x19
- mov x9,#1520
- add x1,x20,x9
- mov x2,#1
- mov x3,#19
- mov x9,#6688
- add x4,x21,x9
- str x18,[sp,#240]
- bl md2asm_spectral_norm_matrix_7358525
- ldr x18,[sp,#240]
- mov x0,x19
- mov x9,#1608
- add x1,x20,x9
- mov x2,#1
- mov x3,#19
- mov x9,#10032
- add x4,x21,x9
- str x18,[sp,#240]
- bl md2asm_spectral_norm_matrix_7358525
- ldr x18,[sp,#240]
- mov x0,x19
- mov x9,#2752
- add x1,x20,x9
- add x10,sp,#320
- mov x11,#0
-.Lcopy_desc_4:
- ldr x12,[x1,x11]
- str x12,[x10,x11]
- add x11,x11,#8
- cmp x11,#88
- b.lt .Lcopy_desc_4
- ldr x11,[x1,#8]
- ldr x12,[x1,#88]
- ldr x13,[x1,#96]
- madd x11,x12,x13,x11
- str x11,[x10,#8]
- mov x1,x10
- mov x2,#0
- mov x3,#19
- mov x9,#13376
- add x4,x21,x9
- str x18,[sp,#240]
- bl md2asm_spectral_norm_matrix_7358525
- ldr x18,[sp,#240]
- mov x0,x19
- mov x9,#2400
- add x1,x20,x9
- add x10,sp,#320
- ldr x11,[x1]
- str x11,[x10]
- ldr x11,[x1,#8]
- sub x11,x11,#1
- str x11,[x10,#8]
- mov x11,#1
- str x11,[x10,#40]
- str x11,[x10,#48]
- str x11,[x10,#56]
- ldr x11,[x1,#40]
- str x11,[x10,#64]
- ldr x11,[x1,#48]
- str x11,[x10,#72]
- ldr x11,[x1,#56]
- str x11,[x10,#80]
- mov x1,x10
- mov x2,#0
- mov x3,#1
- mov x9,#16720
- add x4,x21,x9
- str x18,[sp,#240]
- bl md2asm_spectral_norm_matrix_7358525
- ldr x18,[sp,#240]
- mov x9,#6688
- add x10,x21,x9
- mov x9,#10032
- add x11,x21,x9
- mov x12,#0
- fmov d2,#0.5
-.Lenergy_combine:
- ldr d0,[x10,x12,lsl #3]
- ldr d1,[x11,x12,lsl #3]
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,0,d0,d0,d1 // fadd d0,d0,d1
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,2,d0,d0,d2 // fmul d0,d0,d2
- str d0,[x10,x12,lsl #3]
- add x12,x12,#1
- cmp x12,#418
- b.lt .Lenergy_combine
- mov x9,#0
- add x0,x21,x9
- mov x1,#19
- mov x2,#0
- mov x9,#20064
- add x3,x21,x9
- str x18,[sp,#240]
- bl md2asm_spectral_norm_average_7358525
- ldr x18,[sp,#240]
- mov x9,#20824
- str d0,[x21,x9]
- mov x9,#3344
- add x0,x21,x9
- mov x1,#19
- mov x2,#0
- mov x9,#20216
- add x3,x21,x9
- str x18,[sp,#240]
- bl md2asm_spectral_norm_average_7358525
- ldr x18,[sp,#240]
- mov x9,#20832
- str d0,[x21,x9]
- ldr x9,[sp,#160]
- str d0,[x9]
- mov x9,#6688
- add x0,x21,x9
- mov x1,#19
- mov x2,#1
- mov x9,#20368
- add x3,x21,x9
- str x18,[sp,#240]
- bl md2asm_spectral_norm_average_7358525
- ldr x18,[sp,#240]
- mov x9,#20840
- str d0,[x21,x9]
- mov x9,#13376
- add x0,x21,x9
- mov x1,#19
- mov x2,#0
- mov x9,#20520
- add x3,x21,x9
- str x18,[sp,#240]
- bl md2asm_spectral_norm_average_7358525
- ldr x18,[sp,#240]
- mov x9,#20848
- str d0,[x21,x9]
- mov x9,#16720
- add x0,x21,x9
- mov x1,#1
- mov x2,#0
- mov x9,#20672
- add x3,x21,x9
- str x18,[sp,#240]
- bl md2asm_spectral_norm_average_7358525
- ldr x18,[sp,#240]
- mov x9,#20856
- str d0,[x21,x9]
  mov w0,#0
 .Lparent_h1:
  ldp x19,x20,[sp,#64]

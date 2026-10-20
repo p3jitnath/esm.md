@@ -1,0 +1,222 @@
+// Contract: skills/md2asm-gpu/references/openifs/dynamics/selected_spectral_norm_complete_contract.md.
+.version 8.5
+.target sm_90
+.address_size 64
+
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_selected_norm_matrix_cell(.param .u64 coefficients,.param .u64 inverse_laplacian,.param .u64 output,.param .u32 coefficient_start,.param .u32 wave,.param .u32 level,.param .u32 levels,.param .u32 kinetic);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_selected_norm_combine_energy(.param .u64 results,.param .u32 index);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_selected_norm_level_value(.param .u64 results,.param .u32 field,.param .u32 level);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_selected_norm_ordered_means(.param .u64 results,.param .u64 persistent);
+.func (.param .u32 result) selected_spectral_norm_range(.param .u64 base,.param .u64 bytes,.param .u64 capacity,.param .u64 mask)
+{
+ .reg .u64 %base,%bytes,%capacity,%mask,%end;.reg .u32 %error;.reg .pred %p;
+ ld.param.u64 %base,[base];ld.param.u64 %bytes,[bytes];ld.param.u64 %capacity,[capacity];ld.param.u64 %mask,[mask];mov.u32 %error,39101;
+ setp.eq.u64 %p,%base,0;@%p bra DONE;and.b64 %end,%base,%mask;setp.ne.u64 %p,%end,0;@%p bra DONE;
+ setp.gt.u64 %p,%bytes,%capacity;@%p bra DONE;add.u64 %end,%base,%bytes;setp.lt.u64 %p,%end,%base;@%p bra DONE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra DONE;
+ mov.u32 %error,0;
+DONE:st.param.u32 [result],%error;ret;
+}
+.visible .entry md2asm_gpu_selected_spectral_norms(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %args,%ctx,%caps,%input,%completion,%geometry,%spectral,%persistent,%results,%myms,%nasm,%rlapin,%vor,%div,%thermal,%pressure,%capacity,%word,%rows,%offset,%pointer,%abase,%asize,%aend,%bbase,%bsize,%bend;
+ .reg .u32 %lane,%origin,%axis,%error,%i,%j,%wa,%wb,%mask,%flags,%raised,%job,%kind,%local_index,%wave,%level,%levels,%start,%temporary;
+ .reg .pred %p,%q;
+ .local .align 8 .b8 owners[256];
+ .shared .align 8 .b8 shared_state[88];
+ .shared .align 4 .b8 thread_flags[1024];
+ .param .u64 rb,rn,rcap,rm;.param .u32 range_result;
+ mov.u32 %axis,%ctaid.x;mov.u32 %origin,%ctaid.y;or.b32 %axis,%axis,%origin;mov.u32 %origin,%ctaid.z;or.b32 %axis,%axis,%origin;setp.ne.u32 %p,%axis,0;@%p ret;
+ mov.u32 %lane,%tid.x;mov.u32 %origin,%tid.y;or.b32 %origin,%origin,%lane;mov.u32 %axis,%tid.z;or.b32 %origin,%origin,%axis;setp.ne.u32 %p,%origin,0;@%p bra ADMISSION_WAIT;
+ st.shared.u32 [shared_state],0;
+ ld.param.u64 %ctx,[common_context];setp.eq.u64 %p,%ctx,0;@%p bra ADMISSION_WAIT;and.b64 %word,%ctx,7;setp.ne.u64 %p,%word,0;@%p bra ADMISSION_WAIT;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p bra ADMISSION_WAIT;mov.u32 %error,39100;
+ mov.u32 %axis,%ntid.x;setp.ne.u32 %p,%axis,256;@%p bra REFUSE;mov.u32 %axis,%ntid.y;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;mov.u32 %axis,%ntid.z;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;
+ mov.u32 %axis,%nctaid.x;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;mov.u32 %axis,%nctaid.y;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;mov.u32 %axis,%nctaid.z;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;
+ mov.u32 %axis,%dynamic_smem_size;setp.ne.u32 %p,%axis,0;@%p bra REFUSE;
+ ld.global.u32 %axis,[%ctx+4];setp.ne.u32 %p,%axis,1;@%p bra REFUSE;ld.global.u32 %axis,[%ctx+12];setp.ne.u32 %p,%axis,0;@%p bra REFUSE;
+ ld.param.u64 %args,[original_vector];
+ mov.u64 %capacity,16;
+ st.param.u64 [rb],%args;st.param.u64 [rn],16;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),selected_spectral_norm_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ mov.u64 %capacity,64;
+ st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),selected_spectral_norm_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %caps,[%ctx+48];ld.global.u64 %capacity,[%ctx+56];
+ st.param.u64 [rb],%caps;st.param.u64 [rn],128;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),selected_spectral_norm_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %input,[%args];ld.global.u64 %completion,[%args+8];
+ ld.global.u64 %capacity,[%caps+0];
+ st.param.u64 [rb],%input;st.param.u64 [rn],32;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),selected_spectral_norm_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %capacity,[%caps+8];
+ st.param.u64 [rb],%completion;st.param.u64 [rn],16;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),selected_spectral_norm_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %geometry,[%input+0];
+ ld.global.u64 %capacity,[%caps+16];
+ st.param.u64 [rb],%geometry;st.param.u64 [rn],17096;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),selected_spectral_norm_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %spectral,[%input+8];
+ ld.global.u64 %capacity,[%caps+24];
+ st.param.u64 [rb],%spectral;st.param.u64 [rn],2992;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),selected_spectral_norm_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %persistent,[%input+16];
+ ld.global.u64 %capacity,[%caps+32];
+ st.param.u64 [rb],%persistent;st.param.u64 [rn],24;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),selected_spectral_norm_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %results,[%input+24];
+ ld.global.u64 %capacity,[%caps+40];
+ st.param.u64 [rb],%results;st.param.u64 [rn],20928;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),selected_spectral_norm_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %myms,[%geometry+3912];
+ ld.global.u64 %capacity,[%caps+48];
+ st.param.u64 [rb],%myms;st.param.u64 [rn],88;st.param.u64 [rcap],%capacity;st.param.u64 [rm],3;call.uni (range_result),selected_spectral_norm_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %nasm,[%geometry+3720];
+ ld.global.u64 %capacity,[%caps+56];
+ st.param.u64 [rb],%nasm;st.param.u64 [rn],88;st.param.u64 [rcap],%capacity;st.param.u64 [rm],3;call.uni (range_result),selected_spectral_norm_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %rlapin,[%geometry+4168];
+ ld.global.u64 %capacity,[%caps+64];
+ st.param.u64 [rb],%rlapin;st.param.u64 [rn],200;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),selected_spectral_norm_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %vor,[%spectral+1520];
+ ld.global.u64 %capacity,[%caps+72];
+ st.param.u64 [rb],%vor;st.param.u64 [rn],76912;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),selected_spectral_norm_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %div,[%spectral+1608];
+ ld.global.u64 %capacity,[%caps+80];
+ st.param.u64 [rb],%div;st.param.u64 [rn],76912;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),selected_spectral_norm_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %thermal,[%spectral+2752];
+ ld.global.u64 %capacity,[%caps+88];
+ st.param.u64 [rb],%thermal;st.param.u64 [rn],76912;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),selected_spectral_norm_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.global.u64 %pressure,[%spectral+2400];
+ ld.global.u64 %capacity,[%caps+96];
+ st.param.u64 [rb],%pressure;st.param.u64 [rn],4048;st.param.u64 [rcap],%capacity;st.param.u64 [rm],7;call.uni (range_result),selected_spectral_norm_range,(rb,rn,rcap,rm);ld.param.u32 %error,[range_result];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ mov.u32 %error,39102;
+ ld.global.u64 %word,[%caps+104];setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ ld.global.u64 %word,[%caps+112];setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ ld.global.u64 %word,[%caps+120];setp.ne.u64 %p,%word,0;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+3728];setp.ne.u64 %p,%word,0x0000000000000000;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+3736];setp.ne.u64 %p,%word,0x0000000000000004;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+3752];setp.ne.u64 %p,%word,0x0000000000000004;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+3760];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+3768];setp.ne.u64 %p,%word,0x0000000000000000;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+3776];setp.ne.u64 %p,%word,0x0000000000000015;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+3920];setp.ne.u64 %p,%word,0xffffffffffffffff;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+3928];setp.ne.u64 %p,%word,0x0000000000000004;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+3944];setp.ne.u64 %p,%word,0x0000000000000004;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+3952];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+3960];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+3968];setp.ne.u64 %p,%word,0x0000000000000016;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+4176];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+4184];setp.ne.u64 %p,%word,0x0000000000000008;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+4200];setp.ne.u64 %p,%word,0x0000000000000008;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+4208];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+4216];setp.ne.u64 %p,%word,0xffffffffffffffff;@%p bra REFUSE;
+ ld.global.u64 %word,[%geometry+4224];setp.ne.u64 %p,%word,0x0000000000000017;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1528];setp.ne.u64 %p,%word,0xffffffffffffffec;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1536];setp.ne.u64 %p,%word,0x0000000000000008;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1552];setp.ne.u64 %p,%word,0x0000000000000008;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1560];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1568];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1576];setp.ne.u64 %p,%word,0x0000000000000013;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1584];setp.ne.u64 %p,%word,0x0000000000000013;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1592];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1600];setp.ne.u64 %p,%word,0x00000000000001fa;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1616];setp.ne.u64 %p,%word,0xffffffffffffffec;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1624];setp.ne.u64 %p,%word,0x0000000000000008;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1640];setp.ne.u64 %p,%word,0x0000000000000008;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1648];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1656];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1664];setp.ne.u64 %p,%word,0x0000000000000013;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1672];setp.ne.u64 %p,%word,0x0000000000000013;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1680];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+1688];setp.ne.u64 %p,%word,0x00000000000001fa;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2408];setp.ne.u64 %p,%word,0xffffffffffffffff;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2416];setp.ne.u64 %p,%word,0x0000000000000008;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2432];setp.ne.u64 %p,%word,0x0000000000000008;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2440];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2448];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2456];setp.ne.u64 %p,%word,0x00000000000001fa;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2760];setp.ne.u64 %p,%word,0xffffffffffffda5e;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2768];setp.ne.u64 %p,%word,0x0000000000000008;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2784];setp.ne.u64 %p,%word,0x0000000000000008;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2792];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2800];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2808];setp.ne.u64 %p,%word,0x0000000000000013;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2816];setp.ne.u64 %p,%word,0x0000000000000013;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2824];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2832];setp.ne.u64 %p,%word,0x00000000000001fa;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2840];setp.ne.u64 %p,%word,0x000000000000258e;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2848];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ ld.global.u64 %word,[%spectral+2856];setp.ne.u64 %p,%word,0x0000000000000001;@%p bra REFUSE;
+ mov.u32 %i,0;
+CHECK_MAP:mul.wide.u32 %offset,%i,4;add.u64 %pointer,%myms,%offset;ld.global.u32 %axis,[%pointer];setp.ne.u32 %p,%axis,%i;@%p bra REFUSE;
+ mov.u32 %axis,45;sub.u32 %axis,%axis,%i;mul.lo.u32 %axis,%axis,%i;add.u32 %axis,%axis,1;add.u64 %pointer,%nasm,%offset;ld.global.u32 %j,[%pointer];setp.ne.u32 %p,%j,%axis;@%p bra REFUSE;add.u32 %i,%i,1;setp.lt.u32 %p,%i,22;@%p bra CHECK_MAP;
+ st.local.u64 [owners+0],%args;st.local.u64 [owners+8],16;
+ st.local.u64 [owners+16],%ctx;st.local.u64 [owners+24],64;
+ st.local.u64 [owners+32],%caps;st.local.u64 [owners+40],128;
+ st.local.u64 [owners+48],%input;st.local.u64 [owners+56],32;
+ st.local.u64 [owners+64],%completion;st.local.u64 [owners+72],16;
+ st.local.u64 [owners+80],%geometry;st.local.u64 [owners+88],17096;
+ st.local.u64 [owners+96],%spectral;st.local.u64 [owners+104],2992;
+ st.local.u64 [owners+112],%persistent;st.local.u64 [owners+120],24;
+ st.local.u64 [owners+128],%results;st.local.u64 [owners+136],20928;
+ st.local.u64 [owners+144],%myms;st.local.u64 [owners+152],88;
+ st.local.u64 [owners+160],%nasm;st.local.u64 [owners+168],88;
+ st.local.u64 [owners+176],%rlapin;st.local.u64 [owners+184],200;
+ st.local.u64 [owners+192],%vor;st.local.u64 [owners+200],76912;
+ st.local.u64 [owners+208],%div;st.local.u64 [owners+216],76912;
+ st.local.u64 [owners+224],%thermal;st.local.u64 [owners+232],76912;
+ st.local.u64 [owners+240],%pressure;st.local.u64 [owners+248],4048;
+ cvta.local.u64 %rows,owners;mov.u32 %i,1;
+PAIR_LEFT:mul.wide.u32 %offset,%i,16;add.u64 %pointer,%rows,%offset;ld.u64 %abase,[%pointer];ld.u64 %asize,[%pointer+8];add.u64 %aend,%abase,%asize;mov.u32 %j,0;
+PAIR_RIGHT:mov.u32 %mask,402;shr.u32 %wa,%mask,%i;shr.u32 %wb,%mask,%j;or.b32 %wa,%wa,%wb;and.b32 %wa,%wa,1;setp.eq.u32 %p,%wa,0;@%p bra NEXT_PAIR;
+ mul.wide.u32 %offset,%j,16;add.u64 %pointer,%rows,%offset;ld.u64 %bbase,[%pointer];ld.u64 %bsize,[%pointer+8];add.u64 %bend,%bbase,%bsize;
+ setp.lt.u64 %p,%abase,%bend;setp.lt.u64 %q,%bbase,%aend;and.pred %p,%p,%q;mov.u32 %error,39101;@%p bra REFUSE;
+NEXT_PAIR:add.u32 %j,%j,1;setp.lt.u32 %p,%j,%i;@%p bra PAIR_RIGHT;add.u32 %i,%i,1;setp.lt.u32 %p,%i,16;@%p bra PAIR_LEFT;
+ st.shared.u64 [shared_state+8],%ctx;
+ st.shared.u64 [shared_state+16],%completion;
+ st.shared.u64 [shared_state+24],%persistent;
+ st.shared.u64 [shared_state+32],%results;
+ st.shared.u64 [shared_state+40],%nasm;
+ st.shared.u64 [shared_state+48],%rlapin;
+ st.shared.u64 [shared_state+56],%vor;
+ st.shared.u64 [shared_state+64],%div;
+ st.shared.u64 [shared_state+72],%thermal;
+ st.shared.u64 [shared_state+80],%pressure;st.shared.u32 [shared_state],1;bra ADMISSION_WAIT;
+REFUSE:st.global.u32 [%ctx],%error;
+ADMISSION_WAIT:
+ bar.sync 0;ld.shared.u32 %axis,[shared_state];setp.eq.u32 %p,%axis,0;@%p ret;
+
+ ld.shared.u64 %results,[shared_state+32];ld.shared.u64 %nasm,[shared_state+40];ld.shared.u64 %rlapin,[shared_state+48];
+ ld.shared.u64 %vor,[shared_state+56];ld.shared.u64 %div,[shared_state+64];ld.shared.u64 %thermal,[shared_state+72];ld.shared.u64 %pressure,[shared_state+80];
+ mov.u32 %flags,0;mov.u32 %job,%lane;
+MATRIX_LOOP:
+ setp.ge.u32 %p,%job,2112;@%p bra MATRIX_DONE;
+ setp.ge.u32 %p,%job,2090;@%p bra PRESSURE_CELL;
+ div.u32 %kind,%job,418;rem.u32 %local_index,%job,418;div.u32 %wave,%local_index,19;rem.u32 %level,%local_index,19;mov.u32 %levels,19;
+ mul.lo.u32 %temporary,%kind,3344;mul.wide.u32 %offset,%local_index,8;cvt.u64.u32 %word,%temporary;add.u64 %offset,%offset,%word;add.u64 %pointer,%results,%offset;
+ mov.u64 %word,%vor;setp.eq.u32 %p,%kind,1;@%p mov.u64 %word,%div;setp.eq.u32 %p,%kind,3;@%p mov.u64 %word,%div;setp.eq.u32 %p,%kind,4;@%p mov.u64 %word,%thermal;
+ setp.eq.u32 %p,%kind,2;setp.eq.u32 %q,%kind,3;or.pred %p,%p,%q;selp.u32 %kind,1,0,%p;bra MATRIX_CALL;
+PRESSURE_CELL:
+ sub.u32 %wave,%job,2090;mov.u32 %level,0;mov.u32 %levels,1;mov.u32 %kind,0;mov.u64 %word,%pressure;
+ mul.wide.u32 %offset,%wave,8;add.u64 %pointer,%results,16720;add.u64 %pointer,%pointer,%offset;
+MATRIX_CALL:
+ mul.wide.u32 %offset,%wave,4;add.u64 %offset,%nasm,%offset;ld.global.u32 %start,[%offset];
+ { .param .u64 a0,a1,a2;.param .u32 a3,a4,a5,a6,a7;.param .align 8 .b8 r[16];
+ st.param.u64 [a0],%word;st.param.u64 [a1],%rlapin;st.param.u64 [a2],%pointer;st.param.u32 [a3],%start;st.param.u32 [a4],%wave;st.param.u32 [a5],%level;st.param.u32 [a6],%levels;st.param.u32 [a7],%kind;
+ call (r),md2asm_gpu_selected_norm_matrix_cell,(a0,a1,a2,a3,a4,a5,a6,a7);ld.param.u32 %raised,[r];or.b32 %flags,%flags,%raised; }
+ add.u32 %job,%job,256;bra MATRIX_LOOP;
+MATRIX_DONE:
+ bar.sync 0;mov.u32 %job,%lane;
+ENERGY_LOOP:
+ setp.ge.u32 %p,%job,418;@%p bra ENERGY_DONE;
+ { .param .u64 a0;.param .u32 a1;.param .align 8 .b8 r[16];
+ st.param.u64 [a0],%results;st.param.u32 [a1],%job;call (r),md2asm_gpu_selected_norm_combine_energy,(a0,a1);ld.param.u32 %raised,[r];or.b32 %flags,%flags,%raised; }
+ add.u32 %job,%job,256;bra ENERGY_LOOP;
+ENERGY_DONE:
+ bar.sync 0;setp.ge.u32 %p,%lane,77;@%p bra LEVEL_DONE;
+ setp.eq.u32 %p,%lane,76;@%p bra PRESSURE_LEVEL;div.u32 %kind,%lane,19;rem.u32 %level,%lane,19;bra LEVEL_CALL;
+PRESSURE_LEVEL:mov.u32 %kind,4;mov.u32 %level,0;
+LEVEL_CALL:
+ { .param .u64 a0;.param .u32 a1,a2;.param .align 8 .b8 r[16];
+ st.param.u64 [a0],%results;st.param.u32 [a1],%kind;st.param.u32 [a2],%level;call (r),md2asm_gpu_selected_norm_level_value,(a0,a1,a2);ld.param.u32 %raised,[r];or.b32 %flags,%flags,%raised; }
+LEVEL_DONE:
+ mul.wide.u32 %offset,%lane,4;mov.u64 %pointer,thread_flags;add.u64 %pointer,%pointer,%offset;st.shared.u32 [%pointer],%flags;
+ bar.sync 0;setp.ne.u32 %p,%lane,0;@%p ret;
+ ld.shared.u64 %ctx,[shared_state+8];ld.shared.u64 %completion,[shared_state+16];ld.shared.u64 %persistent,[shared_state+24];ld.global.u32 %flags,[%ctx+8];mov.u32 %i,0;
+JOIN_FLAGS:
+ mul.wide.u32 %offset,%i,4;mov.u64 %pointer,thread_flags;add.u64 %pointer,%pointer,%offset;ld.shared.u32 %raised,[%pointer];or.b32 %flags,%flags,%raised;
+ add.u32 %i,%i,1;setp.lt.u32 %p,%i,256;@%p bra JOIN_FLAGS;
+ { .param .u64 a0,a1;.param .align 8 .b8 r[16];
+ st.param.u64 [a0],%results;st.param.u64 [a1],%persistent;call.uni (r),md2asm_gpu_selected_norm_ordered_means,(a0,a1);ld.param.u32 %raised,[r];or.b32 %flags,%flags,%raised; }
+ st.global.u32 [%ctx+8],%flags;st.global.u32 [%completion],0;st.global.u32 [%completion+4],%flags;st.global.u32 [%completion+8],0;st.global.u32 [%completion+12],0;ret;
+}

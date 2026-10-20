@@ -1,7 +1,7 @@
-#include "../../support/gpu/preserved_weather_calls.inc.S"
 /* Selected initial SPECRT, KDIR zero, no spectral water or increments.
  * Physics: formulations/openifs/dynamics/virtual_temperature_conversion.md, revision1.0.
- * Contract: skills/md2asm/references/openifs/input/initial_virtual_temperature_conversion.md.
+ * CPU parent: skills/md2asm/references/openifs/input/initial_virtual_temperature_conversion.md.
+ * GPU cells: skills/md2asm-gpu/references/openifs/input/initial_virtual_temperature_cells_complete_contract.md.
  * x0 Geometry20400, x1 TGFL1096, x2 TYPE_GFLD1359136,
  * x3 SPECTRAL_FIELD2992, x4 constants520. Return0/1 allocation/2 scope.
  * Complete mapped aligned disjoint views and qualified metadata are caller obligations.
@@ -266,23 +266,6 @@ md2asm_initialize_spectral_virtual_temperature:
 .global md2asm_initial_virtual_temperature_cells
 .type md2asm_initial_virtual_temperature_cells,%function
 md2asm_initial_virtual_temperature_cells:
- ldr d2,[x3,#184]
- mov w4,#19
-.Lvt_level:
- mov x5,#0
-.Lvt_cell:
- ldr d0,[x0,x5,lsl#3]
- ldr d1,[x1,x5,lsl#3]
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,2,d0,d1,d0 // fmul d0,d1,d0
- md2asm_gpu_upper_operation md2asm_gpu_soil_water_cell_host,3,d0,d0,d2 // fdiv d0,d0,d2
- str d0,[x0,x5,lsl#3]
- add x5,x5,#1
- cmp w5,w2
- b.lo .Lvt_cell
- add x0,x0,#192
- add x1,x1,#192
- subs w4,w4,#1
- b.ne .Lvt_level
- ret
+ b md2asm_gpu_initial_virtual_temperature_cells_phase_host
 .size md2asm_initial_virtual_temperature_cells,.-md2asm_initial_virtual_temperature_cells
 .section .note.GNU-stack,"",%progbits

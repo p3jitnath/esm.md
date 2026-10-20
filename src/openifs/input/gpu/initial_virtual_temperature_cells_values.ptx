@@ -1,0 +1,31 @@
+// Complete initial virtual-temperature cells. Contract: skills/md2asm-gpu/references/openifs/input/initial_virtual_temperature_cells_complete_contract.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
+.visible .func (.param .align 8 .b8 result[16]) md2asm_gpu_initial_virtual_temperature_cells_values(.param .u32 lane,.param .u64 temperature,.param .u64 gas,.param .u64 constants,.param .u32 active)
+{
+ .reg .u64 %temperature,%gas,%constants,%offset,%pointer;
+ .reg .u32 %index,%column,%active,%flags,%raised;
+ .reg .b64 %t,%g,%rd,%product,%value;.reg .pred %p;
+ ld.param.u32 %index,[lane];ld.param.u32 %active,[active];
+ ld.param.u64 %temperature,[temperature];ld.param.u64 %gas,[gas];ld.param.u64 %constants,[constants];
+ ld.global.b64 %rd,[%constants+184];mov.u32 %flags,0;
+CELL:
+ setp.ge.u32 %p,%index,456;@%p bra RETURN;
+ rem.u32 %column,%index,24;setp.ge.u32 %p,%column,%active;@%p bra NEXT;
+ mul.wide.u32 %offset,%index,8;add.u64 %pointer,%temperature,%offset;ld.global.b64 %t,[%pointer];
+ add.u64 %pointer,%gas,%offset;ld.global.b64 %g,[%pointer];
+ { .param .b64 a0,b0;.param .align 8 .b8 r0[16];
+ st.param.b64 [a0],%g;st.param.b64 [b0],%t;call.uni (r0),md2asm_gpu_mul_status,(a0,b0);
+ ld.param.b64 %product,[r0];ld.param.u32 %raised,[r0+8];or.b32 %flags,%flags,%raised; }
+ { .param .b64 a1,b1;.param .align 8 .b8 r1[16];
+ st.param.b64 [a1],%product;st.param.b64 [b1],%rd;call.uni (r1),md2asm_gpu_div_status,(a1,b1);
+ ld.param.b64 %value,[r1];ld.param.u32 %raised,[r1+8];or.b32 %flags,%flags,%raised; }
+ add.u64 %pointer,%temperature,%offset;st.global.b64 [%pointer],%value;
+NEXT:
+ add.u32 %index,%index,256;bra CELL;
+RETURN:
+ st.param.u32 [result],%flags;st.param.u32 [result+4],0;st.param.u32 [result+8],0;st.param.u32 [result+12],0;ret;
+}
