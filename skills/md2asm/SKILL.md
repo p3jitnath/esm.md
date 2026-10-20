@@ -67,7 +67,7 @@ For long FP64 capture checks, represent physical residuals and their existing ro
 
 ## Locate the performance bound
 
-Profile complete steps, including waits in external services, and inspect their machine instructions before tuning. Map unnamed samples to linked assembly blocks. Compare numerical variants under matched monitoring settings and report any changed diagnostic output.
+Profile complete steps, including waits in external services, and inspect their machine instructions before tuning. Count executed calls by calculation and caller, then target repeated work in complete loops. Map unnamed samples to linked assembly blocks. Compare numerical variants under matched monitoring settings and report any changed diagnostic output.
 
 Registers are small storage locations inside the processor. Vector instructions apply one operation to several values at once. In a profiling-only build, store the caller’s return address in an unused saved register. Restore its original value at the public return. Attribute samples only inside children that keep the register unchanged throughout their execution, and check each address against a linked call instruction.
 
