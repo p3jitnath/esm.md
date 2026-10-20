@@ -1,0 +1,2748 @@
+// Interface and lifetime: skills/md2asm-gpu/references/openifs/cuda_runtime.md revision 3. // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func md2asm_gpu_mailbox_soil_water_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_mailbox_lake_controller_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_mailbox_startup_integer_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_mailbox_canopy_light_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_mailbox_lake_energy_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_mailbox_output_numeric_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_mailbox_physical_setup_numeric_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_mailbox_setup_span_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_aerosol_optics_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_shortwave_adding_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_ice_optics_fu_lw_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_ice_optics_fu_sw_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_liquid_optics_socrates_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_shortwave_layer_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_cloud_sampling_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_cloud_optics_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_coarse_vertical_spline_basis(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_r23_spline_knots_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_complete_legendre_analysis(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_cpqtuv(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_cucalln_provisional_state(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_cumulative_cloud_cover_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_dynamical_configuration(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_physics_interval_complete(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_forecast_clock_pairs(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_forecast_event_time(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_cloud_column_sampling_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_gpgrp(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_gprt(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_hybrid_coordinate_setup(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_model_time_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_nonorographic_parameter_fields(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_orographic_parameter_field(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_pressure_standard_complete_loop(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_complete_output_boundaries(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_complete_output_metadata(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_complete_output_norms(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_complete_spectral_fit(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_complete_transform_spans(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_fft992(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_fft992_qpassf(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_fft992_rpassf(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_parameter_carbon_assimilation_parameter_fields_phase(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_parameter_one_cell_carbon_assimilation_fields_phase(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_parameter_soil_parameter_fields_phase(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_parameter_soil_texture_average_fields_phase(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_parameter_surface_exchange_parameter_fields_phase(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_parameter_surface_radiation_parameter_fields_phase(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_parameter_urban_surface_parameter_fields_phase(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_parameter_vegetation_parameter_fields_phase(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_parameter_vegetation_root_fraction_fields_phase(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_ppflev_complete(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_ppintp_complete(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_remaining_pressure_spans(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_spectral_uvtvd(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_r23_spectral_vdtuv(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_radaca_complete(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_aerosol_climatology_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_radact_legendre_complete(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_radiation_diagnostic_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_radiative_flux_layer_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_radiative_heating_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_restart_frequency(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_gas_optical_depth_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_prepare_gases_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_setcoef_140gp_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_taumol1_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_taumol10_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_taumol11_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_taumol12_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_taumol13_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_taumol14_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_taumol15_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_taumol16_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_taumol2_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_taumol3_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_taumol4_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_taumol5_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_taumol6_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_taumol7_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_taumol8_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_rrtm_taumol9_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_r23_spline_selected_inverse_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_shortwave_cloud_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_spline_inverse_from_lu(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_spline_lu_factor(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_r23_spline_operator_matrix_body(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_spline_upper_inverse(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_srtm_setcoef_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_srtm_taumol16_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_srtm_taumol17_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_srtm_taumol18_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_srtm_taumol19_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_srtm_taumol20_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_srtm_taumol21_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_srtm_taumol22_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_srtm_taumol23_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_srtm_taumol24_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_srtm_taumol25_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_srtm_taumol26_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_srtm_taumol27_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_srtm_taumol28_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_srtm_taumol29_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_state_increment(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_state_update(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_update_fields(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_vertical_coordinate_setup(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_visibility_extinction_complete(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_wind_tendency(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_openifs_call_sl_parallel_prepare(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_openifs_call_sl_prognostic_prepare(.param .u64 a,.param .u64 c);
+.extern .func openifs_call_sl_slextpol_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_cpglag_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_surface_pressure_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_geopotential_height_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_geopotential_gradients_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_hybrid_pressure_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_gpinislb_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_gpnorm1_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_openifs_gppwc_ptx(.param .u64 a,.param .u64 c);
+.extern .func openifs_gptf1_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_gptf2_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_lacdyn_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_laiddi_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_laitli_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_laitre_gfl_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_laitre_gmv_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_laitri_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_laitri_weno_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_laitriqm3d_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_laminmaxint_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_lapinea_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_lapineb_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_larcina_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_larcinb_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_larmes_xyz_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_lascaw_cla_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_lascaw_clo_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_lascaw_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_lascaw_vintw_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_lassie_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_lasure_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_lattes_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_lattex_dnt_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_lattex_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_openifs_lavabo_ptx(.param .u64 a,.param .u64 c);
+.extern .func openifs_pfixer_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_qmfixer_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_sigam_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_simplico_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_sitnu_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_slextpol_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_spchor_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_spcimpfinit_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_spcimpfpost_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_spcimpfsolve_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func openifs_spfilt_parent_fp64(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_openifs_verder_ptx(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_openifs_verdisint_ptx(.param .u64 a,.param .u64 c);
+.extern .func md2asm_gpu_batch_body_openifs_verint_ptx(.param .u64 a,.param .u64 c);
+// One serial client; mailbox lives until the stop acknowledgement and stream join.
+.visible .entry md2asm_gpu_soil_water_mailbox_worker(.param .u64 mailbox)
+{
+ .reg .u64 %m,%seq,%previous,%argv,%ctx,%done;
+ .reg .u32 %op;
+ .reg .pred %p;
+ .param .u64 a,c,lake_a,lake_c,startup_a,startup_c,canopy_a,canopy_c,lake_energy_a,lake_energy_c,output_numeric_a,output_numeric_c,physical_setup_numeric_a,physical_setup_numeric_c,setup_span_a,setup_span_c;
+ ld.param.u64 %m,[mailbox];
+ add.u64 %done,%m,8;
+ ld.acquire.sys.global.u64 %previous,[%done];
+WAIT:
+ ld.acquire.sys.global.u64 %seq,[%m];
+ setp.eq.u64 %p,%seq,%previous;
+ @%p bra WAIT;
+ ld.global.u32 %op,[%m+16];
+ st.global.u32 [%m+20],0;
+ setp.eq.u32 %p,%op,0;
+ @%p bra STOP;
+BATCH_DISPATCH:
+ setp.lt.u32 %p,%op,81;
+ @%p bra BATCH_DISPATCH_L;
+ bra BATCH_DISPATCH_R;
+BATCH_DISPATCH_L:
+ setp.lt.u32 %p,%op,41;
+ @%p bra BATCH_DISPATCH_L_L;
+ bra BATCH_DISPATCH_L_R;
+BATCH_DISPATCH_L_L:
+ setp.lt.u32 %p,%op,21;
+ @%p bra BATCH_DISPATCH_L_L_L;
+ bra BATCH_DISPATCH_L_L_R;
+BATCH_DISPATCH_L_L_L:
+ setp.lt.u32 %p,%op,11;
+ @%p bra BATCH_DISPATCH_L_L_L_L;
+ bra BATCH_DISPATCH_L_L_L_R;
+BATCH_DISPATCH_L_L_L_L:
+ setp.lt.u32 %p,%op,6;
+ @%p bra BATCH_DISPATCH_L_L_L_L_L;
+ bra BATCH_DISPATCH_L_L_L_L_R;
+BATCH_DISPATCH_L_L_L_L_L:
+ setp.lt.u32 %p,%op,3;
+ @%p bra BATCH_DISPATCH_L_L_L_L_L_L;
+ bra BATCH_DISPATCH_L_L_L_L_L_R;
+BATCH_DISPATCH_L_L_L_L_L_L:
+ setp.lt.u32 %p,%op,2;
+ @%p bra BATCH_DISPATCH_L_L_L_L_L_L_L;
+ bra BATCH_DISPATCH_L_L_L_L_L_L_R;
+BATCH_DISPATCH_L_L_L_L_L_L_L:
+ setp.ne.u32 %p,%op,1;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_mailbox_soil_water_body,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_L_L_L_R:
+ setp.ne.u32 %p,%op,2;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_mailbox_lake_controller_body,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_L_L_R:
+ setp.lt.u32 %p,%op,4;
+ @%p bra BATCH_DISPATCH_L_L_L_L_L_R_L;
+ bra BATCH_DISPATCH_L_L_L_L_L_R_R;
+BATCH_DISPATCH_L_L_L_L_L_R_L:
+ setp.ne.u32 %p,%op,3;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_mailbox_startup_integer_body,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_L_L_R_R:
+ setp.lt.u32 %p,%op,5;
+ @%p bra BATCH_DISPATCH_L_L_L_L_L_R_R_L;
+ bra BATCH_DISPATCH_L_L_L_L_L_R_R_R;
+BATCH_DISPATCH_L_L_L_L_L_R_R_L:
+ setp.ne.u32 %p,%op,4;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_mailbox_canopy_light_body,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_L_L_R_R_R:
+ setp.ne.u32 %p,%op,5;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_mailbox_lake_energy_body,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_L_R:
+ setp.lt.u32 %p,%op,8;
+ @%p bra BATCH_DISPATCH_L_L_L_L_R_L;
+ bra BATCH_DISPATCH_L_L_L_L_R_R;
+BATCH_DISPATCH_L_L_L_L_R_L:
+ setp.lt.u32 %p,%op,7;
+ @%p bra BATCH_DISPATCH_L_L_L_L_R_L_L;
+ bra BATCH_DISPATCH_L_L_L_L_R_L_R;
+BATCH_DISPATCH_L_L_L_L_R_L_L:
+ setp.ne.u32 %p,%op,6;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_mailbox_output_numeric_body,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_L_R_L_R:
+ setp.ne.u32 %p,%op,7;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_mailbox_physical_setup_numeric_body,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_L_R_R:
+ setp.lt.u32 %p,%op,9;
+ @%p bra BATCH_DISPATCH_L_L_L_L_R_R_L;
+ bra BATCH_DISPATCH_L_L_L_L_R_R_R;
+BATCH_DISPATCH_L_L_L_L_R_R_L:
+ setp.ne.u32 %p,%op,8;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_mailbox_setup_span_body,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_L_R_R_R:
+ setp.lt.u32 %p,%op,10;
+ @%p bra BATCH_DISPATCH_L_L_L_L_R_R_R_L;
+ bra BATCH_DISPATCH_L_L_L_L_R_R_R_R;
+BATCH_DISPATCH_L_L_L_L_R_R_R_L:
+ setp.ne.u32 %p,%op,9;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_aerosol_optics_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_L_R_R_R_R:
+ setp.ne.u32 %p,%op,10;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_shortwave_adding_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_R:
+ setp.lt.u32 %p,%op,16;
+ @%p bra BATCH_DISPATCH_L_L_L_R_L;
+ bra BATCH_DISPATCH_L_L_L_R_R;
+BATCH_DISPATCH_L_L_L_R_L:
+ setp.lt.u32 %p,%op,13;
+ @%p bra BATCH_DISPATCH_L_L_L_R_L_L;
+ bra BATCH_DISPATCH_L_L_L_R_L_R;
+BATCH_DISPATCH_L_L_L_R_L_L:
+ setp.lt.u32 %p,%op,12;
+ @%p bra BATCH_DISPATCH_L_L_L_R_L_L_L;
+ bra BATCH_DISPATCH_L_L_L_R_L_L_R;
+BATCH_DISPATCH_L_L_L_R_L_L_L:
+ setp.ne.u32 %p,%op,11;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_ice_optics_fu_lw_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_R_L_L_R:
+ setp.ne.u32 %p,%op,12;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_ice_optics_fu_sw_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_R_L_R:
+ setp.lt.u32 %p,%op,14;
+ @%p bra BATCH_DISPATCH_L_L_L_R_L_R_L;
+ bra BATCH_DISPATCH_L_L_L_R_L_R_R;
+BATCH_DISPATCH_L_L_L_R_L_R_L:
+ setp.ne.u32 %p,%op,13;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_liquid_optics_socrates_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_R_L_R_R:
+ setp.lt.u32 %p,%op,15;
+ @%p bra BATCH_DISPATCH_L_L_L_R_L_R_R_L;
+ bra BATCH_DISPATCH_L_L_L_R_L_R_R_R;
+BATCH_DISPATCH_L_L_L_R_L_R_R_L:
+ setp.ne.u32 %p,%op,14;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_shortwave_layer_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_R_L_R_R_R:
+ setp.ne.u32 %p,%op,15;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_cloud_sampling_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_R_R:
+ setp.lt.u32 %p,%op,18;
+ @%p bra BATCH_DISPATCH_L_L_L_R_R_L;
+ bra BATCH_DISPATCH_L_L_L_R_R_R;
+BATCH_DISPATCH_L_L_L_R_R_L:
+ setp.lt.u32 %p,%op,17;
+ @%p bra BATCH_DISPATCH_L_L_L_R_R_L_L;
+ bra BATCH_DISPATCH_L_L_L_R_R_L_R;
+BATCH_DISPATCH_L_L_L_R_R_L_L:
+ setp.ne.u32 %p,%op,16;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_cloud_optics_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_R_R_L_R:
+ setp.ne.u32 %p,%op,17;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_coarse_vertical_spline_basis,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_R_R_R:
+ setp.lt.u32 %p,%op,19;
+ @%p bra BATCH_DISPATCH_L_L_L_R_R_R_L;
+ bra BATCH_DISPATCH_L_L_L_R_R_R_R;
+BATCH_DISPATCH_L_L_L_R_R_R_L:
+ setp.ne.u32 %p,%op,18;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_r23_spline_knots_body,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_R_R_R_R:
+ setp.lt.u32 %p,%op,20;
+ @%p bra BATCH_DISPATCH_L_L_L_R_R_R_R_L;
+ bra BATCH_DISPATCH_L_L_L_R_R_R_R_R;
+BATCH_DISPATCH_L_L_L_R_R_R_R_L:
+ setp.ne.u32 %p,%op,19;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_complete_legendre_analysis,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_L_R_R_R_R_R:
+ setp.ne.u32 %p,%op,20;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_cpqtuv,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R:
+ setp.lt.u32 %p,%op,31;
+ @%p bra BATCH_DISPATCH_L_L_R_L;
+ bra BATCH_DISPATCH_L_L_R_R;
+BATCH_DISPATCH_L_L_R_L:
+ setp.lt.u32 %p,%op,26;
+ @%p bra BATCH_DISPATCH_L_L_R_L_L;
+ bra BATCH_DISPATCH_L_L_R_L_R;
+BATCH_DISPATCH_L_L_R_L_L:
+ setp.lt.u32 %p,%op,23;
+ @%p bra BATCH_DISPATCH_L_L_R_L_L_L;
+ bra BATCH_DISPATCH_L_L_R_L_L_R;
+BATCH_DISPATCH_L_L_R_L_L_L:
+ setp.lt.u32 %p,%op,22;
+ @%p bra BATCH_DISPATCH_L_L_R_L_L_L_L;
+ bra BATCH_DISPATCH_L_L_R_L_L_L_R;
+BATCH_DISPATCH_L_L_R_L_L_L_L:
+ setp.ne.u32 %p,%op,21;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_cucalln_provisional_state,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_L_L_L_R:
+ setp.ne.u32 %p,%op,22;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_cumulative_cloud_cover_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_L_L_R:
+ setp.lt.u32 %p,%op,24;
+ @%p bra BATCH_DISPATCH_L_L_R_L_L_R_L;
+ bra BATCH_DISPATCH_L_L_R_L_L_R_R;
+BATCH_DISPATCH_L_L_R_L_L_R_L:
+ setp.ne.u32 %p,%op,23;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_dynamical_configuration,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_L_L_R_R:
+ setp.lt.u32 %p,%op,25;
+ @%p bra BATCH_DISPATCH_L_L_R_L_L_R_R_L;
+ bra BATCH_DISPATCH_L_L_R_L_L_R_R_R;
+BATCH_DISPATCH_L_L_R_L_L_R_R_L:
+ setp.ne.u32 %p,%op,24;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_physics_interval_complete,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_L_L_R_R_R:
+ setp.ne.u32 %p,%op,25;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_forecast_clock_pairs,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_L_R:
+ setp.lt.u32 %p,%op,28;
+ @%p bra BATCH_DISPATCH_L_L_R_L_R_L;
+ bra BATCH_DISPATCH_L_L_R_L_R_R;
+BATCH_DISPATCH_L_L_R_L_R_L:
+ setp.lt.u32 %p,%op,27;
+ @%p bra BATCH_DISPATCH_L_L_R_L_R_L_L;
+ bra BATCH_DISPATCH_L_L_R_L_R_L_R;
+BATCH_DISPATCH_L_L_R_L_R_L_L:
+ setp.ne.u32 %p,%op,26;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_forecast_event_time,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_L_R_L_R:
+ setp.ne.u32 %p,%op,27;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_cloud_column_sampling_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_L_R_R:
+ setp.lt.u32 %p,%op,29;
+ @%p bra BATCH_DISPATCH_L_L_R_L_R_R_L;
+ bra BATCH_DISPATCH_L_L_R_L_R_R_R;
+BATCH_DISPATCH_L_L_R_L_R_R_L:
+ setp.ne.u32 %p,%op,28;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_gpgrp,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_L_R_R_R:
+ setp.lt.u32 %p,%op,30;
+ @%p bra BATCH_DISPATCH_L_L_R_L_R_R_R_L;
+ bra BATCH_DISPATCH_L_L_R_L_R_R_R_R;
+BATCH_DISPATCH_L_L_R_L_R_R_R_L:
+ setp.ne.u32 %p,%op,29;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_gprt,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_L_R_R_R_R:
+ setp.ne.u32 %p,%op,30;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_hybrid_coordinate_setup,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_R:
+ setp.lt.u32 %p,%op,36;
+ @%p bra BATCH_DISPATCH_L_L_R_R_L;
+ bra BATCH_DISPATCH_L_L_R_R_R;
+BATCH_DISPATCH_L_L_R_R_L:
+ setp.lt.u32 %p,%op,33;
+ @%p bra BATCH_DISPATCH_L_L_R_R_L_L;
+ bra BATCH_DISPATCH_L_L_R_R_L_R;
+BATCH_DISPATCH_L_L_R_R_L_L:
+ setp.lt.u32 %p,%op,32;
+ @%p bra BATCH_DISPATCH_L_L_R_R_L_L_L;
+ bra BATCH_DISPATCH_L_L_R_R_L_L_R;
+BATCH_DISPATCH_L_L_R_R_L_L_L:
+ setp.ne.u32 %p,%op,31;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_model_time_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_R_L_L_R:
+ setp.ne.u32 %p,%op,32;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_nonorographic_parameter_fields,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_R_L_R:
+ setp.lt.u32 %p,%op,34;
+ @%p bra BATCH_DISPATCH_L_L_R_R_L_R_L;
+ bra BATCH_DISPATCH_L_L_R_R_L_R_R;
+BATCH_DISPATCH_L_L_R_R_L_R_L:
+ setp.ne.u32 %p,%op,33;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_orographic_parameter_field,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_R_L_R_R:
+ setp.lt.u32 %p,%op,35;
+ @%p bra BATCH_DISPATCH_L_L_R_R_L_R_R_L;
+ bra BATCH_DISPATCH_L_L_R_R_L_R_R_R;
+BATCH_DISPATCH_L_L_R_R_L_R_R_L:
+ setp.ne.u32 %p,%op,34;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_pressure_standard_complete_loop,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_R_L_R_R_R:
+ setp.ne.u32 %p,%op,35;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_complete_output_boundaries,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_R_R:
+ setp.lt.u32 %p,%op,38;
+ @%p bra BATCH_DISPATCH_L_L_R_R_R_L;
+ bra BATCH_DISPATCH_L_L_R_R_R_R;
+BATCH_DISPATCH_L_L_R_R_R_L:
+ setp.lt.u32 %p,%op,37;
+ @%p bra BATCH_DISPATCH_L_L_R_R_R_L_L;
+ bra BATCH_DISPATCH_L_L_R_R_R_L_R;
+BATCH_DISPATCH_L_L_R_R_R_L_L:
+ setp.ne.u32 %p,%op,36;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_complete_output_metadata,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_R_R_L_R:
+ setp.ne.u32 %p,%op,37;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_complete_output_norms,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_R_R_R:
+ setp.lt.u32 %p,%op,39;
+ @%p bra BATCH_DISPATCH_L_L_R_R_R_R_L;
+ bra BATCH_DISPATCH_L_L_R_R_R_R_R;
+BATCH_DISPATCH_L_L_R_R_R_R_L:
+ setp.ne.u32 %p,%op,38;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_complete_spectral_fit,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_R_R_R_R:
+ setp.lt.u32 %p,%op,40;
+ @%p bra BATCH_DISPATCH_L_L_R_R_R_R_R_L;
+ bra BATCH_DISPATCH_L_L_R_R_R_R_R_R;
+BATCH_DISPATCH_L_L_R_R_R_R_R_L:
+ setp.ne.u32 %p,%op,39;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_complete_transform_spans,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_L_R_R_R_R_R_R:
+ setp.ne.u32 %p,%op,40;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_fft992,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R:
+ setp.lt.u32 %p,%op,61;
+ @%p bra BATCH_DISPATCH_L_R_L;
+ bra BATCH_DISPATCH_L_R_R;
+BATCH_DISPATCH_L_R_L:
+ setp.lt.u32 %p,%op,51;
+ @%p bra BATCH_DISPATCH_L_R_L_L;
+ bra BATCH_DISPATCH_L_R_L_R;
+BATCH_DISPATCH_L_R_L_L:
+ setp.lt.u32 %p,%op,46;
+ @%p bra BATCH_DISPATCH_L_R_L_L_L;
+ bra BATCH_DISPATCH_L_R_L_L_R;
+BATCH_DISPATCH_L_R_L_L_L:
+ setp.lt.u32 %p,%op,43;
+ @%p bra BATCH_DISPATCH_L_R_L_L_L_L;
+ bra BATCH_DISPATCH_L_R_L_L_L_R;
+BATCH_DISPATCH_L_R_L_L_L_L:
+ setp.lt.u32 %p,%op,42;
+ @%p bra BATCH_DISPATCH_L_R_L_L_L_L_L;
+ bra BATCH_DISPATCH_L_R_L_L_L_L_R;
+BATCH_DISPATCH_L_R_L_L_L_L_L:
+ setp.ne.u32 %p,%op,41;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_fft992_qpassf,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_L_L_L_R:
+ setp.ne.u32 %p,%op,42;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_fft992_rpassf,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_L_L_R:
+ setp.lt.u32 %p,%op,44;
+ @%p bra BATCH_DISPATCH_L_R_L_L_L_R_L;
+ bra BATCH_DISPATCH_L_R_L_L_L_R_R;
+BATCH_DISPATCH_L_R_L_L_L_R_L:
+ setp.ne.u32 %p,%op,43;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_parameter_carbon_assimilation_parameter_fields_phase,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_L_L_R_R:
+ setp.lt.u32 %p,%op,45;
+ @%p bra BATCH_DISPATCH_L_R_L_L_L_R_R_L;
+ bra BATCH_DISPATCH_L_R_L_L_L_R_R_R;
+BATCH_DISPATCH_L_R_L_L_L_R_R_L:
+ setp.ne.u32 %p,%op,44;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_parameter_one_cell_carbon_assimilation_fields_phase,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_L_L_R_R_R:
+ setp.ne.u32 %p,%op,45;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_parameter_soil_parameter_fields_phase,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_L_R:
+ setp.lt.u32 %p,%op,48;
+ @%p bra BATCH_DISPATCH_L_R_L_L_R_L;
+ bra BATCH_DISPATCH_L_R_L_L_R_R;
+BATCH_DISPATCH_L_R_L_L_R_L:
+ setp.lt.u32 %p,%op,47;
+ @%p bra BATCH_DISPATCH_L_R_L_L_R_L_L;
+ bra BATCH_DISPATCH_L_R_L_L_R_L_R;
+BATCH_DISPATCH_L_R_L_L_R_L_L:
+ setp.ne.u32 %p,%op,46;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_parameter_soil_texture_average_fields_phase,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_L_R_L_R:
+ setp.ne.u32 %p,%op,47;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_parameter_surface_exchange_parameter_fields_phase,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_L_R_R:
+ setp.lt.u32 %p,%op,49;
+ @%p bra BATCH_DISPATCH_L_R_L_L_R_R_L;
+ bra BATCH_DISPATCH_L_R_L_L_R_R_R;
+BATCH_DISPATCH_L_R_L_L_R_R_L:
+ setp.ne.u32 %p,%op,48;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_parameter_surface_radiation_parameter_fields_phase,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_L_R_R_R:
+ setp.lt.u32 %p,%op,50;
+ @%p bra BATCH_DISPATCH_L_R_L_L_R_R_R_L;
+ bra BATCH_DISPATCH_L_R_L_L_R_R_R_R;
+BATCH_DISPATCH_L_R_L_L_R_R_R_L:
+ setp.ne.u32 %p,%op,49;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_parameter_urban_surface_parameter_fields_phase,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_L_R_R_R_R:
+ setp.ne.u32 %p,%op,50;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_parameter_vegetation_parameter_fields_phase,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_R:
+ setp.lt.u32 %p,%op,56;
+ @%p bra BATCH_DISPATCH_L_R_L_R_L;
+ bra BATCH_DISPATCH_L_R_L_R_R;
+BATCH_DISPATCH_L_R_L_R_L:
+ setp.lt.u32 %p,%op,53;
+ @%p bra BATCH_DISPATCH_L_R_L_R_L_L;
+ bra BATCH_DISPATCH_L_R_L_R_L_R;
+BATCH_DISPATCH_L_R_L_R_L_L:
+ setp.lt.u32 %p,%op,52;
+ @%p bra BATCH_DISPATCH_L_R_L_R_L_L_L;
+ bra BATCH_DISPATCH_L_R_L_R_L_L_R;
+BATCH_DISPATCH_L_R_L_R_L_L_L:
+ setp.ne.u32 %p,%op,51;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_parameter_vegetation_root_fraction_fields_phase,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_R_L_L_R:
+ setp.ne.u32 %p,%op,52;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_ppflev_complete,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_R_L_R:
+ setp.lt.u32 %p,%op,54;
+ @%p bra BATCH_DISPATCH_L_R_L_R_L_R_L;
+ bra BATCH_DISPATCH_L_R_L_R_L_R_R;
+BATCH_DISPATCH_L_R_L_R_L_R_L:
+ setp.ne.u32 %p,%op,53;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_ppintp_complete,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_R_L_R_R:
+ setp.lt.u32 %p,%op,55;
+ @%p bra BATCH_DISPATCH_L_R_L_R_L_R_R_L;
+ bra BATCH_DISPATCH_L_R_L_R_L_R_R_R;
+BATCH_DISPATCH_L_R_L_R_L_R_R_L:
+ setp.ne.u32 %p,%op,54;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_remaining_pressure_spans,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_R_L_R_R_R:
+ setp.ne.u32 %p,%op,55;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_spectral_uvtvd,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_R_R:
+ setp.lt.u32 %p,%op,58;
+ @%p bra BATCH_DISPATCH_L_R_L_R_R_L;
+ bra BATCH_DISPATCH_L_R_L_R_R_R;
+BATCH_DISPATCH_L_R_L_R_R_L:
+ setp.lt.u32 %p,%op,57;
+ @%p bra BATCH_DISPATCH_L_R_L_R_R_L_L;
+ bra BATCH_DISPATCH_L_R_L_R_R_L_R;
+BATCH_DISPATCH_L_R_L_R_R_L_L:
+ setp.ne.u32 %p,%op,56;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_r23_spectral_vdtuv,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_R_R_L_R:
+ setp.ne.u32 %p,%op,57;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_radaca_complete,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_R_R_R:
+ setp.lt.u32 %p,%op,59;
+ @%p bra BATCH_DISPATCH_L_R_L_R_R_R_L;
+ bra BATCH_DISPATCH_L_R_L_R_R_R_R;
+BATCH_DISPATCH_L_R_L_R_R_R_L:
+ setp.ne.u32 %p,%op,58;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_aerosol_climatology_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_R_R_R_R:
+ setp.lt.u32 %p,%op,60;
+ @%p bra BATCH_DISPATCH_L_R_L_R_R_R_R_L;
+ bra BATCH_DISPATCH_L_R_L_R_R_R_R_R;
+BATCH_DISPATCH_L_R_L_R_R_R_R_L:
+ setp.ne.u32 %p,%op,59;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_radact_legendre_complete,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_L_R_R_R_R_R:
+ setp.ne.u32 %p,%op,60;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_radiation_diagnostic_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R:
+ setp.lt.u32 %p,%op,71;
+ @%p bra BATCH_DISPATCH_L_R_R_L;
+ bra BATCH_DISPATCH_L_R_R_R;
+BATCH_DISPATCH_L_R_R_L:
+ setp.lt.u32 %p,%op,66;
+ @%p bra BATCH_DISPATCH_L_R_R_L_L;
+ bra BATCH_DISPATCH_L_R_R_L_R;
+BATCH_DISPATCH_L_R_R_L_L:
+ setp.lt.u32 %p,%op,63;
+ @%p bra BATCH_DISPATCH_L_R_R_L_L_L;
+ bra BATCH_DISPATCH_L_R_R_L_L_R;
+BATCH_DISPATCH_L_R_R_L_L_L:
+ setp.lt.u32 %p,%op,62;
+ @%p bra BATCH_DISPATCH_L_R_R_L_L_L_L;
+ bra BATCH_DISPATCH_L_R_R_L_L_L_R;
+BATCH_DISPATCH_L_R_R_L_L_L_L:
+ setp.ne.u32 %p,%op,61;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_radiative_flux_layer_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_L_L_L_R:
+ setp.ne.u32 %p,%op,62;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_radiative_heating_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_L_L_R:
+ setp.lt.u32 %p,%op,64;
+ @%p bra BATCH_DISPATCH_L_R_R_L_L_R_L;
+ bra BATCH_DISPATCH_L_R_R_L_L_R_R;
+BATCH_DISPATCH_L_R_R_L_L_R_L:
+ setp.ne.u32 %p,%op,63;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_restart_frequency,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_L_L_R_R:
+ setp.lt.u32 %p,%op,65;
+ @%p bra BATCH_DISPATCH_L_R_R_L_L_R_R_L;
+ bra BATCH_DISPATCH_L_R_R_L_L_R_R_R;
+BATCH_DISPATCH_L_R_R_L_L_R_R_L:
+ setp.ne.u32 %p,%op,64;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_gas_optical_depth_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_L_L_R_R_R:
+ setp.ne.u32 %p,%op,65;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_prepare_gases_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_L_R:
+ setp.lt.u32 %p,%op,68;
+ @%p bra BATCH_DISPATCH_L_R_R_L_R_L;
+ bra BATCH_DISPATCH_L_R_R_L_R_R;
+BATCH_DISPATCH_L_R_R_L_R_L:
+ setp.lt.u32 %p,%op,67;
+ @%p bra BATCH_DISPATCH_L_R_R_L_R_L_L;
+ bra BATCH_DISPATCH_L_R_R_L_R_L_R;
+BATCH_DISPATCH_L_R_R_L_R_L_L:
+ setp.ne.u32 %p,%op,66;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_setcoef_140gp_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_L_R_L_R:
+ setp.ne.u32 %p,%op,67;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_taumol1_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_L_R_R:
+ setp.lt.u32 %p,%op,69;
+ @%p bra BATCH_DISPATCH_L_R_R_L_R_R_L;
+ bra BATCH_DISPATCH_L_R_R_L_R_R_R;
+BATCH_DISPATCH_L_R_R_L_R_R_L:
+ setp.ne.u32 %p,%op,68;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_taumol10_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_L_R_R_R:
+ setp.lt.u32 %p,%op,70;
+ @%p bra BATCH_DISPATCH_L_R_R_L_R_R_R_L;
+ bra BATCH_DISPATCH_L_R_R_L_R_R_R_R;
+BATCH_DISPATCH_L_R_R_L_R_R_R_L:
+ setp.ne.u32 %p,%op,69;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_taumol11_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_L_R_R_R_R:
+ setp.ne.u32 %p,%op,70;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_taumol12_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_R:
+ setp.lt.u32 %p,%op,76;
+ @%p bra BATCH_DISPATCH_L_R_R_R_L;
+ bra BATCH_DISPATCH_L_R_R_R_R;
+BATCH_DISPATCH_L_R_R_R_L:
+ setp.lt.u32 %p,%op,73;
+ @%p bra BATCH_DISPATCH_L_R_R_R_L_L;
+ bra BATCH_DISPATCH_L_R_R_R_L_R;
+BATCH_DISPATCH_L_R_R_R_L_L:
+ setp.lt.u32 %p,%op,72;
+ @%p bra BATCH_DISPATCH_L_R_R_R_L_L_L;
+ bra BATCH_DISPATCH_L_R_R_R_L_L_R;
+BATCH_DISPATCH_L_R_R_R_L_L_L:
+ setp.ne.u32 %p,%op,71;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_taumol13_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_R_L_L_R:
+ setp.ne.u32 %p,%op,72;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_taumol14_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_R_L_R:
+ setp.lt.u32 %p,%op,74;
+ @%p bra BATCH_DISPATCH_L_R_R_R_L_R_L;
+ bra BATCH_DISPATCH_L_R_R_R_L_R_R;
+BATCH_DISPATCH_L_R_R_R_L_R_L:
+ setp.ne.u32 %p,%op,73;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_taumol15_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_R_L_R_R:
+ setp.lt.u32 %p,%op,75;
+ @%p bra BATCH_DISPATCH_L_R_R_R_L_R_R_L;
+ bra BATCH_DISPATCH_L_R_R_R_L_R_R_R;
+BATCH_DISPATCH_L_R_R_R_L_R_R_L:
+ setp.ne.u32 %p,%op,74;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_taumol16_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_R_L_R_R_R:
+ setp.ne.u32 %p,%op,75;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_taumol2_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_R_R:
+ setp.lt.u32 %p,%op,78;
+ @%p bra BATCH_DISPATCH_L_R_R_R_R_L;
+ bra BATCH_DISPATCH_L_R_R_R_R_R;
+BATCH_DISPATCH_L_R_R_R_R_L:
+ setp.lt.u32 %p,%op,77;
+ @%p bra BATCH_DISPATCH_L_R_R_R_R_L_L;
+ bra BATCH_DISPATCH_L_R_R_R_R_L_R;
+BATCH_DISPATCH_L_R_R_R_R_L_L:
+ setp.ne.u32 %p,%op,76;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_taumol3_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_R_R_L_R:
+ setp.ne.u32 %p,%op,77;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_taumol4_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_R_R_R:
+ setp.lt.u32 %p,%op,79;
+ @%p bra BATCH_DISPATCH_L_R_R_R_R_R_L;
+ bra BATCH_DISPATCH_L_R_R_R_R_R_R;
+BATCH_DISPATCH_L_R_R_R_R_R_L:
+ setp.ne.u32 %p,%op,78;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_taumol5_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_R_R_R_R:
+ setp.lt.u32 %p,%op,80;
+ @%p bra BATCH_DISPATCH_L_R_R_R_R_R_R_L;
+ bra BATCH_DISPATCH_L_R_R_R_R_R_R_R;
+BATCH_DISPATCH_L_R_R_R_R_R_R_L:
+ setp.ne.u32 %p,%op,79;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_taumol6_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_L_R_R_R_R_R_R_R:
+ setp.ne.u32 %p,%op,80;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_taumol7_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R:
+ setp.lt.u32 %p,%op,121;
+ @%p bra BATCH_DISPATCH_R_L;
+ bra BATCH_DISPATCH_R_R;
+BATCH_DISPATCH_R_L:
+ setp.lt.u32 %p,%op,101;
+ @%p bra BATCH_DISPATCH_R_L_L;
+ bra BATCH_DISPATCH_R_L_R;
+BATCH_DISPATCH_R_L_L:
+ setp.lt.u32 %p,%op,91;
+ @%p bra BATCH_DISPATCH_R_L_L_L;
+ bra BATCH_DISPATCH_R_L_L_R;
+BATCH_DISPATCH_R_L_L_L:
+ setp.lt.u32 %p,%op,86;
+ @%p bra BATCH_DISPATCH_R_L_L_L_L;
+ bra BATCH_DISPATCH_R_L_L_L_R;
+BATCH_DISPATCH_R_L_L_L_L:
+ setp.lt.u32 %p,%op,83;
+ @%p bra BATCH_DISPATCH_R_L_L_L_L_L;
+ bra BATCH_DISPATCH_R_L_L_L_L_R;
+BATCH_DISPATCH_R_L_L_L_L_L:
+ setp.lt.u32 %p,%op,82;
+ @%p bra BATCH_DISPATCH_R_L_L_L_L_L_L;
+ bra BATCH_DISPATCH_R_L_L_L_L_L_R;
+BATCH_DISPATCH_R_L_L_L_L_L_L:
+ setp.ne.u32 %p,%op,81;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_taumol8_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_L_L_L_R:
+ setp.ne.u32 %p,%op,82;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_rrtm_taumol9_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_L_L_R:
+ setp.lt.u32 %p,%op,84;
+ @%p bra BATCH_DISPATCH_R_L_L_L_L_R_L;
+ bra BATCH_DISPATCH_R_L_L_L_L_R_R;
+BATCH_DISPATCH_R_L_L_L_L_R_L:
+ setp.ne.u32 %p,%op,83;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_r23_spline_selected_inverse_body,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_L_L_R_R:
+ setp.lt.u32 %p,%op,85;
+ @%p bra BATCH_DISPATCH_R_L_L_L_L_R_R_L;
+ bra BATCH_DISPATCH_R_L_L_L_L_R_R_R;
+BATCH_DISPATCH_R_L_L_L_L_R_R_L:
+ setp.ne.u32 %p,%op,84;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_shortwave_cloud_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_L_L_R_R_R:
+ setp.ne.u32 %p,%op,85;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_spline_inverse_from_lu,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_L_R:
+ setp.lt.u32 %p,%op,88;
+ @%p bra BATCH_DISPATCH_R_L_L_L_R_L;
+ bra BATCH_DISPATCH_R_L_L_L_R_R;
+BATCH_DISPATCH_R_L_L_L_R_L:
+ setp.lt.u32 %p,%op,87;
+ @%p bra BATCH_DISPATCH_R_L_L_L_R_L_L;
+ bra BATCH_DISPATCH_R_L_L_L_R_L_R;
+BATCH_DISPATCH_R_L_L_L_R_L_L:
+ setp.ne.u32 %p,%op,86;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_spline_lu_factor,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_L_R_L_R:
+ setp.ne.u32 %p,%op,87;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_r23_spline_operator_matrix_body,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_L_R_R:
+ setp.lt.u32 %p,%op,89;
+ @%p bra BATCH_DISPATCH_R_L_L_L_R_R_L;
+ bra BATCH_DISPATCH_R_L_L_L_R_R_R;
+BATCH_DISPATCH_R_L_L_L_R_R_L:
+ setp.ne.u32 %p,%op,88;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_spline_upper_inverse,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_L_R_R_R:
+ setp.lt.u32 %p,%op,90;
+ @%p bra BATCH_DISPATCH_R_L_L_L_R_R_R_L;
+ bra BATCH_DISPATCH_R_L_L_L_R_R_R_R;
+BATCH_DISPATCH_R_L_L_L_R_R_R_L:
+ setp.ne.u32 %p,%op,89;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_srtm_setcoef_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_L_R_R_R_R:
+ setp.ne.u32 %p,%op,90;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_srtm_taumol16_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_R:
+ setp.lt.u32 %p,%op,96;
+ @%p bra BATCH_DISPATCH_R_L_L_R_L;
+ bra BATCH_DISPATCH_R_L_L_R_R;
+BATCH_DISPATCH_R_L_L_R_L:
+ setp.lt.u32 %p,%op,93;
+ @%p bra BATCH_DISPATCH_R_L_L_R_L_L;
+ bra BATCH_DISPATCH_R_L_L_R_L_R;
+BATCH_DISPATCH_R_L_L_R_L_L:
+ setp.lt.u32 %p,%op,92;
+ @%p bra BATCH_DISPATCH_R_L_L_R_L_L_L;
+ bra BATCH_DISPATCH_R_L_L_R_L_L_R;
+BATCH_DISPATCH_R_L_L_R_L_L_L:
+ setp.ne.u32 %p,%op,91;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_srtm_taumol17_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_R_L_L_R:
+ setp.ne.u32 %p,%op,92;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_srtm_taumol18_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_R_L_R:
+ setp.lt.u32 %p,%op,94;
+ @%p bra BATCH_DISPATCH_R_L_L_R_L_R_L;
+ bra BATCH_DISPATCH_R_L_L_R_L_R_R;
+BATCH_DISPATCH_R_L_L_R_L_R_L:
+ setp.ne.u32 %p,%op,93;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_srtm_taumol19_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_R_L_R_R:
+ setp.lt.u32 %p,%op,95;
+ @%p bra BATCH_DISPATCH_R_L_L_R_L_R_R_L;
+ bra BATCH_DISPATCH_R_L_L_R_L_R_R_R;
+BATCH_DISPATCH_R_L_L_R_L_R_R_L:
+ setp.ne.u32 %p,%op,94;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_srtm_taumol20_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_R_L_R_R_R:
+ setp.ne.u32 %p,%op,95;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_srtm_taumol21_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_R_R:
+ setp.lt.u32 %p,%op,98;
+ @%p bra BATCH_DISPATCH_R_L_L_R_R_L;
+ bra BATCH_DISPATCH_R_L_L_R_R_R;
+BATCH_DISPATCH_R_L_L_R_R_L:
+ setp.lt.u32 %p,%op,97;
+ @%p bra BATCH_DISPATCH_R_L_L_R_R_L_L;
+ bra BATCH_DISPATCH_R_L_L_R_R_L_R;
+BATCH_DISPATCH_R_L_L_R_R_L_L:
+ setp.ne.u32 %p,%op,96;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_srtm_taumol22_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_R_R_L_R:
+ setp.ne.u32 %p,%op,97;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_srtm_taumol23_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_R_R_R:
+ setp.lt.u32 %p,%op,99;
+ @%p bra BATCH_DISPATCH_R_L_L_R_R_R_L;
+ bra BATCH_DISPATCH_R_L_L_R_R_R_R;
+BATCH_DISPATCH_R_L_L_R_R_R_L:
+ setp.ne.u32 %p,%op,98;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_srtm_taumol24_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_R_R_R_R:
+ setp.lt.u32 %p,%op,100;
+ @%p bra BATCH_DISPATCH_R_L_L_R_R_R_R_L;
+ bra BATCH_DISPATCH_R_L_L_R_R_R_R_R;
+BATCH_DISPATCH_R_L_L_R_R_R_R_L:
+ setp.ne.u32 %p,%op,99;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_srtm_taumol25_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_L_R_R_R_R_R:
+ setp.ne.u32 %p,%op,100;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_srtm_taumol26_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R:
+ setp.lt.u32 %p,%op,111;
+ @%p bra BATCH_DISPATCH_R_L_R_L;
+ bra BATCH_DISPATCH_R_L_R_R;
+BATCH_DISPATCH_R_L_R_L:
+ setp.lt.u32 %p,%op,106;
+ @%p bra BATCH_DISPATCH_R_L_R_L_L;
+ bra BATCH_DISPATCH_R_L_R_L_R;
+BATCH_DISPATCH_R_L_R_L_L:
+ setp.lt.u32 %p,%op,103;
+ @%p bra BATCH_DISPATCH_R_L_R_L_L_L;
+ bra BATCH_DISPATCH_R_L_R_L_L_R;
+BATCH_DISPATCH_R_L_R_L_L_L:
+ setp.lt.u32 %p,%op,102;
+ @%p bra BATCH_DISPATCH_R_L_R_L_L_L_L;
+ bra BATCH_DISPATCH_R_L_R_L_L_L_R;
+BATCH_DISPATCH_R_L_R_L_L_L_L:
+ setp.ne.u32 %p,%op,101;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_srtm_taumol27_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_L_L_L_R:
+ setp.ne.u32 %p,%op,102;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_srtm_taumol28_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_L_L_R:
+ setp.lt.u32 %p,%op,104;
+ @%p bra BATCH_DISPATCH_R_L_R_L_L_R_L;
+ bra BATCH_DISPATCH_R_L_R_L_L_R_R;
+BATCH_DISPATCH_R_L_R_L_L_R_L:
+ setp.ne.u32 %p,%op,103;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_srtm_taumol29_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_L_L_R_R:
+ setp.lt.u32 %p,%op,105;
+ @%p bra BATCH_DISPATCH_R_L_R_L_L_R_R_L;
+ bra BATCH_DISPATCH_R_L_R_L_L_R_R_R;
+BATCH_DISPATCH_R_L_R_L_L_R_R_L:
+ setp.ne.u32 %p,%op,104;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_state_increment,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_L_L_R_R_R:
+ setp.ne.u32 %p,%op,105;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_state_update,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_L_R:
+ setp.lt.u32 %p,%op,108;
+ @%p bra BATCH_DISPATCH_R_L_R_L_R_L;
+ bra BATCH_DISPATCH_R_L_R_L_R_R;
+BATCH_DISPATCH_R_L_R_L_R_L:
+ setp.lt.u32 %p,%op,107;
+ @%p bra BATCH_DISPATCH_R_L_R_L_R_L_L;
+ bra BATCH_DISPATCH_R_L_R_L_R_L_R;
+BATCH_DISPATCH_R_L_R_L_R_L_L:
+ setp.ne.u32 %p,%op,106;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_update_fields,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_L_R_L_R:
+ setp.ne.u32 %p,%op,107;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_vertical_coordinate_setup,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_L_R_R:
+ setp.lt.u32 %p,%op,109;
+ @%p bra BATCH_DISPATCH_R_L_R_L_R_R_L;
+ bra BATCH_DISPATCH_R_L_R_L_R_R_R;
+BATCH_DISPATCH_R_L_R_L_R_R_L:
+ setp.ne.u32 %p,%op,108;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_visibility_extinction_complete,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_L_R_R_R:
+ setp.lt.u32 %p,%op,110;
+ @%p bra BATCH_DISPATCH_R_L_R_L_R_R_R_L;
+ bra BATCH_DISPATCH_R_L_R_L_R_R_R_R;
+BATCH_DISPATCH_R_L_R_L_R_R_R_L:
+ setp.ne.u32 %p,%op,109;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_wind_tendency,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_L_R_R_R_R:
+ setp.ne.u32 %p,%op,110;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_openifs_call_sl_parallel_prepare,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_R:
+ setp.lt.u32 %p,%op,116;
+ @%p bra BATCH_DISPATCH_R_L_R_R_L;
+ bra BATCH_DISPATCH_R_L_R_R_R;
+BATCH_DISPATCH_R_L_R_R_L:
+ setp.lt.u32 %p,%op,113;
+ @%p bra BATCH_DISPATCH_R_L_R_R_L_L;
+ bra BATCH_DISPATCH_R_L_R_R_L_R;
+BATCH_DISPATCH_R_L_R_R_L_L:
+ setp.lt.u32 %p,%op,112;
+ @%p bra BATCH_DISPATCH_R_L_R_R_L_L_L;
+ bra BATCH_DISPATCH_R_L_R_R_L_L_R;
+BATCH_DISPATCH_R_L_R_R_L_L_L:
+ setp.ne.u32 %p,%op,111;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_openifs_call_sl_prognostic_prepare,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_R_L_L_R:
+ setp.ne.u32 %p,%op,112;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_call_sl_slextpol_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_R_L_R:
+ setp.lt.u32 %p,%op,114;
+ @%p bra BATCH_DISPATCH_R_L_R_R_L_R_L;
+ bra BATCH_DISPATCH_R_L_R_R_L_R_R;
+BATCH_DISPATCH_R_L_R_R_L_R_L:
+ setp.ne.u32 %p,%op,113;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_cpglag_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_R_L_R_R:
+ setp.lt.u32 %p,%op,115;
+ @%p bra BATCH_DISPATCH_R_L_R_R_L_R_R_L;
+ bra BATCH_DISPATCH_R_L_R_R_L_R_R_R;
+BATCH_DISPATCH_R_L_R_R_L_R_R_L:
+ setp.ne.u32 %p,%op,114;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_surface_pressure_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_R_L_R_R_R:
+ setp.ne.u32 %p,%op,115;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_geopotential_height_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_R_R:
+ setp.lt.u32 %p,%op,118;
+ @%p bra BATCH_DISPATCH_R_L_R_R_R_L;
+ bra BATCH_DISPATCH_R_L_R_R_R_R;
+BATCH_DISPATCH_R_L_R_R_R_L:
+ setp.lt.u32 %p,%op,117;
+ @%p bra BATCH_DISPATCH_R_L_R_R_R_L_L;
+ bra BATCH_DISPATCH_R_L_R_R_R_L_R;
+BATCH_DISPATCH_R_L_R_R_R_L_L:
+ setp.ne.u32 %p,%op,116;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_geopotential_gradients_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_R_R_L_R:
+ setp.ne.u32 %p,%op,117;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_hybrid_pressure_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_R_R_R:
+ setp.lt.u32 %p,%op,119;
+ @%p bra BATCH_DISPATCH_R_L_R_R_R_R_L;
+ bra BATCH_DISPATCH_R_L_R_R_R_R_R;
+BATCH_DISPATCH_R_L_R_R_R_R_L:
+ setp.ne.u32 %p,%op,118;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_gpinislb_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_R_R_R_R:
+ setp.lt.u32 %p,%op,120;
+ @%p bra BATCH_DISPATCH_R_L_R_R_R_R_R_L;
+ bra BATCH_DISPATCH_R_L_R_R_R_R_R_R;
+BATCH_DISPATCH_R_L_R_R_R_R_R_L:
+ setp.ne.u32 %p,%op,119;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_gpnorm1_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_L_R_R_R_R_R_R:
+ setp.ne.u32 %p,%op,120;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_openifs_gppwc_ptx,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R:
+ setp.lt.u32 %p,%op,141;
+ @%p bra BATCH_DISPATCH_R_R_L;
+ bra BATCH_DISPATCH_R_R_R;
+BATCH_DISPATCH_R_R_L:
+ setp.lt.u32 %p,%op,131;
+ @%p bra BATCH_DISPATCH_R_R_L_L;
+ bra BATCH_DISPATCH_R_R_L_R;
+BATCH_DISPATCH_R_R_L_L:
+ setp.lt.u32 %p,%op,126;
+ @%p bra BATCH_DISPATCH_R_R_L_L_L;
+ bra BATCH_DISPATCH_R_R_L_L_R;
+BATCH_DISPATCH_R_R_L_L_L:
+ setp.lt.u32 %p,%op,123;
+ @%p bra BATCH_DISPATCH_R_R_L_L_L_L;
+ bra BATCH_DISPATCH_R_R_L_L_L_R;
+BATCH_DISPATCH_R_R_L_L_L_L:
+ setp.lt.u32 %p,%op,122;
+ @%p bra BATCH_DISPATCH_R_R_L_L_L_L_L;
+ bra BATCH_DISPATCH_R_R_L_L_L_L_R;
+BATCH_DISPATCH_R_R_L_L_L_L_L:
+ setp.ne.u32 %p,%op,121;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_gptf1_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_L_L_L_R:
+ setp.ne.u32 %p,%op,122;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_gptf2_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_L_L_R:
+ setp.lt.u32 %p,%op,124;
+ @%p bra BATCH_DISPATCH_R_R_L_L_L_R_L;
+ bra BATCH_DISPATCH_R_R_L_L_L_R_R;
+BATCH_DISPATCH_R_R_L_L_L_R_L:
+ setp.ne.u32 %p,%op,123;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_lacdyn_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_L_L_R_R:
+ setp.lt.u32 %p,%op,125;
+ @%p bra BATCH_DISPATCH_R_R_L_L_L_R_R_L;
+ bra BATCH_DISPATCH_R_R_L_L_L_R_R_R;
+BATCH_DISPATCH_R_R_L_L_L_R_R_L:
+ setp.ne.u32 %p,%op,124;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_laiddi_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_L_L_R_R_R:
+ setp.ne.u32 %p,%op,125;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_laitli_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_L_R:
+ setp.lt.u32 %p,%op,128;
+ @%p bra BATCH_DISPATCH_R_R_L_L_R_L;
+ bra BATCH_DISPATCH_R_R_L_L_R_R;
+BATCH_DISPATCH_R_R_L_L_R_L:
+ setp.lt.u32 %p,%op,127;
+ @%p bra BATCH_DISPATCH_R_R_L_L_R_L_L;
+ bra BATCH_DISPATCH_R_R_L_L_R_L_R;
+BATCH_DISPATCH_R_R_L_L_R_L_L:
+ setp.ne.u32 %p,%op,126;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_laitre_gfl_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_L_R_L_R:
+ setp.ne.u32 %p,%op,127;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_laitre_gmv_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_L_R_R:
+ setp.lt.u32 %p,%op,129;
+ @%p bra BATCH_DISPATCH_R_R_L_L_R_R_L;
+ bra BATCH_DISPATCH_R_R_L_L_R_R_R;
+BATCH_DISPATCH_R_R_L_L_R_R_L:
+ setp.ne.u32 %p,%op,128;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_laitri_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_L_R_R_R:
+ setp.lt.u32 %p,%op,130;
+ @%p bra BATCH_DISPATCH_R_R_L_L_R_R_R_L;
+ bra BATCH_DISPATCH_R_R_L_L_R_R_R_R;
+BATCH_DISPATCH_R_R_L_L_R_R_R_L:
+ setp.ne.u32 %p,%op,129;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_laitri_weno_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_L_R_R_R_R:
+ setp.ne.u32 %p,%op,130;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_laitriqm3d_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_R:
+ setp.lt.u32 %p,%op,136;
+ @%p bra BATCH_DISPATCH_R_R_L_R_L;
+ bra BATCH_DISPATCH_R_R_L_R_R;
+BATCH_DISPATCH_R_R_L_R_L:
+ setp.lt.u32 %p,%op,133;
+ @%p bra BATCH_DISPATCH_R_R_L_R_L_L;
+ bra BATCH_DISPATCH_R_R_L_R_L_R;
+BATCH_DISPATCH_R_R_L_R_L_L:
+ setp.lt.u32 %p,%op,132;
+ @%p bra BATCH_DISPATCH_R_R_L_R_L_L_L;
+ bra BATCH_DISPATCH_R_R_L_R_L_L_R;
+BATCH_DISPATCH_R_R_L_R_L_L_L:
+ setp.ne.u32 %p,%op,131;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_laminmaxint_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_R_L_L_R:
+ setp.ne.u32 %p,%op,132;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_lapinea_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_R_L_R:
+ setp.lt.u32 %p,%op,134;
+ @%p bra BATCH_DISPATCH_R_R_L_R_L_R_L;
+ bra BATCH_DISPATCH_R_R_L_R_L_R_R;
+BATCH_DISPATCH_R_R_L_R_L_R_L:
+ setp.ne.u32 %p,%op,133;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_lapineb_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_R_L_R_R:
+ setp.lt.u32 %p,%op,135;
+ @%p bra BATCH_DISPATCH_R_R_L_R_L_R_R_L;
+ bra BATCH_DISPATCH_R_R_L_R_L_R_R_R;
+BATCH_DISPATCH_R_R_L_R_L_R_R_L:
+ setp.ne.u32 %p,%op,134;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_larcina_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_R_L_R_R_R:
+ setp.ne.u32 %p,%op,135;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_larcinb_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_R_R:
+ setp.lt.u32 %p,%op,138;
+ @%p bra BATCH_DISPATCH_R_R_L_R_R_L;
+ bra BATCH_DISPATCH_R_R_L_R_R_R;
+BATCH_DISPATCH_R_R_L_R_R_L:
+ setp.lt.u32 %p,%op,137;
+ @%p bra BATCH_DISPATCH_R_R_L_R_R_L_L;
+ bra BATCH_DISPATCH_R_R_L_R_R_L_R;
+BATCH_DISPATCH_R_R_L_R_R_L_L:
+ setp.ne.u32 %p,%op,136;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_larmes_xyz_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_R_R_L_R:
+ setp.ne.u32 %p,%op,137;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_lascaw_cla_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_R_R_R:
+ setp.lt.u32 %p,%op,139;
+ @%p bra BATCH_DISPATCH_R_R_L_R_R_R_L;
+ bra BATCH_DISPATCH_R_R_L_R_R_R_R;
+BATCH_DISPATCH_R_R_L_R_R_R_L:
+ setp.ne.u32 %p,%op,138;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_lascaw_clo_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_R_R_R_R:
+ setp.lt.u32 %p,%op,140;
+ @%p bra BATCH_DISPATCH_R_R_L_R_R_R_R_L;
+ bra BATCH_DISPATCH_R_R_L_R_R_R_R_R;
+BATCH_DISPATCH_R_R_L_R_R_R_R_L:
+ setp.ne.u32 %p,%op,139;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_lascaw_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_L_R_R_R_R_R:
+ setp.ne.u32 %p,%op,140;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_lascaw_vintw_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R:
+ setp.lt.u32 %p,%op,151;
+ @%p bra BATCH_DISPATCH_R_R_R_L;
+ bra BATCH_DISPATCH_R_R_R_R;
+BATCH_DISPATCH_R_R_R_L:
+ setp.lt.u32 %p,%op,146;
+ @%p bra BATCH_DISPATCH_R_R_R_L_L;
+ bra BATCH_DISPATCH_R_R_R_L_R;
+BATCH_DISPATCH_R_R_R_L_L:
+ setp.lt.u32 %p,%op,143;
+ @%p bra BATCH_DISPATCH_R_R_R_L_L_L;
+ bra BATCH_DISPATCH_R_R_R_L_L_R;
+BATCH_DISPATCH_R_R_R_L_L_L:
+ setp.lt.u32 %p,%op,142;
+ @%p bra BATCH_DISPATCH_R_R_R_L_L_L_L;
+ bra BATCH_DISPATCH_R_R_R_L_L_L_R;
+BATCH_DISPATCH_R_R_R_L_L_L_L:
+ setp.ne.u32 %p,%op,141;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_lassie_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_L_L_L_R:
+ setp.ne.u32 %p,%op,142;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_lasure_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_L_L_R:
+ setp.lt.u32 %p,%op,144;
+ @%p bra BATCH_DISPATCH_R_R_R_L_L_R_L;
+ bra BATCH_DISPATCH_R_R_R_L_L_R_R;
+BATCH_DISPATCH_R_R_R_L_L_R_L:
+ setp.ne.u32 %p,%op,143;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_lattes_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_L_L_R_R:
+ setp.lt.u32 %p,%op,145;
+ @%p bra BATCH_DISPATCH_R_R_R_L_L_R_R_L;
+ bra BATCH_DISPATCH_R_R_R_L_L_R_R_R;
+BATCH_DISPATCH_R_R_R_L_L_R_R_L:
+ setp.ne.u32 %p,%op,144;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_lattex_dnt_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_L_L_R_R_R:
+ setp.ne.u32 %p,%op,145;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_lattex_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_L_R:
+ setp.lt.u32 %p,%op,148;
+ @%p bra BATCH_DISPATCH_R_R_R_L_R_L;
+ bra BATCH_DISPATCH_R_R_R_L_R_R;
+BATCH_DISPATCH_R_R_R_L_R_L:
+ setp.lt.u32 %p,%op,147;
+ @%p bra BATCH_DISPATCH_R_R_R_L_R_L_L;
+ bra BATCH_DISPATCH_R_R_R_L_R_L_R;
+BATCH_DISPATCH_R_R_R_L_R_L_L:
+ setp.ne.u32 %p,%op,146;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_openifs_lavabo_ptx,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_L_R_L_R:
+ setp.ne.u32 %p,%op,147;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_pfixer_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_L_R_R:
+ setp.lt.u32 %p,%op,149;
+ @%p bra BATCH_DISPATCH_R_R_R_L_R_R_L;
+ bra BATCH_DISPATCH_R_R_R_L_R_R_R;
+BATCH_DISPATCH_R_R_R_L_R_R_L:
+ setp.ne.u32 %p,%op,148;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_qmfixer_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_L_R_R_R:
+ setp.lt.u32 %p,%op,150;
+ @%p bra BATCH_DISPATCH_R_R_R_L_R_R_R_L;
+ bra BATCH_DISPATCH_R_R_R_L_R_R_R_R;
+BATCH_DISPATCH_R_R_R_L_R_R_R_L:
+ setp.ne.u32 %p,%op,149;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_sigam_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_L_R_R_R_R:
+ setp.ne.u32 %p,%op,150;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_simplico_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_R:
+ setp.lt.u32 %p,%op,156;
+ @%p bra BATCH_DISPATCH_R_R_R_R_L;
+ bra BATCH_DISPATCH_R_R_R_R_R;
+BATCH_DISPATCH_R_R_R_R_L:
+ setp.lt.u32 %p,%op,153;
+ @%p bra BATCH_DISPATCH_R_R_R_R_L_L;
+ bra BATCH_DISPATCH_R_R_R_R_L_R;
+BATCH_DISPATCH_R_R_R_R_L_L:
+ setp.lt.u32 %p,%op,152;
+ @%p bra BATCH_DISPATCH_R_R_R_R_L_L_L;
+ bra BATCH_DISPATCH_R_R_R_R_L_L_R;
+BATCH_DISPATCH_R_R_R_R_L_L_L:
+ setp.ne.u32 %p,%op,151;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_sitnu_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_R_L_L_R:
+ setp.ne.u32 %p,%op,152;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_slextpol_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_R_L_R:
+ setp.lt.u32 %p,%op,154;
+ @%p bra BATCH_DISPATCH_R_R_R_R_L_R_L;
+ bra BATCH_DISPATCH_R_R_R_R_L_R_R;
+BATCH_DISPATCH_R_R_R_R_L_R_L:
+ setp.ne.u32 %p,%op,153;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_spchor_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_R_L_R_R:
+ setp.lt.u32 %p,%op,155;
+ @%p bra BATCH_DISPATCH_R_R_R_R_L_R_R_L;
+ bra BATCH_DISPATCH_R_R_R_R_L_R_R_R;
+BATCH_DISPATCH_R_R_R_R_L_R_R_L:
+ setp.ne.u32 %p,%op,154;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_spcimpfinit_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_R_L_R_R_R:
+ setp.ne.u32 %p,%op,155;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_spcimpfpost_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_R_R:
+ setp.lt.u32 %p,%op,158;
+ @%p bra BATCH_DISPATCH_R_R_R_R_R_L;
+ bra BATCH_DISPATCH_R_R_R_R_R_R;
+BATCH_DISPATCH_R_R_R_R_R_L:
+ setp.lt.u32 %p,%op,157;
+ @%p bra BATCH_DISPATCH_R_R_R_R_R_L_L;
+ bra BATCH_DISPATCH_R_R_R_R_R_L_R;
+BATCH_DISPATCH_R_R_R_R_R_L_L:
+ setp.ne.u32 %p,%op,156;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_spcimpfsolve_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_R_R_L_R:
+ setp.ne.u32 %p,%op,157;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni openifs_spfilt_parent_fp64,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_R_R_R:
+ setp.lt.u32 %p,%op,159;
+ @%p bra BATCH_DISPATCH_R_R_R_R_R_R_L;
+ bra BATCH_DISPATCH_R_R_R_R_R_R_R;
+BATCH_DISPATCH_R_R_R_R_R_R_L:
+ setp.ne.u32 %p,%op,158;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_openifs_verder_ptx,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_R_R_R_R:
+ setp.lt.u32 %p,%op,160;
+ @%p bra BATCH_DISPATCH_R_R_R_R_R_R_R_L;
+ bra BATCH_DISPATCH_R_R_R_R_R_R_R_R;
+BATCH_DISPATCH_R_R_R_R_R_R_R_L:
+ setp.ne.u32 %p,%op,159;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_openifs_verdisint_ptx,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+BATCH_DISPATCH_R_R_R_R_R_R_R_R:
+ setp.ne.u32 %p,%op,160;
+ @%p bra INVALID;
+ ld.global.u64 %argv,[%m+24];
+ ld.global.u64 %ctx,[%m+32];
+ {
+ .param .u64 batch_a,batch_c;
+ st.param.u64 [batch_a],%argv;
+ st.param.u64 [batch_c],%ctx;
+ call.uni md2asm_gpu_batch_body_openifs_verint_ptx,(batch_a,batch_c);
+ }
+ bra COMPLETE;
+INVALID:
+ st.global.u32 [%m+20],1;
+COMPLETE:
+ st.release.sys.global.u64 [%done],%seq;
+ mov.u64 %previous,%seq;
+ bra WAIT;
+STOP:
+ st.release.sys.global.u64 [%done],%seq;
+ ret;
+}

@@ -1,6 +1,4 @@
-// Source ABI: the PTX parameter declarations and guard code define this component interface.
-// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
-// Complete GPGRP from the retained component contract revision1.
+// Complete GPGRP from frozen_contract.md revision1. // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
 .version 8.5
 .target sm_90
 .address_size 64
@@ -18,8 +16,7 @@
  mov.u32 %error,0;
 END: st.param.u32 [result],%error; ret;
 }
-.visible .entry md2asm_gpu_gpgrp(.param .u64 original_vector,.param .u64 context)
-{
+.visible .func md2asm_gpu_batch_body_gpgrp(.param .u64 original_vector,.param .u64 context){
  .reg .u64 %args,%ctx,%a<16>,%tmp,%k,%n,%first,%last,%cells,%bytes,%pitch,%halfbytes,%rec,%cfg,%xyb,%der,%cp,%dlp,%dmp,%blp,%bmp;
  .reg .u64 %index,%step,%column,%offset,%addr;
  .reg .b64 %H,%C,%GL,%GM,%DL,%DM,%BL,%BM,%PL,%PM,%SL,%SM,%t0,%t1;
@@ -168,4 +165,16 @@ COMPLETE:
  add.u64 %tmp,%ctx,8; atom.global.or.b32 %old,[%tmp],%flags; ret;
 REFUSE:
  setp.ne.u32 %p0,%unique,0; @%p0 ret; atom.global.cas.b32 %old,[%ctx],0,1; ret;
+}
+
+.visible .entry md2asm_gpu_gpgrp(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_gpgrp,(batch_a,batch_c);
+ ret;
 }

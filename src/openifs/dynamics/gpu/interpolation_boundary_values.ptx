@@ -1,4 +1,4 @@
-// Direct assembly. Numerical and storage contract: ../../../../skills/md2asm-gpu/references/openifs/dynamics/interpolation_boundary_values.md
+// Complete selected LAVABO boundary rule from frozen_contract.md revision1. // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
 .version 8.5
 .target sm_90
 .address_size 64
@@ -594,8 +594,20 @@ STORES_DONE: setp.eq.u64 %p,%countptr,0; @%p ret; atom.global.add.u64 %counterol
 PRIOR_ERROR: ret;
 REFUSE: st.u32 [%ctx],%error; ret;
 }
-.visible .entry openifs_lavabo_ptx(.param .u64 original_vector,.param .u64 context)
-{ .reg .u32 %u,%t; .reg .pred %p; .reg .u64 %a,%c; .param .u64 a,c;
+.visible .func md2asm_gpu_batch_body_openifs_lavabo_ptx(.param .u64 original_vector,.param .u64 context){ .reg .u32 %u,%t; .reg .pred %p; .reg .u64 %a,%c; .param .u64 a,c;
  mov.u32 %u,%tid.x; mov.u32 %t,%tid.y; or.b32 %u,%u,%t; mov.u32 %t,%tid.z; or.b32 %u,%u,%t; mov.u32 %t,%ctaid.x; or.b32 %u,%u,%t; mov.u32 %t,%ctaid.y; or.b32 %u,%u,%t; mov.u32 %t,%ctaid.z; or.b32 %u,%u,%t; setp.ne.u32 %p,%u,0; @%p ret;
  ld.param.u64 %a,[original_vector]; ld.param.u64 %c,[context]; st.param.u64 [a],%a; st.param.u64 [c],%c; call.uni openifs_lavabo_fp64,(a,c); ret;
+}
+
+
+.visible .entry openifs_lavabo_ptx(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_openifs_lavabo_ptx,(batch_a,batch_c);
+ ret;
 }

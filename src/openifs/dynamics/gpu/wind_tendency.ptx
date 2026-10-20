@@ -1,7 +1,5 @@
-// Source ABI: the PTX parameter declarations and guard code define this component interface.
-// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
-// Complete horizontal wind tendency from its frozen GPU contract.
-// Original mathematical contract: skills/md2asm/references/openifs/dynamics/wind_tendency.md.
+// Complete horizontal wind tendency from its frozen GPU contract. // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
+// Contract: skills/md2asm-gpu/references/openifs/dynamics/wind_tendency.md.
 .version 8.5
 .target sm_90
 .address_size 64
@@ -20,8 +18,7 @@
  mov.u32 %error,0;
 END: st.param.u32 [result],%error; ret;
 }
-.visible .entry md2asm_gpu_wind_tendency(.param .u64 args_original_vector,.param .u64 context)
-{
+.visible .func md2asm_gpu_batch_body_wind_tendency(.param .u64 args_original_vector,.param .u64 context){
  .reg .u64 %args,%ctx,%tmp,%tmp2,%object<4>,%a<16>,%p,%n,%k,%first,%last,%cells,%bytes,%statebytes,%state,%uptr,%vptr,%coef,%lower,%upper,%rec;
  .reg .u64 %index,%step,%column,%level,%offset,%addr,%U,%V,%SL,%SM,%F,%L,%M,%R,%FU,%FV,%CU,%CV,%CROSS,%t0,%t1,%t2,%t3,%U0,%V0,%UT,%VT;
  .reg .u32 %r<8>,%ndim,%mu,%mv,%mode,%flags,%raised,%old,%error,%unique; .reg .pred %q<3>;
@@ -255,4 +252,16 @@ COMPLETE:
  add.u64 %tmp,%ctx,8; atom.global.or.b32 %old,[%tmp],%flags; ret;
 REFUSE:
  setp.ne.u32 %q0,%unique,0; @%q0 ret; atom.global.cas.b32 %old,[%ctx],0,1; ret;
+}
+
+.visible .entry md2asm_gpu_wind_tendency(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_wind_tendency,(batch_a,batch_c);
+ ret;
 }

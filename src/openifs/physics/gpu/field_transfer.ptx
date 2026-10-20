@@ -1,5 +1,4 @@
-// Direct PTX from the physics state-update contract, revision 1.
-// Contract: skills/md2asm-gpu/references/openifs/physics/state_updates.md.
+// Direct PTX from frozen_contract.md revision 1. // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
 // Original pointer vector and common 64-byte context; no host numerical stage.
 .version 8.5
 .target sm_90
@@ -8,8 +7,7 @@
 .extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_sub_status(.param .b64 left_word, .param .b64 right_word);
 .extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_mul_status(.param .b64 left_word, .param .b64 right_word);
 .extern .func (.param .align 8 .b8 result_and_flags[16]) md2asm_gpu_div_status(.param .b64 left_word, .param .b64 right_word);
-.visible .entry md2asm_gpu_update_fields(.param .u64 args_original_vector,.param .u64 context)
-{
+.visible .func md2asm_gpu_batch_body_update_fields(.param .u64 args_original_vector,.param .u64 context){
 
  .reg .pred %p<8>;
  .reg .u32 %r<16>,%k,%n,%first,%last,%flags,%raised,%old,%mask,%field,%mode,%ok;
@@ -157,4 +155,16 @@ COMPLETE:
  add.u64 %tmp,%ctx,8; atom.global.or.b32 %old,[%tmp],%flags; ret;
 BAD:
  atom.global.cas.b32 %old,[%ctx],0,1; ret;
+}
+
+.visible .entry md2asm_gpu_update_fields(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_update_fields,(batch_a,batch_c);
+ ret;
 }

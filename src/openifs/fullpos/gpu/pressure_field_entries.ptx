@@ -1,11 +1,9 @@
-// Contract: skills/md2asm-gpu/references/openifs/fullpos/complete_pressure_output_provider.md.
-.version 8.5
+.version 8.5 // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
 .target sm_90
 .address_size 64
 .extern .func (.param .align 8 .b8 r[16]) md2asm_r23_output_state_md2asm_r23_ppflev_complete_span(.param .u64 state,.param .u64 environment);
 .extern .func (.param .align 8 .b8 r[16]) md2asm_r23_output_state_md2asm_r23_ppintp_complete_span(.param .u64 state,.param .u64 environment);
-.visible .entry md2asm_gpu_r23_ppflev_complete(.param .u64 original_vector,.param .u64 common_context)
-{
+.visible .func md2asm_gpu_batch_body_r23_ppflev_complete(.param .u64 original_vector,.param .u64 common_context){
 .reg .u64 %vector,%ctx,%caps,%state,%env,%out,%gap,%gapn,%sourceSP,%sourceargs,%level,%rows,%off,%ptr,%a,%an,%ae,%b,%bn,%be,%base,%bytes,%end,%word,%mask;
 .reg .u32 %axis,%error,%i,%j,%flags,%raised;
 .reg .pred %p,%q;
@@ -108,8 +106,7 @@ NEXT_PAIR:add.u32 %j,%j,1;setp.lt.u32 %p,%j,%i;@%p bra PAIR_RIGHT;add.u32 %i,%i,
 setp.ne.u32 %p,%error,0;@%p bra REFUSE;ld.global.u32 %flags,[%ctx+8];or.b32 %flags,%flags,%raised;st.global.u32 [%ctx+8],%flags;st.global.u32 [%out],0;st.global.u32 [%out+4],%flags;ld.global.u32 %error,[%state+800];st.global.u32 [%out+8],%error;st.global.u32 [%out+12],1;ret;
 REFUSE:mov.u32 %error,37701;st.global.u32 [%ctx],%error;ret;
 }
-.visible .entry md2asm_gpu_r23_ppintp_complete(.param .u64 original_vector,.param .u64 common_context)
-{
+.visible .func md2asm_gpu_batch_body_r23_ppintp_complete(.param .u64 original_vector,.param .u64 common_context){
 .reg .u64 %vector,%ctx,%caps,%state,%env,%out,%gap,%gapn,%sourceSP,%sourceargs,%level,%rows,%off,%ptr,%a,%an,%ae,%b,%bn,%be,%base,%bytes,%end,%word,%mask;
 .reg .u32 %axis,%error,%i,%j,%flags,%raised;
 .reg .pred %p,%q;
@@ -211,4 +208,28 @@ NEXT_PAIR:add.u32 %j,%j,1;setp.lt.u32 %p,%j,%i;@%p bra PAIR_RIGHT;add.u32 %i,%i,
 {.param .u64 aa,bb;.param .align 8 .b8 rr[16];st.param.u64 [aa],%state;st.param.u64 [bb],%env;call.uni (rr),md2asm_r23_output_state_md2asm_r23_ppintp_complete_span,(aa,bb);ld.param.u32 %raised,[rr];ld.param.u32 %error,[rr+4];}
 setp.ne.u32 %p,%error,0;@%p bra REFUSE;ld.global.u32 %flags,[%ctx+8];or.b32 %flags,%flags,%raised;st.global.u32 [%ctx+8],%flags;st.global.u32 [%out],0;st.global.u32 [%out+4],%flags;ld.global.u32 %error,[%state+800];st.global.u32 [%out+8],%error;st.global.u32 [%out+12],1;ret;
 REFUSE:mov.u32 %error,37701;st.global.u32 [%ctx],%error;ret;
+}
+
+.visible .entry md2asm_gpu_r23_ppflev_complete(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_r23_ppflev_complete,(batch_a,batch_c);
+ ret;
+}
+
+.visible .entry md2asm_gpu_r23_ppintp_complete(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_r23_ppintp_complete,(batch_a,batch_c);
+ ret;
 }

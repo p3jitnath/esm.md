@@ -1,0 +1,109 @@
+.version 8.5 // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 returned[16]) md2asm_r23_fit_state_md2asm_r23_complete_spectral_fit_span(.param .u64 source_state,.param .u64 source_environment);
+.visible .func md2asm_gpu_batch_body_r23_complete_spectral_fit(.param .u64 original_vector,.param .u64 common_context){
+ .reg .u64 %esm_vector,%esm_ctx,%esm_caps,%esm_state,%esm_env,%esm_out,%esm_gap,%esm_gapn,%esm_source_sp,%esm_source_end,%esm_table,%esm_literal,%esm_end,%esm_base,%esm_size,%esm_address,%esm_offset,%esm_a,%esm_an,%esm_ae,%esm_b,%esm_bn,%esm_be,%esm_word;
+ .reg .u32 %esm_axis,%esm_mode,%esm_i,%esm_j,%esm_count,%esm_flags,%esm_error;
+ .reg .pred %esm_p,%esm_q;
+ .local .align 8 .b8 private_owners[208];
+ .param .u64 state_arg,environment_arg;.param .align 8 .b8 source_return[16];
+ ld.param.u64 %esm_vector,[original_vector];ld.param.u64 %esm_ctx,[common_context];
+ mov.u32 %esm_axis,%tid.x;setp.ne.u32 %esm_p,%esm_axis,0;@%esm_p ret;
+ mov.u32 %esm_axis,%tid.y;setp.ne.u32 %esm_p,%esm_axis,0;@%esm_p ret;
+ mov.u32 %esm_axis,%tid.z;setp.ne.u32 %esm_p,%esm_axis,0;@%esm_p ret;
+ mov.u32 %esm_axis,%ctaid.x;setp.ne.u32 %esm_p,%esm_axis,0;@%esm_p ret;
+ mov.u32 %esm_axis,%ctaid.y;setp.ne.u32 %esm_p,%esm_axis,0;@%esm_p ret;
+ mov.u32 %esm_axis,%ctaid.z;setp.ne.u32 %esm_p,%esm_axis,0;@%esm_p ret;
+ setp.eq.u64 %esm_p,%esm_ctx,0;@%esm_p ret;and.b64 %esm_word,%esm_ctx,7;setp.ne.u64 %esm_p,%esm_word,0;@%esm_p ret;
+ add.u64 %esm_end,%esm_ctx,64;setp.lt.u64 %esm_p,%esm_end,%esm_ctx;@%esm_p ret;
+ ld.global.u32 %esm_error,[%esm_ctx];setp.ne.u32 %esm_p,%esm_error,0;@%esm_p ret;
+ mov.u32 %esm_axis,%ntid.x;setp.ne.u32 %esm_p,%esm_axis,1;@%esm_p bra REFUSE;
+ mov.u32 %esm_axis,%ntid.y;setp.ne.u32 %esm_p,%esm_axis,1;@%esm_p bra REFUSE;
+ mov.u32 %esm_axis,%ntid.z;setp.ne.u32 %esm_p,%esm_axis,1;@%esm_p bra REFUSE;
+ mov.u32 %esm_axis,%nctaid.x;setp.ne.u32 %esm_p,%esm_axis,1;@%esm_p bra REFUSE;
+ mov.u32 %esm_axis,%nctaid.y;setp.ne.u32 %esm_p,%esm_axis,1;@%esm_p bra REFUSE;
+ mov.u32 %esm_axis,%nctaid.z;setp.ne.u32 %esm_p,%esm_axis,1;@%esm_p bra REFUSE;
+ mov.u32 %esm_axis,%dynamic_smem_size;setp.ne.u32 %esm_p,%esm_axis,0;@%esm_p bra REFUSE;
+ ld.global.u32 %esm_axis,[%esm_ctx+4];setp.ne.u32 %esm_p,%esm_axis,1;@%esm_p bra REFUSE;
+ ld.global.u32 %esm_axis,[%esm_ctx+12];setp.ne.u32 %esm_p,%esm_axis,0;@%esm_p bra REFUSE;
+ setp.eq.u64 %esm_p,%esm_vector,0;@%esm_p bra REFUSE;and.b64 %esm_word,%esm_vector,7;setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ add.u64 %esm_end,%esm_vector,24;setp.lt.u64 %esm_p,%esm_end,%esm_vector;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_caps,[%esm_ctx+48];ld.global.u64 %esm_word,[%esm_ctx+56];setp.ne.u64 %esm_p,%esm_word,96;@%esm_p bra REFUSE;
+ setp.eq.u64 %esm_p,%esm_caps,0;@%esm_p bra REFUSE;and.b64 %esm_word,%esm_caps,7;setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ add.u64 %esm_end,%esm_caps,96;setp.lt.u64 %esm_p,%esm_end,%esm_caps;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_state,[%esm_vector];ld.global.u64 %esm_env,[%esm_vector+8];ld.global.u64 %esm_out,[%esm_vector+16];
+
+ ld.global.u64 %esm_word,[%esm_caps+0];setp.ne.u64 %esm_p,%esm_word,832;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_caps+8];setp.ne.u64 %esm_p,%esm_word,192;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_caps+24];setp.ne.u64 %esm_p,%esm_word,2048;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_caps+48];setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_caps+56];setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_caps+64];setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_caps+72];setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_caps+88];setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ ld.global.u32 %esm_mode,[%esm_caps+80];setp.ge.u32 %esm_p,%esm_mode,1;@%esm_p bra REFUSE;
+ ld.global.u32 %esm_axis,[%esm_caps+84];setp.ne.u32 %esm_p,%esm_axis,0;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_gap,[%esm_caps+16];ld.global.u64 %esm_gapn,[%esm_caps+24];
+
+ st.local.u64 [private_owners+0],%esm_vector;st.local.u64 [private_owners+8],24;
+ st.local.u64 [private_owners+16],%esm_ctx;st.local.u64 [private_owners+24],64;
+ st.local.u64 [private_owners+32],%esm_caps;st.local.u64 [private_owners+40],96;
+ st.local.u64 [private_owners+48],%esm_state;st.local.u64 [private_owners+56],832;
+ st.local.u64 [private_owners+64],%esm_env;st.local.u64 [private_owners+72],192;
+ st.local.u64 [private_owners+80],%esm_out;st.local.u64 [private_owners+88],16;
+ st.local.u64 [private_owners+96],%esm_gap;st.local.u64 [private_owners+104],2048;
+ mov.u32 %esm_i,0;
+PRIVATE_RANGES:
+ mul.wide.u32 %esm_offset,%esm_i,16;mov.u64 %esm_address,private_owners;add.u64 %esm_address,%esm_address,%esm_offset;ld.local.u64 %esm_base,[%esm_address];ld.local.u64 %esm_size,[%esm_address+8];
+ setp.eq.u64 %esm_p,%esm_base,0;@%esm_p bra REFUSE;and.b64 %esm_word,%esm_base,7;setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ add.u64 %esm_end,%esm_base,%esm_size;setp.lt.u64 %esm_p,%esm_end,%esm_base;@%esm_p bra REFUSE;setp.gt.u64 %esm_p,%esm_end,0x7fffffffffffffff;@%esm_p bra REFUSE;
+ add.u32 %esm_i,%esm_i,1;setp.lt.u32 %esm_p,%esm_i,7;@%esm_p bra PRIVATE_RANGES;
+ ld.global.u64 %esm_word,[%esm_state+768];setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_source_sp,[%esm_state+248];add.u64 %esm_end,%esm_gap,%esm_gapn;setp.ne.u64 %esm_p,%esm_source_sp,%esm_end;@%esm_p bra REFUSE;
+ and.b64 %esm_word,%esm_source_sp,15;setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_size,[%esm_caps+40];add.u64 %esm_source_end,%esm_source_sp,%esm_size;setp.lt.u64 %esm_p,%esm_source_end,%esm_source_sp;@%esm_p bra REFUSE;
+ st.local.u64 [private_owners+112],%esm_source_sp;st.local.u64 [private_owners+120],%esm_size;
+ mov.u32 %esm_count,8;
+
+ setp.eq.u32 %esm_p,%esm_mode,0;@%esm_p bra MODEL_0;
+ bra REFUSE;
+MODEL_0:
+ ld.global.u64 %esm_word,[%esm_caps+40];setp.ne.u64 %esm_p,%esm_word,576;@%esm_p bra REFUSE;ld.global.u64 %esm_word,[%esm_caps+32];setp.ne.u64 %esm_p,%esm_word,8;@%esm_p bra REFUSE;ld.global.u64 %esm_table,[%esm_env+64];
+ ld.global.u64 %esm_word,[%esm_env+64];setp.ne.u64 %esm_p,%esm_word,%esm_table;@%esm_p bra REFUSE;
+ setp.eq.u64 %esm_p,%esm_table,0;@%esm_p bra REFUSE;and.b64 %esm_word,%esm_table,7;setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;add.u64 %esm_end,%esm_table,8;setp.lt.u64 %esm_p,%esm_end,%esm_table;@%esm_p bra REFUSE;st.local.u64 [private_owners+128],%esm_table;st.local.u64 [private_owners+136],8;
+ ld.global.u64 %esm_literal,[%esm_table+0];setp.eq.u64 %esm_p,%esm_literal,0;@%esm_p bra REFUSE;and.b64 %esm_word,%esm_literal,7;setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;add.u64 %esm_end,%esm_literal,8;setp.lt.u64 %esm_p,%esm_end,%esm_literal;@%esm_p bra REFUSE;st.local.u64 [private_owners+144],%esm_literal;st.local.u64 [private_owners+152],8;
+ mov.u32 %esm_count,10;bra PAIRS_BEGIN;
+PAIRS_BEGIN:
+ mov.u32 %esm_i,0;
+PAIR_I:
+ add.u32 %esm_j,%esm_i,1;
+PAIR_J:
+ mul.wide.u32 %esm_offset,%esm_i,16;mov.u64 %esm_address,private_owners;add.u64 %esm_address,%esm_address,%esm_offset;ld.local.u64 %esm_a,[%esm_address];ld.local.u64 %esm_an,[%esm_address+8];add.u64 %esm_ae,%esm_a,%esm_an;
+ mul.wide.u32 %esm_offset,%esm_j,16;mov.u64 %esm_address,private_owners;add.u64 %esm_address,%esm_address,%esm_offset;ld.local.u64 %esm_b,[%esm_address];ld.local.u64 %esm_bn,[%esm_address+8];add.u64 %esm_be,%esm_b,%esm_bn;
+ setp.lt.u64 %esm_p,%esm_a,%esm_be;setp.lt.u64 %esm_q,%esm_b,%esm_ae;and.pred %esm_p,%esm_p,%esm_q;@%esm_p bra REFUSE;
+ add.u32 %esm_j,%esm_j,1;setp.lt.u32 %esm_p,%esm_j,%esm_count;@%esm_p bra PAIR_J;
+ add.u32 %esm_i,%esm_i,1;setp.lt.u32 %esm_p,%esm_i,7;@%esm_p bra PAIR_I;
+
+ setp.eq.u32 %esm_p,%esm_mode,0;@%esm_p bra PHASE_0;
+ bra REFUSE;
+PHASE_0:
+ st.param.u64 [state_arg],%esm_state;st.param.u64 [environment_arg],%esm_env;call.uni (source_return),md2asm_r23_fit_state_md2asm_r23_complete_spectral_fit_span,(state_arg,environment_arg);ld.param.u32 %esm_flags,[source_return];ld.param.u32 %esm_error,[source_return+4];bra JOIN;
+JOIN:
+ ld.global.u32 %esm_axis,[%esm_ctx+8];or.b32 %esm_axis,%esm_axis,%esm_flags;st.global.u32 [%esm_ctx+8],%esm_axis;setp.ne.u32 %esm_p,%esm_error,0;@%esm_p bra REFUSE;
+ st.global.u32 [%esm_out],0;st.global.u32 [%esm_out+4],0;ld.global.u32 %esm_axis,[%esm_state+800];st.global.u32 [%esm_out+8],%esm_axis;st.global.u32 [%esm_out+12],1;ret;
+REFUSE:st.global.u32 [%esm_ctx],1;ret;
+}
+
+
+.visible .entry md2asm_gpu_r23_complete_spectral_fit(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_r23_complete_spectral_fit,(batch_a,batch_c);
+ ret;
+}

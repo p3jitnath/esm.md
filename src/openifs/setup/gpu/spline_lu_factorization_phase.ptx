@@ -1,4 +1,4 @@
-// GPU contract: skills/md2asm-gpu/references/openifs/setup/spline_lu_factorization_complete_contract.md.
+// Complete LU owner admission and one numerical call; frozen_contract.md. // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
 .version 8.5
 .target sm_90
 .address_size 64
@@ -12,8 +12,7 @@ setp.lt.u64 %p,%c,%s;@%p bra BAD;add.u64 %e,%b,%c;setp.lt.u64 %p,%e,%b;@%p bra B
 st.param.u32 [out],0;ret;
 BAD:st.param.u32 [out],29201;ret;
 }
-.visible .entry md2asm_gpu_spline_lu_factor(.param .u64 vector,.param .u64 context)
-{
+.visible .func md2asm_gpu_batch_body_spline_lu_factor(.param .u64 vector,.param .u64 context){
 .reg .u64 %args,%ctx,%record,%header,%completion,%cap,%v,%pointer,%dim,%mat,%piv,%infoptr,%fast,%wide,%matcap,%pivcap,%n64,%matrixbytes,%pivotbytes,%i,%j,%off,%rows,%a,%asize,%ae,%b,%bs,%be,%flags64,%nf,%nw,%oldcount;
 .reg .u32 %w,%origin,%error,%n,%actualn,%rc,%sourceinfo,%flags,%oldflags;
 .reg .pred %p,%q;
@@ -102,4 +101,16 @@ st.global.u64 [%completion+16],%nf;st.global.u64 [%completion+24],%nw;
 atom.global.add.u64 %oldcount,[%fast],%nf;atom.global.add.u64 %oldcount,[%wide],%nw;
 ld.global.u32 %oldflags,[%ctx+8];or.b32 %flags,%flags,%oldflags;st.global.u32 [%ctx+8],%flags;ret;
 REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+
+.visible .entry md2asm_gpu_spline_lu_factor(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_spline_lu_factor,(batch_a,batch_c);
+ ret;
 }

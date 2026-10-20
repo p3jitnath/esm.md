@@ -1,0 +1,125 @@
+.version 8.5 // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 returned[16]) bulk_state_md2asm_r23_parameter_soil_parameter_fields_source_values(.param .u64 source_state,.param .u64 source_environment);
+.visible .func md2asm_gpu_batch_body_r23_parameter_soil_parameter_fields_phase(.param .u64 original_vector,.param .u64 common_context){
+.reg .b64 %vector,%ctx,%caps,%state,%env,%out,%gap,%gapn,%table,%end,%sp,%addr,%base,%bytes,%mask,%last,%a,%an,%b,%bn,%ae,%be,%off,%t;
+.reg .b32 %w,%mode,%i,%j,%flags,%error,%wa,%wb,%ix,%iy;
+.reg .pred %p,%q,%r;
+.local .align 8 .b8 owners[144];
+ld.param.u64 %vector,[original_vector];ld.param.u64 %ctx,[common_context];
+mov.u32 %w,%tid.x;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%tid.y;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%tid.z;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%ctaid.x;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%ctaid.y;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%ctaid.z;setp.ne.u32 %p,%w,0;@%p ret;
+setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %t,%ctx,7;setp.ne.u64 %p,%t,0;@%p ret;
+add.u64 %end,%ctx,64;setp.lt.u64 %p,%end,%ctx;@%p ret;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p ret;
+ld.global.u32 %w,[%ctx];setp.ne.u32 %p,%w,0;@%p ret;
+ld.global.u32 %w,[%ctx+4];setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.x;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.y;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%ntid.z;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.x;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.y;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%nctaid.z;setp.ne.u32 %p,%w,1;@%p bra REFUSE;
+mov.u32 %w,%dynamic_smem_size;setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+ld.global.u32 %w,[%ctx+12];setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+setp.eq.u64 %p,%vector,0;@%p bra REFUSE;and.b64 %t,%vector,7;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+add.u64 %end,%vector,24;setp.lt.u64 %p,%end,%vector;@%p bra REFUSE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+ld.global.u64 %caps,[%ctx+48];ld.global.u64 %t,[%ctx+56];setp.ne.u64 %p,%t,96;@%p bra REFUSE;
+setp.eq.u64 %p,%caps,0;@%p bra REFUSE;and.b64 %t,%caps,7;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+add.u64 %end,%caps,96;setp.lt.u64 %p,%end,%caps;@%p bra REFUSE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+ld.global.u64 %state,[%vector];ld.global.u64 %env,[%vector+8];ld.global.u64 %out,[%vector+16];
+ld.global.u64 %t,[%caps];setp.ne.u64 %p,%t,832;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+8];setp.ne.u64 %p,%t,160;@%p bra REFUSE;
+ld.global.u64 %gap,[%caps+16];ld.global.u64 %gapn,[%caps+24];setp.ne.u64 %p,%gapn,14336;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+32];setp.ne.u64 %p,%t,88;@%p bra REFUSE;
+ld.global.u32 %mode,[%caps+48];setp.ge.u32 %p,%mode,12;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+40];setp.ne.u64 %p,%t,512;@%p bra REFUSE;
+ld.global.u32 %w,[%caps+52];setp.ne.u32 %p,%w,0;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+72];setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+80];setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+88];setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+mov.u64 %addr,owners;
+st.local.u64 [%addr],%vector;mov.u64 %t,24;st.local.u64 [%addr+8],%t;
+st.local.u64 [%addr+16],%ctx;mov.u64 %t,64;st.local.u64 [%addr+24],%t;
+st.local.u64 [%addr+32],%caps;mov.u64 %t,96;st.local.u64 [%addr+40],%t;
+st.local.u64 [%addr+48],%state;mov.u64 %t,832;st.local.u64 [%addr+56],%t;
+st.local.u64 [%addr+64],%env;mov.u64 %t,160;st.local.u64 [%addr+72],%t;
+st.local.u64 [%addr+80],%out;mov.u64 %t,32;st.local.u64 [%addr+88],%t;
+st.local.u64 [%addr+96],%gap;st.local.u64 [%addr+104],%gapn;
+mov.u32 %i,0;
+PRIVATE_RANGE:
+mul.wide.u32 %off,%i,16;add.u64 %last,%addr,%off;
+ld.local.u64 %base,[%last];ld.local.u64 %bytes,[%last+8];
+setp.eq.u64 %p,%base,0;@%p bra REFUSE;and.b64 %t,%base,7;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+add.u64 %end,%base,%bytes;setp.lt.u64 %p,%end,%base;@%p bra REFUSE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+add.u32 %i,%i,1;setp.lt.u32 %p,%i,7;@%p bra PRIVATE_RANGE;
+ld.global.u32 %w,[%env+48];setp.ne.u32 %p,%w,%mode;@%p bra REFUSE;
+ld.global.u64 %t,[%state+768];setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+ld.global.u64 %sp,[%state+248];add.u64 %end,%gap,%gapn;setp.ne.u64 %p,%sp,%end;@%p bra REFUSE;
+and.b64 %t,%sp,15;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+ld.global.u64 %t,[%caps+56];setp.ne.u64 %p,%t,%sp;@%p bra REFUSE;
+ld.global.u64 %table,[%env+64];st.local.u64 [%addr+112],%table;mov.u64 %t,88;st.local.u64 [%addr+120],%t;
+ld.global.u64 %base,[%env+56];ld.global.u64 %t,[%caps+64];setp.ne.u64 %p,%base,%t;@%p bra REFUSE;
+setp.eq.u32 %p,%mode,0;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,1;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,2;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,3;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,4;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,5;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,6;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,7;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,8;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,9;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,10;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+setp.eq.u32 %p,%mode,11;@%p add.u64 %t,%sp,0;@%p setp.ne.u64 %q,%base,%t;and.pred %q,%p,%q;@%q bra REFUSE;
+st.local.u64 [%addr+128],%base;mov.u64 %t,512;st.local.u64 [%addr+136],%t;
+mov.u32 %i,7;
+SOURCE_RANGES:
+mul.wide.u32 %off,%i,16;add.u64 %last,%addr,%off;ld.local.u64 %base,[%last];ld.local.u64 %bytes,[%last+8];
+setp.eq.u64 %p,%base,0;@%p bra REFUSE;and.b64 %t,%base,7;setp.ne.u64 %p,%t,0;@%p bra REFUSE;
+add.u64 %end,%base,%bytes;setp.lt.u64 %p,%end,%base;@%p bra REFUSE;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p bra REFUSE;
+add.u32 %i,%i,1;setp.lt.u32 %p,%i,9;@%p bra SOURCE_RANGES;
+mov.u32 %i,0;
+PAIR_I:
+add.u32 %j,%i,1;
+PAIR_J:
+setp.lt.u32 %p,%i,7;
+@!%p bra NEXT_PAIR;
+mul.wide.u32 %off,%i,16;add.u64 %last,%addr,%off;ld.local.u64 %a,[%last];ld.local.u64 %an,[%last+8];add.u64 %ae,%a,%an;
+mul.wide.u32 %off,%j,16;add.u64 %last,%addr,%off;ld.local.u64 %b,[%last];ld.local.u64 %bn,[%last+8];add.u64 %be,%b,%bn;
+setp.lt.u64 %p,%a,%be;setp.lt.u64 %q,%b,%ae;and.pred %p,%p,%q;@%p bra REFUSE;
+NEXT_PAIR:
+add.u32 %j,%j,1;setp.lt.u32 %p,%j,9;@%p bra PAIR_J;
+add.u32 %i,%i,1;setp.lt.u32 %p,%i,8;@%p bra PAIR_I;
+{
+.param .u64 state_arg,environment_arg;
+.param .align 8 .b8 result[16];
+st.param.u64 [state_arg],%state;st.param.u64 [environment_arg],%env;
+call.uni (result),bulk_state_md2asm_r23_parameter_soil_parameter_fields_source_values,(state_arg,environment_arg);
+ld.param.u32 %flags,[result];ld.param.u32 %error,[result+4];ld.param.u32 %mode,[result+8];
+JOIN:
+ld.global.u32 %w,[%ctx+8];or.b32 %w,%w,%flags;st.global.u32 [%ctx+8],%w;
+setp.ne.u32 %p,%error,0;@%p st.global.u32 [%out+4],%error;@%p bra REFUSE;
+}
+mov.u32 %w,0;st.global.u32 [%out],%w;st.global.u32 [%out+4],%w;st.global.u32 [%out+16],%mode;st.global.u32 [%out+20],%w;st.global.u64 [%out+24],0;
+ld.global.u32 %w,[%state+800];st.global.u32 [%out+8],%w;mov.u32 %w,1;st.global.u32 [%out+12],%w;
+ret;
+REFUSE:
+mov.u32 %w,1;st.global.u32 [%ctx],%w;ret;
+}
+
+.visible .entry md2asm_gpu_r23_parameter_soil_parameter_fields_phase(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_r23_parameter_soil_parameter_fields_phase,(batch_a,batch_c);
+ ret;
+}

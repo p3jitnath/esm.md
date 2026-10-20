@@ -1,5 +1,4 @@
-// Complete direct CPQTUV from the physics-rate closure contract, revision 1.
-// Contract: skills/md2asm-gpu/references/openifs/dynamics/physics_rate_closure.md.
+// Complete direct CPQTUV from frozen_contract.md revision 1. // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
 .version 8.5
 .target sm_90
 .address_size 64
@@ -8,8 +7,7 @@
 .extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
 .extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
 
-.visible .entry md2asm_gpu_cpqtuv(.param .u64 args_original_vector,.param .u64 context)
-{
+.visible .func md2asm_gpu_batch_body_cpqtuv(.param .u64 args_original_vector,.param .u64 context){
  .reg .pred %p<8>;
  .reg .u32 %r<12>,%k,%n,%first,%last,%nf,%ndim,%ndim1,%dry,%d,%active,%lt1,%idx,%flags,%raised,%old,%neednew,%needold,%mass;
  .reg .b64 %args,%ctx,%object,%cfg,%pointer,%record,%descriptor,%q,%l,%i,%rain,%snow,%cloud,%continuity;
@@ -669,4 +667,16 @@ COMPLETE:
  add.u64 %tmp,%ctx,8; atom.global.or.b32 %old,[%tmp],%flags; ret;
 BAD:
  atom.global.cas.b32 %old,[%ctx],0,1; ret;
+}
+
+.visible .entry md2asm_gpu_cpqtuv(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_cpqtuv,(batch_a,batch_c);
+ ret;
 }

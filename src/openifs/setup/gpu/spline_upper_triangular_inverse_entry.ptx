@@ -1,4 +1,4 @@
-// Complete upper inverse admission; skills/md2asm-gpu/references/openifs/setup/spline_upper_triangular_inverse_complete_contract.md.
+// One-thread admitted boundary for the complete upper inverse. // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
 .version 8.5
 .target sm_90
 .address_size 64
@@ -12,8 +12,7 @@
  mov.u32 %error,0;
 DONE:st.param.u32 [result],%error;ret;
 }
-.visible .entry md2asm_gpu_spline_upper_inverse(.param .u64 original_vector,.param .u64 common_context)
-{
+.visible .func md2asm_gpu_batch_body_spline_upper_inverse(.param .u64 original_vector,.param .u64 common_context){
  .reg .u64 %args,%ctx,%record,%input,%output,%dimension,%matrix,%info,%capacity,%bytes,%offset,%pointer,%word,%abase,%asize,%aend,%bbase,%bsize,%bend,%rows,%fast,%wide;
  .reg .u32 %origin,%axis,%error,%n,%i,%j,%rc,%source_info,%flags,%old;.reg .pred %p,%q;
  .local .align 8 .b8 owners[128];
@@ -61,4 +60,16 @@ PAIR_RIGHT:
 KEEP_INFO:
  ld.global.u32 %old,[%ctx+8];or.b32 %flags,%flags,%old;st.global.u32 [%ctx+8],%flags;ret;
 REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+
+.visible .entry md2asm_gpu_spline_upper_inverse(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_spline_upper_inverse,(batch_a,batch_c);
+ ret;
 }

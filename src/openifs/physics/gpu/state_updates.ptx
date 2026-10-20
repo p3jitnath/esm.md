@@ -1,5 +1,4 @@
-// Direct PTX from the physics state-update contract, revision 1.
-// Contract: skills/md2asm-gpu/references/openifs/physics/state_updates.md.
+// Direct PTX from frozen_contract.md revision 1. // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
 // Original pointer vector and common 64-byte context; no host numerical stage.
 .version 8.5
 .target sm_90
@@ -83,8 +82,7 @@ SA_LEVEL:
 SA_DONE:
  shl.b64 %offset,%offset,3; add.u64 %base,%base,%offset; st.param.u64 [result],%base; ret;
 }
-.visible .entry md2asm_gpu_state_update(.param .u64 args_original_vector,.param .u64 context)
-{
+.visible .func md2asm_gpu_batch_body_state_update(.param .u64 args_original_vector,.param .u64 context){
 
  .reg .pred %p<8>;
  .reg .u32 %r<16>,%k,%n,%first,%last,%flags,%raised,%old,%mask,%field,%mode,%ok;
@@ -900,8 +898,7 @@ COMPLETE:
 BAD:
  atom.global.cas.b32 %old,[%ctx],0,1; ret;
 }
-.visible .entry md2asm_gpu_state_increment(.param .u64 args_original_vector,.param .u64 context)
-{
+.visible .func md2asm_gpu_batch_body_state_increment(.param .u64 args_original_vector,.param .u64 context){
 
  .reg .pred %p<8>;
  .reg .u32 %r<16>,%k,%n,%first,%last,%flags,%raised,%old,%mask,%field,%mode,%ok;
@@ -1292,4 +1289,28 @@ COMPLETE:
  add.u64 %tmp,%ctx,8; atom.global.or.b32 %old,[%tmp],%flags; ret;
 BAD:
  atom.global.cas.b32 %old,[%ctx],0,1; ret;
+}
+
+.visible .entry md2asm_gpu_state_increment(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_state_increment,(batch_a,batch_c);
+ ret;
+}
+
+.visible .entry md2asm_gpu_state_update(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_state_update,(batch_a,batch_c);
+ ret;
 }

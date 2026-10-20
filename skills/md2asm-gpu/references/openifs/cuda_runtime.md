@@ -1,6 +1,6 @@
 # Assembly-Owned CUDA Runtime
 
-Revision 7 supplies process services for the PTX forecast. The [assembly module](../../../../src/openifs/support/gpu/cuda_runtime.S) performs no weather calculation. Host assembly retains the original input loading, complete model storage and output rules. The declared NVIDIA device must support coherent ordinary host memory through the host page tables, as checked during initialization.
+Revision 8 supplies process services for the PTX forecast. The [assembly module](../../../../src/openifs/support/gpu/cuda_runtime.S) performs no weather calculation. Host assembly retains the original input loading, complete model storage and output rules. The declared NVIDIA device must support coherent ordinary host memory through the host page tables, as checked during initialization.
 
 The application binary interface (ABI) defines argument and register duties. This AArch64 interface uses the ordinary Arm procedure-call rules. Preserve x18, x19 to x29, the required low halves of v8 to v15 and 16-byte stack alignment. The floating-point control register (FPCR) selects rounding and related settings. The status register (FPSR) records numerical events, and the C error slot (`errno`) records library errors. These entries preserve incoming FPCR and errno across CUDA service calls. The launch entry also combines newly reported numerical flags and the last ordered mathematical error with the incoming state after a successful kernel. Other CUDA effects must not replace numerical status.
 
@@ -14,7 +14,7 @@ The application binary interface (ABI) defines argument and register duties. Thi
 
 ## Persistent Scalar Service
 
-Seven exact scalar entry names and the complete setup entry below share this service. Each original thin entry and the [persistent worker](../../../../src/openifs/surface/gpu/soil_water_mailbox_worker.ptx) call the same complete numerical body. Only one block, one thread and zero shared bytes are eligible. Shared helper names can serve several physical callers and do not identify a physical model alone. Before an ordinary lookup or launch, the host stops and joins an active worker under the request lock. The next scalar request starts it again. This lets CUDA prepare larger per-thread working storage while no persistent work is active, following its [context resource rules](https://docs.nvidia.com/cuda/archive/12.6.0/cuda-driver-api/group__CUDA__CTX.html). Ordinary launches use their own stream and wait for that stream to complete.
+The initial eight operations below share this service; the complete 160-name extension is linked at the end of this page. Each original thin entry and the [persistent worker](../../../../src/openifs/support/gpu/whole_scalar_mailbox_worker.ptx) call the same complete numerical body. Only one block, one thread and zero shared bytes are eligible. Shared helper names can serve several physical callers and do not identify a physical model alone. Before an ordinary lookup or launch, the host stops and joins an active worker under the request lock. The next scalar request starts it again. This lets CUDA prepare larger per-thread working storage while no persistent work is active, following its [context resource rules](https://docs.nvidia.com/cuda/archive/12.6.0/cuda-driver-api/group__CUDA__CTX.html). Ordinary launches use their own stream and wait for that stream to complete.
 
 Each callable takes original_vector:u64 and common_context:u64, where u64 is an unsigned sixty-four-bit address word, and returns no direct value. Each keeps its original complete buffer, alignment, separation, mode and status rules. Results and numerical events remain in caller-owned storage. The worker reloads both outgoing arguments before every body call.
 
@@ -37,7 +37,7 @@ A mailbox is a small shared request record. This process-owned mailbox has 64 by
 | --- | --- | --- |
 | 0 | Unsigned 64-bit integer | Request sequence |
 | 8 | Unsigned 64-bit integer | Completed sequence |
-| 16 | Unsigned 32-bit integer | Request kind from the table above, or zero to stop |
+| 16 | Unsigned 32-bit integer | Request kind from the selected exact-name table, or zero to stop |
 | 20 | Unsigned 32-bit integer | Private transport error |
 | 24 | 64-bit address | Original argument vector |
 | 32 | 64-bit address | Original GPU context |
@@ -56,3 +56,5 @@ The component checks preserve complete owner bytes for all 17 modes, changing re
 Check the actual imported CUDA signatures against the installed CUDA 12.6 header. Verification must cover nested original pointers, a caller-owned stack vector, unchanged input and surrounding bytes, x18 and saved registers, fresh and inherited floating-point state, mathematical error preservation and writes, invalid module and entry names, repeated initialization, and final cleanup. Use only storage operations in the verification kernel. No runtime result is a numerical forecast result.
 
 The [complete setup service](setup/setup_state_mailbox_service.md) adds request kind 8 without changing the seven scalar bodies or the request protocol. Its original 285-mode body and ordinary entry remain available. The changed transport passes 38 setup requests and 14 cached scalar requests, with 3,108,704 complete compared bytes and zero differences. Nineteen controls check admission before writes. Full state, numerical flags, errno, saved registers, six actual counter owners, fallback, stop and restart agree. No CPU, Fortran or physical reference was called. Unchanged arithmetic and physical evidence is reused; full forecast and performance acceptance remain separate.
+
+The [complete scalar request extension](support/whole_scalar_mailbox_service.md) now selects 160 exact names with a hash table followed by a complete character comparison. It keeps the original eight operations, reuses 101 existing complete bodies unchanged, and wraps 51 complete entries in 41 replacement objects. Its changed transport passes 3,108,704 complete owner bytes with zero differences and reuses the five saved ordinary expectations without new reference calls. All 43 published objects rebuild identically to the qualified objects. The original shape, mailbox protocol, numerical status and ordinary-route rules above remain in force; complete-forecast and performance acceptance remain separate.

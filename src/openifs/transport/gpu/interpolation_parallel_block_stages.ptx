@@ -1,0 +1,262 @@
+.version 8.5 // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
+.target sm_90
+.address_size 64
+.extern .func (.param .u32 result) openifs_call_sl_parallel_admit(.param .u64 original_vector,.param .u64 context);
+.extern .func openifs_call_sl_prepare_child(.param .u64 original_vector,.param .u64 context,.param .u32 source_stage,.param .u32 source_block);
+.extern .func openifs_lapinea_fp64_call_sl_worker(.param .u64 original_vector,.param .u64 context);
+.visible .func md2asm_gpu_batch_body_openifs_call_sl_parallel_prepare(.param .u64 original_vector,.param .u64 context){
+.reg .u64 %args,%ctx,%scratch,%record,%arena,%head,%stride,%rows,%row,%src,%dst,%off,%word,%ptr,%buf,%n,%vec,%crec,%cctx,%tmp,%hi;
+.reg .u32 %block,%rt,%error;.reg .pred %p;
+.param .u64 admit_a,admit_c;.param .u32 admitted;
+.param .u64 meta_a,meta_c;.param .u32 meta_stage,meta_block;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];
+setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %tmp,%ctx,7;setp.ne.u64 %p,%tmp,0;@%p ret;
+mov.u32 %rt,%ctaid.x;mov.u32 %error,%ctaid.y;or.b32 %rt,%rt,%error;mov.u32 %error,%ctaid.z;or.b32 %rt,%rt,%error;mov.u32 %error,%tid.x;or.b32 %rt,%rt,%error;mov.u32 %error,%tid.y;or.b32 %rt,%rt,%error;mov.u32 %error,%tid.z;or.b32 %rt,%rt,%error;setp.ne.u32 %p,%rt,0;@%p ret;
+ld.global.u32 %rt,[%ctx];setp.ne.u32 %p,%rt,0;@%p ret;mov.u32 %error,15540;
+mov.u32 %rt,%ntid.x;setp.ne.u32 %p,%rt,1;@%p bra PREP_REFUSE;mov.u32 %rt,%ntid.y;setp.ne.u32 %p,%rt,1;@%p bra PREP_REFUSE;mov.u32 %rt,%ntid.z;setp.ne.u32 %p,%rt,1;@%p bra PREP_REFUSE;
+mov.u32 %rt,%nctaid.x;setp.ne.u32 %p,%rt,1;@%p bra PREP_REFUSE;mov.u32 %rt,%nctaid.y;setp.ne.u32 %p,%rt,1;@%p bra PREP_REFUSE;mov.u32 %rt,%nctaid.z;setp.ne.u32 %p,%rt,1;@%p bra PREP_REFUSE;
+mov.u32 %rt,%dynamic_smem_size;setp.ne.u32 %p,%rt,0;@%p bra PREP_REFUSE;
+ld.global.u32 %rt,[%ctx+4];setp.ne.u32 %p,%rt,1;@%p bra PREP_REFUSE;ld.global.u32 %rt,[%ctx+12];and.b32 %rt,%rt,1;setp.ne.u32 %p,%rt,0;@%p bra PREP_REFUSE;
+st.param.u64 [admit_a],%args;st.param.u64 [admit_c],%ctx;call.uni (admitted),openifs_call_sl_parallel_admit,(admit_a,admit_c);ld.param.u32 %error,[admitted];setp.ne.u32 %p,%error,0;@%p bra PREP_REFUSE;
+ld.global.u64 %scratch,[%ctx+32];ld.global.u64 %record,[%ctx+48];ld.global.u64 %arena,[%record+672];
+add.u64 %head,%arena,3150591;and.b64 %head,%head,0xffffffffffffffc0;add.u64 %head,%scratch,%head;
+add.u64 %stride,%arena,398879;and.b64 %stride,%stride,0xffffffffffffffc0;add.u64 %rows,%head,4096;
+st.global.u64 [%head],0;st.global.u64 [%head+8],0;st.global.u64 [%head+16],%args;st.global.u64 [%head+24],%ctx;st.global.u64 [%head+32],%record;st.global.u64 [%head+40],%scratch;st.global.u64 [%head+48],%stride;st.global.u64 [%head+56],%arena;st.global.u64 [%head+64],%rows;
+mov.u32 %block,0;
+PREP_BLOCK:
+st.param.u64 [meta_a],%args;st.param.u64 [meta_c],%ctx;st.param.u32 [meta_stage],1;st.param.u32 [meta_block],%block;call.uni openifs_call_sl_prepare_child,(meta_a,meta_c,meta_stage,meta_block);
+cvt.u64.u32 %tmp,%block;mad.lo.u64 %row,%tmp,%stride,%rows;mov.u64 %vec,%row;add.u64 %cctx,%row,256;add.u64 %crec,%row,512;
+mov.u64 %off,0;
+PREP_VECTOR_COPY:add.u64 %src,%scratch,%off;ld.global.u64 %word,[%src];add.u64 %dst,%vec,%off;st.global.u64 [%dst],%word;add.u64 %off,%off,8;setp.lt.u64 %p,%off,208;@%p bra PREP_VECTOR_COPY;
+mov.u64 %off,0;
+PREP_CTX_COPY:add.u64 %src,%scratch,512;add.u64 %src,%src,%off;ld.global.u64 %word,[%src];add.u64 %dst,%cctx,%off;st.global.u64 [%dst],%word;add.u64 %off,%off,8;setp.lt.u64 %p,%off,64;@%p bra PREP_CTX_COPY;
+mov.u64 %off,0;
+PREP_RECORD_COPY:add.u64 %src,%scratch,1024;add.u64 %src,%src,%off;ld.global.u64 %word,[%src];add.u64 %dst,%crec,%off;st.global.u64 [%dst],%word;add.u64 %off,%off,8;setp.lt.u64 %p,%off,8192;@%p bra PREP_RECORD_COPY;
+add.u64 %ptr,%row,8832;mov.u32 %rt,1;st.global.u32 [%ptr],%rt;mov.u32 %rt,24;setp.eq.u32 %p,%block,85;@%p mov.u32 %rt,8;st.global.u32 [%ptr+4],%rt;add.u32 %rt,%block,1;st.global.u32 [%ptr+8],%rt;
+st.global.u64 [%vec+24],%ptr;add.u64 %ptr,%ptr,4;st.global.u64 [%vec+32],%ptr;add.u64 %ptr,%ptr,4;st.global.u64 [%vec+48],%ptr;
+add.u64 %ptr,%row,16384;st.global.u64 [%cctx+32],%ptr;st.global.u64 [%cctx+40],%arena;st.global.u64 [%cctx+48],%crec;st.global.u64 [%cctx+56],8192;
+st.global.u32 [%cctx],0;st.global.u32 [%cctx+8],0;st.global.u64 [%cctx+16],0;
+add.u64 %buf,%row,16384;add.u64 %buf,%buf,%arena;
+ld.global.u64 %src,[%vec+96];add.u64 %ptr,%row,8960;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%buf;st.global.u64 [%ptr+16],10944;st.global.u64 [%vec+96],%buf;st.global.u64 [%crec+96],10944;add.u64 %buf,%buf,10944;
+ld.global.u64 %src,[%vec+104];add.u64 %ptr,%row,8984;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%buf;st.global.u64 [%ptr+16],14592;st.global.u64 [%vec+104],%buf;st.global.u64 [%crec+104],14592;add.u64 %buf,%buf,14592;
+ld.global.u64 %src,[%vec+112];add.u64 %ptr,%row,9008;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%buf;st.global.u64 [%ptr+16],3648;st.global.u64 [%vec+112],%buf;st.global.u64 [%crec+112],3648;add.u64 %buf,%buf,3648;
+ld.global.u64 %src,[%vec+120];add.u64 %ptr,%row,9032;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%buf;st.global.u64 [%ptr+16],3648;st.global.u64 [%vec+120],%buf;st.global.u64 [%crec+120],3648;add.u64 %buf,%buf,3648;
+ld.global.u64 %src,[%vec+128];add.u64 %ptr,%row,9056;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%buf;st.global.u64 [%ptr+16],7296;st.global.u64 [%vec+128],%buf;st.global.u64 [%crec+128],7296;add.u64 %buf,%buf,7296;
+ld.global.u64 %src,[%vec+136];add.u64 %ptr,%row,9080;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%buf;st.global.u64 [%ptr+16],7296;st.global.u64 [%vec+136],%buf;st.global.u64 [%crec+136],7296;add.u64 %buf,%buf,7296;
+ld.global.u64 %src,[%vec+144];add.u64 %ptr,%row,9104;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%buf;st.global.u64 [%ptr+16],43776;st.global.u64 [%vec+144],%buf;st.global.u64 [%crec+144],43776;add.u64 %buf,%buf,43776;
+ld.global.u64 %src,[%vec+152];add.u64 %ptr,%row,9128;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%buf;st.global.u64 [%ptr+16],240768;st.global.u64 [%vec+152],%buf;st.global.u64 [%crec+152],240768;add.u64 %buf,%buf,240768;
+ld.global.u64 %src,[%vec+160];add.u64 %ptr,%row,9152;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%buf;st.global.u64 [%ptr+16],304;st.global.u64 [%vec+160],%buf;st.global.u64 [%crec+160],304;add.u64 %buf,%buf,304;
+ld.global.u64 %src,[%vec+168];add.u64 %ptr,%row,9176;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%buf;st.global.u64 [%ptr+16],1824;st.global.u64 [%vec+168],%buf;st.global.u64 [%crec+168],1824;add.u64 %buf,%buf,1824;
+ld.global.u64 %src,[%vec+176];add.u64 %ptr,%row,9200;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%buf;st.global.u64 [%ptr+16],10032;st.global.u64 [%vec+176],%buf;st.global.u64 [%crec+176],10032;add.u64 %buf,%buf,10032;
+ld.global.u64 %src,[%vec+184];add.u64 %ptr,%row,9224;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%buf;st.global.u64 [%ptr+16],14592;st.global.u64 [%vec+184],%buf;st.global.u64 [%crec+184],14592;add.u64 %buf,%buf,14592;
+ld.global.u64 %src,[%vec+192];add.u64 %ptr,%row,9248;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%buf;st.global.u64 [%ptr+16],21888;st.global.u64 [%vec+192],%buf;st.global.u64 [%crec+192],21888;add.u64 %buf,%buf,21888;
+ld.global.u64 %src,[%vec+200];add.u64 %ptr,%row,9272;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%buf;st.global.u64 [%ptr+16],1824;st.global.u64 [%vec+200],%buf;st.global.u64 [%crec+200],1824;add.u64 %buf,%buf,1824;
+ld.global.u64 %src,[%crec+248];add.u64 %ptr,%row,9408;add.u64 %dst,%row,10240;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%dst;add.u64 %dst,%dst,64;st.global.u64 [%ptr+16],%dst;st.global.u64 [%ptr+24],8;setp.eq.u64 %p,%src,0;@%p bra PREP_COUNTER_NULL_0;
+st.global.u64 [%crec+248],%dst;st.global.u64 [%crec+256],8;
+PREP_COUNTER_NULL_0:
+ld.global.u64 %src,[%crec+1256];add.u64 %ptr,%row,9440;add.u64 %dst,%row,10368;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%dst;add.u64 %dst,%dst,64;st.global.u64 [%ptr+16],%dst;st.global.u64 [%ptr+24],16;setp.eq.u64 %p,%src,0;@%p bra PREP_COUNTER_NULL_1;
+st.global.u64 [%crec+1256],%dst;st.global.u64 [%crec+1264],16;
+PREP_COUNTER_NULL_1:
+ld.global.u64 %src,[%crec+2424];add.u64 %ptr,%row,9472;add.u64 %dst,%row,10496;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%dst;add.u64 %dst,%dst,64;st.global.u64 [%ptr+16],%dst;st.global.u64 [%ptr+24],40;setp.eq.u64 %p,%src,0;@%p bra PREP_COUNTER_NULL_2;
+st.global.u64 [%crec+2424],%dst;st.global.u64 [%crec+2432],40;
+st.global.u64 [%crec+5496],%dst;st.global.u64 [%crec+5504],40;
+PREP_COUNTER_NULL_2:
+ld.global.u64 %src,[%crec+2440];add.u64 %ptr,%row,9504;add.u64 %dst,%row,10624;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%dst;add.u64 %dst,%dst,64;st.global.u64 [%ptr+16],%dst;st.global.u64 [%ptr+24],8;setp.eq.u64 %p,%src,0;@%p bra PREP_COUNTER_NULL_3;
+st.global.u64 [%crec+2440],%dst;st.global.u64 [%crec+2448],8;
+st.global.u64 [%crec+5512],%dst;st.global.u64 [%crec+5520],8;
+PREP_COUNTER_NULL_3:
+ld.global.u64 %src,[%crec+2456];add.u64 %ptr,%row,9536;add.u64 %dst,%row,10752;st.global.u64 [%ptr],%src;st.global.u64 [%ptr+8],%dst;add.u64 %dst,%dst,64;st.global.u64 [%ptr+16],%dst;st.global.u64 [%ptr+24],8;setp.eq.u64 %p,%src,0;@%p bra PREP_COUNTER_NULL_4;
+st.global.u64 [%crec+2456],%dst;st.global.u64 [%crec+2464],8;
+st.global.u64 [%crec+5528],%dst;st.global.u64 [%crec+5536],8;
+PREP_COUNTER_NULL_4:
+st.global.u64 [%row+11264],0;st.global.u64 [%row+11272],0;add.u32 %block,%block,1;setp.lt.u32 %p,%block,86;@%p bra PREP_BLOCK;
+membar.gl;st.global.u64 [%head],0x43414c4c534c5031;ret;
+PREP_REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+.visible .entry openifs_call_sl_parallel_worker(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u64 %args,%ctx,%scratch,%record,%arena,%head,%stride,%rows,%row,%src,%dst,%off,%word,%ptr,%n,%base,%work,%delta,%tmp,%cap,%need,%hi,%counter;
+.reg .u32 %block,%lane,%rt,%error,%flags,%j;.reg .pred %p,%q;
+.param .u64 child_a,child_c;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];
+setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %tmp,%ctx,7;setp.ne.u64 %p,%tmp,0;@%p ret;
+mov.u32 %block,%ctaid.x;mov.u32 %lane,%tid.x;mov.u32 %rt,%ctaid.y;mov.u32 %error,%ctaid.z;or.b32 %rt,%rt,%error;mov.u32 %error,%tid.y;or.b32 %rt,%rt,%error;mov.u32 %error,%tid.z;or.b32 %rt,%rt,%error;setp.ne.u32 %p,%rt,0;@%p ret;
+ld.global.u32 %rt,[%ctx];setp.ne.u32 %p,%rt,0;@%p ret;mov.u32 %error,15541;
+mov.u32 %rt,%ntid.x;setp.ne.u32 %p,%rt,32;@%p bra PHASE_REFUSE;mov.u32 %rt,%ntid.y;setp.ne.u32 %p,%rt,1;@%p bra PHASE_REFUSE;mov.u32 %rt,%ntid.z;setp.ne.u32 %p,%rt,1;@%p bra PHASE_REFUSE;
+mov.u32 %rt,%nctaid.x;setp.ne.u32 %p,%rt,86;@%p bra PHASE_REFUSE;mov.u32 %rt,%nctaid.y;setp.ne.u32 %p,%rt,1;@%p bra PHASE_REFUSE;mov.u32 %rt,%nctaid.z;setp.ne.u32 %p,%rt,1;@%p bra PHASE_REFUSE;
+mov.u32 %rt,%dynamic_smem_size;setp.ne.u32 %p,%rt,0;@%p bra PHASE_REFUSE;
+ld.global.u32 %rt,[%ctx+4];setp.ne.u32 %p,%rt,1;@%p bra PHASE_REFUSE;ld.global.u32 %rt,[%ctx+12];and.b32 %rt,%rt,1;setp.ne.u32 %p,%rt,0;@%p bra PHASE_REFUSE;
+ld.global.u64 %record,[%ctx+48];setp.gt.u64 %p,%record,0x7fffffffffffffff;@%p bra PHASE_REFUSE;ld.global.u64 %cap,[%ctx+56];setp.lt.u64 %p,%cap,1064960;@%p bra PHASE_REFUSE;setp.eq.u64 %p,%record,0;@%p bra PHASE_REFUSE;and.b64 %tmp,%record,7;setp.ne.u64 %p,%tmp,0;@%p bra PHASE_REFUSE;add.u64 %tmp,%record,1064960;setp.gt.u64 %p,%tmp,0x7fffffffffffffff;@%p bra PHASE_REFUSE;
+ld.global.u64 %tmp,[%record+704];setp.ne.u64 %p,%tmp,2;@%p bra PHASE_REFUSE;
+ld.global.u64 %scratch,[%ctx+32];ld.global.u64 %record,[%ctx+48];ld.global.u64 %arena,[%record+672];
+add.u64 %head,%arena,3150591;and.b64 %head,%head,0xffffffffffffffc0;add.u64 %head,%scratch,%head;
+add.u64 %stride,%arena,398879;and.b64 %stride,%stride,0xffffffffffffffc0;add.u64 %rows,%head,4096;
+ld.global.u64 %cap,[%ctx+40];setp.gt.u64 %p,%arena,0x7fffffffffcfed3f;@%p bra PHASE_REFUSE;setp.gt.u64 %p,%scratch,0x7fffffffffffffff;@%p bra PHASE_REFUSE;setp.eq.u64 %p,%scratch,0;@%p bra PHASE_REFUSE;and.b64 %tmp,%scratch,7;setp.ne.u64 %p,%tmp,0;@%p bra PHASE_REFUSE;
+mul.hi.u64 %hi,%stride,86;setp.ne.u64 %p,%hi,0;@%p bra PHASE_REFUSE;mul.lo.u64 %need,%stride,86;add.u64 %need,%need,4096;setp.lt.u64 %p,%need,4096;@%p bra PHASE_REFUSE;sub.u64 %tmp,%head,%scratch;add.u64 %need,%need,%tmp;setp.lt.u64 %p,%need,%tmp;@%p bra PHASE_REFUSE;setp.gt.u64 %p,%need,%cap;@%p bra PHASE_REFUSE;add.u64 %tmp,%scratch,%need;setp.lt.u64 %p,%tmp,%scratch;@%p bra PHASE_REFUSE;setp.gt.u64 %p,%tmp,0x7fffffffffffffff;@%p bra PHASE_REFUSE;
+ld.global.u64 %tmp,[%head];setp.ne.u64 %p,%tmp,0x43414c4c534c5031;@%p bra PHASE_REFUSE;ld.global.u64 %tmp,[%head+16];setp.ne.u64 %p,%tmp,%args;@%p bra PHASE_REFUSE;ld.global.u64 %tmp,[%head+24];setp.ne.u64 %p,%tmp,%ctx;@%p bra PHASE_REFUSE;ld.global.u64 %tmp,[%head+32];setp.ne.u64 %p,%tmp,%record;@%p bra PHASE_REFUSE;ld.global.u64 %tmp,[%head+40];setp.ne.u64 %p,%tmp,%scratch;@%p bra PHASE_REFUSE;ld.global.u64 %tmp,[%head+48];setp.ne.u64 %p,%tmp,%stride;@%p bra PHASE_REFUSE;ld.global.u64 %tmp,[%head+56];setp.ne.u64 %p,%tmp,%arena;@%p bra PHASE_REFUSE;
+cvt.u64.u32 %tmp,%block;mad.lo.u64 %row,%tmp,%stride,%rows;
+add.u64 %ptr,%row,8960;ld.global.u64 %src,[%ptr];ld.global.u64 %dst,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COPY_0:setp.ge.u64 %p,%off,10944;@%p bra WORK_COPIED_0;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COPY_0;
+WORK_COPIED_0:
+add.u64 %ptr,%row,8984;ld.global.u64 %src,[%ptr];ld.global.u64 %dst,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COPY_1:setp.ge.u64 %p,%off,14592;@%p bra WORK_COPIED_1;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COPY_1;
+WORK_COPIED_1:
+add.u64 %ptr,%row,9008;ld.global.u64 %src,[%ptr];ld.global.u64 %dst,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COPY_2:setp.ge.u64 %p,%off,3648;@%p bra WORK_COPIED_2;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COPY_2;
+WORK_COPIED_2:
+add.u64 %ptr,%row,9032;ld.global.u64 %src,[%ptr];ld.global.u64 %dst,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COPY_3:setp.ge.u64 %p,%off,3648;@%p bra WORK_COPIED_3;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COPY_3;
+WORK_COPIED_3:
+add.u64 %ptr,%row,9056;ld.global.u64 %src,[%ptr];ld.global.u64 %dst,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COPY_4:setp.ge.u64 %p,%off,7296;@%p bra WORK_COPIED_4;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COPY_4;
+WORK_COPIED_4:
+add.u64 %ptr,%row,9080;ld.global.u64 %src,[%ptr];ld.global.u64 %dst,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COPY_5:setp.ge.u64 %p,%off,7296;@%p bra WORK_COPIED_5;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COPY_5;
+WORK_COPIED_5:
+add.u64 %ptr,%row,9104;ld.global.u64 %src,[%ptr];ld.global.u64 %dst,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COPY_6:setp.ge.u64 %p,%off,43776;@%p bra WORK_COPIED_6;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COPY_6;
+WORK_COPIED_6:
+add.u64 %ptr,%row,9128;ld.global.u64 %src,[%ptr];ld.global.u64 %dst,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COPY_7:setp.ge.u64 %p,%off,240768;@%p bra WORK_COPIED_7;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COPY_7;
+WORK_COPIED_7:
+add.u64 %ptr,%row,9152;ld.global.u64 %src,[%ptr];ld.global.u64 %dst,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COPY_8:setp.ge.u64 %p,%off,304;@%p bra WORK_COPIED_8;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COPY_8;
+WORK_COPIED_8:
+add.u64 %ptr,%row,9176;ld.global.u64 %src,[%ptr];ld.global.u64 %dst,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COPY_9:setp.ge.u64 %p,%off,1824;@%p bra WORK_COPIED_9;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COPY_9;
+WORK_COPIED_9:
+add.u64 %ptr,%row,9200;ld.global.u64 %src,[%ptr];ld.global.u64 %dst,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COPY_10:setp.ge.u64 %p,%off,10032;@%p bra WORK_COPIED_10;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COPY_10;
+WORK_COPIED_10:
+add.u64 %ptr,%row,9224;ld.global.u64 %src,[%ptr];ld.global.u64 %dst,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COPY_11:setp.ge.u64 %p,%off,14592;@%p bra WORK_COPIED_11;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COPY_11;
+WORK_COPIED_11:
+add.u64 %ptr,%row,9248;ld.global.u64 %src,[%ptr];ld.global.u64 %dst,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COPY_12:setp.ge.u64 %p,%off,21888;@%p bra WORK_COPIED_12;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COPY_12;
+WORK_COPIED_12:
+add.u64 %ptr,%row,9272;ld.global.u64 %src,[%ptr];ld.global.u64 %dst,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COPY_13:setp.ge.u64 %p,%off,1824;@%p bra WORK_COPIED_13;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COPY_13;
+WORK_COPIED_13:
+add.u64 %ptr,%row,9408;ld.global.u64 %src,[%ptr];setp.eq.u64 %p,%src,0;@%p bra WORK_COUNTER_DONE_0;ld.global.u64 %base,[%ptr+8];ld.global.u64 %dst,[%ptr+16];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COUNTER_0:setp.ge.u64 %p,%off,8;@%p bra WORK_COUNTER_DONE_0;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%base,%off;st.global.u64 [%tmp],%word;add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COUNTER_0;
+WORK_COUNTER_DONE_0:
+add.u64 %ptr,%row,9440;ld.global.u64 %src,[%ptr];setp.eq.u64 %p,%src,0;@%p bra WORK_COUNTER_DONE_1;ld.global.u64 %base,[%ptr+8];ld.global.u64 %dst,[%ptr+16];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COUNTER_1:setp.ge.u64 %p,%off,16;@%p bra WORK_COUNTER_DONE_1;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%base,%off;st.global.u64 [%tmp],%word;add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COUNTER_1;
+WORK_COUNTER_DONE_1:
+add.u64 %ptr,%row,9472;ld.global.u64 %src,[%ptr];setp.eq.u64 %p,%src,0;@%p bra WORK_COUNTER_DONE_2;ld.global.u64 %base,[%ptr+8];ld.global.u64 %dst,[%ptr+16];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COUNTER_2:setp.ge.u64 %p,%off,40;@%p bra WORK_COUNTER_DONE_2;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%base,%off;st.global.u64 [%tmp],%word;add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COUNTER_2;
+WORK_COUNTER_DONE_2:
+add.u64 %ptr,%row,9504;ld.global.u64 %src,[%ptr];setp.eq.u64 %p,%src,0;@%p bra WORK_COUNTER_DONE_3;ld.global.u64 %base,[%ptr+8];ld.global.u64 %dst,[%ptr+16];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COUNTER_3:setp.ge.u64 %p,%off,8;@%p bra WORK_COUNTER_DONE_3;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%base,%off;st.global.u64 [%tmp],%word;add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COUNTER_3;
+WORK_COUNTER_DONE_3:
+add.u64 %ptr,%row,9536;ld.global.u64 %src,[%ptr];setp.eq.u64 %p,%src,0;@%p bra WORK_COUNTER_DONE_4;ld.global.u64 %base,[%ptr+8];ld.global.u64 %dst,[%ptr+16];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+WORK_COUNTER_4:setp.ge.u64 %p,%off,8;@%p bra WORK_COUNTER_DONE_4;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%base,%off;st.global.u64 [%tmp],%word;add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra WORK_COUNTER_4;
+WORK_COUNTER_DONE_4:
+bar.sync 0;add.u64 %ptr,%row,256;
+st.param.u64 [child_a],%row;st.param.u64 [child_c],%ptr;call.uni openifs_lapinea_fp64_call_sl_worker,(child_a,child_c);
+bar.sync 0;setp.ne.u32 %p,%lane,0;@%p ret;ld.global.u32 %rt,[%row+256];st.global.u32 [%row+11272],%rt;ld.global.u32 %rt,[%row+264];st.global.u32 [%row+11276],%rt;membar.gl;st.global.u64 [%row+11264],1;ret;
+PHASE_REFUSE:setp.ne.u32 %p,%block,0;@%p ret;setp.ne.u32 %p,%lane,0;@%p ret;st.global.u32 [%ctx],%error;ret;
+}
+.visible .entry openifs_call_sl_parallel_join(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u64 %args,%ctx,%scratch,%record,%arena,%head,%stride,%rows,%row,%src,%dst,%off,%word,%ptr,%n,%base,%work,%delta,%tmp,%cap,%need,%hi,%counter;
+.reg .u32 %block,%lane,%rt,%error,%flags,%j;.reg .pred %p,%q;
+.param .u64 child_a,child_c;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];
+setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %tmp,%ctx,7;setp.ne.u64 %p,%tmp,0;@%p ret;
+mov.u32 %block,%ctaid.x;mov.u32 %lane,%tid.x;mov.u32 %rt,%ctaid.y;mov.u32 %error,%ctaid.z;or.b32 %rt,%rt,%error;mov.u32 %error,%tid.y;or.b32 %rt,%rt,%error;mov.u32 %error,%tid.z;or.b32 %rt,%rt,%error;setp.ne.u32 %p,%rt,0;@%p ret;
+ld.global.u32 %rt,[%ctx];setp.ne.u32 %p,%rt,0;@%p ret;mov.u32 %error,15541;
+mov.u32 %rt,%ntid.x;setp.ne.u32 %p,%rt,32;@%p bra PHASE_REFUSE;mov.u32 %rt,%ntid.y;setp.ne.u32 %p,%rt,1;@%p bra PHASE_REFUSE;mov.u32 %rt,%ntid.z;setp.ne.u32 %p,%rt,1;@%p bra PHASE_REFUSE;
+mov.u32 %rt,%nctaid.x;setp.ne.u32 %p,%rt,1;@%p bra PHASE_REFUSE;mov.u32 %rt,%nctaid.y;setp.ne.u32 %p,%rt,1;@%p bra PHASE_REFUSE;mov.u32 %rt,%nctaid.z;setp.ne.u32 %p,%rt,1;@%p bra PHASE_REFUSE;
+mov.u32 %rt,%dynamic_smem_size;setp.ne.u32 %p,%rt,0;@%p bra PHASE_REFUSE;
+ld.global.u32 %rt,[%ctx+4];setp.ne.u32 %p,%rt,1;@%p bra PHASE_REFUSE;ld.global.u32 %rt,[%ctx+12];and.b32 %rt,%rt,1;setp.ne.u32 %p,%rt,0;@%p bra PHASE_REFUSE;
+ld.global.u64 %record,[%ctx+48];setp.gt.u64 %p,%record,0x7fffffffffffffff;@%p bra PHASE_REFUSE;ld.global.u64 %cap,[%ctx+56];setp.lt.u64 %p,%cap,1064960;@%p bra PHASE_REFUSE;setp.eq.u64 %p,%record,0;@%p bra PHASE_REFUSE;and.b64 %tmp,%record,7;setp.ne.u64 %p,%tmp,0;@%p bra PHASE_REFUSE;add.u64 %tmp,%record,1064960;setp.gt.u64 %p,%tmp,0x7fffffffffffffff;@%p bra PHASE_REFUSE;
+ld.global.u64 %tmp,[%record+704];setp.ne.u64 %p,%tmp,2;@%p bra PHASE_REFUSE;
+ld.global.u64 %scratch,[%ctx+32];ld.global.u64 %record,[%ctx+48];ld.global.u64 %arena,[%record+672];
+add.u64 %head,%arena,3150591;and.b64 %head,%head,0xffffffffffffffc0;add.u64 %head,%scratch,%head;
+add.u64 %stride,%arena,398879;and.b64 %stride,%stride,0xffffffffffffffc0;add.u64 %rows,%head,4096;
+ld.global.u64 %cap,[%ctx+40];setp.gt.u64 %p,%arena,0x7fffffffffcfed3f;@%p bra PHASE_REFUSE;setp.gt.u64 %p,%scratch,0x7fffffffffffffff;@%p bra PHASE_REFUSE;setp.eq.u64 %p,%scratch,0;@%p bra PHASE_REFUSE;and.b64 %tmp,%scratch,7;setp.ne.u64 %p,%tmp,0;@%p bra PHASE_REFUSE;
+mul.hi.u64 %hi,%stride,86;setp.ne.u64 %p,%hi,0;@%p bra PHASE_REFUSE;mul.lo.u64 %need,%stride,86;add.u64 %need,%need,4096;setp.lt.u64 %p,%need,4096;@%p bra PHASE_REFUSE;sub.u64 %tmp,%head,%scratch;add.u64 %need,%need,%tmp;setp.lt.u64 %p,%need,%tmp;@%p bra PHASE_REFUSE;setp.gt.u64 %p,%need,%cap;@%p bra PHASE_REFUSE;add.u64 %tmp,%scratch,%need;setp.lt.u64 %p,%tmp,%scratch;@%p bra PHASE_REFUSE;setp.gt.u64 %p,%tmp,0x7fffffffffffffff;@%p bra PHASE_REFUSE;
+ld.global.u64 %tmp,[%head];setp.ne.u64 %p,%tmp,0x43414c4c534c5031;@%p bra PHASE_REFUSE;ld.global.u64 %tmp,[%head+16];setp.ne.u64 %p,%tmp,%args;@%p bra PHASE_REFUSE;ld.global.u64 %tmp,[%head+24];setp.ne.u64 %p,%tmp,%ctx;@%p bra PHASE_REFUSE;ld.global.u64 %tmp,[%head+32];setp.ne.u64 %p,%tmp,%record;@%p bra PHASE_REFUSE;ld.global.u64 %tmp,[%head+40];setp.ne.u64 %p,%tmp,%scratch;@%p bra PHASE_REFUSE;ld.global.u64 %tmp,[%head+48];setp.ne.u64 %p,%tmp,%stride;@%p bra PHASE_REFUSE;ld.global.u64 %tmp,[%head+56];setp.ne.u64 %p,%tmp,%arena;@%p bra PHASE_REFUSE;
+mov.u32 %j,0;mov.u32 %error,0;mov.u32 %flags,0;
+JOIN_SCAN:cvt.u64.u32 %tmp,%j;mad.lo.u64 %row,%tmp,%stride,%rows;ld.global.u64 %word,[%row+11264];setp.ne.u64 %p,%word,1;@%p bra JOIN_FALLBACK;ld.global.u32 %rt,[%row+11272];setp.ne.u32 %p,%rt,0;@%p bra JOIN_FALLBACK;ld.global.u32 %rt,[%row+11276];or.b32 %flags,%flags,%rt;add.u32 %j,%j,1;setp.lt.u32 %p,%j,86;@%p bra JOIN_SCAN;
+mov.u32 %j,0;
+JOIN_BLOCK:cvt.u64.u32 %tmp,%j;mad.lo.u64 %row,%tmp,%stride,%rows;
+add.u64 %ptr,%row,8960;ld.global.u64 %dst,[%ptr];ld.global.u64 %src,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+JOIN_COPY_0:setp.ge.u64 %p,%off,10944;@%p bra JOIN_COPIED_0;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra JOIN_COPY_0;
+JOIN_COPIED_0:
+add.u64 %ptr,%row,8984;ld.global.u64 %dst,[%ptr];ld.global.u64 %src,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+JOIN_COPY_1:setp.ge.u64 %p,%off,14592;@%p bra JOIN_COPIED_1;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra JOIN_COPY_1;
+JOIN_COPIED_1:
+add.u64 %ptr,%row,9008;ld.global.u64 %dst,[%ptr];ld.global.u64 %src,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+JOIN_COPY_2:setp.ge.u64 %p,%off,3648;@%p bra JOIN_COPIED_2;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra JOIN_COPY_2;
+JOIN_COPIED_2:
+add.u64 %ptr,%row,9032;ld.global.u64 %dst,[%ptr];ld.global.u64 %src,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+JOIN_COPY_3:setp.ge.u64 %p,%off,3648;@%p bra JOIN_COPIED_3;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra JOIN_COPY_3;
+JOIN_COPIED_3:
+add.u64 %ptr,%row,9056;ld.global.u64 %dst,[%ptr];ld.global.u64 %src,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+JOIN_COPY_4:setp.ge.u64 %p,%off,7296;@%p bra JOIN_COPIED_4;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra JOIN_COPY_4;
+JOIN_COPIED_4:
+add.u64 %ptr,%row,9080;ld.global.u64 %dst,[%ptr];ld.global.u64 %src,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+JOIN_COPY_5:setp.ge.u64 %p,%off,7296;@%p bra JOIN_COPIED_5;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra JOIN_COPY_5;
+JOIN_COPIED_5:
+add.u64 %ptr,%row,9104;ld.global.u64 %dst,[%ptr];ld.global.u64 %src,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+JOIN_COPY_6:setp.ge.u64 %p,%off,43776;@%p bra JOIN_COPIED_6;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra JOIN_COPY_6;
+JOIN_COPIED_6:
+add.u64 %ptr,%row,9128;ld.global.u64 %dst,[%ptr];ld.global.u64 %src,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+JOIN_COPY_7:setp.ge.u64 %p,%off,240768;@%p bra JOIN_COPIED_7;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra JOIN_COPY_7;
+JOIN_COPIED_7:
+add.u64 %ptr,%row,9152;ld.global.u64 %dst,[%ptr];ld.global.u64 %src,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+JOIN_COPY_8:setp.ge.u64 %p,%off,304;@%p bra JOIN_COPIED_8;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra JOIN_COPY_8;
+JOIN_COPIED_8:
+add.u64 %ptr,%row,9176;ld.global.u64 %dst,[%ptr];ld.global.u64 %src,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+JOIN_COPY_9:setp.ge.u64 %p,%off,1824;@%p bra JOIN_COPIED_9;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra JOIN_COPY_9;
+JOIN_COPIED_9:
+add.u64 %ptr,%row,9200;ld.global.u64 %dst,[%ptr];ld.global.u64 %src,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+JOIN_COPY_10:setp.ge.u64 %p,%off,10032;@%p bra JOIN_COPIED_10;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra JOIN_COPY_10;
+JOIN_COPIED_10:
+add.u64 %ptr,%row,9224;ld.global.u64 %dst,[%ptr];ld.global.u64 %src,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+JOIN_COPY_11:setp.ge.u64 %p,%off,14592;@%p bra JOIN_COPIED_11;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra JOIN_COPY_11;
+JOIN_COPIED_11:
+add.u64 %ptr,%row,9248;ld.global.u64 %dst,[%ptr];ld.global.u64 %src,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+JOIN_COPY_12:setp.ge.u64 %p,%off,21888;@%p bra JOIN_COPIED_12;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra JOIN_COPY_12;
+JOIN_COPIED_12:
+add.u64 %ptr,%row,9272;ld.global.u64 %dst,[%ptr];ld.global.u64 %src,[%ptr+8];cvt.u64.u32 %off,%lane;shl.b64 %off,%off,3;
+JOIN_COPY_13:setp.ge.u64 %p,%off,1824;@%p bra JOIN_COPIED_13;add.u64 %tmp,%src,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%dst,%off;st.global.u64 [%tmp],%word;add.u64 %off,%off,256;bra JOIN_COPY_13;
+JOIN_COPIED_13:
+add.u32 %j,%j,1;setp.lt.u32 %p,%j,86;@%p bra JOIN_BLOCK;
+bar.sync 0;setp.ne.u32 %p,%lane,0;@%p ret;mov.u32 %j,0;
+JOIN_COUNTER_BLOCK:cvt.u64.u32 %tmp,%j;mad.lo.u64 %row,%tmp,%stride,%rows;
+add.u64 %ptr,%row,9408;ld.global.u64 %dst,[%ptr];setp.eq.u64 %p,%dst,0;@%p bra JOIN_COUNTER_DONE_0;ld.global.u64 %base,[%ptr+8];ld.global.u64 %work,[%ptr+16];mov.u64 %off,0;
+JOIN_COUNTER_0:add.u64 %tmp,%base,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%work,%off;ld.global.u64 %delta,[%tmp];sub.u64 %delta,%delta,%word;add.u64 %tmp,%dst,%off;ld.global.u64 %word,[%tmp];add.u64 %word,%word,%delta;st.global.u64 [%tmp],%word;add.u64 %off,%off,8;setp.lt.u64 %p,%off,8;@%p bra JOIN_COUNTER_0;
+JOIN_COUNTER_DONE_0:
+add.u64 %ptr,%row,9440;ld.global.u64 %dst,[%ptr];setp.eq.u64 %p,%dst,0;@%p bra JOIN_COUNTER_DONE_1;ld.global.u64 %base,[%ptr+8];ld.global.u64 %work,[%ptr+16];mov.u64 %off,0;
+JOIN_COUNTER_1:add.u64 %tmp,%base,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%work,%off;ld.global.u64 %delta,[%tmp];sub.u64 %delta,%delta,%word;add.u64 %tmp,%dst,%off;ld.global.u64 %word,[%tmp];add.u64 %word,%word,%delta;st.global.u64 [%tmp],%word;add.u64 %off,%off,8;setp.lt.u64 %p,%off,16;@%p bra JOIN_COUNTER_1;
+JOIN_COUNTER_DONE_1:
+add.u64 %ptr,%row,9472;ld.global.u64 %dst,[%ptr];setp.eq.u64 %p,%dst,0;@%p bra JOIN_COUNTER_DONE_2;ld.global.u64 %base,[%ptr+8];ld.global.u64 %work,[%ptr+16];mov.u64 %off,0;
+JOIN_COUNTER_2:add.u64 %tmp,%base,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%work,%off;ld.global.u64 %delta,[%tmp];sub.u64 %delta,%delta,%word;add.u64 %tmp,%dst,%off;ld.global.u64 %word,[%tmp];add.u64 %word,%word,%delta;st.global.u64 [%tmp],%word;add.u64 %off,%off,8;setp.lt.u64 %p,%off,40;@%p bra JOIN_COUNTER_2;
+JOIN_COUNTER_DONE_2:
+add.u64 %ptr,%row,9504;ld.global.u64 %dst,[%ptr];setp.eq.u64 %p,%dst,0;@%p bra JOIN_COUNTER_DONE_3;ld.global.u64 %base,[%ptr+8];ld.global.u64 %work,[%ptr+16];mov.u64 %off,0;
+JOIN_COUNTER_3:add.u64 %tmp,%base,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%work,%off;ld.global.u64 %delta,[%tmp];sub.u64 %delta,%delta,%word;add.u64 %tmp,%dst,%off;ld.global.u64 %word,[%tmp];add.u64 %word,%word,%delta;st.global.u64 [%tmp],%word;add.u64 %off,%off,8;setp.lt.u64 %p,%off,8;@%p bra JOIN_COUNTER_3;
+JOIN_COUNTER_DONE_3:
+add.u64 %ptr,%row,9536;ld.global.u64 %dst,[%ptr];setp.eq.u64 %p,%dst,0;@%p bra JOIN_COUNTER_DONE_4;ld.global.u64 %base,[%ptr+8];ld.global.u64 %work,[%ptr+16];mov.u64 %off,0;
+JOIN_COUNTER_4:add.u64 %tmp,%base,%off;ld.global.u64 %word,[%tmp];add.u64 %tmp,%work,%off;ld.global.u64 %delta,[%tmp];sub.u64 %delta,%delta,%word;add.u64 %tmp,%dst,%off;ld.global.u64 %word,[%tmp];add.u64 %word,%word,%delta;st.global.u64 [%tmp],%word;add.u64 %off,%off,8;setp.lt.u64 %p,%off,8;@%p bra JOIN_COUNTER_4;
+JOIN_COUNTER_DONE_4:
+add.u32 %j,%j,1;setp.lt.u32 %p,%j,86;@%p bra JOIN_COUNTER_BLOCK;
+atom.global.or.b32 %rt,[%ctx+8],%flags;ld.global.u64 %counter,[%record+272];setp.eq.u64 %p,%counter,0;@%p bra JOIN_DONE;add.u64 %ptr,%counter,16;atom.global.add.u64 %word,[%ptr],86;
+JOIN_DONE:st.global.u64 [%head+8],0;st.global.u64 [%head+80],1;ret;
+JOIN_FALLBACK:setp.ne.u32 %p,%lane,0;@%p ret;st.global.u64 [%head+8],1;ret;
+PHASE_REFUSE:setp.ne.u32 %p,%block,0;@%p ret;setp.ne.u32 %p,%lane,0;@%p ret;st.global.u32 [%ctx],%error;ret;
+}
+
+.visible .entry openifs_call_sl_parallel_prepare(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_openifs_call_sl_parallel_prepare,(batch_a,batch_c);
+ ret;
+}

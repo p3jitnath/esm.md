@@ -1,4 +1,4 @@
-// Complete original DGETRI path from skills/md2asm-gpu/references/openifs/setup/spline_inverse_from_factors_complete_contract.md; child emitted first.
+// Complete original DGETRI path from frozen_contract.md; child emitted first. // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
 .version 8.5
 .target sm_90
 .address_size 64
@@ -57,8 +57,7 @@ add.u32 %i,%i,1;setp.lt.u32 %p,%i,%n;@%p bra SWAP_ROW;
 NEXT_PIVOT:sub.s32 %column_index,%column_index,1;setp.ge.s32 %p,%column_index,0;@%p bra PIVOT_COLUMN;
 COMPLETE:st.param.u32 [result],%code;st.param.u32 [result+4],%info;st.param.u32 [result+8],%flags;st.param.u32 [result+12],0;st.param.u64 [result+16],%fast;st.param.u64 [result+24],%wide;ret;
 }
-.visible .entry md2asm_gpu_spline_inverse_from_lu(.param .u64 original_vector,.param .u64 common_context)
-{
+.visible .func md2asm_gpu_batch_body_spline_inverse_from_lu(.param .u64 original_vector,.param .u64 common_context){
 .reg .u64 %args,%ctx,%input,%output,%record,%nptr,%matrix,%pivots,%info,%fastptr,%wideptr,%word,%tmp,%pointer,%end,%owners,%offset,%left,%right,%ln,%rn,%lend,%rend,%fast,%wide,%old;
 .reg .u32 %i,%j,%n,%cells,%error,%w,%mask,%code,%source_info,%flags,%raised,%pivot,%bound;
 .reg .pred %p,%q;
@@ -122,4 +121,16 @@ setp.ne.u64 %p,%fast,0;@%p atom.global.add.u64 %old,[%fastptr],%fast;setp.ne.u64
 st.global.u32 [%output],%code;st.global.u32 [%output+4],%source_info;st.global.u32 [%output+8],%flags;st.global.u32 [%output+12],0;st.global.u64 [%output+16],%fast;st.global.u64 [%output+24],%wide;
 ld.global.u32 %raised,[%ctx+8];or.b32 %flags,%flags,%raised;st.global.u32 [%ctx+8],%flags;ret;
 REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+
+.visible .entry md2asm_gpu_spline_inverse_from_lu(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_spline_inverse_from_lu,(batch_a,batch_c);
+ ret;
 }

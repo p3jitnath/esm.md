@@ -1,4 +1,4 @@
-// GPU contract: skills/md2asm-gpu/references/openifs/setup/hybrid_coordinate_setup.md
+// Complete frozen hybrid-coordinate loops. One thread owns every source update. // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
 .version 8.5
 .target sm_90
 .address_size 64
@@ -6,8 +6,7 @@
 .extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
 .extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
 .extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 a,.param .b64 b);
-.visible .entry md2asm_gpu_hybrid_coordinate_setup(.param .u64 original_vector,.param .u64 common_context)
-{
+.visible .func md2asm_gpu_batch_body_hybrid_coordinate_setup(.param .u64 original_vector,.param .u64 common_context){
 .reg .u64 %args,%ctx,%record,%N,%A,%B,%index,%offset,%prev,%pointer,%end,%word,%VALH,%VBH,%VAH,%VC,%VAF,%VBF,%VDELA,%VDELB;
 .reg .b64 %pressure,%a,%b,%c,%d,%m1,%m2,%value;
 .reg .u32 %origin,%axis,%error,%flags,%raised,%old;
@@ -79,4 +78,16 @@ add.u64 %pointer,%VDELB,%prev;st.global.b64 [%pointer],%value;
 add.u64 %index,%index,1;setp.le.u64 %p,%index,%N;@%p bra LAYER_COEFFICIENTS;
 COMPLETE:ld.global.u32 %old,[%ctx+8];or.b32 %flags,%flags,%old;st.global.u32 [%ctx+8],%flags;st.global.u64 [%ctx+24],1;ret;
 REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+
+.visible .entry md2asm_gpu_hybrid_coordinate_setup(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_hybrid_coordinate_setup,(batch_a,batch_c);
+ ret;
 }

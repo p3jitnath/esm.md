@@ -1,5 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/convection/convective_column_controller.md.
-// Complete local CUCALLN equation stages. Frozen revision1.
+// Complete local CUCALLN equation stages. Frozen revision1. // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
 .version 8.5
 .target sm_90
 .address_size 64
@@ -546,8 +545,7 @@ CELL_DONE:add.u32 %col,%col,1;bra COLUMN;LEVEL_NEXT:add.u32 %level,%level,1;bra 
 .visible .entry md2asm_gpu_cucalln_scalar_controls(.param .u64 original_vector,.param .u64 common_context)
 {.reg .u64 %a,%c;.param .u64 a,c;.param .u32 selector;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[common_context];st.param.u64 [a],%a;st.param.u64 [c],%c;st.param.u32 [selector],1;call.uni md2asm_gpu_cucalln_stage_complete,(a,c,selector);ret;
 }
-.visible .entry md2asm_gpu_cucalln_provisional_state(.param .u64 original_vector,.param .u64 common_context)
-{.reg .u64 %a,%c;.param .u64 a,c;.param .u32 selector;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[common_context];st.param.u64 [a],%a;st.param.u64 [c],%c;st.param.u32 [selector],2;call.uni md2asm_gpu_cucalln_stage_complete,(a,c,selector);ret;
+.visible .func md2asm_gpu_batch_body_cucalln_provisional_state(.param .u64 original_vector,.param .u64 common_context){.reg .u64 %a,%c;.param .u64 a,c;.param .u32 selector;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[common_context];st.param.u64 [a],%a;st.param.u64 [c],%c;st.param.u32 [selector],2;call.uni md2asm_gpu_cucalln_stage_complete,(a,c,selector);ret;
 }
 .visible .entry md2asm_gpu_cucalln_pressure_fluxes(.param .u64 original_vector,.param .u64 common_context)
 {.reg .u64 %a,%c;.param .u64 a,c;.param .u32 selector;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[common_context];st.param.u64 [a],%a;st.param.u64 [c],%c;st.param.u32 [selector],3;call.uni md2asm_gpu_cucalln_stage_complete,(a,c,selector);ret;
@@ -557,4 +555,16 @@ CELL_DONE:add.u32 %col,%col,1;bra COLUMN;LEVEL_NEXT:add.u32 %level,%level,1;bra 
 }
 .visible .entry md2asm_gpu_cucalln_tendency_difference(.param .u64 original_vector,.param .u64 common_context)
 {.reg .u64 %a,%c;.param .u64 a,c;.param .u32 selector;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[common_context];st.param.u64 [a],%a;st.param.u64 [c],%c;st.param.u32 [selector],5;call.uni md2asm_gpu_cucalln_stage_complete,(a,c,selector);ret;
+}
+
+.visible .entry md2asm_gpu_cucalln_provisional_state(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_cucalln_provisional_state,(batch_a,batch_c);
+ ret;
 }

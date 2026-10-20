@@ -1,12 +1,9 @@
-// Source ABI: the PTX parameter declarations and guard code define this component interface.
-// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
-// Direct GPPWC entry from skills/md2asm/references/openifs/dynamics/gppwc.md revision 1.
+// Direct GPPWC entry from column_integral_contract.md revision 1. // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
 .version 8.5
 .target sm_90
 .address_size 64
 .extern .func openifs_pressure_integral_parent_fp64(.param .u64 vector,.param .u64 context,.param .u32 kind);
-.visible .entry openifs_gppwc_ptx(.param .u64 original_argument_vector,.param .u64 context)
-{
+.visible .func md2asm_gpu_batch_body_openifs_gppwc_ptx(.param .u64 original_argument_vector,.param .u64 context){
  .reg .b64 %a,%b;
  .param .u64 va,vb;
  .param .u32 kind;
@@ -16,5 +13,17 @@
  st.param.u64 [vb],%b;
  st.param.u32 [kind],0;
  call.uni openifs_pressure_integral_parent_fp64,(va,vb,kind);
+ ret;
+}
+
+.visible .entry openifs_gppwc_ptx(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_openifs_gppwc_ptx,(batch_a,batch_c);
  ret;
 }

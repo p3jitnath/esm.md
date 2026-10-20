@@ -1,10 +1,8 @@
-// Contract: skills/md2asm-gpu/references/openifs/fullpos/complete_pressure_output_provider.md.
-.version 8.5
+.version 8.5 // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
 .target sm_90
 .address_size 64
 .extern .func (.param .align 8 .b8 returned[16]) md2asm_r23_output_state_md2asm_r24_pressure_standard_complete_loop(.param .u64 source_state,.param .u64 source_environment);
-.visible .entry md2asm_gpu_pressure_standard_complete_loop(.param .u64 original_vector,.param .u64 common_context)
-{
+.visible .func md2asm_gpu_batch_body_pressure_standard_complete_loop(.param .u64 original_vector,.param .u64 common_context){
  .reg .u64 %esm_vector,%esm_ctx,%esm_caps,%esm_state,%esm_env,%esm_out,%esm_gap,%esm_gapn,%esm_source_sp,%esm_source_end,%esm_table,%esm_literal,%esm_end,%esm_base,%esm_size,%esm_address,%esm_offset,%esm_a,%esm_an,%esm_ae,%esm_b,%esm_bn,%esm_be,%esm_word;
  .reg .u32 %esm_axis,%esm_mode,%esm_i,%esm_j,%esm_count,%esm_flags,%esm_error;
  .reg .pred %esm_p,%esm_q;
@@ -103,4 +101,17 @@ JOIN:
  ld.global.u32 %esm_axis,[%esm_ctx+8];or.b32 %esm_axis,%esm_axis,%esm_flags;st.global.u32 [%esm_ctx+8],%esm_axis;setp.ne.u32 %esm_p,%esm_error,0;@%esm_p bra REFUSE;
  st.global.u32 [%esm_out],0;st.global.u32 [%esm_out+4],0;ld.global.u32 %esm_axis,[%esm_state+800];st.global.u32 [%esm_out+8],%esm_axis;st.global.u32 [%esm_out+12],1;ret;
 REFUSE:st.global.u32 [%esm_ctx],1;ret;
+}
+
+
+.visible .entry md2asm_gpu_pressure_standard_complete_loop(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_pressure_standard_complete_loop,(batch_a,batch_c);
+ ret;
 }

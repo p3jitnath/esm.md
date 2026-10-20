@@ -1,6 +1,4 @@
-// Source ABI: the PTX parameter declarations and guard code define this component interface.
-// Shared numerical and launch interfaces: skills/md2asm-gpu/references/openifs/mathematical_support.md; skills/md2asm-gpu/references/openifs/cuda_runtime.md.
-// Direct PTX from the retained component contract revision 1.
+// Direct PTX from vertical_gpu_contract.md revision 1. // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
 .version 8.5
 .target sm_90
 .address_size 64
@@ -637,8 +635,7 @@ VPA_REFUSE:
  ret;
 }
 
-.visible .entry openifs_verint_ptx(.param .u64 original_argument_vector,.param .u64 context)
-{
+.visible .func md2asm_gpu_batch_body_openifs_verint_ptx(.param .u64 original_argument_vector,.param .u64 context){
  .reg .b64 %a,%b;
  .param .u64 va,vb;
  .param .u32 kind;
@@ -650,8 +647,7 @@ VPA_REFUSE:
  call.uni openifs_vertical_parent_fp64,(va,vb,kind);
  ret;
 }
-.visible .entry openifs_verder_ptx(.param .u64 original_argument_vector,.param .u64 context)
-{
+.visible .func md2asm_gpu_batch_body_openifs_verder_ptx(.param .u64 original_argument_vector,.param .u64 context){
  .reg .b64 %a,%b;
  .param .u64 va,vb;
  .param .u32 kind;
@@ -663,8 +659,7 @@ VPA_REFUSE:
  call.uni openifs_vertical_parent_fp64,(va,vb,kind);
  ret;
 }
-.visible .entry openifs_verdisint_ptx(.param .u64 original_argument_vector,.param .u64 context)
-{
+.visible .func md2asm_gpu_batch_body_openifs_verdisint_ptx(.param .u64 original_argument_vector,.param .u64 context){
  .reg .b64 %a,%b;
  .param .u64 va,vb;
  .param .u32 kind;
@@ -674,5 +669,41 @@ VPA_REFUSE:
  st.param.u64 [vb],%b;
  st.param.u32 [kind],2;
  call.uni openifs_vertical_parent_fp64,(va,vb,kind);
+ ret;
+}
+
+.visible .entry openifs_verder_ptx(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_openifs_verder_ptx,(batch_a,batch_c);
+ ret;
+}
+
+.visible .entry openifs_verdisint_ptx(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_openifs_verdisint_ptx,(batch_a,batch_c);
+ ret;
+}
+
+.visible .entry openifs_verint_ptx(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_openifs_verint_ptx,(batch_a,batch_c);
  ret;
 }

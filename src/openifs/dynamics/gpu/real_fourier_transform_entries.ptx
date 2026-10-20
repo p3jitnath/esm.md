@@ -1,5 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/dynamics/real_fourier_transform.md.
-.version 8.5
+.version 8.5 // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
 .target sm_90
 .address_size 64
 .func (.param .u32 result) r23_fft_range(.param .u64 base,.param .u64 bytes,.param .u64 capacity)
@@ -15,8 +14,7 @@ DONE:st.param.u32 [result],%error;ret;
 .extern .func (.param .align 16 .b8 r[16]) md2asm_fft992_device_values(.param .u64 p0,.param .u64 p1,.param .u64 p2,.param .u64 p3,.param .u64 p4,.param .u64 p5,.param .u64 p6,.param .u64 p7,.param .u64 p8,.param .u64 p9);
 .extern .func (.param .align 16 .b8 r[16]) md2asm_fft992_rpassf_device_values(.param .u64 p0,.param .u64 p1,.param .u64 p2,.param .u64 p3,.param .u64 p4,.param .u64 p5,.param .u64 p6,.param .u64 p7,.param .u64 p8,.param .u64 p9);
 .extern .func (.param .align 16 .b8 r[16]) md2asm_fft992_qpassf_device_values(.param .u64 p0,.param .u64 p1,.param .u64 p2,.param .u64 p3,.param .u64 p4,.param .u64 p5,.param .u64 p6,.param .u64 p7,.param .u64 p8,.param .u64 p9);
-.visible .entry md2asm_gpu_r23_fft992(.param .u64 original_vector,.param .u64 common_context)
-{
+.visible .func md2asm_gpu_batch_body_r23_fft992(.param .u64 original_vector,.param .u64 common_context){
 .reg .u64 %args,%ctx,%caps,%input,%completion,%capacity,%word,%stack,%stackbytes,%top,%end,%counts,%v<8>,%ap,%an,%ae,%bp,%bn,%be,%offset;
 .reg .u32 %axis,%i,%error,%flags,%raised,%mode;
 .reg .s32 %signedN,%signedL;
@@ -103,8 +101,7 @@ call.uni (result),md2asm_fft992_device_values,(a0,a1,a2,a3,a4,a5,a6,a7,a8,a9);ld
 ld.global.u32 %flags,[%ctx+8];or.b32 %flags,%flags,%raised;st.global.u32 [%ctx+8],%flags;st.global.u32 [%completion],0;st.global.u32 [%completion+4],%flags;st.global.u64 [%completion+8],0;ret;
 REFUSE:st.global.u32 [%ctx],%error;ret;
 }
-.visible .entry md2asm_gpu_r23_fft992_rpassf(.param .u64 original_vector,.param .u64 common_context)
-{
+.visible .func md2asm_gpu_batch_body_r23_fft992_rpassf(.param .u64 original_vector,.param .u64 common_context){
 .reg .u64 %args,%ctx,%caps,%input,%completion,%capacity,%word,%stack,%stackbytes,%top,%end,%counts,%v<8>,%ap,%an,%ae,%bp,%bn,%be,%offset;
 .reg .u32 %axis,%i,%error,%flags,%raised,%mode;
 .reg .s32 %signedN,%signedL;
@@ -191,8 +188,7 @@ call.uni (result),md2asm_fft992_rpassf_device_values,(a0,a1,a2,a3,a4,a5,a6,a7,a8
 ld.global.u32 %flags,[%ctx+8];or.b32 %flags,%flags,%raised;st.global.u32 [%ctx+8],%flags;st.global.u32 [%completion],0;st.global.u32 [%completion+4],%flags;st.global.u64 [%completion+8],0;ret;
 REFUSE:st.global.u32 [%ctx],%error;ret;
 }
-.visible .entry md2asm_gpu_r23_fft992_qpassf(.param .u64 original_vector,.param .u64 common_context)
-{
+.visible .func md2asm_gpu_batch_body_r23_fft992_qpassf(.param .u64 original_vector,.param .u64 common_context){
 .reg .u64 %args,%ctx,%caps,%input,%completion,%capacity,%word,%stack,%stackbytes,%top,%end,%counts,%v<8>,%ap,%an,%ae,%bp,%bn,%be,%offset;
 .reg .u32 %axis,%i,%error,%flags,%raised,%mode;
 .reg .s32 %signedN,%signedL;
@@ -278,4 +274,40 @@ st.param.u64 [a9],%counts;
 call.uni (result),md2asm_fft992_qpassf_device_values,(a0,a1,a2,a3,a4,a5,a6,a7,a8,a9);ld.param.u32 %raised,[result];}
 ld.global.u32 %flags,[%ctx+8];or.b32 %flags,%flags,%raised;st.global.u32 [%ctx+8],%flags;st.global.u32 [%completion],0;st.global.u32 [%completion+4],%flags;st.global.u64 [%completion+8],0;ret;
 REFUSE:st.global.u32 [%ctx],%error;ret;
+}
+
+.visible .entry md2asm_gpu_r23_fft992(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_r23_fft992,(batch_a,batch_c);
+ ret;
+}
+
+.visible .entry md2asm_gpu_r23_fft992_qpassf(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_r23_fft992_qpassf,(batch_a,batch_c);
+ ret;
+}
+
+.visible .entry md2asm_gpu_r23_fft992_rpassf(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %batch_a,%batch_c;
+ .param .u64 batch_a,batch_c;
+ ld.param.u64 %batch_a,[original_vector];
+ ld.param.u64 %batch_c,[common_context];
+ st.param.u64 [batch_a],%batch_a;
+ st.param.u64 [batch_c],%batch_c;
+ call.uni md2asm_gpu_batch_body_r23_fft992_rpassf,(batch_a,batch_c);
+ ret;
 }
