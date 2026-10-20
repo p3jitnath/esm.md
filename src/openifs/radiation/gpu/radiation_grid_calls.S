@@ -1,6 +1,6 @@
-// Contract: skills/md2asm-gpu/references/openifs/radiation/radiation_grid_parent.md.
-/* Original59-address RADINTG storage and public utility boundaries.
- * Every numerical phase is complete direct PTX. Contract skills/md2asm-gpu/references/openifs/radiation/radiation_grid_parent.md.
+// Contract: skills/md2asm-gpu/references/openifs/radiation/parallel_radiation_climatology.md.
+/* Original 59-address RADINTG storage and public utility boundaries.
+ * Every numerical phase runs as complete direct PTX.
  */
 .arch armv8-a
 .text
@@ -1658,8 +1658,8 @@ ldr x8,[x8,:got_lo12:__yomhook_MOD_lhook]
 cbz x8,.Lgrid_host_failure
 movz x9,#4
 stp x8,x9,[x27,#144]
-movz x26,#64960
-movk x26,#6863,lsl #16
+movz x26,#2624
+movk x26,#7359,lsl #16
 mov x0,x26
 grid_host_call malloc
 cbz x0,.Lgrid_host_failure
@@ -1748,7 +1748,46 @@ grid_host_call md2asm_openifs_gpu_launch
 cbnz w0,.Lgrid_host_failure
 ldr x8,[x20,#24]
 cmp x8,#4
+b.eq .Lgrid_climatology_done
+cmp x8,#259
 b.ne .Lgrid_host_failure
+adrp x0,.Lgrid_climatology_snapshot
+add x0,x0,:lo12:.Lgrid_climatology_snapshot
+mov x1,x19
+mov x2,x20
+mov w3,#128
+mov w4,#256
+mov w5,#0
+grid_host_call md2asm_openifs_gpu_launch
+cbnz w0,.Lgrid_host_failure
+ldr w8,[x20]
+cbnz w8,.Lgrid_host_failure
+adrp x0,.Lgrid_climatology_workers
+add x0,x0,:lo12:.Lgrid_climatology_workers
+mov x1,x19
+mov x2,x20
+mov w3,#128
+mov w4,#1
+mov w5,#0
+grid_host_call md2asm_openifs_gpu_launch
+cbnz w0,.Lgrid_host_failure
+ldr w8,[x20]
+cbnz w8,.Lgrid_host_failure
+adrp x0,.Lgrid_climatology_join
+add x0,x0,:lo12:.Lgrid_climatology_join
+mov x1,x19
+mov x2,x20
+mov w3,#1
+mov w4,#256
+mov w5,#0
+grid_host_call md2asm_openifs_gpu_launch
+cbnz w0,.Lgrid_host_failure
+ldr w8,[x20]
+cbnz w8,.Lgrid_host_failure
+ldr x8,[x20,#24]
+cmp x8,#4
+b.ne .Lgrid_host_failure
+.Lgrid_climatology_done:
 adrp x0,.Lgrid_host_profile_1209
 add x0,x0,:lo12:.Lgrid_host_profile_1209
 adrp x1,.Lgrid_host_integer_1
@@ -1935,3 +1974,8 @@ md2asm_gpu_grid_child_counts_storage:.skip 64
 .Lgrid_host_profile_1210:.word 1210
 .Lgrid_host_profile_1213:.word 1213
 .section .note.GNU-stack,"",%progbits
+
+.section .rodata
+.Lgrid_climatology_snapshot:.asciz "md2asm_gpu_radintg_phase3_snapshot"
+.Lgrid_climatology_workers:.asciz "md2asm_gpu_radintg_phase3_workers"
+.Lgrid_climatology_join:.asciz "md2asm_gpu_radintg_phase3_join"

@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/radiation/radiation_grid_parent.md.
+// Contract: skills/md2asm-gpu/references/openifs/radiation/parallel_radiation_climatology.md.
 .version 8.5
 .target sm_90
 .address_size 64
@@ -133,13 +133,16 @@ setp.eq.u64 %p,%last_event,0;@%p bra JOIN_DONE;st.global.u64 [%ctx+16],%last_eve
 JOIN_DONE:st.global.u64 [%ctx+24],5;ret;
 REFUSE:st.global.u32 [%ctx],%error;ret;
 }
+.extern .func md2asm_gpu_radintg_prepare_phase3_fp64(.param .u64 a,.param .u64 c);
 .visible .func md2asm_gpu_radiation_grid_fp64(.param .u64 original_vector,.param .u64 common_context)
 {
 .reg .u64 %args,%ctx,%tmp,%phase;.reg .pred %p;.param .u64 a,c;
 ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];
 setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %tmp,%ctx,7;setp.ne.u64 %p,%tmp,0;@%p ret;
 ld.global.u64 %phase,[%ctx+24];st.param.u64 [a],%args;st.param.u64 [c],%ctx;setp.eq.u64 %p,%phase,4;@%p bra PARALLEL_PHASE;
+setp.eq.u64 %p,%phase,3;@%p bra PARALLEL_CLIMATOLOGY;
 call.uni md2asm_gpu_radintg_serial_phase_fp64,(a,c);ret;
+PARALLEL_CLIMATOLOGY:st.param.u64 [a],%args;st.param.u64 [c],%ctx;call.uni md2asm_gpu_radintg_prepare_phase3_fp64,(a,c);ret;
 PARALLEL_PHASE:call.uni md2asm_gpu_radintg_prepare_phase4_fp64,(a,c);ret;
 }
 .visible .entry md2asm_gpu_radintg(.param .u64 original_vector,.param .u64 common_context)
