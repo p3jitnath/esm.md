@@ -304,7 +304,15 @@ md2asm_openifs_gpu_launch:
  add x1,x1,:lo12:.Lscalar_name_7
  GPU_CALL strcmp
  cbz w0,.Lscalar_kind_physical_setup_numeric
+ mov x0,x19
+ adrp x1,.Lscalar_name_8
+ add x1,x1,:lo12:.Lscalar_name_8
+ GPU_CALL strcmp
+ cbz w0,.Lscalar_kind_setup_span
  b .Lordinary_launch
+.Lscalar_kind_setup_span:
+ mov w9,#8
+ b .Lscalar_kind_ready
 .Lscalar_kind_physical_setup_numeric:
  mov w9,#7
  b .Lscalar_kind_ready
@@ -564,7 +572,7 @@ mailbox_finalize_unlocked:
 .section .note.GNU-stack,"",%progbits
 
 // Nonnumerical environment and module lifetime service.
-// ABI and storage: skills/md2asm-gpu/references/openifs/cuda_runtime.md, revision 6.
+// ABI and storage: skills/md2asm-gpu/references/openifs/cuda_runtime.md, revision 4.
 .text
 .p2align 2
 .global md2asm_openifs_gpu_prepare
@@ -621,3 +629,6 @@ md2asm_openifs_gpu_prepare:
 .Lscalar_name_5: .asciz "md2asm_gpu_lake_energy_cell"
 .Lscalar_name_6: .asciz "md2asm_gpu_output_numeric_cell"
 .Lscalar_name_7: .asciz "md2asm_gpu_physical_setup_numeric_cell"
+
+.section .rodata
+.Lscalar_name_8: .asciz "md2asm_gpu_r23_setup_span"
