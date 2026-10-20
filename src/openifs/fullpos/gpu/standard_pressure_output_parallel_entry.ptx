@@ -1,0 +1,213 @@
+// Contract: skills/md2asm-gpu/references/openifs/fullpos/standard_pressure_output_parallel_cells.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 returned[16]) md2asm_r23_output_state_md2asm_r24_pressure_standard_complete_loop(.param .u64 source_state,.param .u64 source_environment);
+.global .align 16 .b8 ppsta_parallel_workspace_guarded[1261600];
+.extern .func (.param .align 8 .b8 returned[16]) md2asm_r23_output_state_md2asm_pressure_standard_parallel_prefix(.param .u64 source_state,.param .u64 source_environment);
+.extern .func (.param .align 8 .b8 returned[16]) md2asm_r23_output_state_md2asm_pressure_standard_parallel_cell(.param .u64 source_state,.param .u64 source_environment);
+.visible .entry md2asm_gpu_pressure_standard_parallel_cells(.param .u64 original_vector,.param .u64 common_context)
+{
+ .reg .u64 %esm_vector,%esm_ctx,%esm_caps,%esm_state,%esm_env,%esm_out,%esm_gap,%esm_gapn,%esm_source_sp,%esm_source_end,%esm_table,%esm_literal,%esm_end,%esm_base,%esm_size,%esm_address,%esm_offset,%esm_a,%esm_an,%esm_ae,%esm_b,%esm_bn,%esm_be,%esm_word;
+ .reg .u32 %esm_axis,%esm_mode,%esm_i,%esm_j,%esm_count,%esm_flags,%esm_error;
+ .reg .pred %esm_p,%esm_q;
+ .reg .u64 %pp_work,%pp_workend,%pp_extent,%pp_argtable,%pp_private,%pp_frame,%pp_addr,%pp_copy,%pp_copyto,%pp_laststate,%pp_originsp,%pp_isovalue,%pp_ta;
+ .reg .u64 %pp_model<4>,%pp_modelend<4>;
+ .reg .u32 %pp_lane,%pp_route,%pp_active,%pp_targets,%pp_total,%pp_q,%pp_target,%pp_cell,%pp_ordinal,%pp_maxerr,%pp_errcode,%pp_maxiso,%pp_tmp,%pp_flags,%pp_i,%pp_seederror;
+ .reg .pred %pp_p,%pp_r;
+ .shared .align 8 .b8 pp_control[96];
+ .local .align 8 .b8 private_owners[192];
+ .param .u64 state_arg,environment_arg;.param .align 8 .b8 source_return[16];
+ ld.param.u64 %esm_vector,[original_vector];ld.param.u64 %esm_ctx,[common_context];
+ mov.u32 %pp_tmp,%ctaid.x;mov.u32 %esm_axis,%ctaid.y;or.b32 %pp_tmp,%pp_tmp,%esm_axis;mov.u32 %esm_axis,%ctaid.z;or.b32 %pp_tmp,%pp_tmp,%esm_axis;setp.ne.u32 %pp_p,%pp_tmp,0;@%pp_p ret;
+ mov.u32 %pp_lane,%tid.x;mov.u32 %pp_tmp,%tid.y;or.b32 %pp_tmp,%pp_tmp,%pp_lane;mov.u32 %esm_axis,%tid.z;or.b32 %pp_tmp,%pp_tmp,%esm_axis;setp.ne.u32 %pp_p,%pp_tmp,0;@%pp_p bra PP_WAIT;
+ st.shared.u32 [pp_control],0;
+ setp.eq.u64 %esm_p,%esm_ctx,0;@%esm_p bra PP_WAIT;and.b64 %esm_word,%esm_ctx,7;setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra PP_WAIT;
+ add.u64 %esm_end,%esm_ctx,64;setp.lt.u64 %esm_p,%esm_end,%esm_ctx;@%esm_p bra PP_WAIT;
+ ld.global.u32 %esm_error,[%esm_ctx];setp.ne.u32 %esm_p,%esm_error,0;@%esm_p bra PP_WAIT;
+ mov.u32 %esm_axis,%ntid.x;setp.ne.u32 %esm_p,%esm_axis,256;@%esm_p bra REFUSE;
+ mov.u32 %esm_axis,%ntid.y;setp.ne.u32 %esm_p,%esm_axis,1;@%esm_p bra REFUSE;
+ mov.u32 %esm_axis,%ntid.z;setp.ne.u32 %esm_p,%esm_axis,1;@%esm_p bra REFUSE;
+ mov.u32 %esm_axis,%nctaid.x;setp.ne.u32 %esm_p,%esm_axis,1;@%esm_p bra REFUSE;
+ mov.u32 %esm_axis,%nctaid.y;setp.ne.u32 %esm_p,%esm_axis,1;@%esm_p bra REFUSE;
+ mov.u32 %esm_axis,%nctaid.z;setp.ne.u32 %esm_p,%esm_axis,1;@%esm_p bra REFUSE;
+ mov.u32 %esm_axis,%dynamic_smem_size;setp.ne.u32 %esm_p,%esm_axis,0;@%esm_p bra REFUSE;
+ ld.global.u32 %esm_axis,[%esm_ctx+4];setp.ne.u32 %esm_p,%esm_axis,1;@%esm_p bra REFUSE;
+ ld.global.u32 %esm_axis,[%esm_ctx+12];setp.ne.u32 %esm_p,%esm_axis,0;@%esm_p bra REFUSE;
+ setp.eq.u64 %esm_p,%esm_vector,0;@%esm_p bra REFUSE;and.b64 %esm_word,%esm_vector,7;setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ add.u64 %esm_end,%esm_vector,24;setp.lt.u64 %esm_p,%esm_end,%esm_vector;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_caps,[%esm_ctx+48];ld.global.u64 %esm_word,[%esm_ctx+56];setp.ne.u64 %esm_p,%esm_word,96;@%esm_p bra REFUSE;
+ setp.eq.u64 %esm_p,%esm_caps,0;@%esm_p bra REFUSE;and.b64 %esm_word,%esm_caps,7;setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ add.u64 %esm_end,%esm_caps,96;setp.lt.u64 %esm_p,%esm_end,%esm_caps;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_state,[%esm_vector];ld.global.u64 %esm_env,[%esm_vector+8];ld.global.u64 %esm_out,[%esm_vector+16];
+
+ ld.global.u64 %esm_word,[%esm_caps+0];setp.ne.u64 %esm_p,%esm_word,832;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_caps+8];setp.ne.u64 %esm_p,%esm_word,192;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_caps+24];setp.ne.u64 %esm_p,%esm_word,2048;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_caps+32];setp.ne.u64 %esm_p,%esm_word,24;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_caps+40];setp.ne.u64 %esm_p,%esm_word,4096;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_caps+48];setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_caps+56];setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_caps+64];setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_caps+72];setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_caps+88];setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ ld.global.u32 %esm_mode,[%esm_caps+80];setp.ne.u32 %esm_p,%esm_mode,0;@%esm_p bra REFUSE;
+ ld.global.u32 %esm_axis,[%esm_caps+84];setp.ne.u32 %esm_p,%esm_axis,0;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_gap,[%esm_caps+16];ld.global.u64 %esm_gapn,[%esm_caps+24];
+
+ st.local.u64 [private_owners+0],%esm_vector;st.local.u64 [private_owners+8],24;
+ st.local.u64 [private_owners+16],%esm_ctx;st.local.u64 [private_owners+24],64;
+ st.local.u64 [private_owners+32],%esm_caps;st.local.u64 [private_owners+40],96;
+ st.local.u64 [private_owners+48],%esm_state;st.local.u64 [private_owners+56],832;
+ st.local.u64 [private_owners+64],%esm_env;st.local.u64 [private_owners+72],192;
+ st.local.u64 [private_owners+80],%esm_out;st.local.u64 [private_owners+88],16;
+ st.local.u64 [private_owners+96],%esm_gap;st.local.u64 [private_owners+104],2048;
+ mov.u32 %esm_i,0;
+PRIVATE_RANGES:
+ mul.wide.u32 %esm_offset,%esm_i,16;mov.u64 %esm_address,private_owners;add.u64 %esm_address,%esm_address,%esm_offset;ld.local.u64 %esm_base,[%esm_address];ld.local.u64 %esm_size,[%esm_address+8];
+ setp.eq.u64 %esm_p,%esm_base,0;@%esm_p bra REFUSE;and.b64 %esm_word,%esm_base,7;setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ add.u64 %esm_end,%esm_base,%esm_size;setp.lt.u64 %esm_p,%esm_end,%esm_base;@%esm_p bra REFUSE;setp.gt.u64 %esm_p,%esm_end,0x7fffffffffffffff;@%esm_p bra REFUSE;
+ add.u32 %esm_i,%esm_i,1;setp.lt.u32 %esm_p,%esm_i,7;@%esm_p bra PRIVATE_RANGES;
+ ld.global.u64 %esm_word,[%esm_state+768];setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_source_sp,[%esm_state+248];add.u64 %esm_end,%esm_gap,%esm_gapn;setp.ne.u64 %esm_p,%esm_source_sp,%esm_end;@%esm_p bra REFUSE;
+ and.b64 %esm_word,%esm_source_sp,15;setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;
+ add.u64 %esm_source_end,%esm_source_sp,4096;setp.lt.u64 %esm_p,%esm_source_end,%esm_source_sp;@%esm_p bra REFUSE;
+ st.local.u64 [private_owners+112],%esm_source_sp;st.local.u64 [private_owners+120],4096;
+ mov.u32 %esm_count,8;
+
+ ld.global.u64 %esm_table,[%esm_env+64];
+ ld.global.u64 %esm_word,[%esm_env+64];setp.ne.u64 %esm_p,%esm_word,%esm_table;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_env+72];setp.ne.u64 %esm_p,%esm_word,%esm_table;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_env+80];setp.ne.u64 %esm_p,%esm_word,%esm_table;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_env+88];setp.ne.u64 %esm_p,%esm_word,%esm_table;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_env+96];setp.ne.u64 %esm_p,%esm_word,%esm_table;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_env+104];setp.ne.u64 %esm_p,%esm_word,%esm_table;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_env+112];setp.ne.u64 %esm_p,%esm_word,%esm_table;@%esm_p bra REFUSE;
+ ld.global.u64 %esm_word,[%esm_env+120];setp.ne.u64 %esm_p,%esm_word,%esm_table;@%esm_p bra REFUSE;
+ setp.eq.u64 %esm_p,%esm_table,0;@%esm_p bra REFUSE;and.b64 %esm_word,%esm_table,7;setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;add.u64 %esm_end,%esm_table,24;setp.lt.u64 %esm_p,%esm_end,%esm_table;@%esm_p bra REFUSE;
+ st.local.u64 [private_owners+128],%esm_table;st.local.u64 [private_owners+136],24;
+ ld.global.u64 %esm_literal,[%esm_table+0];setp.eq.u64 %esm_p,%esm_literal,0;@%esm_p bra REFUSE;and.b64 %esm_word,%esm_literal,7;setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;add.u64 %esm_end,%esm_literal,8;setp.lt.u64 %esm_p,%esm_end,%esm_literal;@%esm_p bra REFUSE;st.local.u64 [private_owners+144],%esm_literal;st.local.u64 [private_owners+152],8;
+ ld.global.u64 %esm_literal,[%esm_table+8];setp.eq.u64 %esm_p,%esm_literal,0;@%esm_p bra REFUSE;and.b64 %esm_word,%esm_literal,7;setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;add.u64 %esm_end,%esm_literal,8;setp.lt.u64 %esm_p,%esm_end,%esm_literal;@%esm_p bra REFUSE;st.local.u64 [private_owners+160],%esm_literal;st.local.u64 [private_owners+168],8;
+ ld.global.u64 %esm_literal,[%esm_table+16];setp.eq.u64 %esm_p,%esm_literal,0;@%esm_p bra REFUSE;and.b64 %esm_word,%esm_literal,7;setp.ne.u64 %esm_p,%esm_word,0;@%esm_p bra REFUSE;add.u64 %esm_end,%esm_literal,8;setp.lt.u64 %esm_p,%esm_end,%esm_literal;@%esm_p bra REFUSE;st.local.u64 [private_owners+176],%esm_literal;st.local.u64 [private_owners+184],8;
+ mov.u32 %esm_count,12;
+PAIRS_BEGIN:
+ mov.u32 %esm_i,0;
+PAIR_I:
+ add.u32 %esm_j,%esm_i,1;
+PAIR_J:
+ mul.wide.u32 %esm_offset,%esm_i,16;mov.u64 %esm_address,private_owners;add.u64 %esm_address,%esm_address,%esm_offset;ld.local.u64 %esm_a,[%esm_address];ld.local.u64 %esm_an,[%esm_address+8];add.u64 %esm_ae,%esm_a,%esm_an;
+ mul.wide.u32 %esm_offset,%esm_j,16;mov.u64 %esm_address,private_owners;add.u64 %esm_address,%esm_address,%esm_offset;ld.local.u64 %esm_b,[%esm_address];ld.local.u64 %esm_bn,[%esm_address+8];add.u64 %esm_be,%esm_b,%esm_bn;
+ setp.lt.u64 %esm_p,%esm_a,%esm_be;setp.lt.u64 %esm_q,%esm_b,%esm_ae;and.pred %esm_p,%esm_p,%esm_q;@%esm_p bra REFUSE;
+ add.u32 %esm_j,%esm_j,1;setp.lt.u32 %esm_p,%esm_j,%esm_count;@%esm_p bra PAIR_J;
+ add.u32 %esm_i,%esm_i,1;setp.lt.u32 %esm_p,%esm_i,7;@%esm_p bra PAIR_I;
+
+
+ mov.u32 %pp_active,0;mov.u32 %pp_targets,0;mov.u32 %pp_total,0;
+ ld.global.u64 %pp_argtable,[%esm_state+152];add.u64 %pp_ta,%esm_source_sp,256;setp.ne.u64 %pp_p,%pp_argtable,%pp_ta;@%pp_p bra PP_SELECT_SERIAL;
+ ld.global.u64 %pp_ta,[%esm_state+160];setp.ne.u64 %pp_p,%pp_ta,24;@%pp_p bra PP_SELECT_SERIAL;
+ ld.global.u64 %pp_ta,[%esm_state+168];setp.ne.u64 %pp_p,%pp_ta,0;@%pp_p bra PP_SELECT_SERIAL;
+ ld.global.u64 %pp_ta,[%esm_state+176];setp.eq.u64 %pp_p,%pp_ta,7;setp.eq.u64 %pp_r,%pp_ta,23;or.pred %pp_p,%pp_p,%pp_r;@!%pp_p bra PP_SELECT_SERIAL;cvt.u32.u64 %pp_active,%pp_ta;add.u32 %pp_active,%pp_active,1;
+ ld.global.u64 %pp_ta,[%esm_state+216];setp.lt.u64 %pp_p,%pp_ta,1;@%pp_p bra PP_SELECT_SERIAL;setp.gt.u64 %pp_p,%pp_ta,20;@%pp_p bra PP_SELECT_SERIAL;cvt.u32.u64 %pp_targets,%pp_ta;mul.lo.u32 %pp_total,%pp_targets,%pp_active;
+ mul.wide.u32 %pp_extent,%pp_targets,192;mov.u64 %pp_work,ppsta_parallel_workspace_guarded;add.u64 %pp_workend,%pp_work,1261600;
+
+ ld.global.u64 %pp_model0,[%pp_argtable+48];setp.eq.u64 %pp_p,%pp_model0,0;@%pp_p bra PP_SELECT_SERIAL;and.b64 %pp_ta,%pp_model0,7;setp.ne.u64 %pp_p,%pp_ta,0;@%pp_p bra PP_SELECT_SERIAL;add.u64 %pp_modelend0,%pp_model0,%pp_extent;setp.lt.u64 %pp_p,%pp_modelend0,%pp_model0;@%pp_p bra PP_SELECT_SERIAL;setp.gt.u64 %pp_p,%pp_modelend0,0x7fffffffffffffff;@%pp_p bra PP_SELECT_SERIAL;
+ setp.lt.u64 %pp_p,%pp_model0,%pp_workend;setp.lt.u64 %pp_r,%pp_work,%pp_modelend0;and.pred %pp_p,%pp_p,%pp_r;@%pp_p bra PP_SELECT_SERIAL;
+ ld.global.u64 %pp_model1,[%pp_argtable+56];setp.eq.u64 %pp_p,%pp_model1,0;@%pp_p bra PP_SELECT_SERIAL;and.b64 %pp_ta,%pp_model1,7;setp.ne.u64 %pp_p,%pp_ta,0;@%pp_p bra PP_SELECT_SERIAL;add.u64 %pp_modelend1,%pp_model1,%pp_extent;setp.lt.u64 %pp_p,%pp_modelend1,%pp_model1;@%pp_p bra PP_SELECT_SERIAL;setp.gt.u64 %pp_p,%pp_modelend1,0x7fffffffffffffff;@%pp_p bra PP_SELECT_SERIAL;
+ setp.lt.u64 %pp_p,%pp_model1,%pp_workend;setp.lt.u64 %pp_r,%pp_work,%pp_modelend1;and.pred %pp_p,%pp_p,%pp_r;@%pp_p bra PP_SELECT_SERIAL;
+ ld.global.u64 %pp_model2,[%pp_argtable+64];setp.eq.u64 %pp_p,%pp_model2,0;@%pp_p bra PP_SELECT_SERIAL;and.b64 %pp_ta,%pp_model2,7;setp.ne.u64 %pp_p,%pp_ta,0;@%pp_p bra PP_SELECT_SERIAL;add.u64 %pp_modelend2,%pp_model2,%pp_extent;setp.lt.u64 %pp_p,%pp_modelend2,%pp_model2;@%pp_p bra PP_SELECT_SERIAL;setp.gt.u64 %pp_p,%pp_modelend2,0x7fffffffffffffff;@%pp_p bra PP_SELECT_SERIAL;
+ setp.lt.u64 %pp_p,%pp_model2,%pp_workend;setp.lt.u64 %pp_r,%pp_work,%pp_modelend2;and.pred %pp_p,%pp_p,%pp_r;@%pp_p bra PP_SELECT_SERIAL;
+ ld.global.u64 %pp_model3,[%pp_argtable+72];setp.eq.u64 %pp_p,%pp_model3,0;@%pp_p bra PP_SELECT_SERIAL;and.b64 %pp_ta,%pp_model3,7;setp.ne.u64 %pp_p,%pp_ta,0;@%pp_p bra PP_SELECT_SERIAL;add.u64 %pp_modelend3,%pp_model3,%pp_extent;setp.lt.u64 %pp_p,%pp_modelend3,%pp_model3;@%pp_p bra PP_SELECT_SERIAL;setp.gt.u64 %pp_p,%pp_modelend3,0x7fffffffffffffff;@%pp_p bra PP_SELECT_SERIAL;
+ setp.lt.u64 %pp_p,%pp_model3,%pp_workend;setp.lt.u64 %pp_r,%pp_work,%pp_modelend3;and.pred %pp_p,%pp_p,%pp_r;@%pp_p bra PP_SELECT_SERIAL;
+ setp.lt.u64 %pp_p,%pp_model2,%pp_modelend3;setp.lt.u64 %pp_r,%pp_model3,%pp_modelend2;and.pred %pp_p,%pp_p,%pp_r;@%pp_p bra PP_SELECT_SERIAL;
+ setp.lt.u64 %pp_p,%pp_model2,%pp_modelend0;setp.lt.u64 %pp_r,%pp_model0,%pp_modelend2;and.pred %pp_p,%pp_p,%pp_r;@%pp_p bra PP_SELECT_SERIAL;
+ setp.lt.u64 %pp_p,%pp_model2,%pp_modelend1;setp.lt.u64 %pp_r,%pp_model1,%pp_modelend2;and.pred %pp_p,%pp_p,%pp_r;@%pp_p bra PP_SELECT_SERIAL;
+ setp.lt.u64 %pp_p,%pp_model3,%pp_modelend0;setp.lt.u64 %pp_r,%pp_model0,%pp_modelend3;and.pred %pp_p,%pp_p,%pp_r;@%pp_p bra PP_SELECT_SERIAL;
+ setp.lt.u64 %pp_p,%pp_model3,%pp_modelend1;setp.lt.u64 %pp_r,%pp_model1,%pp_modelend3;and.pred %pp_p,%pp_p,%pp_r;@%pp_p bra PP_SELECT_SERIAL;
+ mov.u32 %pp_i,0;
+PP_FAST_PRIVATE:
+ mul.wide.u32 %esm_offset,%pp_i,16;mov.u64 %esm_address,private_owners;add.u64 %esm_address,%esm_address,%esm_offset;ld.local.u64 %esm_a,[%esm_address];ld.local.u64 %esm_an,[%esm_address+8];add.u64 %esm_ae,%esm_a,%esm_an;
+ setp.lt.u64 %pp_p,%esm_a,%pp_workend;setp.lt.u64 %pp_r,%pp_work,%esm_ae;and.pred %pp_p,%pp_p,%pp_r;@%pp_p bra PP_SELECT_SERIAL;
+
+ setp.lt.u64 %pp_p,%pp_model2,%esm_ae;setp.lt.u64 %pp_r,%esm_a,%pp_modelend2;and.pred %pp_p,%pp_p,%pp_r;@%pp_p bra PP_SELECT_SERIAL;
+ setp.lt.u64 %pp_p,%pp_model3,%esm_ae;setp.lt.u64 %pp_r,%esm_a,%pp_modelend3;and.pred %pp_p,%pp_p,%pp_r;@%pp_p bra PP_SELECT_SERIAL;
+ add.u32 %pp_i,%pp_i,1;setp.lt.u32 %pp_p,%pp_i,12;@%pp_p bra PP_FAST_PRIVATE;
+ mov.u32 %pp_route,2;bra PP_PUBLISH;
+PP_SELECT_SERIAL:
+ mov.u32 %pp_route,1;
+PP_PUBLISH:
+ st.shared.u64 [pp_control+8],%esm_state;st.shared.u64 [pp_control+16],%esm_env;st.shared.u64 [pp_control+24],%esm_out;st.shared.u64 [pp_control+32],%esm_ctx;st.shared.u64 [pp_control+40],%esm_source_sp;
+ st.shared.u32 [pp_control+56],%pp_active;st.shared.u32 [pp_control+60],%pp_targets;st.shared.u32 [pp_control+64],%pp_total;st.shared.u32 [pp_control],%pp_route;
+ bra PP_WAIT;
+REFUSE:
+ st.global.u32 [%esm_ctx],1;
+PP_WAIT:
+ bar.sync 0;
+ ld.shared.u32 %pp_route,[pp_control];setp.eq.u32 %pp_p,%pp_route,0;@%pp_p ret;
+ ld.shared.u64 %esm_state,[pp_control+8];ld.shared.u64 %esm_env,[pp_control+16];ld.shared.u64 %esm_out,[pp_control+24];ld.shared.u64 %esm_ctx,[pp_control+32];
+ setp.eq.u32 %pp_p,%pp_route,2;@%pp_p bra PP_FAST;
+ setp.ne.u32 %pp_p,%pp_lane,0;@%pp_p ret;
+ st.param.b64 [state_arg],%esm_state;st.param.b64 [environment_arg],%esm_env;
+
+ call.uni (source_return),md2asm_r23_output_state_md2asm_r24_pressure_standard_complete_loop,(state_arg,environment_arg);
+ ld.param.u32 %esm_flags,[source_return];ld.param.u32 %esm_error,[source_return+4];bra JOIN;
+PP_FAST:
+ setp.ne.u32 %pp_p,%pp_lane,0;@%pp_p bra PP_PREFIX_WAIT;
+ st.param.b64 [state_arg],%esm_state;st.param.b64 [environment_arg],%esm_env;
+
+ call.uni (source_return),md2asm_r23_output_state_md2asm_pressure_standard_parallel_prefix,(state_arg,environment_arg);
+ ld.param.u32 %pp_flags,[source_return];st.shared.u32 [pp_control+68],%pp_flags;
+PP_PREFIX_WAIT:
+ bar.sync 0;
+ ld.shared.u32 %pp_active,[pp_control+56];ld.shared.u32 %pp_targets,[pp_control+60];ld.shared.u32 %pp_total,[pp_control+64];ld.shared.u64 %pp_originsp,[pp_control+40];
+ mov.u32 %pp_q,%pp_lane;setp.ge.u32 %pp_p,%pp_q,%pp_total;@%pp_p bra PP_CELLS_DONE;
+ mov.u64 %pp_work,ppsta_parallel_workspace_guarded;add.u64 %pp_work,%pp_work,16;mul.wide.u32 %pp_private,%pp_lane,4928;add.u64 %pp_private,%pp_private,%pp_work;add.u64 %pp_frame,%pp_private,832;
+ mov.u32 %pp_i,0;
+PP_COPY_STATE:
+ mul.wide.u32 %pp_addr,%pp_i,8;add.u64 %pp_copy,%esm_state,%pp_addr;add.u64 %pp_copyto,%pp_private,%pp_addr;ld.global.u64 %pp_ta,[%pp_copy];st.global.u64 [%pp_copyto],%pp_ta;
+ add.u32 %pp_i,%pp_i,1;setp.lt.u32 %pp_p,%pp_i,104;@%pp_p bra PP_COPY_STATE;
+ mov.u32 %pp_i,0;
+PP_COPY_FRAME:
+ mul.wide.u32 %pp_addr,%pp_i,8;add.u64 %pp_copy,%pp_originsp,%pp_addr;add.u64 %pp_copyto,%pp_frame,%pp_addr;ld.global.u64 %pp_ta,[%pp_copy];st.global.u64 [%pp_copyto],%pp_ta;
+ add.u32 %pp_i,%pp_i,1;setp.lt.u32 %pp_p,%pp_i,512;@%pp_p bra PP_COPY_FRAME;
+ st.global.u64 [%pp_private+248],%pp_frame;st.global.u64 [%pp_private+808],0;st.global.u64 [%pp_private+816],0;st.global.u64 [%pp_private+824],0;
+PP_CELL:
+ div.u32 %pp_target,%pp_q,%pp_active;rem.u32 %pp_cell,%pp_q,%pp_active;cvt.u64.u32 %pp_ta,%pp_target;st.global.u64 [%pp_private+184],%pp_ta;cvt.u64.u32 %pp_ta,%pp_cell;st.global.u64 [%pp_private+192],%pp_ta;
+ add.u32 %pp_ordinal,%pp_q,1;st.global.u32 [%pp_private+820],%pp_ordinal;
+ st.param.b64 [state_arg],%pp_private;st.param.b64 [environment_arg],%esm_env;
+
+ call.uni (source_return),md2asm_r23_output_state_md2asm_pressure_standard_parallel_cell,(state_arg,environment_arg);
+ add.u32 %pp_q,%pp_q,256;setp.lt.u32 %pp_p,%pp_q,%pp_total;@%pp_p bra PP_CELL;
+PP_CELLS_DONE:
+ bar.sync 0;
+ setp.ne.u32 %pp_p,%pp_lane,0;@%pp_p ret;
+ ld.shared.u32 %pp_flags,[pp_control+68];ld.global.u32 %pp_seederror,[%esm_state+800];mov.u32 %pp_maxerr,0;mov.u32 %pp_errcode,0;mov.u32 %pp_maxiso,0;mov.u64 %pp_isovalue,0;mov.u32 %pp_i,0;
+ mov.u64 %pp_work,ppsta_parallel_workspace_guarded;add.u64 %pp_work,%pp_work,16;
+PP_JOIN:
+ mul.wide.u32 %pp_private,%pp_i,4928;add.u64 %pp_private,%pp_private,%pp_work;
+ ld.global.u32 %pp_tmp,[%pp_private+776];or.b32 %pp_flags,%pp_flags,%pp_tmp;
+ ld.global.u32 %pp_tmp,[%pp_private+812];setp.le.u32 %pp_p,%pp_tmp,%pp_maxerr;@%pp_p bra PP_JOIN_ISO;
+ mov.u32 %pp_maxerr,%pp_tmp;ld.global.u32 %pp_errcode,[%pp_private+808];
+PP_JOIN_ISO:
+ ld.global.u32 %pp_tmp,[%pp_private+816];setp.le.u32 %pp_p,%pp_tmp,%pp_maxiso;@%pp_p bra PP_JOIN_NEXT;
+ mov.u32 %pp_maxiso,%pp_tmp;ld.global.u64 %pp_isovalue,[%pp_private+824];
+PP_JOIN_NEXT:
+ add.u32 %pp_i,%pp_i,1;setp.lt.u32 %pp_p,%pp_i,256;setp.lt.u32 %pp_r,%pp_i,%pp_total;and.pred %pp_p,%pp_p,%pp_r;@%pp_p bra PP_JOIN;
+ sub.u32 %pp_tmp,%pp_total,1;rem.u32 %pp_tmp,%pp_tmp,256;mul.wide.u32 %pp_laststate,%pp_tmp,4928;add.u64 %pp_laststate,%pp_laststate,%pp_work;mov.u32 %pp_i,0;
+PP_COPY_LAST:
+ mul.wide.u32 %pp_addr,%pp_i,8;add.u64 %pp_copy,%pp_laststate,%pp_addr;add.u64 %pp_copyto,%esm_state,%pp_addr;ld.global.u64 %pp_ta,[%pp_copy];st.global.u64 [%pp_copyto],%pp_ta;
+ add.u32 %pp_i,%pp_i,1;setp.lt.u32 %pp_p,%pp_i,101;@%pp_p bra PP_COPY_LAST;
+ st.global.u64 [%esm_state+248],%pp_originsp;cvt.u64.u32 %pp_ta,%pp_targets;st.global.u64 [%esm_state+184],%pp_ta;cvt.u64.u32 %pp_ta,%pp_active;st.global.u64 [%esm_state+192],%pp_ta;
+ mov.u64 %pp_ta,0x60000000;st.global.u64 [%esm_state+784],%pp_ta;st.global.u32 [%esm_state+776],%pp_flags;
+ setp.ne.u32 %pp_p,%pp_maxerr,0;@%pp_p mov.u32 %pp_seederror,%pp_errcode;st.global.u32 [%esm_state+800],%pp_seederror;
+ setp.eq.u32 %pp_p,%pp_maxiso,0;@%pp_p bra PP_FINISH;
+ st.global.u64 [%esm_state+320],%pp_isovalue;st.global.u64 [%esm_state+328],0;
+PP_FINISH:
+ mov.u32 %esm_flags,%pp_flags;mov.u32 %esm_error,0;bra JOIN;
+
+JOIN:
+ ld.global.u32 %esm_axis,[%esm_ctx+8];or.b32 %esm_axis,%esm_axis,%esm_flags;st.global.u32 [%esm_ctx+8],%esm_axis;setp.ne.u32 %esm_p,%esm_error,0;@%esm_p bra PP_POST_REFUSE;
+ st.global.u32 [%esm_out],0;st.global.u32 [%esm_out+4],0;ld.global.u32 %esm_axis,[%esm_state+800];st.global.u32 [%esm_out+8],%esm_axis;st.global.u32 [%esm_out+12],1;ret;
+
+PP_POST_REFUSE:
+ st.global.u32 [%esm_ctx],1;ret;
+}
