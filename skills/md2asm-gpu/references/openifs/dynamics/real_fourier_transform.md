@@ -1,0 +1,35 @@
+# Complete GPU real Fourier transform contract
+
+This implementation moves the complete FFT992 transform and its RPASSF and QPASSF passes to the GPU. The [physical formulation](../../../../../formulations/openifs/dynamics/real_fourier_transform.md) and [ordered CPU contract](../../../../md2asm/references/openifs/dynamics/real_fourier_transform.md) retain the method, coefficients, rounding points and source error outcomes. FP64 means a 64-bit floating-point value. Every butterfly, which combines a small group of coefficients, uses the unchanged complete values body.
+
+## Interface and bounds
+
+The public entry `md2asm_fft992` takes eight addresses in x0 through x7: A, TRIGS, IFAX, INC, JUMP, N, LOT and ISIGN. A contains input and output values. TRIGS contains N FP64 words; IFAX contains ten signed 32-bit words. The other addresses name signed 32-bit controls. Each field has N+2 positions, and position j of field f has word index j*INC+f*JUMP. The complete A owner contains (N+1)*INC+(LOT-1)*JUMP+1 words. Field and table words have eight-byte alignment; integer controls have four-byte alignment. The original public bounds, aliases and single-thread calling domain remain in force.
+
+The host preserves all general registers and complete vector registers, the floating-point control register FPCR, the condition flags NZCV and errno. It joins every new floating-point status flag with the incoming status register FPSR. The declared arithmetic uses round-to-nearest with ties to even and gradual underflow. No fused multiply-add, reassociation, reduced precision, approximate operation or output normalisation is introduced.
+
+## Independent field route
+
+The host selects parallel fields when INC=LOT, LOT is at least 2 and JUMP=1. N is positive, ISIGN is either minus1 or plus1, and (N+2)*LOT must fit a positive signed 32-bit index. IFAX names one through nine factors whose product is N; each factor is2,3,4,5,6 or8, with8 only in the final listed position. The complete mutable A interval must be disjoint from TRIGS, IFAX, all five scalar controls and the actual three-word counter owner. Readonly views add no pairwise disjointness condition; INC and LOT may name the same word.
+
+Every other source-supported shape or alias uses the unchanged serial GPU entry. Failure of the parallel selection does not add a public refusal, a CPU numerical route or a new mathematical method. The standalone `md2asm_fft992_rpassf` and `md2asm_fft992_qpassf` interfaces also keep their accepted serial GPU entries and complete source error branches.
+
+The parallel entry uses one block with min(LOT,32) threads and zero dynamic shared memory. A lane processes field f through A+8*f with the original INC, JUMP, N, IFAX, TRIGS and ISIGN, a private LOT word containing1, and its own stack. Original A[f+j*LOT] maps to that field view, and original private WORK[f+k*LOT] maps to private WORK[k]. The frozen pass control gives the same butterfly statements and trigonometric indices within each field. Each lane therefore retains its original in-place load, temporary and store order, while distinct residues modulo LOT keep writes independent. The unchanged complete `md2asm_fft992_device_values` function performs the mathematics.
+
+Each lane, which is one GPU thread, has 64 metadata bytes followed by 4096+((8*(N+1)+79) rounded down to a multiple of16) stack bytes. The private lane stride includes both parts and is16-byte aligned. The metadata contains private count words at 0, 8, 16, LOT=1 at 24, representative count words at 32, 40, 48 and flag/reserved words at 56, 60. The host reserves and touches this bounded mapped stack before one prepare/launch service; it adds no malloc or free call. One barrier joins all completed fields.
+
+## Private transport and effects
+
+Both entries take a16-byte vector containing an input-header address and a completion address, plus a64-byte context. The input header has128 bytes and starts with the eight original addresses. It then holds the private stack top at64, actual counter owner at72, private arena base at80, arena bytes at88, mode0 at96, thread count at100 and lane stride at104. Bytes112 through127 are zero. The32-byte capacity record gives header, completion, arena and counter capacities. Completion has16 bytes. The serial header retains its original zero fields at100 through127.
+
+The parallel entry checks the exact launch shape, all range ends, alignments, capacities, mode and reserved words before numerical writes. Private transport, lane storage and actual counters are disjoint from each other and all borrowed numerical owners. Readonly model owners retain their allowed sharing. Refusal changes only the declared context status through the unchanged runtime policy.
+
+The complete values function takes the eight original addresses, stack top and counter address, and returns an aligned16-byte record with new FPSR flags at0. Every call receives fresh parameter stores. Each field uses private FFT992/RPASSF/QPASSF totals. After the barrier, the leader adds only field0's representative deltas once, modulo2 raised to64, to `md2asm_fft992_calls`, `md2asm_fft992_rpassf_calls` and `md2asm_fft992_qpassf_calls`. It never sums duplicated per-field parent counts. All returned flags are combined. There is no new errno event, EXP count, public logarithm count or FAST/WIDE product-sum count.
+
+## Accepted checks and limits
+
+The changed component passes 26 complete calls and 254472 field bytes with zero differences: 22 cached eligible cases, three serial fallbacks and one shared INC/LOT control case. Every call checks immediate FPCR/FPSR/errno, preserved registers including x18, guards, readonly owners and actual counters with wrap. A whole-owner transport gate passes one valid request and 30 prewrite refusals over 31 images of 33232 bytes. Independent source, native and result reviews pass. The original complete-body mathematics and 1950 synthetic plus 29412 genuine physical relations are reused; no new CPU, Fortran or physical reference call supplies an expected result.
+
+A quiet exclusive-node comparison uses two cached shapes captured from model calls, both transform signs, nine alternating repeats and byte/status/count checks after each timed call. Both shapes show a lower median complete-call time. Exact samples, ranges, hardware placement and build bindings remain local. This is component evidence only. No complete GPU forecast or forecast speedup is accepted by this packet, and deduplicated shape records do not establish the eligible fraction of all profiled calls.
+
+The source files are [host transport](../../../../../src/openifs/dynamics/gpu/real_fourier_transform_host.S), [complete values](../../../../../src/openifs/dynamics/gpu/real_fourier_transform_values.ptx), [serial entries](../../../../../src/openifs/dynamics/gpu/real_fourier_transform_entries.ptx) and [parallel entry](../../../../../src/openifs/dynamics/gpu/real_fourier_transform_parallel_entry.ptx). The original CPU source remains unchanged.
