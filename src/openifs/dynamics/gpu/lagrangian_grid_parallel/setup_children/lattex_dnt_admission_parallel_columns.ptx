@@ -1,0 +1,253 @@
+// Qualified parallel interface and bounds in skills/md2asm-gpu/references/openifs/dynamics/lagrangian_grid_parallel_columns.md.
+// Same direct PTX integer admission; no numerical stage.
+.version 8.5
+.target sm_90
+.address_size 64
+.func (.param .u32 result) shared_dnt_range_lattex_dnt_admission_parallel_columns(.param .u64 base,.param .u64 bytes,.param .u64 capacity,.param .u64 mask,.param .u64 owners,.param .u32 count)
+{
+ .reg .u64 %b,%n,%c,%m,%list,%t,%end,%o,%on,%oe; .reg .u32 %i,%count,%e; .reg .pred %p,%q;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %c,[capacity]; ld.param.u64 %m,[mask]; ld.param.u64 %list,[owners]; ld.param.u32 %count,[count];
+ mov.u32 %e,0; setp.eq.u64 %p,%n,0; @%p bra HR_DONE;
+ mov.u32 %e,8707; setp.gt.u64 %p,%n,%c; @%p bra HR_DONE;
+ setp.gt.u64 %p,%n,0x7fffffffffffffff; @%p bra HR_DONE;
+ setp.eq.u64 %p,%b,0; @%p bra HR_DONE;
+ and.b64 %t,%b,%m; setp.ne.u64 %p,%t,0; @%p bra HR_DONE;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra HR_DONE;
+ add.u64 %end,%b,%n; setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra HR_DONE;
+ mov.u32 %i,0;
+HR_OWNERS:
+ setp.ge.u32 %p,%i,%count; @%p bra HR_OK;
+ ld.u64 %o,[%list]; ld.u64 %on,[%list+8]; setp.eq.u64 %p,%on,0; @%p bra HR_NEXT;
+ add.u64 %oe,%o,%on; setp.lt.u64 %p,%b,%oe; setp.lt.u64 %q,%o,%end; and.pred %p,%p,%q; @%p bra HR_DONE;
+HR_NEXT: add.u64 %list,%list,16; add.u32 %i,%i,1; bra HR_OWNERS;
+HR_OK: mov.u32 %e,0;
+HR_DONE: st.param.u32 [result],%e; ret;
+}
+
+.visible .func (.param .u32 admission_result) openifs_lattex_dnt_admit_parallel_columns(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %argv,%ctx,%rec,%owners,%arg<27>,%cap,%bytes,%paddedbytes,%size,%tmp,%ptr,%address,%nstep,%cellbyte,%padbyte,%padding;
+ .reg .u32 %error,%rt,%unique,%k,%n,%first,%last,%low,%high,%levels,%i,%j,%full,%cheap,%iteration,%split,%nesc,%stable,%lag,%diag,%step,%nfost,%corrector,%early,%reads,%writes,%used,%bit,%flags,%raised;
+ .reg .pred %p<3>;
+ .reg .b64 %xidt,%z,%h,%plus,%minus,%linear,%model,%R,%delta,%history,%nonlinear,%base,%extra,%mix,%complement,%q,%t<5>,%old;
+ .reg .f64 %fxidt;
+ .local .align 8 .b8 mutable_owners[176];
+ .param .u64 rb,rn,rc,rm,rl; .param .u32 rct,rr;
+ .param .b64 ma,mb; .param .align 8 .b8 math[16];
+ ld.param.u64 %argv,[original_vector]; ld.param.u64 %ctx,[context]; mov.u32 %unique,%ctaid.x; mov.u32 %rt,%ctaid.y; or.b32 %unique,%unique,%rt; mov.u32 %rt,%ctaid.z; or.b32 %unique,%unique,%rt; mov.u32 %rt,0; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.y; or.b32 %unique,%unique,%rt; mov.u32 %rt,%tid.z; or.b32 %unique,%unique,%rt; setp.ne.u32 %p0,%unique,0; @%p0 bra ADMISSION_EXIT;
+ ld.u32 %error,[%ctx]; setp.ne.u32 %p0,%error,0; @%p0 bra ADMISSION_EXIT; mov.u32 %error,8704;
+ mov.u32 %rt,%ntid.x; setp.ne.u32 %p0,%rt,32; @%p0 bra REFUSE; mov.u32 %rt,%ntid.y; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u32 %rt,%ntid.z; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u32 %rt,%nctaid.x; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u32 %rt,%nctaid.y; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u32 %rt,%nctaid.z; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; ld.u32 %rt,[%ctx+4]; setp.ne.u32 %p0,%rt,1; @%p0 bra REFUSE; mov.u64 %owners,mutable_owners; cvta.local.u64 %owners,%owners;
+
+ st.param.u64 [rb],%argv; st.param.u64 [rn],216; st.param.u64 [rc],216; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %rec,[%ctx+48]; ld.u64 %cap,[%ctx+56];
+ st.param.u64 [rb],%rec; st.param.u64 [rn],512; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ mov.u32 %error,8705; mov.u32 %i,232;
+RESERVED:
+ cvt.u64.u32 %tmp,%i; add.u64 %ptr,%rec,%tmp; ld.u64 %tmp,[%ptr]; setp.ne.u64 %p0,%tmp,0; @%p0 bra REFUSE; add.u32 %i,%i,8; setp.lt.u32 %p0,%i,512; @%p0 bra RESERVED;
+ ld.u64 %arg0,[%argv+0];
+ ld.u64 %arg1,[%argv+8];
+ ld.u64 %arg2,[%argv+16];
+ ld.u64 %arg3,[%argv+24];
+ ld.u64 %arg4,[%argv+32];
+ ld.u64 %arg5,[%argv+40];
+ ld.u64 %arg6,[%argv+48];
+ ld.u64 %arg7,[%argv+56];
+ ld.u64 %arg8,[%argv+64];
+ ld.u64 %arg9,[%argv+72];
+ ld.u64 %arg10,[%argv+80];
+ ld.u64 %arg11,[%argv+88];
+ ld.u64 %arg12,[%argv+96];
+ ld.u64 %arg13,[%argv+104];
+ ld.u64 %arg14,[%argv+112];
+ ld.u64 %arg15,[%argv+120];
+ ld.u64 %arg16,[%argv+128];
+ ld.u64 %arg17,[%argv+136];
+ ld.u64 %arg18,[%argv+144];
+ ld.u64 %arg19,[%argv+152];
+ ld.u64 %arg20,[%argv+160];
+ ld.u64 %arg21,[%argv+168];
+ ld.u64 %arg22,[%argv+176];
+ ld.u64 %arg23,[%argv+184];
+ ld.u64 %arg24,[%argv+192];
+ ld.u64 %arg25,[%argv+200];
+ ld.u64 %arg26,[%argv+208];
+ ld.u64 %cap,[%rec+0];
+ st.param.u64 [rb],%arg0; st.param.u64 [rn],17096; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+8];
+ st.param.u64 [rb],%arg1; st.param.u64 [rn],120; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+16];
+ st.param.u64 [rb],%arg2; st.param.u64 [rn],175976; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+24];
+ st.param.u64 [rb],%arg3; st.param.u64 [rn],4720; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+32];
+ st.param.u64 [rb],%arg4; st.param.u64 [rn],456; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+40];
+ st.param.u64 [rb],%arg5; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+48];
+ st.param.u64 [rb],%arg6; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+56];
+ st.param.u64 [rb],%arg7; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+64];
+ st.param.u64 [rb],%arg8; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+72];
+ st.param.u64 [rb],%arg9; st.param.u64 [rn],8; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+80];
+ st.param.u64 [rb],%arg10; st.param.u64 [rn],8; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %nstep,[%rec+224];
+ st.param.u64 [rb],%nstep; st.param.u64 [rn],4; st.param.u64 [rc],4; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.s32 %k,[%arg0+5144]; ld.s32 %n,[%arg0+5224]; ld.s32 %low,[%arg0+5244]; ld.s32 %high,[%arg0+5248]; ld.s32 %first,[%arg5]; ld.s32 %last,[%arg6]; mov.u32 %error,8706;
+ setp.lt.s32 %p0,%k,0; @%p0 bra REFUSE; setp.gt.u32 %p0,%k,4096; @%p0 bra REFUSE; setp.lt.s32 %p0,%n,0; @%p0 bra REFUSE; setp.gt.u32 %p0,%n,1024; @%p0 bra REFUSE; setp.gt.u32 %p0,%low,1; @%p0 bra REFUSE; setp.lt.s32 %p0,%high,%n; @%p0 bra REFUSE; add.u32 %rt,%n,1; setp.gt.u32 %p0,%high,%rt; @%p0 bra REFUSE; setp.lt.s32 %p0,%first,1; @%p0 bra REFUSE; add.u32 %rt,%k,1; setp.gt.u32 %p0,%first,%rt; @%p0 bra REFUSE; setp.lt.s32 %p0,%last,0; @%p0 bra REFUSE; setp.gt.u32 %p0,%last,%k; @%p0 bra REFUSE;
+ sub.u32 %levels,%high,%low; add.u32 %levels,%levels,1; mul.wide.u32 %bytes,%k,%n; shl.b64 %bytes,%bytes,3; mul.wide.u32 %paddedbytes,%k,%levels; shl.b64 %paddedbytes,%paddedbytes,3;
+ ld.u32 %full,[%arg4+336]; ld.u32 %cheap,[%arg4+340]; ld.u32 %diag,[%arg1+108]; ld.u32 %stable,[%arg7]; ld.s32 %lag,[%arg8]; ld.s32 %iteration,[%arg3+2580]; ld.s32 %split,[%arg3+4204]; ld.s32 %step,[%nstep]; ld.s32 %nfost,[%arg2+24];
+ setp.gt.u32 %p0,%full,1; @%p0 bra REFUSE;
+ setp.gt.u32 %p0,%cheap,1; @%p0 bra REFUSE;
+ setp.gt.u32 %p0,%diag,1; @%p0 bra REFUSE;
+ setp.gt.u32 %p0,%stable,1; @%p0 bra REFUSE;
+ setp.lt.s32 %p0,%iteration,0; @%p0 bra REFUSE;
+ setp.lt.s32 %p0,%step,0; @%p0 bra REFUSE;
+ setp.lt.s32 %p0,%nfost,0; @%p0 bra REFUSE;
+ setp.ne.u64 %p0,%arg26,0; @%p0 bra OVERRIDE; ld.u32 %nesc,[%arg4+280]; bra NESC_READY;
+OVERRIDE: ld.u64 %cap,[%rec+208];
+ st.param.u64 [rb],%arg26; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u32 %nesc,[%arg26];
+NESC_READY: mov.u32 %error,8706; setp.gt.u32 %p0,%nesc,1; @%p0 bra REFUSE; setp.gt.u32 %p0,%iteration,0; selp.u32 %corrector,1,0,%p0; and.b32 %corrector,%corrector,%full; setp.le.u32 %p0,%step,%nfost; selp.u32 %early,1,0,%p0; or.b32 %early,%early,%nesc; mov.u32 %reads,0; mov.u32 %writes,0; setp.eq.u32 %p0,%n,0; @%p0 bra MASKS_READY; setp.lt.u32 %p0,%last,%first; @%p0 bra MASKS_READY;
+ or.b32 %writes,%writes,32768;
+ or.b32 %writes,%writes,131072;
+ or.b32 %reads,%reads,8192;
+ setp.ne.u32 %p0,%corrector,0; @%p0 bra CORRECTOR_MASKS; setp.lt.s32 %p0,%lag,2; @%p0 bra PREDICTOR_HISTORY_MASK;
+ or.b32 %reads,%reads,2048;
+ or.b32 %writes,%writes,524288;
+ setp.ge.s32 %p0,%lag,3; @%p0 bra PREDICTOR_GE3_MASK; setp.eq.u32 %p0,%split,0; @%p0 bra PREDICTOR_OLD_MASK;
+ or.b32 %writes,%writes,1048576;
+ bra PREDICTOR_OLD_MASK;
+PREDICTOR_GE3_MASK:
+ or.b32 %writes,%writes,262144;
+ setp.ne.u32 %p0,%early,0; @%p0 bra PREDICTOR_OLD_MASK; and.b32 %rt,%stable,%cheap; setp.eq.u32 %p0,%rt,0; @%p0 bra PREDICTOR_OLD_MASK;
+ or.b32 %writes,%writes,33554432;
+PREDICTOR_OLD_MASK: setp.ne.u32 %p0,%early,0; @%p0 bra PREDICTOR_HISTORY_MASK;
+ or.b32 %reads,%reads,65536;
+ setp.eq.u32 %p0,%stable,0; @%p0 bra PREDICTOR_HISTORY_MASK;
+ or.b32 %reads,%reads,16384;
+PREDICTOR_HISTORY_MASK: setp.eq.u32 %p0,%full,0; @%p0 bra PREDICTOR_NESC_MASK;
+ or.b32 %writes,%writes,2097152;
+PREDICTOR_NESC_MASK: setp.ne.u32 %p0,%nesc,0; @%p0 bra DIAGNOSTIC_MASK;
+ or.b32 %writes,%writes,65536;
+ bra DIAGNOSTIC_MASK;
+CORRECTOR_MASKS: setp.lt.s32 %p0,%lag,2; @%p0 bra DIAGNOSTIC_MASK; setp.ne.u32 %p0,%cheap,0; @%p0 bra DIAGNOSTIC_MASK;
+ or.b32 %reads,%reads,4096;
+ or.b32 %reads,%reads,2097152;
+ or.b32 %writes,%writes,524288;
+ setp.ge.s32 %p0,%lag,3; @%p0 bra CORRECTOR_GE3_MASK; setp.eq.u32 %p0,%split,0; @%p0 bra DIAGNOSTIC_MASK;
+ or.b32 %writes,%writes,1048576;
+ bra DIAGNOSTIC_MASK;
+CORRECTOR_GE3_MASK:
+ or.b32 %writes,%writes,262144;
+DIAGNOSTIC_MASK: setp.eq.u32 %p0,%diag,0; @%p0 bra MASKS_READY; setp.lt.s32 %p0,%lag,3; @%p0 bra DIAGNOSTIC_HISTORY_MASK;
+ or.b32 %writes,%writes,4194304;
+ setp.ne.u32 %p0,%corrector,0; @%p0 bra MASKS_READY; setp.ne.u32 %p0,%early,0; @%p0 bra DIAGNOSTIC_HISTORY_MASK;
+ or.b32 %writes,%writes,16777216;
+ or.b32 %reads,%reads,8388608;
+DIAGNOSTIC_HISTORY_MASK: setp.ne.u32 %p0,%corrector,0; @%p0 bra MASKS_READY; setp.ne.u32 %p0,%nesc,0; @%p0 bra MASKS_READY;
+ or.b32 %writes,%writes,8388608;
+MASKS_READY: or.b32 %used,%reads,%writes;
+ and.b32 %rt,%writes,32768; setp.ne.u32 %p0,%rt,0; selp.u64 %size,%bytes,0,%p0; st.u64 [%owners+0],%arg15; st.u64 [%owners+8],%size; ld.u64 %cap,[%rec+120];
+ st.param.u64 [rb],%arg15; st.param.u64 [rn],%size; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],0; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ and.b32 %rt,%writes,65536; setp.ne.u32 %p0,%rt,0; selp.u64 %size,%bytes,0,%p0; st.u64 [%owners+16],%arg16; st.u64 [%owners+24],%size; ld.u64 %cap,[%rec+128];
+ st.param.u64 [rb],%arg16; st.param.u64 [rn],%size; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],1; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ and.b32 %rt,%writes,131072; setp.ne.u32 %p0,%rt,0; selp.u64 %size,%bytes,0,%p0; st.u64 [%owners+32],%arg17; st.u64 [%owners+40],%size; ld.u64 %cap,[%rec+136];
+ st.param.u64 [rb],%arg17; st.param.u64 [rn],%size; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],2; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ and.b32 %rt,%writes,262144; setp.ne.u32 %p0,%rt,0; selp.u64 %size,%paddedbytes,0,%p0; st.u64 [%owners+48],%arg18; st.u64 [%owners+56],%size; ld.u64 %cap,[%rec+144];
+ st.param.u64 [rb],%arg18; st.param.u64 [rn],%size; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],3; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ and.b32 %rt,%writes,524288; setp.ne.u32 %p0,%rt,0; selp.u64 %size,%paddedbytes,0,%p0; st.u64 [%owners+64],%arg19; st.u64 [%owners+72],%size; ld.u64 %cap,[%rec+152];
+ st.param.u64 [rb],%arg19; st.param.u64 [rn],%size; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],4; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ and.b32 %rt,%writes,1048576; setp.ne.u32 %p0,%rt,0; selp.u64 %size,%paddedbytes,0,%p0; st.u64 [%owners+80],%arg20; st.u64 [%owners+88],%size; ld.u64 %cap,[%rec+160];
+ st.param.u64 [rb],%arg20; st.param.u64 [rn],%size; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],5; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ and.b32 %rt,%writes,2097152; setp.ne.u32 %p0,%rt,0; selp.u64 %size,%bytes,0,%p0; st.u64 [%owners+96],%arg21; st.u64 [%owners+104],%size; ld.u64 %cap,[%rec+168];
+ st.param.u64 [rb],%arg21; st.param.u64 [rn],%size; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],6; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ and.b32 %rt,%writes,4194304; setp.ne.u32 %p0,%rt,0; selp.u64 %size,%bytes,0,%p0; st.u64 [%owners+112],%arg22; st.u64 [%owners+120],%size; ld.u64 %cap,[%rec+176];
+ st.param.u64 [rb],%arg22; st.param.u64 [rn],%size; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],7; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ and.b32 %rt,%writes,8388608; setp.ne.u32 %p0,%rt,0; selp.u64 %size,%bytes,0,%p0; st.u64 [%owners+128],%arg23; st.u64 [%owners+136],%size; ld.u64 %cap,[%rec+184];
+ st.param.u64 [rb],%arg23; st.param.u64 [rn],%size; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],8; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ and.b32 %rt,%writes,16777216; setp.ne.u32 %p0,%rt,0; selp.u64 %size,%paddedbytes,0,%p0; st.u64 [%owners+144],%arg24; st.u64 [%owners+152],%size; ld.u64 %cap,[%rec+192];
+ st.param.u64 [rb],%arg24; st.param.u64 [rn],%size; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],9; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ and.b32 %rt,%writes,33554432; setp.ne.u32 %p0,%rt,0; selp.u64 %size,%paddedbytes,0,%p0; st.u64 [%owners+160],%arg25; st.u64 [%owners+168],%size; ld.u64 %cap,[%rec+200];
+ st.param.u64 [rb],%arg25; st.param.u64 [rn],%size; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],10; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+0];
+ st.param.u64 [rb],%arg0; st.param.u64 [rn],17096; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+8];
+ st.param.u64 [rb],%arg1; st.param.u64 [rn],120; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+16];
+ st.param.u64 [rb],%arg2; st.param.u64 [rn],175976; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+24];
+ st.param.u64 [rb],%arg3; st.param.u64 [rn],4720; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+32];
+ st.param.u64 [rb],%arg4; st.param.u64 [rn],456; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+40];
+ st.param.u64 [rb],%arg5; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+48];
+ st.param.u64 [rb],%arg6; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+56];
+ st.param.u64 [rb],%arg7; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+64];
+ st.param.u64 [rb],%arg8; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+72];
+ st.param.u64 [rb],%arg9; st.param.u64 [rn],8; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+80];
+ st.param.u64 [rb],%arg10; st.param.u64 [rn],8; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [rb],%nstep; st.param.u64 [rn],4; st.param.u64 [rc],4; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [rb],%ctx; st.param.u64 [rn],64; st.param.u64 [rc],64; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [rb],%rec; st.param.u64 [rn],512; st.param.u64 [rc],512; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %cap,[%rec+216];
+ st.param.u64 [rb],%argv; st.param.u64 [rn],216; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ setp.eq.u64 %p0,%arg26,0; @%p0 bra OVERRIDE_CHECKED; ld.u64 %cap,[%rec+208];
+ st.param.u64 [rb],%arg26; st.param.u64 [rn],4; st.param.u64 [rc],%cap; st.param.u64 [rm],3; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+OVERRIDE_CHECKED:
+ and.b32 %rt,%reads,2048; and.b32 %bit,%writes,2048; setp.eq.u32 %p0,%rt,0; @%p0 bra READ_CHECKED_11; setp.ne.u32 %p0,%bit,0; @%p0 bra READ_CHECKED_11; ld.u64 %cap,[%rec+88];
+ st.param.u64 [rb],%arg11; st.param.u64 [rn],%bytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+READ_CHECKED_11:
+ and.b32 %rt,%reads,4096; and.b32 %bit,%writes,4096; setp.eq.u32 %p0,%rt,0; @%p0 bra READ_CHECKED_12; setp.ne.u32 %p0,%bit,0; @%p0 bra READ_CHECKED_12; ld.u64 %cap,[%rec+96];
+ st.param.u64 [rb],%arg12; st.param.u64 [rn],%bytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+READ_CHECKED_12:
+ and.b32 %rt,%reads,8192; and.b32 %bit,%writes,8192; setp.eq.u32 %p0,%rt,0; @%p0 bra READ_CHECKED_13; setp.ne.u32 %p0,%bit,0; @%p0 bra READ_CHECKED_13; ld.u64 %cap,[%rec+104];
+ st.param.u64 [rb],%arg13; st.param.u64 [rn],%bytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+READ_CHECKED_13:
+ and.b32 %rt,%reads,16384; and.b32 %bit,%writes,16384; setp.eq.u32 %p0,%rt,0; @%p0 bra READ_CHECKED_14; setp.ne.u32 %p0,%bit,0; @%p0 bra READ_CHECKED_14; ld.u64 %cap,[%rec+112];
+ st.param.u64 [rb],%arg14; st.param.u64 [rn],%bytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+READ_CHECKED_14:
+ and.b32 %rt,%reads,32768; and.b32 %bit,%writes,32768; setp.eq.u32 %p0,%rt,0; @%p0 bra READ_CHECKED_15; setp.ne.u32 %p0,%bit,0; @%p0 bra READ_CHECKED_15; ld.u64 %cap,[%rec+120];
+ st.param.u64 [rb],%arg15; st.param.u64 [rn],%bytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+READ_CHECKED_15:
+ and.b32 %rt,%reads,65536; and.b32 %bit,%writes,65536; setp.eq.u32 %p0,%rt,0; @%p0 bra READ_CHECKED_16; setp.ne.u32 %p0,%bit,0; @%p0 bra READ_CHECKED_16; ld.u64 %cap,[%rec+128];
+ st.param.u64 [rb],%arg16; st.param.u64 [rn],%bytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+READ_CHECKED_16:
+ and.b32 %rt,%reads,131072; and.b32 %bit,%writes,131072; setp.eq.u32 %p0,%rt,0; @%p0 bra READ_CHECKED_17; setp.ne.u32 %p0,%bit,0; @%p0 bra READ_CHECKED_17; ld.u64 %cap,[%rec+136];
+ st.param.u64 [rb],%arg17; st.param.u64 [rn],%bytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+READ_CHECKED_17:
+ and.b32 %rt,%reads,262144; and.b32 %bit,%writes,262144; setp.eq.u32 %p0,%rt,0; @%p0 bra READ_CHECKED_18; setp.ne.u32 %p0,%bit,0; @%p0 bra READ_CHECKED_18; ld.u64 %cap,[%rec+144];
+ st.param.u64 [rb],%arg18; st.param.u64 [rn],%paddedbytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+READ_CHECKED_18:
+ and.b32 %rt,%reads,524288; and.b32 %bit,%writes,524288; setp.eq.u32 %p0,%rt,0; @%p0 bra READ_CHECKED_19; setp.ne.u32 %p0,%bit,0; @%p0 bra READ_CHECKED_19; ld.u64 %cap,[%rec+152];
+ st.param.u64 [rb],%arg19; st.param.u64 [rn],%paddedbytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+READ_CHECKED_19:
+ and.b32 %rt,%reads,1048576; and.b32 %bit,%writes,1048576; setp.eq.u32 %p0,%rt,0; @%p0 bra READ_CHECKED_20; setp.ne.u32 %p0,%bit,0; @%p0 bra READ_CHECKED_20; ld.u64 %cap,[%rec+160];
+ st.param.u64 [rb],%arg20; st.param.u64 [rn],%paddedbytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+READ_CHECKED_20:
+ and.b32 %rt,%reads,2097152; and.b32 %bit,%writes,2097152; setp.eq.u32 %p0,%rt,0; @%p0 bra READ_CHECKED_21; setp.ne.u32 %p0,%bit,0; @%p0 bra READ_CHECKED_21; ld.u64 %cap,[%rec+168];
+ st.param.u64 [rb],%arg21; st.param.u64 [rn],%bytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+READ_CHECKED_21:
+ and.b32 %rt,%reads,4194304; and.b32 %bit,%writes,4194304; setp.eq.u32 %p0,%rt,0; @%p0 bra READ_CHECKED_22; setp.ne.u32 %p0,%bit,0; @%p0 bra READ_CHECKED_22; ld.u64 %cap,[%rec+176];
+ st.param.u64 [rb],%arg22; st.param.u64 [rn],%bytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+READ_CHECKED_22:
+ and.b32 %rt,%reads,8388608; and.b32 %bit,%writes,8388608; setp.eq.u32 %p0,%rt,0; @%p0 bra READ_CHECKED_23; setp.ne.u32 %p0,%bit,0; @%p0 bra READ_CHECKED_23; ld.u64 %cap,[%rec+184];
+ st.param.u64 [rb],%arg23; st.param.u64 [rn],%bytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+READ_CHECKED_23:
+ and.b32 %rt,%reads,16777216; and.b32 %bit,%writes,16777216; setp.eq.u32 %p0,%rt,0; @%p0 bra READ_CHECKED_24; setp.ne.u32 %p0,%bit,0; @%p0 bra READ_CHECKED_24; ld.u64 %cap,[%rec+192];
+ st.param.u64 [rb],%arg24; st.param.u64 [rn],%paddedbytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+READ_CHECKED_24:
+ and.b32 %rt,%reads,33554432; and.b32 %bit,%writes,33554432; setp.eq.u32 %p0,%rt,0; @%p0 bra READ_CHECKED_25; setp.ne.u32 %p0,%bit,0; @%p0 bra READ_CHECKED_25; ld.u64 %cap,[%rec+200];
+ st.param.u64 [rb],%arg25; st.param.u64 [rn],%paddedbytes; st.param.u64 [rc],%cap; st.param.u64 [rm],7; st.param.u64 [rl],%owners; st.param.u32 [rct],11; call.uni (rr),shared_dnt_range_lattex_dnt_admission_parallel_columns,(rb,rn,rc,rm,rl,rct); ld.param.u32 %error,[rr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+READ_CHECKED_25:
+ mov.u32 %error,0; bra ADMISSION_EXIT;
+REFUSE: mov.u32 %error,8706; bra ADMISSION_EXIT;
+ADMISSION_EXIT: st.param.u32 [admission_result],%error; ret;
+}

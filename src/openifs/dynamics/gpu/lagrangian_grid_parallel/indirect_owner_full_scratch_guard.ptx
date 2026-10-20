@@ -1,0 +1,523 @@
+// Qualified parallel interface and bounds in skills/md2asm-gpu/references/openifs/dynamics/lagrangian_grid_parallel_columns.md.
+// Full external-owner scratch exclusion after all six original pure admits.
+// Contract: indirect_owner_full_scratch_guard_contract.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.visible .func (.param .u32 guard_result) openifs_lacdyn_indirect_owner_full_scratch_guard(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%record,%scratch,%scratch_end,%geometry,%model,%dyn,%ml_dyn,%veta,%vfe,%cver;
+.reg .u64 %r0,%r1,%r2,%r3,%r4,%r5,%pointer,%length,%end,%tmp,%tmp2,%descriptor,%blocks,%selected,%block;
+.reg .u32 %implicit,%extended,%fe,%sprt,%ibc,%two,%full,%iteration,%nvlag,%active,%corrector,%nesc,%needIntegral,%needGround,%word,%error;
+.reg .pred %p,%q;
+ld.param.u64 %args,[original_vector]; ld.param.u64 %ctx,[common_context];
+ld.u64 %record,[%ctx+48]; ld.u64 %scratch,[%ctx+32]; add.u64 %scratch_end,%scratch,1144736;
+ld.u64 %geometry,[%args]; ld.u64 %model,[%args+16]; add.u64 %dyn,%model,1564592; add.u64 %ml_dyn,%model,1564136;
+add.u64 %r0,%record,4096; add.u64 %r1,%record,8192; add.u64 %r2,%record,12288;
+add.u64 %r3,%record,16384; add.u64 %r4,%record,20480; add.u64 %r5,%record,24576;
+ld.u32 %implicit,[%dyn+2476]; setp.ne.u32 %p,%implicit,0; @%p bra LASURE_OWNERS_DONE;
+// LASURE full declared GM owner
+ld.u64 %pointer,[%r0+160];
+ld.u64 %length,[%r0+168];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_0;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_0:
+
+ld.u32 %extended,[%model+1570368]; setp.eq.u32 %p,%extended,0; @%p bra LASURE_OWNERS_DONE;
+// LASURE full declared GMAPPA owner
+ld.u64 %pointer,[%r0+176];
+ld.u64 %length,[%r0+184];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_1;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_1:
+
+LASURE_OWNERS_DONE:
+// shared vertical configuration header
+ld.u64 %pointer,[%geometry+3264];
+mov.u64 %length,216;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_2;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_2:
+
+ld.u64 %cver,[%geometry+3264]; ld.u32 %fe,[%cver+52];
+// LASSIE RD constant
+ld.u64 %pointer,[%r1+160];
+mov.u64 %length,8;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_3;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_3:
+
+// LASSIE RKAPPA constant
+ld.u64 %pointer,[%r1+168];
+mov.u64 %length,8;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_4;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_4:
+
+setp.eq.u32 %p,%fe,0; @%p bra LASSIE_FE_HEADERS_DONE;
+// LASSIE finite-element vertical-eta header
+ld.u64 %pointer,[%geometry+3248];
+mov.u64 %length,320;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_5;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_5:
+
+// LASSIE finite-element matrix-descriptor header
+ld.u64 %pointer,[%geometry+3256];
+mov.u64 %length,2176;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_6;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_6:
+
+LASSIE_FE_HEADERS_DONE:
+setp.ne.u32 %p,%fe,0; @%p bra LASSIE_COEFFICIENT_0_DONE;
+// LASSIE conventional coefficient0 full declared owner
+ld.u64 %pointer,[%dyn+2600];
+ld.u64 %length,[%r1+360]; ld.u64 %tmp,[%r1+616]; max.u64 %length,%length,%tmp;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_7;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_7:
+
+LASSIE_COEFFICIENT_0_DONE:
+// LASSIE coefficient1 full declared owner
+ld.u64 %pointer,[%dyn+2664];
+ld.u64 %length,[%r1+368]; ld.u64 %tmp,[%r1+624]; max.u64 %length,%length,%tmp;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_8;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_8:
+
+// LASSIE coefficient2 full declared owner
+ld.u64 %pointer,[%dyn+2728];
+ld.u64 %length,[%r1+376]; ld.u64 %tmp,[%r1+632]; max.u64 %length,%length,%tmp;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_9;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_9:
+
+setp.ne.u32 %p,%fe,0; @%p bra LASSIE_COEFFICIENT_3_DONE;
+// LASSIE conventional coefficient3 full declared owner
+ld.u64 %pointer,[%dyn+2792];
+ld.u64 %length,[%r1+384]; ld.u64 %tmp,[%r1+640]; max.u64 %length,%length,%tmp;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_10;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_10:
+
+LASSIE_COEFFICIENT_3_DONE: setp.eq.u32 %p,%fe,0; @%p bra LASSIE_FE_COEFFICIENTS_DONE;
+// LASSIE finite-element coefficient4 full declared owner
+ld.u64 %pointer,[%dyn+2920];
+ld.u64 %length,[%r1+392]; ld.u64 %tmp,[%r1+648]; max.u64 %length,%length,%tmp;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_11;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_11:
+
+ld.u64 %veta,[%geometry+3248];
+// LASSIE eta coefficient5 full declared owner
+ld.u64 %pointer,[%veta+256];
+ld.u64 %length,[%r1+400]; ld.u64 %tmp,[%r1+656]; max.u64 %length,%length,%tmp;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_12;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_12:
+
+ld.u64 %vfe,[%geometry+3256]; ld.u32 %ibc,[%cver+36]; mov.u64 %tmp2,240; setp.eq.u32 %p,%ibc,0; @%p mov.u64 %tmp2,64; setp.eq.u32 %p,%ibc,2; @%p mov.u64 %tmp2,1296; add.u64 %descriptor,%vfe,%tmp2;
+// LASSIE source-selected matrix full declared owner
+ld.u64 %pointer,[%descriptor];
+ld.u64 %length,[%r1+408]; ld.u64 %tmp,[%r1+664]; max.u64 %length,%length,%tmp;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_13;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_13:
+
+LASSIE_FE_COEFFICIENTS_DONE: ld.u32 %sprt,[%ml_dyn+16]; setp.eq.u32 %p,%sprt,0; @%p bra LASSIE_GAS_DONE;
+// LASSIE live generic-gas configuration
+ld.u64 %pointer,[%r1+176];
+mov.u64 %length,1359136;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_14;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_14:
+
+// LASSIE RCPD constant
+ld.u64 %pointer,[%r1+200];
+mov.u64 %length,8;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_15;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_15:
+
+LASSIE_GAS_DONE:
+ld.u64 %blocks,[%geometry+8472]; ld.u64 %pointer,[%args+72]; ld.u32 %word,[%pointer]; sub.u32 %word,%word,1; mul.wide.u32 %block,%word,1472; add.u64 %selected,%blocks,%block;
+// LASSIE selected Coriolis consumed prefix
+ld.u64 %pointer,[%selected];
+ld.u64 %tmp,[%args+32]; ld.u32 %word,[%tmp]; mul.wide.u32 %length,%word,8;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_16;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_16:
+
+// LAVENT NSTEP scalar
+ld.u64 %pointer,[%r2+160];
+mov.u64 %length,4;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_17;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_17:
+
+// LAVENT hook scalar
+ld.u64 %pointer,[%r2+168];
+mov.u64 %length,4;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_18;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_18:
+
+// LAVENT vertical-eta header
+ld.u64 %pointer,[%r2+192];
+mov.u64 %length,320;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_19;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_19:
+
+// LAVENT20 eta nodes
+ld.u64 %pointer,[%r2+208];
+mov.u64 %length,160;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_20;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_20:
+
+// LAVENT full declared coordinate owner240
+ld.u64 %pointer,[%r2+240];
+ld.u64 %length,[%r2+248];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_21;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_21:
+
+// LAVENT full declared coordinate owner256
+ld.u64 %pointer,[%r2+256];
+ld.u64 %length,[%r2+264];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_22;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_22:
+
+// LAVENT full declared coordinate owner272
+ld.u64 %pointer,[%r2+272];
+ld.u64 %length,[%r2+280];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_23;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_23:
+
+// LAVENT full declared coordinate owner288
+ld.u64 %pointer,[%r2+288];
+ld.u64 %length,[%r2+296];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_24;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_24:
+
+// LATTEX external constant/control344
+ld.u64 %pointer,[%r3+344];
+mov.u64 %length,8;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_25;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_25:
+
+// LATTEX external constant/control352
+ld.u64 %pointer,[%r3+352];
+mov.u64 %length,8;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_26;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_26:
+
+// LATTEX external constant/control360
+ld.u64 %pointer,[%r3+360];
+mov.u64 %length,8;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_27;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_27:
+
+// LATTEX external constant/control368
+ld.u64 %pointer,[%r3+368];
+mov.u64 %length,8;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_28;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_28:
+
+// LATTEX external constant/control376
+ld.u64 %pointer,[%r3+376];
+mov.u64 %length,8;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_29;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_29:
+
+// LATTEX external constant/control384
+ld.u64 %pointer,[%r3+384];
+mov.u64 %length,4;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_30;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_30:
+
+// LATTEX full declared external owner400
+ld.u64 %pointer,[%r3+400];
+ld.u64 %length,[%r3+408];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_31;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_31:
+
+// LATTEX full declared external owner416
+ld.u64 %pointer,[%r3+416];
+ld.u64 %length,[%r3+424];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_32;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_32:
+
+// LATTEX full declared external owner432
+ld.u64 %pointer,[%r3+432];
+ld.u64 %length,[%r3+440];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_33;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_33:
+
+// LATTEX full declared external owner448
+ld.u64 %pointer,[%r3+448];
+ld.u64 %length,[%r3+456];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_34;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_34:
+
+// LATTEX full declared external owner464
+ld.u64 %pointer,[%r3+464];
+ld.u64 %length,[%r3+472];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_35;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_35:
+
+// LATTEX full declared external owner480
+ld.u64 %pointer,[%r3+480];
+ld.u64 %length,[%r3+488];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_36;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_36:
+
+// LATTES RD constant
+ld.u64 %pointer,[%r4+192];
+mov.u64 %length,8;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_37;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_37:
+
+// LATTES RT constant
+ld.u64 %pointer,[%r4+200];
+mov.u64 %length,8;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_38;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_38:
+
+ld.u32 %nesc,[%ml_dyn+280]; setp.ne.u32 %p,%nesc,0; @%p bra LATTES_STEP_DONE;
+// LATTES conditional NSTEP scalar
+ld.u64 %pointer,[%r4+208];
+mov.u64 %length,4;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_39;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_39:
+
+LATTES_STEP_DONE:
+// LATTES vertical A/B header
+ld.u64 %pointer,[%geometry+3240];
+mov.u64 %length,512;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_40;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_40:
+
+// LATTES full declared vertical weights
+ld.u64 %pointer,[%r4+248];
+ld.u64 %length,[%r4+256];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_41;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_41:
+
+setp.eq.u32 %p,%fe,0; @%p bra LATTES_FE_WEIGHTS_DONE;
+// LATTES full declared finite-element integral weights
+ld.u64 %pointer,[%r4+264];
+ld.u64 %length,[%r4+272];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_42;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_42:
+
+LATTES_FE_WEIGHTS_DONE:
+ld.u32 %two,[%ml_dyn+20]; ld.u32 %full,[%ml_dyn+336]; ld.u32 %iteration,[%ml_dyn+3036]; setp.gt.u32 %p,%iteration,0; selp.u32 %word,1,0,%p; and.b32 %corrector,%full,%word; ld.u32 %nvlag,[%ml_dyn+4640]; setp.eq.u32 %p,%nvlag,2; setp.eq.u32 %q,%nvlag,3; or.pred %p,%p,%q; selp.u32 %active,1,0,%p; or.b32 %needIntegral,%corrector,%active; and.b32 %needIntegral,%needIntegral,%fe; setp.eq.u32 %p,%needIntegral,0; @%p bra LATTES_INTEGRAL_DONE;
+// LATTES conditional vertical matrix header
+ld.u64 %pointer,[%geometry+3256];
+mov.u64 %length,2176;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_43;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_43:
+
+// LATTES conditional full matrix owner
+ld.u64 %pointer,[%r4+280];
+ld.u64 %length,[%r4+288];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_44;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_44:
+
+LATTES_INTEGRAL_DONE: and.b32 %needGround,%two,%corrector; or.b32 %needGround,%needGround,%active; setp.eq.u32 %p,%needGround,0; @%p bra LATTES_GROUND_DONE;
+// LATTES conditional orography blocks
+ld.u64 %pointer,[%r4+296];
+ld.u64 %length,[%r4+304];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_45;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_45:
+
+// LATTES conditional height values
+ld.u64 %pointer,[%r4+312];
+ld.u64 %length,[%r4+320];
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_46;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_46:
+
+LATTES_GROUND_DONE:
+// LAVABO hook scalar
+ld.u64 %pointer,[%r5+72];
+mov.u64 %length,4;
+setp.eq.u64 %p,%length,0; @%p bra INDIRECT_OWNER_47;
+add.u64 %end,%pointer,%length;
+setp.lt.u64 %p,%pointer,%scratch_end;
+setp.lt.u64 %q,%scratch,%end;
+and.pred %p,%p,%q; @%p bra INDIRECT_OVERLAP;
+INDIRECT_OWNER_47:
+
+mov.u32 %error,0; bra INDIRECT_RETURN;
+INDIRECT_OVERLAP: mov.u32 %error,15402;
+INDIRECT_RETURN: st.param.u32 [guard_result],%error; ret;
+}

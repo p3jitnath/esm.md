@@ -9,3 +9,5 @@ Sixteen selected-CPU and sixteen GPU calls match 155,206,208 complete output byt
 This is a component result for the declared 2,048-point, nineteen-layer forecast shape. Parent and child routine counts overlap. Full autonomous GPU forecast acceptance remains a separate gate.
 
 Original history arguments seven and eight are captured but not read by the selected parent or any of its six children, so their consumed spans are zero. Two previous capacity-rejection assumptions are superseded. A genuine last-block witness with two readonly 64-byte buffers beside protected pages passes fresh and sticky status, matching 19,400,776 complete output bytes and all eight source counters. The numerical instructions are unchanged.
+
+The accepted [parallel-column implementation](lagrangian_grid_parallel_columns.md) retains this numerical contract and gives each independent column to a separate GPU thread.

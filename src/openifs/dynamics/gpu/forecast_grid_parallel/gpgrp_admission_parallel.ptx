@@ -1,0 +1,110 @@
+// Qualified parallel interface and bounds in skills/md2asm-gpu/references/openifs/dynamics/forecast_grid_parallel_columns.md.
+// Complete GPGRP from frozen_contract.md revision1.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
+.extern .func (.param .align 8 .b8 r[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
+.func (.param .u32 result) force_valid_range(.param .u64 base,.param .u64 bytes,.param .u64 mask)
+{
+ .reg .u64 %b,%n,%m,%end; .reg .u32 %error; .reg .pred %p;
+ ld.param.u64 %b,[base]; ld.param.u64 %n,[bytes]; ld.param.u64 %m,[mask]; mov.u32 %error,1;
+ setp.eq.u64 %p,%b,0; @%p bra END;
+ and.b64 %end,%b,%m; setp.ne.u64 %p,%end,0; @%p bra END;
+ setp.gt.u64 %p,%b,0x7fffffffffffffff; @%p bra END;
+ add.u64 %end,%b,%n; setp.lt.u64 %p,%end,%b; @%p bra END;
+ setp.gt.u64 %p,%end,0x7fffffffffffffff; @%p bra END;
+ mov.u32 %error,0;
+END: st.param.u32 [result],%error; ret;
+}
+.visible .func (.param .u32 admission_result) r27_parallel_openifs_gpgrp_admit(.param .u64 original_vector,.param .u64 context)
+{
+ .reg .u64 %args,%ctx,%a<16>,%tmp,%k,%n,%first,%last,%cells,%bytes,%pitch,%halfbytes,%rec,%cfg,%xyb,%der,%cp,%dlp,%dmp,%blp,%bmp;
+ .reg .u64 %index,%step,%column,%offset,%addr;
+ .reg .b64 %H,%C,%GL,%GM,%DL,%DM,%BL,%BM,%PL,%PM,%SL,%SM,%t0,%t1;
+ .reg .u32 %r<6>,%mode,%ndim,%idx,%idx2,%flags,%raised,%error,%old,%unique; .reg .pred %p<2>;
+ .param .u64 pb,pn,pm; .param .u32 pr;
+ mov.u32 %error,0;
+ ld.param.u64 %args,[original_vector]; ld.param.u64 %ctx,[context];
+ setp.eq.u64 %p0,%ctx,0; @%p0 bra ADMIT_DONE; and.b64 %tmp,%ctx,7; setp.ne.u64 %p0,%tmp,0; @%p0 bra ADMIT_DONE;
+ ld.u32 %old,[%ctx]; setp.ne.u32 %p0,%old,0; @%p0 bra ADMIT_DONE;
+ mov.u32 %unique,%ctaid.x; mov.u32 %r0,%ctaid.y; or.b32 %unique,%unique,%r0; mov.u32 %r0,%ctaid.z; or.b32 %unique,%unique,%r0;
+ mov.u32 %r0,0; or.b32 %unique,%unique,%r0; mov.u32 %r0,%tid.y; or.b32 %unique,%unique,%r0; mov.u32 %r0,%tid.z; or.b32 %unique,%unique,%r0;
+ ld.u32 %r0,[%ctx+4]; setp.ne.u32 %p0,%r0,1; @%p0 bra REFUSE;
+ mov.u32 %r0,%ntid.y; setp.ne.u32 %p0,%r0,1; @%p0 bra REFUSE; mov.u32 %r0,%ntid.z; setp.ne.u32 %p0,%r0,1; @%p0 bra REFUSE;
+ mov.u32 %r0,%nctaid.y; setp.ne.u32 %p0,%r0,1; @%p0 bra REFUSE; mov.u32 %r0,%nctaid.z; setp.ne.u32 %p0,%r0,1; @%p0 bra REFUSE;
+ st.param.u64 [pb],%args; st.param.u64 [pn],128; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %a0,[%args+0];
+ ld.u64 %a1,[%args+8];
+ ld.u64 %a2,[%args+16];
+ ld.u64 %a3,[%args+24];
+ ld.u64 %a4,[%args+32];
+ ld.u64 %a5,[%args+40];
+ ld.u64 %a6,[%args+48];
+ ld.u64 %a7,[%args+56];
+ ld.u64 %a8,[%args+64];
+ ld.u64 %a9,[%args+72];
+ ld.u64 %a10,[%args+80];
+ ld.u64 %a11,[%args+88];
+ ld.u64 %a12,[%args+96];
+ ld.u64 %a13,[%args+104];
+ ld.u64 %a14,[%args+112];
+ ld.u64 %a15,[%args+120];
+ st.param.u64 [pb],%a0; st.param.u64 [pn],17096; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [pb],%a1; st.param.u64 [pn],4; st.param.u64 [pm],3; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [pb],%a2; st.param.u64 [pn],4; st.param.u64 [pm],3; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.s32 %r0,[%a0+5144]; setp.lt.s32 %p0,%r0,1; @%p0 bra REFUSE; setp.gt.s32 %p0,%r0,4096; @%p0 bra REFUSE; cvt.u64.u32 %k,%r0;
+ ld.s32 %r0,[%a0+5224]; setp.lt.s32 %p0,%r0,0; @%p0 bra REFUSE; setp.gt.s32 %p0,%r0,1024; @%p0 bra REFUSE; cvt.u64.u32 %n,%r0;
+ ld.s32 %r0,[%a1]; cvt.s64.s32 %first,%r0; ld.s32 %r0,[%a2]; cvt.s64.s32 %last,%r0;
+ setp.lt.s64 %p0,%first,1; @%p0 bra REFUSE; setp.gt.s64 %p0,%first,%k; @%p0 bra REFUSE;
+ sub.s64 %tmp,%first,1; setp.lt.s64 %p0,%last,%tmp; @%p0 bra REFUSE; setp.gt.s64 %p0,%last,%k; @%p0 bra REFUSE;
+ setp.eq.u64 %p0,%n,0; @%p0 bra ADMIT_SUCCESS; setp.lt.s64 %p0,%last,%first; @%p0 bra ADMIT_SUCCESS;
+ sub.u64 %first,%first,1; mul.lo.u64 %cells,%k,%n; shl.b64 %bytes,%cells,3; shl.b64 %pitch,%k,3; add.u64 %halfbytes,%bytes,%pitch;
+ ld.u64 %cfg,[%a0+3264];
+ st.param.u64 [pb],%cfg; st.param.u64 [pn],216; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u32 %mode,[%cfg+52];
+ st.param.u64 [pb],%a3; st.param.u64 [pn],%bytes; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [pb],%a14; st.param.u64 [pn],%bytes; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [pb],%a15; st.param.u64 [pn],%bytes; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %rec,[%ctx+48]; ld.u64 %tmp,[%ctx+56]; setp.ne.u64 %p0,%tmp,16; @%p0 bra REFUSE;
+ st.param.u64 [pb],%rec; st.param.u64 [pn],16; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.u64 %xyb,[%rec];
+ st.param.u64 [pb],%xyb; st.param.u64 [pn],32; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.s32 %ndim,[%xyb+28]; setp.lt.s32 %p0,%ndim,1; @%p0 bra REFUSE;
+ setp.ne.u32 %p0,%mode,0; @%p0 bra FULL_INDEX;
+ ld.s32 %idx,[%xyb+12]; bra COEFFICIENT_INDEX;
+FULL_INDEX: ld.s32 %idx,[%xyb+16];
+COEFFICIENT_INDEX:
+ setp.lt.s32 %p0,%idx,1; @%p0 bra REFUSE; setp.gt.s32 %p0,%idx,%ndim; @%p0 bra REFUSE;
+ cvt.u64.u32 %tmp,%ndim; mul.lo.u64 %tmp,%tmp,%bytes;
+ st.param.u64 [pb],%a8; st.param.u64 [pn],%tmp; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%bytes; add.u64 %cp,%a8,%tmp;
+ setp.ne.u32 %p0,%mode,0; @%p0 bra FULL;
+ st.param.u64 [pb],%a4; st.param.u64 [pn],%bytes; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [pb],%a5; st.param.u64 [pn],%bytes; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [pb],%a10; st.param.u64 [pn],%halfbytes; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [pb],%a11; st.param.u64 [pn],%halfbytes; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ add.u64 %blp,%a10,%pitch; add.u64 %bmp,%a11,%pitch;
+ ld.u64 %der,[%rec+8];
+ st.param.u64 [pb],%der; st.param.u64 [pn],40; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ ld.s32 %ndim,[%der+36]; setp.lt.s32 %p0,%ndim,1; @%p0 bra REFUSE;
+ ld.s32 %idx,[%der+16]; ld.s32 %idx2,[%der+20];
+ setp.lt.s32 %p0,%idx,1; @%p0 bra REFUSE; setp.gt.s32 %p0,%idx,%ndim; @%p0 bra REFUSE;
+ setp.lt.s32 %p0,%idx2,1; @%p0 bra REFUSE; setp.gt.s32 %p0,%idx2,%ndim; @%p0 bra REFUSE;
+ cvt.u64.u32 %tmp,%ndim; mul.lo.u64 %tmp,%tmp,%bytes;
+ st.param.u64 [pb],%a9; st.param.u64 [pn],%tmp; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ sub.u32 %idx,%idx,1; cvt.u64.u32 %tmp,%idx; mul.lo.u64 %tmp,%tmp,%bytes; add.u64 %dlp,%a9,%tmp;
+ sub.u32 %idx2,%idx2,1; cvt.u64.u32 %tmp,%idx2; mul.lo.u64 %tmp,%tmp,%bytes; add.u64 %dmp,%a9,%tmp; bra READY;
+FULL:
+ st.param.u64 [pb],%a6; st.param.u64 [pn],%pitch; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [pb],%a7; st.param.u64 [pn],%pitch; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [pb],%a12; st.param.u64 [pn],%bytes; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ st.param.u64 [pb],%a13; st.param.u64 [pn],%bytes; st.param.u64 [pm],7; call.uni (pr),force_valid_range,(pb,pn,pm); ld.param.u32 %error,[pr]; setp.ne.u32 %p0,%error,0; @%p0 bra REFUSE;
+ mov.u64 %blp,%a12; mov.u64 %bmp,%a13;
+ mov.u32 %error,0; bra ADMIT_DONE;
+READY: mov.u32 %error,0; bra ADMIT_DONE;
+REFUSE: mov.u32 %error,11781; bra ADMIT_DONE;
+ADMIT_SUCCESS: mov.u32 %error,0; bra ADMIT_DONE;
+ mov.u32 %error,0;
+ADMIT_DONE: st.param.u32 [admission_result],%error; ret;
+}

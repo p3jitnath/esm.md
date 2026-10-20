@@ -1,0 +1,959 @@
+// Qualified parallel interface and bounds in skills/md2asm-gpu/references/openifs/dynamics/lagrangian_grid_parallel_columns.md.
+// Complete selected LAVENT admission and entry; frozen_contract.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.func (.param .u32 result) lavent_range(.param .u64 base,.param .u64 need,.param .u64 capacity,.param .u64 mask)
+{.reg .u64 %b,%n,%c,%m,%t;.reg .u32 %e;.reg .pred %p;
+ld.param.u64 %b,[base];ld.param.u64 %n,[need];ld.param.u64 %c,[capacity];ld.param.u64 %m,[mask];mov.u32 %e,0;setp.eq.u64 %p,%n,0;@%p bra DONE;mov.u32 %e,15202;setp.eq.u64 %p,%b,0;@%p bra DONE;setp.gt.u64 %p,%n,%c;@%p bra DONE;and.b64 %t,%b,%m;setp.ne.u64 %p,%t,0;@%p bra DONE;setp.gt.u64 %p,%b,0x7fffffffffffffff;@%p bra DONE;setp.gt.u64 %p,%n,0x7fffffffffffffff;@%p bra DONE;add.u64 %t,%b,%n;setp.gt.u64 %p,%t,0x7fffffffffffffff;@%p bra DONE;mov.u32 %e,0;DONE:st.param.u32 [result],%e;ret;}
+.visible .func (.param .u32 result) openifs_lavent_admit_parallel_columns(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u64 %args,%ctx,%rec,%cap,%v<19>,%step_ptr,%hook,%counter,%counter_bytes,%veta,%eta,%blocks,%block_bytes,%selected,%coordinates<4>,%coordcap<4>,%needed,%first,%last,%block,%level,%row,%offset,%cell,%pointer,%word,%tmp,%owners,%left,%right,%ln,%rn64,%end1,%end2;
+.reg .u32 %error,%integer,%step;.reg .b64 %scale,%scaleoff;.reg .f64 %fa,%fb,%w,%oldw,%arg;
+.reg .pred %p,%q;.local .align 8 .b8 owner_rows[512];.param .u64 rb,rn,rc,rm;.param .u32 rr;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];
+st.param.u64 [rb],%args;st.param.u64 [rn],152;st.param.u64 [rc],152;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rc],64;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %rec,[%ctx+48];ld.u64 %cap,[%ctx+56];
+st.param.u64 [rb],%rec;st.param.u64 [rn],512;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+304];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+312];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+320];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+328];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+336];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+344];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+352];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+360];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+368];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+376];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+384];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+392];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+400];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+408];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+416];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+424];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+432];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+440];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+448];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+456];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+464];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+472];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+480];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+488];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+496];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+mov.u32 %error,15201;ld.u64 %tmp,[%rec+504];setp.ne.u64 %p,%tmp,0;@%p bra REFUSE;
+ld.u64 %cap,[%rec+152];
+st.param.u64 [rb],%args;st.param.u64 [rn],152;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v0,[%args+0];ld.u64 %cap,[%rec+0];
+st.param.u64 [rb],%v0;st.param.u64 [rn],17096;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v1,[%args+8];ld.u64 %cap,[%rec+8];
+st.param.u64 [rb],%v1;st.param.u64 [rn],1560;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v2,[%args+16];ld.u64 %cap,[%rec+16];
+st.param.u64 [rb],%v2;st.param.u64 [rn],175976;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v3,[%args+24];ld.u64 %cap,[%rec+24];
+st.param.u64 [rb],%v3;st.param.u64 [rn],13232;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v4,[%args+32];ld.u64 %cap,[%rec+32];
+st.param.u64 [rb],%v4;st.param.u64 [rn],904;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v5,[%args+40];ld.u64 %cap,[%rec+40];
+st.param.u64 [rb],%v5;st.param.u64 [rn],4;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v6,[%args+48];ld.u64 %cap,[%rec+48];
+st.param.u64 [rb],%v6;st.param.u64 [rn],4;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v7,[%args+56];ld.u64 %cap,[%rec+56];
+st.param.u64 [rb],%v7;st.param.u64 [rn],4;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v8,[%args+64];ld.u64 %cap,[%rec+64];
+st.param.u64 [rb],%v8;st.param.u64 [rn],76;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v9,[%args+72];ld.u64 %cap,[%rec+72];
+st.param.u64 [rb],%v9;st.param.u64 [rn],4;st.param.u64 [rc],%cap;st.param.u64 [rm],3;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v10,[%args+80];ld.u64 %cap,[%rec+80];
+st.param.u64 [rb],%v10;st.param.u64 [rn],0;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v11,[%args+88];ld.u64 %cap,[%rec+88];
+st.param.u64 [rb],%v11;st.param.u64 [rn],3648;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v12,[%args+96];ld.u64 %cap,[%rec+96];
+st.param.u64 [rb],%v12;st.param.u64 [rn],3840;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v13,[%args+104];ld.u64 %cap,[%rec+104];
+st.param.u64 [rb],%v13;st.param.u64 [rn],0;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v14,[%args+112];ld.u64 %cap,[%rec+112];
+st.param.u64 [rb],%v14;st.param.u64 [rn],65664;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v15,[%args+120];ld.u64 %cap,[%rec+120];
+st.param.u64 [rb],%v15;st.param.u64 [rn],88896;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v16,[%args+128];ld.u64 %cap,[%rec+128];
+st.param.u64 [rb],%v16;st.param.u64 [rn],29376;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v17,[%args+136];ld.u64 %cap,[%rec+136];
+st.param.u64 [rb],%v17;st.param.u64 [rn],3648;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %v18,[%args+144];ld.u64 %cap,[%rec+144];
+st.param.u64 [rb],%v18;st.param.u64 [rn],3648;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.u64 %step_ptr,[%rec+160];ld.u64 %hook,[%rec+168];
+st.param.u64 [rb],%step_ptr;st.param.u64 [rn],4;st.param.u64 [rc],4;st.param.u64 [rm],3;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%hook;st.param.u64 [rn],4;st.param.u64 [rc],4;st.param.u64 [rm],3;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.s32 %integer,[%step_ptr];setp.lt.s32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %step,%integer;
+mov.u32 %error,15203;ld.u32 %integer,[%hook];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v9];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v0+5144];setp.ne.u32 %p,%integer,24;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v0+5160];setp.ne.u32 %p,%integer,86;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v0+5224];setp.ne.u32 %p,%integer,19;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v0+5244];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v0+3076];setp.ne.u32 %p,%integer,1;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v0+7376];setp.ne.u32 %p,%integer,2048;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v1+992];setp.ne.u32 %p,%integer,18;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v1+1012];setp.ne.u32 %p,%integer,3;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v1+1016];setp.ne.u32 %p,%integer,4;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v1+1116];setp.ne.u32 %p,%integer,10;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v1+1120];setp.ne.u32 %p,%integer,11;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v1+1136];setp.ne.u32 %p,%integer,12;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+3036];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+4944];setp.ne.u32 %p,%integer,2;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+4660];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+4644];setp.ne.u32 %p,%integer,3;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+8880];setp.ne.u32 %p,%integer,463;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+8992];setp.ne.u32 %p,%integer,191;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+8996];setp.ne.u32 %p,%integer,212;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+9000];setp.ne.u32 %p,%integer,233;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+9004];setp.ne.u32 %p,%integer,254;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+9184];setp.ne.u32 %p,%integer,153;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+9228];setp.ne.u32 %p,%integer,78;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+9232];setp.ne.u32 %p,%integer,97;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+9236];setp.ne.u32 %p,%integer,116;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+9240];setp.ne.u32 %p,%integer,135;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+20];setp.ne.u32 %p,%integer,1;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+284];setp.ne.u32 %p,%integer,1;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+288];setp.ne.u32 %p,%integer,1;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+4696];setp.ne.u32 %p,%integer,1;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+4756];setp.ne.u32 %p,%integer,1;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+4764];setp.ne.u32 %p,%integer,1;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+4768];setp.ne.u32 %p,%integer,1;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+296];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+272];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+276];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+336];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+340];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+4700];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+4704];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+4924];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+4752];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v3+4760];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v2+24];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+mov.u32 %error,15203;ld.u32 %integer,[%v4+452];setp.ne.u32 %p,%integer,0;@%p bra REFUSE;
+ld.u32 %integer,[%v5];cvt.u64.u32 %first,%integer;
+mov.u32 %error,15203;sub.u32 %integer,%integer,1;setp.gt.u32 %p,%integer,23;@%p bra REFUSE;
+ld.u32 %integer,[%v6];cvt.u64.u32 %last,%integer;
+mov.u32 %error,15203;setp.gt.u32 %p,%integer,24;@%p bra REFUSE;
+ld.u32 %integer,[%v7];cvt.u64.u32 %block,%integer;
+mov.u32 %error,15203;sub.u32 %integer,%integer,1;setp.gt.u32 %p,%integer,85;@%p bra REFUSE;
+setp.ne.u64 %p,%block,86;@%p bra BLOCK_BOUND_READY;
+mov.u32 %error,15203;setp.gt.u64 %p,%last,8;@%p bra REFUSE;
+BLOCK_BOUND_READY:
+ld.u64 %counter,[%rec+176];ld.u64 %counter_bytes,[%rec+184];setp.eq.u64 %p,%counter,0;@%p bra NO_COUNTER;
+st.param.u64 [rb],%counter;st.param.u64 [rn],16;st.param.u64 [rc],%counter_bytes;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u64 %counter_bytes,16;bra COUNTER_READY;
+NO_COUNTER:
+mov.u32 %error,15201;setp.ne.u64 %p,%counter_bytes,0;@%p bra REFUSE;
+COUNTER_READY:
+ld.u64 %veta,[%rec+192];ld.u64 %cap,[%rec+200];
+st.param.u64 [rb],%veta;st.param.u64 [rn],320;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %error,15204;ld.u64 %tmp,[%v0+3248];setp.ne.u64 %p,%tmp,%veta;@%p bra REFUSE;
+ld.u64 %eta,[%rec+208];ld.u64 %cap,[%rec+216];
+st.param.u64 [rb],%eta;st.param.u64 [rn],160;st.param.u64 [rc],%cap;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %error,15204;ld.u64 %tmp,[%veta];setp.ne.u64 %p,%tmp,%eta;@%p bra REFUSE;
+ld.u64 %blocks,[%rec+224];ld.u64 %block_bytes,[%rec+232];
+st.param.u64 [rb],%blocks;st.param.u64 [rn],%block_bytes;st.param.u64 [rc],%block_bytes;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %error,15204;ld.u64 %tmp,[%v0+8472];setp.ne.u64 %p,%tmp,%blocks;@%p bra REFUSE;
+sub.u64 %tmp,%block,1;mul.lo.u64 %offset,%tmp,1472;add.u64 %needed,%offset,1472;
+mov.u32 %error,15204;setp.gt.u64 %p,%needed,%block_bytes;@%p bra REFUSE;
+add.u64 %selected,%blocks,%offset;shl.b64 %needed,%last,3;setp.lt.u64 %p,%last,%first;@%p mov.u64 %needed,0;
+ld.u64 %coordinates0,[%rec+240];ld.u64 %coordcap0,[%rec+248];
+st.param.u64 [rb],%coordinates0;st.param.u64 [rn],%needed;st.param.u64 [rc],%coordcap0;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%coordinates0;st.param.u64 [rn],%coordcap0;st.param.u64 [rc],%coordcap0;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %error,15204;ld.u64 %tmp,[%selected+128];setp.ne.u64 %p,%tmp,%coordinates0;@%p bra REFUSE;
+ld.u64 %coordinates1,[%rec+256];ld.u64 %coordcap1,[%rec+264];
+st.param.u64 [rb],%coordinates1;st.param.u64 [rn],%needed;st.param.u64 [rc],%coordcap1;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%coordinates1;st.param.u64 [rn],%coordcap1;st.param.u64 [rc],%coordcap1;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %error,15204;ld.u64 %tmp,[%selected+192];setp.ne.u64 %p,%tmp,%coordinates1;@%p bra REFUSE;
+ld.u64 %coordinates2,[%rec+272];ld.u64 %coordcap2,[%rec+280];
+st.param.u64 [rb],%coordinates2;st.param.u64 [rn],%needed;st.param.u64 [rc],%coordcap2;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%coordinates2;st.param.u64 [rn],%coordcap2;st.param.u64 [rc],%coordcap2;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %error,15204;ld.u64 %tmp,[%selected+384];setp.ne.u64 %p,%tmp,%coordinates2;@%p bra REFUSE;
+ld.u64 %coordinates3,[%rec+288];ld.u64 %coordcap3,[%rec+296];
+st.param.u64 [rb],%coordinates3;st.param.u64 [rn],%needed;st.param.u64 [rc],%coordcap3;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+st.param.u64 [rb],%coordinates3;st.param.u64 [rn],%coordcap3;st.param.u64 [rc],%coordcap3;st.param.u64 [rm],7;call.uni (rr),lavent_range,(rb,rn,rc,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+mov.u32 %error,15204;ld.u64 %tmp,[%selected+448];setp.ne.u64 %p,%tmp,%coordinates3;@%p bra REFUSE;
+mov.u64 %owners,owner_rows;cvta.local.u64 %owners,%owners;
+st.u64 [%owners+0],%v0;mov.u64 %tmp,17096;st.u64 [%owners+8],%tmp;
+st.u64 [%owners+16],%v1;mov.u64 %tmp,1560;st.u64 [%owners+24],%tmp;
+st.u64 [%owners+32],%v2;mov.u64 %tmp,175976;st.u64 [%owners+40],%tmp;
+st.u64 [%owners+48],%v3;mov.u64 %tmp,13232;st.u64 [%owners+56],%tmp;
+st.u64 [%owners+64],%v4;mov.u64 %tmp,904;st.u64 [%owners+72],%tmp;
+st.u64 [%owners+80],%v5;mov.u64 %tmp,4;st.u64 [%owners+88],%tmp;
+st.u64 [%owners+96],%v6;mov.u64 %tmp,4;st.u64 [%owners+104],%tmp;
+st.u64 [%owners+112],%v7;mov.u64 %tmp,4;st.u64 [%owners+120],%tmp;
+st.u64 [%owners+128],%v8;mov.u64 %tmp,76;st.u64 [%owners+136],%tmp;
+st.u64 [%owners+144],%v9;mov.u64 %tmp,4;st.u64 [%owners+152],%tmp;
+st.u64 [%owners+160],%v10;mov.u64 %tmp,0;st.u64 [%owners+168],%tmp;
+st.u64 [%owners+176],%v11;mov.u64 %tmp,3648;st.u64 [%owners+184],%tmp;
+st.u64 [%owners+192],%v12;mov.u64 %tmp,3840;st.u64 [%owners+200],%tmp;
+st.u64 [%owners+208],%v13;mov.u64 %tmp,0;st.u64 [%owners+216],%tmp;
+st.u64 [%owners+224],%v14;mov.u64 %tmp,65664;st.u64 [%owners+232],%tmp;
+st.u64 [%owners+240],%v15;mov.u64 %tmp,88896;st.u64 [%owners+248],%tmp;
+st.u64 [%owners+256],%v16;mov.u64 %tmp,29376;st.u64 [%owners+264],%tmp;
+st.u64 [%owners+272],%v17;mov.u64 %tmp,3648;st.u64 [%owners+280],%tmp;
+st.u64 [%owners+288],%v18;mov.u64 %tmp,3648;st.u64 [%owners+296],%tmp;
+st.u64 [%owners+304],%args;mov.u64 %tmp,152;st.u64 [%owners+312],%tmp;
+st.u64 [%owners+320],%rec;mov.u64 %tmp,512;st.u64 [%owners+328],%tmp;
+st.u64 [%owners+336],%ctx;mov.u64 %tmp,64;st.u64 [%owners+344],%tmp;
+st.u64 [%owners+352],%step_ptr;mov.u64 %tmp,4;st.u64 [%owners+360],%tmp;
+st.u64 [%owners+368],%hook;mov.u64 %tmp,4;st.u64 [%owners+376],%tmp;
+st.u64 [%owners+384],%counter;mov.u64 %tmp,%counter_bytes;st.u64 [%owners+392],%tmp;
+st.u64 [%owners+400],%veta;mov.u64 %tmp,320;st.u64 [%owners+408],%tmp;
+st.u64 [%owners+416],%eta;mov.u64 %tmp,160;st.u64 [%owners+424],%tmp;
+st.u64 [%owners+432],%blocks;mov.u64 %tmp,%block_bytes;st.u64 [%owners+440],%tmp;
+st.u64 [%owners+448],%coordinates0;mov.u64 %tmp,%coordcap0;st.u64 [%owners+456],%tmp;
+st.u64 [%owners+464],%coordinates1;mov.u64 %tmp,%coordcap1;st.u64 [%owners+472],%tmp;
+st.u64 [%owners+480],%coordinates2;mov.u64 %tmp,%coordcap2;st.u64 [%owners+488],%tmp;
+st.u64 [%owners+496],%coordinates3;mov.u64 %tmp,%coordcap3;st.u64 [%owners+504],%tmp;
+ld.u64 %left,[%owners+0];ld.u64 %ln,[%owners+8];ld.u64 %right,[%owners+128];ld.u64 %rn64,[%owners+136];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_0_8_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_0_8_READY:
+ld.u64 %left,[%owners+0];ld.u64 %ln,[%owners+8];ld.u64 %right,[%owners+224];ld.u64 %rn64,[%owners+232];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_0_14_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_0_14_READY:
+ld.u64 %left,[%owners+0];ld.u64 %ln,[%owners+8];ld.u64 %right,[%owners+240];ld.u64 %rn64,[%owners+248];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_0_15_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_0_15_READY:
+ld.u64 %left,[%owners+0];ld.u64 %ln,[%owners+8];ld.u64 %right,[%owners+256];ld.u64 %rn64,[%owners+264];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_0_16_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_0_16_READY:
+ld.u64 %left,[%owners+0];ld.u64 %ln,[%owners+8];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_0_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_0_17_READY:
+ld.u64 %left,[%owners+0];ld.u64 %ln,[%owners+8];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_0_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_0_18_READY:
+ld.u64 %left,[%owners+0];ld.u64 %ln,[%owners+8];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_0_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_0_21_READY:
+ld.u64 %left,[%owners+0];ld.u64 %ln,[%owners+8];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_0_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_0_24_READY:
+ld.u64 %left,[%owners+16];ld.u64 %ln,[%owners+24];ld.u64 %right,[%owners+128];ld.u64 %rn64,[%owners+136];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_1_8_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_1_8_READY:
+ld.u64 %left,[%owners+16];ld.u64 %ln,[%owners+24];ld.u64 %right,[%owners+224];ld.u64 %rn64,[%owners+232];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_1_14_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_1_14_READY:
+ld.u64 %left,[%owners+16];ld.u64 %ln,[%owners+24];ld.u64 %right,[%owners+240];ld.u64 %rn64,[%owners+248];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_1_15_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_1_15_READY:
+ld.u64 %left,[%owners+16];ld.u64 %ln,[%owners+24];ld.u64 %right,[%owners+256];ld.u64 %rn64,[%owners+264];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_1_16_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_1_16_READY:
+ld.u64 %left,[%owners+16];ld.u64 %ln,[%owners+24];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_1_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_1_17_READY:
+ld.u64 %left,[%owners+16];ld.u64 %ln,[%owners+24];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_1_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_1_18_READY:
+ld.u64 %left,[%owners+16];ld.u64 %ln,[%owners+24];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_1_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_1_21_READY:
+ld.u64 %left,[%owners+16];ld.u64 %ln,[%owners+24];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_1_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_1_24_READY:
+ld.u64 %left,[%owners+32];ld.u64 %ln,[%owners+40];ld.u64 %right,[%owners+128];ld.u64 %rn64,[%owners+136];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_2_8_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_2_8_READY:
+ld.u64 %left,[%owners+32];ld.u64 %ln,[%owners+40];ld.u64 %right,[%owners+224];ld.u64 %rn64,[%owners+232];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_2_14_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_2_14_READY:
+ld.u64 %left,[%owners+32];ld.u64 %ln,[%owners+40];ld.u64 %right,[%owners+240];ld.u64 %rn64,[%owners+248];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_2_15_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_2_15_READY:
+ld.u64 %left,[%owners+32];ld.u64 %ln,[%owners+40];ld.u64 %right,[%owners+256];ld.u64 %rn64,[%owners+264];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_2_16_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_2_16_READY:
+ld.u64 %left,[%owners+32];ld.u64 %ln,[%owners+40];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_2_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_2_17_READY:
+ld.u64 %left,[%owners+32];ld.u64 %ln,[%owners+40];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_2_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_2_18_READY:
+ld.u64 %left,[%owners+32];ld.u64 %ln,[%owners+40];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_2_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_2_21_READY:
+ld.u64 %left,[%owners+32];ld.u64 %ln,[%owners+40];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_2_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_2_24_READY:
+ld.u64 %left,[%owners+48];ld.u64 %ln,[%owners+56];ld.u64 %right,[%owners+128];ld.u64 %rn64,[%owners+136];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_3_8_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_3_8_READY:
+ld.u64 %left,[%owners+48];ld.u64 %ln,[%owners+56];ld.u64 %right,[%owners+224];ld.u64 %rn64,[%owners+232];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_3_14_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_3_14_READY:
+ld.u64 %left,[%owners+48];ld.u64 %ln,[%owners+56];ld.u64 %right,[%owners+240];ld.u64 %rn64,[%owners+248];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_3_15_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_3_15_READY:
+ld.u64 %left,[%owners+48];ld.u64 %ln,[%owners+56];ld.u64 %right,[%owners+256];ld.u64 %rn64,[%owners+264];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_3_16_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_3_16_READY:
+ld.u64 %left,[%owners+48];ld.u64 %ln,[%owners+56];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_3_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_3_17_READY:
+ld.u64 %left,[%owners+48];ld.u64 %ln,[%owners+56];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_3_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_3_18_READY:
+ld.u64 %left,[%owners+48];ld.u64 %ln,[%owners+56];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_3_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_3_21_READY:
+ld.u64 %left,[%owners+48];ld.u64 %ln,[%owners+56];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_3_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_3_24_READY:
+ld.u64 %left,[%owners+64];ld.u64 %ln,[%owners+72];ld.u64 %right,[%owners+128];ld.u64 %rn64,[%owners+136];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_4_8_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_4_8_READY:
+ld.u64 %left,[%owners+64];ld.u64 %ln,[%owners+72];ld.u64 %right,[%owners+224];ld.u64 %rn64,[%owners+232];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_4_14_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_4_14_READY:
+ld.u64 %left,[%owners+64];ld.u64 %ln,[%owners+72];ld.u64 %right,[%owners+240];ld.u64 %rn64,[%owners+248];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_4_15_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_4_15_READY:
+ld.u64 %left,[%owners+64];ld.u64 %ln,[%owners+72];ld.u64 %right,[%owners+256];ld.u64 %rn64,[%owners+264];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_4_16_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_4_16_READY:
+ld.u64 %left,[%owners+64];ld.u64 %ln,[%owners+72];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_4_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_4_17_READY:
+ld.u64 %left,[%owners+64];ld.u64 %ln,[%owners+72];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_4_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_4_18_READY:
+ld.u64 %left,[%owners+64];ld.u64 %ln,[%owners+72];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_4_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_4_21_READY:
+ld.u64 %left,[%owners+64];ld.u64 %ln,[%owners+72];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_4_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_4_24_READY:
+ld.u64 %left,[%owners+80];ld.u64 %ln,[%owners+88];ld.u64 %right,[%owners+128];ld.u64 %rn64,[%owners+136];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_5_8_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_5_8_READY:
+ld.u64 %left,[%owners+80];ld.u64 %ln,[%owners+88];ld.u64 %right,[%owners+224];ld.u64 %rn64,[%owners+232];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_5_14_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_5_14_READY:
+ld.u64 %left,[%owners+80];ld.u64 %ln,[%owners+88];ld.u64 %right,[%owners+240];ld.u64 %rn64,[%owners+248];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_5_15_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_5_15_READY:
+ld.u64 %left,[%owners+80];ld.u64 %ln,[%owners+88];ld.u64 %right,[%owners+256];ld.u64 %rn64,[%owners+264];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_5_16_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_5_16_READY:
+ld.u64 %left,[%owners+80];ld.u64 %ln,[%owners+88];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_5_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_5_17_READY:
+ld.u64 %left,[%owners+80];ld.u64 %ln,[%owners+88];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_5_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_5_18_READY:
+ld.u64 %left,[%owners+80];ld.u64 %ln,[%owners+88];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_5_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_5_21_READY:
+ld.u64 %left,[%owners+80];ld.u64 %ln,[%owners+88];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_5_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_5_24_READY:
+ld.u64 %left,[%owners+96];ld.u64 %ln,[%owners+104];ld.u64 %right,[%owners+128];ld.u64 %rn64,[%owners+136];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_6_8_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_6_8_READY:
+ld.u64 %left,[%owners+96];ld.u64 %ln,[%owners+104];ld.u64 %right,[%owners+224];ld.u64 %rn64,[%owners+232];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_6_14_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_6_14_READY:
+ld.u64 %left,[%owners+96];ld.u64 %ln,[%owners+104];ld.u64 %right,[%owners+240];ld.u64 %rn64,[%owners+248];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_6_15_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_6_15_READY:
+ld.u64 %left,[%owners+96];ld.u64 %ln,[%owners+104];ld.u64 %right,[%owners+256];ld.u64 %rn64,[%owners+264];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_6_16_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_6_16_READY:
+ld.u64 %left,[%owners+96];ld.u64 %ln,[%owners+104];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_6_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_6_17_READY:
+ld.u64 %left,[%owners+96];ld.u64 %ln,[%owners+104];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_6_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_6_18_READY:
+ld.u64 %left,[%owners+96];ld.u64 %ln,[%owners+104];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_6_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_6_21_READY:
+ld.u64 %left,[%owners+96];ld.u64 %ln,[%owners+104];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_6_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_6_24_READY:
+ld.u64 %left,[%owners+112];ld.u64 %ln,[%owners+120];ld.u64 %right,[%owners+128];ld.u64 %rn64,[%owners+136];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_7_8_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_7_8_READY:
+ld.u64 %left,[%owners+112];ld.u64 %ln,[%owners+120];ld.u64 %right,[%owners+224];ld.u64 %rn64,[%owners+232];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_7_14_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_7_14_READY:
+ld.u64 %left,[%owners+112];ld.u64 %ln,[%owners+120];ld.u64 %right,[%owners+240];ld.u64 %rn64,[%owners+248];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_7_15_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_7_15_READY:
+ld.u64 %left,[%owners+112];ld.u64 %ln,[%owners+120];ld.u64 %right,[%owners+256];ld.u64 %rn64,[%owners+264];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_7_16_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_7_16_READY:
+ld.u64 %left,[%owners+112];ld.u64 %ln,[%owners+120];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_7_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_7_17_READY:
+ld.u64 %left,[%owners+112];ld.u64 %ln,[%owners+120];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_7_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_7_18_READY:
+ld.u64 %left,[%owners+112];ld.u64 %ln,[%owners+120];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_7_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_7_21_READY:
+ld.u64 %left,[%owners+112];ld.u64 %ln,[%owners+120];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_7_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_7_24_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+144];ld.u64 %rn64,[%owners+152];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_9_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_9_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+160];ld.u64 %rn64,[%owners+168];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_10_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_10_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+176];ld.u64 %rn64,[%owners+184];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_11_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_11_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+192];ld.u64 %rn64,[%owners+200];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_12_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_12_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+208];ld.u64 %rn64,[%owners+216];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_13_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_13_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+224];ld.u64 %rn64,[%owners+232];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_14_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_14_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+240];ld.u64 %rn64,[%owners+248];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_15_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_15_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+256];ld.u64 %rn64,[%owners+264];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_16_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_16_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_17_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_18_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+304];ld.u64 %rn64,[%owners+312];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_19_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_19_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+320];ld.u64 %rn64,[%owners+328];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_20_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_20_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_21_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+352];ld.u64 %rn64,[%owners+360];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_22_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_22_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+368];ld.u64 %rn64,[%owners+376];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_23_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_23_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_24_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+400];ld.u64 %rn64,[%owners+408];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_25_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_25_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+416];ld.u64 %rn64,[%owners+424];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_26_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_26_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+432];ld.u64 %rn64,[%owners+440];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_27_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_27_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+448];ld.u64 %rn64,[%owners+456];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_28_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_28_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+464];ld.u64 %rn64,[%owners+472];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_29_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_29_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+480];ld.u64 %rn64,[%owners+488];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_30_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_30_READY:
+ld.u64 %left,[%owners+128];ld.u64 %ln,[%owners+136];ld.u64 %right,[%owners+496];ld.u64 %rn64,[%owners+504];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_8_31_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_8_31_READY:
+ld.u64 %left,[%owners+144];ld.u64 %ln,[%owners+152];ld.u64 %right,[%owners+224];ld.u64 %rn64,[%owners+232];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_9_14_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_9_14_READY:
+ld.u64 %left,[%owners+144];ld.u64 %ln,[%owners+152];ld.u64 %right,[%owners+240];ld.u64 %rn64,[%owners+248];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_9_15_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_9_15_READY:
+ld.u64 %left,[%owners+144];ld.u64 %ln,[%owners+152];ld.u64 %right,[%owners+256];ld.u64 %rn64,[%owners+264];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_9_16_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_9_16_READY:
+ld.u64 %left,[%owners+144];ld.u64 %ln,[%owners+152];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_9_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_9_17_READY:
+ld.u64 %left,[%owners+144];ld.u64 %ln,[%owners+152];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_9_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_9_18_READY:
+ld.u64 %left,[%owners+144];ld.u64 %ln,[%owners+152];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_9_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_9_21_READY:
+ld.u64 %left,[%owners+144];ld.u64 %ln,[%owners+152];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_9_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_9_24_READY:
+ld.u64 %left,[%owners+160];ld.u64 %ln,[%owners+168];ld.u64 %right,[%owners+224];ld.u64 %rn64,[%owners+232];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_10_14_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_10_14_READY:
+ld.u64 %left,[%owners+160];ld.u64 %ln,[%owners+168];ld.u64 %right,[%owners+240];ld.u64 %rn64,[%owners+248];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_10_15_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_10_15_READY:
+ld.u64 %left,[%owners+160];ld.u64 %ln,[%owners+168];ld.u64 %right,[%owners+256];ld.u64 %rn64,[%owners+264];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_10_16_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_10_16_READY:
+ld.u64 %left,[%owners+160];ld.u64 %ln,[%owners+168];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_10_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_10_17_READY:
+ld.u64 %left,[%owners+160];ld.u64 %ln,[%owners+168];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_10_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_10_18_READY:
+ld.u64 %left,[%owners+160];ld.u64 %ln,[%owners+168];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_10_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_10_21_READY:
+ld.u64 %left,[%owners+160];ld.u64 %ln,[%owners+168];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_10_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_10_24_READY:
+ld.u64 %left,[%owners+176];ld.u64 %ln,[%owners+184];ld.u64 %right,[%owners+224];ld.u64 %rn64,[%owners+232];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_11_14_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_11_14_READY:
+ld.u64 %left,[%owners+176];ld.u64 %ln,[%owners+184];ld.u64 %right,[%owners+240];ld.u64 %rn64,[%owners+248];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_11_15_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_11_15_READY:
+ld.u64 %left,[%owners+176];ld.u64 %ln,[%owners+184];ld.u64 %right,[%owners+256];ld.u64 %rn64,[%owners+264];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_11_16_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_11_16_READY:
+ld.u64 %left,[%owners+176];ld.u64 %ln,[%owners+184];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_11_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_11_17_READY:
+ld.u64 %left,[%owners+176];ld.u64 %ln,[%owners+184];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_11_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_11_18_READY:
+ld.u64 %left,[%owners+176];ld.u64 %ln,[%owners+184];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_11_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_11_21_READY:
+ld.u64 %left,[%owners+176];ld.u64 %ln,[%owners+184];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_11_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_11_24_READY:
+ld.u64 %left,[%owners+192];ld.u64 %ln,[%owners+200];ld.u64 %right,[%owners+224];ld.u64 %rn64,[%owners+232];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_12_14_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_12_14_READY:
+ld.u64 %left,[%owners+192];ld.u64 %ln,[%owners+200];ld.u64 %right,[%owners+240];ld.u64 %rn64,[%owners+248];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_12_15_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_12_15_READY:
+ld.u64 %left,[%owners+192];ld.u64 %ln,[%owners+200];ld.u64 %right,[%owners+256];ld.u64 %rn64,[%owners+264];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_12_16_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_12_16_READY:
+ld.u64 %left,[%owners+192];ld.u64 %ln,[%owners+200];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_12_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_12_17_READY:
+ld.u64 %left,[%owners+192];ld.u64 %ln,[%owners+200];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_12_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_12_18_READY:
+ld.u64 %left,[%owners+192];ld.u64 %ln,[%owners+200];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_12_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_12_21_READY:
+ld.u64 %left,[%owners+192];ld.u64 %ln,[%owners+200];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_12_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_12_24_READY:
+ld.u64 %left,[%owners+208];ld.u64 %ln,[%owners+216];ld.u64 %right,[%owners+224];ld.u64 %rn64,[%owners+232];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_13_14_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_13_14_READY:
+ld.u64 %left,[%owners+208];ld.u64 %ln,[%owners+216];ld.u64 %right,[%owners+240];ld.u64 %rn64,[%owners+248];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_13_15_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_13_15_READY:
+ld.u64 %left,[%owners+208];ld.u64 %ln,[%owners+216];ld.u64 %right,[%owners+256];ld.u64 %rn64,[%owners+264];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_13_16_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_13_16_READY:
+ld.u64 %left,[%owners+208];ld.u64 %ln,[%owners+216];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_13_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_13_17_READY:
+ld.u64 %left,[%owners+208];ld.u64 %ln,[%owners+216];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_13_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_13_18_READY:
+ld.u64 %left,[%owners+208];ld.u64 %ln,[%owners+216];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_13_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_13_21_READY:
+ld.u64 %left,[%owners+208];ld.u64 %ln,[%owners+216];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_13_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_13_24_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+240];ld.u64 %rn64,[%owners+248];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_15_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_15_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+256];ld.u64 %rn64,[%owners+264];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_16_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_16_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_17_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_18_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+304];ld.u64 %rn64,[%owners+312];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_19_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_19_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+320];ld.u64 %rn64,[%owners+328];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_20_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_20_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_21_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+352];ld.u64 %rn64,[%owners+360];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_22_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_22_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+368];ld.u64 %rn64,[%owners+376];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_23_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_23_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_24_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+400];ld.u64 %rn64,[%owners+408];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_25_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_25_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+416];ld.u64 %rn64,[%owners+424];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_26_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_26_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+432];ld.u64 %rn64,[%owners+440];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_27_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_27_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+448];ld.u64 %rn64,[%owners+456];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_28_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_28_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+464];ld.u64 %rn64,[%owners+472];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_29_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_29_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+480];ld.u64 %rn64,[%owners+488];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_30_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_30_READY:
+ld.u64 %left,[%owners+224];ld.u64 %ln,[%owners+232];ld.u64 %right,[%owners+496];ld.u64 %rn64,[%owners+504];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_14_31_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_14_31_READY:
+ld.u64 %left,[%owners+240];ld.u64 %ln,[%owners+248];ld.u64 %right,[%owners+256];ld.u64 %rn64,[%owners+264];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_15_16_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_15_16_READY:
+ld.u64 %left,[%owners+240];ld.u64 %ln,[%owners+248];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_15_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_15_17_READY:
+ld.u64 %left,[%owners+240];ld.u64 %ln,[%owners+248];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_15_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_15_18_READY:
+ld.u64 %left,[%owners+240];ld.u64 %ln,[%owners+248];ld.u64 %right,[%owners+304];ld.u64 %rn64,[%owners+312];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_15_19_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_15_19_READY:
+ld.u64 %left,[%owners+240];ld.u64 %ln,[%owners+248];ld.u64 %right,[%owners+320];ld.u64 %rn64,[%owners+328];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_15_20_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_15_20_READY:
+ld.u64 %left,[%owners+240];ld.u64 %ln,[%owners+248];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_15_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_15_21_READY:
+ld.u64 %left,[%owners+240];ld.u64 %ln,[%owners+248];ld.u64 %right,[%owners+352];ld.u64 %rn64,[%owners+360];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_15_22_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_15_22_READY:
+ld.u64 %left,[%owners+240];ld.u64 %ln,[%owners+248];ld.u64 %right,[%owners+368];ld.u64 %rn64,[%owners+376];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_15_23_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_15_23_READY:
+ld.u64 %left,[%owners+240];ld.u64 %ln,[%owners+248];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_15_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_15_24_READY:
+ld.u64 %left,[%owners+240];ld.u64 %ln,[%owners+248];ld.u64 %right,[%owners+400];ld.u64 %rn64,[%owners+408];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_15_25_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_15_25_READY:
+ld.u64 %left,[%owners+240];ld.u64 %ln,[%owners+248];ld.u64 %right,[%owners+416];ld.u64 %rn64,[%owners+424];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_15_26_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_15_26_READY:
+ld.u64 %left,[%owners+240];ld.u64 %ln,[%owners+248];ld.u64 %right,[%owners+432];ld.u64 %rn64,[%owners+440];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_15_27_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_15_27_READY:
+ld.u64 %left,[%owners+240];ld.u64 %ln,[%owners+248];ld.u64 %right,[%owners+448];ld.u64 %rn64,[%owners+456];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_15_28_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_15_28_READY:
+ld.u64 %left,[%owners+240];ld.u64 %ln,[%owners+248];ld.u64 %right,[%owners+464];ld.u64 %rn64,[%owners+472];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_15_29_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_15_29_READY:
+ld.u64 %left,[%owners+240];ld.u64 %ln,[%owners+248];ld.u64 %right,[%owners+480];ld.u64 %rn64,[%owners+488];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_15_30_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_15_30_READY:
+ld.u64 %left,[%owners+240];ld.u64 %ln,[%owners+248];ld.u64 %right,[%owners+496];ld.u64 %rn64,[%owners+504];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_15_31_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_15_31_READY:
+ld.u64 %left,[%owners+256];ld.u64 %ln,[%owners+264];ld.u64 %right,[%owners+272];ld.u64 %rn64,[%owners+280];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_16_17_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_16_17_READY:
+ld.u64 %left,[%owners+256];ld.u64 %ln,[%owners+264];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_16_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_16_18_READY:
+ld.u64 %left,[%owners+256];ld.u64 %ln,[%owners+264];ld.u64 %right,[%owners+304];ld.u64 %rn64,[%owners+312];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_16_19_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_16_19_READY:
+ld.u64 %left,[%owners+256];ld.u64 %ln,[%owners+264];ld.u64 %right,[%owners+320];ld.u64 %rn64,[%owners+328];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_16_20_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_16_20_READY:
+ld.u64 %left,[%owners+256];ld.u64 %ln,[%owners+264];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_16_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_16_21_READY:
+ld.u64 %left,[%owners+256];ld.u64 %ln,[%owners+264];ld.u64 %right,[%owners+352];ld.u64 %rn64,[%owners+360];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_16_22_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_16_22_READY:
+ld.u64 %left,[%owners+256];ld.u64 %ln,[%owners+264];ld.u64 %right,[%owners+368];ld.u64 %rn64,[%owners+376];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_16_23_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_16_23_READY:
+ld.u64 %left,[%owners+256];ld.u64 %ln,[%owners+264];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_16_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_16_24_READY:
+ld.u64 %left,[%owners+256];ld.u64 %ln,[%owners+264];ld.u64 %right,[%owners+400];ld.u64 %rn64,[%owners+408];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_16_25_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_16_25_READY:
+ld.u64 %left,[%owners+256];ld.u64 %ln,[%owners+264];ld.u64 %right,[%owners+416];ld.u64 %rn64,[%owners+424];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_16_26_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_16_26_READY:
+ld.u64 %left,[%owners+256];ld.u64 %ln,[%owners+264];ld.u64 %right,[%owners+432];ld.u64 %rn64,[%owners+440];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_16_27_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_16_27_READY:
+ld.u64 %left,[%owners+256];ld.u64 %ln,[%owners+264];ld.u64 %right,[%owners+448];ld.u64 %rn64,[%owners+456];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_16_28_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_16_28_READY:
+ld.u64 %left,[%owners+256];ld.u64 %ln,[%owners+264];ld.u64 %right,[%owners+464];ld.u64 %rn64,[%owners+472];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_16_29_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_16_29_READY:
+ld.u64 %left,[%owners+256];ld.u64 %ln,[%owners+264];ld.u64 %right,[%owners+480];ld.u64 %rn64,[%owners+488];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_16_30_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_16_30_READY:
+ld.u64 %left,[%owners+256];ld.u64 %ln,[%owners+264];ld.u64 %right,[%owners+496];ld.u64 %rn64,[%owners+504];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_16_31_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_16_31_READY:
+ld.u64 %left,[%owners+272];ld.u64 %ln,[%owners+280];ld.u64 %right,[%owners+288];ld.u64 %rn64,[%owners+296];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_17_18_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_17_18_READY:
+ld.u64 %left,[%owners+272];ld.u64 %ln,[%owners+280];ld.u64 %right,[%owners+304];ld.u64 %rn64,[%owners+312];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_17_19_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_17_19_READY:
+ld.u64 %left,[%owners+272];ld.u64 %ln,[%owners+280];ld.u64 %right,[%owners+320];ld.u64 %rn64,[%owners+328];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_17_20_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_17_20_READY:
+ld.u64 %left,[%owners+272];ld.u64 %ln,[%owners+280];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_17_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_17_21_READY:
+ld.u64 %left,[%owners+272];ld.u64 %ln,[%owners+280];ld.u64 %right,[%owners+352];ld.u64 %rn64,[%owners+360];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_17_22_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_17_22_READY:
+ld.u64 %left,[%owners+272];ld.u64 %ln,[%owners+280];ld.u64 %right,[%owners+368];ld.u64 %rn64,[%owners+376];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_17_23_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_17_23_READY:
+ld.u64 %left,[%owners+272];ld.u64 %ln,[%owners+280];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_17_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_17_24_READY:
+ld.u64 %left,[%owners+272];ld.u64 %ln,[%owners+280];ld.u64 %right,[%owners+400];ld.u64 %rn64,[%owners+408];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_17_25_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_17_25_READY:
+ld.u64 %left,[%owners+272];ld.u64 %ln,[%owners+280];ld.u64 %right,[%owners+416];ld.u64 %rn64,[%owners+424];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_17_26_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_17_26_READY:
+ld.u64 %left,[%owners+272];ld.u64 %ln,[%owners+280];ld.u64 %right,[%owners+432];ld.u64 %rn64,[%owners+440];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_17_27_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_17_27_READY:
+ld.u64 %left,[%owners+272];ld.u64 %ln,[%owners+280];ld.u64 %right,[%owners+448];ld.u64 %rn64,[%owners+456];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_17_28_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_17_28_READY:
+ld.u64 %left,[%owners+272];ld.u64 %ln,[%owners+280];ld.u64 %right,[%owners+464];ld.u64 %rn64,[%owners+472];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_17_29_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_17_29_READY:
+ld.u64 %left,[%owners+272];ld.u64 %ln,[%owners+280];ld.u64 %right,[%owners+480];ld.u64 %rn64,[%owners+488];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_17_30_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_17_30_READY:
+ld.u64 %left,[%owners+272];ld.u64 %ln,[%owners+280];ld.u64 %right,[%owners+496];ld.u64 %rn64,[%owners+504];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_17_31_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_17_31_READY:
+ld.u64 %left,[%owners+288];ld.u64 %ln,[%owners+296];ld.u64 %right,[%owners+304];ld.u64 %rn64,[%owners+312];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_18_19_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_18_19_READY:
+ld.u64 %left,[%owners+288];ld.u64 %ln,[%owners+296];ld.u64 %right,[%owners+320];ld.u64 %rn64,[%owners+328];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_18_20_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_18_20_READY:
+ld.u64 %left,[%owners+288];ld.u64 %ln,[%owners+296];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_18_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_18_21_READY:
+ld.u64 %left,[%owners+288];ld.u64 %ln,[%owners+296];ld.u64 %right,[%owners+352];ld.u64 %rn64,[%owners+360];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_18_22_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_18_22_READY:
+ld.u64 %left,[%owners+288];ld.u64 %ln,[%owners+296];ld.u64 %right,[%owners+368];ld.u64 %rn64,[%owners+376];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_18_23_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_18_23_READY:
+ld.u64 %left,[%owners+288];ld.u64 %ln,[%owners+296];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_18_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_18_24_READY:
+ld.u64 %left,[%owners+288];ld.u64 %ln,[%owners+296];ld.u64 %right,[%owners+400];ld.u64 %rn64,[%owners+408];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_18_25_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_18_25_READY:
+ld.u64 %left,[%owners+288];ld.u64 %ln,[%owners+296];ld.u64 %right,[%owners+416];ld.u64 %rn64,[%owners+424];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_18_26_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_18_26_READY:
+ld.u64 %left,[%owners+288];ld.u64 %ln,[%owners+296];ld.u64 %right,[%owners+432];ld.u64 %rn64,[%owners+440];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_18_27_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_18_27_READY:
+ld.u64 %left,[%owners+288];ld.u64 %ln,[%owners+296];ld.u64 %right,[%owners+448];ld.u64 %rn64,[%owners+456];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_18_28_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_18_28_READY:
+ld.u64 %left,[%owners+288];ld.u64 %ln,[%owners+296];ld.u64 %right,[%owners+464];ld.u64 %rn64,[%owners+472];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_18_29_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_18_29_READY:
+ld.u64 %left,[%owners+288];ld.u64 %ln,[%owners+296];ld.u64 %right,[%owners+480];ld.u64 %rn64,[%owners+488];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_18_30_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_18_30_READY:
+ld.u64 %left,[%owners+288];ld.u64 %ln,[%owners+296];ld.u64 %right,[%owners+496];ld.u64 %rn64,[%owners+504];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_18_31_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_18_31_READY:
+ld.u64 %left,[%owners+304];ld.u64 %ln,[%owners+312];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_19_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_19_21_READY:
+ld.u64 %left,[%owners+304];ld.u64 %ln,[%owners+312];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_19_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_19_24_READY:
+ld.u64 %left,[%owners+320];ld.u64 %ln,[%owners+328];ld.u64 %right,[%owners+336];ld.u64 %rn64,[%owners+344];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_20_21_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_20_21_READY:
+ld.u64 %left,[%owners+320];ld.u64 %ln,[%owners+328];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_20_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_20_24_READY:
+ld.u64 %left,[%owners+336];ld.u64 %ln,[%owners+344];ld.u64 %right,[%owners+352];ld.u64 %rn64,[%owners+360];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_21_22_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_21_22_READY:
+ld.u64 %left,[%owners+336];ld.u64 %ln,[%owners+344];ld.u64 %right,[%owners+368];ld.u64 %rn64,[%owners+376];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_21_23_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_21_23_READY:
+ld.u64 %left,[%owners+336];ld.u64 %ln,[%owners+344];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_21_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_21_24_READY:
+ld.u64 %left,[%owners+336];ld.u64 %ln,[%owners+344];ld.u64 %right,[%owners+400];ld.u64 %rn64,[%owners+408];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_21_25_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_21_25_READY:
+ld.u64 %left,[%owners+336];ld.u64 %ln,[%owners+344];ld.u64 %right,[%owners+416];ld.u64 %rn64,[%owners+424];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_21_26_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_21_26_READY:
+ld.u64 %left,[%owners+336];ld.u64 %ln,[%owners+344];ld.u64 %right,[%owners+432];ld.u64 %rn64,[%owners+440];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_21_27_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_21_27_READY:
+ld.u64 %left,[%owners+336];ld.u64 %ln,[%owners+344];ld.u64 %right,[%owners+448];ld.u64 %rn64,[%owners+456];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_21_28_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_21_28_READY:
+ld.u64 %left,[%owners+336];ld.u64 %ln,[%owners+344];ld.u64 %right,[%owners+464];ld.u64 %rn64,[%owners+472];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_21_29_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_21_29_READY:
+ld.u64 %left,[%owners+336];ld.u64 %ln,[%owners+344];ld.u64 %right,[%owners+480];ld.u64 %rn64,[%owners+488];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_21_30_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_21_30_READY:
+ld.u64 %left,[%owners+336];ld.u64 %ln,[%owners+344];ld.u64 %right,[%owners+496];ld.u64 %rn64,[%owners+504];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_21_31_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_21_31_READY:
+ld.u64 %left,[%owners+352];ld.u64 %ln,[%owners+360];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_22_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_22_24_READY:
+ld.u64 %left,[%owners+368];ld.u64 %ln,[%owners+376];ld.u64 %right,[%owners+384];ld.u64 %rn64,[%owners+392];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_23_24_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_23_24_READY:
+ld.u64 %left,[%owners+384];ld.u64 %ln,[%owners+392];ld.u64 %right,[%owners+400];ld.u64 %rn64,[%owners+408];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_24_25_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_24_25_READY:
+ld.u64 %left,[%owners+384];ld.u64 %ln,[%owners+392];ld.u64 %right,[%owners+416];ld.u64 %rn64,[%owners+424];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_24_26_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_24_26_READY:
+ld.u64 %left,[%owners+384];ld.u64 %ln,[%owners+392];ld.u64 %right,[%owners+432];ld.u64 %rn64,[%owners+440];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_24_27_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_24_27_READY:
+ld.u64 %left,[%owners+384];ld.u64 %ln,[%owners+392];ld.u64 %right,[%owners+448];ld.u64 %rn64,[%owners+456];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_24_28_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_24_28_READY:
+ld.u64 %left,[%owners+384];ld.u64 %ln,[%owners+392];ld.u64 %right,[%owners+464];ld.u64 %rn64,[%owners+472];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_24_29_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_24_29_READY:
+ld.u64 %left,[%owners+384];ld.u64 %ln,[%owners+392];ld.u64 %right,[%owners+480];ld.u64 %rn64,[%owners+488];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_24_30_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_24_30_READY:
+ld.u64 %left,[%owners+384];ld.u64 %ln,[%owners+392];ld.u64 %right,[%owners+496];ld.u64 %rn64,[%owners+504];setp.eq.u64 %p,%ln,0;setp.eq.u64 %q,%rn64,0;or.pred %p,%p,%q;@%p bra OWNER_24_31_READY;add.u64 %end1,%left,%ln;add.u64 %end2,%right,%rn64;setp.lt.u64 %p,%left,%end2;setp.lt.u64 %q,%right,%end1;and.pred %p,%p,%q;
+mov.u32 %error,15202;@%p bra REFUSE;
+OWNER_24_31_READY:
+ld.b64 %scale,[%v3+4952];mov.b64 %word,%scale;
+mov.u32 %error,15205;and.b64 %tmp,%word,0x7ff0000000000000;setp.eq.u64 %p,%tmp,0x7ff0000000000000;@%p bra REFUSE;
+mov.u32 %error,15205;setp.ge.u64 %p,%word,0x8000000000000000;@%p bra REFUSE;
+mov.u32 %error,15205;setp.eq.u64 %p,%word,0;@%p bra REFUSE;
+ld.b64 %scaleoff,[%v3+4960];mov.b64 %word,%scaleoff;
+mov.u32 %error,15205;and.b64 %tmp,%word,0x7ff0000000000000;setp.eq.u64 %p,%tmp,0x7ff0000000000000;@%p bra REFUSE;
+mov.u32 %error,15205;setp.ge.u64 %p,%word,0x8000000000000000;@%p bra REFUSE;
+mov.u32 %error,15205;setp.eq.u64 %p,%word,0;@%p bra REFUSE;
+mov.u64 %level,0;
+ETA_NODE:shl.b64 %offset,%level,3;add.u64 %pointer,%eta,%offset;ld.global.u64 %word,[%pointer];
+mov.u32 %error,15205;and.b64 %tmp,%word,0x7ff0000000000000;setp.eq.u64 %p,%tmp,0x7ff0000000000000;@%p bra REFUSE;
+add.u64 %level,%level,1;setp.lt.u64 %p,%level,20;@%p bra ETA_NODE;sub.u64 %row,%first,1;
+COORDINATE_ROW:setp.ge.u64 %p,%row,%last;@%p bra CELL_SCAN_BEGIN;shl.b64 %offset,%row,3;
+add.u64 %pointer,%coordinates0,%offset;ld.global.u64 %word,[%pointer];
+mov.u32 %error,15205;and.b64 %tmp,%word,0x7ff0000000000000;setp.eq.u64 %p,%tmp,0x7ff0000000000000;@%p bra REFUSE;
+add.u64 %pointer,%coordinates1,%offset;ld.global.u64 %word,[%pointer];
+mov.u32 %error,15205;and.b64 %tmp,%word,0x7ff0000000000000;setp.eq.u64 %p,%tmp,0x7ff0000000000000;@%p bra REFUSE;
+add.u64 %pointer,%coordinates2,%offset;ld.global.u64 %word,[%pointer];
+mov.u32 %error,15205;and.b64 %tmp,%word,0x7ff0000000000000;setp.eq.u64 %p,%tmp,0x7ff0000000000000;@%p bra REFUSE;
+add.u64 %pointer,%coordinates3,%offset;ld.global.u64 %word,[%pointer];
+mov.u32 %error,15205;and.b64 %tmp,%word,0x7ff0000000000000;setp.eq.u64 %p,%tmp,0x7ff0000000000000;@%p bra REFUSE;
+add.u64 %row,%row,1;bra COORDINATE_ROW;
+CELL_SCAN_BEGIN:mov.u64 %level,0;
+SCAN_LEVEL:sub.u64 %row,%first,1;
+SCAN_ROW:setp.ge.u64 %p,%row,%last;@%p bra SCAN_NEXT_LEVEL;mul.lo.u64 %cell,%level,24;add.u64 %cell,%cell,%row;shl.b64 %cell,%cell,3;
+add.u64 %pointer,%v12,%cell;add.u64 %pointer,%pointer,192;ld.global.u64 %word,[%pointer];
+mov.u32 %error,15205;and.b64 %tmp,%word,0x7ff0000000000000;setp.eq.u64 %p,%tmp,0x7ff0000000000000;@%p bra REFUSE;
+add.u64 %pointer,%v11,%cell;add.u64 %pointer,%pointer,0;ld.global.u64 %word,[%pointer];
+mov.u32 %error,15205;and.b64 %tmp,%word,0x7ff0000000000000;setp.eq.u64 %p,%tmp,0x7ff0000000000000;@%p bra REFUSE;
+mov.u32 %error,15205;setp.ge.u64 %p,%word,0x8000000000000000;@%p bra REFUSE;
+mov.u32 %error,15205;setp.eq.u64 %p,%word,0;@%p bra REFUSE;
+add.u64 %pointer,%v14,%cell;add.u64 %pointer,%pointer,7296;ld.global.u64 %word,[%pointer];
+mov.u32 %error,15205;and.b64 %tmp,%word,0x7ff0000000000000;setp.eq.u64 %p,%tmp,0x7ff0000000000000;@%p bra REFUSE;
+add.u64 %pointer,%v14,%cell;add.u64 %pointer,%pointer,10944;ld.global.u64 %word,[%pointer];
+mov.u32 %error,15205;and.b64 %tmp,%word,0x7ff0000000000000;setp.eq.u64 %p,%tmp,0x7ff0000000000000;@%p bra REFUSE;
+setp.eq.u32 %p,%step,0;@%p bra SCAN_ROW_DONE;
+add.u64 %pointer,%v14,%cell;add.u64 %pointer,%pointer,32832;ld.global.u64 %word,[%pointer];
+mov.u32 %error,15205;and.b64 %tmp,%word,0x7ff0000000000000;setp.eq.u64 %p,%tmp,0x7ff0000000000000;@%p bra REFUSE;
+add.u64 %pointer,%v14,%cell;add.u64 %pointer,%pointer,36480;ld.global.u64 %word,[%pointer];
+mov.u32 %error,15205;and.b64 %tmp,%word,0x7ff0000000000000;setp.eq.u64 %p,%tmp,0x7ff0000000000000;@%p bra REFUSE;
+add.u64 %pointer,%v14,%cell;add.u64 %pointer,%pointer,40128;ld.global.u64 %word,[%pointer];
+mov.u32 %error,15205;and.b64 %tmp,%word,0x7ff0000000000000;setp.eq.u64 %p,%tmp,0x7ff0000000000000;@%p bra REFUSE;
+setp.ge.u64 %p,%level,2;@%p bra SCAN_ROW_DONE;shl.b64 %offset,%level,3;add.u64 %pointer,%eta,%offset;ld.global.f64 %fa,[%pointer];ld.global.f64 %fb,[%pointer+8];sub.rn.f64 %fa,%fb,%fa;add.u64 %pointer,%v12,%cell;ld.global.f64 %w,[%pointer+192];mul.rn.f64 %w,%w,%fa;add.u64 %pointer,%v11,%cell;ld.global.f64 %fa,[%pointer];mul.rn.f64 %w,%w,%fa;add.u64 %pointer,%v14,%cell;ld.global.f64 %oldw,[%pointer+40128];mul.rn.f64 %arg,%w,%oldw;mov.b64 %fa,%scaleoff;add.rn.f64 %arg,%arg,%fa;xor.b64 %word,%scale,0x8000000000000000;mov.b64 %fa,%word;mul.rn.f64 %arg,%fa,%arg;mov.b64 %word,%arg;
+mov.u32 %error,15205;and.b64 %tmp,%word,0x7ff0000000000000;setp.eq.u64 %p,%tmp,0x7ff0000000000000;@%p bra REFUSE;
+SCAN_ROW_DONE:add.u64 %row,%row,1;bra SCAN_ROW;
+SCAN_NEXT_LEVEL:add.u64 %level,%level,1;setp.lt.u64 %p,%level,19;@%p bra SCAN_LEVEL;mov.u32 %error,0;
+REFUSE:st.param.u32 [result],%error;ret;
+}
+.extern .func (.param .align 8 .b8 result[32]) openifs_lavent_values_parallel_columns(.param .u64 original_vector,.param .u64 specific_record);
+.visible .func openifs_lavent_fp64_parallel_columns(.param .u64 original_vector,.param .u64 context)
+{
+.reg .u32 %parallel_lane,%parallel_mask,%parallel_reverse,%parallel_index,%parallel_route,%parallel_column;
+.reg .u64 %parallel_lane64,%parallel_count;
+.reg .pred %parallel_bad,%parallel_leader;
+
+.reg .u64 %args,%ctx,%rec,%ptr,%count,%tanh,%owner,%old64;.reg .u32 %word,%unique,%error,%flags,%old;.reg .pred %p;
+.param .u64 a,c,r;.param .u32 admitted;.param .align 8 .b8 values[32];
+mov.u32 %parallel_lane,%tid.x; cvt.u64.u32 %parallel_lane64,%parallel_lane; setp.eq.u32 %parallel_leader,%parallel_lane,0;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];mov.u32 %unique,0;mov.u32 %word,%tid.y;or.b32 %unique,%unique,%word;mov.u32 %word,%tid.z;or.b32 %unique,%unique,%word;mov.u32 %word,%ctaid.x;or.b32 %unique,%unique,%word;mov.u32 %word,%ctaid.y;or.b32 %unique,%unique,%word;mov.u32 %word,%ctaid.z;or.b32 %unique,%unique,%word;setp.ne.u32 %p,%unique,0;@%p ret;setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %ptr,%ctx,7;setp.ne.u64 %p,%ptr,0;@%p ret;ld.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+
+mov.u32 %error,15200;mov.u32 %word,%ntid.x;setp.ne.u32 %p,%word,32;@%p bra REFUSE;
+mov.u32 %error,15200;mov.u32 %word,%ntid.y;setp.ne.u32 %p,%word,1;@%p bra REFUSE;
+mov.u32 %error,15200;mov.u32 %word,%ntid.z;setp.ne.u32 %p,%word,1;@%p bra REFUSE;
+mov.u32 %error,15200;mov.u32 %word,%nctaid.x;setp.ne.u32 %p,%word,1;@%p bra REFUSE;
+mov.u32 %error,15200;mov.u32 %word,%nctaid.y;setp.ne.u32 %p,%word,1;@%p bra REFUSE;
+mov.u32 %error,15200;mov.u32 %word,%nctaid.z;setp.ne.u32 %p,%word,1;@%p bra REFUSE;
+mov.u32 %error,15200;mov.u32 %word,%dynamic_smem_size;setp.ne.u32 %p,%word,0;@%p bra REFUSE;
+mov.u32 %error,15200;ld.u32 %word,[%ctx+4];setp.ne.u32 %p,%word,1;@%p bra REFUSE;
+mov.u32 %error,15200;ld.u32 %word,[%ctx+12];and.b32 %word,%word,1;setp.ne.u32 %p,%word,0;@%p bra REFUSE;
+st.param.u64 [a],%args;st.param.u64 [c],%ctx;call.uni (admitted),openifs_lavent_admit_parallel_columns,(a,c);ld.param.u32 %error,[admitted];
+
+PARALLEL_ADMISSION_JOIN:
+setp.ne.u32 %parallel_bad,%error,0;
+vote.sync.ballot.b32 %parallel_mask,%parallel_bad,0xffffffff;
+setp.eq.u32 %parallel_bad,%parallel_mask,0;
+@%parallel_bad bra PARALLEL_ADMISSION_OK;
+brev.b32 %parallel_reverse,%parallel_mask;
+bfind.u32 %parallel_index,%parallel_reverse;
+sub.u32 %parallel_index,31,%parallel_index;
+shfl.sync.idx.b32 %error,%error,%parallel_index,0x1f,0xffffffff;
+st.global.u32 [%ctx],%error;
+ret;
+PARALLEL_ADMISSION_OK:
+bar.sync 0;
+ld.u64 %rec,[%ctx+48];st.param.u64 [a],%args;st.param.u64 [r],%rec;call.uni (values),openifs_lavent_values_parallel_columns,(a,r);ld.param.u32 %flags,[values];ld.param.u32 %error,[values+4];ld.param.u64 %count,[values+16];ld.param.u64 %tanh,[values+24];setp.ne.u32 %p,%error,0;@%p bra REFUSE;atom.global.or.b32 %old,[%ctx+8],%flags;ld.u64 %owner,[%rec+176];setp.eq.u64 %p,%owner,0;@%p ret;atom.global.add.u64 %old64,[%owner],%count;add.u64 %ptr,%owner,8;atom.global.add.u64 %old64,[%ptr],%tanh;ret;
+REFUSE:st.u32 [%ctx],%error;ret;
+}
