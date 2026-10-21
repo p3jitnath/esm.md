@@ -135,3 +135,132 @@ mul.lo.u64 %offset,%P64,56;add.u64 %private_output,%scratch,1024;add.u64 %privat
 mul.wide.u32 %offset,%column,8;add.u64 %address,%private_output,%offset;st.global.b64 [%address],%t0;add.u32 %column,%column,1;bra RESISTANCE_COLUMN;
 COMPLETE:st.param.u32 [result],%flags;st.param.u32 [result+4],%error;st.param.u64 [result+8],%event;st.param.u64 [result+16],%exp_calls;st.param.u64 [result+24],%fast;st.param.u64 [result+32],%wide;st.param.u64 [result+40],1;st.param.u64 [result+48],1;st.param.u64 [result+56],%calls;ret;
 }
+
+// Private column entry. Its original logical endpoint stays separate from traversal.
+.extern .func (.param .align 8 .b8 result[48]) md2asm_gpu_plant_photosynthesis_values_turbulence_columns(.param .u64 vector,.param .u64 scratch,.param .u32 esm_original_last_column);
+.visible .func (.param .align 8 .b8 result[64]) md2asm_gpu_canopy_water_stress_values_turbulence_columns(.param .u64 original_vector,.param .u64 private_scratch,.param .u32 esm_original_last_column)
+{
+.reg .u32 %esm_original_last;
+ld.param.u32 %esm_original_last,[esm_original_last_column];
+
+.reg .u64 %args,%scratch,%v<30>,%P64,%offset,%address,%parent_output,%private_output,%land,%qs,%co2,%gstot,%child_scratch,%fraction,%fraction_stride,%qs_cell,%dmax_cell,%deficit_cell,%calls,%event,%exp_calls,%fast,%wide,%increment,%value,%ret_event,%ret_exp,%ret_fast,%ret_wide,%ret_calls;
+.reg .u32 %first,%last,%P,%column,%field,%land_value,%vegetation,%lake,%flags,%raised,%error,%r,%ret_flags,%ret_error;.reg .pred %p;
+.reg .b64 %t0,%t1;
+.param .b64 ma,mb;.param .u64 va,sa,qa,da,ha;.param .u32 ci;.param .align 8 .b8 math[16],column_result[48],child_result[48];
+ld.param.u64 %args,[original_vector];ld.param.u64 %scratch,[private_scratch];mov.u32 %flags,0;mov.u32 %error,0;mov.u64 %calls,0;mov.u64 %event,0;mov.u64 %exp_calls,0;mov.u64 %fast,0;mov.u64 %wide,0;
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ld.global.u64 %v5,[%args+40];
+ld.global.u64 %v6,[%args+48];
+ld.global.u64 %v7,[%args+56];
+ld.global.u64 %v8,[%args+64];
+ld.global.u64 %v9,[%args+72];
+ld.global.u64 %v10,[%args+80];
+ld.global.u64 %v11,[%args+88];
+ld.global.u64 %v12,[%args+96];
+ld.global.u64 %v13,[%args+104];
+ld.global.u64 %v14,[%args+112];
+ld.global.u64 %v15,[%args+120];
+ld.global.u64 %v16,[%args+128];
+ld.global.u64 %v17,[%args+136];
+ld.global.u64 %v18,[%args+144];
+ld.global.u64 %v19,[%args+152];
+ld.global.u64 %v20,[%args+160];
+ld.global.u64 %v21,[%args+168];
+ld.global.u64 %v22,[%args+176];
+ld.global.u64 %v23,[%args+184];
+ld.global.u64 %v24,[%args+192];
+ld.global.u64 %v25,[%args+200];
+ld.global.u64 %v26,[%args+208];
+ld.global.u64 %v27,[%args+216];
+ld.global.u64 %v28,[%args+224];
+ld.global.u64 %v29,[%args+232];
+ld.global.u32 %first,[%v0];ld.global.u32 %last,[%v1];ld.global.u32 %P,[%v2];cvt.u64.u32 %P64,%P;
+mul.lo.u64 %offset,%P64,0;add.u64 %land,%scratch,1024;add.u64 %land,%land,%offset;
+mul.lo.u64 %offset,%P64,8;add.u64 %qs,%scratch,1024;add.u64 %qs,%qs,%offset;
+mul.lo.u64 %offset,%P64,16;add.u64 %co2,%scratch,1024;add.u64 %co2,%co2,%offset;
+mul.lo.u64 %offset,%P64,24;add.u64 %gstot,%scratch,1024;add.u64 %gstot,%gstot,%offset;
+mul.lo.u64 %offset,%P64,80;add.u64 %child_scratch,%scratch,1024;add.u64 %child_scratch,%child_scratch,%offset;mov.u32 %column,0;
+CLEAR_PRIVATE:mul.wide.u32 %offset,%column,8;add.u64 %address,%land,%offset;st.global.u64 [%address],0;add.u32 %column,%column,1;mul.lo.u32 %r,%P,4;setp.lt.u32 %p,%column,%r;@%p bra CLEAR_PRIVATE;mov.u32 %field,0;
+COPY_OUTPUT_FIELD:add.u32 %r,%field,24;mul.wide.u32 %offset,%r,8;add.u64 %address,%args,%offset;ld.global.u64 %address,[%address];ld.global.u64 %parent_output,[%address];add.u32 %r,%field,4;mul.wide.u32 %offset,%r,8;mul.lo.u64 %offset,%offset,%P64;add.u64 %private_output,%scratch,1024;add.u64 %private_output,%private_output,%offset;mov.u32 %column,0;
+COPY_OUTPUT_COLUMN:mul.wide.u32 %offset,%column,8;add.u64 %address,%parent_output,%offset;ld.global.u64 %value,[%address];add.u64 %address,%private_output,%offset;st.global.u64 [%address],%value;add.u32 %column,%column,1;setp.lt.u32 %p,%column,%P;@%p bra COPY_OUTPUT_COLUMN;add.u32 %field,%field,1;setp.lt.u32 %p,%field,6;@%p bra COPY_OUTPUT_FIELD;
+add.u64 %address,%scratch,256;st.global.u64 [%address],%land;st.global.u64 [%address+8],0xffffffffffffffff;st.global.u64 [%address+16],4;st.global.u64 [%address+24],0x0000020100000000;st.global.u64 [%address+32],4;st.global.u64 [%address+40],1;st.global.u64 [%address+48],1;st.global.u64 [%address+56],%P64;
+add.u64 %address,%scratch,320;st.global.u64 [%address],%qs;st.global.u64 [%address+8],0xffffffffffffffff;st.global.u64 [%address+16],8;st.global.u64 [%address+24],0x0000030100000000;st.global.u64 [%address+32],8;st.global.u64 [%address+40],1;st.global.u64 [%address+48],1;st.global.u64 [%address+56],%P64;
+add.u64 %address,%scratch,384;st.global.u64 [%address],%co2;st.global.u64 [%address+8],0xffffffffffffffff;st.global.u64 [%address+16],8;st.global.u64 [%address+24],0x0000030100000000;st.global.u64 [%address+32],8;st.global.u64 [%address+40],1;st.global.u64 [%address+48],1;st.global.u64 [%address+56],%P64;
+add.u64 %address,%scratch,448;st.global.u64 [%address],%gstot;st.global.u64 [%address+8],0xffffffffffffffff;st.global.u64 [%address+16],8;st.global.u64 [%address+24],0x0000030100000000;st.global.u64 [%address+32],8;st.global.u64 [%address+40],1;st.global.u64 [%address+48],1;st.global.u64 [%address+56],%P64;
+mul.lo.u64 %offset,%P64,32;add.u64 %private_output,%scratch,1024;add.u64 %private_output,%private_output,%offset;
+add.u64 %address,%scratch,512;st.global.u64 [%address],%private_output;st.global.u64 [%address+8],0xffffffffffffffff;st.global.u64 [%address+16],8;st.global.u64 [%address+24],0x0000030100000000;st.global.u64 [%address+32],8;st.global.u64 [%address+40],1;st.global.u64 [%address+48],1;st.global.u64 [%address+56],%P64;
+mul.lo.u64 %offset,%P64,40;add.u64 %private_output,%scratch,1024;add.u64 %private_output,%private_output,%offset;
+add.u64 %address,%scratch,576;st.global.u64 [%address],%private_output;st.global.u64 [%address+8],0xffffffffffffffff;st.global.u64 [%address+16],8;st.global.u64 [%address+24],0x0000030100000000;st.global.u64 [%address+32],8;st.global.u64 [%address+40],1;st.global.u64 [%address+48],1;st.global.u64 [%address+56],%P64;
+mul.lo.u64 %offset,%P64,48;add.u64 %private_output,%scratch,1024;add.u64 %private_output,%private_output,%offset;
+add.u64 %address,%scratch,640;st.global.u64 [%address],%private_output;st.global.u64 [%address+8],0xffffffffffffffff;st.global.u64 [%address+16],8;st.global.u64 [%address+24],0x0000030100000000;st.global.u64 [%address+32],8;st.global.u64 [%address+40],1;st.global.u64 [%address+48],1;st.global.u64 [%address+56],%P64;
+mul.lo.u64 %offset,%P64,56;add.u64 %private_output,%scratch,1024;add.u64 %private_output,%private_output,%offset;
+add.u64 %address,%scratch,704;st.global.u64 [%address],%private_output;st.global.u64 [%address+8],0xffffffffffffffff;st.global.u64 [%address+16],8;st.global.u64 [%address+24],0x0000030100000000;st.global.u64 [%address+32],8;st.global.u64 [%address+40],1;st.global.u64 [%address+48],1;st.global.u64 [%address+56],%P64;
+mul.lo.u64 %offset,%P64,64;add.u64 %private_output,%scratch,1024;add.u64 %private_output,%private_output,%offset;
+add.u64 %address,%scratch,768;st.global.u64 [%address],%private_output;st.global.u64 [%address+8],0xffffffffffffffff;st.global.u64 [%address+16],8;st.global.u64 [%address+24],0x0000030100000000;st.global.u64 [%address+32],8;st.global.u64 [%address+40],1;st.global.u64 [%address+48],1;st.global.u64 [%address+56],%P64;
+mul.lo.u64 %offset,%P64,72;add.u64 %private_output,%scratch,1024;add.u64 %private_output,%private_output,%offset;
+add.u64 %address,%scratch,832;st.global.u64 [%address],%private_output;st.global.u64 [%address+8],0xffffffffffffffff;st.global.u64 [%address+16],8;st.global.u64 [%address+24],0x0000030100000000;st.global.u64 [%address+32],8;st.global.u64 [%address+40],1;st.global.u64 [%address+48],1;st.global.u64 [%address+56],%P64;
+st.global.u64 [%scratch+0],%v0;
+st.global.u64 [%scratch+8],%v1;
+st.global.u64 [%scratch+16],%v2;
+add.u64 %address,%scratch,256;st.global.u64 [%scratch+24],%address;
+st.global.u64 [%scratch+32],%v3;
+st.global.u64 [%scratch+40],%v4;
+st.global.u64 [%scratch+48],%v20;
+st.global.u64 [%scratch+56],%v21;
+st.global.u64 [%scratch+64],%v19;
+st.global.u64 [%scratch+72],%v14;
+st.global.u64 [%scratch+80],%v9;
+st.global.u64 [%scratch+88],%v18;
+add.u64 %address,%scratch,320;st.global.u64 [%scratch+96],%address;
+st.global.u64 [%scratch+104],%v7;
+st.global.u64 [%scratch+112],%v6;
+st.global.u64 [%scratch+120],%v10;
+st.global.u64 [%scratch+128],%v11;
+st.global.u64 [%scratch+136],%v17;
+add.u64 %address,%scratch,384;st.global.u64 [%scratch+144],%address;
+st.global.u64 [%scratch+152],%v13;
+add.u64 %address,%scratch,448;st.global.u64 [%scratch+160],%address;
+add.u64 %address,%scratch,576;st.global.u64 [%scratch+168],%address;
+add.u64 %address,%scratch,640;st.global.u64 [%scratch+176],%address;
+add.u64 %address,%scratch,512;st.global.u64 [%scratch+184],%address;
+ld.global.u64 %fraction,[%v5];ld.global.u64 %fraction_stride,[%v5+64];shl.b64 %fraction_stride,%fraction_stride,3;ld.global.u32 %lake,[%v23+848];sub.u32 %column,%first,1;
+PREPARE_COLUMN:setp.ge.u32 %p,%column,%last;@%p bra CALL_LEAF;mul.wide.u32 %offset,%column,8;add.u64 %address,%fraction,%offset;ld.global.b64 %t0,[%address];add.u64 %address,%address,%fraction_stride;ld.global.b64 %t1,[%address];
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+setp.eq.u32 %p,%lake,0;@%p bra LAND_COMPARE;mul.lo.u64 %address,%fraction_stride,8;add.u64 %address,%address,%fraction;add.u64 %address,%address,%offset;ld.global.b64 %t1,[%address];
+ st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+LAND_COMPARE:setp.le.f64 %p,%t0,0d3fe0000000000000;selp.u32 %land_value,1,0,%p;mul.wide.u32 %offset,%column,4;add.u64 %address,%land,%offset;st.global.u32 [%address],%land_value;setp.eq.u32 %p,%land_value,0;@%p bra COPY_CO2;mul.wide.u32 %offset,%column,8;add.u64 %qs_cell,%qs,%offset;
+mul.lo.u64 %offset,%P64,72;add.u64 %dmax_cell,%scratch,1024;add.u64 %dmax_cell,%dmax_cell,%offset;
+mul.wide.u32 %offset,%column,8;add.u64 %dmax_cell,%dmax_cell,%offset;
+mul.lo.u64 %offset,%P64,64;add.u64 %deficit_cell,%scratch,1024;add.u64 %deficit_cell,%deficit_cell,%offset;
+mul.wide.u32 %offset,%column,8;add.u64 %deficit_cell,%deficit_cell,%offset;st.param.u64 [va],%args;st.param.u32 [ci],%column;st.param.u64 [qa],%qs_cell;st.param.u64 [da],%dmax_cell;st.param.u64 [ha],%deficit_cell;call.uni (column_result),md2asm_gpu_canopy_stress_column,(va,ci,qa,da,ha);
+ld.param.u32 %ret_flags,[column_result+0];ld.param.u32 %ret_error,[column_result+4];ld.param.u64 %ret_event,[column_result+8];ld.param.u64 %ret_exp,[column_result+16];ld.param.u64 %ret_fast,[column_result+24];ld.param.u64 %ret_wide,[column_result+32];ld.param.u64 %ret_calls,[column_result+40];or.b32 %flags,%flags,%ret_flags;add.u64 %exp_calls,%exp_calls,%ret_exp;add.u64 %fast,%fast,%ret_fast;add.u64 %wide,%wide,%ret_wide;setp.eq.u64 %p,%ret_event,0;@%p bra COLUMN_EVENT_JOINED;shl.b64 %event,%calls,8;add.u64 %event,%event,%ret_event;COLUMN_EVENT_JOINED:
+add.u64 %calls,%calls,%ret_calls;
+COPY_CO2:ld.global.u64 %address,[%v8];mul.wide.u32 %offset,%column,8;add.u64 %address,%address,%offset;ld.global.u64 %value,[%address];add.u64 %address,%co2,%offset;st.global.u64 [%address],%value;add.u32 %column,%column,1;bra PREPARE_COLUMN;
+CALL_LEAF:st.param.u64 [va],%scratch;st.param.u64 [sa],%child_scratch;{ .param .u32 esm_original_last_argument_1; st.param.u32 [esm_original_last_argument_1],%esm_original_last;call.uni (child_result),md2asm_gpu_plant_photosynthesis_values_turbulence_columns,(va,sa,esm_original_last_argument_1); }
+ld.param.u32 %ret_flags,[child_result+0];ld.param.u32 %ret_error,[child_result+4];ld.param.u64 %ret_event,[child_result+8];ld.param.u64 %ret_exp,[child_result+16];ld.param.u64 %ret_fast,[child_result+24];ld.param.u64 %ret_wide,[child_result+32];ld.param.u64 %ret_calls,[child_result+40];or.b32 %flags,%flags,%ret_flags;add.u64 %exp_calls,%exp_calls,%ret_exp;add.u64 %fast,%fast,%ret_fast;add.u64 %wide,%wide,%ret_wide;setp.eq.u64 %p,%ret_event,0;@%p bra CHILD_EVENT_JOINED;shl.b64 %event,%calls,8;add.u64 %event,%event,%ret_event;CHILD_EVENT_JOINED:
+add.u64 %calls,%calls,%ret_calls;
+mov.u32 %error,%ret_error;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;
+mul.lo.u64 %offset,%P64,24;add.u64 %private_output,%scratch,1024;add.u64 %private_output,%private_output,%offset;
+mul.lo.u64 %offset,%P64,0;add.u64 %parent_output,%child_scratch,1024;add.u64 %parent_output,%parent_output,%offset;sub.u32 %column,%first,1;
+CHILD_COPY_0:setp.ge.u32 %p,%column,%last;@%p bra CHILD_COPY_DONE_0;mul.wide.u32 %offset,%column,8;add.u64 %address,%parent_output,%offset;ld.global.u64 %value,[%address];add.u64 %address,%private_output,%offset;st.global.u64 [%address],%value;add.u32 %column,%column,1;bra CHILD_COPY_0;CHILD_COPY_DONE_0:
+mul.lo.u64 %offset,%P64,40;add.u64 %private_output,%scratch,1024;add.u64 %private_output,%private_output,%offset;
+mul.lo.u64 %offset,%P64,8;add.u64 %parent_output,%child_scratch,1024;add.u64 %parent_output,%parent_output,%offset;sub.u32 %column,%first,1;
+CHILD_COPY_1:setp.ge.u32 %p,%column,%last;@%p bra CHILD_COPY_DONE_1;mul.wide.u32 %offset,%column,8;add.u64 %address,%parent_output,%offset;ld.global.u64 %value,[%address];add.u64 %address,%private_output,%offset;st.global.u64 [%address],%value;add.u32 %column,%column,1;bra CHILD_COPY_1;CHILD_COPY_DONE_1:
+mul.lo.u64 %offset,%P64,48;add.u64 %private_output,%scratch,1024;add.u64 %private_output,%private_output,%offset;
+mul.lo.u64 %offset,%P64,16;add.u64 %parent_output,%child_scratch,1024;add.u64 %parent_output,%parent_output,%offset;sub.u32 %column,%first,1;
+CHILD_COPY_2:setp.ge.u32 %p,%column,%last;@%p bra CHILD_COPY_DONE_2;mul.wide.u32 %offset,%column,8;add.u64 %address,%parent_output,%offset;ld.global.u64 %value,[%address];add.u64 %address,%private_output,%offset;st.global.u64 [%address],%value;add.u32 %column,%column,1;bra CHILD_COPY_2;CHILD_COPY_DONE_2:
+mul.lo.u64 %offset,%P64,32;add.u64 %private_output,%scratch,1024;add.u64 %private_output,%private_output,%offset;
+mul.lo.u64 %offset,%P64,24;add.u64 %parent_output,%child_scratch,1024;add.u64 %parent_output,%parent_output,%offset;sub.u32 %column,%first,1;
+CHILD_COPY_3:setp.ge.u32 %p,%column,%last;@%p bra CHILD_COPY_DONE_3;mul.wide.u32 %offset,%column,8;add.u64 %address,%parent_output,%offset;ld.global.u64 %value,[%address];add.u64 %address,%private_output,%offset;st.global.u64 [%address],%value;add.u32 %column,%column,1;bra CHILD_COPY_3;CHILD_COPY_DONE_3:
+sub.u32 %column,%first,1;
+RESISTANCE_COLUMN:setp.ge.u32 %p,%column,%last;@%p bra COMPLETE;mul.wide.u32 %offset,%column,4;add.u64 %address,%land,%offset;ld.global.u32 %land_value,[%address];setp.eq.u32 %p,%land_value,0;@%p bra ZERO_RESISTANCE;ld.global.u64 %address,[%v3];add.u64 %address,%address,%offset;ld.global.u32 %vegetation,[%address];setp.le.s32 %p,%vegetation,0;@%p bra ZERO_RESISTANCE;mul.wide.u32 %offset,%column,8;add.u64 %address,%gstot,%offset;ld.global.b64 %t0,[%address];ld.global.b64 %t1,[%v20+128];max.f64 %t0,%t1,%t0;
+ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+bra STORE_RESISTANCE;ZERO_RESISTANCE:mov.u64 %t0,0;STORE_RESISTANCE:
+mul.lo.u64 %offset,%P64,56;add.u64 %private_output,%scratch,1024;add.u64 %private_output,%private_output,%offset;
+mul.wide.u32 %offset,%column,8;add.u64 %address,%private_output,%offset;st.global.b64 [%address],%t0;add.u32 %column,%column,1;bra RESISTANCE_COLUMN;
+COMPLETE:st.param.u32 [result],%flags;st.param.u32 [result+4],%error;st.param.u64 [result+8],%event;st.param.u64 [result+16],%exp_calls;st.param.u64 [result+24],%fast;st.param.u64 [result+32],%wide;st.param.u64 [result+40],1;st.param.u64 [result+48],1;st.param.u64 [result+56],%calls;ret;
+}

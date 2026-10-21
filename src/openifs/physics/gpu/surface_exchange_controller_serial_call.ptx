@@ -3695,3 +3695,46 @@ ret;NUMERICAL_ERROR:add.u32 %error,%r,7904;st.global.u32 [%ctx],%error;ret;
 BAD_LAUNCH:mov.u32 %error,7900;
 REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
 }
+
+// Private column entry. Its original logical endpoint stays separate from traversal.
+.extern .func (.param .align 8 .b8 result[72]) md2asm_gpu_surface_exchange_controller_values_turbulence_columns(.param .u64 vector,.param .u64 record,.param .u64 scratch,.param .u32 esm_original_last_column);
+.visible .func md2asm_gpu_surfexcdriver_ctl_serial_call_turbulence_columns(.param .u64 original_vector,.param .u64 context,.param .u32 esm_original_last_column)
+{
+.reg .u32 %esm_original_last;
+ld.param.u32 %esm_original_last,[esm_original_last_column];
+
+ .reg .u64 %args,%ctx,%ptr;
+ .reg .u32 %thread,%unique,%r,%error,%old;
+ .reg .pred %p;
+ .shared .align 4 .b32 admission;
+ .param .u64 av,cv;.param .u32 rr;
+  .param .u64 va,ra,sa;.param .align 8 .b8 returned[72];.reg .u64 %scratch,%source,%destination,%length,%offset,%event,%value,%record,%owner,%increment,%previous,%saved_count<6>;.reg .u32 %first,%last,%column,%field,%saved_flags;
+
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %ptr,%ctx,7;setp.ne.u64 %p,%ptr,0;@%p ret;
+ mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
+ mov.u32 %r,0;or.b32 %unique,%unique,%r;mov.u32 %r,0;or.b32 %unique,%unique,%r;mov.u32 %r,0;or.b32 %unique,%unique,%r;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+ mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ ld.global.u32 %r,[%ctx+12];and.b32 %r,%r,1;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;
+ setp.ne.u32 %p,%thread,0;@%p bra WAIT;
+ st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),md2asm_gpu_surfexcdriver_ctl_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
+WAIT:
+ bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %scratch,[%ctx+32];ld.global.u64 %record,[%ctx+48];st.param.u64 [va],%args;st.param.u64 [ra],%record;st.param.u64 [sa],%scratch;{ .param .u32 esm_original_last_argument_1; st.param.u32 [esm_original_last_argument_1],%esm_original_last;call.uni (returned),md2asm_gpu_surface_exchange_controller_values_turbulence_columns,(va,ra,sa,esm_original_last_argument_1); }ld.param.u32 %r,[returned+4];ld.param.u32 %saved_flags,[returned];ld.param.u64 %event,[returned+8];ld.param.u64 %saved_count0,[returned+16];ld.param.u64 %saved_count1,[returned+24];ld.param.u64 %saved_count2,[returned+32];ld.param.u64 %saved_count3,[returned+40];ld.param.u64 %saved_count4,[returned+48];ld.param.u64 %saved_count5,[returned+56];setp.ne.u32 %p,%r,0;@%p bra NUMERICAL_ERROR;
+ld.global.u64 %ptr,[%args+8];ld.global.u32 %first,[%ptr];ld.global.u64 %ptr,[%args+16];ld.global.u32 %last,[%ptr];sub.u32 %column,%first,1;setp.ge.u32 %p,%column,%last;@%p ret;mov.u32 %field,0;
+COMMIT_FIELD:mul.wide.u32 %offset,%field,24;add.u64 %ptr,%scratch,10240;add.u64 %ptr,%ptr,%offset;ld.global.u64 %destination,[%ptr];ld.global.u64 %source,[%ptr+8];ld.global.u64 %length,[%ptr+16];mov.u64 %offset,0;
+COMMIT_BYTES:setp.ge.u64 %p,%offset,%length;@%p bra COMMIT_NEXT_FIELD;add.u64 %ptr,%source,%offset;ld.global.u64 %value,[%ptr];add.u64 %ptr,%destination,%offset;st.global.u64 [%ptr],%value;add.u64 %offset,%offset,8;bra COMMIT_BYTES;
+COMMIT_NEXT_FIELD:add.u32 %field,%field,1;setp.lt.u32 %p,%field,57;@%p bra COMMIT_FIELD;atom.global.or.b32 %old,[%ctx+8],%saved_flags;setp.eq.u64 %p,%event,0;@%p bra EVENT_DONE;st.global.u64 [%ctx+16],%event;EVENT_DONE:
+mov.u64 %increment,%saved_count0;setp.eq.u64 %p,%increment,0;@%p bra JOIN_0;ld.global.u64 %owner,[%record+288];setp.eq.u64 %p,%owner,0;@%p bra JOIN_0;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%increment;st.global.u64 [%owner],%previous;JOIN_0:
+mov.u64 %increment,%saved_count1;setp.eq.u64 %p,%increment,0;@%p bra JOIN_1;ld.global.u64 %owner,[%record+296];setp.eq.u64 %p,%owner,0;@%p bra JOIN_1;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%increment;st.global.u64 [%owner],%previous;JOIN_1:
+mov.u64 %increment,%saved_count2;setp.eq.u64 %p,%increment,0;@%p bra JOIN_2;ld.global.u64 %owner,[%record+304];setp.eq.u64 %p,%owner,0;@%p bra JOIN_2;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%increment;st.global.u64 [%owner],%previous;JOIN_2:
+mov.u64 %increment,%saved_count3;setp.eq.u64 %p,%increment,0;@%p bra JOIN_3;ld.global.u64 %owner,[%record+312];setp.eq.u64 %p,%owner,0;@%p bra JOIN_3;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%increment;st.global.u64 [%owner],%previous;JOIN_3:
+mov.u64 %increment,%saved_count4;setp.eq.u64 %p,%increment,0;@%p bra JOIN_4;ld.global.u64 %owner,[%record+320];setp.eq.u64 %p,%owner,0;@%p bra JOIN_4;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%increment;st.global.u64 [%owner],%previous;JOIN_4:
+mov.u64 %increment,%saved_count5;setp.eq.u64 %p,%increment,0;@%p bra JOIN_5;ld.global.u64 %owner,[%record+328];setp.eq.u64 %p,%owner,0;@%p bra JOIN_5;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%increment;st.global.u64 [%owner],%previous;JOIN_5:
+ret;NUMERICAL_ERROR:add.u32 %error,%r,7904;st.global.u32 [%ctx],%error;ret;
+
+BAD_LAUNCH:mov.u32 %error,7900;
+REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
+}

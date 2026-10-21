@@ -1159,3 +1159,34 @@ ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];st.param.u64 [v
 BAD_LAUNCH:mov.u32 %error,6970;
 REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
 }
+
+// Private column entry. Its original logical endpoint stays separate from traversal.
+
+.visible .func md2asm_gpu_vdfdifh_serial_call_turbulence_columns(.param .u64 original_vector,.param .u64 context,.param .u32 esm_original_last_column)
+{
+.reg .u32 %esm_original_last;
+ld.param.u32 %esm_original_last,[esm_original_last_column];
+
+ .reg .u64 %args,%ctx,%ptr;
+ .reg .u32 %thread,%unique,%r,%error,%old;
+ .reg .pred %p;
+ .shared .align 4 .b32 admission;
+ .param .u64 av,cv;.param .u32 rr;
+  .param .u64 va,ra,sa;.param .align 8 .b8 returned[16];.reg .u64 %record,%scratch;
+
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %ptr,%ctx,7;setp.ne.u64 %p,%ptr,0;@%p ret;
+ mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
+ mov.u32 %r,0;or.b32 %unique,%unique,%r;mov.u32 %r,0;or.b32 %unique,%unique,%r;mov.u32 %r,0;or.b32 %unique,%unique,%r;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+ mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ setp.ne.u32 %p,%thread,0;@%p bra WAIT;
+ st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),md2asm_gpu_vdfdifh_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
+WAIT:
+ bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];st.param.u64 [va],%args;st.param.u64 [ra],%record;st.param.u64 [sa],%scratch;call.uni (returned),md2asm_gpu_heat_water_diffusion_values,(va,ra,sa);ld.param.u32 %r,[returned];atom.global.or.b32 %old,[%ctx+8],%r;ret;
+
+BAD_LAUNCH:mov.u32 %error,6970;
+REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
+}

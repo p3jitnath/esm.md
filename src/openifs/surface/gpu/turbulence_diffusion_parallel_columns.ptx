@@ -1,0 +1,382 @@
+// Contract: skills/md2asm-gpu/references/openifs/surface/turbulence_diffusion_entry.md
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .u32 result) md2asm_gpu_vdfouter_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .u32 result) md2asm_gpu_vdfouter_admit_arena(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 returned[72]) md2asm_gpu_vertical_diffusion_outer_values(.param .u64 vector,.param .u64 record,.param .u64 scratch);
+.extern .func (.param .align 8 .b8 returned[72]) md2asm_gpu_vertical_diffusion_outer_values_turbulence_columns(.param .u64 vector,.param .u64 record,.param .u64 scratch,.param .u32 original_last);
+.extern .func md2asm_gpu_turbulence_local_complete(.param .u64 vector,.param .u64 context);
+.extern .func (.param .align 8 .b8 returned[16]) md2asm_r23_root_root_turbulence_post(.param .u64 state,.param .u64 environment);
+.const .align 1 .u8 turbulence_column_owner_widths[72]={8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,4,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8};
+.visible .func md2asm_gpu_turbulence_columns_serial(.param .u64 original_vector,.param .u64 context)
+{
+
+ .reg .u64 %esm_parent,%esm_state,%esm_env,%esm_vector,%esm_caps,%esm_local_ctx,%esm_word,%esm_other,%esm_offset,%esm_pointer,%esm_end,%esm_record,%esm_size;
+ .reg .u32 %esm_flags,%esm_error;.reg .pred %esm_p;
+ .param .u64 esm_state_arg,esm_env_arg,esm_vector_arg,esm_context_arg;.param .align 8 .b8 esm_return[16];
+ .reg .u64 %args,%ctx,%ptr;
+ .reg .u32 %thread,%unique,%r,%error,%old;
+ .reg .pred %p;
+ .shared .align 4 .b32 admission;
+ .param .u64 av,cv;.param .u32 rr;
+  .param .u64 va,ra,sa;.param .align 8 .b8 returned[72];.reg .u64 %record,%scratch,%main_scratch,%event,%count<6>,%source,%destination,%length,%position,%owner,%previous,%seed_bytes;.reg .u32 %saved_flags,%returned_error,%field,%byte,%P,%N;
+
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %ptr,%ctx,7;setp.ne.u64 %p,%ptr,0;@%p ret;
+ mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
+ mov.u32 %r,%ctaid.x;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.z;or.b32 %unique,%unique,%r;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+ mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%nctaid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ ld.global.u32 %r,[%ctx+12];and.b32 %r,%r,1;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;
+ // This private vector is packed directly below its source layer frame.
+ mov.u32 %error,8260;
+ setp.eq.u64 %p,%args,0;@%p bra REFUSE;and.b64 %esm_word,%args,7;setp.ne.u64 %p,%esm_word,0;@%p bra REFUSE;
+ add.u64 %esm_end,%args,1368;setp.lt.u64 %p,%esm_end,%args;@%p bra REFUSE;setp.gt.u64 %p,%esm_end,0x7fffffffffffffff;@%p bra REFUSE;
+ add.u64 %esm_word,%args,1408;setp.ne.u64 %p,%esm_word,%ctx;@%p bra REFUSE;
+ ld.global.u64 %esm_parent,[%args+1360];add.u64 %esm_word,%args,7936;setp.ne.u64 %p,%esm_parent,%esm_word;@%p bra REFUSE;
+ and.b64 %esm_word,%esm_parent,15;setp.ne.u64 %p,%esm_word,0;@%p bra REFUSE;add.u64 %esm_end,%esm_parent,32768;setp.lt.u64 %p,%esm_end,%esm_parent;@%p bra REFUSE;setp.gt.u64 %p,%esm_end,0x7fffffffffffffff;@%p bra REFUSE;
+ ld.global.u64 %esm_record,[%ctx+48];add.u64 %esm_word,%args,1472;setp.ne.u64 %p,%esm_record,%esm_word;@%p bra REFUSE;ld.global.u64 %esm_word,[%ctx+56];setp.ne.u64 %p,%esm_word,1280;@%p bra REFUSE;
+ add.u64 %esm_state,%esm_parent,16384;add.u64 %esm_env,%esm_parent,17216;add.u64 %esm_vector,%esm_parent,17408;add.u64 %esm_caps,%esm_parent,17440;add.u64 %esm_local_ctx,%esm_parent,17504;
+ mov.u64 %esm_offset,0;
+ESM_ZERO_PRIVATE:
+ add.u64 %esm_pointer,%esm_state,%esm_offset;st.global.u64 [%esm_pointer],0;add.u64 %esm_offset,%esm_offset,8;setp.lt.u64 %p,%esm_offset,1184;@%p bra ESM_ZERO_PRIVATE;
+ ld.global.u64 %esm_word,[%esm_record+16];st.global.u64 [%esm_vector],%esm_word;st.global.u64 [%esm_vector+8],0;add.u64 %esm_word,%esm_parent,4040;st.global.u64 [%esm_vector+16],%esm_word;
+ st.global.u64 [%esm_caps],8;st.global.u64 [%esm_caps+8],0;st.global.u64 [%esm_caps+16],8;st.global.u32 [%esm_caps+24],0;st.global.u32 [%esm_caps+28],1;st.global.u32 [%esm_caps+32],0;st.global.u32 [%esm_caps+36],1;
+ st.global.u32 [%esm_local_ctx+4],1;ld.global.u32 %esm_flags,[%ctx+8];st.global.u32 [%esm_local_ctx+8],%esm_flags;st.global.u64 [%esm_local_ctx+48],%esm_caps;st.global.u64 [%esm_local_ctx+56],64;
+ st.param.u64 [esm_vector_arg],%esm_vector;st.param.u64 [esm_context_arg],%esm_local_ctx;call.uni md2asm_gpu_turbulence_local_complete,(esm_vector_arg,esm_context_arg);
+ ld.global.u32 %esm_flags,[%esm_local_ctx+8];st.global.u32 [%ctx+8],%esm_flags;ld.global.u32 %error,[%esm_local_ctx];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ setp.ne.u32 %p,%thread,0;@%p bra WAIT;
+ st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),md2asm_gpu_vdfouter_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
+WAIT:
+ bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];st.param.u64 [va],%args;st.param.u64 [ra],%record;st.param.u64 [sa],%scratch;call.uni (returned),md2asm_gpu_vertical_diffusion_outer_values,(va,ra,sa);ld.param.u32 %saved_flags,[returned];ld.param.u32 %returned_error,[returned+4];ld.param.u64 %event,[returned+8];
+ld.param.u64 %count0,[returned+16];
+ld.param.u64 %count1,[returned+24];
+ld.param.u64 %count2,[returned+32];
+ld.param.u64 %count3,[returned+40];
+ld.param.u64 %count4,[returned+48];
+ld.param.u64 %count5,[returned+56];
+setp.ne.u32 %p,%returned_error,0;@%p bra NUMERICAL_ERROR;ld.global.u64 %ptr,[%args+32];ld.global.u32 %P,[%ptr];ld.global.u64 %ptr,[%args+40];ld.global.u32 %N,[%ptr];mul.wide.u32 %seed_bytes,%P,56;cvt.u64.u32 %position,%N;mul.lo.u64 %seed_bytes,%seed_bytes,%position;add.u64 %main_scratch,%scratch,8192;add.u64 %main_scratch,%main_scratch,%seed_bytes;mov.u32 %field,0;COMMIT_OWNER:mul.wide.u32 %position,%field,24;add.u64 %ptr,%main_scratch,2048;add.u64 %ptr,%ptr,%position;ld.global.u64 %destination,[%ptr];ld.global.u64 %source,[%ptr+8];ld.global.u64 %length,[%ptr+16];mov.u64 %position,0;
+// Preserve original owner order. Use words only for aligned, disjoint ranges.
+.reg .u64 %esm_copy_word,%esm_copy_end_src,%esm_copy_end_dst,%esm_copy_bits,%esm_copy_remaining;
+.reg .pred %esm_copy_p,%esm_copy_q;
+or.b64 %esm_copy_bits,%source,%destination;and.b64 %esm_copy_bits,%esm_copy_bits,7;
+setp.ne.u64 %esm_copy_p,%esm_copy_bits,0;@%esm_copy_p bra COMMIT_BYTE;
+add.u64 %esm_copy_end_src,%source,%length;add.u64 %esm_copy_end_dst,%destination,%length;
+setp.lt.u64 %esm_copy_p,%esm_copy_end_src,%source;@%esm_copy_p bra COMMIT_BYTE;
+setp.lt.u64 %esm_copy_p,%esm_copy_end_dst,%destination;@%esm_copy_p bra COMMIT_BYTE;
+setp.lt.u64 %esm_copy_p,%source,%esm_copy_end_dst;setp.lt.u64 %esm_copy_q,%destination,%esm_copy_end_src;
+and.pred %esm_copy_p,%esm_copy_p,%esm_copy_q;@%esm_copy_p bra COMMIT_BYTE;
+COMMIT_WORD:
+sub.u64 %esm_copy_remaining,%length,%position;setp.lt.u64 %esm_copy_p,%esm_copy_remaining,8;@%esm_copy_p bra COMMIT_BYTE;
+add.u64 %ptr,%source,%position;ld.global.u64 %esm_copy_word,[%ptr];
+add.u64 %ptr,%destination,%position;st.global.u64 [%ptr],%esm_copy_word;
+add.u64 %position,%position,8;bra COMMIT_WORD;
+COMMIT_BYTE:setp.ge.u64 %p,%position,%length;@%p bra COMMIT_NEXT;add.u64 %ptr,%source,%position;ld.global.u8 %byte,[%ptr];add.u64 %ptr,%destination,%position;st.global.u8 [%ptr],%byte;add.u64 %position,%position,1;bra COMMIT_BYTE;COMMIT_NEXT:add.u32 %field,%field,1;setp.lt.u32 %p,%field,72;@%p bra COMMIT_OWNER;atom.global.or.b32 %old,[%ctx+8],%saved_flags;setp.eq.u64 %p,%event,0;@%p bra EVENT_JOINED;st.global.u64 [%ctx+16],%event;EVENT_JOINED:
+ld.global.u64 %owner,[%record+416];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_0;setp.eq.u64 %p,%count0,0;@%p bra COUNTER_JOINED_0;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count0;st.global.u64 [%owner],%previous;COUNTER_JOINED_0:
+ld.global.u64 %owner,[%record+424];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_1;setp.eq.u64 %p,%count1,0;@%p bra COUNTER_JOINED_1;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count1;st.global.u64 [%owner],%previous;COUNTER_JOINED_1:
+ld.global.u64 %owner,[%record+432];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_2;setp.eq.u64 %p,%count2,0;@%p bra COUNTER_JOINED_2;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count2;st.global.u64 [%owner],%previous;COUNTER_JOINED_2:
+ld.global.u64 %owner,[%record+440];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_3;setp.eq.u64 %p,%count3,0;@%p bra COUNTER_JOINED_3;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count3;st.global.u64 [%owner],%previous;COUNTER_JOINED_3:
+ld.global.u64 %owner,[%record+448];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_4;setp.eq.u64 %p,%count4,0;@%p bra COUNTER_JOINED_4;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count4;st.global.u64 [%owner],%previous;COUNTER_JOINED_4:
+ld.global.u64 %owner,[%record+456];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_5;setp.eq.u64 %p,%count5,0;@%p bra COUNTER_JOINED_5;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count5;st.global.u64 [%owner],%previous;COUNTER_JOINED_5:
+
+ // Build only the source registers that the literal closing region consumes.
+ st.global.u64 [%esm_state+248],%esm_parent;add.u64 %esm_word,%esm_parent,1536;st.global.u64 [%esm_state+152],%esm_word;
+ ld.global.u64 %esm_word,[%esm_word+8];st.global.u64 [%esm_state+160],%esm_word;
+ ld.global.u64 %esm_pointer,[%args+32];ld.global.u32 %esm_flags,[%esm_pointer];cvt.u64.u32 %esm_word,%esm_flags;st.global.u64 [%esm_state+168],%esm_word;
+ ld.global.u64 %esm_pointer,[%args+40];ld.global.u32 %esm_flags,[%esm_pointer];cvt.u64.u32 %esm_word,%esm_flags;st.global.u64 [%esm_state+176],%esm_word;
+ ld.global.u64 %esm_pointer,[%args+16];ld.global.s32 %esm_flags,[%esm_pointer];cvt.s64.s32 %esm_word,%esm_flags;sub.u64 %esm_word,%esm_word,1;st.global.u64 [%esm_state+184],%esm_word;
+ ld.global.u64 %esm_pointer,[%args+24];ld.global.s32 %esm_flags,[%esm_pointer];cvt.s64.s32 %esm_word,%esm_flags;st.global.u64 [%esm_state+192],%esm_word;
+ add.u64 %esm_pointer,%esm_parent,3600;ld.global.u64 %esm_word,[%esm_pointer];st.global.u64 [%esm_state+200],%esm_word;
+ ld.global.u32 %esm_flags,[%ctx+8];st.global.u32 [%esm_state+776],%esm_flags;
+ st.global.u64 [%esm_env],%ctx;st.global.u64 [%esm_env+8],%esm_vector;st.global.u64 [%esm_env+16],%esm_caps;st.global.u64 [%esm_env+24],%esm_local_ctx;
+ st.param.u64 [esm_state_arg],%esm_state;st.param.u64 [esm_env_arg],%esm_env;call.uni (esm_return),md2asm_r23_root_root_turbulence_post,(esm_state_arg,esm_env_arg);
+ ld.param.u32 %esm_flags,[esm_return];ld.param.u32 %esm_error,[esm_return+4];setp.ne.u32 %p,%esm_error,0;@%p mov.u32 %error,8263;setp.eq.u32 %esm_p,%esm_error,1;@%esm_p mov.u32 %error,8262;@%p mov.u32 %esm_error,%error;ld.global.u32 %old,[%ctx+8];or.b32 %old,%old,%esm_flags;st.global.u32 [%ctx+8],%old;
+ ld.global.u64 %esm_word,[%esm_state+248];setp.ne.u64 %p,%esm_word,%esm_parent;@%p mov.u32 %esm_error,8261;
+ setp.ne.u32 %p,%esm_error,0;@%p st.global.u32 [%ctx],%esm_error;
+ret;NUMERICAL_ERROR:st.global.u32 [%ctx],%returned_error;ret;
+
+BAD_LAUNCH:mov.u32 %error,8200;
+REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
+}
+
+
+.visible .entry md2asm_gpu_turbulence_columns_prepare(.param .u64 original_vector,.param .u64 context)
+{
+
+
+ .reg .u64 %esm_parent,%esm_state,%esm_env,%esm_vector,%esm_caps,%esm_local_ctx,%esm_word,%esm_other,%esm_offset,%esm_pointer,%esm_end,%esm_record,%esm_size;
+ .reg .u32 %esm_flags,%esm_error;.reg .pred %esm_p;
+ .param .u64 esm_state_arg,esm_env_arg,esm_vector_arg,esm_context_arg;.param .align 8 .b8 esm_return[16];
+ .reg .u64 %args,%ctx,%ptr;
+ .reg .u32 %thread,%unique,%r,%error,%old;
+ .reg .pred %p;
+ .shared .align 4 .b32 admission;
+ .param .u64 av,cv;.param .u32 rr;
+  .param .u64 va,ra,sa;.param .align 8 .b8 returned[72];.reg .u64 %record,%scratch,%main_scratch,%event,%count<6>,%source,%destination,%length,%position,%owner,%previous,%seed_bytes;.reg .u32 %saved_flags,%returned_error,%field,%byte,%P,%N;
+
+
+.reg .u64 %tc_vector,%tc_arena,%tc_bytes,%tc_stride,%tc_probe,%tc_end,%tc_row,%tc_temp,%tc_offset,%tc_source,%tc_dest,%tc_word,%tc_row_end,%tc_main,%tc_canonical,%tc_canonical_main,%tc_fieldptr,%tc_baseptr,%tc_sourceptr,%tc_destptr,%tc_length,%tc_pitch,%tc_planes,%tc_plane,%tc_index,%tc_width,%tc_column64,%tc_other,%tc_stage,%tc_common,%tc_sum0,%tc_sum1,%tc_sum2,%tc_fixed3,%tc_fixed4,%tc_fixed5,%tc_ocean0,%tc_ocean1,%tc_ocean2;
+.reg .u32 %tc_active,%tc_id,%tc_i,%tc_first,%tc_last,%tc_P,%tc_N,%tc_flags,%tc_error,%tc_field,%tc_width32,%tc_temp32;
+.reg .pred %tc_p,%tc_q;
+.param .u64 tc_av,tc_cv,tc_rv,tc_sv; .param .u32 tc_bound;
+.param .align 8 .b8 tc_returned[72];
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %ptr,%ctx,7;setp.ne.u64 %p,%ptr,0;@%p ret;
+ mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
+ mov.u32 %r,%ctaid.x;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%ctaid.z;or.b32 %unique,%unique,%r;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+ mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%nctaid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%nctaid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ ld.global.u32 %r,[%ctx+12];and.b32 %r,%r,1;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;
+ // This private vector is packed directly below its source layer frame.
+mov.u32 %error,8264;
+mov.u64 %tc_vector,%args;
+setp.eq.u64 %p,%tc_vector,0;@%p bra REFUSE;and.b64 %tc_temp,%tc_vector,7;setp.ne.u64 %p,%tc_temp,0;@%p bra REFUSE;
+add.u64 %tc_end,%tc_vector,64;setp.lt.u64 %p,%tc_end,%tc_vector;@%p bra REFUSE;setp.gt.u64 %p,%tc_end,0x7fffffffffffffff;@%p bra REFUSE;
+ld.global.u64 %tc_temp,[%tc_vector+8];setp.ne.u64 %p,%tc_temp,%ctx;@%p bra REFUSE;
+ld.global.u64 %tc_temp,[%tc_vector+48];setp.ne.u64 %p,%tc_temp,0;@%p bra REFUSE;ld.global.u64 %tc_temp,[%tc_vector+56];setp.ne.u64 %p,%tc_temp,0;@%p bra REFUSE;
+ld.global.u64 %args,[%tc_vector];
+ mov.u32 %error,8260;
+ setp.eq.u64 %p,%args,0;@%p bra REFUSE;and.b64 %esm_word,%args,7;setp.ne.u64 %p,%esm_word,0;@%p bra REFUSE;
+ add.u64 %esm_end,%args,1368;setp.lt.u64 %p,%esm_end,%args;@%p bra REFUSE;setp.gt.u64 %p,%esm_end,0x7fffffffffffffff;@%p bra REFUSE;
+ add.u64 %esm_word,%args,1408;setp.ne.u64 %p,%esm_word,%ctx;@%p bra REFUSE;
+ ld.global.u64 %esm_parent,[%args+1360];add.u64 %esm_word,%args,7936;setp.ne.u64 %p,%esm_parent,%esm_word;@%p bra REFUSE;
+ and.b64 %esm_word,%esm_parent,15;setp.ne.u64 %p,%esm_word,0;@%p bra REFUSE;add.u64 %esm_end,%esm_parent,32768;setp.lt.u64 %p,%esm_end,%esm_parent;@%p bra REFUSE;setp.gt.u64 %p,%esm_end,0x7fffffffffffffff;@%p bra REFUSE;
+ ld.global.u64 %esm_record,[%ctx+48];add.u64 %esm_word,%args,1472;setp.ne.u64 %p,%esm_record,%esm_word;@%p bra REFUSE;ld.global.u64 %esm_word,[%ctx+56];setp.ne.u64 %p,%esm_word,1280;@%p bra REFUSE;
+
+// The unchanged admission returns only an integer result before preparation.
+{ .param .u64 tc_admit_av_1,tc_admit_cv_1; .param .u32 tc_admit_rr_1;
+st.param.u64 [tc_admit_av_1],%args;st.param.u64 [tc_admit_cv_1],%ctx;call.uni (tc_admit_rr_1),md2asm_gpu_vdfouter_admit,(tc_admit_av_1,tc_admit_cv_1);ld.param.u32 %tc_error,[tc_admit_rr_1];
+}setp.ne.u32 %p,%tc_error,0;@%p bra SOURCE_REFUSED;
+mov.u32 %error,8264;
+ld.global.u64 %tc_arena,[%tc_vector+16];ld.global.u64 %tc_bytes,[%tc_vector+24];ld.global.u64 %tc_stride,[%tc_vector+32];ld.global.u64 %tc_probe,[%tc_vector+40];
+setp.eq.u64 %p,%tc_arena,0;@%p bra REFUSE;and.b64 %tc_temp,%tc_arena,7;setp.ne.u64 %p,%tc_temp,0;@%p bra REFUSE;
+add.u64 %tc_end,%tc_arena,%tc_bytes;setp.lt.u64 %p,%tc_end,%tc_arena;@%p bra REFUSE;setp.gt.u64 %p,%tc_end,0x7fffffffffffffff;@%p bra REFUSE;
+setp.eq.u64 %p,%tc_probe,0;@%p bra REFUSE;and.b64 %tc_temp,%tc_probe,7;setp.ne.u64 %p,%tc_temp,0;@%p bra REFUSE;
+add.u64 %tc_temp,%tc_probe,64;setp.lt.u64 %p,%tc_temp,%tc_probe;@%p bra REFUSE;setp.gt.u64 %p,%tc_temp,0x7fffffffffffffff;@%p bra REFUSE;
+ld.global.u64 %tc_temp,[%tc_probe+32];setp.ne.u64 %p,%tc_temp,%tc_arena;@%p bra REFUSE;ld.global.u64 %tc_temp,[%tc_probe+40];setp.ne.u64 %p,%tc_temp,%tc_bytes;@%p bra REFUSE;
+ld.global.u64 %tc_temp,[%tc_probe+48];setp.ne.u64 %p,%tc_temp,%esm_record;@%p bra REFUSE;ld.global.u64 %tc_temp,[%tc_probe+56];setp.ne.u64 %p,%tc_temp,1280;@%p bra REFUSE;
+ld.global.u64 %tc_temp,[%ctx+40];add.u64 %tc_temp,%tc_temp,8191;setp.lt.u64 %p,%tc_temp,8191;@%p bra REFUSE;and.b64 %tc_temp,%tc_temp,0xfffffffffffff000;setp.ne.u64 %p,%tc_temp,%tc_stride;@%p bra REFUSE;
+ld.global.u64 %tc_temp,[%args+16];ld.global.u32 %tc_first,[%tc_temp];ld.global.u64 %tc_temp,[%args+24];ld.global.u32 %tc_last,[%tc_temp];sub.u32 %tc_active,%tc_last,%tc_first;add.u32 %tc_active,%tc_active,1;
+setp.eq.u32 %p,%tc_active,0;@%p bra REFUSE;setp.gt.u32 %p,%tc_active,32;@%p bra REFUSE;
+cvt.u64.u32 %tc_temp,%tc_active;mul.hi.u64 %tc_other,%tc_temp,%tc_stride;setp.ne.u64 %p,%tc_other,0;@%p bra REFUSE;mul.lo.u64 %tc_temp,%tc_temp,%tc_stride;add.u64 %tc_temp,%tc_temp,65536;setp.lt.u64 %p,%tc_temp,65536;@%p bra REFUSE;setp.ne.u64 %p,%tc_temp,%tc_bytes;@%p bra REFUSE;
+// Reuse the complete model-owner admission for the added allocation.
+{ .param .u64 tc_admit_av_2,tc_admit_cv_2; .param .u32 tc_admit_rr_2;
+st.param.u64 [tc_admit_av_2],%args;st.param.u64 [tc_admit_cv_2],%tc_probe;call.uni (tc_admit_rr_2),md2asm_gpu_vdfouter_admit_arena,(tc_admit_av_2,tc_admit_cv_2);ld.param.u32 %tc_error,[tc_admit_rr_2];
+}setp.ne.u32 %p,%tc_error,0;@%p bra REFUSE;
+// Keep the complete original host/caller frame and launch records separate.
+sub.u64 %tc_source,%args,256;setp.gt.u64 %p,%tc_source,%args;@%p bra REFUSE;add.u64 %tc_dest,%esm_parent,32768;
+setp.lt.u64 %p,%tc_arena,%tc_dest;setp.lt.u64 %tc_q,%tc_source,%tc_end;and.pred %p,%p,%tc_q;@%p bra REFUSE;
+add.u64 %tc_temp,%tc_vector,64;setp.lt.u64 %p,%tc_arena,%tc_temp;setp.lt.u64 %tc_q,%tc_vector,%tc_end;and.pred %p,%p,%tc_q;@%p bra REFUSE;
+add.u64 %tc_temp,%tc_probe,64;setp.lt.u64 %p,%tc_arena,%tc_temp;setp.lt.u64 %tc_q,%tc_probe,%tc_end;and.pred %p,%p,%tc_q;@%p bra REFUSE;
+mov.u32 %tc_i,0;
+CLEAR_CONTROL:cvt.u64.u32 %tc_offset,%tc_i;add.u64 %tc_dest,%tc_arena,%tc_offset;st.global.u64 [%tc_dest],0;add.u32 %tc_i,%tc_i,8;setp.lt.u32 %p,%tc_i,4096;@%p bra CLEAR_CONTROL;
+mov.u64 %tc_source,%esm_parent;add.u64 %tc_dest,%tc_arena,4096;mov.u32 %tc_i,0;
+SNAPSHOT_FRAME:ld.global.u64 %tc_word,[%tc_source];st.global.u64 [%tc_dest],%tc_word;add.u64 %tc_source,%tc_source,8;add.u64 %tc_dest,%tc_dest,8;add.u32 %tc_i,%tc_i,8;setp.lt.u32 %p,%tc_i,32768;@%p bra SNAPSHOT_FRAME;
+mov.u64 %tc_source,%ctx;add.u64 %tc_dest,%tc_arena,36864;mov.u32 %tc_i,0;
+SNAPSHOT_CONTEXT:ld.global.u64 %tc_word,[%tc_source];st.global.u64 [%tc_dest],%tc_word;add.u64 %tc_source,%tc_source,8;add.u64 %tc_dest,%tc_dest,8;add.u32 %tc_i,%tc_i,8;setp.lt.u32 %p,%tc_i,64;@%p bra SNAPSHOT_CONTEXT;
+st.global.u64 [%tc_arena],0x74757262636f6c31;st.global.u32 [%tc_arena+12],%tc_active;st.global.u32 [%tc_arena+16],%tc_first;st.global.u32 [%tc_arena+28],%tc_last;
+ld.global.u64 %tc_temp,[%args+32];ld.global.u32 %tc_P,[%tc_temp];st.global.u32 [%tc_arena+20],%tc_P;ld.global.u64 %tc_temp,[%args+40];ld.global.u32 %tc_N,[%tc_temp];st.global.u32 [%tc_arena+24],%tc_N;
+st.global.u64 [%tc_arena+32],%args;st.global.u64 [%tc_arena+40],%ctx;st.global.u64 [%tc_arena+48],%esm_record;ld.global.u64 %tc_temp,[%ctx+32];st.global.u64 [%tc_arena+56],%tc_temp;ld.global.u64 %tc_temp,[%ctx+40];st.global.u64 [%tc_arena+64],%tc_temp;st.global.u64 [%tc_arena+72],%tc_stride;
+
+mov.u32 %tc_id,0;
+CLEAR_WORKER_MARKERS:mul.wide.u32 %tc_temp,%tc_id,1;mul.lo.u64 %tc_temp,%tc_temp,%tc_stride;add.u64 %tc_row,%tc_arena,65536;add.u64 %tc_row,%tc_row,%tc_temp;st.global.u64 [%tc_row+1488],0;add.u32 %tc_id,%tc_id,1;setp.lt.u32 %p,%tc_id,%tc_active;@%p bra CLEAR_WORKER_MARKERS;
+ add.u64 %esm_state,%esm_parent,16384;add.u64 %esm_env,%esm_parent,17216;add.u64 %esm_vector,%esm_parent,17408;add.u64 %esm_caps,%esm_parent,17440;add.u64 %esm_local_ctx,%esm_parent,17504;
+ mov.u64 %esm_offset,0;
+ESM_ZERO_PRIVATE:
+ add.u64 %esm_pointer,%esm_state,%esm_offset;st.global.u64 [%esm_pointer],0;add.u64 %esm_offset,%esm_offset,8;setp.lt.u64 %p,%esm_offset,1184;@%p bra ESM_ZERO_PRIVATE;
+ ld.global.u64 %esm_word,[%esm_record+16];st.global.u64 [%esm_vector],%esm_word;st.global.u64 [%esm_vector+8],0;add.u64 %esm_word,%esm_parent,4040;st.global.u64 [%esm_vector+16],%esm_word;
+ st.global.u64 [%esm_caps],8;st.global.u64 [%esm_caps+8],0;st.global.u64 [%esm_caps+16],8;st.global.u32 [%esm_caps+24],0;st.global.u32 [%esm_caps+28],1;st.global.u32 [%esm_caps+32],0;st.global.u32 [%esm_caps+36],1;
+ st.global.u32 [%esm_local_ctx+4],1;ld.global.u32 %esm_flags,[%ctx+8];st.global.u32 [%esm_local_ctx+8],%esm_flags;st.global.u64 [%esm_local_ctx+48],%esm_caps;st.global.u64 [%esm_local_ctx+56],64;
+ st.param.u64 [esm_vector_arg],%esm_vector;st.param.u64 [esm_context_arg],%esm_local_ctx;call.uni md2asm_gpu_turbulence_local_complete,(esm_vector_arg,esm_context_arg);
+ ld.global.u32 %esm_flags,[%esm_local_ctx+8];st.global.u32 [%ctx+8],%esm_flags;ld.global.u32 %error,[%esm_local_ctx];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+
+ld.global.u32 %tc_temp32,[%ctx+8];st.global.u32 [%tc_arena+80],%tc_temp32;
+st.global.u32 [%tc_arena+8],1;ret;
+SOURCE_REFUSED:st.param.u64 [tc_av],%args;st.param.u64 [tc_cv],%ctx;call.uni md2asm_gpu_turbulence_columns_serial,(tc_av,tc_cv);ret;
+BAD_LAUNCH:mov.u32 %error,8200;
+REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
+}
+
+.visible .entry md2asm_gpu_turbulence_columns_workers(.param .u64 original_vector,.param .u64 context)
+{
+
+
+ .reg .u64 %esm_parent,%esm_state,%esm_env,%esm_vector,%esm_caps,%esm_local_ctx,%esm_word,%esm_other,%esm_offset,%esm_pointer,%esm_end,%esm_record,%esm_size;
+ .reg .u32 %esm_flags,%esm_error;.reg .pred %esm_p;
+ .param .u64 esm_state_arg,esm_env_arg,esm_vector_arg,esm_context_arg;.param .align 8 .b8 esm_return[16];
+ .reg .u64 %args,%ctx,%ptr;
+ .reg .u32 %thread,%unique,%r,%error,%old;
+ .reg .pred %p;
+ .shared .align 4 .b32 admission;
+ .param .u64 av,cv;.param .u32 rr;
+  .param .u64 va,ra,sa;.param .align 8 .b8 returned[72];.reg .u64 %record,%scratch,%main_scratch,%event,%count<6>,%source,%destination,%length,%position,%owner,%previous,%seed_bytes;.reg .u32 %saved_flags,%returned_error,%field,%byte,%P,%N;
+
+
+.reg .u64 %tc_vector,%tc_arena,%tc_bytes,%tc_stride,%tc_probe,%tc_end,%tc_row,%tc_temp,%tc_offset,%tc_source,%tc_dest,%tc_word,%tc_row_end,%tc_main,%tc_canonical,%tc_canonical_main,%tc_fieldptr,%tc_baseptr,%tc_sourceptr,%tc_destptr,%tc_length,%tc_pitch,%tc_planes,%tc_plane,%tc_index,%tc_width,%tc_column64,%tc_other,%tc_stage,%tc_common,%tc_sum0,%tc_sum1,%tc_sum2,%tc_fixed3,%tc_fixed4,%tc_fixed5,%tc_ocean0,%tc_ocean1,%tc_ocean2;
+.reg .u32 %tc_active,%tc_id,%tc_i,%tc_first,%tc_last,%tc_P,%tc_N,%tc_flags,%tc_error,%tc_field,%tc_width32,%tc_temp32;
+.reg .pred %tc_p,%tc_q;
+.param .u64 tc_av,tc_cv,tc_rv,tc_sv; .param .u32 tc_bound;
+.param .align 8 .b8 tc_returned[72];
+
+ld.param.u64 %tc_vector,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %tc_temp,%ctx,7;setp.ne.u64 %p,%tc_temp,0;@%p ret;ld.global.u32 %tc_error,[%ctx];setp.ne.u32 %p,%tc_error,0;@%p ret;
+mov.u32 %tc_id,%ctaid.x;mov.u32 %tc_i,%tid.x;setp.ne.u32 %p,%tc_i,0;@%p ret;mov.u32 %tc_i,%tid.y;setp.ne.u32 %p,%tc_i,0;@%p ret;mov.u32 %tc_i,%tid.z;setp.ne.u32 %p,%tc_i,0;@%p ret;
+mov.u32 %tc_i,%ctaid.y;setp.ne.u32 %p,%tc_i,0;@%p ret;mov.u32 %tc_i,%ctaid.z;setp.ne.u32 %p,%tc_i,0;@%p ret;
+mov.u32 %tc_i,%ntid.x;setp.ne.u32 %p,%tc_i,1;@%p ret;mov.u32 %tc_i,%ntid.y;setp.ne.u32 %p,%tc_i,1;@%p ret;mov.u32 %tc_i,%ntid.z;setp.ne.u32 %p,%tc_i,1;@%p ret;mov.u32 %tc_i,%nctaid.x;setp.ne.u32 %p,%tc_i,32;@%p ret;mov.u32 %tc_i,%nctaid.y;setp.ne.u32 %p,%tc_i,1;@%p ret;mov.u32 %tc_i,%nctaid.z;setp.ne.u32 %p,%tc_i,1;@%p ret;mov.u32 %tc_i,%dynamic_smem_size;setp.ne.u32 %p,%tc_i,0;@%p ret;
+ld.global.u64 %tc_arena,[%tc_vector+16];ld.global.u64 %tc_word,[%tc_arena];setp.ne.u64 %p,%tc_word,0x74757262636f6c31;@%p ret;ld.global.u32 %tc_i,[%tc_arena+8];setp.ne.u32 %p,%tc_i,1;@%p ret;
+ld.global.u32 %tc_active,[%tc_arena+12];setp.ge.u32 %p,%tc_id,%tc_active;@%p ret;ld.global.u64 %args,[%tc_arena+32];ld.global.u64 %record,[%tc_arena+48];ld.global.u64 %tc_stride,[%tc_arena+72];
+mul.wide.u32 %tc_offset,%tc_id,1;mul.lo.u64 %tc_offset,%tc_offset,%tc_stride;add.u64 %tc_row,%tc_arena,65536;add.u64 %tc_row,%tc_row,%tc_offset;mov.u32 %tc_i,0;
+COPY_PRIVATE_VECTOR:cvt.u64.u32 %tc_offset,%tc_i;add.u64 %tc_source,%args,%tc_offset;add.u64 %tc_dest,%tc_row,%tc_offset;ld.global.u64 %tc_word,[%tc_source];st.global.u64 [%tc_dest],%tc_word;add.u32 %tc_i,%tc_i,8;setp.lt.u32 %p,%tc_i,1360;@%p bra COPY_PRIVATE_VECTOR;
+ld.global.u32 %tc_first,[%tc_arena+16];add.u32 %tc_i,%tc_first,%tc_id;st.global.u32 [%tc_row+1360],%tc_i;st.global.u32 [%tc_row+1364],%tc_i;ld.global.u32 %tc_last,[%tc_arena+28];st.global.u32 [%tc_row+1368],%tc_last;
+add.u64 %tc_temp,%tc_row,1360;st.global.u64 [%tc_row+16],%tc_temp;add.u64 %tc_temp,%tc_row,1364;st.global.u64 [%tc_row+24],%tc_temp;add.u64 %scratch,%tc_row,4096;
+st.param.u64 [tc_av],%tc_row;st.param.u64 [tc_rv],%record;st.param.u64 [tc_sv],%scratch;st.param.u32 [tc_bound],%tc_last;
+call.uni (tc_returned),md2asm_gpu_vertical_diffusion_outer_values_turbulence_columns,(tc_av,tc_rv,tc_sv,tc_bound);
+ld.param.u64 %tc_word,[tc_returned+0];st.global.u64 [%tc_row+1408],%tc_word;
+ld.param.u64 %tc_word,[tc_returned+8];st.global.u64 [%tc_row+1416],%tc_word;
+ld.param.u64 %tc_word,[tc_returned+16];st.global.u64 [%tc_row+1424],%tc_word;
+ld.param.u64 %tc_word,[tc_returned+24];st.global.u64 [%tc_row+1432],%tc_word;
+ld.param.u64 %tc_word,[tc_returned+32];st.global.u64 [%tc_row+1440],%tc_word;
+ld.param.u64 %tc_word,[tc_returned+40];st.global.u64 [%tc_row+1448],%tc_word;
+ld.param.u64 %tc_word,[tc_returned+48];st.global.u64 [%tc_row+1456],%tc_word;
+ld.param.u64 %tc_word,[tc_returned+56];st.global.u64 [%tc_row+1464],%tc_word;
+ld.param.u64 %tc_word,[tc_returned+64];st.global.u64 [%tc_row+1472],%tc_word;
+ld.global.u64 %tc_temp,[%args+32];ld.global.u32 %tc_P,[%tc_temp];ld.global.u64 %tc_temp,[%args+40];ld.global.u32 %tc_N,[%tc_temp];
+mul.wide.u32 %tc_offset,%tc_P,56;cvt.u64.u32 %tc_temp,%tc_N;mul.lo.u64 %tc_offset,%tc_offset,%tc_temp;add.u64 %tc_main,%tc_row,12288;add.u64 %tc_main,%tc_main,%tc_offset;
+ld.global.u64 %tc_word,[%tc_main+6256];st.global.u64 [%tc_row+1504],%tc_word;
+ld.global.u64 %tc_word,[%tc_main+6264];st.global.u64 [%tc_row+1512],%tc_word;
+ld.global.u64 %tc_word,[%tc_main+6272];st.global.u64 [%tc_row+1520],%tc_word;
+membar.gl;st.global.u64 [%tc_row+1488],0x74757262646f6e65;ret;
+}
+.visible .entry md2asm_gpu_turbulence_columns_join(.param .u64 original_vector,.param .u64 context)
+{
+
+
+ .reg .u64 %esm_parent,%esm_state,%esm_env,%esm_vector,%esm_caps,%esm_local_ctx,%esm_word,%esm_other,%esm_offset,%esm_pointer,%esm_end,%esm_record,%esm_size;
+ .reg .u32 %esm_flags,%esm_error;.reg .pred %esm_p;
+ .param .u64 esm_state_arg,esm_env_arg,esm_vector_arg,esm_context_arg;.param .align 8 .b8 esm_return[16];
+ .reg .u64 %args,%ctx,%ptr;
+ .reg .u32 %thread,%unique,%r,%error,%old;
+ .reg .pred %p;
+ .shared .align 4 .b32 admission;
+ .param .u64 av,cv;.param .u32 rr;
+  .param .u64 va,ra,sa;.param .align 8 .b8 returned[72];.reg .u64 %record,%scratch,%main_scratch,%event,%count<6>,%source,%destination,%length,%position,%owner,%previous,%seed_bytes;.reg .u32 %saved_flags,%returned_error,%field,%byte,%P,%N;
+
+
+
+.reg .u64 %tc_vector,%tc_arena,%tc_bytes,%tc_stride,%tc_probe,%tc_end,%tc_row,%tc_temp,%tc_offset,%tc_source,%tc_dest,%tc_word,%tc_row_end,%tc_main,%tc_canonical,%tc_canonical_main,%tc_fieldptr,%tc_baseptr,%tc_sourceptr,%tc_destptr,%tc_length,%tc_pitch,%tc_planes,%tc_plane,%tc_index,%tc_width,%tc_column64,%tc_other,%tc_stage,%tc_common,%tc_sum0,%tc_sum1,%tc_sum2,%tc_fixed3,%tc_fixed4,%tc_fixed5,%tc_ocean0,%tc_ocean1,%tc_ocean2;
+.reg .u32 %tc_active,%tc_id,%tc_i,%tc_first,%tc_last,%tc_P,%tc_N,%tc_flags,%tc_error,%tc_field,%tc_width32,%tc_temp32;
+.reg .pred %tc_p,%tc_q;
+.param .u64 tc_av,tc_cv,tc_rv,tc_sv; .param .u32 tc_bound;
+.param .align 8 .b8 tc_returned[72];
+
+ld.param.u64 %tc_vector,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %tc_temp,%ctx,7;setp.ne.u64 %p,%tc_temp,0;@%p ret;ld.global.u32 %tc_error,[%ctx];setp.ne.u32 %p,%tc_error,0;@%p ret;
+mov.u32 %tc_id,%ctaid.x;setp.ne.u32 %p,%tc_id,0;@%p ret;mov.u32 %tc_i,%tid.x;setp.ne.u32 %p,%tc_i,0;@%p ret;mov.u32 %tc_i,%tid.y;setp.ne.u32 %p,%tc_i,0;@%p ret;mov.u32 %tc_i,%tid.z;setp.ne.u32 %p,%tc_i,0;@%p ret;
+mov.u32 %tc_i,%ctaid.y;setp.ne.u32 %p,%tc_i,0;@%p ret;mov.u32 %tc_i,%ctaid.z;setp.ne.u32 %p,%tc_i,0;@%p ret;
+mov.u32 %tc_i,%ntid.x;setp.ne.u32 %p,%tc_i,1;@%p bra BAD_PROTOCOL;mov.u32 %tc_i,%ntid.y;setp.ne.u32 %p,%tc_i,1;@%p bra BAD_PROTOCOL;mov.u32 %tc_i,%ntid.z;setp.ne.u32 %p,%tc_i,1;@%p bra BAD_PROTOCOL;mov.u32 %tc_i,%nctaid.x;setp.ne.u32 %p,%tc_i,1;@%p bra BAD_PROTOCOL;mov.u32 %tc_i,%nctaid.y;setp.ne.u32 %p,%tc_i,1;@%p bra BAD_PROTOCOL;mov.u32 %tc_i,%nctaid.z;setp.ne.u32 %p,%tc_i,1;@%p bra BAD_PROTOCOL;mov.u32 %tc_i,%dynamic_smem_size;setp.ne.u32 %p,%tc_i,0;@%p bra BAD_PROTOCOL;
+ld.global.u64 %tc_arena,[%tc_vector+16];ld.global.u64 %tc_word,[%tc_arena];setp.ne.u64 %p,%tc_word,0x74757262636f6c31;@%p bra BAD_PROTOCOL;ld.global.u32 %tc_i,[%tc_arena+8];setp.ne.u32 %p,%tc_i,1;@%p bra BAD_PROTOCOL;
+ld.global.u64 %args,[%tc_arena+32];ld.global.u64 %record,[%tc_arena+48];ld.global.u64 %tc_stride,[%tc_arena+72];ld.global.u32 %tc_active,[%tc_arena+12];ld.global.u32 %tc_first,[%tc_arena+16];ld.global.u32 %tc_P,[%tc_arena+20];ld.global.u32 %tc_N,[%tc_arena+24];
+ld.global.u64 %esm_parent,[%args+1360];add.u64 %esm_state,%esm_parent,16384;add.u64 %esm_env,%esm_parent,17216;add.u64 %esm_vector,%esm_parent,17408;add.u64 %esm_caps,%esm_parent,17440;add.u64 %esm_local_ctx,%esm_parent,17504;
+add.u64 %tc_canonical,%tc_arena,65536;ld.global.u64 %tc_word,[%tc_canonical+1488];setp.ne.u64 %p,%tc_word,0x74757262646f6e65;@%p bra SERIAL_FALLBACK;
+ld.global.u64 %tc_stage,[%tc_canonical+1472];ld.global.u64 %tc_fixed3,[%tc_canonical+1448];ld.global.u64 %tc_fixed4,[%tc_canonical+1456];ld.global.u64 %tc_fixed5,[%tc_canonical+1464];
+ld.global.u64 %tc_ocean0,[%tc_canonical+1504];ld.global.u64 %tc_ocean1,[%tc_canonical+1512];ld.global.u64 %tc_ocean2,[%tc_canonical+1520];
+mul.hi.u64 %tc_temp,%tc_fixed4,62;setp.ne.u64 %p,%tc_temp,0;@%p bra SERIAL_FALLBACK;mul.lo.u64 %tc_common,%tc_fixed4,62;add.u64 %tc_common,%tc_common,%tc_ocean0;setp.lt.u64 %p,%tc_common,%tc_ocean0;@%p bra SERIAL_FALLBACK;
+mov.u64 %tc_sum0,0;mov.u64 %tc_sum1,0;mov.u64 %tc_sum2,0;ld.global.u32 %tc_flags,[%ctx+8];ld.global.u32 %tc_temp32,[%tc_arena+80];or.b32 %tc_flags,%tc_flags,%tc_temp32;mov.u32 %tc_id,0;
+CHECK_ALL_WORKERS:
+mul.wide.u32 %tc_offset,%tc_id,1;mul.lo.u64 %tc_offset,%tc_offset,%tc_stride;add.u64 %tc_row,%tc_arena,65536;add.u64 %tc_row,%tc_row,%tc_offset;
+ld.global.u64 %tc_word,[%tc_row+1488];setp.ne.u64 %p,%tc_word,0x74757262646f6e65;@%p bra SERIAL_FALLBACK;
+ld.global.u32 %tc_error,[%tc_row+1412];setp.ne.u32 %p,%tc_error,0;@%p bra SERIAL_FALLBACK;ld.global.u64 %tc_word,[%tc_row+1416];setp.ne.u64 %p,%tc_word,0;@%p bra SERIAL_FALLBACK;
+ld.global.u64 %tc_word,[%tc_row+1472];setp.ne.u64 %p,%tc_word,%tc_stage;@%p bra SERIAL_FALLBACK;
+ld.global.u64 %tc_word,[%tc_row+1448];setp.ne.u64 %p,%tc_word,%tc_fixed3;@%p bra SERIAL_FALLBACK;ld.global.u64 %tc_word,[%tc_row+1456];setp.ne.u64 %p,%tc_word,%tc_fixed4;@%p bra SERIAL_FALLBACK;ld.global.u64 %tc_word,[%tc_row+1464];setp.ne.u64 %p,%tc_word,%tc_fixed5;@%p bra SERIAL_FALLBACK;
+ld.global.u64 %tc_word,[%tc_row+1504];setp.ne.u64 %p,%tc_word,%tc_ocean0;@%p bra SERIAL_FALLBACK;ld.global.u64 %tc_word,[%tc_row+1512];setp.ne.u64 %p,%tc_word,%tc_ocean1;@%p bra SERIAL_FALLBACK;ld.global.u64 %tc_word,[%tc_row+1520];setp.ne.u64 %p,%tc_word,%tc_ocean2;@%p bra SERIAL_FALLBACK;
+ld.global.u64 %tc_word,[%tc_row+1424];setp.lt.u64 %p,%tc_word,%tc_common;@%p bra SERIAL_FALLBACK;add.u64 %tc_sum0,%tc_sum0,%tc_word;ld.global.u64 %tc_word,[%tc_row+1432];setp.lt.u64 %p,%tc_word,%tc_ocean1;@%p bra SERIAL_FALLBACK;add.u64 %tc_sum1,%tc_sum1,%tc_word;ld.global.u64 %tc_word,[%tc_row+1440];setp.lt.u64 %p,%tc_word,%tc_ocean2;@%p bra SERIAL_FALLBACK;add.u64 %tc_sum2,%tc_sum2,%tc_word;
+ld.global.u32 %tc_temp32,[%tc_row+1408];or.b32 %tc_flags,%tc_flags,%tc_temp32;
+add.u32 %tc_id,%tc_id,1;setp.lt.u32 %p,%tc_id,%tc_active;@%p bra CHECK_ALL_WORKERS;
+// Validate every returned source span before changing the private canonical image.
+mul.wide.u32 %tc_offset,%tc_P,56;cvt.u64.u32 %tc_temp,%tc_N;mul.lo.u64 %tc_offset,%tc_offset,%tc_temp;add.u64 %tc_canonical_main,%tc_canonical,12288;add.u64 %tc_canonical_main,%tc_canonical_main,%tc_offset;
+mov.u32 %tc_id,0;
+VALIDATE_ROW:
+mul.wide.u32 %tc_temp,%tc_id,1;mul.lo.u64 %tc_temp,%tc_temp,%tc_stride;add.u64 %tc_row,%tc_arena,65536;add.u64 %tc_row,%tc_row,%tc_temp;add.u64 %tc_main,%tc_row,12288;add.u64 %tc_main,%tc_main,%tc_offset;add.u64 %tc_baseptr,%tc_row,4096;add.u64 %tc_row_end,%tc_row,%tc_stride;mov.u32 %tc_field,0;
+VALIDATE_FIELD:
+mul.wide.u32 %tc_temp,%tc_field,24;add.u64 %tc_fieldptr,%tc_main,2048;add.u64 %tc_fieldptr,%tc_fieldptr,%tc_temp;add.u64 %tc_other,%tc_canonical_main,2048;add.u64 %tc_other,%tc_other,%tc_temp;
+ld.global.u64 %tc_destptr,[%tc_fieldptr];ld.global.u64 %tc_temp,[%tc_other];setp.ne.u64 %p,%tc_destptr,%tc_temp;@%p bra SERIAL_FALLBACK;ld.global.u64 %tc_length,[%tc_fieldptr+16];ld.global.u64 %tc_temp,[%tc_other+16];setp.ne.u64 %p,%tc_length,%tc_temp;@%p bra SERIAL_FALLBACK;
+ld.global.u64 %tc_sourceptr,[%tc_fieldptr+8];setp.lt.u64 %p,%tc_sourceptr,%tc_baseptr;@%p bra SERIAL_FALLBACK;add.u64 %tc_end,%tc_sourceptr,%tc_length;setp.lt.u64 %p,%tc_end,%tc_sourceptr;@%p bra SERIAL_FALLBACK;setp.gt.u64 %p,%tc_end,%tc_row_end;@%p bra SERIAL_FALLBACK;
+mov.u64 %tc_other,turbulence_column_owner_widths;cvt.u64.u32 %tc_temp,%tc_field;add.u64 %tc_other,%tc_other,%tc_temp;ld.const.u8 %tc_width32,[%tc_other];cvt.u64.u32 %tc_width,%tc_width32;sub.u64 %tc_temp,%tc_width,1;and.b64 %tc_temp,%tc_sourceptr,%tc_temp;setp.ne.u64 %p,%tc_temp,0;@%p bra SERIAL_FALLBACK;
+cvt.u64.u32 %tc_pitch,%tc_P;mul.lo.u64 %tc_pitch,%tc_pitch,%tc_width;rem.u64 %tc_temp,%tc_length,%tc_pitch;setp.ne.u64 %p,%tc_temp,0;@%p bra SERIAL_FALLBACK;
+add.u32 %tc_field,%tc_field,1;setp.lt.u32 %p,%tc_field,72;@%p bra VALIDATE_FIELD;
+add.u32 %tc_id,%tc_id,1;setp.lt.u32 %p,%tc_id,%tc_active;@%p bra VALIDATE_ROW;
+// Merge only each column-owned cell. The complete PTKEE zero stays intact.
+mov.u32 %tc_id,1;
+MERGE_ROW:
+setp.ge.u32 %p,%tc_id,%tc_active;@%p bra MERGE_COMPLETE;
+mul.wide.u32 %tc_temp,%tc_id,1;mul.lo.u64 %tc_temp,%tc_temp,%tc_stride;add.u64 %tc_row,%tc_arena,65536;add.u64 %tc_row,%tc_row,%tc_temp;add.u64 %tc_main,%tc_row,12288;add.u64 %tc_main,%tc_main,%tc_offset;
+add.u32 %tc_temp32,%tc_first,%tc_id;sub.u32 %tc_temp32,%tc_temp32,1;cvt.u64.u32 %tc_column64,%tc_temp32;mov.u32 %tc_field,0;
+MERGE_FIELD:
+mul.wide.u32 %tc_temp,%tc_field,24;add.u64 %tc_fieldptr,%tc_main,2048;add.u64 %tc_fieldptr,%tc_fieldptr,%tc_temp;add.u64 %tc_other,%tc_canonical_main,2048;add.u64 %tc_other,%tc_other,%tc_temp;
+ld.global.u64 %tc_sourceptr,[%tc_fieldptr+8];ld.global.u64 %tc_destptr,[%tc_other+8];ld.global.u64 %tc_length,[%tc_fieldptr+16];mov.u64 %tc_other,turbulence_column_owner_widths;cvt.u64.u32 %tc_temp,%tc_field;add.u64 %tc_other,%tc_other,%tc_temp;ld.const.u8 %tc_width32,[%tc_other];cvt.u64.u32 %tc_width,%tc_width32;
+cvt.u64.u32 %tc_pitch,%tc_P;mul.lo.u64 %tc_pitch,%tc_pitch,%tc_width;div.u64 %tc_planes,%tc_length,%tc_pitch;mov.u64 %tc_plane,0;
+MERGE_PLANE:
+setp.ge.u64 %p,%tc_plane,%tc_planes;@%p bra MERGE_NEXT_FIELD;
+mul.lo.u64 %tc_index,%tc_plane,%tc_pitch;mul.lo.u64 %tc_temp,%tc_column64,%tc_width;add.u64 %tc_index,%tc_index,%tc_temp;add.u64 %tc_source,%tc_sourceptr,%tc_index;add.u64 %tc_dest,%tc_destptr,%tc_index;
+setp.eq.u32 %p,%tc_width32,4;@%p bra MERGE_WORD32;ld.global.u64 %tc_word,[%tc_source];st.global.u64 [%tc_dest],%tc_word;bra MERGE_NEXT_PLANE;
+MERGE_WORD32:ld.global.u32 %tc_temp32,[%tc_source];st.global.u32 [%tc_dest],%tc_temp32;
+MERGE_NEXT_PLANE:add.u64 %tc_plane,%tc_plane,1;bra MERGE_PLANE;
+MERGE_NEXT_FIELD:add.u32 %tc_field,%tc_field,1;setp.lt.u32 %p,%tc_field,72;@%p bra MERGE_FIELD;
+add.u32 %tc_id,%tc_id,1;bra MERGE_ROW;
+MERGE_COMPLETE:
+cvt.u64.u32 %tc_temp,%tc_active;sub.u64 %tc_temp,%tc_temp,1;mul.lo.u64 %tc_temp,%tc_temp,%tc_common;sub.u64 %count0,%tc_sum0,%tc_temp;cvt.u64.u32 %tc_temp,%tc_active;sub.u64 %tc_temp,%tc_temp,1;mul.lo.u64 %tc_other,%tc_temp,%tc_ocean1;sub.u64 %count1,%tc_sum1,%tc_other;mul.lo.u64 %tc_other,%tc_temp,%tc_ocean2;sub.u64 %count2,%tc_sum2,%tc_other;mov.u64 %count3,%tc_fixed3;mov.u64 %count4,%tc_fixed4;mov.u64 %count5,%tc_fixed5;
+mov.u64 %main_scratch,%tc_canonical_main;
+mov.u32 %field,0;COMMIT_OWNER:mul.wide.u32 %position,%field,24;add.u64 %ptr,%main_scratch,2048;add.u64 %ptr,%ptr,%position;ld.global.u64 %destination,[%ptr];ld.global.u64 %source,[%ptr+8];ld.global.u64 %length,[%ptr+16];mov.u64 %position,0;
+// Preserve original owner order. Use words only for aligned, disjoint ranges.
+.reg .u64 %esm_copy_word,%esm_copy_end_src,%esm_copy_end_dst,%esm_copy_bits,%esm_copy_remaining;
+.reg .pred %esm_copy_p,%esm_copy_q;
+or.b64 %esm_copy_bits,%source,%destination;and.b64 %esm_copy_bits,%esm_copy_bits,7;
+setp.ne.u64 %esm_copy_p,%esm_copy_bits,0;@%esm_copy_p bra COMMIT_BYTE;
+add.u64 %esm_copy_end_src,%source,%length;add.u64 %esm_copy_end_dst,%destination,%length;
+setp.lt.u64 %esm_copy_p,%esm_copy_end_src,%source;@%esm_copy_p bra COMMIT_BYTE;
+setp.lt.u64 %esm_copy_p,%esm_copy_end_dst,%destination;@%esm_copy_p bra COMMIT_BYTE;
+setp.lt.u64 %esm_copy_p,%source,%esm_copy_end_dst;setp.lt.u64 %esm_copy_q,%destination,%esm_copy_end_src;
+and.pred %esm_copy_p,%esm_copy_p,%esm_copy_q;@%esm_copy_p bra COMMIT_BYTE;
+COMMIT_WORD:
+sub.u64 %esm_copy_remaining,%length,%position;setp.lt.u64 %esm_copy_p,%esm_copy_remaining,8;@%esm_copy_p bra COMMIT_BYTE;
+add.u64 %ptr,%source,%position;ld.global.u64 %esm_copy_word,[%ptr];
+add.u64 %ptr,%destination,%position;st.global.u64 [%ptr],%esm_copy_word;
+add.u64 %position,%position,8;bra COMMIT_WORD;
+COMMIT_BYTE:setp.ge.u64 %p,%position,%length;@%p bra COMMIT_NEXT;add.u64 %ptr,%source,%position;ld.global.u8 %byte,[%ptr];add.u64 %ptr,%destination,%position;st.global.u8 [%ptr],%byte;add.u64 %position,%position,1;bra COMMIT_BYTE;COMMIT_NEXT:add.u32 %field,%field,1;setp.lt.u32 %p,%field,72;@%p bra COMMIT_OWNER;
+atom.global.or.b32 %old,[%ctx+8],%tc_flags;
+ld.global.u64 %owner,[%record+416];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_0;setp.eq.u64 %p,%count0,0;@%p bra COUNTER_JOINED_0;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count0;st.global.u64 [%owner],%previous;COUNTER_JOINED_0:
+ld.global.u64 %owner,[%record+424];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_1;setp.eq.u64 %p,%count1,0;@%p bra COUNTER_JOINED_1;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count1;st.global.u64 [%owner],%previous;COUNTER_JOINED_1:
+ld.global.u64 %owner,[%record+432];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_2;setp.eq.u64 %p,%count2,0;@%p bra COUNTER_JOINED_2;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count2;st.global.u64 [%owner],%previous;COUNTER_JOINED_2:
+ld.global.u64 %owner,[%record+440];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_3;setp.eq.u64 %p,%count3,0;@%p bra COUNTER_JOINED_3;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count3;st.global.u64 [%owner],%previous;COUNTER_JOINED_3:
+ld.global.u64 %owner,[%record+448];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_4;setp.eq.u64 %p,%count4,0;@%p bra COUNTER_JOINED_4;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count4;st.global.u64 [%owner],%previous;COUNTER_JOINED_4:
+ld.global.u64 %owner,[%record+456];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_5;setp.eq.u64 %p,%count5,0;@%p bra COUNTER_JOINED_5;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count5;st.global.u64 [%owner],%previous;COUNTER_JOINED_5:
+
+
+st.global.u32 [%tc_arena+8],3;
+ // Build only the source registers that the literal closing region consumes.
+ st.global.u64 [%esm_state+248],%esm_parent;add.u64 %esm_word,%esm_parent,1536;st.global.u64 [%esm_state+152],%esm_word;
+ ld.global.u64 %esm_word,[%esm_word+8];st.global.u64 [%esm_state+160],%esm_word;
+ ld.global.u64 %esm_pointer,[%args+32];ld.global.u32 %esm_flags,[%esm_pointer];cvt.u64.u32 %esm_word,%esm_flags;st.global.u64 [%esm_state+168],%esm_word;
+ ld.global.u64 %esm_pointer,[%args+40];ld.global.u32 %esm_flags,[%esm_pointer];cvt.u64.u32 %esm_word,%esm_flags;st.global.u64 [%esm_state+176],%esm_word;
+ ld.global.u64 %esm_pointer,[%args+16];ld.global.s32 %esm_flags,[%esm_pointer];cvt.s64.s32 %esm_word,%esm_flags;sub.u64 %esm_word,%esm_word,1;st.global.u64 [%esm_state+184],%esm_word;
+ ld.global.u64 %esm_pointer,[%args+24];ld.global.s32 %esm_flags,[%esm_pointer];cvt.s64.s32 %esm_word,%esm_flags;st.global.u64 [%esm_state+192],%esm_word;
+ add.u64 %esm_pointer,%esm_parent,3600;ld.global.u64 %esm_word,[%esm_pointer];st.global.u64 [%esm_state+200],%esm_word;
+ ld.global.u32 %esm_flags,[%ctx+8];st.global.u32 [%esm_state+776],%esm_flags;
+ st.global.u64 [%esm_env],%ctx;st.global.u64 [%esm_env+8],%esm_vector;st.global.u64 [%esm_env+16],%esm_caps;st.global.u64 [%esm_env+24],%esm_local_ctx;
+ st.param.u64 [esm_state_arg],%esm_state;st.param.u64 [esm_env_arg],%esm_env;call.uni (esm_return),md2asm_r23_root_root_turbulence_post,(esm_state_arg,esm_env_arg);
+ ld.param.u32 %esm_flags,[esm_return];ld.param.u32 %esm_error,[esm_return+4];setp.ne.u32 %p,%esm_error,0;@%p mov.u32 %error,8263;setp.eq.u32 %esm_p,%esm_error,1;@%esm_p mov.u32 %error,8262;@%p mov.u32 %esm_error,%error;ld.global.u32 %old,[%ctx+8];or.b32 %old,%old,%esm_flags;st.global.u32 [%ctx+8],%old;
+ ld.global.u64 %esm_word,[%esm_state+248];setp.ne.u64 %p,%esm_word,%esm_parent;@%p mov.u32 %esm_error,8261;
+ setp.ne.u32 %p,%esm_error,0;@%p st.global.u32 [%ctx],%esm_error;
+
+ret;
+SERIAL_FALLBACK:
+add.u64 %tc_source,%tc_arena,4096;mov.u64 %tc_dest,%esm_parent;mov.u32 %tc_i,0;
+RESTORE_FRAME:ld.global.u64 %tc_word,[%tc_source];st.global.u64 [%tc_dest],%tc_word;add.u64 %tc_source,%tc_source,8;add.u64 %tc_dest,%tc_dest,8;add.u32 %tc_i,%tc_i,8;setp.lt.u32 %p,%tc_i,32768;@%p bra RESTORE_FRAME;
+add.u64 %tc_source,%tc_arena,36864;mov.u64 %tc_dest,%ctx;mov.u32 %tc_i,0;
+RESTORE_CONTEXT:ld.global.u64 %tc_word,[%tc_source];st.global.u64 [%tc_dest],%tc_word;add.u64 %tc_source,%tc_source,8;add.u64 %tc_dest,%tc_dest,8;add.u32 %tc_i,%tc_i,8;setp.lt.u32 %p,%tc_i,64;@%p bra RESTORE_CONTEXT;
+st.global.u32 [%tc_arena+8],2;st.param.u64 [tc_av],%args;st.param.u64 [tc_cv],%ctx;call.uni md2asm_gpu_turbulence_columns_serial,(tc_av,tc_cv);ret;
+BAD_PROTOCOL:st.global.u32 [%ctx],8264;ret;
+}

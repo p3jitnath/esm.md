@@ -31,8 +31,14 @@ SEPARATE_DONE:st.param.u32 [result],%e;ret;
 
 .extern .func (.param .align 8 .b8 geometry[64]) md2asm_gpu_surface_descriptor_geometry(.param .u64 descriptor,.param .u32 rank,.param .u32 element_bytes,.param .u64 required0,.param .u64 required1,.param .u64 required2,.param .u32 zero_is_one);
 .extern .func (.param .align 8 .b8 result[72]) md2asm_gpu_vertical_diffusion_outer_values(.param .u64 vector,.param .u64 record,.param .u64 scratch);
-.visible .func (.param .u32 result) md2asm_gpu_vdfouter_admit(.param .u64 vector,.param .u64 context)
+.func (.param .u32 result) md2asm_gpu_vdfouter_admit_span(.param .u64 vector,.param .u64 context,.param .u32 full_capacity)
 {
+.reg .u32 %esm_full_capacity;
+.reg .u64 %esm_span_bytes;
+.reg .pred %esm_full_capacity_pred;
+ld.param.u32 %esm_full_capacity,[full_capacity];
+setp.ne.u32 %esm_full_capacity_pred,%esm_full_capacity,0;
+
 .reg .u64 %args,%ctx,%v<164>,%baseline<7>,%baseline_bytes,%record,%record_bytes,%scratch,%capacity,%model,%surface,%length,%extent,%temporary,%constant,%pointer,%source_bytes,%output_bytes,%arena_bytes,%required_bytes,%rounded,%counter<6>,%counter_length<6>,%field,%lower<76>,%table_bytes<76>,%array_bytes<164>,%global<128>,%a_end,%b_end,%pair_table,%pair_i,%pair_j,%pair_limit,%pair_address,%pair_offset,%pair_a,%pair_an,%pair_b,%pair_bn;
 .reg .u32 %P,%N,%NRF,%first,%last,%r,%error,%geometry_error;.reg .pred %p,%q;
 .param .u64 rb,rn,rm,da,dn,db,dm,gd,g0,g1,g2;.param .u32 rr,gr,gw,gz;.param .align 8 .b8 geometry[64];
@@ -2941,8 +2947,9 @@ ld.global.u32 %r,[%v8];cvt.u64.u32 %temporary,%r;add.u64 %extent,%extent,%tempor
 mul.hi.u64 %temporary,%length,%extent;setp.ne.u64 %p,%temporary,0;@%p bra ADMIT_DONE;mul.lo.u64 %length,%length,%extent;setp.gt.u64 %p,%length,0x0fffffffffffffff;@%p bra ADMIT_DONE;
 shl.b64 %temporary,%length,3;add.u64 %source_bytes,%source_bytes,%temporary;setp.gt.u64 %p,%source_bytes,0x0fffffffffffffff;@%p bra ADMIT_DONE;
 add.u64 %required_bytes,%output_bytes,%source_bytes;setp.gt.u64 %p,%required_bytes,0x0fffffffffffffff;@%p bra ADMIT_DONE;shl.b64 %arena_bytes,%required_bytes,2;mul.wide.u32 %temporary,%P,4096;add.u64 %arena_bytes,%arena_bytes,%temporary;add.u64 %arena_bytes,%arena_bytes,131072;mul.wide.u32 %temporary,%N,512;add.u64 %arena_bytes,%arena_bytes,%temporary;mul.wide.u32 %temporary,%NRF,8;add.u64 %arena_bytes,%arena_bytes,%temporary;add.u64 %required_bytes,%required_bytes,%arena_bytes;add.u64 %required_bytes,%required_bytes,65536;setp.gt.u64 %p,%required_bytes,0x7fffffffffffffff;@%p bra ADMIT_DONE;mul.wide.u32 %temporary,%P,56;cvt.u64.u32 %extent,%N;mul.lo.u64 %temporary,%temporary,%extent;add.u64 %required_bytes,%required_bytes,%temporary;add.u64 %required_bytes,%required_bytes,8192;setp.gt.u64 %p,%required_bytes,0x7fffffffffffffff;@%p bra ADMIT_DONE;ld.global.u64 %scratch,[%ctx+32];ld.global.u64 %capacity,[%ctx+40];setp.lt.u64 %p,%capacity,%required_bytes;@%p bra ADMIT_DONE;
+selp.u64 %esm_span_bytes,%capacity,%required_bytes,%esm_full_capacity_pred;
 
- st.param.u64 [rb],%scratch;st.param.u64 [rn],%required_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdfouter_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%scratch;st.param.u64 [rn],%esm_span_bytes;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_vdfouter_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
 
 mov.u32 %error,8202;
 mul.wide.u32 %baseline_bytes,%P,8;cvt.u64.u32 %temporary,%N;mul.lo.u64 %baseline_bytes,%baseline_bytes,%temporary;
@@ -3309,7 +3316,7 @@ st.local.u64 [%pair_table+5616],%v157;st.local.u64 [%pair_table+5624],%array_byt
 st.local.u64 [%pair_table+5632],%v158;st.local.u64 [%pair_table+5640],%array_bytes158;
 st.local.u64 [%pair_table+5648],%v159;st.local.u64 [%pair_table+5656],%array_bytes159;
 st.local.u64 [%pair_table+5664],%v160;st.local.u64 [%pair_table+5672],%array_bytes160;
-st.local.u64 [%pair_table+5680],%scratch;st.local.u64 [%pair_table+5688],%required_bytes;
+st.local.u64 [%pair_table+5680],%scratch;st.local.u64 [%pair_table+5688],%esm_span_bytes;
 st.local.u64 [%pair_table+5696],%ctx;st.local.u64 [%pair_table+5704],64;
 st.local.u64 [%pair_table+4320],%baseline0;st.local.u64 [%pair_table+4328],%baseline_bytes;
 st.local.u64 [%pair_table+4336],%baseline1;st.local.u64 [%pair_table+4344],%baseline_bytes;
@@ -3323,6 +3330,30 @@ OWNER_MUTABLE:setp.ge.u64 %p,%pair_i,80;@%p bra ADMIT_OK;add.u64 %pair_limit,%pa
 OWNER_PAIR:setp.ge.u64 %p,%pair_j,%pair_limit;@%p bra OWNER_NEXT;shl.b64 %pair_offset,%pair_j,4;add.u64 %pair_address,%pair_table,%pair_offset;ld.local.u64 %pair_b,[%pair_address];ld.local.u64 %pair_bn,[%pair_address+8];setp.eq.u64 %p,%pair_an,0;@%p bra PAIR_CLEAR;setp.eq.u64 %p,%pair_bn,0;@%p bra PAIR_CLEAR;add.u64 %a_end,%pair_a,%pair_an;add.u64 %b_end,%pair_b,%pair_bn;setp.lt.u64 %p,%pair_a,%b_end;setp.lt.u64 %q,%pair_b,%a_end;and.pred %p,%p,%q;@%p bra ADMIT_DONE;PAIR_CLEAR:add.u64 %pair_j,%pair_j,1;bra OWNER_PAIR;OWNER_NEXT:add.u64 %pair_i,%pair_i,1;bra OWNER_MUTABLE;
 ADMIT_OK:mov.u32 %error,0;
 ADMIT_DONE:st.param.u32 [result],%error;ret;
+}
+
+.visible .func (.param .u32 result) md2asm_gpu_vdfouter_admit(.param .u64 vector,.param .u64 context)
+{
+.reg .u64 %esm_vector,%esm_context;
+.reg .u32 %esm_error;
+.param .u64 esm_vector_arg,esm_context_arg;
+.param .u32 esm_span_arg,esm_return;
+ld.param.u64 %esm_vector,[vector];ld.param.u64 %esm_context,[context];
+st.param.u64 [esm_vector_arg],%esm_vector;st.param.u64 [esm_context_arg],%esm_context;st.param.u32 [esm_span_arg],0;
+call.uni (esm_return),md2asm_gpu_vdfouter_admit_span,(esm_vector_arg,esm_context_arg,esm_span_arg);
+ld.param.u32 %esm_error,[esm_return];st.param.u32 [result],%esm_error;ret;
+}
+
+.visible .func (.param .u32 result) md2asm_gpu_vdfouter_admit_arena(.param .u64 vector,.param .u64 context)
+{
+.reg .u64 %esm_vector,%esm_context;
+.reg .u32 %esm_error;
+.param .u64 esm_vector_arg,esm_context_arg;
+.param .u32 esm_span_arg,esm_return;
+ld.param.u64 %esm_vector,[vector];ld.param.u64 %esm_context,[context];
+st.param.u64 [esm_vector_arg],%esm_vector;st.param.u64 [esm_context_arg],%esm_context;st.param.u32 [esm_span_arg],1;
+call.uni (esm_return),md2asm_gpu_vdfouter_admit_span,(esm_vector_arg,esm_context_arg,esm_span_arg);
+ld.param.u32 %esm_error,[esm_return];st.param.u32 [result],%esm_error;ret;
 }
 
 

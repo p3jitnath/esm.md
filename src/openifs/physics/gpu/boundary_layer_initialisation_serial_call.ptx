@@ -1456,3 +1456,41 @@ setp.eq.u64 %p,%event64,0;@%p ret;st.global.u64 [%ctx+16],%event64;ret;
 BAD_LAUNCH:mov.u32 %error,6960;
 REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
 }
+
+// Private column entry. Its original logical endpoint stays separate from traversal.
+
+.visible .func md2asm_gpu_vdfhghtn_serial_call_turbulence_columns(.param .u64 original_vector,.param .u64 context,.param .u32 esm_original_last_column)
+{
+.reg .u32 %esm_original_last;
+ld.param.u32 %esm_original_last,[esm_original_last_column];
+
+ .reg .u64 %args,%ctx,%ptr;
+ .reg .u32 %thread,%unique,%r,%error,%old;
+ .reg .pred %p;
+ .shared .align 4 .b32 admission;
+ .param .u64 av,cv;.param .u32 rr;
+  .param .u64 va,ca,sa;.param .align 8 .b8 returned[40];.reg .u64 %record,%scratch,%event64;
+ .reg .u64 %counter_record,%counter_record_bytes,%counter_increment,%counter_owner,%counter_previous,%serial_count<3>;
+
+ ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %ptr,%ctx,7;setp.ne.u64 %p,%ptr,0;@%p ret;
+ mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
+ mov.u32 %r,0;or.b32 %unique,%unique,%r;mov.u32 %r,0;or.b32 %unique,%unique,%r;mov.u32 %r,0;or.b32 %unique,%unique,%r;
+ ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
+ mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ setp.ne.u32 %p,%thread,0;@%p bra WAIT;
+ st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),md2asm_gpu_vdfhghtn_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
+WAIT:
+ bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];st.param.u64 [va],%args;st.param.u64 [ca],%record;st.param.u64 [sa],%scratch;call.uni (returned),md2asm_gpu_boundary_layer_values,(va,ca,sa);ld.param.u32 %r,[returned];ld.param.u64 %event64,[returned+8];ld.param.u64 %serial_count0,[returned+16];ld.param.u64 %serial_count1,[returned+24];ld.param.u64 %serial_count2,[returned+32];atom.global.or.b32 %old,[%ctx+8],%r;
+ ld.global.u64 %counter_record_bytes,[%ctx+56];setp.lt.u64 %p,%counter_record_bytes,256;@%p bra COUNTER_JOIN_DONE;ld.global.u64 %counter_record,[%ctx+48];
+ mov.u64 %counter_increment,%serial_count0;setp.eq.u64 %p,%counter_increment,0;@%p bra COUNTER_JOIN_0;ld.global.u64 %counter_owner,[%counter_record+232];setp.eq.u64 %p,%counter_owner,0;@%p bra COUNTER_JOIN_0;ld.global.u64 %counter_previous,[%counter_owner];add.u64 %counter_previous,%counter_previous,%counter_increment;st.global.u64 [%counter_owner],%counter_previous;COUNTER_JOIN_0:
+ mov.u64 %counter_increment,%serial_count1;setp.eq.u64 %p,%counter_increment,0;@%p bra COUNTER_JOIN_1;ld.global.u64 %counter_owner,[%counter_record+240];setp.eq.u64 %p,%counter_owner,0;@%p bra COUNTER_JOIN_1;ld.global.u64 %counter_previous,[%counter_owner];add.u64 %counter_previous,%counter_previous,%counter_increment;st.global.u64 [%counter_owner],%counter_previous;COUNTER_JOIN_1:
+ mov.u64 %counter_increment,%serial_count2;setp.eq.u64 %p,%counter_increment,0;@%p bra COUNTER_JOIN_2;ld.global.u64 %counter_owner,[%counter_record+248];setp.eq.u64 %p,%counter_owner,0;@%p bra COUNTER_JOIN_2;ld.global.u64 %counter_previous,[%counter_owner];add.u64 %counter_previous,%counter_previous,%counter_increment;st.global.u64 [%counter_owner],%counter_previous;COUNTER_JOIN_2:
+COUNTER_JOIN_DONE:
+setp.eq.u64 %p,%event64,0;@%p ret;st.global.u64 [%ctx+16],%event64;ret;
+
+BAD_LAUNCH:mov.u32 %error,6960;
+REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
+}
