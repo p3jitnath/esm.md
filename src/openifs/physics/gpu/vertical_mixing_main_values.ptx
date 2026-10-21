@@ -4242,7 +4242,7 @@ st.param.u64 [result+64],%stage;ret;
 .extern .func md2asm_gpu_vdftofdc_serial_call_turbulence_columns(.param .u64 vector,.param .u64 context,.param .u32 esm_original_last_column);
 .extern .func md2asm_gpu_vdfdifh_serial_call_turbulence_columns(.param .u64 vector,.param .u64 context,.param .u32 esm_original_last_column);
 .extern .func md2asm_gpu_surfpp_ctl_serial_call_turbulence_columns(.param .u64 vector,.param .u64 context,.param .u32 esm_original_last_column);
-.extern .func md2asm_gpu_surfexcdriver_ctl_serial_call_turbulence_columns(.param .u64 vector,.param .u64 context,.param .u32 esm_original_last_column);
+.extern .func md2asm_gpu_surfexcdriver_ctl_serial_call_turbulence_columns(.param .u64 vector,.param .u64 context,.param .u32 esm_original_last_column,.param .u64 event_order_journal);
 .visible .func (.param .align 8 .b8 result[72]) md2asm_gpu_vertical_mixing_main_values_turbulence_columns(.param .u64 original_vector,.param .u64 numerical_record,.param .u64 private_scratch,.param .u32 esm_original_last_column)
 {
 .reg .u32 %copy_team_lane;.reg .u64 %copy_team_position;.reg .pred %copy_team_leader;
@@ -4265,6 +4265,7 @@ mov.u64 %count5,0;
 ld.global.u64 %v0,[%original+0];
 ld.global.u64 %v1,[%original+8];
 ld.global.u64 %v2,[%original+16];
+.reg .u64 %eo_journal;sub.u64 %eo_journal,%v2,1360;add.u64 %eo_journal,%eo_journal,1536;
 ld.global.u64 %v3,[%original+24];
 ld.global.u64 %v4,[%original+32];
 ld.global.u64 %v5,[%original+40];
@@ -7367,8 +7368,10 @@ st.global.u64 [%child_vector+1064],%value;
 mov.u64 %value,1;
 st.global.u64 [%child_vector+1072],%value;
 st.global.u64 [%child_context],0x0000000100000000;st.global.u64 [%child_context+8],0;st.global.u64 [%child_context+16],0;st.global.u64 [%child_context+24],0;st.global.u64 [%child_context+32],%arena;st.global.u64 [%child_context+40],%arena_bytes;add.u64 %value,%records,128;st.global.u64 [%child_context+48],%value;st.global.u64 [%child_context+56],336;
-st.param.u64 [va],%child_vector;st.param.u64 [ca],%child_context;{ .param .u32 esm_original_last_argument_1; st.param.u32 [esm_original_last_argument_1],%esm_original_last;call.uni md2asm_gpu_surfexcdriver_ctl_serial_call_turbulence_columns,(va,ca,esm_original_last_argument_1); }
-ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_1;mov.u64 %event,%new_event;CHILD_EVENT_1:add.u64 %stage,%stage,1;
+st.param.u64 [va],%child_vector;st.param.u64 [ca],%child_context;{ .param .u64 eo_main_vector,eo_main_context,eo_main_journal;.param .u32 eo_main_bound;
+st.param.u64 [eo_main_vector],%child_vector;st.param.u64 [eo_main_context],%child_context;st.param.u32 [eo_main_bound],%esm_original_last;st.param.u64 [eo_main_journal],%eo_journal;
+call.uni md2asm_gpu_surfexcdriver_ctl_serial_call_turbulence_columns,(eo_main_vector,eo_main_context,eo_main_bound,eo_main_journal); }
+ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_1;mov.u64 %event,%new_event;st.global.u64 [%eo_journal+24],1;CHILD_EVENT_1:add.u64 %stage,%stage,1;
 st.param.u64 [va],%args;st.param.u64 [la],%locals;st.param.u64 [ra],%record;st.param.u64 [sa],%scalars;call.uni (phase_flags),md2asm_gpu_vertical_mixing_thermodynamic_values,(va,la,ra,sa);ld.param.u32 %raised,[phase_flags];or.b32 %flags,%flags,%raised;
 add.u64 %value,%model,1577888;
 st.global.u64 [%child_vector+0],%value;
@@ -7400,7 +7403,7 @@ mov.u64 %value,%v104;
 st.global.u64 [%child_vector+104],%value;
 st.global.u64 [%child_context],0x0000000100000000;st.global.u64 [%child_context+8],0;st.global.u64 [%child_context+16],0;st.global.u64 [%child_context+24],0;st.global.u64 [%child_context+32],%arena;st.global.u64 [%child_context+40],%arena_bytes;add.u64 %value,%records,1152;st.global.u64 [%child_context+48],%value;st.global.u64 [%child_context+56],32;
 st.param.u64 [va],%child_vector;st.param.u64 [ca],%child_context;{ .param .u32 esm_original_last_argument_2; st.param.u32 [esm_original_last_argument_2],%esm_original_last;call.uni md2asm_gpu_vdfdpbl_serial_call_turbulence_columns,(va,ca,esm_original_last_argument_2); }
-ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_2;mov.u64 %event,%new_event;CHILD_EVENT_2:add.u64 %stage,%stage,1;
+ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_2;mov.u64 %event,%new_event;st.global.u64 [%eo_journal+24],2;CHILD_EVENT_2:add.u64 %stage,%stage,1;
 st.param.u64 [va],%args;st.param.u64 [la],%locals;st.param.u64 [ra],%record;st.param.u64 [sa],%scalars;call.uni (phase_flags),md2asm_gpu_vertical_mixing_land_values,(va,la,ra,sa);ld.param.u32 %raised,[phase_flags];or.b32 %flags,%flags,%raised;
 add.u64 %value,%model,1588296;
 st.global.u64 [%child_vector+0],%value;
@@ -7484,7 +7487,7 @@ mov.u64 %value,%v115;
 st.global.u64 [%child_vector+312],%value;
 st.global.u64 [%child_context],0x0000000100000000;st.global.u64 [%child_context+8],0;st.global.u64 [%child_context+16],0;st.global.u64 [%child_context+24],0;st.global.u64 [%child_context+32],%arena;st.global.u64 [%child_context+40],%arena_bytes;add.u64 %value,%records,512;st.global.u64 [%child_context+48],%value;st.global.u64 [%child_context+56],256;
 st.param.u64 [va],%child_vector;st.param.u64 [ca],%child_context;{ .param .u32 esm_original_last_argument_3; st.param.u32 [esm_original_last_argument_3],%esm_original_last;call.uni md2asm_gpu_vdfhghtn_serial_call_turbulence_columns,(va,ca,esm_original_last_argument_3); }
-ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_3;mov.u64 %event,%new_event;CHILD_EVENT_3:add.u64 %stage,%stage,1;
+ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_3;mov.u64 %event,%new_event;st.global.u64 [%eo_journal+24],3;CHILD_EVENT_3:add.u64 %stage,%stage,1;
 st.param.u64 [va],%args;st.param.u64 [la],%locals;st.param.u64 [ra],%record;st.param.u64 [sa],%scalars;call.uni (phase_flags),md2asm_gpu_vertical_mixing_cloud_fog_values,(va,la,ra,sa);ld.param.u32 %raised,[phase_flags];or.b32 %flags,%flags,%raised;
 st.param.u64 [va],%args;st.param.u64 [la],%locals;st.param.u64 [ra],%record;st.param.u64 [sa],%scalars;call.uni (phase_flags),md2asm_gpu_vertical_mixing_cloud_fog_values,(va,la,ra,sa);ld.param.u32 %raised,[phase_flags];or.b32 %flags,%flags,%raised;
 add.u64 %value,%model,1588032;
@@ -7561,7 +7564,7 @@ mov.u64 %value,%v115;
 st.global.u64 [%child_vector+280],%value;
 st.global.u64 [%child_context],0x0000000100000000;st.global.u64 [%child_context+8],0;st.global.u64 [%child_context+16],0;st.global.u64 [%child_context+24],0;st.global.u64 [%child_context+32],%arena;st.global.u64 [%child_context+40],%arena_bytes;add.u64 %value,%records,768;st.global.u64 [%child_context+48],%value;st.global.u64 [%child_context+56],88;
 st.param.u64 [va],%child_vector;st.param.u64 [ca],%child_context;{ .param .u32 esm_original_last_argument_4; st.param.u32 [esm_original_last_argument_4],%esm_original_last;call.uni md2asm_gpu_vdfexcu_serial_call_turbulence_columns,(va,ca,esm_original_last_argument_4); }
-ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_4;mov.u64 %event,%new_event;CHILD_EVENT_4:add.u64 %stage,%stage,1;
+ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_4;mov.u64 %event,%new_event;st.global.u64 [%eo_journal+24],4;CHILD_EVENT_4:add.u64 %stage,%stage,1;
 st.param.u64 [va],%args;st.param.u64 [la],%locals;st.param.u64 [ra],%record;st.param.u64 [sa],%scalars;call.uni (phase_flags),md2asm_gpu_vertical_mixing_plume_values,(va,la,ra,sa);ld.param.u32 %raised,[phase_flags];or.b32 %flags,%flags,%raised;
 add.u64 %value,%model,1577816;
 st.global.u64 [%child_vector+0],%value;
@@ -7585,7 +7588,7 @@ mov.u64 %value,%l20;
 st.global.u64 [%child_vector+72],%value;
 st.global.u64 [%child_context],0x0000000100000000;st.global.u64 [%child_context+8],0;st.global.u64 [%child_context+16],0;st.global.u64 [%child_context+24],0;st.global.u64 [%child_context+32],%arena;st.global.u64 [%child_context+40],%arena_bytes;add.u64 %value,%records,960;st.global.u64 [%child_context+48],%value;st.global.u64 [%child_context+56],40;
 st.param.u64 [va],%child_vector;st.param.u64 [ca],%child_context;{ .param .u32 esm_original_last_argument_5; st.param.u32 [esm_original_last_argument_5],%esm_original_last;call.uni md2asm_gpu_vdftofdc_serial_call_turbulence_columns,(va,ca,esm_original_last_argument_5); }
-ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_5;mov.u64 %event,%new_event;CHILD_EVENT_5:add.u64 %stage,%stage,1;
+ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_5;mov.u64 %event,%new_event;st.global.u64 [%eo_journal+24],5;CHILD_EVENT_5:add.u64 %stage,%stage,1;
 st.param.u64 [va],%args;st.param.u64 [la],%locals;st.param.u64 [ra],%record;st.param.u64 [sa],%scalars;call.uni (phase_flags),md2asm_gpu_vertical_mixing_time_coefficients_values,(va,la,ra,sa);ld.param.u32 %raised,[phase_flags];or.b32 %flags,%flags,%raised;
 add.u64 %ptr,%model,1577832;ld.global.u32 %control,[%ptr];setp.eq.u32 %p,%control,0;@%p bra OVERIMPLICIT;
 mov.u64 %value,%v2;
@@ -7648,7 +7651,7 @@ mov.u64 %value,%l89;
 st.global.u64 [%child_vector+224],%value;
 st.global.u64 [%child_context],0x0000000100000000;st.global.u64 [%child_context+8],0;st.global.u64 [%child_context+16],0;st.global.u64 [%child_context+24],0;st.global.u64 [%child_context+32],%arena;st.global.u64 [%child_context+40],%arena_bytes;add.u64 %value,%records,1184;st.global.u64 [%child_context+48],%value;st.global.u64 [%child_context+56],8;
 st.param.u64 [va],%child_vector;st.param.u64 [ca],%child_context;{ .param .u32 esm_original_last_argument_6; st.param.u32 [esm_original_last_argument_6],%esm_original_last;call.uni md2asm_gpu_vdfdifm_serial_call_turbulence_columns,(va,ca,esm_original_last_argument_6); }
-ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_6;mov.u64 %event,%new_event;CHILD_EVENT_6:add.u64 %stage,%stage,1;
+ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_6;mov.u64 %event,%new_event;st.global.u64 [%eo_journal+24],6;CHILD_EVENT_6:add.u64 %stage,%stage,1;
 st.param.u64 [va],%args;st.param.u64 [la],%locals;st.param.u64 [ra],%record;st.param.u64 [sa],%scalars;call.uni (phase_flags),md2asm_gpu_vertical_mixing_momentum_star_values,(va,la,ra,sa);ld.param.u32 %raised,[phase_flags];or.b32 %flags,%flags,%raised;
 mov.u64 %value,%v2;
 st.global.u64 [%child_vector+0],%value;
@@ -7710,7 +7713,7 @@ mov.u64 %value,%l10;
 st.global.u64 [%child_vector+224],%value;
 st.global.u64 [%child_context],0x0000000100000000;st.global.u64 [%child_context+8],0;st.global.u64 [%child_context+16],0;st.global.u64 [%child_context+24],0;st.global.u64 [%child_context+32],%arena;st.global.u64 [%child_context+40],%arena_bytes;add.u64 %value,%records,1184;st.global.u64 [%child_context+48],%value;st.global.u64 [%child_context+56],8;
 st.param.u64 [va],%child_vector;st.param.u64 [ca],%child_context;{ .param .u32 esm_original_last_argument_7; st.param.u32 [esm_original_last_argument_7],%esm_original_last;call.uni md2asm_gpu_vdfdifm_serial_call_turbulence_columns,(va,ca,esm_original_last_argument_7); }
-ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_7;mov.u64 %event,%new_event;CHILD_EVENT_7:add.u64 %stage,%stage,1;
+ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_7;mov.u64 %event,%new_event;st.global.u64 [%eo_journal+24],7;CHILD_EVENT_7:add.u64 %stage,%stage,1;
 st.param.u64 [va],%args;st.param.u64 [la],%locals;st.param.u64 [ra],%record;st.param.u64 [sa],%scalars;call.uni (phase_flags),md2asm_gpu_vertical_mixing_momentum_blend_values,(va,la,ra,sa);ld.param.u32 %raised,[phase_flags];or.b32 %flags,%flags,%raised;
 add.u64 %value,%model,1556120;
 st.global.u64 [%child_vector+0],%value;
@@ -7846,7 +7849,7 @@ mov.u64 %value,%l70;
 st.global.u64 [%child_vector+520],%value;
 st.global.u64 [%child_context],0x0000000100000000;st.global.u64 [%child_context+8],0;st.global.u64 [%child_context+16],0;st.global.u64 [%child_context+24],0;st.global.u64 [%child_context+32],%arena;st.global.u64 [%child_context+40],%arena_bytes;add.u64 %value,%records,896;st.global.u64 [%child_context+48],%value;st.global.u64 [%child_context+56],64;
 st.param.u64 [va],%child_vector;st.param.u64 [ca],%child_context;{ .param .u32 esm_original_last_argument_8; st.param.u32 [esm_original_last_argument_8],%esm_original_last;call.uni md2asm_gpu_vdfdifh_serial_call_turbulence_columns,(va,ca,esm_original_last_argument_8); }
-ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_8;mov.u64 %event,%new_event;CHILD_EVENT_8:add.u64 %stage,%stage,1;
+ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_8;mov.u64 %event,%new_event;st.global.u64 [%eo_journal+24],8;CHILD_EVENT_8:add.u64 %stage,%stage,1;
 st.param.u64 [va],%args;st.param.u64 [la],%locals;st.param.u64 [ra],%record;st.param.u64 [sa],%scalars;call.uni (phase_flags),md2asm_gpu_vertical_mixing_heat_star_values,(va,la,ra,sa);ld.param.u32 %raised,[phase_flags];or.b32 %flags,%flags,%raised;
 add.u64 %value,%model,1556120;
 st.global.u64 [%child_vector+0],%value;
@@ -7982,7 +7985,7 @@ mov.u64 %value,%l66;
 st.global.u64 [%child_vector+520],%value;
 st.global.u64 [%child_context],0x0000000100000000;st.global.u64 [%child_context+8],0;st.global.u64 [%child_context+16],0;st.global.u64 [%child_context+24],0;st.global.u64 [%child_context+32],%arena;st.global.u64 [%child_context+40],%arena_bytes;add.u64 %value,%records,896;st.global.u64 [%child_context+48],%value;st.global.u64 [%child_context+56],64;
 st.param.u64 [va],%child_vector;st.param.u64 [ca],%child_context;{ .param .u32 esm_original_last_argument_9; st.param.u32 [esm_original_last_argument_9],%esm_original_last;call.uni md2asm_gpu_vdfdifh_serial_call_turbulence_columns,(va,ca,esm_original_last_argument_9); }
-ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_9;mov.u64 %event,%new_event;CHILD_EVENT_9:add.u64 %stage,%stage,1;
+ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_9;mov.u64 %event,%new_event;st.global.u64 [%eo_journal+24],9;CHILD_EVENT_9:add.u64 %stage,%stage,1;
 st.param.u64 [va],%args;st.param.u64 [la],%locals;st.param.u64 [ra],%record;st.param.u64 [sa],%scalars;call.uni (phase_flags),md2asm_gpu_vertical_mixing_heat_blend_values,(va,la,ra,sa);ld.param.u32 %raised,[phase_flags];or.b32 %flags,%flags,%raised;
 bra DIFFUSION_READY;OVERIMPLICIT:
 mov.u64 %value,%v2;
@@ -8045,7 +8048,7 @@ mov.u64 %value,%l10;
 st.global.u64 [%child_vector+224],%value;
 st.global.u64 [%child_context],0x0000000100000000;st.global.u64 [%child_context+8],0;st.global.u64 [%child_context+16],0;st.global.u64 [%child_context+24],0;st.global.u64 [%child_context+32],%arena;st.global.u64 [%child_context+40],%arena_bytes;add.u64 %value,%records,1184;st.global.u64 [%child_context+48],%value;st.global.u64 [%child_context+56],8;
 st.param.u64 [va],%child_vector;st.param.u64 [ca],%child_context;{ .param .u32 esm_original_last_argument_10; st.param.u32 [esm_original_last_argument_10],%esm_original_last;call.uni md2asm_gpu_vdfdifm_serial_call_turbulence_columns,(va,ca,esm_original_last_argument_10); }
-ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_10;mov.u64 %event,%new_event;CHILD_EVENT_10:add.u64 %stage,%stage,1;
+ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_10;mov.u64 %event,%new_event;st.global.u64 [%eo_journal+24],10;CHILD_EVENT_10:add.u64 %stage,%stage,1;
 add.u64 %value,%model,1556120;
 st.global.u64 [%child_vector+0],%value;
 add.u64 %value,%model,1577888;
@@ -8180,7 +8183,7 @@ mov.u64 %value,%l66;
 st.global.u64 [%child_vector+520],%value;
 st.global.u64 [%child_context],0x0000000100000000;st.global.u64 [%child_context+8],0;st.global.u64 [%child_context+16],0;st.global.u64 [%child_context+24],0;st.global.u64 [%child_context+32],%arena;st.global.u64 [%child_context+40],%arena_bytes;add.u64 %value,%records,896;st.global.u64 [%child_context+48],%value;st.global.u64 [%child_context+56],64;
 st.param.u64 [va],%child_vector;st.param.u64 [ca],%child_context;{ .param .u32 esm_original_last_argument_11; st.param.u32 [esm_original_last_argument_11],%esm_original_last;call.uni md2asm_gpu_vdfdifh_serial_call_turbulence_columns,(va,ca,esm_original_last_argument_11); }
-ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_11;mov.u64 %event,%new_event;CHILD_EVENT_11:add.u64 %stage,%stage,1;
+ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_11;mov.u64 %event,%new_event;st.global.u64 [%eo_journal+24],11;CHILD_EVENT_11:add.u64 %stage,%stage,1;
 st.param.u64 [va],%args;st.param.u64 [la],%locals;st.param.u64 [ra],%record;st.param.u64 [sa],%scalars;call.uni (phase_flags),md2asm_gpu_vertical_mixing_overimplicit_skin_values,(va,la,ra,sa);ld.param.u32 %raised,[phase_flags];or.b32 %flags,%flags,%raised;
 DIFFUSION_READY:
 mov.u64 %value,%v2;
@@ -8257,7 +8260,7 @@ mov.u64 %value,%v94;
 st.global.u64 [%child_vector+280],%value;
 st.global.u64 [%child_context],0x0000000100000000;st.global.u64 [%child_context+8],0;st.global.u64 [%child_context+16],0;st.global.u64 [%child_context+24],0;st.global.u64 [%child_context+32],%arena;st.global.u64 [%child_context+40],%arena_bytes;add.u64 %value,%records,1192;st.global.u64 [%child_context+48],%value;st.global.u64 [%child_context+56],8;
 st.param.u64 [va],%child_vector;st.param.u64 [ca],%child_context;{ .param .u32 esm_original_last_argument_12; st.param.u32 [esm_original_last_argument_12],%esm_original_last;call.uni md2asm_gpu_vdfincr_serial_call_turbulence_columns,(va,ca,esm_original_last_argument_12); }
-ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_12;mov.u64 %event,%new_event;CHILD_EVENT_12:add.u64 %stage,%stage,1;
+ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_12;mov.u64 %event,%new_event;st.global.u64 [%eo_journal+24],12;CHILD_EVENT_12:add.u64 %stage,%stage,1;
 mov.u64 %value,%v2;
 st.global.u64 [%child_vector+0],%value;
 mov.u64 %value,%v3;
@@ -8282,7 +8285,7 @@ mov.u64 %value,%l33;
 st.global.u64 [%child_vector+80],%value;
 st.global.u64 [%child_context],0x0000000100000000;st.global.u64 [%child_context+8],0;st.global.u64 [%child_context+16],0;st.global.u64 [%child_context+24],0;st.global.u64 [%child_context+32],%arena;st.global.u64 [%child_context+40],%arena_bytes;add.u64 %value,%records,1200;st.global.u64 [%child_context+48],%value;st.global.u64 [%child_context+56],8;
 st.param.u64 [va],%child_vector;st.param.u64 [ca],%child_context;{ .param .u32 esm_original_last_argument_13; st.param.u32 [esm_original_last_argument_13],%esm_original_last;call.uni md2asm_gpu_vdffblend_serial_call_turbulence_columns,(va,ca,esm_original_last_argument_13); }
-ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_13;mov.u64 %event,%new_event;CHILD_EVENT_13:add.u64 %stage,%stage,1;
+ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_13;mov.u64 %event,%new_event;st.global.u64 [%eo_journal+24],13;CHILD_EVENT_13:add.u64 %stage,%stage,1;
 mov.u64 %value,%v2;
 st.global.u64 [%child_vector+0],%value;
 mov.u64 %value,%v3;
@@ -8431,7 +8434,7 @@ ld.global.u64 %value,[%record+56];
 st.global.u64 [%child_vector+496],%value;
 st.global.u64 [%child_context],0x0000000100000000;st.global.u64 [%child_context+8],0;st.global.u64 [%child_context+16],0;st.global.u64 [%child_context+24],0;st.global.u64 [%child_context+32],%arena;st.global.u64 [%child_context+40],%arena_bytes;add.u64 %value,%records,1024;st.global.u64 [%child_context+48],%value;st.global.u64 [%child_context+56],128;
 st.param.u64 [va],%child_vector;st.param.u64 [ca],%child_context;{ .param .u32 esm_original_last_argument_14; st.param.u32 [esm_original_last_argument_14],%esm_original_last;call.uni md2asm_gpu_surfpp_ctl_serial_call_turbulence_columns,(va,ca,esm_original_last_argument_14); }
-ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_14;mov.u64 %event,%new_event;CHILD_EVENT_14:add.u64 %stage,%stage,1;
+ld.global.u32 %error,[%child_context];ld.global.u32 %raised,[%child_context+8];ld.global.u64 %new_event,[%child_context+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra COMPLETE;setp.eq.u64 %p,%new_event,0;@%p bra CHILD_EVENT_14;mov.u64 %event,%new_event;st.global.u64 [%eo_journal+24],14;CHILD_EVENT_14:add.u64 %stage,%stage,1;
 st.param.u64 [va],%args;st.param.u64 [la],%locals;st.param.u64 [ra],%record;st.param.u64 [sa],%scalars;call.uni (phase_flags),md2asm_gpu_vertical_mixing_final_values,(va,la,ra,sa);ld.param.u32 %raised,[phase_flags];or.b32 %flags,%flags,%raised;
 COMPLETE:
 ld.global.u64 %count0,[%scratch+6208];

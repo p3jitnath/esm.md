@@ -71,7 +71,7 @@ These GPU components pass their declared exact-output checks.
 | [Surface radiation columns](skills/md2asm-gpu/references/openifs/surface/parallel_surface_radiation_columns.md) | Complete parent outputs, saved state and diagnostics |
 | [Tile-fraction validation](skills/md2asm-gpu/references/openifs/radiation/surface_tile_validation.md) | Complete parent outputs and first error state |
 | [Gravity-wave columns](skills/md2asm-gpu/references/openifs/physics/gravity_wave_momentum_drag.md) | Complete outputs, scratch and actual counters |
-| [Turbulence columns](skills/md2asm-gpu/references/openifs/surface/turbulence_diffusion_entry.md) | Complete model owners, parallel buffer copies, actual counters and serial recovery |
+| [Turbulence columns](skills/md2asm-gpu/references/openifs/surface/turbulence_diffusion_entry.md) | Complete model owners, parallel buffer copies, ordered error events, actual counters and serial recovery |
 | [Convective columns](skills/md2asm-gpu/references/openifs/convection/parallel_convective_columns.md) | Complete owners, shared integer decisions, physical checks and actual counters |
 
 Separately, 257 distinct original routines have passed their component checks. The complete required-routine total and the number used on the GPU during a forecast remain under review, so these results do not give a completion percentage.

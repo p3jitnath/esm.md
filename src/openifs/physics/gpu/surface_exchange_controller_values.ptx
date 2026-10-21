@@ -19,6 +19,7 @@
 .extern .func (.param .u32 flags_return) md2asm_gpu_evaporation_efficiency_values(.param .u64 vector,.param .u64 record);
 .extern .func (.param .u32 flags_return) md2asm_gpu_surface_energy_values(.param .u64 vector,.param .u64 record);
 .extern .func (.param .u32 flags_return) md2asm_gpu_surface_exchange_diagnostics_values(.param .u64 vector,.param .u64 locals);
+.extern .func (.param .align 8 .b8 result[40]) md2asm_gpu_surface_exchange_values_event_order_columns(.param .u64 vector,.param .u64 record,.param .u64 event_order_journal);
 .visible .func (.param .align 8 .b8 result[72]) md2asm_gpu_surface_exchange_controller_values(.param .u64 original_vector,.param .u64 numerical_record,.param .u64 private_scratch)
 {
 .reg .u64 %original,%args,%record,%scratch,%v<135>,%l<55>,%child_vector,%child_scratch,%child_record,%source,%destination,%length,%position,%extent,%lo,%hi,%cursor,%local_cursor,%locals,%ptr,%index,%offset,%stride,%view,%P64,%tile64,%layer64,%index64,%O,%stage,%event,%ret_event,%EXP,%FAST,%WIDE,%canopy,%leaf,%vlamsk,%increment,%count<5>,%tile_control,%init_control,%iteration_control,%class_control,%raw_liquid;
@@ -2650,8 +2651,9 @@ COMPLETE:st.param.u32 [result],%flags;st.param.u32 [result+4],%error;st.param.u6
 
 // Private column entry. Its original logical endpoint stays separate from traversal.
 .extern .func (.param .align 8 .b8 result[64]) md2asm_gpu_surface_boundary_values_turbulence_columns(.param .u64 vector,.param .u64 record,.param .u64 scratch,.param .u32 esm_original_last_column);
-.visible .func (.param .align 8 .b8 result[72]) md2asm_gpu_surface_exchange_controller_values_turbulence_columns(.param .u64 original_vector,.param .u64 numerical_record,.param .u64 private_scratch,.param .u32 esm_original_last_column)
+.visible .func (.param .align 8 .b8 result[72]) md2asm_gpu_surface_exchange_controller_values_turbulence_columns(.param .u64 original_vector,.param .u64 numerical_record,.param .u64 private_scratch,.param .u32 esm_original_last_column,.param .u64 event_order_journal)
 {
+.reg .u64 %eo_journal;ld.param.u64 %eo_journal,[event_order_journal];
 .reg .u32 %esm_original_last;
 ld.param.u32 %esm_original_last,[esm_original_last_column];
 
@@ -4731,6 +4733,7 @@ ld.global.s64 %lo,[%v123+48];ld.global.s64 %hi,[%v123+56];setp.lt.s64 %p,%hi,%lo
 ld.global.s64 %lo,[%v123+72];ld.global.s64 %hi,[%v123+80];setp.lt.s64 %p,%hi,%lo;@%p bra DIAGNOSTICS_DONE;
 ld.global.s64 %lo,[%v123+96];ld.global.s64 %hi,[%v123+104];setp.lt.s64 %p,%hi,%lo;@%p bra DIAGNOSTICS_DONE;
 st.param.u64 [av],%args;st.param.u64 [lv],%locals;call.uni (flag_return),md2asm_gpu_surface_exchange_diagnostics_values,(av,lv);ld.param.u32 %raised,[flag_return];or.b32 %flags,%flags,%raised;add.u64 %stage,%stage,1;DIAGNOSTICS_DONE:
+st.global.u64 [%eo_journal+16],%stage;
 mov.u32 %tile,0;EXCHANGE_TILE:cvt.u64.u32 %tile64,%tile;
 st.global.u64 [%child_vector+0],%v1;
 st.global.u64 [%child_vector+8],%v2;
@@ -4792,8 +4795,14 @@ add.u64 %view,%scratch,21632;st.global.u64 [%view],%ptr;st.global.u64 [%view+8],
 st.global.u64 [%child_vector+216],%view;
 st.global.u64 [%child_vector+224],%l31;
 st.global.u64 [%child_vector+232],%l46;
-add.u64 %child_record,%record,144;st.param.u64 [av],%child_vector;st.param.u64 [rv],%child_record;call.uni (exchange_return),md2asm_gpu_surface_exchange_values,(av,rv);
-ld.param.u32 %ret_flags,[exchange_return];ld.param.u64 %ret_event,[exchange_return+8];ld.param.u64 %count0,[exchange_return+16];ld.param.u64 %count1,[exchange_return+24];ld.param.u64 %count2,[exchange_return+32];
+add.u64 %child_record,%record,144;
+{ .param .u64 eo_exchange_vector,eo_exchange_record,eo_exchange_journal;
+.param .align 8 .b8 eo_exchange_returned[40];
+.reg .u64 %eo_tile_pointer;
+mul.wide.u32 %eo_tile_pointer,%tile,16;add.u64 %eo_tile_pointer,%eo_tile_pointer,%eo_journal;add.u64 %eo_tile_pointer,%eo_tile_pointer,32;
+st.param.u64 [eo_exchange_vector],%child_vector;st.param.u64 [eo_exchange_record],%child_record;st.param.u64 [eo_exchange_journal],%eo_tile_pointer;
+call.uni (eo_exchange_returned),md2asm_gpu_surface_exchange_values_event_order_columns,(eo_exchange_vector,eo_exchange_record,eo_exchange_journal);
+ld.param.u32 %ret_flags,[eo_exchange_returned];ld.param.u64 %ret_event,[eo_exchange_returned+8];ld.param.u64 %count0,[eo_exchange_returned+16];ld.param.u64 %count1,[eo_exchange_returned+24];ld.param.u64 %count2,[eo_exchange_returned+32]; }
 or.b32 %flags,%flags,%ret_flags;add.u64 %EXP,%EXP,%count0;add.u64 %FAST,%FAST,%count1;add.u64 %WIDE,%WIDE,%count2;
 setp.eq.u64 %p,%ret_event,0;@%p bra EVENT_JOINED_9;and.b64 %event,%ret_event,0x0000ffffffffffff;shl.b64 %increment,%stage,48;or.b64 %event,%event,%increment;EVENT_JOINED_9:add.u64 %stage,%stage,1;
 sub.u32 %column,%first,1;EXCHANGE_DOMINANT_ROW:
@@ -5279,5 +5288,6 @@ shl.b64 %offset,%index,3;add.u64 %ptr,%ptr,%offset;ld.global.b64 %a,[%ptr];
 ld.global.u64 %ptr,[%v102];cvt.u64.u32 %index,%column;
 shl.b64 %offset,%index,3;add.u64 %ptr,%ptr,%offset;st.global.b64 [%ptr],%a;
 add.u32 %column,%column,1;setp.lt.u32 %p,%column,%last;@%p bra STATION_DOMINANT_ROW;
-COMPLETE:st.param.u32 [result],%flags;st.param.u32 [result+4],%error;st.param.u64 [result+8],%event;st.param.u64 [result+16],%EXP;st.param.u64 [result+24],%FAST;st.param.u64 [result+32],%WIDE;st.param.u64 [result+40],%canopy;st.param.u64 [result+48],%leaf;st.param.u64 [result+56],%vlamsk;st.param.u64 [result+64],%stage;ret;
+COMPLETE:st.global.u64 [%eo_journal+8],%event;st.global.u64 [%eo_journal],0x6576656e746f7264;
+st.param.u32 [result],%flags;st.param.u32 [result+4],%error;st.param.u64 [result+8],%event;st.param.u64 [result+16],%EXP;st.param.u64 [result+24],%FAST;st.param.u64 [result+32],%WIDE;st.param.u64 [result+40],%canopy;st.param.u64 [result+48],%leaf;st.param.u64 [result+56],%vlamsk;st.param.u64 [result+64],%stage;ret;
 }

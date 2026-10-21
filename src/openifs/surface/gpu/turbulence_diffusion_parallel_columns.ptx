@@ -237,6 +237,28 @@ COPY_PRIVATE_VECTOR:setp.ge.u32 %p,%tc_i,1360;@%p bra COPY_TEAM_VECTOR_DONE;cvt.
 COPY_TEAM_VECTOR_DONE:bar.sync 0;
 ld.global.u32 %tc_first,[%tc_arena+16];add.u32 %tc_i,%tc_first,%tc_id;@%copy_team_leader st.global.u32 [%tc_row+1360],%tc_i;@%copy_team_leader st.global.u32 [%tc_row+1364],%tc_i;ld.global.u32 %tc_last,[%tc_arena+28];@%copy_team_leader st.global.u32 [%tc_row+1368],%tc_last;
 add.u64 %tc_temp,%tc_row,1360;@%copy_team_leader st.global.u64 [%tc_row+16],%tc_temp;add.u64 %tc_temp,%tc_row,1364;@%copy_team_leader st.global.u64 [%tc_row+24],%tc_temp;add.u64 %scratch,%tc_row,4096;
+@%copy_team_leader st.global.u64 [%tc_row+1536],0;
+@%copy_team_leader st.global.u64 [%tc_row+1544],0;
+@%copy_team_leader st.global.u64 [%tc_row+1552],0;
+@%copy_team_leader st.global.u64 [%tc_row+1560],0;
+@%copy_team_leader st.global.u64 [%tc_row+1568],0;
+@%copy_team_leader st.global.u64 [%tc_row+1576],0;
+@%copy_team_leader st.global.u64 [%tc_row+1584],0;
+@%copy_team_leader st.global.u64 [%tc_row+1592],0;
+@%copy_team_leader st.global.u64 [%tc_row+1600],0;
+@%copy_team_leader st.global.u64 [%tc_row+1608],0;
+@%copy_team_leader st.global.u64 [%tc_row+1616],0;
+@%copy_team_leader st.global.u64 [%tc_row+1624],0;
+@%copy_team_leader st.global.u64 [%tc_row+1632],0;
+@%copy_team_leader st.global.u64 [%tc_row+1640],0;
+@%copy_team_leader st.global.u64 [%tc_row+1648],0;
+@%copy_team_leader st.global.u64 [%tc_row+1656],0;
+@%copy_team_leader st.global.u64 [%tc_row+1664],0;
+@%copy_team_leader st.global.u64 [%tc_row+1672],0;
+@%copy_team_leader st.global.u64 [%tc_row+1680],0;
+@%copy_team_leader st.global.u64 [%tc_row+1688],0;
+@%copy_team_leader st.global.u64 [%tc_row+1696],0;
+@%copy_team_leader st.global.u64 [%tc_row+1704],0;
 bar.sync 0;
 st.param.u64 [tc_av],%tc_row;st.param.u64 [tc_rv],%record;st.param.u64 [tc_sv],%scratch;st.param.u32 [tc_bound],%tc_last;
 call.uni (tc_returned),md2asm_gpu_vertical_diffusion_outer_values_turbulence_columns,(tc_av,tc_rv,tc_sv,tc_bound);
@@ -290,17 +312,53 @@ add.u64 %tc_canonical,%tc_arena,65536;ld.global.u64 %tc_word,[%tc_canonical+1488
 ld.global.u64 %tc_stage,[%tc_canonical+1472];ld.global.u64 %tc_fixed3,[%tc_canonical+1448];ld.global.u64 %tc_fixed4,[%tc_canonical+1456];ld.global.u64 %tc_fixed5,[%tc_canonical+1464];
 ld.global.u64 %tc_ocean0,[%tc_canonical+1504];ld.global.u64 %tc_ocean1,[%tc_canonical+1512];ld.global.u64 %tc_ocean2,[%tc_canonical+1520];
 mul.hi.u64 %tc_temp,%tc_fixed4,62;setp.ne.u64 %p,%tc_temp,0;@%p bra SERIAL_FALLBACK;mul.lo.u64 %tc_common,%tc_fixed4,62;add.u64 %tc_common,%tc_common,%tc_ocean0;setp.lt.u64 %p,%tc_common,%tc_ocean0;@%p bra SERIAL_FALLBACK;
+.reg .u64 %eo_has_event,%eo_joined_event;mov.u64 %eo_has_event,0;mov.u64 %eo_joined_event,0;
 mov.u64 %tc_sum0,0;mov.u64 %tc_sum1,0;mov.u64 %tc_sum2,0;ld.global.u32 %tc_flags,[%ctx+8];ld.global.u32 %tc_temp32,[%tc_arena+80];or.b32 %tc_flags,%tc_flags,%tc_temp32;mov.u32 %tc_id,0;
 CHECK_ALL_WORKERS:
 mul.wide.u32 %tc_offset,%tc_id,1;mul.lo.u64 %tc_offset,%tc_offset,%tc_stride;add.u64 %tc_row,%tc_arena,65536;add.u64 %tc_row,%tc_row,%tc_offset;
 ld.global.u64 %tc_word,[%tc_row+1488];setp.ne.u64 %p,%tc_word,0x74757262646f6e65;@%p bra SERIAL_FALLBACK;
-ld.global.u32 %tc_error,[%tc_row+1412];setp.ne.u32 %p,%tc_error,0;@%p bra SERIAL_FALLBACK;ld.global.u64 %tc_word,[%tc_row+1416];setp.ne.u64 %p,%tc_word,0;@%p bra SERIAL_FALLBACK;
+ld.global.u32 %tc_error,[%tc_row+1412];setp.ne.u32 %p,%tc_error,0;@%p bra SERIAL_FALLBACK;ld.global.u64 %tc_word,[%tc_row+1416];setp.ne.u64 %p,%tc_word,0;@%p mov.u64 %eo_has_event,1;
 ld.global.u64 %tc_word,[%tc_row+1472];setp.ne.u64 %p,%tc_word,%tc_stage;@%p bra SERIAL_FALLBACK;
 ld.global.u64 %tc_word,[%tc_row+1448];setp.ne.u64 %p,%tc_word,%tc_fixed3;@%p bra SERIAL_FALLBACK;ld.global.u64 %tc_word,[%tc_row+1456];setp.ne.u64 %p,%tc_word,%tc_fixed4;@%p bra SERIAL_FALLBACK;ld.global.u64 %tc_word,[%tc_row+1464];setp.ne.u64 %p,%tc_word,%tc_fixed5;@%p bra SERIAL_FALLBACK;
 ld.global.u64 %tc_word,[%tc_row+1504];setp.ne.u64 %p,%tc_word,%tc_ocean0;@%p bra SERIAL_FALLBACK;ld.global.u64 %tc_word,[%tc_row+1512];setp.ne.u64 %p,%tc_word,%tc_ocean1;@%p bra SERIAL_FALLBACK;ld.global.u64 %tc_word,[%tc_row+1520];setp.ne.u64 %p,%tc_word,%tc_ocean2;@%p bra SERIAL_FALLBACK;
 ld.global.u64 %tc_word,[%tc_row+1424];setp.lt.u64 %p,%tc_word,%tc_common;@%p bra SERIAL_FALLBACK;add.u64 %tc_sum0,%tc_sum0,%tc_word;ld.global.u64 %tc_word,[%tc_row+1432];setp.lt.u64 %p,%tc_word,%tc_ocean1;@%p bra SERIAL_FALLBACK;add.u64 %tc_sum1,%tc_sum1,%tc_word;ld.global.u64 %tc_word,[%tc_row+1440];setp.lt.u64 %p,%tc_word,%tc_ocean2;@%p bra SERIAL_FALLBACK;add.u64 %tc_sum2,%tc_sum2,%tc_word;
 ld.global.u32 %tc_temp32,[%tc_row+1408];or.b32 %tc_flags,%tc_flags,%tc_temp32;
 add.u32 %tc_id,%tc_id,1;setp.lt.u32 %p,%tc_id,%tc_active;@%p bra CHECK_ALL_WORKERS;
+// Reconstruct only events represented by complete private integer journals.
+setp.eq.u64 %p,%eo_has_event,0;@%p bra EO_EVENT_JOIN_COMPLETE;
+.reg .u64 %eo_base,%eo_global_base,%eo_local_event,%eo_local_join,%eo_phase,%eo_value,%eo_total,%eo_prefix,%eo_ordinal,%eo_source,%eo_expected,%eo_pointer;
+.reg .u32 %eo_tile,%eo_column;
+ld.global.u64 %eo_base,[%tc_canonical+1552];add.u64 %eo_value,%eo_base,8;setp.ge.u64 %p,%eo_value,65536;@%p bra SERIAL_FALLBACK;
+cvt.u64.u32 %eo_value,%tc_active;sub.u64 %eo_value,%eo_value,1;mul.lo.u64 %eo_value,%eo_value,20;add.u64 %eo_global_base,%eo_base,%eo_value;add.u64 %eo_value,%eo_global_base,8;setp.ge.u64 %p,%eo_value,65536;@%p bra SERIAL_FALLBACK;
+mov.u32 %eo_column,0;
+EO_CHECK_COLUMN:
+cvt.u64.u32 %eo_pointer,%eo_column;mul.lo.u64 %eo_pointer,%eo_pointer,%tc_stride;add.u64 %eo_pointer,%eo_pointer,%tc_canonical;
+ld.global.u64 %eo_value,[%eo_pointer+1536];setp.ne.u64 %p,%eo_value,0x6576656e746f7264;@%p bra SERIAL_FALLBACK;
+ld.global.u64 %eo_value,[%eo_pointer+1552];setp.ne.u64 %p,%eo_value,%eo_base;@%p bra SERIAL_FALLBACK;
+ld.global.u64 %eo_expected,[%eo_pointer+1416];ld.global.u64 %eo_value,[%eo_pointer+1544];setp.ne.u64 %p,%eo_value,%eo_expected;@%p bra SERIAL_FALLBACK;
+ld.global.u64 %eo_source,[%eo_pointer+1560];setp.ne.u64 %p,%eo_expected,0;@%p bra EO_REQUIRE_CONTROLLER;setp.ne.u64 %p,%eo_source,0;@%p bra SERIAL_FALLBACK;bra EO_SOURCE_READY;
+EO_REQUIRE_CONTROLLER:setp.ne.u64 %p,%eo_source,1;@%p bra SERIAL_FALLBACK;
+EO_SOURCE_READY:mov.u64 %eo_local_join,0;mov.u32 %eo_tile,0;
+EO_CHECK_LOCAL_TILE:
+mul.wide.u32 %eo_value,%eo_tile,16;add.u64 %eo_value,%eo_value,%eo_pointer;ld.global.u64 %eo_local_event,[%eo_value+1568];ld.global.u64 %eo_total,[%eo_value+1576];
+setp.ge.u64 %p,%eo_total,0x10000000000;@%p bra SERIAL_FALLBACK;setp.ge.u64 %p,%eo_local_event,0x1000000000000;@%p bra SERIAL_FALLBACK;
+setp.eq.u64 %p,%eo_local_event,0;@%p bra EO_LOCAL_TILE_READY;
+and.b64 %eo_value,%eo_local_event,255;setp.eq.u64 %p,%eo_value,0;@%p bra SERIAL_FALLBACK;shr.u64 %eo_ordinal,%eo_local_event,8;setp.gt.u64 %p,%eo_ordinal,%eo_total;@%p bra SERIAL_FALLBACK;
+cvt.u64.u32 %eo_value,%eo_tile;add.u64 %eo_value,%eo_value,%eo_base;shl.b64 %eo_local_join,%eo_value,48;or.b64 %eo_local_join,%eo_local_join,%eo_local_event;
+EO_LOCAL_TILE_READY:add.u32 %eo_tile,%eo_tile,1;setp.lt.u32 %p,%eo_tile,9;@%p bra EO_CHECK_LOCAL_TILE;
+setp.ne.u64 %p,%eo_local_join,%eo_expected;@%p bra SERIAL_FALLBACK;
+add.u32 %eo_column,%eo_column,1;setp.lt.u32 %p,%eo_column,%tc_active;@%p bra EO_CHECK_COLUMN;
+mov.u32 %eo_tile,0;
+EO_GLOBAL_TILE:mov.u64 %eo_prefix,0;mov.u32 %eo_column,0;
+EO_GLOBAL_COLUMN:
+cvt.u64.u32 %eo_pointer,%eo_column;mul.lo.u64 %eo_pointer,%eo_pointer,%tc_stride;add.u64 %eo_pointer,%eo_pointer,%tc_canonical;mul.wide.u32 %eo_value,%eo_tile,16;add.u64 %eo_pointer,%eo_pointer,%eo_value;
+ld.global.u64 %eo_local_event,[%eo_pointer+1568];ld.global.u64 %eo_total,[%eo_pointer+1576];setp.eq.u64 %p,%eo_local_event,0;@%p bra EO_GLOBAL_NO_EVENT;
+shr.u64 %eo_ordinal,%eo_local_event,8;add.u64 %eo_ordinal,%eo_ordinal,%eo_prefix;setp.ge.u64 %p,%eo_ordinal,0x10000000000;@%p bra SERIAL_FALLBACK;shl.b64 %eo_value,%eo_ordinal,8;and.b64 %eo_local_event,%eo_local_event,255;or.b64 %eo_value,%eo_value,%eo_local_event;
+cvt.u64.u32 %eo_phase,%eo_tile;add.u64 %eo_phase,%eo_phase,%eo_global_base;shl.b64 %eo_joined_event,%eo_phase,48;or.b64 %eo_joined_event,%eo_joined_event,%eo_value;
+EO_GLOBAL_NO_EVENT:add.u64 %eo_prefix,%eo_prefix,%eo_total;setp.ge.u64 %p,%eo_prefix,0x10000000000;@%p bra SERIAL_FALLBACK;
+add.u32 %eo_column,%eo_column,1;setp.lt.u32 %p,%eo_column,%tc_active;@%p bra EO_GLOBAL_COLUMN;
+add.u32 %eo_tile,%eo_tile,1;setp.lt.u32 %p,%eo_tile,9;@%p bra EO_GLOBAL_TILE;
+EO_EVENT_JOIN_COMPLETE:
 // Validate every returned source span before changing the private canonical image.
 mul.wide.u32 %tc_offset,%tc_P,56;cvt.u64.u32 %tc_temp,%tc_N;mul.lo.u64 %tc_offset,%tc_offset,%tc_temp;add.u64 %tc_canonical_main,%tc_canonical,12288;add.u64 %tc_canonical_main,%tc_canonical_main,%tc_offset;
 mov.u32 %tc_id,0;
@@ -353,6 +411,7 @@ add.u64 %ptr,%destination,%position;st.global.u64 [%ptr],%esm_copy_word;
 add.u64 %position,%position,8;bra COMMIT_WORD;
 COMMIT_BYTE:setp.ge.u64 %p,%position,%length;@%p bra COMMIT_NEXT;add.u64 %ptr,%source,%position;ld.global.u8 %byte,[%ptr];add.u64 %ptr,%destination,%position;st.global.u8 [%ptr],%byte;add.u64 %position,%position,1;bra COMMIT_BYTE;COMMIT_NEXT:add.u32 %field,%field,1;setp.lt.u32 %p,%field,72;@%p bra COMMIT_OWNER;
 atom.global.or.b32 %old,[%ctx+8],%tc_flags;
+setp.ne.u64 %p,%eo_joined_event,0;@%p st.global.u64 [%ctx+16],%eo_joined_event;
 ld.global.u64 %owner,[%record+416];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_0;setp.eq.u64 %p,%count0,0;@%p bra COUNTER_JOINED_0;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count0;st.global.u64 [%owner],%previous;COUNTER_JOINED_0:
 ld.global.u64 %owner,[%record+424];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_1;setp.eq.u64 %p,%count1,0;@%p bra COUNTER_JOINED_1;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count1;st.global.u64 [%owner],%previous;COUNTER_JOINED_1:
 ld.global.u64 %owner,[%record+432];setp.eq.u64 %p,%owner,0;@%p bra COUNTER_JOINED_2;setp.eq.u64 %p,%count2,0;@%p bra COUNTER_JOINED_2;ld.global.u64 %previous,[%owner];add.u64 %previous,%previous,%count2;st.global.u64 [%owner],%previous;COUNTER_JOINED_2:
