@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/gravity_wave_momentum_drag.md.
+// Contract: skills/md2asm-gpu/references/openifs/physics/gravity_wave_momentum_drag.md
 .text
 .p2align 4
 .global md2asm_gwdrag_wms
@@ -211,7 +211,7 @@ md2asm_gwdrag_wms:
  msr fpsr,x10
  ldr w9,[sp,#1040]
  str w9,[x22]
- bl md2asm_openifs_gpu_launch
+ bl md2asm_gravity_wave_parallel_dispatch
  ldr x18,[sp,#96]
  cbnz w0,.Lfail
  ldr w9,[x20]

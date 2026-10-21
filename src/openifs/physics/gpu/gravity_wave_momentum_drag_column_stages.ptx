@@ -1,0 +1,106 @@
+// Contract: skills/md2asm-gpu/references/openifs/physics/gravity_wave_momentum_drag.md
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func md2asm_gpu_wave_column_original_admission(.param .u64 original_vector,.param .u64 common_context);
+.extern .func md2asm_gpu_wave_column_values(.param .u64 original_vector,.param .u64 common_context);
+
+.func (.param .u32 result) wave_columns_separate(.param .u64 left,.param .u64 left_size,.param .u64 right,.param .u64 right_size)
+{
+.reg .u64 %a,%an,%b,%bn,%ae,%be;.reg .u32 %ok;.reg .pred %p,%q;
+ld.param.u64 %a,[left];ld.param.u64 %an,[left_size];ld.param.u64 %b,[right];ld.param.u64 %bn,[right_size];mov.u32 %ok,0;
+setp.eq.u64 %p,%an,0;setp.eq.u64 %q,%bn,0;or.pred %p,%p,%q;@%p bra GOOD;
+add.u64 %ae,%a,%an;add.u64 %be,%b,%bn;setp.lt.u64 %p,%ae,%a;setp.lt.u64 %q,%be,%b;or.pred %p,%p,%q;@%p bra END;
+setp.gt.u64 %p,%ae,0x7fffffffffffffff;setp.gt.u64 %q,%be,0x7fffffffffffffff;or.pred %p,%p,%q;@%p bra END;
+setp.ge.u64 %p,%a,%be;setp.ge.u64 %q,%b,%ae;or.pred %p,%p,%q;@!%p bra END;
+GOOD:mov.u32 %ok,1;END:st.param.u32 [result],%ok;ret;
+}
+
+.visible .entry md2asm_gpu_wave_columns_prepare(.param .u64 request,.param .u64 common_context)
+{
+.reg .u64 %rq,%ctx,%v,%arena,%cap,%route,%rec,%a,%b,%t,%u,%end,%n,%L,%first,%last,%active,%S,%B,%stride,%mm,%bn,%bn1,%g,%gc,%gr,%off,%i,%j,%k,%source,%dest,%bytes,%rbase,%rbytes,%profile,%flags_ptr;
+.reg .u32 %w,%qword,%ok;.reg .pred %p,%q;
+.param .u64 pa,pan,pb,pbn,av,ac;.param .u32 checked;
+.local .align 8 .b8 private_ranges[48];
+mov.u32 %w,%ntid.x;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%ntid.y;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%ntid.z;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%nctaid.x;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%nctaid.y;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%nctaid.z;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%dynamic_smem_size;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%tid.x;setp.ne.u32 %p,%w,0;@%p ret;mov.u32 %w,%ctaid.x;setp.ne.u32 %p,%w,0;@%p ret;
+ld.param.u64 %rq,[request];ld.param.u64 %ctx,[common_context];setp.eq.u64 %p,%rq,0;@%p ret;and.b64 %t,%rq,7;setp.ne.u64 %p,%t,0;@%p ret;add.u64 %end,%rq,32;setp.lt.u64 %p,%end,%rq;@%p ret;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p ret;
+ld.global.u64 %v,[%rq];ld.global.u64 %arena,[%rq+8];ld.global.u64 %cap,[%rq+16];ld.global.u64 %route,[%rq+24];
+setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %t,%ctx,7;setp.ne.u64 %p,%t,0;@%p ret;add.u64 %end,%ctx,64;setp.lt.u64 %p,%end,%ctx;@%p ret;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p ret;
+setp.eq.u64 %p,%arena,0;@%p ret;and.b64 %t,%arena,7;setp.ne.u64 %p,%t,0;@%p ret;setp.ne.u64 %p,%cap,16777216;@%p ret;add.u64 %end,%arena,%cap;setp.lt.u64 %p,%end,%arena;@%p ret;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p ret;
+setp.eq.u64 %p,%route,0;@%p ret;and.b64 %t,%route,7;setp.ne.u64 %p,%t,0;@%p ret;add.u64 %end,%route,8;setp.lt.u64 %p,%end,%route;@%p ret;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p ret;
+mov.u64 %rbase,private_ranges;st.local.u64 [%rbase],%rq;mov.u64 %t,32;st.local.u64 [%rbase+8],%t;st.local.u64 [%rbase+16],%arena;st.local.u64 [%rbase+24],%cap;st.local.u64 [%rbase+32],%route;mov.u64 %t,8;st.local.u64 [%rbase+40],%t;
+mov.u64 %i,0;
+PRIVATE_I:add.u64 %j,%i,1;
+PRIVATE_J:mul.lo.u64 %off,%i,16;add.u64 %t,%rbase,%off;ld.local.u64 %a,[%t];ld.local.u64 %bytes,[%t+8];mul.lo.u64 %off,%j,16;add.u64 %t,%rbase,%off;ld.local.u64 %b,[%t];ld.local.u64 %bn,[%t+8];st.param.u64 [pa],%a;st.param.u64 [pan],%bytes;st.param.u64 [pb],%b;st.param.u64 [pbn],%bn;call.uni (checked),wave_columns_separate,(pa,pan,pb,pbn);ld.param.u32 %ok,[checked];setp.eq.u32 %p,%ok,0;@%p ret;add.u64 %j,%j,1;setp.lt.u64 %p,%j,3;@%p bra PRIVATE_J;add.u64 %i,%i,1;setp.lt.u64 %p,%i,2;@%p bra PRIVATE_I;
+// The original prefix checks all original owner bounds, shapes and aliases.
+st.param.u64 [av],%v;st.param.u64 [ac],%ctx;call.uni md2asm_gpu_wave_column_original_admission,(av,ac);
+setp.eq.u64 %p,%ctx,0;@%p ret;ld.global.u32 %w,[%ctx];setp.ne.u32 %p,%w,0;@%p ret;ld.global.u64 %rec,[%ctx+48];ld.global.u64 %t,[%ctx+56];setp.ne.u64 %p,%t,288;@%p ret;
+ld.global.u64 %a,[%v+40];ld.global.s32 %w,[%a];cvt.s64.s32 %n,%w;setp.gt.u64 %p,%n,32;@%p ret;ld.global.u64 %a,[%v+48];ld.global.s32 %w,[%a];cvt.s64.s32 %L,%w;setp.gt.u64 %p,%L,64;@%p ret;
+ld.global.u64 %a,[%v+24];ld.global.s32 %w,[%a];cvt.s64.s32 %first,%w;sub.s64 %first,%first,1;ld.global.u64 %a,[%v+32];ld.global.s32 %w,[%a];cvt.s64.s32 %last,%w;sub.s64 %last,%last,1;setp.gt.s64 %p,%first,%last;@%p ret;
+ld.global.u64 %t,[%rec+264];setp.ne.u64 %p,%t,0;@%p ret;
+// Each new writable or transport owner is separate from every original owner.
+mov.u64 %i,0;
+ORIGINAL_OWNER:mul.lo.u64 %off,%i,8;
+setp.lt.u64 %p,%i,22;@!%p bra ORIGINAL_PROTOCOL;
+add.u64 %t,%v,%off;ld.global.u64 %source,[%t];add.u64 %t,%rec,%off;ld.global.u64 %bytes,[%t];bra ORIGINAL_READY;
+ORIGINAL_PROTOCOL:setp.eq.u64 %p,%i,22;@%p mov.u64 %source,%v;@%p mov.u64 %bytes,176;@%p bra ORIGINAL_READY;
+setp.eq.u64 %p,%i,23;@%p mov.u64 %source,%ctx;@%p mov.u64 %bytes,64;@%p bra ORIGINAL_READY;
+setp.eq.u64 %p,%i,24;@%p mov.u64 %source,%rec;@%p mov.u64 %bytes,288;@%p bra ORIGINAL_READY;
+setp.eq.u64 %p,%i,25;@%p ld.global.u64 %source,[%ctx+32];@%p ld.global.u64 %bytes,[%ctx+40];@%p bra ORIGINAL_READY;
+// Profile descriptors are read only when the original source consumes them.
+ld.global.u64 %t,[%v+16];ld.global.u32 %w,[%t+12];setp.eq.u32 %p,%w,0;@%p bra ORIGINAL_DONE;
+sub.u64 %k,%i,26;mul.lo.u64 %off,%k,8;add.u64 %off,%off,216;add.u64 %t,%rec,%off;ld.global.u64 %bytes,[%t];ld.global.u64 %t,[%v];setp.eq.u64 %p,%k,0;@%p ld.global.u64 %source,[%t];setp.eq.u64 %p,%k,1;@%p ld.global.u64 %source,[%t+128];setp.eq.u64 %p,%k,2;@%p ld.global.u64 %source,[%t+192];
+ORIGINAL_READY:mov.u64 %j,0;
+ORIGINAL_PRIVATE:mul.lo.u64 %off,%j,16;add.u64 %t,%rbase,%off;ld.local.u64 %a,[%t];ld.local.u64 %bn,[%t+8];st.param.u64 [pa],%a;st.param.u64 [pan],%bn;st.param.u64 [pb],%source;st.param.u64 [pbn],%bytes;call.uni (checked),wave_columns_separate,(pa,pan,pb,pbn);ld.param.u32 %ok,[checked];setp.eq.u32 %p,%ok,0;@%p ret;add.u64 %j,%j,1;setp.lt.u64 %p,%j,3;@%p bra ORIGINAL_PRIVATE;
+add.u64 %i,%i,1;setp.lt.u64 %p,%i,29;@%p bra ORIGINAL_OWNER;
+ORIGINAL_DONE:
+mul.lo.u64 %mm,%n,%L;shl.b64 %bn,%mm,3;add.u64 %t,%L,1;mul.lo.u64 %bn1,%n,%t;shl.b64 %bn1,%bn1,3;add.u64 %B,%bn,%bn1;shl.b64 %B,%B,1;mul.lo.u64 %S,%mm,22;mad.lo.u64 %S,%n,252,%S;add.u64 %S,%S,48;shl.b64 %S,%S,3;add.u64 %stride,%S,%B;add.u64 %stride,%stride,767;and.b64 %stride,%stride,0xffffffffffffff80;mul.lo.u64 %t,%stride,32;add.u64 %t,%t,4096;setp.gt.u64 %p,%t,%cap;@%p ret;sub.u64 %active,%last,%first;add.u64 %active,%active,1;
+st.global.u64 [%arena],0x57415645434f4c31;st.global.u64 [%arena+8],%n;st.global.u64 [%arena+16],%L;st.global.u64 [%arena+24],%first;st.global.u64 [%arena+32],%last;st.global.u64 [%arena+40],%S;st.global.u64 [%arena+48],%B;st.global.u64 [%arena+56],%stride;st.global.u64 [%arena+64],%active;ld.global.u64 %t,[%ctx+16];st.global.u64 [%arena+72],%t;ld.global.u32 %w,[%ctx+8];st.global.u32 [%arena+80],%w;ld.global.u64 %t,[%v+16];ld.global.u32 %w,[%t+4];setp.ne.u32 %p,%w,0;selp.u32 %w,1,0,%p;st.global.u32 [%arena+88],%w;
+mov.u64 %i,0;
+PREPARE_WORKER:mad.lo.u64 %g,%i,%stride,%arena;add.u64 %g,%g,4096;
+mov.u64 %off,0;
+COPY_VECTOR:add.u64 %source,%v,%off;ld.global.u64 %t,[%source];add.u64 %dest,%g,%off;st.global.u64 [%dest],%t;add.u64 %off,%off,8;setp.lt.u64 %p,%off,176;@%p bra COPY_VECTOR;
+add.u64 %gc,%g,176;mov.u64 %off,0;
+COPY_CONTEXT:add.u64 %source,%ctx,%off;ld.global.u64 %t,[%source];add.u64 %dest,%gc,%off;st.global.u64 [%dest],%t;add.u64 %off,%off,8;setp.lt.u64 %p,%off,64;@%p bra COPY_CONTEXT;
+add.u64 %gr,%g,240;mov.u64 %off,0;
+COPY_RECORD:add.u64 %source,%rec,%off;ld.global.u64 %t,[%source];add.u64 %dest,%gr,%off;st.global.u64 [%dest],%t;add.u64 %off,%off,8;setp.lt.u64 %p,%off,288;@%p bra COPY_RECORD;
+add.u64 %t,%g,528;st.global.u64 [%g+24],%t;add.u64 %u,%first,%i;add.u64 %u,%u,1;cvt.u32.u64 %w,%u;st.global.u32 [%t],%w;add.u64 %t,%t,4;st.global.u64 [%g+32],%t;st.global.u32 [%t],%w;st.global.u64 [%g+536],0;mov.u64 %t,4;st.global.u64 [%gr+24],%t;st.global.u64 [%gr+32],%t;
+add.u64 %dest,%g,640;mov.u64 %j,18;
+PREPARE_OUTPUT:mul.lo.u64 %off,%j,8;add.u64 %t,%g,%off;st.global.u64 [%t],%dest;add.u64 %t,%v,%off;ld.global.u64 %source,[%t];setp.lt.u64 %p,%j,20;selp.u64 %bytes,%bn,%bn1,%p;add.u64 %t,%gr,%off;st.global.u64 [%t],%bytes;mov.u64 %k,0;
+COPY_OUTPUT:add.u64 %t,%source,%k;ld.global.u64 %u,[%t];add.u64 %t,%dest,%k;st.global.u64 [%t],%u;add.u64 %k,%k,8;setp.lt.u64 %p,%k,%bytes;@%p bra COPY_OUTPUT;
+add.u64 %dest,%dest,%bytes;add.u64 %j,%j,1;setp.lt.u64 %p,%j,22;@%p bra PREPARE_OUTPUT;
+st.global.u64 [%gc+32],%dest;st.global.u64 [%gc+40],%S;st.global.u64 [%gc+48],%gr;st.global.u64 [%gc+16],0;
+add.u64 %i,%i,1;setp.lt.u64 %p,%i,%active;@%p bra PREPARE_WORKER;
+fence.sc.sys;st.global.u64 [%route],0;ret;
+}
+
+.visible .entry md2asm_gpu_wave_columns_workers(.param .u64 request,.param .u64 common_context)
+{
+.reg .u64 %rq,%route,%arena,%stride,%g,%active,%i,%ctx;.reg .u32 %w;.reg .pred %p;.param .u64 av,ac;
+mov.u32 %w,%ntid.x;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%ntid.y;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%ntid.z;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%nctaid.x;setp.ne.u32 %p,%w,32;@%p ret;mov.u32 %w,%nctaid.y;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%nctaid.z;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%dynamic_smem_size;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%tid.x;setp.ne.u32 %p,%w,0;@%p ret;ld.param.u64 %rq,[request];ld.global.u64 %route,[%rq+24];ld.global.u64 %i,[%route];setp.ne.u64 %p,%i,0;@%p ret;ld.global.u64 %arena,[%rq+8];mov.u32 %w,%ctaid.x;cvt.u64.u32 %i,%w;ld.global.u64 %active,[%arena+64];setp.ge.u64 %p,%i,%active;@%p ret;ld.global.u64 %stride,[%arena+56];mad.lo.u64 %g,%i,%stride,%arena;add.u64 %g,%g,4096;add.u64 %ctx,%g,176;st.param.u64 [av],%g;st.param.u64 [ac],%ctx;call.uni md2asm_gpu_wave_column_values,(av,ac);fence.sc.sys;st.global.u64 [%g+536],1;ret;
+}
+
+.visible .entry md2asm_gpu_wave_columns_join(.param .u64 request,.param .u64 common_context)
+{
+.reg .u64 %rq,%ctx,%v,%arena,%route,%stride,%active,%g,%gc,%gr,%i,%j,%k,%first,%n,%L,%S,%B,%bn,%bn1,%source,%dest,%off,%t,%u,%bytes,%planes,%col,%countE,%countL,%countS,%rec,%commonL;.reg .u32 %w,%flags;.reg .pred %p;
+mov.u32 %w,%ntid.x;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%ntid.y;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%ntid.z;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%nctaid.x;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%nctaid.y;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%nctaid.z;setp.ne.u32 %p,%w,1;@%p ret;mov.u32 %w,%dynamic_smem_size;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%tid.x;setp.ne.u32 %p,%w,0;@%p ret;mov.u32 %w,%ctaid.x;setp.ne.u32 %p,%w,0;@%p ret;ld.param.u64 %rq,[request];ld.param.u64 %ctx,[common_context];ld.global.u64 %route,[%rq+24];ld.global.u64 %t,[%route];setp.ne.u64 %p,%t,0;@%p ret;ld.global.u64 %v,[%rq];ld.global.u64 %arena,[%rq+8];ld.global.u64 %stride,[%arena+56];ld.global.u64 %active,[%arena+64];ld.global.u32 %flags,[%arena+80];mov.u64 %countE,0;mov.u64 %countL,0;mov.u64 %countS,0;mov.u64 %i,0;
+CHECK_WORKER:mad.lo.u64 %g,%i,%stride,%arena;add.u64 %g,%g,4096;ld.global.u64 %t,[%g+536];setp.ne.u64 %p,%t,1;@%p bra FALLBACK;add.u64 %gc,%g,176;ld.global.u32 %w,[%gc];setp.ne.u32 %p,%w,0;@%p bra FALLBACK;ld.global.u64 %t,[%gc+16];setp.ne.u64 %p,%t,0;@%p bra FALLBACK;ld.global.u32 %w,[%gc+8];or.b32 %flags,%flags,%w;add.u64 %gr,%g,240;ld.global.u64 %t,[%gr+240];add.u64 %countE,%countE,%t;ld.global.u64 %t,[%gr+248];add.u64 %countL,%countL,%t;ld.global.u64 %t,[%gr+256];add.u64 %countS,%countS,%t;add.u64 %i,%i,1;setp.lt.u64 %p,%i,%active;@%p bra CHECK_WORKER;
+sub.u64 %t,%active,1;mul.lo.u64 %u,%t,21;sub.u64 %countE,%countE,%u;ld.global.u32 %w,[%arena+88];cvt.u64.u32 %commonL,%w;mul.lo.u64 %u,%t,%commonL;sub.u64 %countL,%countL,%u;
+// All numerical and completion conditions precede this first original output store.
+ld.global.u64 %n,[%arena+8];ld.global.u64 %L,[%arena+16];ld.global.u64 %first,[%arena+24];ld.global.u64 %S,[%arena+40];mul.lo.u64 %bn,%n,%L;shl.b64 %bn,%bn,3;add.u64 %t,%L,1;mul.lo.u64 %bn1,%n,%t;shl.b64 %bn1,%bn1,3;add.u64 %g,%arena,4096;mov.u64 %j,18;
+BASE_OUTPUT:mul.lo.u64 %off,%j,8;add.u64 %t,%g,%off;ld.global.u64 %source,[%t];add.u64 %t,%v,%off;ld.global.u64 %dest,[%t];setp.lt.u64 %p,%j,20;selp.u64 %bytes,%bn,%bn1,%p;mov.u64 %k,0;
+BASE_COPY:add.u64 %t,%source,%k;ld.global.u64 %u,[%t];add.u64 %t,%dest,%k;st.global.u64 [%t],%u;add.u64 %k,%k,8;setp.lt.u64 %p,%k,%bytes;@%p bra BASE_COPY;add.u64 %j,%j,1;setp.lt.u64 %p,%j,22;@%p bra BASE_OUTPUT;
+add.u64 %gc,%g,176;ld.global.u64 %source,[%gc+32];ld.global.u64 %dest,[%ctx+32];mov.u64 %k,0;
+BASE_SCRATCH:add.u64 %t,%source,%k;ld.global.u64 %u,[%t];add.u64 %t,%dest,%k;st.global.u64 [%t],%u;add.u64 %k,%k,8;setp.lt.u64 %p,%k,%S;@%p bra BASE_SCRATCH;
+mov.u64 %i,1;setp.ge.u64 %p,%i,%active;@%p bra PUBLISH;
+MERGE_WORKER:mad.lo.u64 %g,%i,%stride,%arena;add.u64 %g,%g,4096;add.u64 %col,%first,%i;mov.u64 %j,18;
+MERGE_OUTPUT:mul.lo.u64 %off,%j,8;add.u64 %t,%g,%off;ld.global.u64 %source,[%t];add.u64 %t,%v,%off;ld.global.u64 %dest,[%t];setp.lt.u64 %p,%j,20;mov.u64 %planes,%L;@!%p add.u64 %planes,%planes,1;mov.u64 %k,0;
+MERGE_PLANE:mad.lo.u64 %off,%k,%n,%col;shl.b64 %off,%off,3;add.u64 %t,%source,%off;ld.global.u64 %u,[%t];add.u64 %t,%dest,%off;st.global.u64 [%t],%u;add.u64 %k,%k,1;setp.lt.u64 %p,%k,%planes;@%p bra MERGE_PLANE;add.u64 %j,%j,1;setp.lt.u64 %p,%j,22;@%p bra MERGE_OUTPUT;
+add.u64 %gc,%g,176;ld.global.u64 %source,[%gc+32];ld.global.u64 %dest,[%ctx+32];mul.lo.u64 %planes,%L,22;add.u64 %planes,%planes,252;mov.u64 %k,0;
+MERGE_SCRATCH:mad.lo.u64 %off,%k,%n,%col;shl.b64 %off,%off,3;add.u64 %t,%source,%off;ld.global.u64 %u,[%t];add.u64 %t,%dest,%off;st.global.u64 [%t],%u;add.u64 %k,%k,1;setp.lt.u64 %p,%k,%planes;@%p bra MERGE_SCRATCH;add.u64 %i,%i,1;setp.lt.u64 %p,%i,%active;@%p bra MERGE_WORKER;
+PUBLISH:ld.global.u64 %rec,[%ctx+48];st.global.u64 [%rec+240],%countE;st.global.u64 [%rec+248],%countL;st.global.u64 [%rec+256],%countS;st.global.u32 [%ctx+8],%flags;ld.global.u64 %t,[%arena+72];st.global.u64 [%ctx+16],%t;fence.sc.sys;st.global.u64 [%route],1;ret;
+FALLBACK:fence.sc.sys;st.global.u64 [%route],2;ret;
+}
