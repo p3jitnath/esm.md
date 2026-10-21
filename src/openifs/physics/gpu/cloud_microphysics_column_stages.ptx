@@ -167,7 +167,7 @@ SEPARATE_DONE:st.param.u32 [result],%e;ret;
  mov.u64 %bytes31,%pn;
  mov.u64 %bytes32,%pn;
  mov.u64 %bytes33,%pn;
- mov.u64 %bytes41,%pn;
+ shl.b64 %bytes41,%cols,3;
  mov.u64 %bytes42,%pn;
  mov.u64 %bytes43,%pn;
  mov.u64 %bytes46,%pn;
