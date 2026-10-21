@@ -1,0 +1,296 @@
+// Contract: skills/md2asm-gpu/references/openifs/physics/convective_energy_diagnostics.md. Accepted ordered parcel assembly.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func md2asm_gpu_convective_recomputed_phase_parcel_private(.param .u64 original_vector,.param .u64 common_context);
+.extern .func md2asm_gpu_cuadjtq_parcel_private(.param .u64 original_vector,.param .u64 context);
+.func (.param .u32 result) parcel_range(.param .u64 base,.param .u64 bytes,.param .u64 capacity,.param .u64 mask)
+{
+.reg .u64 %a,%n,%c,%m,%z;.reg .u32 %r;.reg .pred %p;
+ld.param.u64 %a,[base];ld.param.u64 %n,[bytes];ld.param.u64 %c,[capacity];ld.param.u64 %m,[mask];mov.u32 %r,1;
+setp.eq.u64 %p,%a,0;@%p bra DONE;and.b64 %z,%a,%m;setp.ne.u64 %p,%z,0;@%p bra DONE;
+setp.gt.u64 %p,%n,%c;@%p bra DONE;add.u64 %z,%a,%n;setp.lt.u64 %p,%z,%a;@%p bra DONE;setp.gt.u64 %p,%z,0x7fffffffffffffff;@%p bra DONE;
+mov.u32 %r,0;DONE:st.param.u32 [result],%r;ret;
+}
+.visible .entry md2asm_gpu_convective_recomputed_parcel(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %args,%ctx,%header,%record,%output,%a,%n,%cap,%bits,%off,%ptr,%b,%bn,%end,%bend,%meta,%ext,%frame,%pvec,%pctx,%cvec,%cctx,%event,%last_event,%counter,%matbytes,%colbytes;
+.reg .u32 %lane,%r,%i,%j,%k,%P,%N,%parcel,%level,%lower,%first,%last,%flags,%part,%error,%route;
+.reg .pred %p,%q;
+.local .align 8 .b8 meta_rows[80];
+.local .align 8 .b8 external_rows[768];
+.shared .align 4 .u32 parcel_control;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];mov.u32 %lane,%tid.x;
+setp.ne.u32 %p,%lane,0;@%p bra WIDE_WAIT;
+mov.u32 %route,0;st.shared.u32 [parcel_control],0;
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%ctx;st.param.u64 [p_bytes],64;st.param.u64 [p_capacity],64;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+ld.global.u32 %r,[%ctx];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra INELIGIBLE;ld.global.u32 %r,[%ctx+12];and.b32 %r,%r,1;setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE;
+mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,128;@%p bra INELIGIBLE;
+mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra INELIGIBLE;
+mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra INELIGIBLE;
+mov.u32 %r,%nctaid.x;setp.ne.u32 %p,%r,1;@%p bra INELIGIBLE;
+mov.u32 %r,%nctaid.y;setp.ne.u32 %p,%r,1;@%p bra INELIGIBLE;
+mov.u32 %r,%nctaid.z;setp.ne.u32 %p,%r,1;@%p bra INELIGIBLE;
+mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE;
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%args;st.param.u64 [p_bytes],16;st.param.u64 [p_capacity],16;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %cap,[%ctx+56];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%record;st.param.u64 [p_bytes],256;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+ld.global.u64 %header,[%args];ld.global.u64 %output,[%args+8];ld.global.u64 %cap,[%record];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%header;st.param.u64 [p_bytes],1024;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+ld.global.u64 %cap,[%record+8];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%output;st.param.u64 [p_bytes],32;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [meta_rows+0],%header;st.local.u64 [meta_rows+8],1024;
+st.local.u64 [meta_rows+16],%record;st.local.u64 [meta_rows+24],256;
+st.local.u64 [meta_rows+32],%args;st.local.u64 [meta_rows+40],16;
+st.local.u64 [meta_rows+48],%ctx;st.local.u64 [meta_rows+56],64;
+st.local.u64 [meta_rows+64],%output;st.local.u64 [meta_rows+72],32;
+ld.global.u32 %P,[%header];ld.global.u32 %N,[%header+4];ld.global.u32 %first,[%header+8];ld.global.u32 %last,[%header+12];ld.global.u32 %parcel,[%header+16];ld.global.u32 %lower,[%header+808];setp.lt.u32 %p,%P,1;@%p bra INELIGIBLE;setp.gt.u32 %p,%P,4096;@%p bra INELIGIBLE;setp.lt.u32 %p,%N,4;@%p bra INELIGIBLE;setp.gt.u32 %p,%N,512;@%p bra INELIGIBLE;setp.ge.u32 %p,%first,%last;@%p bra INELIGIBLE;setp.gt.u32 %p,%last,%P;@%p bra INELIGIBLE;setp.gt.u32 %p,%parcel,2;@%p bra INELIGIBLE;setp.gt.u32 %p,%lower,%N;@%p bra INELIGIBLE;mul.wide.u32 %matbytes,%P,%N;shl.b64 %matbytes,%matbytes,3;mul.wide.u32 %colbytes,%P,8;
+ld.global.u64 %a,[%header+32];ld.global.u64 %cap,[%header+176];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%matbytes;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+0],%a;st.local.u64 [external_rows+8],%matbytes;
+ld.global.u64 %a,[%header+40];ld.global.u64 %cap,[%header+184];
+mul.lo.u64 %n,%colbytes,4;
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%n;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+16],%a;st.local.u64 [external_rows+24],%n;
+ld.global.u64 %a,[%header+48];ld.global.u64 %cap,[%header+192];
+mul.lo.u64 %n,%colbytes,3;
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%n;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+32],%a;st.local.u64 [external_rows+40],%n;
+ld.global.u64 %a,[%header+56];ld.global.u64 %cap,[%header+200];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%matbytes;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+48],%a;st.local.u64 [external_rows+56],%matbytes;
+ld.global.u64 %a,[%header+64];ld.global.u64 %cap,[%header+208];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%matbytes;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+64],%a;st.local.u64 [external_rows+72],%matbytes;
+ld.global.u64 %a,[%header+72];ld.global.u64 %cap,[%header+216];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%matbytes;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+80],%a;st.local.u64 [external_rows+88],%matbytes;
+ld.global.u64 %a,[%header+80];ld.global.u64 %cap,[%header+224];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%matbytes;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+96],%a;st.local.u64 [external_rows+104],%matbytes;
+ld.global.u64 %a,[%header+88];ld.global.u64 %cap,[%header+232];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%matbytes;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+112],%a;st.local.u64 [external_rows+120],%matbytes;
+ld.global.u64 %a,[%header+96];ld.global.u64 %cap,[%header+240];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%matbytes;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+128],%a;st.local.u64 [external_rows+136],%matbytes;
+ld.global.u64 %a,[%header+104];ld.global.u64 %cap,[%header+248];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%matbytes;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+144],%a;st.local.u64 [external_rows+152],%matbytes;
+ld.global.u64 %a,[%header+112];ld.global.u64 %cap,[%header+256];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%matbytes;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+160],%a;st.local.u64 [external_rows+168],%matbytes;
+ld.global.u64 %a,[%header+120];ld.global.u64 %cap,[%header+264];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%matbytes;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+176],%a;st.local.u64 [external_rows+184],%matbytes;
+ld.global.u64 %a,[%header+128];ld.global.u64 %cap,[%header+272];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%matbytes;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+192],%a;st.local.u64 [external_rows+200],%matbytes;
+ld.global.u64 %a,[%header+136];ld.global.u64 %cap,[%header+280];
+shr.b64 %n,%matbytes,1;
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%n;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],3;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+208],%a;st.local.u64 [external_rows+216],%n;
+ld.global.u64 %a,[%header+144];ld.global.u64 %cap,[%header+288];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%colbytes;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+224],%a;st.local.u64 [external_rows+232],%colbytes;
+ld.global.u64 %a,[%header+152];ld.global.u64 %cap,[%header+296];
+shr.b64 %n,%colbytes,1;
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%n;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],3;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+240],%a;st.local.u64 [external_rows+248],%n;
+ld.global.u64 %a,[%header+160];ld.global.u64 %cap,[%header+304];
+shr.b64 %n,%colbytes,1;
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%n;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],3;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+256],%a;st.local.u64 [external_rows+264],%n;
+ld.global.u64 %a,[%header+168];ld.global.u64 %cap,[%header+312];
+shr.b64 %n,%colbytes,1;mul.lo.u64 %n,%n,3;
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%n;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],3;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+272],%a;st.local.u64 [external_rows+280],%n;
+ld.global.u64 %a,[%record+32];ld.global.u64 %cap,[%record+40];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%cap;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+288],%a;st.local.u64 [external_rows+296],%cap;
+ld.global.u64 %a,[%record+48];ld.global.u64 %cap,[%record+56];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%cap;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+304],%a;st.local.u64 [external_rows+312],%cap;
+ld.global.u64 %a,[%record+64];ld.global.u64 %cap,[%record+72];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%cap;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+320],%a;st.local.u64 [external_rows+328],%cap;
+ld.global.u64 %a,[%header+752];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],4096;st.param.u64 [p_capacity],4096;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+336],%a;st.local.u64 [external_rows+344],4096;
+ld.global.u64 %a,[%header+760];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],104;st.param.u64 [p_capacity],104;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+352],%a;st.local.u64 [external_rows+360],104;
+ld.global.u64 %a,[%header+840];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],324;st.param.u64 [p_capacity],324;st.param.u64 [p_mask],3;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+368],%a;st.local.u64 [external_rows+376],324;
+ld.global.u64 %a,[%header+848];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+384],%a;st.local.u64 [external_rows+392],8;
+mov.u32 %k,25;sub.u32 %level,%N,3;setp.lt.u32 %p,%level,%lower;@%p bra EXTERNAL_READY;
+ld.global.u64 %a,[%header+768];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],120;st.param.u64 [p_capacity],120;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+400],%a;st.local.u64 [external_rows+408],120;
+ld.global.u64 %a,[%header+776];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],4;st.param.u64 [p_capacity],4;st.param.u64 [p_mask],3;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+416],%a;st.local.u64 [external_rows+424],4;
+ld.global.u64 %a,[%header+784];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],4;st.param.u64 [p_capacity],4;st.param.u64 [p_mask],3;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+432],%a;st.local.u64 [external_rows+440],4;
+ld.global.u64 %a,[%header+792];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],4;st.param.u64 [p_capacity],4;st.param.u64 [p_mask],3;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+448],%a;st.local.u64 [external_rows+456],4;
+ld.global.u64 %a,[%header+800];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],4;st.param.u64 [p_capacity],4;st.param.u64 [p_mask],3;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+464],%a;st.local.u64 [external_rows+472],4;
+ld.global.u64 %a,[%record+80];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+480],%a;st.local.u64 [external_rows+488],8;
+ld.global.u64 %a,[%record+88];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+496],%a;st.local.u64 [external_rows+504],8;
+ld.global.u64 %a,[%record+96];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+512],%a;st.local.u64 [external_rows+520],8;
+ld.global.u64 %a,[%record+104];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+528],%a;st.local.u64 [external_rows+536],8;
+ld.global.u64 %a,[%record+112];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+544],%a;st.local.u64 [external_rows+552],8;
+ld.global.u64 %a,[%record+120];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+560],%a;st.local.u64 [external_rows+568],8;
+ld.global.u64 %a,[%record+128];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+576],%a;st.local.u64 [external_rows+584],8;
+ld.global.u64 %a,[%record+136];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+592],%a;st.local.u64 [external_rows+600],8;
+ld.global.u64 %a,[%record+144];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+608],%a;st.local.u64 [external_rows+616],8;
+ld.global.u64 %a,[%record+152];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+624],%a;st.local.u64 [external_rows+632],8;
+ld.global.u64 %a,[%record+176];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+640],%a;st.local.u64 [external_rows+648],8;
+ld.global.u64 %a,[%record+184];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+656],%a;st.local.u64 [external_rows+664],8;
+ld.global.u64 %a,[%record+192];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+672],%a;st.local.u64 [external_rows+680],8;
+ld.global.u64 %a,[%record+200];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+688],%a;st.local.u64 [external_rows+696],8;
+ld.global.u64 %a,[%record+208];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+704],%a;st.local.u64 [external_rows+712],8;
+ld.global.u64 %a,[%record+216];
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],8;st.param.u64 [p_capacity],8;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+720],%a;st.local.u64 [external_rows+728],8;
+ld.global.u64 %a,[%record+224];ld.global.u64 %cap,[%record+232];setp.eq.u64 %p,%a,0;@%p bra CHILD_COUNTER_ABSENT;
+{ .param .u64 p_base,p_bytes,p_capacity,p_mask; .param .u32 returned; st.param.u64 [p_base],%a;st.param.u64 [p_bytes],%cap;st.param.u64 [p_capacity],%cap;st.param.u64 [p_mask],7;call.uni (returned),parcel_range,(p_base,p_bytes,p_capacity,p_mask);ld.param.u32 %r,[returned];setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE; }
+st.local.u64 [external_rows+736],%a;st.local.u64 [external_rows+744],%cap;
+mov.u32 %k,47;bra EXTERNAL_READY;CHILD_COUNTER_ABSENT:setp.ne.u64 %p,%cap,0;@%p bra INELIGIBLE;mov.u32 %k,46;
+EXTERNAL_READY:
+cvta.local.u64 %meta,meta_rows;cvta.local.u64 %ext,external_rows;mov.u32 %i,0;
+META_BEGIN:mul.wide.u32 %off,%i,16;add.u64 %ptr,%meta,%off;ld.u64 %a,[%ptr];ld.u64 %n,[%ptr+8];add.u64 %end,%a,%n;mov.u32 %j,0;
+META_PAIR:setp.ge.u32 %p,%j,%i;@%p bra META_EXTERNAL;mul.wide.u32 %off,%j,16;add.u64 %ptr,%meta,%off;ld.u64 %b,[%ptr];ld.u64 %bn,[%ptr+8];add.u64 %bend,%b,%bn;setp.lt.u64 %p,%a,%bend;setp.lt.u64 %q,%b,%end;and.pred %p,%p,%q;@%p bra INELIGIBLE;add.u32 %j,%j,1;bra META_PAIR;
+META_EXTERNAL:mov.u32 %j,0;
+EXT_PAIR:setp.ge.u32 %p,%j,%k;@%p bra META_NEXT;mul.wide.u32 %off,%j,16;add.u64 %ptr,%ext,%off;ld.u64 %b,[%ptr];ld.u64 %bn,[%ptr+8];add.u64 %bend,%b,%bn;setp.lt.u64 %p,%a,%bend;setp.lt.u64 %q,%b,%end;and.pred %p,%p,%q;@%p bra INELIGIBLE;add.u32 %j,%j,1;bra EXT_PAIR;
+META_NEXT:add.u32 %i,%i,1;setp.lt.u32 %p,%i,5;@%p bra META_BEGIN;
+// Bind every consumed internal vector and context to the inventoried views.
+ld.global.u64 %a,[%header+640];mov.u64 %b,%header;setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u64 %a,[%header+648];mov.u64 %b,%output;setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u64 %a,[%header+560];mov.u64 %b,%record;setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u64 %a,[%header+568];mov.u64 %b,80;setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u32 %r,[%header+516];setp.ne.u32 %p,%r,1;@%p bra INELIGIBLE;ld.global.u32 %r,[%header+524];and.b32 %r,%r,1;setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE;
+sub.u32 %r,%N,3;setp.lt.u32 %p,%r,%lower;@%p bra INTERNAL_VIEWS_READY;
+ld.global.u64 %a,[%header+624];add.u64 %b,%record,80;setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u64 %a,[%header+632];mov.u64 %b,160;setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u32 %r,[%header+580];setp.ne.u32 %p,%r,1;@%p bra INELIGIBLE;ld.global.u32 %r,[%header+588];and.b32 %r,%r,1;setp.ne.u32 %p,%r,0;@%p bra INELIGIBLE;
+ld.global.u64 %a,[%header+656];ld.global.u64 %b,[%header+768];setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u64 %a,[%header+664];ld.global.u64 %b,[%header+776];setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u64 %a,[%header+672];ld.global.u64 %b,[%header+784];setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u64 %a,[%header+680];ld.global.u64 %b,[%header+792];setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u64 %a,[%header+688];ld.global.u64 %b,[%header+800];setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u64 %a,[%header+712];ld.global.u64 %b,[%header+120];setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u64 %a,[%header+720];ld.global.u64 %b,[%header+128];setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u64 %a,[%header+728];ld.global.u64 %b,[%header+152];setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u64 %a,[%header+696];ld.global.u64 %b,[%header+752];add.u64 %b,%b,1444;setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u64 %a,[%header+736];ld.global.u64 %b,[%header+752];add.u64 %b,%b,1440;setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u64 %a,[%header+744];mov.u64 %b,0;setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+ld.global.u64 %a,[%record+224];ld.global.u64 %b,[%record+64];setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;ld.global.u64 %a,[%record+232];ld.global.u64 %b,[%record+72];setp.ne.u64 %p,%a,%b;@%p bra INELIGIBLE;
+INTERNAL_VIEWS_READY:
+// Cached host controls require their original private/read-only ownership.
+ld.global.u64 %a,[%header+848];ld.global.u64 %bits,[%a];ld.global.u64 %cap,[%header+320];setp.ne.u64 %p,%bits,%cap;@%p bra INELIGIBLE;
+add.u64 %end,%a,8;mov.u32 %j,0;
+STABLE_RETV:mul.wide.u32 %off,%j,16;add.u64 %ptr,%ext,%off;ld.u64 %b,[%ptr];ld.u64 %bn,[%ptr+8];add.u64 %bend,%b,%bn;setp.lt.u64 %p,%a,%bend;setp.lt.u64 %q,%b,%end;and.pred %p,%p,%q;@%p bra INELIGIBLE;add.u32 %j,%j,1;setp.lt.u32 %p,%j,22;@%p bra STABLE_RETV;
+ld.global.u64 %a,[%header+752];add.u64 %end,%a,4096;mov.u32 %j,0;
+PRIVATE_FRAME:mul.wide.u32 %off,%j,16;add.u64 %ptr,%ext,%off;ld.u64 %b,[%ptr];ld.u64 %bn,[%ptr+8];add.u64 %bend,%b,%bn;setp.lt.u64 %p,%a,%bend;setp.lt.u64 %q,%b,%end;and.pred %p,%p,%q;@%p bra INELIGIBLE;add.u32 %j,%j,1;setp.lt.u32 %p,%j,21;@%p bra PRIVATE_FRAME;
+st.global.u32 [%header+820],1;st.global.u32 [%header+824],0;st.global.u64 [%header+832],0;st.shared.u32 [parcel_control],1;bra WIDE_WAIT;
+INELIGIBLE:st.shared.u32 [parcel_control],0;
+WIDE_WAIT:bar.sync 0;ld.shared.u32 %route,[parcel_control];setp.eq.u32 %p,%route,0;@%p ret;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];ld.global.u64 %header,[%args];ld.global.u64 %output,[%args+8];ld.global.u64 %record,[%ctx+48];ld.global.u32 %N,[%header+4];ld.global.u32 %P,[%header];ld.global.u32 %lower,[%header+808];add.u64 %pctx,%header,512;add.u64 %cctx,%header,576;add.u64 %pvec,%header,640;add.u64 %cvec,%header,656;ld.global.u64 %frame,[%header+752];
+INITIAL:
+setp.ne.u32 %p,%lane,0;@%p bra INITIAL_READY;
+sub.u32 %level,%N,2;
+st.global.u32 [%header+20],%level;st.global.u32 [%record+16],0;st.global.u32 [%pctx],0;st.global.u32 [%pctx+8],0;st.global.u64 [%pctx+16],0;
+INITIAL_READY:bar.sync 0;
+{.param .u64 private_vector,private_context;st.param.u64 [private_vector],%pvec;st.param.u64 [private_context],%pctx;call.uni md2asm_gpu_convective_recomputed_phase_parcel_private,(private_vector,private_context);}
+bar.sync 0;setp.ne.u32 %p,%lane,0;@%p bra INITIAL_STATUS;
+ld.global.u32 %error,[%pctx];setp.ne.u32 %p,%error,0;@%p bra INITIAL_FAILED;ld.global.u32 %part,[%pctx+8];ld.global.u32 %flags,[%header+824];or.b32 %flags,%flags,%part;st.global.u32 [%header+824],%flags;ld.global.u64 %event,[%pctx+16];setp.eq.u64 %p,%event,0;@%p bra INITIAL_NO_EVENT;st.global.u64 [%header+832],%event;
+INITIAL_NO_EVENT:st.shared.u32 [parcel_control],1;bra INITIAL_STATUS;
+INITIAL_FAILED:st.global.u32 [%ctx],%error;st.shared.u32 [parcel_control],2;
+INITIAL_STATUS:bar.sync 0;ld.shared.u32 %route,[parcel_control];setp.eq.u32 %p,%route,2;@%p ret;
+setp.ne.u32 %p,%lane,0;@%p bra ORIGINAL_LOWER_READY;cvt.u64.u32 %bits,%lower;st.global.u64 [%frame+1536],%bits;
+ORIGINAL_LOWER_READY:bar.sync 0;
+sub.u32 %level,%N,3;setp.lt.u32 %p,%level,%lower;@%p bra OUTPUT_PHASE;
+LEVEL_LOOP:
+PRE_CHILD:
+setp.ne.u32 %p,%lane,0;@%p bra PRE_CHILD_READY;
+st.global.u32 [%header+20],%level;st.global.u32 [%record+16],1;st.global.u32 [%pctx],0;st.global.u32 [%pctx+8],0;st.global.u64 [%pctx+16],0;
+PRE_CHILD_READY:bar.sync 0;
+{.param .u64 private_vector,private_context;st.param.u64 [private_vector],%pvec;st.param.u64 [private_context],%pctx;call.uni md2asm_gpu_convective_recomputed_phase_parcel_private,(private_vector,private_context);}
+bar.sync 0;setp.ne.u32 %p,%lane,0;@%p bra PRE_CHILD_STATUS;
+ld.global.u32 %error,[%pctx];setp.ne.u32 %p,%error,0;@%p bra PRE_CHILD_FAILED;ld.global.u32 %part,[%pctx+8];ld.global.u32 %flags,[%header+824];or.b32 %flags,%flags,%part;st.global.u32 [%header+824],%flags;ld.global.u64 %event,[%pctx+16];setp.eq.u64 %p,%event,0;@%p bra PRE_CHILD_NO_EVENT;st.global.u64 [%header+832],%event;
+PRE_CHILD_NO_EVENT:st.shared.u32 [parcel_control],1;bra PRE_CHILD_STATUS;
+PRE_CHILD_FAILED:st.global.u32 [%ctx],%error;st.shared.u32 [parcel_control],2;
+PRE_CHILD_STATUS:bar.sync 0;ld.shared.u32 %route,[parcel_control];setp.eq.u32 %p,%route,2;@%p ret;
+ADJUSTMENT:
+setp.ne.u32 %p,%lane,0;@%p bra ADJUSTMENT_READY;
+ld.global.u64 %a,[%cvec+64];st.global.u64 [%frame],%a;ld.global.u64 %a,[%cvec+72];st.global.u64 [%frame+8],%a;add.u64 %a,%frame,1440;st.global.u64 [%frame+16],%a;st.global.u64 [%frame+24],0;add.u32 %r,%level,1;st.global.u32 [%frame+1444],%r;st.global.u32 [%frame+1440],1;mul.wide.u32 %off,%level,%P;shl.b64 %off,%off,3;ld.global.u64 %a,[%header+32];add.u64 %a,%a,%off;st.global.u64 [%cvec+48],%a;st.global.u32 [%cctx],0;st.global.u32 [%cctx+8],0;st.global.u64 [%cctx+16],0;
+ADJUSTMENT_READY:bar.sync 0;
+{.param .u64 private_vector,private_context;st.param.u64 [private_vector],%cvec;st.param.u64 [private_context],%cctx;call.uni md2asm_gpu_cuadjtq_parcel_private,(private_vector,private_context);}
+bar.sync 0;setp.ne.u32 %p,%lane,0;@%p bra ADJUSTMENT_STATUS;
+ld.global.u32 %error,[%cctx];setp.ne.u32 %p,%error,0;@%p bra ADJUSTMENT_FAILED;ld.global.u32 %part,[%cctx+8];ld.global.u32 %flags,[%header+824];or.b32 %flags,%flags,%part;st.global.u32 [%header+824],%flags;ld.global.u64 %event,[%cctx+16];setp.eq.u64 %p,%event,0;@%p bra ADJUSTMENT_NO_EVENT;st.global.u64 [%header+832],%event;
+ADJUSTMENT_NO_EVENT:st.shared.u32 [parcel_control],1;bra ADJUSTMENT_STATUS;
+ADJUSTMENT_FAILED:st.global.u32 [%ctx],%error;st.shared.u32 [parcel_control],2;
+ADJUSTMENT_STATUS:bar.sync 0;ld.shared.u32 %route,[parcel_control];setp.eq.u32 %p,%route,2;@%p ret;
+POST_CHILD:
+setp.ne.u32 %p,%lane,0;@%p bra POST_CHILD_READY;
+st.global.u32 [%header+20],%level;st.global.u32 [%record+16],2;st.global.u32 [%pctx],0;st.global.u32 [%pctx+8],0;st.global.u64 [%pctx+16],0;
+POST_CHILD_READY:bar.sync 0;
+{.param .u64 private_vector,private_context;st.param.u64 [private_vector],%pvec;st.param.u64 [private_context],%pctx;call.uni md2asm_gpu_convective_recomputed_phase_parcel_private,(private_vector,private_context);}
+bar.sync 0;setp.ne.u32 %p,%lane,0;@%p bra POST_CHILD_STATUS;
+ld.global.u32 %error,[%pctx];setp.ne.u32 %p,%error,0;@%p bra POST_CHILD_FAILED;ld.global.u32 %part,[%pctx+8];ld.global.u32 %flags,[%header+824];or.b32 %flags,%flags,%part;st.global.u32 [%header+824],%flags;ld.global.u64 %event,[%pctx+16];setp.eq.u64 %p,%event,0;@%p bra POST_CHILD_NO_EVENT;st.global.u64 [%header+832],%event;
+POST_CHILD_NO_EVENT:st.shared.u32 [parcel_control],1;bra POST_CHILD_STATUS;
+POST_CHILD_FAILED:st.global.u32 [%ctx],%error;st.shared.u32 [parcel_control],2;
+POST_CHILD_STATUS:bar.sync 0;ld.shared.u32 %route,[parcel_control];setp.eq.u32 %p,%route,2;@%p ret;
+sub.u32 %level,%level,1;setp.ge.s32 %p,%level,%lower;@%p bra LEVEL_LOOP;
+OUTPUT_PHASE:
+OUTPUT:
+setp.ne.u32 %p,%lane,0;@%p bra OUTPUT_READY;
+mov.u32 %level,0;
+st.global.u32 [%header+20],%level;st.global.u32 [%record+16],3;st.global.u32 [%pctx],0;st.global.u32 [%pctx+8],0;st.global.u64 [%pctx+16],0;
+OUTPUT_READY:bar.sync 0;
+{.param .u64 private_vector,private_context;st.param.u64 [private_vector],%pvec;st.param.u64 [private_context],%pctx;call.uni md2asm_gpu_convective_recomputed_phase_parcel_private,(private_vector,private_context);}
+bar.sync 0;setp.ne.u32 %p,%lane,0;@%p bra OUTPUT_STATUS;
+ld.global.u32 %error,[%pctx];setp.ne.u32 %p,%error,0;@%p bra OUTPUT_FAILED;ld.global.u32 %part,[%pctx+8];ld.global.u32 %flags,[%header+824];or.b32 %flags,%flags,%part;st.global.u32 [%header+824],%flags;ld.global.u64 %event,[%pctx+16];setp.eq.u64 %p,%event,0;@%p bra OUTPUT_NO_EVENT;st.global.u64 [%header+832],%event;
+OUTPUT_NO_EVENT:st.shared.u32 [parcel_control],1;bra OUTPUT_STATUS;
+OUTPUT_FAILED:st.global.u32 [%ctx],%error;st.shared.u32 [parcel_control],2;
+OUTPUT_STATUS:bar.sync 0;ld.shared.u32 %route,[parcel_control];setp.eq.u32 %p,%route,2;@%p ret;
+setp.ne.u32 %p,%lane,0;@%p ret;ld.global.u32 %flags,[%header+824];ld.global.u64 %event,[%header+832];st.global.u32 [%ctx+8],%flags;st.global.u64 [%ctx+16],%event;st.global.u64 [%output],1;st.global.u64 [%output+8],0;st.global.u64 [%output+16],0;st.global.u64 [%output+24],0;ret;
+}

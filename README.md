@@ -74,6 +74,7 @@ These GPU components pass their declared exact-output checks.
 | [Turbulence columns](skills/md2asm-gpu/references/openifs/surface/turbulence_diffusion_entry.md) | Complete model owners, parallel buffer copies, ordered error events, actual counters and serial recovery |
 | [Convective columns](skills/md2asm-gpu/references/openifs/convection/parallel_convective_columns.md) | Complete owners, shared integer decisions, physical checks and actual counters |
 | [Cloud microphysics columns](skills/md2asm-gpu/references/openifs/physics/cloud_microphysics_columns.md) | Complete parent across 32 blocks, protected owners, numerical status and actual counters |
+| [Convective parcel ascent](skills/md2asm-gpu/references/openifs/physics/convective_energy_diagnostics.md) | Complete parent, three ordered parcel launches, exact counters and fatal-prefix checks |
 
 Separately, 257 distinct original routines have passed their component checks. The complete required-routine total and the number used on the GPU during a forecast remain under review, so these results do not give a completion percentage.
 
