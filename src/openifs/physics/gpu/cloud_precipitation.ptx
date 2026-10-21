@@ -1,7 +1,11 @@
-// Unverified direct PTX batch draft. See the routine frozen contract.
+// Exact cloud arithmetic. Contract skills/md2asm-gpu/references/openifs/physics/cloud_microphysics_columns.md.
 .version 8.5
 .target sm_90
 .address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_accumulated_add_status(.param .b64 left,.param .b64 right,.param .u32 accumulated);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_accumulated_sub_status(.param .b64 left,.param .b64 right,.param .u32 accumulated);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_accumulated_mul_status(.param .b64 left,.param .b64 right,.param .u32 accumulated);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_accumulated_div_status(.param .b64 left,.param .b64 right,.param .u32 accumulated);
 .extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 a,.param .b64 b);
 .extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 a,.param .b64 b);
 .extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 a,.param .b64 b);
@@ -111,106 +115,196 @@
  st.global.b64 [%work+1552],%old_ice_speed;
  st.global.b64 [%work+1568],%old_snow_speed;
  ld.global.b64 %t0,[%v0+720];
- st.param.b64 [ma],%t0;st.param.b64 [mb],%rho;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_0;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%rho;st.param.u32 [esm_accumulated_0],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_0);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.param.b64 [pa],%t0;st.param.b64 [pb],0x3fd999999999999a;call.uni (power_return),md2asm_gpu_power_nonnegative,(pa,pb);ld.param.b64 %density_correction,[power_return];ld.param.u32 %raised,[power_return+8];or.b32 %flags,%flags,%raised;ld.param.u32 %new_event,[power_return+12];add.u32 %call_ordinal,%call_ordinal,1;shl.b32 %packed_event,%call_ordinal,8;or.b32 %packed_event,%packed_event,%new_event;setp.ne.u32 %p,%new_event,0;@%p mov.u32 %event,%packed_event;ld.param.u64 %increment,[power_return+16];add.u64 %fast,%fast,%increment;ld.param.u64 %increment,[power_return+24];add.u64 %wide,%wide,%increment;
  ld.global.b64 %t0,[%scratch+144];
- st.param.b64 [ma],%qr;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
- st.param.b64 [ma],0x3fe0000000000000;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
- st.param.b64 [ma],%rho;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_1;
+st.param.b64 [ma],%qr;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_1],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_1);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
+ { .param .u32 esm_accumulated_2;
+st.param.b64 [ma],0x3fe0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_2],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_2);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
+ { .param .u32 esm_accumulated_3;
+st.param.b64 [ma],%rho;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_3],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_3);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  ld.global.b64 %t1,[%v0+904];
- st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_4;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_4],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_4);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  ld.global.b64 %t1,[%v0+912];
  st.param.b64 [pa],%t0;st.param.b64 [pb],%t1;call.uni (power_return),md2asm_gpu_power_nonnegative,(pa,pb);ld.param.b64 %lambda_inverse,[power_return];ld.param.u32 %raised,[power_return+8];or.b32 %flags,%flags,%raised;ld.param.u32 %new_event,[power_return+12];add.u32 %call_ordinal,%call_ordinal,1;shl.b32 %packed_event,%call_ordinal,8;or.b32 %packed_event,%packed_event,%new_event;setp.ne.u32 %p,%new_event,0;@%p mov.u32 %event,%packed_event;ld.param.u64 %increment,[power_return+16];add.u64 %fast,%fast,%increment;ld.param.u64 %increment,[power_return+24];add.u64 %wide,%wide,%increment;
  ld.global.b64 %t0,[%v0+888];
- st.param.b64 [ma],%density_correction;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_5;
+st.param.b64 [ma],%density_correction;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_5],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_5);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  ld.global.b64 %t1,[%v0+752];
  st.param.b64 [pa],%lambda_inverse;st.param.b64 [pb],%t1;call.uni (power_return),md2asm_gpu_power_nonnegative,(pa,pb);ld.param.b64 %t1,[power_return];ld.param.u32 %raised,[power_return+8];or.b32 %flags,%flags,%raised;ld.param.u32 %new_event,[power_return+12];add.u32 %call_ordinal,%call_ordinal,1;shl.b32 %packed_event,%call_ordinal,8;or.b32 %packed_event,%packed_event,%new_event;setp.ne.u32 %p,%new_event,0;@%p mov.u32 %event,%packed_event;ld.param.u64 %increment,[power_return+16];add.u64 %fast,%fast,%increment;ld.param.u64 %increment,[power_return+24];add.u64 %wide,%wide,%increment;
- st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %speed,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_6;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_6],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_6);ld.param.b64 %speed,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.global.b64 [%work+1560],%speed;
  mov.b64 %total,0;
  setp.le.f64 %p,%old_ice_speed,0d0000000000000000;@%p bra FALL_READY_1;setp.le.u32 %p,%level,%cloud_top;@%p bra FALL_SINK_1;
  ld.global.b64 %t0,[%row+232];
- st.param.b64 [ma],%t0;st.param.b64 [mb],%dtgdp;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_7;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%dtgdp;st.param.u32 [esm_accumulated_7],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_7);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.global.b64 [%work+1592],%t0;
  ld.global.b64 %t1,[%work+1072];
- st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_8;
+st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_8],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_8);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.global.b64 [%work+1072],%t1;
  ld.global.b64 %t1,[%work+1512];
- st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_9;
+st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_9],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_9);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.global.b64 [%work+1512],%t1;
- st.param.b64 [ma],%total;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %total,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_10;
+st.param.b64 [ma],%total;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_10],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_10);ld.param.b64 %total,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
 FALL_SINK_1:
- st.param.b64 [ma],%dtgdp;st.param.b64 [mb],%rho;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_11;
+st.param.b64 [ma],%dtgdp;st.param.b64 [mb],%rho;st.param.u32 [esm_accumulated_11],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_11);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  ld.global.b64 %t1,[%work+1552];
- st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_12;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_12],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_12);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.global.b64 [%work+1632],%t0;
 FALL_READY_1:
  setp.le.f64 %p,%old_rain_speed,0d0000000000000000;@%p bra FALL_READY_2;setp.le.u32 %p,%level,%cloud_top;@%p bra FALL_SINK_2;
  ld.global.b64 %t0,[%row+240];
- st.param.b64 [ma],%t0;st.param.b64 [mb],%dtgdp;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_13;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%dtgdp;st.param.u32 [esm_accumulated_13],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_13);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.global.b64 [%work+1600],%t0;
  ld.global.b64 %t1,[%work+1120];
- st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_14;
+st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_14],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_14);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.global.b64 [%work+1120],%t1;
  ld.global.b64 %t1,[%work+1520];
- st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_15;
+st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_15],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_15);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.global.b64 [%work+1520],%t1;
- st.param.b64 [ma],%total;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %total,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_16;
+st.param.b64 [ma],%total;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_16],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_16);ld.param.b64 %total,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
 FALL_SINK_2:
- st.param.b64 [ma],%dtgdp;st.param.b64 [mb],%rho;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_17;
+st.param.b64 [ma],%dtgdp;st.param.b64 [mb],%rho;st.param.u32 [esm_accumulated_17],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_17);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  ld.global.b64 %t1,[%work+1560];
- st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_18;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_18],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_18);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.global.b64 [%work+1640],%t0;
 FALL_READY_2:
  setp.le.f64 %p,%old_snow_speed,0d0000000000000000;@%p bra FALL_READY_3;setp.le.u32 %p,%level,%cloud_top;@%p bra FALL_SINK_3;
  ld.global.b64 %t0,[%row+248];
- st.param.b64 [ma],%t0;st.param.b64 [mb],%dtgdp;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_19;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%dtgdp;st.param.u32 [esm_accumulated_19],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_19);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.global.b64 [%work+1608],%t0;
  ld.global.b64 %t1,[%work+1168];
- st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_20;
+st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_20],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_20);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.global.b64 [%work+1168],%t1;
  ld.global.b64 %t1,[%work+1528];
- st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_21;
+st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_21],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_21);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.global.b64 [%work+1528],%t1;
- st.param.b64 [ma],%total;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %total,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_22;
+st.param.b64 [ma],%total;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_22],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_22);ld.param.b64 %total,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
 FALL_SINK_3:
- st.param.b64 [ma],%dtgdp;st.param.b64 [mb],%rho;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_23;
+st.param.b64 [ma],%dtgdp;st.param.b64 [mb],%rho;st.param.u32 [esm_accumulated_23],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_23);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  ld.global.b64 %t1,[%work+1568];
- st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_24;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_24],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_24);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.global.b64 [%work+1648],%t0;
 FALL_READY_3:
  st.global.b64 [%work+232],%total;
  ld.global.b64 %cover,[%scratch+80];
  ld.global.b64 %max_cover,[%scratch+96];
  setp.le.f64 %p,%total,0d3d06849b86a12b9b;@%p bra NO_PRECIPITATION;
- st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%cover;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_25;
+st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%cover;st.param.u32 [esm_accumulated_25],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_25);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  add.u64 %pointer,%row,-504;ld.global.b64 %t1,[%pointer];max.f64 %t2,%A,%t1;
- st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t2;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
- st.param.b64 [ma],%t0;st.param.b64 [mb],%t2;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
- st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],0x3eb0c6f7a0b5ed8d;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_26;
+st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t2;st.param.u32 [esm_accumulated_26],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_26);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
+ { .param .u32 esm_accumulated_27;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%t2;st.param.u32 [esm_accumulated_27],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_27);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
+ { .param .u32 esm_accumulated_28;
+st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],0x3eb0c6f7a0b5ed8d;st.param.u32 [esm_accumulated_28],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_28);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  min.f64 %t1,%t1,%t2;
- st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
- st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
- st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %cover,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_29;
+st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_29],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_29);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
+ { .param .u32 esm_accumulated_30;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_30],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_30);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
+ { .param .u32 esm_accumulated_31;
+st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_31],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_31);ld.param.b64 %cover,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  ld.global.b64 %t0,[%v0+232];max.f64 %cover,%cover,%t0;
- st.param.b64 [ma],%cover;st.param.b64 [mb],%A;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %clear_cover,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_32;
+st.param.b64 [ma],%cover;st.param.b64 [mb],%A;st.param.u32 [esm_accumulated_32],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_32);ld.param.b64 %clear_cover,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  max.f64 %clear_cover,0d0000000000000000,%clear_cover;
  add.u64 %pointer,%row,-472;ld.global.b64 %t0,[%pointer];
- st.param.b64 [ma],%qr;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
- st.param.b64 [ma],0x3fe0000000000000;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
- st.param.b64 [ma],%t0;st.param.b64 [mb],%cover;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %rain_incloud,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_33;
+st.param.b64 [ma],%qr;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_33],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_33);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
+ { .param .u32 esm_accumulated_34;
+st.param.b64 [ma],0x3fe0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_34],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_34);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
+ { .param .u32 esm_accumulated_35;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%cover;st.param.u32 [esm_accumulated_35],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_35);ld.param.b64 %rain_incloud,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  ld.global.b64 %t0,[%scratch+144];
- st.param.b64 [ma],%qr;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
- st.param.b64 [ma],0x3fe0000000000000;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
- st.param.b64 [ma],%t0;st.param.b64 [mb],%cover;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %rain_previous,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_36;
+st.param.b64 [ma],%qr;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_36],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_36);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
+ { .param .u32 esm_accumulated_37;
+st.param.b64 [ma],0x3fe0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_37],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_37);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
+ { .param .u32 esm_accumulated_38;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%cover;st.param.u32 [esm_accumulated_38],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_38);ld.param.b64 %rain_previous,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  add.u64 %pointer,%row,-464;ld.global.b64 %t0,[%pointer];
- st.param.b64 [ma],%qs;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
- st.param.b64 [ma],0x3fe0000000000000;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
- st.param.b64 [ma],%t0;st.param.b64 [mb],%cover;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %snow_incloud,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_39;
+st.param.b64 [ma],%qs;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_39],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_39);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
+ { .param .u32 esm_accumulated_40;
+st.param.b64 [ma],0x3fe0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_40],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_40);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
+ { .param .u32 esm_accumulated_41;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%cover;st.param.u32 [esm_accumulated_41],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_41);ld.param.b64 %snow_incloud,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  ld.global.b64 %t0,[%scratch+152];
- st.param.b64 [ma],%qs;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
- st.param.b64 [ma],0x3fe0000000000000;st.param.b64 [mb],%t0;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
- st.param.b64 [ma],%t0;st.param.b64 [mb],%cover;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %snow_previous,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_42;
+st.param.b64 [ma],%qs;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_42],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_42);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
+ { .param .u32 esm_accumulated_43;
+st.param.b64 [ma],0x3fe0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_43],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_43);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
+ { .param .u32 esm_accumulated_44;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%cover;st.param.u32 [esm_accumulated_44],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_44);ld.param.b64 %snow_previous,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  max.f64 %max_cover,%cover,%max_cover;bra PRECIPITATION_READY;
 NO_PRECIPITATION:mov.b64 %rain_incloud,0;mov.b64 %rain_previous,0;mov.b64 %snow_incloud,0;mov.b64 %snow_previous,0;mov.b64 %cover,0;mov.b64 %clear_cover,0;mov.b64 %max_cover,0;
 PRECIPITATION_READY:
@@ -225,33 +319,57 @@ PRECIPITATION_READY:
  mov.b64 %autoconversion,0;mov.b64 %accretion,0;setp.le.f64 %p,%liqcld,0d3d06849b86a12b9b;@%p bra WARM_RAIN_READY;shl.b64 %offset,%column64,3;add.u64 %pointer,%v35,%offset;ld.global.b64 %t0,[%pointer];setp.le.f64 %p,%t0,0d3fe0000000000000;@%p bra MARINE_DROPLETS;ld.global.b64 %droplet_count,[%v0+376];bra DROPLETS_READY;
 MARINE_DROPLETS:ld.global.b64 %droplet_count,[%v0+368];
 DROPLETS_READY:ld.global.b64 %t0,[%v0+384];
- st.param.b64 [ma],%t0;st.param.b64 [mb],%dt;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_45;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%dt;st.param.u32 [esm_accumulated_45],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_45);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  ld.global.b64 %t1,[%v0+344];
- st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_46;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_46],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_46);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  ld.global.b64 %t1,[%v0+352];
- st.param.b64 [ma],%t1;st.param.b64 [mb],0x3ff0000000000000;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_47;
+st.param.b64 [ma],%t1;st.param.b64 [mb],0x3ff0000000000000;st.param.u32 [esm_accumulated_47],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_47);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.param.b64 [pa],%liqcld;st.param.b64 [pb],%t1;call.uni (power_return),md2asm_gpu_power_nonnegative,(pa,pb);ld.param.b64 %t1,[power_return];ld.param.u32 %raised,[power_return+8];or.b32 %flags,%flags,%raised;ld.param.u32 %new_event,[power_return+12];add.u32 %call_ordinal,%call_ordinal,1;shl.b32 %packed_event,%call_ordinal,8;or.b32 %packed_event,%packed_event,%new_event;setp.ne.u32 %p,%new_event,0;@%p mov.u32 %event,%packed_event;ld.param.u64 %increment,[power_return+16];add.u64 %fast,%fast,%increment;ld.param.u64 %increment,[power_return+24];add.u64 %wide,%wide,%increment;
- st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_48;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_48],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_48);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  ld.global.b64 %t1,[%v0+360];
  st.param.b64 [pa],%droplet_count;st.param.b64 [pb],%t1;call.uni (power_return),md2asm_gpu_power_nonnegative,(pa,pb);ld.param.b64 %t1,[power_return];ld.param.u32 %raised,[power_return+8];or.b32 %flags,%flags,%raised;ld.param.u32 %new_event,[power_return+12];add.u32 %call_ordinal,%call_ordinal,1;shl.b32 %packed_event,%call_ordinal,8;or.b32 %packed_event,%packed_event,%new_event;setp.ne.u32 %p,%new_event,0;@%p mov.u32 %event,%packed_event;ld.param.u64 %increment,[power_return+16];add.u64 %fast,%fast,%increment;ld.param.u64 %increment,[power_return+24];add.u64 %wide,%wide,%increment;
- st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %autoconversion,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_49;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_49],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_49);ld.param.b64 %autoconversion,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  ld.global.b64 %t0,[%work+1240];
- st.param.b64 [ma],%t0;st.param.b64 [mb],%autoconversion;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_50;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%autoconversion;st.param.u32 [esm_accumulated_50],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_50);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.global.b64 [%work+1240],%t0;
  setp.le.f64 %p,%rain_incloud,0d3d06849b86a12b9b;@%p bra NO_RAIN_ACCRETION;ld.global.b64 %t0,[%v0+392];
- st.param.b64 [ma],%t0;st.param.b64 [mb],%dt;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_51;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%dt;st.param.u32 [esm_accumulated_51],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_51);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  ld.global.b64 %t1,[%v0+328];
- st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_52;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_52],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_52);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  ld.global.b64 %t1,[%v0+336];
- st.param.b64 [ma],%t1;st.param.b64 [mb],0x3ff0000000000000;call.uni (math),md2asm_gpu_sub_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_53;
+st.param.b64 [ma],%t1;st.param.b64 [mb],0x3ff0000000000000;st.param.u32 [esm_accumulated_53],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_53);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.param.b64 [pa],%liqcld;st.param.b64 [pb],%t1;call.uni (power_return),md2asm_gpu_power_nonnegative,(pa,pb);ld.param.b64 %t1,[power_return];ld.param.u32 %raised,[power_return+8];or.b32 %flags,%flags,%raised;ld.param.u32 %new_event,[power_return+12];add.u32 %call_ordinal,%call_ordinal,1;shl.b32 %packed_event,%call_ordinal,8;or.b32 %packed_event,%packed_event,%new_event;setp.ne.u32 %p,%new_event,0;@%p mov.u32 %event,%packed_event;ld.param.u64 %increment,[power_return+16];add.u64 %fast,%fast,%increment;ld.param.u64 %increment,[power_return+24];add.u64 %wide,%wide,%increment;
- st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_54;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_54],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_54);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  ld.global.b64 %t1,[%v0+336];
  st.param.b64 [pa],%rain_incloud;st.param.b64 [pb],%t1;call.uni (power_return),md2asm_gpu_power_nonnegative,(pa,pb);ld.param.b64 %t1,[power_return];ld.param.u32 %raised,[power_return+8];or.b32 %flags,%flags,%raised;ld.param.u32 %new_event,[power_return+12];add.u32 %call_ordinal,%call_ordinal,1;shl.b32 %packed_event,%call_ordinal,8;or.b32 %packed_event,%packed_event,%new_event;setp.ne.u32 %p,%new_event,0;@%p mov.u32 %event,%packed_event;ld.param.u64 %increment,[power_return+16];add.u64 %fast,%fast,%increment;ld.param.u64 %increment,[power_return+24];add.u64 %wide,%wide,%increment;
- st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %accretion,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_55;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_55],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_55);ld.param.b64 %accretion,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
 NO_RAIN_ACCRETION:
  ld.global.b64 %t0,[%work+1240];
- st.param.b64 [ma],%t0;st.param.b64 [mb],%accretion;call.uni (math),md2asm_gpu_add_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ { .param .u32 esm_accumulated_56;
+st.param.b64 [ma],%t0;st.param.b64 [mb],%accretion;st.param.u32 [esm_accumulated_56],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_56);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+}
  st.global.b64 [%work+1240],%t0;
 WARM_RAIN_READY:
  st.global.b64 [%work+240],%autoconversion;

@@ -1,6 +1,6 @@
 # Distributed Cloud Microphysics Columns
 
-Revision 1 changes how independent columns use the GPU. It preserves the [cloud water and rain formulation](../../../../../formulations/openifs/physics/cloud_water_and_rain.md), the ordered calculations in the [complete cloud contract](../../../../md2asm/references/openifs/cloud_microphysics_contract.md), all eight numerical children and the original output bytes. Each worker completes a column from its first cloud level to its last level before moving to another column.
+Revision 2 preserves the [cloud water and rain formulation](../../../../../formulations/openifs/physics/cloud_water_and_rain.md), the ordered calculations in the [complete cloud contract](../../../../md2asm/references/openifs/cloud_microphysics_contract.md), all eight numerical child interfaces and every original output bit. Revision 1 distributes independent columns across GPU blocks. Revision 2 carries accumulated status through private arithmetic helpers to reduce repeated work. Each worker completes a column from its first cloud level to its last level before moving to another column.
 
 The supported configuration and physical limits are unchanged. The allocated column count is P from 1 through 4096, the level count is N from 2 through 256, and the active interval starts at column 1 and ends at an integer from 0 through P. P and N count cells and levels and have no physical units. Unsupported controls, bounds, alignment and forbidden overlaps fail the original admission checks before output writes.
 
@@ -22,6 +22,10 @@ The [launch helper](../../../../../src/openifs/physics/gpu/cloud_microphysics_la
 
 Separate launches order the complete grid. Each column keeps disjoint scratch and output cells, all original intermediate rounding and every original numerical child call. The join runs only after every worker completes. An empty call retains the original one-block, 128-thread entry and its original setup effects.
 
+## Repeated Numerical Status
+
+The [accumulated binary helpers](../support/accumulated_binary_status.md) retain the original rounded results while reducing repeated reconstruction of numerical status. At 993 sites in eight children, a helper receives the caller's existing flag word. A proved operand bound permits the short route only when the operation can add no flag that the caller does not already hold. Other inputs use the unchanged complete arithmetic helper. Each returned flag word is used only to update the same accumulated state. No child argument, counter, model owner or launch changes.
+
 ## Evidence and Limits
 
-The changed complete parent passes 192 retained cases with zero differing owner or readonly bytes and exact numerical status, real counters and ABI state. The unchanged high-precision column water and phase-enthalpy checks remain applicable through the exact canonical outputs. Checked cases include empty work, partial work, seeded status and counters, and protected buffer boundaries. Repeated matched measurements select this launch sequence for the retained 24-column, 19-level component. Detailed inputs, tools and timing records remain local. This component result does not establish complete GPU forecast acceptance or runtime.
+The arithmetic helpers pass 4,320 operand and status cases. The changed complete parent passes 192 retained cases with zero differing owner or readonly bytes and exact numerical status, real counters and ABI state. The unchanged high-precision column water and phase-enthalpy checks remain applicable through the exact canonical outputs. Checked cases include empty work, partial work, seeded status and counters, and protected buffer boundaries. Repeated matched measurements select this launch sequence for the retained 24-column, 19-level component. Detailed inputs, tools and timing records remain local. This component result does not establish complete GPU forecast acceptance or runtime.

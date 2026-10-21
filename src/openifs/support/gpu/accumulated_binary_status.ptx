@@ -1,0 +1,52 @@
+// Accumulated binary status. Contract skills/md2asm-gpu/references/openifs/support/accumulated_binary_status.md.
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_add_status(.param .b64 left,.param .b64 right);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_sub_status(.param .b64 left,.param .b64 right);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_mul_status(.param .b64 left,.param .b64 right);
+.extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_div_status(.param .b64 left,.param .b64 right);
+
+.visible .func (.param .align 8 .b8 result[16]) md2asm_gpu_accumulated_add_status(.param .b64 left,.param .b64 right,.param .u32 accumulated)
+{
+.reg .b64 %a,%b,%magnitude,%delta,%bits,%low,%high; .reg .u32 %mask,%test; .reg .pred %p,%q; .reg .f64 %fa,%fb,%fr;
+.param .b64 old_a,old_b; .param .align 8 .b8 old_result[16];
+ld.param.b64 %a,[left];ld.param.b64 %b,[right];ld.param.u32 %mask,[accumulated];and.b32 %test,%mask,16;setp.eq.u32 %p,%test,0;@%p bra FALLBACK;
+and.b64 %magnitude,%a,0x7fffffffffffffff;sub.u64 %delta,%magnitude,0x3370000000000000;setp.lt.u64 %p,%delta,0x1910000000000000;setp.eq.u64 %q,%magnitude,0;or.pred %p,%p,%q;@!%p bra FALLBACK;
+and.b64 %magnitude,%b,0x7fffffffffffffff;sub.u64 %delta,%magnitude,0x3370000000000000;setp.lt.u64 %p,%delta,0x1910000000000000;setp.eq.u64 %q,%magnitude,0;or.pred %p,%p,%q;@!%p bra FALLBACK;
+mov.b64 %fa,%a;mov.b64 %fb,%b;add.rn.f64 %fr,%fa,%fb;mov.b64 %bits,%fr;st.param.b64 [result],%bits;st.param.b64 [result+8],0;ret;
+FALLBACK:st.param.b64 [old_a],%a;st.param.b64 [old_b],%b;call.uni (old_result),md2asm_gpu_add_status,(old_a,old_b);ld.param.b64 %low,[old_result];ld.param.b64 %high,[old_result+8];st.param.b64 [result],%low;st.param.b64 [result+8],%high;ret;
+}
+
+.visible .func (.param .align 8 .b8 result[16]) md2asm_gpu_accumulated_sub_status(.param .b64 left,.param .b64 right,.param .u32 accumulated)
+{
+.reg .b64 %a,%b,%magnitude,%delta,%bits,%low,%high; .reg .u32 %mask,%test; .reg .pred %p,%q; .reg .f64 %fa,%fb,%fr;
+.param .b64 old_a,old_b; .param .align 8 .b8 old_result[16];
+ld.param.b64 %a,[left];ld.param.b64 %b,[right];ld.param.u32 %mask,[accumulated];and.b32 %test,%mask,16;setp.eq.u32 %p,%test,0;@%p bra FALLBACK;
+and.b64 %magnitude,%a,0x7fffffffffffffff;sub.u64 %delta,%magnitude,0x3370000000000000;setp.lt.u64 %p,%delta,0x1910000000000000;setp.eq.u64 %q,%magnitude,0;or.pred %p,%p,%q;@!%p bra FALLBACK;
+and.b64 %magnitude,%b,0x7fffffffffffffff;sub.u64 %delta,%magnitude,0x3370000000000000;setp.lt.u64 %p,%delta,0x1910000000000000;setp.eq.u64 %q,%magnitude,0;or.pred %p,%p,%q;@!%p bra FALLBACK;
+mov.b64 %fa,%a;mov.b64 %fb,%b;sub.rn.f64 %fr,%fa,%fb;mov.b64 %bits,%fr;st.param.b64 [result],%bits;st.param.b64 [result+8],0;ret;
+FALLBACK:st.param.b64 [old_a],%a;st.param.b64 [old_b],%b;call.uni (old_result),md2asm_gpu_sub_status,(old_a,old_b);ld.param.b64 %low,[old_result];ld.param.b64 %high,[old_result+8];st.param.b64 [result],%low;st.param.b64 [result+8],%high;ret;
+}
+
+.visible .func (.param .align 8 .b8 result[16]) md2asm_gpu_accumulated_mul_status(.param .b64 left,.param .b64 right,.param .u32 accumulated)
+{
+.reg .b64 %a,%b,%magnitude,%delta,%bits,%low,%high; .reg .u32 %mask,%test; .reg .pred %p,%q; .reg .f64 %fa,%fb,%fr;
+.param .b64 old_a,old_b; .param .align 8 .b8 old_result[16];
+ld.param.b64 %a,[left];ld.param.b64 %b,[right];ld.param.u32 %mask,[accumulated];and.b32 %test,%mask,16;setp.eq.u32 %p,%test,0;@%p bra FALLBACK;
+and.b64 %magnitude,%a,0x7fffffffffffffff;sub.u64 %delta,%magnitude,0x3370000000000000;setp.lt.u64 %p,%delta,0x1910000000000000;setp.eq.u64 %q,%magnitude,0;or.pred %p,%p,%q;@!%p bra FALLBACK;
+and.b64 %magnitude,%b,0x7fffffffffffffff;sub.u64 %delta,%magnitude,0x3370000000000000;setp.lt.u64 %p,%delta,0x1910000000000000;setp.eq.u64 %q,%magnitude,0;or.pred %p,%p,%q;@!%p bra FALLBACK;
+mov.b64 %fa,%a;mov.b64 %fb,%b;mul.rn.f64 %fr,%fa,%fb;mov.b64 %bits,%fr;st.param.b64 [result],%bits;st.param.b64 [result+8],0;ret;
+FALLBACK:st.param.b64 [old_a],%a;st.param.b64 [old_b],%b;call.uni (old_result),md2asm_gpu_mul_status,(old_a,old_b);ld.param.b64 %low,[old_result];ld.param.b64 %high,[old_result+8];st.param.b64 [result],%low;st.param.b64 [result+8],%high;ret;
+}
+
+.visible .func (.param .align 8 .b8 result[16]) md2asm_gpu_accumulated_div_status(.param .b64 left,.param .b64 right,.param .u32 accumulated)
+{
+.reg .b64 %a,%b,%magnitude,%delta,%bits,%low,%high; .reg .u32 %mask,%test; .reg .pred %p,%q; .reg .f64 %fa,%fb,%fr;
+.param .b64 old_a,old_b; .param .align 8 .b8 old_result[16];
+ld.param.b64 %a,[left];ld.param.b64 %b,[right];ld.param.u32 %mask,[accumulated];and.b32 %test,%mask,16;setp.eq.u32 %p,%test,0;@%p bra FALLBACK;
+and.b64 %magnitude,%a,0x7fffffffffffffff;sub.u64 %delta,%magnitude,0x3370000000000000;setp.lt.u64 %p,%delta,0x1910000000000000;setp.eq.u64 %q,%magnitude,0;or.pred %p,%p,%q;@!%p bra FALLBACK;
+and.b64 %magnitude,%b,0x7fffffffffffffff;sub.u64 %delta,%magnitude,0x3370000000000000;setp.lt.u64 %p,%delta,0x1910000000000000;@!%p bra FALLBACK;
+mov.b64 %fa,%a;mov.b64 %fb,%b;div.rn.f64 %fr,%fa,%fb;mov.b64 %bits,%fr;st.param.b64 [result],%bits;st.param.b64 [result+8],0;ret;
+FALLBACK:st.param.b64 [old_a],%a;st.param.b64 [old_b],%b;call.uni (old_result),md2asm_gpu_div_status,(old_a,old_b);ld.param.b64 %low,[old_result];ld.param.b64 %high,[old_result+8];st.param.b64 [result],%low;st.param.b64 [result+8],%high;ret;
+}
