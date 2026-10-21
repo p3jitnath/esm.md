@@ -66,6 +66,7 @@ These GPU components pass their declared exact-output checks.
 
 | Component | Accepted scope |
 | --- | --- |
+| [Radiation input bounds](skills/md2asm-gpu/references/openifs/radiation/radiation_log_domain_batch.md) | Complete parent, first rejected value, saved registers and actual counters |
 | [Radiation climatology](skills/md2asm-gpu/references/openifs/radiation/parallel_radiation_climatology.md) | Complete stage and recovery after a missing worker |
 | [Atmospheric radiation columns](skills/md2asm-gpu/references/openifs/radiation/radiation_grid_parent.md) | Complete saved state, actual counters and serial recovery |
 | [Surface radiation columns](skills/md2asm-gpu/references/openifs/surface/parallel_surface_radiation_columns.md) | Complete parent outputs, saved state and diagnostics |

@@ -1,0 +1,140 @@
+// Contract skills/md2asm-gpu/references/openifs/radiation/radiation_log_domain_batch.md.
+// Check the original logarithmic input bounds in parallel.
+.version 8.5
+.target sm_90
+.address_size 64
+.visible .entry md2asm_gpu_radcfg_log_domain_batch(.param .u64 saved_state,.param .u64 status_context)
+.reqntid 256,1,1
+{
+ .reg .pred %p<16>;
+ .reg .b32 %r<16>;
+ .reg .b64 %u<32>;
+ .shared .align 4 .u32 first_bad;
+ ld.param.u64 %u0,[saved_state];
+ ld.param.u64 %u1,[status_context];
+ mov.u32 %r0,%tid.x;
+ // The host owns these two complete buffers. Their write spans must be disjoint.
+ and.b64 %u2,%u0,15;
+ setp.ne.u64 %p0,%u2,0;
+ @%p0 bra REFUSE;
+ and.b64 %u2,%u1,7;
+ setp.ne.u64 %p0,%u2,0;
+ @%p0 bra REFUSE;
+ add.u64 %u3,%u0,832;
+ add.u64 %u4,%u1,64;
+ setp.le.u64 %p0,%u3,%u0;
+ @%p0 bra REFUSE;
+ setp.le.u64 %p0,%u4,%u1;
+ @%p0 bra REFUSE;
+ setp.lt.u64 %p0,%u0,%u4;
+ setp.lt.u64 %p1,%u1,%u3;
+ and.pred %p0,%p0,%p1;
+ @%p0 bra REFUSE;
+ ld.global.u64 %u5,[%u0+72];
+ ld.global.u64 %u6,[%u0+80];
+ ld.global.u64 %u7,[%u0+184];
+ ld.global.u64 %u8,[%u0+208];
+ ld.global.u64 %u9,[%u0+272];
+ ld.global.u64 %u10,[%u0+288];
+ ld.global.u64 %u11,[%u0+768];
+ setp.ne.u64 %p0,%u11,0;
+ @%p0 bra REFUSE;
+ setp.lt.u64 %p0,%u7,1;
+ @%p0 bra REFUSE;
+ setp.gt.u64 %p0,%u7,2048;
+ @%p0 bra REFUSE;
+ setp.ge.u64 %p0,%u6,%u8;
+ @%p0 bra REFUSE;
+ setp.gt.u64 %p0,%u8,%u7;
+ @%p0 bra REFUSE;
+ setp.ne.u64 %p0,%u9,0x4022666666666666;
+ @%p0 bra REFUSE;
+ setp.ne.u64 %p0,%u10,0x4027666666666666;
+ @%p0 bra REFUSE;
+ and.b64 %u2,%u5,7;
+ setp.ne.u64 %p0,%u2,0;
+ @%p0 bra REFUSE;
+ setp.eq.u64 %p0,%u5,0;
+ @%p0 bra REFUSE;
+ shl.b64 %u12,%u7,3;
+ add.u64 %u12,%u5,%u12;
+ setp.le.u64 %p0,%u12,%u5;
+ @%p0 bra REFUSE;
+ setp.lt.u64 %p0,%u5,%u3;
+ setp.lt.u64 %p1,%u0,%u12;
+ and.pred %p0,%p0,%p1;
+ @%p0 bra REFUSE;
+ setp.lt.u64 %p0,%u5,%u4;
+ setp.lt.u64 %p1,%u1,%u12;
+ and.pred %p0,%p0,%p1;
+ @%p0 bra REFUSE;
+ cvt.u32.u64 %r1,%u8;
+ setp.eq.u32 %p0,%r0,0;
+ @%p0 st.shared.u32 [first_bad],%r1;
+ bar.sync 0;
+ cvt.u64.u32 %u13,%r0;
+ add.u64 %u13,%u13,%u6;
+SCAN:
+ setp.ge.u64 %p0,%u13,%u8;
+ @%p0 bra SCAN_END;
+ shl.b64 %u14,%u13,3;
+ add.u64 %u14,%u5,%u14;
+ ld.global.u64 %u15,[%u14];
+ and.b64 %u16,%u15,0x7fffffffffffffff;
+ setp.gt.u64 %p0,%u16,0x7ff0000000000000;
+ setp.lt.s64 %p1,%u15,0;
+ or.pred %p0,%p0,%p1;
+ setp.lt.u64 %p1,%u15,%u9;
+ or.pred %p0,%p0,%p1;
+ setp.gt.u64 %p1,%u15,%u10;
+ or.pred %p0,%p0,%p1;
+ cvt.u32.u64 %r2,%u13;
+ @%p0 atom.shared.min.u32 %r3,[first_bad],%r2;
+ add.u64 %u13,%u13,256;
+ bra SCAN;
+SCAN_END:
+ bar.sync 0;
+ setp.ne.u32 %p0,%r0,0;
+ @%p0 ret;
+ ld.shared.u32 %r2,[first_bad];
+ cvt.u64.u32 %u13,%r2;
+ setp.eq.u64 %p0,%u13,%u8;
+ mov.u64 %u17,%u13;
+ @%p0 sub.u64 %u17,%u13,1;
+ shl.b64 %u14,%u17,3;
+ add.u64 %u14,%u5,%u14;
+ ld.global.u64 %u15,[%u14];
+ mov.u64 %u18,0x60000000;
+ @%p0 bra PUBLISH;
+ and.b64 %u16,%u15,0x7fffffffffffffff;
+ setp.gt.u64 %p1,%u16,0x7ff0000000000000;
+ @%p1 bra NAN_RESULT;
+ mov.u64 %u18,0x80000000;
+ setp.lt.s64 %p2,%u15,0;
+ @%p2 bra PUBLISH;
+ setp.lt.u64 %p2,%u15,%u9;
+ @%p2 bra PUBLISH;
+ mov.u64 %u18,0x20000000;
+ bra PUBLISH;
+NAN_RESULT:
+ mov.u64 %u18,0x30000000;
+ and.b64 %u19,%u15,0x0008000000000000;
+ setp.ne.u64 %p2,%u19,0;
+ @%p2 bra PUBLISH;
+ ld.global.u64 %u20,[%u0+776];
+ or.b64 %u20,%u20,1;
+ st.global.u64 [%u0+776],%u20;
+PUBLISH:
+ st.global.u64 [%u0+80],%u13;
+ st.global.u64 [%u0+256],%u15;
+ mov.u64 %u21,0;
+ st.global.u64 [%u0+264],%u21;
+ st.global.u64 [%u0+784],%u18;
+ ret;
+REFUSE:
+ setp.ne.u32 %p0,%r0,0;
+ @%p0 ret;
+ mov.u32 %r4,1;
+ st.global.u32 [%u1],%r4;
+ ret;
+}
