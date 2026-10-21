@@ -24,6 +24,26 @@ ld.param.u64 %d,[destination];ld.param.u64 %s,[source];ld.param.u32 %rows,[rows]
 ROW:mov.u32 %c,0;CELL:setp.ge.u32 %p,%c,%last;@%p bra NEXT_ROW;mul.wide.u32 %offset,%c,8;add.u64 %dp,%d,%offset;add.u64 %sp,%s,%offset;ld.global.u64 %word,[%sp];st.global.u64 [%dp],%word;add.u32 %c,%c,1;bra CELL;
 NEXT_ROW:add.u64 %d,%d,64;add.u64 %s,%s,64;add.u32 %r,%r,1;setp.lt.u32 %p,%r,%rows;@%p bra ROW;ret;
 }
+
+// Private copy ABI has two 64-bit returns for the final word and destination.
+// Callers supply positive byte counts divisible by 8 and complete aligned owners.
+.func (.param .align 8 .b8 returned[16]) radintg_vector_copy_words(.param .u64 destination,.param .u64 source,.param .u64 bytes)
+{
+.reg .u64 %d,%s,%n,%i,%da,%sa,%de,%se,%t,%r0,%r1,%r2,%r3,%last,%pair;
+.reg .pred %p,%q;
+ld.param.u64 %d,[destination];ld.param.u64 %s,[source];ld.param.u64 %n,[bytes];mov.u64 %i,0;
+add.u64 %de,%d,%n;add.u64 %se,%s,%n;
+setp.le.u64 %p,%de,%s;setp.le.u64 %q,%se,%d;or.pred %p,%p,%q;@!%p bra SCALAR;
+or.b64 %t,%d,%s;and.b64 %t,%t,31;setp.ne.u64 %p,%t,0;@%p bra TRY16;
+LOOP32:add.u64 %t,%i,32;setp.gt.u64 %p,%t,%n;@%p bra SCALAR;
+add.u64 %sa,%s,%i;add.u64 %da,%d,%i;ld.global.v2.u64 {%r0,%r1},[%sa];add.u64 %pair,%sa,16;ld.global.v2.u64 {%r2,%r3},[%pair];st.global.v2.u64 [%da],{%r0,%r1};add.u64 %pair,%da,16;st.global.v2.u64 [%pair],{%r2,%r3};mov.u64 %last,%r3;add.u64 %i,%i,32;bra LOOP32;
+TRY16:and.b64 %t,%t,15;setp.ne.u64 %p,%t,0;@%p bra SCALAR;
+LOOP16:add.u64 %t,%i,16;setp.gt.u64 %p,%t,%n;@%p bra SCALAR;
+add.u64 %sa,%s,%i;add.u64 %da,%d,%i;ld.global.v2.u64 {%r0,%r1},[%sa];st.global.v2.u64 [%da],{%r0,%r1};mov.u64 %last,%r1;add.u64 %i,%i,16;bra LOOP16;
+SCALAR:setp.ge.u64 %p,%i,%n;@%p bra DONE;add.u64 %sa,%s,%i;add.u64 %da,%d,%i;ld.global.u64 %last,[%sa];st.global.u64 [%da],%last;add.u64 %i,%i,8;bra SCALAR;
+DONE:sub.u64 %da,%de,8;st.param.u64 [returned],%last;st.param.u64 [returned+8],%da;ret;
+}
+
 .visible .func (.param .align 8 .b8 result[32]) md2asm_gpu_radintg_worker_radiation_field_values(.param .u64 original_vector,.param .u64 specific_record,.param .u64 private_scratch)
 {
 .reg .u64 %args,%record,%scratch,%model,%state,%v<59>,%childvec,%childctx,%innervec,%satrec,%physics,%molar,%stagevec,%countervec,%innerrecord,%arena,%rpi,%pointer,%src,%dst,%q,%q2,%offset,%index,%cell,%i,%j,%plane,%copydst,%copysrc,%copyi,%copyaddr,%copyword,%exp,%fast,%wide,%newexp,%newfast,%newwide,%event,%sevent,%old,%ordinal,%increment,%word,%word2,%minimumwork;
@@ -32,6 +52,7 @@ NEXT_ROW:add.u64 %d,%d,64;add.u64 %s,%s,64;add.u32 %r,%r,1;setp.lt.u32 %p,%r,%ro
 .reg .pred %p;
 .param .u64 p0,p1,p2;.param .u32 rows,activecols;.param .b64 ma,mb,xa,xb;
 .param .align 8 .b8 math[16],child40[40],scalar32[32],integer8[8];
+.param .u64 copy_p0,copy_p1,copy_p2;.param .align 8 .b8 copy_returned[16];
 ld.param.u64 %args,[original_vector];ld.param.u64 %record,[specific_record];ld.param.u64 %scratch,[private_scratch];mov.u64 %state,%scratch;mov.u32 %flags,0;mov.u32 %error,0;mov.u64 %event,0;mov.u64 %exp,0;mov.u64 %fast,0;mov.u64 %wide,0;
 ld.global.u64 %v0,[%args+0];st.global.u64 [%scratch+280160],%v0;
 ld.global.u64 %v1,[%args+8];st.global.u64 [%scratch+280168],%v1;
@@ -96,10 +117,10 @@ mov.u64 %model,%v0;ld.global.u32 %last,[%v2];ld.global.u64 %innerrecord,[%record
 ZERO_STATE:setp.ge.u64 %p,%copyi,140080;@%p bra STATE_ZEROED;add.u64 %copyaddr,%state,%copyi;st.global.u64 [%copyaddr],0;add.u64 %copyi,%copyi,8;bra ZERO_STATE;
 STATE_ZEROED:add.u64 %dst,%state,20048;mov.u64 %src,md2asm_gpu_field_object_template;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_1:setp.ge.u64 %p,%copyi,6272;@%p bra COPIED_1;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_1;COPIED_1:
+COPY_1:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],6272;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,6272;setp.eq.u64 %p,%copyi,%copyi;COPIED_1:
 mov.u64 %dst,%state;add.u64 %src,%model,4100096;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_2:setp.ge.u64 %p,%copyi,20040;@%p bra COPIED_2;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_2;COPIED_2:
+COPY_2:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],20040;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,20040;setp.eq.u64 %p,%copyi,%copyi;COPIED_2:
 add.u64 %q,%state,26320;st.global.u64 [%state+20048],%q;
 add.u64 %q,%state,26384;st.global.u64 [%state+20112],%q;
 add.u64 %q,%state,26448;st.global.u64 [%state+20176],%q;
@@ -153,19 +174,19 @@ add.u64 %q,%state,22960;st.global.u64 [%scratch+281104],%q;st.global.u64 [%scrat
 st.global.u32 [%scratch+281120],0;st.global.u32 [%scratch+281124],1;st.global.u32 [%scratch+281128],2;
 add.u64 %dst,%scratch,288352;mov.u64 %src,%v38;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_3:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_3;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_3;COPIED_3:
+COPY_3:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1280;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1280;setp.eq.u64 %p,%copyi,%copyi;COPIED_3:
 mov.u64 %v38,%dst;
 add.u64 %dst,%scratch,289632;mov.u64 %src,%v39;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_4:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_4;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_4;COPIED_4:
+COPY_4:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1280;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1280;setp.eq.u64 %p,%copyi,%copyi;COPIED_4:
 mov.u64 %v39,%dst;
 add.u64 %dst,%scratch,290912;mov.u64 %src,%v40;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_5:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_5;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_5;COPIED_5:
+COPY_5:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1280;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1280;setp.eq.u64 %p,%copyi,%copyi;COPIED_5:
 mov.u64 %v40,%dst;
 add.u64 %dst,%scratch,292192;mov.u64 %src,%v41;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_6:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_6;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_6;COPIED_6:
+COPY_6:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1280;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1280;setp.eq.u64 %p,%copyi,%copyi;COPIED_6:
 mov.u64 %v41,%dst;
 add.u64 %dst,%scratch,293472;mov.u64 %src,%v42;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
@@ -217,15 +238,15 @@ COPY_18:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_18;add.u64 %copyaddr,%copysrc,%c
 mov.u64 %v53,%dst;
 add.u64 %dst,%scratch,294240;mov.u64 %src,%v54;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_19:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_19;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_19;COPIED_19:
+COPY_19:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1280;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1280;setp.eq.u64 %p,%copyi,%copyi;COPIED_19:
 mov.u64 %v54,%dst;
 add.u64 %dst,%scratch,295520;mov.u64 %src,%v55;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_20:setp.ge.u64 %p,%copyi,384;@%p bra COPIED_20;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_20;COPIED_20:
+COPY_20:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],384;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,384;setp.eq.u64 %p,%copyi,%copyi;COPIED_20:
 mov.u64 %v55,%dst;
 add.u64 %dst,%scratch,295904;mov.u64 %src,%v56;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_21:setp.ge.u64 %p,%copyi,384;@%p bra COPIED_21;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_21;COPIED_21:
+COPY_21:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],384;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,384;setp.eq.u64 %p,%copyi,%copyi;COPIED_21:
 mov.u64 %v56,%dst;
 add.u64 %dst,%state,27376;
 mov.u64 %src,%v19;
@@ -452,47 +473,47 @@ add.u64 %index,%offset,138864;add.u64 %pointer,%state,%index;st.global.b64 [%poi
 add.u64 %dst,%state,31152;
 mov.u64 %src,%v21;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_33:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_33;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_33;COPIED_33:
+COPY_33:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1216;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1216;setp.eq.u64 %p,%copyi,%copyi;COPIED_33:
 st.global.u32 [%state+21200],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+20992],%value;st.global.u32 [%state+21308],1;
 add.u64 %dst,%state,32368;
 mov.u64 %src,%v22;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_34:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_34;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_34;COPIED_34:
+COPY_34:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1216;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1216;setp.eq.u64 %p,%copyi,%copyi;COPIED_34:
 st.global.u32 [%state+21204],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21000],%value;st.global.u32 [%state+21312],2;
 add.u64 %dst,%state,37232;
 mov.u64 %src,%v23;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_35:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_35;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_35;COPIED_35:
+COPY_35:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1216;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1216;setp.eq.u64 %p,%copyi,%copyi;COPIED_35:
 st.global.u32 [%state+21220],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21032],%value;st.global.u32 [%state+21316],6;
 add.u64 %dst,%state,34800;
 mov.u64 %src,%v24;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_36:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_36;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_36;COPIED_36:
+COPY_36:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1216;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1216;setp.eq.u64 %p,%copyi,%copyi;COPIED_36:
 st.global.u32 [%state+21212],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21016],%value;st.global.u32 [%state+21320],4;
 add.u64 %dst,%state,39664;
 mov.u64 %src,%v26;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_37:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_37;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_37;COPIED_37:
+COPY_37:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1216;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1216;setp.eq.u64 %p,%copyi,%copyi;COPIED_37:
 st.global.u32 [%state+21228],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21048],%value;st.global.u32 [%state+21324],8;
 add.u64 %dst,%state,40880;
 mov.u64 %src,%v27;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_38:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_38;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_38;COPIED_38:
+COPY_38:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1216;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1216;setp.eq.u64 %p,%copyi,%copyi;COPIED_38:
 st.global.u32 [%state+21232],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21056],%value;st.global.u32 [%state+21328],9;
 add.u64 %dst,%state,42096;
 mov.u64 %src,%v28;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_39:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_39;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_39;COPIED_39:
+COPY_39:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1216;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1216;setp.eq.u64 %p,%copyi,%copyi;COPIED_39:
 st.global.u32 [%state+21236],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21064],%value;st.global.u32 [%state+21332],10;
 add.u64 %dst,%state,43312;
 mov.u64 %src,%v29;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_40:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_40;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_40;COPIED_40:
+COPY_40:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1216;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1216;setp.eq.u64 %p,%copyi,%copyi;COPIED_40:
 st.global.u32 [%state+21240],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21072],%value;st.global.u32 [%state+21336],11;
 add.u64 %dst,%state,33584;
 add.u64 %src,%state,138864;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_41:setp.ge.u64 %p,%copyi,1216;@%p bra COPIED_41;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_41;COPIED_41:
+COPY_41:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1216;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1216;setp.eq.u64 %p,%copyi,%copyi;COPIED_41:
 st.global.u32 [%state+21208],1;mov.b64 %value,0x3ff0000000000000;st.global.b64 [%state+21008],%value;st.global.u32 [%state+21340],3;
 add.u64 %dst,%state,38448;
 mov.b64 %value,0x3fcaceee0f3cb3e5;mov.u64 %i,0;
@@ -517,7 +538,7 @@ mov.u64 %i,0;mov.b64 %value,0xbff0000000000000;
 CLOUD_SENTINELS:setp.ge.u64 %p,%i,8;@%p bra CLOUD_SENTINELS_DONE;shl.b64 %offset,%i,3;add.u64 %index,%offset,133744;add.u64 %pointer,%state,%index;st.global.b64 [%pointer],%value;add.u64 %index,%offset,133808;add.u64 %pointer,%state,%index;st.global.b64 [%pointer],%value;add.u64 %i,%i,1;bra CLOUD_SENTINELS;
 CLOUD_SENTINELS_DONE:add.u64 %dst,%scratch,140080;mov.u64 %src,%state;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_44:setp.ge.u64 %p,%copyi,140080;@%p bra COPIED_44;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_44;COPIED_44:
+COPY_44:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],140080;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,140080;setp.eq.u64 %p,%copyi,%copyi;COPIED_44:
 mov.u64 %q,%v3;
 st.global.u64 [%innervec+0],%q;
 mov.u64 %q,%v4;
@@ -636,16 +657,16 @@ TRANSPOSE_DIRECT_COLUMN:mov.u32 %band,0;
 TRANSPOSE_DIRECT_BAND:mul.wide.u32 %index,%c,6;cvt.u64.u32 %offset,%band;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %index,%offset,133360;add.u64 %pointer,%state,%index;ld.global.u64 %word,[%pointer];mul.wide.u32 %index,%band,8;cvt.u64.u32 %offset,%c;add.u64 %index,%index,%offset;shl.b64 %offset,%index,3;add.u64 %pointer,%v56,%offset;st.global.u64 [%pointer],%word;add.u32 %band,%band,1;setp.lt.u32 %p,%band,6;@%p bra TRANSPOSE_DIRECT_BAND;add.u32 %c,%c,1;setp.lt.u32 %p,%c,%last;@%p bra TRANSPOSE_DIRECT_COLUMN;
 ld.global.u64 %dst,[%args+304];mov.u64 %src,%v38;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_54:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_54;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_54;COPIED_54:
+COPY_54:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1280;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1280;setp.eq.u64 %p,%copyi,%copyi;COPIED_54:
 ld.global.u64 %dst,[%args+312];mov.u64 %src,%v39;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_55:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_55;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_55;COPIED_55:
+COPY_55:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1280;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1280;setp.eq.u64 %p,%copyi,%copyi;COPIED_55:
 ld.global.u64 %dst,[%args+320];mov.u64 %src,%v40;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_56:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_56;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_56;COPIED_56:
+COPY_56:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1280;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1280;setp.eq.u64 %p,%copyi,%copyi;COPIED_56:
 ld.global.u64 %dst,[%args+328];mov.u64 %src,%v41;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_57:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_57;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_57;COPIED_57:
+COPY_57:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1280;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1280;setp.eq.u64 %p,%copyi,%copyi;COPIED_57:
 ld.global.u64 %dst,[%args+336];mov.u64 %src,%v42;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
 COPY_58:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_58;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_58;COPIED_58:
@@ -684,13 +705,13 @@ mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
 COPY_69:setp.ge.u64 %p,%copyi,64;@%p bra COPIED_69;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_69;COPIED_69:
 ld.global.u64 %dst,[%args+432];mov.u64 %src,%v54;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_70:setp.ge.u64 %p,%copyi,1280;@%p bra COPIED_70;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_70;COPIED_70:
+COPY_70:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],1280;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,1280;setp.eq.u64 %p,%copyi,%copyi;COPIED_70:
 ld.global.u64 %dst,[%args+440];mov.u64 %src,%v55;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_71:setp.ge.u64 %p,%copyi,384;@%p bra COPIED_71;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_71;COPIED_71:
+COPY_71:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],384;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,384;setp.eq.u64 %p,%copyi,%copyi;COPIED_71:
 ld.global.u64 %dst,[%args+448];mov.u64 %src,%v56;
 mov.u64 %copydst,%dst;mov.u64 %copysrc,%src;mov.u64 %copyi,0;
-COPY_72:setp.ge.u64 %p,%copyi,384;@%p bra COPIED_72;add.u64 %copyaddr,%copysrc,%copyi;ld.global.u64 %copyword,[%copyaddr];add.u64 %copyaddr,%copydst,%copyi;st.global.u64 [%copyaddr],%copyword;add.u64 %copyi,%copyi,8;bra COPY_72;COPIED_72:
+COPY_72:st.param.u64 [copy_p0],%copydst;st.param.u64 [copy_p1],%copysrc;st.param.u64 [copy_p2],384;call.uni (copy_returned),radintg_vector_copy_words,(copy_p0,copy_p1,copy_p2);ld.param.u64 %copyword,[copy_returned];ld.param.u64 %copyaddr,[copy_returned+8];mov.u64 %copyi,384;setp.eq.u64 %p,%copyi,%copyi;COPIED_72:
 ld.global.u64 %word,[%state+552];setp.eq.u64 %p,%countervec,0;@%p bra COUNTERS_DONE;ld.global.u64 %q,[%countervec];atom.global.add.u64 %old,[%q],%exp;ld.global.u64 %q,[%countervec+8];atom.global.add.u64 %old,[%q],%fast;ld.global.u64 %q,[%countervec+16];atom.global.add.u64 %old,[%q],%wide;
 COUNTERS_DONE:bra COMPLETE;
 CHILD_ERROR:mov.u32 %error,%serror;
