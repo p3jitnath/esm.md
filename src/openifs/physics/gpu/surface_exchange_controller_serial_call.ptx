@@ -3714,14 +3714,14 @@ ld.param.u32 %esm_original_last,[esm_original_last_column];
  mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
  mov.u32 %r,0;or.b32 %unique,%unique,%r;mov.u32 %r,0;or.b32 %unique,%unique,%r;mov.u32 %r,0;or.b32 %unique,%unique,%r;
  ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
- mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
  mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
  mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
  ld.global.u32 %r,[%ctx+12];and.b32 %r,%r,1;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;
  setp.ne.u32 %p,%thread,0;@%p bra WAIT;
  st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),md2asm_gpu_surfexcdriver_ctl_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
 WAIT:
- bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
 ld.global.u64 %scratch,[%ctx+32];ld.global.u64 %record,[%ctx+48];st.param.u64 [va],%args;st.param.u64 [ra],%record;st.param.u64 [sa],%scratch;{ .param .u32 esm_original_last_argument_1; st.param.u32 [esm_original_last_argument_1],%esm_original_last;call.uni (returned),md2asm_gpu_surface_exchange_controller_values_turbulence_columns,(va,ra,sa,esm_original_last_argument_1); }ld.param.u32 %r,[returned+4];ld.param.u32 %saved_flags,[returned];ld.param.u64 %event,[returned+8];ld.param.u64 %saved_count0,[returned+16];ld.param.u64 %saved_count1,[returned+24];ld.param.u64 %saved_count2,[returned+32];ld.param.u64 %saved_count3,[returned+40];ld.param.u64 %saved_count4,[returned+48];ld.param.u64 %saved_count5,[returned+56];setp.ne.u32 %p,%r,0;@%p bra NUMERICAL_ERROR;
 ld.global.u64 %ptr,[%args+8];ld.global.u32 %first,[%ptr];ld.global.u64 %ptr,[%args+16];ld.global.u32 %last,[%ptr];sub.u32 %column,%first,1;setp.ge.u32 %p,%column,%last;@%p ret;mov.u32 %field,0;
 COMMIT_FIELD:mul.wide.u32 %offset,%field,24;add.u64 %ptr,%scratch,10240;add.u64 %ptr,%ptr,%offset;ld.global.u64 %destination,[%ptr];ld.global.u64 %source,[%ptr+8];ld.global.u64 %length,[%ptr+16];mov.u64 %offset,0;

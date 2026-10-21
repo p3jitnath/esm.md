@@ -102,3 +102,44 @@ REFUSE:st.global.u32 [%ctx],%error;ret;
 }
 .visible .entry md2asm_gpu_srtm_taumol26(.param .u64 original_vector,.param .u64 context)
 {.reg .u64 %a,%c;.param .u64 a,c;ld.param.u64 %a,[original_vector];ld.param.u64 %c,[context];st.param.u64 [a],%a;st.param.u64 [c],%c;call.uni md2asm_gpu_srtm_taumol26_fp64,(a,c);ret;}
+
+// Eight-column composition retains the original equations and serial entry.
+
+.visible .func (.param .u32 result) md2asm_gpu_srtm_taumol26_values_eight_columns(.param .u64 original_vector,.param .u64 table_record)
+{
+ // The caller supplies exactly eight lanes and the original eight-column pitch.
+ .reg .u32 %ecl_lane,%ecl_scan,%ecl_flag,%ecl_join_flags;
+ .reg .u64 %ecl_row,%ecl_scanrow,%ecl_value,%ecl_join_event,%ecl_join_fast,%ecl_join_wide,%ecl_ordinal,%ecl_join_ordinal;
+ .reg .pred %ecl_pred;
+ .shared .align 8 .b8 ecl_result_rows[256];
+
+.reg .u64 %args,%record,%v<10>,%ray,%solar,%address,%offset,%word,%tmp,%row,%B64,%V64;
+.reg .u32 %B,%V,%H,%first,%last,%k,%c,%g,%trop,%flags,%raised;.reg .b64 %mu,%column,%coefficient,%value;.reg .pred %p;
+.param .b64 ma,mb;.param .align 8 .b8 math[16];mov.u32 %ecl_lane,%tid.x;mov.u64 %ecl_ordinal,0;
+ld.param.u64 %args,[original_vector];ld.param.u64 %record,[table_record];mov.u32 %flags,0;
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ld.global.u64 %v5,[%args+40];
+ld.global.u64 %v6,[%args+48];
+ld.global.u64 %v7,[%args+56];
+ld.global.u64 %v8,[%args+64];
+ld.global.u64 %v9,[%args+72];
+ld.global.u32 %V,[%v0];ld.global.u32 %H,[%v3];ld.global.u32 %first,[%v1];ld.global.u32 %last,[%v2];sub.u32 %B,%last,%first;add.u32 %B,%B,1;setp.eq.u32 %p,%B,0;@%p bra DONE;setp.eq.u32 %p,%H,0;@%p bra DONE;ld.global.u64 %ray,[%record];ld.global.u64 %solar,[%record+8];cvt.u64.u32 %B64,%B;cvt.u64.u32 %V64,%V;mov.u32 %k,0;
+LAYER:mov.u32 %c,%ecl_lane;
+COLUMN:mul.wide.u32 %offset,%c,8;add.u64 %address,%v9,%offset;ld.global.b64 %mu,[%address];setp.gt.f64 %p,%mu,0d0000000000000000;@!%p bra NEXT_COLUMN;mul.wide.u32 %offset,%c,4;add.u64 %address,%v5,%offset;ld.global.u32 %trop,[%address];mul.wide.u32 %row,%k,%B;cvt.u64.u32 %tmp,%c;add.u64 %row,%row,%tmp;shl.b64 %row,%row,3;add.u64 %address,%v4,%row;ld.global.b64 %column,[%address];mov.u32 %g,0;
+POINT:mul.wide.u32 %offset,%g,8;add.u64 %address,%ray,%offset;ld.global.b64 %coefficient,[%address];st.param.b64 [ma],%column;st.param.b64 [mb],%coefficient;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %value,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;mul.wide.u32 %offset,%g,%V;cvt.u64.u32 %tmp,%k;add.u64 %offset,%offset,%tmp;mul.lo.u64 %offset,%offset,%B64;cvt.u64.u32 %tmp,%c;add.u64 %offset,%offset,%tmp;shl.b64 %offset,%offset,3;add.u64 %address,%v7,%offset;st.global.u64 [%address],0;add.u64 %address,%v8,%offset;st.global.b64 [%address],%value;add.u32 %g,%g,1;setp.lt.u32 %p,%g,6;@%p bra POINT;add.u32 %g,%k,1;setp.ne.u32 %p,%g,%trop;@%p bra NEXT_COLUMN;mov.u32 %g,0;
+SOLAR:mul.wide.u32 %offset,%g,8;add.u64 %address,%solar,%offset;ld.global.u64 %word,[%address];mul.wide.u32 %offset,%g,%B;cvt.u64.u32 %tmp,%c;add.u64 %offset,%offset,%tmp;shl.b64 %offset,%offset,3;add.u64 %address,%v6,%offset;st.global.u64 [%address],%word;add.u32 %g,%g,1;setp.lt.u32 %p,%g,6;@%p bra SOLAR;
+NEXT_COLUMN:add.u32 %c,%c,8;setp.lt.u32 %p,%c,%B;@%p bra COLUMN;add.u32 %k,%k,1;setp.lt.u32 %p,%k,%H;@%p bra LAYER;
+DONE:
+ECL_JOIN:
+ mov.u64 %ecl_row,ecl_result_rows;mul.wide.u32 %ecl_value,%ecl_lane,32;add.u64 %ecl_row,%ecl_row,%ecl_value;
+ st.shared.u32 [%ecl_row],%flags;
+bar.sync 0;mov.u32 %flags,0;mov.u32 %ecl_scan,0;mov.u64 %ecl_join_event,0;mov.u64 %ecl_join_fast,0;mov.u64 %ecl_join_wide,0;mov.u64 %ecl_join_ordinal,0;
+ECL_SCAN:
+mov.u64 %ecl_scanrow,ecl_result_rows;mul.wide.u32 %ecl_value,%ecl_scan,32;add.u64 %ecl_scanrow,%ecl_scanrow,%ecl_value;ld.shared.u32 %ecl_flag,[%ecl_scanrow];or.b32 %flags,%flags,%ecl_flag;
+add.u32 %ecl_scan,%ecl_scan,1;setp.lt.u32 %ecl_pred,%ecl_scan,8;@%ecl_pred bra ECL_SCAN;bar.sync 0;
+st.param.u32 [result],%flags;ret;
+}

@@ -31,3 +31,35 @@ NO_EXP:ld.global.u64 %owner,[%record+96];setp.eq.u64 %p,%owner,0;@%p bra NO_FAST
 NO_FAST:ld.global.u64 %owner,[%record+112];setp.eq.u64 %p,%owner,0;@%p ret;atom.global.add.u64 %tmp,[%owner],%wide;ret;
 REFUSE:st.global.u32 [%ctx],%error;ret;
 }
+
+// Eight-column composition retains the original equations and serial entry.
+.extern .func (.param .align 8 .b8 r[40]) md2asm_gpu_radintg_worker_gas_optics_values_eight_columns(.param .u64 vector,.param .u64 record,.param .u64 scratch,.param .u64 auxiliary);
+.extern .func (.param .u64 result) md2asm_gpu_radiation_eight_private_counter(.param .u64 auxiliary,.param .u64 owner);
+.visible .func md2asm_gpu_radintg_worker_gas_optics_fp64_eight_columns(.param .u64 original_vector,.param .u64 context,.param .u64 eight_auxiliary)
+{
+.reg .u64 %eight_aux,%eight_counter;.reg .u32 %eight_lane;
+.reg .u64 %args,%ctx,%record,%scratch,%tmp,%address,%event,%exp,%fast,%wide,%owner;
+.reg .u32 %unique,%rt,%error,%flags;
+.reg .pred %p;
+.param .u64 a,c,r,s;
+.param .u32 admission;
+.param .align 8 .b8 values[40];
+ld.param.u64 %eight_aux,[eight_auxiliary];mov.u32 %eight_lane,%tid.x;ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %tmp,%ctx,7;setp.ne.u64 %p,%tmp,0;@%p ret;
+mov.u32 %unique,0;mov.u32 %rt,0;or.b32 %unique,%unique,%rt;mov.u32 %rt,0;or.b32 %unique,%unique,%rt;mov.u32 %rt,0;or.b32 %unique,%unique,%rt;mov.u32 %rt,0;or.b32 %unique,%unique,%rt;mov.u32 %rt,0;or.b32 %unique,%unique,%rt;setp.ne.u32 %p,%unique,0;@%p ret;
+ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;mov.u32 %error,731;
+mov.u32 %rt,1;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,1;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,1;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,1;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,1;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;mov.u32 %rt,1;setp.ne.u32 %p,%rt,1;@%p bra REFUSE;
+mov.u32 %rt,0;setp.ne.u32 %p,%rt,0;@%p bra REFUSE;ld.global.u32 %rt,[%ctx+4];setp.ne.u32 %p,%rt,1;@%p bra REFUSE;ld.global.u32 %rt,[%ctx+12];and.b32 %rt,%rt,1;setp.ne.u32 %p,%rt,0;@%p bra REFUSE;
+st.param.u64 [a],%args;st.param.u64 [c],%ctx;call.uni (admission),md2asm_gpu_gas_optics_admit,(a,c);ld.param.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];{.param .u64 eight_entry_values_a,eight_entry_values_r,eight_entry_values_s,eight_entry_values_x;.param .align 8 .b8 eight_entry_values_result[40];st.param.u64 [eight_entry_values_a],%args;st.param.u64 [eight_entry_values_r],%record;st.param.u64 [eight_entry_values_s],%scratch;st.param.u64 [eight_entry_values_x],%eight_aux;call.uni (eight_entry_values_result),md2asm_gpu_radintg_worker_gas_optics_values_eight_columns,(eight_entry_values_a,eight_entry_values_r,eight_entry_values_s,eight_entry_values_x);
+ld.param.u32 %flags,[eight_entry_values_result];ld.param.u32 %error,[eight_entry_values_result+4];ld.param.u64 %event,[eight_entry_values_result+8];ld.param.u64 %exp,[eight_entry_values_result+16];ld.param.u64 %fast,[eight_entry_values_result+24];ld.param.u64 %wide,[eight_entry_values_result+32];}setp.ne.u32 %p,%eight_lane,0;@%p bra EIGHT_ENTRY_END;setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+add.u64 %address,%ctx,8;atom.global.or.b32 %rt,[%address],%flags;setp.eq.u64 %p,%event,0;@%p bra NO_EVENT;add.u64 %address,%ctx,16;atom.global.max.u64 %tmp,[%address],%event;
+NO_EVENT:
+// The empty source call consumes no record, scratch or counter owners.
+ld.global.u64 %tmp,[%args+16];ld.global.u32 %rt,[%tmp];ld.global.u64 %tmp,[%args+24];ld.global.u32 %unique,[%tmp];setp.lt.s32 %p,%unique,%rt;@%p bra EIGHT_ENTRY_END;
+ld.global.u64 %owner,[%record+80];setp.eq.u64 %p,%owner,0;@%p bra NO_EXP;{.param .u64 eight_counter_call_3_a,eight_counter_call_3_p,eight_counter_call_3_r;st.param.u64 [eight_counter_call_3_a],%eight_aux;st.param.u64 [eight_counter_call_3_p],%owner;call.uni (eight_counter_call_3_r),md2asm_gpu_radiation_eight_private_counter,(eight_counter_call_3_a,eight_counter_call_3_p);ld.param.u64 %eight_counter,[eight_counter_call_3_r];}atom.global.add.u64 %tmp,[%eight_counter],%exp;
+NO_EXP:ld.global.u64 %owner,[%record+96];setp.eq.u64 %p,%owner,0;@%p bra NO_FAST;{.param .u64 eight_counter_call_2_a,eight_counter_call_2_p,eight_counter_call_2_r;st.param.u64 [eight_counter_call_2_a],%eight_aux;st.param.u64 [eight_counter_call_2_p],%owner;call.uni (eight_counter_call_2_r),md2asm_gpu_radiation_eight_private_counter,(eight_counter_call_2_a,eight_counter_call_2_p);ld.param.u64 %eight_counter,[eight_counter_call_2_r];}atom.global.add.u64 %tmp,[%eight_counter],%fast;
+NO_FAST:ld.global.u64 %owner,[%record+112];setp.eq.u64 %p,%owner,0;@%p bra EIGHT_ENTRY_END;{.param .u64 eight_counter_call_1_a,eight_counter_call_1_p,eight_counter_call_1_r;st.param.u64 [eight_counter_call_1_a],%eight_aux;st.param.u64 [eight_counter_call_1_p],%owner;call.uni (eight_counter_call_1_r),md2asm_gpu_radiation_eight_private_counter,(eight_counter_call_1_a,eight_counter_call_1_p);ld.param.u64 %eight_counter,[eight_counter_call_1_r];}atom.global.add.u64 %tmp,[%eight_counter],%wide;bra EIGHT_ENTRY_END;
+REFUSE:setp.ne.u32 %p,%eight_lane,0;@%p bra EIGHT_ENTRY_END;st.global.u32 [%ctx],%error;bra EIGHT_ENTRY_END;
+EIGHT_ENTRY_END:bar.sync 0;ret;
+}

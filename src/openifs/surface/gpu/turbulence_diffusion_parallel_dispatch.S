@@ -150,7 +150,7 @@ add x0,x0,:lo12:.Lcolumns_workers
 add x1,sp,#864
 ldr x2,[sp,#16]
 mov w3,#32
-mov w4,#1
+mov w4,#32
 mov w5,#0
 bl md2asm_openifs_gpu_launch
 str w0,[sp,#816]

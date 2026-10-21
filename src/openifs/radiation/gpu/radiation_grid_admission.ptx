@@ -17,13 +17,14 @@ DONE:st.param.u32 [error],%error;ret;
 
 .extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_grid_field_admit_inventory(.param .u64 vector,.param .u64 context,.param .u64 spans,.param .u64 counters);
 .extern .func (.param .align 8 .b8 result[16]) md2asm_gpu_grid_radact_admit_inventory(.param .u64 vector,.param .u64 context,.param .u64 spans);
-.visible .func (.param .u32 result) md2asm_gpu_radiation_grid_admit(.param .u64 original_vector,.param .u64 common_context)
+.func (.param .u32 result) md2asm_gpu_radiation_grid_admit_span(.param .u64 original_vector,.param .u64 common_context,.param .u64 declared_span)
 {
+.reg .u64 %esm_declared_span;
 .reg .u64 %args,%ctx,%record,%scratch,%model,%geometry,%provider,%surface,%outerrecord,%radactrecord,%stageowner,%lape,%nimp,%nout,%hook,%pointer,%base,%bytes,%capacity,%word,%absolute,%previous,%latitude,%offset,%index,%column,%level,%coords<4>,%v<59>,%rows,%mutable,%counters,%inventory,%newcounters,%prospective,%childctx,%scalars,%block,%arena,%sourcechild,%owner,%extent,%start,%stop,%target,%end,%left,%right,%ln,%rn,%lnend,%rnend,%iterator,%diagonal,%activebase,%activesize;
 .reg .u32 %error,%count,%mutablecount,%countercount,%newcount,%newcountercount,%i,%j,%k,%skip,%found,%invkind;.reg .pred %p,%q;
 .local .align 8 .b8 all_owners[16384],mutable_owners[768],actual_counters[512],inventory_rows[8192],inventory_counters[512],prospective_vector[472],prospective_context[64],prospective_scalars[40];
 .param .u64 rb,rn,rm,rl,p0,p1,p2,p3;.param .u32 rc,rs,rr;.param .align 8 .b8 child16[16];
-ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];mov.u64 %rows,all_owners;cvta.local.u64 %rows,%rows;mov.u64 %mutable,mutable_owners;cvta.local.u64 %mutable,%mutable;mov.u64 %counters,actual_counters;cvta.local.u64 %counters,%counters;mov.u64 %inventory,inventory_rows;cvta.local.u64 %inventory,%inventory;mov.u64 %newcounters,inventory_counters;cvta.local.u64 %newcounters,%newcounters;mov.u64 %prospective,prospective_vector;cvta.local.u64 %prospective,%prospective;mov.u64 %childctx,prospective_context;cvta.local.u64 %childctx,%childctx;mov.u64 %scalars,prospective_scalars;cvta.local.u64 %scalars,%scalars;mov.u32 %count,0;mov.u32 %mutablecount,0;mov.u32 %countercount,0;
+ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];ld.param.u64 %esm_declared_span,[declared_span];mov.u64 %rows,all_owners;cvta.local.u64 %rows,%rows;mov.u64 %mutable,mutable_owners;cvta.local.u64 %mutable,%mutable;mov.u64 %counters,actual_counters;cvta.local.u64 %counters,%counters;mov.u64 %inventory,inventory_rows;cvta.local.u64 %inventory,%inventory;mov.u64 %newcounters,inventory_counters;cvta.local.u64 %newcounters,%newcounters;mov.u64 %prospective,prospective_vector;cvta.local.u64 %prospective,%prospective;mov.u64 %childctx,prospective_context;cvta.local.u64 %childctx,%childctx;mov.u64 %scalars,prospective_scalars;cvta.local.u64 %scalars,%scalars;mov.u32 %count,0;mov.u32 %mutablecount,0;mov.u32 %countercount,0;
 
 st.param.u64 [rb],%args;st.param.u64 [rn],472;st.param.u64 [rm],7;st.param.u64 [rl],%rows;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),grid_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
 st.param.u64 [rb],%ctx;st.param.u64 [rn],64;st.param.u64 [rm],7;st.param.u64 [rl],%rows;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),grid_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
@@ -1686,10 +1687,10 @@ st.param.u64 [rb],%record;st.param.u64 [rn],160;st.param.u64 [rm],7;st.param.u64
 mov.u32 %error,7831;setp.ge.u32 %p,%count,1024;@%p bra RETURN;
 mul.wide.u32 %offset,%count,16;add.u64 %pointer,%rows,%offset;st.u64 [%pointer],%record;st.u64 [%pointer+8],160;add.u32 %count,%count,1;
 ld.u64 %scratch,[%ctx+32];ld.u64 %capacity,[%ctx+40];
-mov.u32 %error,7833;setp.lt.u64 %p,%capacity,449838528;@%p bra RETURN;
-st.param.u64 [rb],%scratch;st.param.u64 [rn],449838528;st.param.u64 [rm],7;st.param.u64 [rl],%rows;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),grid_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
+mov.u32 %error,7833;setp.lt.u64 %p,%capacity,%esm_declared_span;@%p bra RETURN;
+st.param.u64 [rb],%scratch;st.param.u64 [rn],%esm_declared_span;st.param.u64 [rm],7;st.param.u64 [rl],%rows;st.param.u32 [rc],0;st.param.u32 [rs],4294967295;call.uni (rr),grid_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
 mov.u32 %error,7831;setp.ge.u32 %p,%count,1024;@%p bra RETURN;
-mul.wide.u32 %offset,%count,16;add.u64 %pointer,%rows,%offset;st.u64 [%pointer],%scratch;st.u64 [%pointer+8],449838528;add.u32 %count,%count,1;
+mul.wide.u32 %offset,%count,16;add.u64 %pointer,%rows,%offset;st.u64 [%pointer],%scratch;st.u64 [%pointer+8],%esm_declared_span;add.u32 %count,%count,1;
 st.u64 [%mutable+0],%v1;st.u64 [%mutable+8],4275088;st.u64 [%mutable+16],1;
 st.u64 [%mutable+24],%v37;st.u64 [%mutable+32],327680;st.u64 [%mutable+40],37;
 st.u64 [%mutable+48],%v38;st.u64 [%mutable+56],327680;st.u64 [%mutable+64],38;
@@ -1711,7 +1712,7 @@ st.u64 [%mutable+408],%v56;st.u64 [%mutable+416],16384;st.u64 [%mutable+424],55;
 st.u64 [%mutable+432],%v57;st.u64 [%mutable+440],16384;st.u64 [%mutable+448],56;
 st.u64 [%mutable+456],%v58;st.u64 [%mutable+464],327680;st.u64 [%mutable+472],57;
 st.u64 [%mutable+480],%ctx;st.u64 [%mutable+488],64;st.u64 [%mutable+496],136;
-st.u64 [%mutable+504],%scratch;st.u64 [%mutable+512],449838528;st.u64 [%mutable+520],138;
+st.u64 [%mutable+504],%scratch;st.u64 [%mutable+512],%esm_declared_span;st.u64 [%mutable+520],138;
 st.u64 [%mutable+528],%nimp;st.u64 [%mutable+536],4;st.u64 [%mutable+544],142;
 st.u64 [%mutable+552],%nout;st.u64 [%mutable+560],4;st.u64 [%mutable+568],143;
 mov.u32 %mutablecount,24;
@@ -2060,4 +2061,22 @@ mov.u32 %i,0;MUTABLE_OUTER:setp.ge.u32 %p,%i,%mutablecount;@%p bra COUNTER_OWNER
 mov.u32 %error,7831;@%p bra RETURN;MUTABLE_SKIP:add.u32 %j,%j,1;bra MUTABLE_INNER;MUTABLE_NEXT:add.u32 %i,%i,1;bra MUTABLE_OUTER;COUNTER_OWNERS:mov.u32 %i,0;COUNTER_NEXT:setp.ge.u32 %p,%i,%countercount;@%p bra SUCCESS;mul.wide.u32 %offset,%i,8;add.u64 %pointer,%counters,%offset;ld.u64 %base,[%pointer];
 st.param.u64 [rb],%base;st.param.u64 [rn],8;st.param.u64 [rm],7;st.param.u64 [rl],%rows;st.param.u32 [rc],%count;st.param.u32 [rs],4294967295;call.uni (rr),grid_owner_range,(rb,rn,rm,rl,rc,rs);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra RETURN;
 mov.u32 %j,0;COUNTER_PAIRS:setp.ge.u32 %p,%j,%i;@%p bra COUNTER_FINISHED;mul.wide.u32 %offset,%j,8;add.u64 %pointer,%counters,%offset;ld.u64 %owner,[%pointer];add.u64 %end,%base,8;add.u64 %stop,%owner,8;setp.lt.u64 %p,%base,%stop;setp.lt.u64 %q,%owner,%end;and.pred %p,%p,%q;mov.u32 %error,7831;@%p bra RETURN;add.u32 %j,%j,1;bra COUNTER_PAIRS;COUNTER_FINISHED:add.u32 %i,%i,1;bra COUNTER_NEXT;SUCCESS:mov.u32 %error,0;RETURN:st.param.u32 [result],%error;ret;
+}
+
+.visible .func (.param .u32 result) md2asm_gpu_radiation_grid_admit(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %a,%c;.reg .u32 %r;
+ld.param.u64 %a,[original_vector];ld.param.u64 %c,[common_context];
+{.param .u64 span_a,span_c,span_n;.param .u32 span_r;
+st.param.u64 [span_a],%a;st.param.u64 [span_c],%c;st.param.u64 [span_n],449838528;call.uni (span_r),md2asm_gpu_radiation_grid_admit_span,(span_a,span_c,span_n);ld.param.u32 %r,[span_r];}
+st.param.u32 [result],%r;ret;
+}
+
+.visible .func (.param .u32 result) md2asm_gpu_radiation_grid_admit_eight_columns(.param .u64 original_vector,.param .u64 common_context)
+{
+.reg .u64 %a,%c;.reg .u32 %r;
+ld.param.u64 %a,[original_vector];ld.param.u64 %c,[common_context];
+{.param .u64 span_a,span_c,span_n;.param .u32 span_r;
+st.param.u64 [span_a],%a;st.param.u64 [span_c],%c;st.param.u64 [span_n],1292832768;call.uni (span_r),md2asm_gpu_radiation_grid_admit_span,(span_a,span_c,span_n);ld.param.u32 %r,[span_r];}
+st.param.u32 [result],%r;ret;
 }

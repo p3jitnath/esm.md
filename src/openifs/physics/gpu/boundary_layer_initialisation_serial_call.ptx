@@ -1476,13 +1476,13 @@ ld.param.u32 %esm_original_last,[esm_original_last_column];
  mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
  mov.u32 %r,0;or.b32 %unique,%unique,%r;mov.u32 %r,0;or.b32 %unique,%unique,%r;mov.u32 %r,0;or.b32 %unique,%unique,%r;
  ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
- mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
  mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
  mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
  setp.ne.u32 %p,%thread,0;@%p bra WAIT;
  st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),md2asm_gpu_vdfhghtn_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
 WAIT:
- bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
 ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];st.param.u64 [va],%args;st.param.u64 [ca],%record;st.param.u64 [sa],%scratch;call.uni (returned),md2asm_gpu_boundary_layer_values,(va,ca,sa);ld.param.u32 %r,[returned];ld.param.u64 %event64,[returned+8];ld.param.u64 %serial_count0,[returned+16];ld.param.u64 %serial_count1,[returned+24];ld.param.u64 %serial_count2,[returned+32];atom.global.or.b32 %old,[%ctx+8],%r;
  ld.global.u64 %counter_record_bytes,[%ctx+56];setp.lt.u64 %p,%counter_record_bytes,256;@%p bra COUNTER_JOIN_DONE;ld.global.u64 %counter_record,[%ctx+48];
  mov.u64 %counter_increment,%serial_count0;setp.eq.u64 %p,%counter_increment,0;@%p bra COUNTER_JOIN_0;ld.global.u64 %counter_owner,[%counter_record+232];setp.eq.u64 %p,%counter_owner,0;@%p bra COUNTER_JOIN_0;ld.global.u64 %counter_previous,[%counter_owner];add.u64 %counter_previous,%counter_previous,%counter_increment;st.global.u64 [%counter_owner],%counter_previous;COUNTER_JOIN_0:

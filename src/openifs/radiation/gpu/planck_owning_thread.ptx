@@ -1397,3 +1397,663 @@ REFUSE:
  @%p atom.global.cas.b32 %old,[%ctx],0,%failure;
  ret;
 }
+
+// Eight-column composition retains the original equations and serial entry.
+
+.func (.param .b64 map_pointer) radintg_worker_planck_map_eight_columns(.param .b64 descriptor,.param .u32 required)
+{
+ .reg .b64 %d,%p,%v;
+ .reg .b32 %n;
+ .reg .pred %bad;
+ ld.param.b64 %d,[descriptor];
+ ld.param.u32 %n,[required];
+ ld.global.u64 %p,[%d];
+ setp.eq.u64 %bad,%p,0;
+ @%bad bra MAP_BAD;
+ and.b64 %v,%p,3;
+ setp.ne.u64 %bad,%v,0;
+ @%bad bra MAP_BAD;
+ ld.global.s64 %v,[%d+8];
+ setp.ne.s64 %bad,%v,-1;
+ @%bad bra MAP_BAD;
+ ld.global.u64 %v,[%d+16];
+ setp.ne.u64 %bad,%v,4;
+ @%bad bra MAP_BAD;
+ ld.global.s64 %v,[%d+40];
+ setp.ne.s64 %bad,%v,1;
+ @%bad bra MAP_BAD;
+ ld.global.s64 %v,[%d+48];
+ setp.ne.s64 %bad,%v,1;
+ @%bad bra MAP_BAD;
+ ld.global.s64 %v,[%d+56];
+ setp.gt.s64 %bad,%v,4096;
+ @%bad bra MAP_BAD;
+ cvt.u64.u32 %d,%n;
+ setp.lt.s64 %bad,%v,%d;
+ @%bad bra MAP_BAD;
+ bra MAP_DONE;
+MAP_BAD:
+ mov.u64 %p,0;
+MAP_DONE:
+ st.param.b64 [map_pointer],%p;
+ ret;
+}
+
+.visible .func md2asm_gpu_radintg_worker_planck_call_eight_columns(.param .b64 argument_vector,.param .b64 context,.param .u32 atmosphere)
+{
+ .reg .b64 %args,%ctx,%p0,%p1,%p2,%cfg,%thermo,%desc,%pf,%out,%tempbase,%stride,%levelstride,%offset,%upper,%lower,%lastlabel,%firstlabel,%n64,%f64,%g64,%paircount,%outcount,%index,%column,%face,%point,%layer,%sample,%at,%tmp,%tmp2,%bands,%bandmap,%samplemap,%word,%abs,%sign,%table,%widths,%tableaddr,%bandaddr,%t,%frac,%c159,%c339,%zflux,%lo,%hi,%difference,%interpolated,%factor,%bandvalue,%fraction,%op_a,%op_b,%tt,%thread_step;
+ .reg .b32 %lane,%mode,%n,%first,%last,%h,%faces,%g,%nb,%solver,%i,%band,%row,%integer,%flags,%raised,%old,%failure,%launch,%q,%r;
+ .reg .f64 %ft,%fc,%fi;
+ .reg .pred %p,%qpred;
+ .shared .align 4 .b32 worker_validation_eight_columns;
+ .local .align 8 .b64 band_values[16];
+ ld.param.b64 %args,[argument_vector];
+ ld.param.b64 %ctx,[context];
+ ld.param.u32 %mode,[atmosphere];
+ mov.u32 %lane,%tid.x;
+ setp.eq.u64 %p,%ctx,0;
+ @%p ret;
+ mov.u32 %launch,0;
+ mov.u32 %q,0;
+ or.b32 %launch,%launch,%q;
+ mov.u32 %q,0;
+ or.b32 %launch,%launch,%q;
+ setp.ne.u32 %p,%launch,0;
+ @%p ret;
+ mov.u32 %launch,8;
+ setp.ne.u32 %p,%launch,8;
+ @%p bra BAD_LAUNCH;
+ cvt.u64.u32 %thread_step,%launch;
+ mov.u32 %q,1;
+ mov.u32 %r,1;
+ or.b32 %q,%q,%r;
+ setp.ne.u32 %p,%q,1;
+ @%p bra BAD_LAUNCH;
+ mov.u32 %q,1;
+ mov.u32 %r,1;
+ or.b32 %q,%q,%r;
+ mov.u32 %r,1;
+ or.b32 %q,%q,%r;
+ setp.ne.u32 %p,%q,1;
+ @%p bra BAD_LAUNCH;
+ ld.global.u32 %old,[%ctx];
+ setp.ne.u32 %p,%old,0;
+ @%p ret;
+ ld.global.u32 %old,[%ctx+4];
+ setp.ne.u32 %p,%old,1;
+ @%p bra BAD_METADATA;
+ setp.eq.u64 %p,%args,0;
+ @%p bra BAD_METADATA;
+ setp.ne.u32 %p,%mode,0;
+ @%p bra ATMOS_ARGUMENTS;
+ ld.global.u64 %p0,[%args];
+ ld.global.u64 %p1,[%args+8];
+ ld.global.u64 %cfg,[%args+16];
+ ld.global.u64 %desc,[%args+24];
+ ld.global.u64 %pf,[%args+32];
+ ld.global.u64 %out,[%args+40];
+ mov.u32 %h,0;
+ mov.u32 %faces,1;
+ bra ARGUMENTS_READY;
+ATMOS_ARGUMENTS:
+ ld.global.u64 %p2,[%args];
+ setp.eq.u64 %p,%p2,0;
+ @%p bra BAD_METADATA;
+ ld.global.u32 %h,[%p2];
+ setp.lt.s32 %p,%h,1;
+ @%p bra BAD_METADATA;
+ setp.gt.u32 %p,%h,512;
+ @%p bra BAD_METADATA;
+ add.u32 %faces,%h,1;
+ ld.global.u64 %p0,[%args+8];
+ ld.global.u64 %p1,[%args+16];
+ ld.global.u64 %cfg,[%args+24];
+ ld.global.u64 %thermo,[%args+32];
+ add.u64 %desc,%thermo,88;
+ ld.global.u64 %pf,[%args+40];
+ ld.global.u64 %out,[%args+48];
+ARGUMENTS_READY:
+ setp.eq.u64 %p,%p0,0;
+ @%p bra BAD_METADATA;
+ setp.eq.u64 %p,%p1,0;
+ @%p bra BAD_METADATA;
+ ld.global.u32 %first,[%p0];
+ ld.global.u32 %last,[%p1];
+ setp.lt.s32 %p,%first,1;
+ @%p bra BAD_METADATA;
+ sub.s32 %r,%first,1;
+ setp.lt.s32 %p,%last,%r;
+ @%p bra BAD_METADATA;
+ sub.s32 %n,%last,%first;
+ add.s32 %n,%n,1;
+ setp.lt.s32 %p,%n,0;
+ @%p bra BAD_METADATA;
+ setp.eq.u32 %p,%n,0;
+ @%p bra EMPTY_WORK;
+ setp.gt.u32 %p,%n,4096;
+ @%p bra BAD_METADATA;
+ setp.eq.u32 %p,%mode,0;
+ @%p bra OBJECT_READY;
+ setp.eq.u64 %p,%thermo,0;
+ @%p bra BAD_METADATA;
+OBJECT_READY:
+ setp.eq.u64 %p,%cfg,0;
+ @%p bra BAD_METADATA;
+ setp.eq.u64 %p,%desc,0;
+ @%p bra BAD_METADATA;
+ setp.eq.u64 %p,%pf,0;
+ @%p bra BAD_METADATA;
+ setp.eq.u64 %p,%out,0;
+ @%p bra BAD_METADATA;
+ or.b64 %tmp,%cfg,%desc;
+ and.b64 %tmp,%tmp,7;
+ setp.ne.u64 %p,%tmp,0;
+ @%p bra BAD_METADATA;
+ or.b64 %tmp,%pf,%out;
+ and.b64 %tmp,%tmp,7;
+ setp.ne.u64 %p,%tmp,0;
+ @%p bra BAD_METADATA;
+ ld.global.u32 %g,[%cfg+20000];
+ ld.global.u32 %nb,[%cfg+20008];
+ ld.global.u32 %solver,[%cfg+624];
+ setp.lt.s32 %p,%g,1;
+ @%p bra BAD_METADATA;
+ setp.gt.u32 %p,%g,140;
+ @%p bra BAD_METADATA;
+ setp.lt.s32 %p,%nb,1;
+ @%p bra BAD_METADATA;
+ setp.gt.u32 %p,%nb,16;
+ @%p bra BAD_METADATA;
+ mov.u64 %samplemap,0;
+ setp.eq.u32 %p,%solver,3;
+ @%p bra REORDERED_MAPS;
+ add.u64 %at,%cfg,10608;
+ bra LOAD_BAND_MAP;
+REORDERED_MAPS:
+ add.u64 %at,%cfg,10736;
+ {
+ .param .b64 d,ret;
+ .param .u32 required;
+ st.param.b64 [d],%at;
+ st.param.u32 [required],%g;
+ call.uni (ret),radintg_worker_planck_map_eight_columns,(d,required);
+ ld.param.b64 %samplemap,[ret];
+ }
+ setp.eq.u64 %p,%samplemap,0;
+ @%p bra BAD_METADATA;
+ add.u64 %at,%cfg,10864;
+LOAD_BAND_MAP:
+ {
+ .param .b64 d,ret;
+ .param .u32 required;
+ st.param.b64 [d],%at;
+ st.param.u32 [required],%g;
+ call.uni (ret),radintg_worker_planck_map_eight_columns,(d,required);
+ ld.param.b64 %bandmap,[ret];
+ }
+ setp.eq.u64 %p,%bandmap,0;
+ @%p bra BAD_METADATA;
+ ld.global.u64 %tempbase,[%desc];
+ ld.global.u64 %word,[%desc+16];
+ setp.ne.u64 %p,%word,8;
+ @%p bra BAD_METADATA;
+ setp.eq.u64 %p,%tempbase,0;
+ @%p bra BAD_METADATA;
+ and.b64 %tmp,%tempbase,7;
+ setp.ne.u64 %p,%tmp,0;
+ @%p bra BAD_METADATA;
+ ld.global.s64 %stride,[%desc+40];
+ setp.eq.s64 %p,%stride,0;
+ @%p mov.s64 %stride,1;
+ ld.global.s64 %lower,[%desc+48];
+ ld.global.s64 %upper,[%desc+56];
+ setp.ne.u32 %p,%mode,0;
+ @%p bra ATMOS_DESCRIPTOR;
+ setp.lt.s64 %p,%stride,-4096;
+ @%p bra BAD_METADATA;
+ setp.gt.s64 %p,%stride,4096;
+ @%p bra BAD_METADATA;
+ sub.s64 %tmp,%upper,%lower;
+ add.s64 %tmp,%tmp,1;
+ setp.gt.s64 %p,%tmp,16384;
+ @%p bra BAD_METADATA;
+ cvt.s64.s32 %lastlabel,%last;
+ setp.lt.s64 %p,%tmp,%lastlabel;
+ @%p bra BAD_METADATA;
+ cvt.s64.s32 %tmp,%first;
+ sub.s64 %tmp,%tmp,1;
+ mul.lo.s64 %offset,%tmp,%stride;
+ mov.s64 %levelstride,0;
+ bra TEMPERATURE_ADDRESS;
+ATMOS_DESCRIPTOR:
+ setp.ne.s64 %p,%stride,1;
+ @%p bra BAD_METADATA;
+ cvt.s64.s32 %firstlabel,%first;
+ cvt.s64.s32 %lastlabel,%last;
+ setp.lt.s64 %p,%firstlabel,%lower;
+ @%p bra BAD_METADATA;
+ setp.gt.s64 %p,%lastlabel,%upper;
+ @%p bra BAD_METADATA;
+ ld.global.s64 %levelstride,[%desc+64];
+ setp.lt.s64 %p,%levelstride,1;
+ @%p bra BAD_METADATA;
+ ld.global.s64 %upper,[%desc+80];
+ ld.global.s64 %lower,[%desc+72];
+ cvt.u64.u32 %tmp,%h;
+ sub.s64 %upper,%upper,%tmp;
+ setp.lt.s64 %p,%upper,%lower;
+ @%p bra BAD_METADATA;
+ ld.global.s64 %offset,[%desc+8];
+ mul.lo.s64 %tmp,%upper,%levelstride;
+ add.s64 %offset,%offset,%tmp;
+ add.s64 %offset,%offset,%firstlabel;
+TEMPERATURE_ADDRESS:
+ shl.b64 %offset,%offset,3;
+ add.u64 %tempbase,%tempbase,%offset;
+ shl.b64 %stride,%stride,3;
+ shl.b64 %levelstride,%levelstride,3;
+ cvt.u64.u32 %n64,%n;
+ cvt.u64.u32 %f64,%faces;
+ cvt.u64.u32 %g64,%g;
+ mul.lo.u64 %paircount,%n64,%f64;
+ mul.lo.u64 %outcount,%paircount,%g64;
+ setp.eq.u32 %p,%lane,0;
+ @%p st.shared.u32 [worker_validation_eight_columns],0;
+ bar.sync 0;
+ mov.u32 %i,%lane;
+VALIDATE_MAPS:
+ setp.ge.u32 %p,%i,%g;
+ @%p bra MAPS_VALIDATED;
+ mul.wide.u32 %tmp,%i,4;
+ add.u64 %at,%bandmap,%tmp;
+ ld.global.u32 %band,[%at];
+ setp.lt.s32 %p,%band,1;
+ @%p bra MAP_INVALID;
+ setp.gt.u32 %p,%band,%nb;
+ @%p bra MAP_INVALID;
+ setp.eq.u64 %p,%samplemap,0;
+ @%p bra MAP_NEXT;
+ add.u64 %at,%samplemap,%tmp;
+ ld.global.u32 %q,[%at];
+ setp.lt.s32 %p,%q,1;
+ @%p bra MAP_INVALID;
+ setp.gt.u32 %p,%q,140;
+ @%p bra MAP_INVALID;
+ bra MAP_NEXT;
+MAP_INVALID:
+ atom.shared.or.b32 %old,[worker_validation_eight_columns],1;
+MAP_NEXT:
+ add.u32 %i,%i,%launch;
+ bra VALIDATE_MAPS;
+MAPS_VALIDATED:
+ bar.sync 0;
+ ld.shared.u32 %failure,[worker_validation_eight_columns];
+ setp.ne.u32 %p,%failure,0;
+ @%p bra BAD_VALUES;
+ cvt.u64.u32 %index,%lane;
+VALIDATE_TEMPERATURES:
+ setp.ge.u64 %p,%index,%paircount;
+ @%p bra TEMPERATURES_VALIDATED;
+ div.u64 %column,%index,%f64;
+ rem.u64 %face,%index,%f64;
+ mul.lo.u64 %tmp,%column,%stride;
+ mul.lo.u64 %tmp2,%face,%levelstride;
+ add.u64 %at,%tempbase,%tmp;
+ add.u64 %at,%at,%tmp2;
+ ld.global.b64 %word,[%at];
+ and.b64 %abs,%word,0x7fffffffffffffff;
+ setp.gt.u64 %p,%abs,0x40b0000000000000;
+ @%p bra TEMPERATURE_INVALID;
+ shr.u64 %sign,%word,63;
+ setp.ne.u64 %p,%sign,0;
+ setp.ne.u64 %qpred,%abs,0;
+ and.pred %p,%p,%qpred;
+ @%p bra TEMPERATURE_INVALID;
+ setp.ne.u32 %p,%mode,0;
+ @%p bra TEMPERATURE_NEXT;
+ setp.lt.u64 %p,%abs,0x3ff0000000000000;
+ @%p bra TEMPERATURE_INVALID;
+ bra TEMPERATURE_NEXT;
+TEMPERATURE_INVALID:
+ atom.shared.or.b32 %old,[worker_validation_eight_columns],2;
+TEMPERATURE_NEXT:
+ add.u64 %index,%index,%thread_step;
+ bra VALIDATE_TEMPERATURES;
+TEMPERATURES_VALIDATED:
+ cvt.u64.u32 %index,%lane;
+VALIDATE_FRACTIONS:
+ setp.ge.u64 %p,%index,%outcount;
+ @%p bra FRACTIONS_VALIDATED;
+ div.u64 %tmp,%index,%g64;
+ rem.u64 %point,%index,%g64;
+ div.u64 %column,%tmp,%f64;
+ rem.u64 %face,%tmp,%f64;
+ mov.u64 %sample,%point;
+ setp.eq.u64 %p,%samplemap,0;
+ @%p bra FRACTION_SAMPLE_READY;
+ shl.b64 %tmp,%point,2;
+ add.u64 %at,%samplemap,%tmp;
+ ld.global.u32 %i,[%at];
+ sub.u32 %i,%i,1;
+ cvt.u64.u32 %sample,%i;
+FRACTION_SAMPLE_READY:
+ mov.u64 %layer,0;
+ setp.eq.u32 %p,%mode,0;
+ @%p bra FRACTION_LAYER_READY;
+ cvt.u64.u32 %layer,%h;
+ sub.u64 %layer,%layer,%face;
+ setp.eq.u64 %p,%face,0;
+ @%p sub.u64 %layer,%layer,1;
+FRACTION_LAYER_READY:
+ mul.lo.u64 %tmp,%layer,140;
+ add.u64 %tmp,%tmp,%sample;
+ mul.lo.u64 %tmp,%tmp,%n64;
+ add.u64 %tmp,%tmp,%column;
+ shl.b64 %tmp,%tmp,3;
+ add.u64 %at,%pf,%tmp;
+ ld.global.b64 %word,[%at];
+ and.b64 %abs,%word,0x7fffffffffffffff;
+ setp.gt.u64 %p,%abs,0x3ff0000000000000;
+ @%p bra FRACTION_INVALID;
+ shr.u64 %sign,%word,63;
+ setp.ne.u64 %p,%sign,0;
+ setp.ne.u64 %qpred,%abs,0;
+ and.pred %p,%p,%qpred;
+ @%p bra FRACTION_INVALID;
+ bra FRACTION_NEXT;
+FRACTION_INVALID:
+ atom.shared.or.b32 %old,[worker_validation_eight_columns],4;
+FRACTION_NEXT:
+ add.u64 %index,%index,%thread_step;
+ bra VALIDATE_FRACTIONS;
+FRACTIONS_VALIDATED:
+ bar.sync 0;
+ ld.shared.u32 %failure,[worker_validation_eight_columns];
+ setp.ne.u32 %p,%failure,0;
+ @%p bra BAD_VALUES;
+ mov.u32 %flags,0;
+ mov.b64 %lo,0x3ff921fb54442d18;
+ mov.b64 %hi,0x4000000000000000;
+ mov.b64 %op_a,%lo;
+ mov.b64 %op_b,%hi;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%op_a;
+ st.param.b64 [b],%op_b;
+ call.uni (ret),md2asm_gpu_mul_rn,(a,b);
+ ld.param.b64 %zflux,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ mov.b64 %hi,0x40c3880000000000;
+ mov.b64 %op_a,%zflux;
+ mov.b64 %op_b,%hi;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%op_a;
+ st.param.b64 [b],%op_b;
+ call.uni (ret),md2asm_gpu_mul_rn,(a,b);
+ ld.param.b64 %zflux,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ mov.u64 %bands,band_values;
+ mov.u64 %table,radintg_worker_planck_totplnk;
+ mov.u64 %widths,radintg_worker_planck_delwave;
+ mov.b64 %c159,0x4063e00000000000;
+ mov.b64 %c339,0x4075300000000000;
+ cvt.u64.u32 %index,%lane;
+CALCULATE_PAIR:
+ setp.ge.u64 %p,%index,%paircount;
+ @%p bra COMPLETE;
+ div.u64 %column,%index,%f64;
+ rem.u64 %face,%index,%f64;
+ mul.lo.u64 %tmp,%column,%stride;
+ mul.lo.u64 %tmp2,%face,%levelstride;
+ add.u64 %at,%tempbase,%tmp;
+ add.u64 %at,%at,%tmp2;
+ ld.global.b64 %t,[%at];
+ mov.b64 %ft,%t;
+ setp.ge.f64 %p,%ft,0d4075300000000000;
+ @%p bra HOT_TEMPERATURE;
+ setp.lt.f64 %p,%ft,0d4064000000000000;
+ @%p bra COLD_TEMPERATURE;
+ mov.b64 %op_a,%t;
+ xor.b64 %op_b,%c159,0x8000000000000000;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%op_a;
+ st.param.b64 [b],%op_b;
+ call.uni (ret),md2asm_gpu_add_rn,(a,b);
+ ld.param.b64 %tt,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ mov.b64 %fc,%tt;
+ cvt.rzi.s32.f64 %row,%fc;
+ sub.u32 %row,%row,1;
+ cvt.rzi.s32.f64 %integer,%ft;
+ cvt.rn.f64.s32 %fi,%integer;
+ mov.b64 %tt,%fi;
+ mov.b64 %op_a,%t;
+ xor.b64 %op_b,%tt,0x8000000000000000;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%op_a;
+ st.param.b64 [b],%op_b;
+ call.uni (ret),md2asm_gpu_add_rn,(a,b);
+ ld.param.b64 %frac,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ and.b64 %abs,%frac,0x7fffffffffffffff;
+ setp.ne.u64 %p,%abs,0;
+ @%p or.b32 %flags,%flags,16;
+ bra TEMPERATURE_READY;
+HOT_TEMPERATURE:
+ mov.u32 %row,179;
+ mov.b64 %op_a,%t;
+ xor.b64 %op_b,%c339,0x8000000000000000;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%op_a;
+ st.param.b64 [b],%op_b;
+ call.uni (ret),md2asm_gpu_add_rn,(a,b);
+ ld.param.b64 %frac,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ bra TEMPERATURE_READY;
+COLD_TEMPERATURE:
+ mov.u32 %row,0;
+ mov.b64 %frac,0;
+TEMPERATURE_READY:
+ mov.u32 %band,0;
+CALCULATE_BAND:
+ mul.wide.u32 %tmp,%band,181;
+ cvt.u64.u32 %tmp2,%row;
+ add.u64 %tmp,%tmp,%tmp2;
+ shl.b64 %tmp,%tmp,3;
+ add.u64 %tableaddr,%table,%tmp;
+ ld.global.b64 %lo,[%tableaddr];
+ ld.global.b64 %hi,[%tableaddr+8];
+ mov.b64 %op_a,%hi;
+ xor.b64 %op_b,%lo,0x8000000000000000;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%op_a;
+ st.param.b64 [b],%op_b;
+ call.uni (ret),md2asm_gpu_add_rn,(a,b);
+ ld.param.b64 %difference,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ mov.b64 %op_a,%frac;
+ mov.b64 %op_b,%difference;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%op_a;
+ st.param.b64 [b],%op_b;
+ call.uni (ret),md2asm_gpu_mul_rn,(a,b);
+ ld.param.b64 %difference,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ mov.b64 %op_a,%lo;
+ mov.b64 %op_b,%difference;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%op_a;
+ st.param.b64 [b],%op_b;
+ call.uni (ret),md2asm_gpu_add_rn,(a,b);
+ ld.param.b64 %interpolated,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ mul.wide.u32 %tmp,%band,8;
+ add.u64 %at,%widths,%tmp;
+ ld.global.b64 %word,[%at];
+ mov.b64 %op_a,%zflux;
+ mov.b64 %op_b,%word;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%op_a;
+ st.param.b64 [b],%op_b;
+ call.uni (ret),md2asm_gpu_mul_rn,(a,b);
+ ld.param.b64 %factor,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ mov.b64 %op_a,%factor;
+ mov.b64 %op_b,%interpolated;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%op_a;
+ st.param.b64 [b],%op_b;
+ call.uni (ret),md2asm_gpu_mul_rn,(a,b);
+ ld.param.b64 %bandvalue,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ mul.wide.u32 %tmp,%band,8;
+ add.u64 %bandaddr,%bands,%tmp;
+ st.local.b64 [%bandaddr],%bandvalue;
+ add.u32 %band,%band,1;
+ setp.lt.u32 %p,%band,%nb;
+ @%p bra CALCULATE_BAND;
+ mov.u32 %i,0;
+CALCULATE_SPECTRAL:
+ mul.wide.u32 %tmp,%i,4;
+ add.u64 %at,%bandmap,%tmp;
+ ld.global.u32 %band,[%at];
+ sub.u32 %band,%band,1;
+ mul.wide.u32 %tmp2,%band,8;
+ add.u64 %bandaddr,%bands,%tmp2;
+ ld.local.b64 %bandvalue,[%bandaddr];
+ cvt.u64.u32 %sample,%i;
+ setp.eq.u64 %p,%samplemap,0;
+ @%p bra SAMPLE_READY;
+ add.u64 %at,%samplemap,%tmp;
+ ld.global.u32 %q,[%at];
+ sub.u32 %q,%q,1;
+ cvt.u64.u32 %sample,%q;
+SAMPLE_READY:
+ mov.u64 %layer,0;
+ setp.eq.u32 %p,%mode,0;
+ @%p bra LAYER_READY;
+ cvt.u64.u32 %layer,%h;
+ sub.u64 %layer,%layer,%face;
+ setp.eq.u64 %p,%face,0;
+ @%p sub.u64 %layer,%layer,1;
+LAYER_READY:
+ mul.lo.u64 %tmp,%layer,140;
+ add.u64 %tmp,%tmp,%sample;
+ mul.lo.u64 %tmp,%tmp,%n64;
+ add.u64 %tmp,%tmp,%column;
+ shl.b64 %tmp,%tmp,3;
+ add.u64 %at,%pf,%tmp;
+ ld.global.b64 %fraction,[%at];
+ mov.b64 %op_a,%bandvalue;
+ mov.b64 %op_b,%fraction;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%op_a;
+ st.param.b64 [b],%op_b;
+ call.uni (ret),md2asm_gpu_mul_rn,(a,b);
+ ld.param.b64 %word,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ mul.lo.u64 %tmp,%index,%g64;
+ cvt.u64.u32 %tmp2,%i;
+ add.u64 %tmp,%tmp,%tmp2;
+ shl.b64 %tmp,%tmp,3;
+ add.u64 %at,%out,%tmp;
+ st.global.b64 [%at],%word;
+ add.u32 %i,%i,1;
+ setp.lt.u32 %p,%i,%g;
+ @%p bra CALCULATE_SPECTRAL;
+ add.u64 %index,%index,%thread_step;
+ bra CALCULATE_PAIR;
+COMPLETE:
+ add.u64 %at,%ctx,8;
+ atom.global.or.b32 %old,[%at],%flags;
+ ret;
+EMPTY_WORK:
+ mov.u32 %flags,0;
+ mov.b64 %lo,0x3ff921fb54442d18;
+ mov.b64 %hi,0x4000000000000000;
+ mov.b64 %op_a,%lo;
+ mov.b64 %op_b,%hi;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%op_a;
+ st.param.b64 [b],%op_b;
+ call.uni (ret),md2asm_gpu_mul_rn,(a,b);
+ ld.param.b64 %zflux,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ mov.b64 %hi,0x40c3880000000000;
+ mov.b64 %op_a,%zflux;
+ mov.b64 %op_b,%hi;
+ {
+ .param .b64 a,b;
+ .param .align 8 .b8 ret[16];
+ st.param.b64 [a],%op_a;
+ st.param.b64 [b],%op_b;
+ call.uni (ret),md2asm_gpu_mul_rn,(a,b);
+ ld.param.b64 %zflux,[ret];
+ ld.param.b32 %raised,[ret+8];
+ or.b32 %flags,%flags,%raised;
+ }
+ bra COMPLETE;
+BAD_LAUNCH:
+ mov.u32 %failure,301;
+ bra REFUSE;
+BAD_METADATA:
+ mov.u32 %failure,302;
+ bra REFUSE;
+BAD_VALUES:
+ mov.u32 %failure,303;
+REFUSE:
+ mov.u32 %q,0;
+ mov.u32 %r,0;
+ or.b32 %q,%q,%r;
+ or.b32 %q,%q,%lane;
+ setp.eq.u32 %p,%q,0;
+ @%p atom.global.cas.b32 %old,[%ctx],0,%failure;
+ ret;
+}

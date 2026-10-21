@@ -1,10 +1,11 @@
-// Contract: skills/md2asm-gpu/references/openifs/radiation/parallel_radiation_climatology.md.
+// Multi-SM logical block ownership; the other five source phases remain exact.
 .version 8.5
 .target sm_90
 .address_size 64
 .extern .func (.param .u32 result) md2asm_gpu_radiation_grid_admit(.param .u64 vector,.param .u64 context);
+.extern .func (.param .u32 result) md2asm_gpu_radiation_grid_admit_eight_columns(.param .u64 vector,.param .u64 context);
 .extern .func (.param .align 8 .b8 result[32]) md2asm_gpu_radiation_grid_phase(.param .u64 vector,.param .u64 record,.param .u64 scratch,.param .u32 phase);
-.extern .func (.param .align 8 .b8 result[32]) md2asm_gpu_radintg_worker_block(.param .u64 vector,.param .u64 record,.param .u64 scratch,.param .u32 block,.param .u64 arena,.param .u64 child_vector,.param .u64 child_context);
+.extern .func (.param .align 8 .b8 result[32]) md2asm_gpu_radintg_worker_block_eight_columns(.param .u64 vector,.param .u64 record,.param .u64 scratch,.param .u32 block,.param .u64 arena,.param .u64 child_vector,.param .u64 child_context,.param .u64 auxiliary);
 .visible .func md2asm_gpu_radintg_serial_phase_fp64(.param .u64 original_vector,.param .u64 common_context)
 {
 .reg .u64 %args,%ctx,%scratch,%record,%event,%phase64,%pointer;.reg .u32 %origin,%axis,%error,%flags,%old,%phase;.reg .pred %p;
@@ -47,7 +48,7 @@ ld.global.u32 %axis,[%ctx+12];and.b32 %axis,%axis,1;setp.ne.u32 %p,%axis,0;@%p b
 .param .u64 a,c;.param .u32 admitted;
 ld.global.u64 %phase64,[%ctx+24];setp.ne.u64 %p,%phase64,4;@%p bra REFUSE;
 st.param.u64 [a],%args;st.param.u64 [c],%ctx;
-call.uni (admitted),md2asm_gpu_radiation_grid_admit,(a,c);
+call.uni (admitted),md2asm_gpu_radiation_grid_admit_eight_columns,(a,c);
 ld.param.u32 %error,[admitted];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
 ld.global.u64 %scratch,[%ctx+32];mov.u64 %i,0;
 CLEAR_RESULTS:mul.lo.u64 %offset,%i,32;add.u64 %pointer,%scratch,449830336;add.u64 %pointer,%pointer,%offset;
@@ -60,17 +61,17 @@ REFUSE:st.global.u32 [%ctx],%error;ret;
 
 .visible .func md2asm_gpu_radintg_multi_sm_workers_fp64(.param .u64 original_vector,.param .u64 common_context)
 {
-.reg .u64 %args,%ctx,%scratch,%record,%pointer,%arena,%vector,%childctx,%i,%offset,%word,%phase64;
-.reg .u32 %worker,%origin,%axis,%error;
+.reg .u64 %args,%ctx,%scratch,%record,%pointer,%arena,%vector,%childctx,%i,%offset,%word,%phase64,%ecl_aux,%ecl_event,%ecl_ratio;
+.reg .u32 %worker,%origin,%axis,%error,%ecl_lane;
 .reg .pred %p;
 .param .u64 a,r,s,wa,wv,wc;.param .u32 logical;.param .align 8 .b8 returned[32];
 ld.param.u64 %args,[original_vector];ld.param.u64 %ctx,[common_context];
-mov.u32 %origin,%tid.x;mov.u32 %axis,%tid.y;or.b32 %origin,%origin,%axis;mov.u32 %axis,%tid.z;or.b32 %origin,%origin,%axis;
+mov.u32 %ecl_lane,%tid.x;mov.u32 %origin,0;mov.u32 %axis,%tid.y;or.b32 %origin,%origin,%axis;mov.u32 %axis,%tid.z;or.b32 %origin,%origin,%axis;
 mov.u32 %axis,%ctaid.y;or.b32 %origin,%origin,%axis;mov.u32 %axis,%ctaid.z;or.b32 %origin,%origin,%axis;
 setp.ne.u32 %p,%origin,0;@%p ret;mov.u32 %worker,%ctaid.x;
 setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %pointer,%ctx,7;setp.ne.u64 %p,%pointer,0;@%p ret;
 ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;mov.u32 %error,7830;
-mov.u32 %axis,%ntid.x;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;
+mov.u32 %axis,%ntid.x;setp.ne.u32 %p,%axis,8;@%p bra REFUSE;
 mov.u32 %axis,%ntid.y;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;
 mov.u32 %axis,%ntid.z;setp.ne.u32 %p,%axis,1;@%p bra REFUSE;
 mov.u32 %axis,%nctaid.x;setp.ne.u32 %p,%axis,128;@%p bra REFUSE;
@@ -86,15 +87,23 @@ cvt.u64.u32 %offset,%worker;mul.lo.u64 %offset,%offset,3341408;add.u64 %arena,%s
 add.u64 %vector,%arena,3340832;add.u64 %childctx,%vector,512;bra WORKER_BOUND;
 ORIGINAL_LAST_WORKER:add.u64 %arena,%scratch,22130688;add.u64 %vector,%scratch,22127104;add.u64 %childctx,%scratch,22127744;
 WORKER_BOUND:cvt.u64.u32 %i,%worker;
+cvt.u64.u32 %ecl_aux,%worker;mul.lo.u64 %ecl_aux,%ecl_aux,6332416;add.u64 %ecl_aux,%ecl_aux,%scratch;add.u64 %ecl_aux,%ecl_aux,482283520;
 BLOCK_LOOP:cvt.u32.u64 %axis,%i;
-st.param.u64 [a],%args;st.param.u64 [r],%record;st.param.u64 [s],%scratch;st.param.u32 [logical],%axis;
-st.param.u64 [wa],%arena;st.param.u64 [wv],%vector;st.param.u64 [wc],%childctx;
-call.uni (returned),md2asm_gpu_radintg_worker_block,(a,r,s,logical,wa,wv,wc);
-ld.param.u64 %word,[returned];mul.lo.u64 %offset,%i,32;add.u64 %pointer,%scratch,449830336;add.u64 %pointer,%pointer,%offset;st.global.u64 [%pointer],%word;
-ld.param.u64 %word,[returned+8];st.global.u64 [%pointer+8],%word;ld.param.u64 %word,[returned+16];st.global.u64 [%pointer+16],%word;
+{
+.param .u64 ecl_a,ecl_r,ecl_s,ecl_wa,ecl_wv,ecl_wc,ecl_aux;
+.param .u32 ecl_logical;.param .align 8 .b8 ecl_returned[32];
+st.param.u64 [ecl_a],%args;st.param.u64 [ecl_r],%record;st.param.u64 [ecl_s],%scratch;st.param.u32 [ecl_logical],%axis;
+st.param.u64 [ecl_wa],%arena;st.param.u64 [ecl_wv],%vector;st.param.u64 [ecl_wc],%childctx;st.param.u64 [ecl_aux],%ecl_aux;
+call.uni (ecl_returned),md2asm_gpu_radintg_worker_block_eight_columns,(ecl_a,ecl_r,ecl_s,ecl_logical,ecl_wa,ecl_wv,ecl_wc,ecl_aux);
+ld.param.u64 %word,[ecl_returned];ld.param.u64 %ecl_event,[ecl_returned+8];ld.param.u64 %ecl_ratio,[ecl_returned+16];
+}
+setp.ne.u32 %p,%ecl_lane,0;@%p bra ECL_GROUP_PUBLISHED;
+mul.lo.u64 %offset,%i,32;add.u64 %pointer,%scratch,449830336;add.u64 %pointer,%pointer,%offset;st.global.u64 [%pointer],%word;
+st.global.u64 [%pointer+8],%ecl_event;st.global.u64 [%pointer+16],%ecl_ratio;
 membar.gl;st.global.u64 [%pointer+24],0x72616434646f6e65;
+ECL_GROUP_PUBLISHED:bar.sync 0;
 add.u64 %i,%i,128;setp.lt.u64 %p,%i,256;@%p bra BLOCK_LOOP;ret;
-REFUSE:setp.ne.u32 %p,%worker,0;@%p ret;st.global.u32 [%ctx],%error;ret;
+REFUSE:or.b32 %origin,%worker,%ecl_lane;setp.ne.u32 %p,%origin,0;@%p ret;st.global.u32 [%ctx],%error;ret;
 }
 .visible .func md2asm_gpu_radintg_join_phase4_fp64(.param .u64 original_vector,.param .u64 common_context)
 {

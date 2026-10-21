@@ -1,0 +1,65 @@
+// Contract skills/md2asm-gpu/references/openifs/radiation/radiation_grid_parent.md.
+// Eight lanes share one original eight-column radiation group.
+// All owner addresses are eight-byte aligned. The auxiliary owner has 6,332,416 bytes.
+// Counter cells occupy offsets 256..1279. Offset 8 stores their count, with at most 64 cells.
+// The complete group before-image starts at 8192 and has 59,712 bytes.
+// The complete original arena before-image starts at 73728 and has 3,340,832 bytes.
+// Report slots at 4096 and 4224 each have 128 bytes. Their lane markers start at +32.
+// The caller admits the whole owner before these integer and copy operations.
+.version 8.5
+.target sm_90
+.address_size 64
+.visible .func (.param .u64 result) md2asm_gpu_radiation_eight_private_counter(.param .u64 auxiliary,.param .u64 actual_owner)
+{
+.reg .u64 %aux,%actual,%count,%i,%row,%old,%address;
+.reg .u32 %lane,%error;.reg .pred %p;
+ld.param.u64 %aux,[auxiliary];ld.param.u64 %actual,[actual_owner];
+mov.u32 %lane,%tid.x;setp.ne.u32 %p,%lane,0;@%p bra BAD;
+setp.eq.u64 %p,%actual,0;@%p bra BAD;
+ld.global.u64 %count,[%aux+8];mov.u64 %i,0;
+SCAN:setp.ge.u64 %p,%i,%count;@%p bra APPEND;
+shl.b64 %row,%i,4;add.u64 %row,%row,256;add.u64 %row,%row,%aux;
+ld.global.u64 %old,[%row];setp.eq.u64 %p,%old,%actual;@%p bra FOUND;
+add.u64 %i,%i,1;bra SCAN;
+APPEND:setp.ge.u64 %p,%count,64;@%p bra BAD;
+shl.b64 %row,%count,4;add.u64 %row,%row,256;add.u64 %row,%row,%aux;
+st.global.u64 [%row],%actual;st.global.u64 [%row+8],0;add.u64 %count,%count,1;st.global.u64 [%aux+8],%count;
+FOUND:add.u64 %address,%row,8;st.param.u64 [result],%address;ret;
+BAD:mov.u32 %error,8297;st.global.u32 [%aux],%error;add.u64 %address,%aux,2048;st.param.u64 [result],%address;ret;
+}
+.visible .func md2asm_gpu_radiation_eight_begin(.param .u64 auxiliary,.param .u64 packed_group,.param .u64 original_arena,.param .u32 logical_group)
+{
+.reg .u64 %aux,%group,%arena,%i,%p,%q,%word,%lane64,%report;
+.reg .u32 %lane,%logical;.reg .pred %pred;
+ld.param.u64 %aux,[auxiliary];ld.param.u64 %group,[packed_group];ld.param.u64 %arena,[original_arena];ld.param.u32 %logical,[logical_group];
+mov.u32 %lane,%tid.x;cvt.u64.u32 %lane64,%lane;shl.b64 %i,%lane64,3;
+ZERO:setp.ge.u64 %pred,%i,4096;@%pred bra ZERO_DONE;add.u64 %p,%aux,%i;st.global.u64 [%p],0;add.u64 %i,%i,64;bra ZERO;
+ZERO_DONE:shr.u32 %lane,%logical,7;cvt.u64.u32 %report,%lane;shl.b64 %report,%report,7;add.u64 %report,%report,4096;add.u64 %report,%report,%aux;shl.b64 %i,%lane64,3;
+ZERO_REPORT:setp.ge.u64 %pred,%i,128;@%pred bra COPY_GROUP_START;add.u64 %p,%report,%i;st.global.u64 [%p],0;add.u64 %i,%i,64;bra ZERO_REPORT;
+COPY_GROUP_START:shl.b64 %i,%lane64,3;
+COPY_GROUP:setp.ge.u64 %pred,%i,59712;@%pred bra COPY_ARENA_START;add.u64 %p,%group,%i;ld.global.u64 %word,[%p];add.u64 %q,%aux,8192;add.u64 %q,%q,%i;st.global.u64 [%q],%word;add.u64 %i,%i,64;bra COPY_GROUP;
+COPY_ARENA_START:shl.b64 %i,%lane64,3;
+COPY_ARENA:setp.ge.u64 %pred,%i,3340832;@%pred bra COMPLETE;add.u64 %p,%arena,%i;ld.global.u64 %word,[%p];add.u64 %q,%aux,73728;add.u64 %q,%q,%i;st.global.u64 [%q],%word;add.u64 %i,%i,64;bra COPY_ARENA;
+COMPLETE:bar.sync 0;mov.u32 %lane,%tid.x;setp.ne.u32 %pred,%lane,0;@%pred bra END;cvt.u64.u32 %word,%logical;st.global.u64 [%report+8],%word;
+END:bar.sync 0;ret;
+}
+.visible .func md2asm_gpu_radiation_eight_restore(.param .u64 auxiliary,.param .u64 packed_group,.param .u64 original_arena)
+{
+.reg .u64 %aux,%group,%arena,%i,%p,%q,%word,%lane64;
+.reg .u32 %lane;.reg .pred %pred;
+ld.param.u64 %aux,[auxiliary];ld.param.u64 %group,[packed_group];ld.param.u64 %arena,[original_arena];
+mov.u32 %lane,%tid.x;cvt.u64.u32 %lane64,%lane;shl.b64 %i,%lane64,3;
+COPY_GROUP:setp.ge.u64 %pred,%i,59712;@%pred bra COPY_ARENA_START;add.u64 %p,%aux,8192;add.u64 %p,%p,%i;ld.global.u64 %word,[%p];add.u64 %q,%group,%i;st.global.u64 [%q],%word;add.u64 %i,%i,64;bra COPY_GROUP;
+COPY_ARENA_START:shl.b64 %i,%lane64,3;
+COPY_ARENA:setp.ge.u64 %pred,%i,3340832;@%pred bra COMPLETE;add.u64 %p,%aux,73728;add.u64 %p,%p,%i;ld.global.u64 %word,[%p];add.u64 %q,%arena,%i;st.global.u64 [%q],%word;add.u64 %i,%i,64;bra COPY_ARENA;
+COMPLETE:bar.sync 0;ret;
+}
+.visible .func md2asm_gpu_radiation_eight_publish(.param .u64 auxiliary)
+{
+.reg .u64 %aux,%count,%i,%row,%actual,%value,%old;
+.reg .u32 %lane,%error;.reg .pred %p;
+mov.u32 %lane,%tid.x;setp.ne.u32 %p,%lane,0;@%p ret;
+ld.param.u64 %aux,[auxiliary];ld.global.u32 %error,[%aux];setp.ne.u32 %p,%error,0;@%p ret;
+ld.global.u64 %count,[%aux+8];mov.u64 %i,0;
+LOOP:setp.ge.u64 %p,%i,%count;@%p ret;shl.b64 %row,%i,4;add.u64 %row,%row,256;add.u64 %row,%row,%aux;ld.global.u64 %actual,[%row];ld.global.u64 %value,[%row+8];atom.global.add.u64 %old,[%actual],%value;add.u64 %i,%i,1;bra LOOP;
+}

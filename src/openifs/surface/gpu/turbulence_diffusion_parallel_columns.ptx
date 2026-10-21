@@ -204,6 +204,9 @@ REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
 
 .visible .entry md2asm_gpu_turbulence_columns_workers(.param .u64 original_vector,.param .u64 context)
 {
+.reg .u32 %copy_team_lane;.reg .pred %copy_team_leader;
+mov.u32 %copy_team_lane,%tid.x;setp.eq.u32 %copy_team_leader,%copy_team_lane,0;
+
 
 
  .reg .u64 %esm_parent,%esm_state,%esm_env,%esm_vector,%esm_caps,%esm_local_ctx,%esm_word,%esm_other,%esm_offset,%esm_pointer,%esm_end,%esm_record,%esm_size;
@@ -224,17 +227,20 @@ REFUSE:setp.eq.u32 %p,%unique,0;@%p st.global.u32 [%ctx],%error;ret;
 .param .align 8 .b8 tc_returned[72];
 
 ld.param.u64 %tc_vector,[original_vector];ld.param.u64 %ctx,[context];setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %tc_temp,%ctx,7;setp.ne.u64 %p,%tc_temp,0;@%p ret;ld.global.u32 %tc_error,[%ctx];setp.ne.u32 %p,%tc_error,0;@%p ret;
-mov.u32 %tc_id,%ctaid.x;mov.u32 %tc_i,%tid.x;setp.ne.u32 %p,%tc_i,0;@%p ret;mov.u32 %tc_i,%tid.y;setp.ne.u32 %p,%tc_i,0;@%p ret;mov.u32 %tc_i,%tid.z;setp.ne.u32 %p,%tc_i,0;@%p ret;
+mov.u32 %tc_id,%ctaid.x;mov.u32 %tc_i,%tid.x;mov.u32 %tc_i,%tid.y;setp.ne.u32 %p,%tc_i,0;@%p ret;mov.u32 %tc_i,%tid.z;setp.ne.u32 %p,%tc_i,0;@%p ret;
 mov.u32 %tc_i,%ctaid.y;setp.ne.u32 %p,%tc_i,0;@%p ret;mov.u32 %tc_i,%ctaid.z;setp.ne.u32 %p,%tc_i,0;@%p ret;
-mov.u32 %tc_i,%ntid.x;setp.ne.u32 %p,%tc_i,1;@%p ret;mov.u32 %tc_i,%ntid.y;setp.ne.u32 %p,%tc_i,1;@%p ret;mov.u32 %tc_i,%ntid.z;setp.ne.u32 %p,%tc_i,1;@%p ret;mov.u32 %tc_i,%nctaid.x;setp.ne.u32 %p,%tc_i,32;@%p ret;mov.u32 %tc_i,%nctaid.y;setp.ne.u32 %p,%tc_i,1;@%p ret;mov.u32 %tc_i,%nctaid.z;setp.ne.u32 %p,%tc_i,1;@%p ret;mov.u32 %tc_i,%dynamic_smem_size;setp.ne.u32 %p,%tc_i,0;@%p ret;
+mov.u32 %tc_i,%ntid.x;setp.ne.u32 %p,%tc_i,32;@%p ret;mov.u32 %tc_i,%ntid.y;setp.ne.u32 %p,%tc_i,1;@%p ret;mov.u32 %tc_i,%ntid.z;setp.ne.u32 %p,%tc_i,1;@%p ret;mov.u32 %tc_i,%nctaid.x;setp.ne.u32 %p,%tc_i,32;@%p ret;mov.u32 %tc_i,%nctaid.y;setp.ne.u32 %p,%tc_i,1;@%p ret;mov.u32 %tc_i,%nctaid.z;setp.ne.u32 %p,%tc_i,1;@%p ret;mov.u32 %tc_i,%dynamic_smem_size;setp.ne.u32 %p,%tc_i,0;@%p ret;
 ld.global.u64 %tc_arena,[%tc_vector+16];ld.global.u64 %tc_word,[%tc_arena];setp.ne.u64 %p,%tc_word,0x74757262636f6c31;@%p ret;ld.global.u32 %tc_i,[%tc_arena+8];setp.ne.u32 %p,%tc_i,1;@%p ret;
 ld.global.u32 %tc_active,[%tc_arena+12];setp.ge.u32 %p,%tc_id,%tc_active;@%p ret;ld.global.u64 %args,[%tc_arena+32];ld.global.u64 %record,[%tc_arena+48];ld.global.u64 %tc_stride,[%tc_arena+72];
-mul.wide.u32 %tc_offset,%tc_id,1;mul.lo.u64 %tc_offset,%tc_offset,%tc_stride;add.u64 %tc_row,%tc_arena,65536;add.u64 %tc_row,%tc_row,%tc_offset;mov.u32 %tc_i,0;
-COPY_PRIVATE_VECTOR:cvt.u64.u32 %tc_offset,%tc_i;add.u64 %tc_source,%args,%tc_offset;add.u64 %tc_dest,%tc_row,%tc_offset;ld.global.u64 %tc_word,[%tc_source];st.global.u64 [%tc_dest],%tc_word;add.u32 %tc_i,%tc_i,8;setp.lt.u32 %p,%tc_i,1360;@%p bra COPY_PRIVATE_VECTOR;
-ld.global.u32 %tc_first,[%tc_arena+16];add.u32 %tc_i,%tc_first,%tc_id;st.global.u32 [%tc_row+1360],%tc_i;st.global.u32 [%tc_row+1364],%tc_i;ld.global.u32 %tc_last,[%tc_arena+28];st.global.u32 [%tc_row+1368],%tc_last;
-add.u64 %tc_temp,%tc_row,1360;st.global.u64 [%tc_row+16],%tc_temp;add.u64 %tc_temp,%tc_row,1364;st.global.u64 [%tc_row+24],%tc_temp;add.u64 %scratch,%tc_row,4096;
+mul.wide.u32 %tc_offset,%tc_id,1;mul.lo.u64 %tc_offset,%tc_offset,%tc_stride;add.u64 %tc_row,%tc_arena,65536;add.u64 %tc_row,%tc_row,%tc_offset;shl.b32 %tc_i,%copy_team_lane,3;
+COPY_PRIVATE_VECTOR:setp.ge.u32 %p,%tc_i,1360;@%p bra COPY_TEAM_VECTOR_DONE;cvt.u64.u32 %tc_offset,%tc_i;add.u64 %tc_source,%args,%tc_offset;add.u64 %tc_dest,%tc_row,%tc_offset;ld.global.u64 %tc_word,[%tc_source];st.global.u64 [%tc_dest],%tc_word;add.u32 %tc_i,%tc_i,256;setp.lt.u32 %p,%tc_i,1360;@%p bra COPY_PRIVATE_VECTOR;
+COPY_TEAM_VECTOR_DONE:bar.sync 0;
+ld.global.u32 %tc_first,[%tc_arena+16];add.u32 %tc_i,%tc_first,%tc_id;@%copy_team_leader st.global.u32 [%tc_row+1360],%tc_i;@%copy_team_leader st.global.u32 [%tc_row+1364],%tc_i;ld.global.u32 %tc_last,[%tc_arena+28];@%copy_team_leader st.global.u32 [%tc_row+1368],%tc_last;
+add.u64 %tc_temp,%tc_row,1360;@%copy_team_leader st.global.u64 [%tc_row+16],%tc_temp;add.u64 %tc_temp,%tc_row,1364;@%copy_team_leader st.global.u64 [%tc_row+24],%tc_temp;add.u64 %scratch,%tc_row,4096;
+bar.sync 0;
 st.param.u64 [tc_av],%tc_row;st.param.u64 [tc_rv],%record;st.param.u64 [tc_sv],%scratch;st.param.u32 [tc_bound],%tc_last;
 call.uni (tc_returned),md2asm_gpu_vertical_diffusion_outer_values_turbulence_columns,(tc_av,tc_rv,tc_sv,tc_bound);
+@!%copy_team_leader ret;
 ld.param.u64 %tc_word,[tc_returned+0];st.global.u64 [%tc_row+1408],%tc_word;
 ld.param.u64 %tc_word,[tc_returned+8];st.global.u64 [%tc_row+1416],%tc_word;
 ld.param.u64 %tc_word,[tc_returned+16];st.global.u64 [%tc_row+1424],%tc_word;

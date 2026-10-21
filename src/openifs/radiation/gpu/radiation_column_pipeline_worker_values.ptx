@@ -400,3 +400,413 @@ COMMIT_RETURN_25:setp.ge.u64 %p,%index,1280;@%p bra COMMIT_RETURN_25_DONE;add.u6
 COMMIT_RETURN_25_DONE:
 FINISH:st.param.u32 [result],%flags;st.param.u32 [result+4],%error;st.param.u64 [result+8],%event;st.param.u64 [result+16],0;st.param.u64 [result+24],0;ret;
 }
+
+// Eight-column composition retains the original equations and serial entry.
+.extern .func md2asm_gpu_radintg_worker_gas_optics_fp64_eight_columns(.param .u64 vector,.param .u64 context,.param .u64 auxiliary);
+.extern .func md2asm_gpu_radintg_worker_longwave_cloud_parent_fp64_eight_columns(.param .u64 vector,.param .u64 context,.param .u64 lane_rows,.param .u64 lane_stride);
+.extern .func md2asm_gpu_radintg_worker_shortwave_cloud_parent_fp64_eight_columns(.param .u64 vector,.param .u64 context,.param .u64 lane_rows,.param .u64 lane_stride);
+.extern .func (.param .u64 result) md2asm_gpu_radiation_eight_private_counter(.param .u64 auxiliary,.param .u64 owner);
+.visible .func (.param .align 8 .b8 result[32]) md2asm_gpu_radintg_worker_radiation_column_values_eight_columns(.param .u64 original_vector,.param .u64 table_record,.param .u64 private_scratch,.param .u64 eight_auxiliary)
+{
+.reg .u64 %eight_aux,%eight_counter,%eight_tmp,%eight_rows;.reg .u32 %eight_lane,%eight_gate_error;.reg .pred %eight_leader;
+.shared .align 8 .u64 eight_pipeline_result[4];.shared .align 4 .u32 eight_pipeline_error;
+.reg .u64 %args,%record,%scratch,%v<11>,%s<18>,%cloud,%flux,%singleclass,%cloudclass,%fluxclass,%vector,%childctx,%arena,%originals,%stageowners,%gasrecord,%lwrecord,%swrecord,%lwbytes,%swbytes;
+.reg .u64 %src,%dst,%index,%address,%word,%tmp,%owner,%event,%child_event,%fraction_threshold,%water_threshold;
+.reg .u32 %flags,%raised,%error;
+.reg .pred %p;
+.param .u64 pvec,pctx,pscratch;
+.param .u32 childflags;
+ld.param.u64 %args,[original_vector];ld.param.u64 %record,[table_record];ld.param.u64 %scratch,[private_scratch];ld.param.u64 %eight_aux,[eight_auxiliary];mov.u32 %eight_lane,%tid.x;setp.eq.u32 %eight_leader,%eight_lane,0;add.u64 %eight_rows,%eight_aux,3416064;mov.u32 %flags,0;mov.u32 %error,0;mov.u64 %event,0;
+
+ld.global.u64 %v0,[%args+0];
+ld.global.u64 %v1,[%args+8];
+ld.global.u64 %v2,[%args+16];
+ld.global.u64 %v3,[%args+24];
+ld.global.u64 %v4,[%args+32];
+ld.global.u64 %v5,[%args+40];
+ld.global.u64 %v6,[%args+48];
+ld.global.u64 %v7,[%args+56];
+ld.global.u64 %v8,[%args+64];
+ld.global.u64 %v9,[%args+72];
+ld.global.u64 %v10,[%args+80];
+add.u64 %cloud,%scratch,0;
+add.u64 %flux,%scratch,800;
+add.u64 %singleclass,%scratch,4160;
+add.u64 %cloudclass,%scratch,4176;
+add.u64 %fluxclass,%scratch,4192;
+add.u64 %vector,%scratch,4208;
+add.u64 %childctx,%scratch,4352;
+add.u64 %originals,%scratch,4416;
+add.u64 %arena,%scratch,1321920;ld.global.u64 %gasrecord,[%record];ld.global.u64 %lwrecord,[%record+16];ld.global.u64 %lwbytes,[%record+24];ld.global.u64 %swrecord,[%record+32];ld.global.u64 %swbytes,[%record+40];ld.global.u64 %stageowners,[%record+48];
+add.u64 %s0,%scratch,8192;
+add.u64 %s1,%scratch,178432;
+add.u64 %s2,%scratch,348672;
+add.u64 %s3,%scratch,518912;
+add.u64 %s4,%scratch,538368;
+add.u64 %s5,%scratch,557824;
+add.u64 %s6,%scratch,577280;
+add.u64 %s7,%scratch,713472;
+add.u64 %s8,%scratch,849664;
+add.u64 %s9,%scratch,985856;
+add.u64 %s10,%scratch,1002880;
+add.u64 %s11,%scratch,1019904;
+add.u64 %s12,%scratch,1036928;
+add.u64 %s13,%scratch,1216128;
+add.u64 %s14,%scratch,1225088;
+add.u64 %s15,%scratch,1234048;
+add.u64 %s16,%scratch,1241216;
+add.u64 %s17,%scratch,1248384;
+@!%eight_leader bra EIGHT_GAS_GATE;
+mov.u64 %index,8192;
+ZERO_TEMPORARIES:setp.ge.u64 %p,%index,1255552;@%p bra ZERO_DONE;add.u64 %address,%scratch,%index;st.global.u64 [%address],0;add.u64 %index,%index,8;bra ZERO_TEMPORARIES;
+ZERO_DONE:
+mov.u64 %dst,%cloud;mov.u64 %src,%v8;mov.u64 %index,0;
+COPY_CLOUD_HEADER:setp.ge.u64 %p,%index,792;@%p bra COPY_CLOUD_HEADER_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_CLOUD_HEADER;
+COPY_CLOUD_HEADER_DONE:
+mov.u64 %dst,%flux;mov.u64 %src,%v10;mov.u64 %index,0;
+COPY_FLUX_HEADER:setp.ge.u64 %p,%index,3360;@%p bra COPY_FLUX_HEADER_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_FLUX_HEADER;
+COPY_FLUX_HEADER_DONE:
+ld.global.u64 %src,[%v8+352];st.global.u64 [%originals+0],%src;add.u64 %dst,%scratch,1255552;st.global.u64 [%cloud+352],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_0:setp.ge.u64 %p,%index,1216;@%p bra COPY_RETURN_0_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_0;
+COPY_RETURN_0_DONE:
+ld.global.u64 %src,[%v10+0];st.global.u64 [%originals+8],%src;add.u64 %dst,%scratch,1256768;st.global.u64 [%flux+0],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_1:setp.ge.u64 %p,%index,1280;@%p bra COPY_RETURN_1_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_1;
+COPY_RETURN_1_DONE:
+ld.global.u64 %src,[%v10+88];st.global.u64 [%originals+16],%src;add.u64 %dst,%scratch,1258048;st.global.u64 [%flux+88],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_2:setp.ge.u64 %p,%index,1280;@%p bra COPY_RETURN_2_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_2;
+COPY_RETURN_2_DONE:
+ld.global.u64 %src,[%v10+176];st.global.u64 [%originals+24],%src;add.u64 %dst,%scratch,1259328;st.global.u64 [%flux+176],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_3:setp.ge.u64 %p,%index,1280;@%p bra COPY_RETURN_3_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_3;
+COPY_RETURN_3_DONE:
+ld.global.u64 %src,[%v10+264];st.global.u64 [%originals+32],%src;add.u64 %dst,%scratch,1260608;st.global.u64 [%flux+264],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_4:setp.ge.u64 %p,%index,1280;@%p bra COPY_RETURN_4_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_4;
+COPY_RETURN_4_DONE:
+ld.global.u64 %src,[%v10+352];st.global.u64 [%originals+40],%src;add.u64 %dst,%scratch,1261888;st.global.u64 [%flux+352],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_5:setp.ge.u64 %p,%index,1280;@%p bra COPY_RETURN_5_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_5;
+COPY_RETURN_5_DONE:
+ld.global.u64 %src,[%v10+440];st.global.u64 [%originals+48],%src;add.u64 %dst,%scratch,1263168;st.global.u64 [%flux+440],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_6:setp.ge.u64 %p,%index,1280;@%p bra COPY_RETURN_6_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_6;
+COPY_RETURN_6_DONE:
+ld.global.u64 %src,[%v10+528];st.global.u64 [%originals+56],%src;add.u64 %dst,%scratch,1264448;st.global.u64 [%flux+528],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_7:setp.ge.u64 %p,%index,1280;@%p bra COPY_RETURN_7_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_7;
+COPY_RETURN_7_DONE:
+ld.global.u64 %src,[%v10+616];st.global.u64 [%originals+64],%src;add.u64 %dst,%scratch,1265728;st.global.u64 [%flux+616],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_8:setp.ge.u64 %p,%index,1280;@%p bra COPY_RETURN_8_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_8;
+COPY_RETURN_8_DONE:
+ld.global.u64 %src,[%v10+704];st.global.u64 [%originals+72],%src;add.u64 %dst,%scratch,1267008;st.global.u64 [%flux+704],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_9:setp.ge.u64 %p,%index,1280;@%p bra COPY_RETURN_9_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_9;
+COPY_RETURN_9_DONE:
+ld.global.u64 %src,[%v10+792];st.global.u64 [%originals+80],%src;add.u64 %dst,%scratch,1268288;st.global.u64 [%flux+792],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_10:setp.ge.u64 %p,%index,1280;@%p bra COPY_RETURN_10_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_10;
+COPY_RETURN_10_DONE:
+ld.global.u64 %src,[%v10+2000];st.global.u64 [%originals+88],%src;add.u64 %dst,%scratch,1269568;st.global.u64 [%flux+2000],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_11:setp.ge.u64 %p,%index,8960;@%p bra COPY_RETURN_11_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_11;
+COPY_RETURN_11_DONE:
+ld.global.u64 %src,[%v10+2088];st.global.u64 [%originals+96],%src;add.u64 %dst,%scratch,1278528;st.global.u64 [%flux+2088],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_12:setp.ge.u64 %p,%index,8960;@%p bra COPY_RETURN_12_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_12;
+COPY_RETURN_12_DONE:
+ld.global.u64 %src,[%v10+2176];st.global.u64 [%originals+104],%src;add.u64 %dst,%scratch,1287488;st.global.u64 [%flux+2176],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_13:setp.ge.u64 %p,%index,7168;@%p bra COPY_RETURN_13_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_13;
+COPY_RETURN_13_DONE:
+ld.global.u64 %src,[%v10+2264];st.global.u64 [%originals+112],%src;add.u64 %dst,%scratch,1294656;st.global.u64 [%flux+2264],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_14:setp.ge.u64 %p,%index,7168;@%p bra COPY_RETURN_14_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_14;
+COPY_RETURN_14_DONE:
+ld.global.u64 %src,[%v10+2352];st.global.u64 [%originals+120],%src;add.u64 %dst,%scratch,1301824;st.global.u64 [%flux+2352],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_15:setp.ge.u64 %p,%index,7168;@%p bra COPY_RETURN_15_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_15;
+COPY_RETURN_15_DONE:
+ld.global.u64 %src,[%v10+2440];st.global.u64 [%originals+128],%src;add.u64 %dst,%scratch,1308992;st.global.u64 [%flux+2440],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_16:setp.ge.u64 %p,%index,7168;@%p bra COPY_RETURN_16_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_16;
+COPY_RETURN_16_DONE:
+ld.global.u64 %src,[%v10+2528];st.global.u64 [%originals+136],%src;add.u64 %dst,%scratch,1316160;st.global.u64 [%flux+2528],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_17:setp.ge.u64 %p,%index,896;@%p bra COPY_RETURN_17_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_17;
+COPY_RETURN_17_DONE:
+ld.global.u64 %src,[%v10+2616];st.global.u64 [%originals+144],%src;add.u64 %dst,%scratch,1317056;st.global.u64 [%flux+2616],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_18:setp.ge.u64 %p,%index,896;@%p bra COPY_RETURN_18_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_18;
+COPY_RETURN_18_DONE:
+ld.global.u64 %src,[%v10+2704];st.global.u64 [%originals+152],%src;add.u64 %dst,%scratch,1317952;st.global.u64 [%flux+2704],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_19:setp.ge.u64 %p,%index,896;@%p bra COPY_RETURN_19_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_19;
+COPY_RETURN_19_DONE:
+ld.global.u64 %src,[%v10+2792];st.global.u64 [%originals+160],%src;add.u64 %dst,%scratch,1318848;st.global.u64 [%flux+2792],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_20:setp.ge.u64 %p,%index,896;@%p bra COPY_RETURN_20_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_20;
+COPY_RETURN_20_DONE:
+ld.global.u64 %src,[%v10+2968];st.global.u64 [%originals+168],%src;add.u64 %dst,%scratch,1319744;st.global.u64 [%flux+2968],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_21:setp.ge.u64 %p,%index,384;@%p bra COPY_RETURN_21_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_21;
+COPY_RETURN_21_DONE:
+ld.global.u64 %src,[%v10+3056];st.global.u64 [%originals+176],%src;add.u64 %dst,%scratch,1320128;st.global.u64 [%flux+3056],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_22:setp.ge.u64 %p,%index,384;@%p bra COPY_RETURN_22_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_22;
+COPY_RETURN_22_DONE:
+ld.global.u64 %src,[%v10+3144];st.global.u64 [%originals+184],%src;add.u64 %dst,%scratch,1320512;st.global.u64 [%flux+3144],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_23:setp.ge.u64 %p,%index,64;@%p bra COPY_RETURN_23_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_23;
+COPY_RETURN_23_DONE:
+ld.global.u64 %src,[%v10+3208];st.global.u64 [%originals+192],%src;add.u64 %dst,%scratch,1320576;st.global.u64 [%flux+3208],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_24:setp.ge.u64 %p,%index,64;@%p bra COPY_RETURN_24_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_24;
+COPY_RETURN_24_DONE:
+ld.global.u64 %src,[%v10+3272];st.global.u64 [%originals+200],%src;add.u64 %dst,%scratch,1320640;st.global.u64 [%flux+3272],%dst;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COPY_RETURN_25:setp.ge.u64 %p,%index,1280;@%p bra COPY_RETURN_25_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COPY_RETURN_25;
+COPY_RETURN_25_DONE:
+st.global.u64 [%singleclass],%v5;st.global.u64 [%singleclass+8],0;st.global.u64 [%cloudclass],%cloud;st.global.u64 [%cloudclass+8],0;st.global.u64 [%fluxclass],%flux;st.global.u64 [%fluxclass+8],0;add.u64 %fraction_threshold,%v4,520;add.u64 %water_threshold,%v4,528;
+st.global.u64 [%vector+0],%singleclass;
+st.global.u64 [%vector+8],%v2;
+st.global.u64 [%vector+16],%v3;
+st.global.u64 [%vector+24],%v4;
+st.global.u64 [%vector+32],%s15;
+st.global.u64 [%vector+40],%s16;
+st.global.u64 [%vector+48],%s14;
+st.param.u64 [pvec],%vector;st.param.u64 [pscratch],%arena;call.uni (childflags),md2asm_gpu_get_albedos_values,(pvec,pscratch);ld.param.u32 %raised,[childflags];or.b32 %flags,%flags,%raised;
+setp.eq.u64 %p,%stageowners,0;@%p bra STAGE1_DONE;ld.global.u64 %owner,[%stageowners+0];{.param .u64 eight_counter_call_8_a,eight_counter_call_8_p,eight_counter_call_8_r;st.param.u64 [eight_counter_call_8_a],%eight_aux;st.param.u64 [eight_counter_call_8_p],%owner;call.uni (eight_counter_call_8_r),md2asm_gpu_radiation_eight_private_counter,(eight_counter_call_8_a,eight_counter_call_8_p);ld.param.u64 %eight_counter,[eight_counter_call_8_r];}atom.global.add.u64 %tmp,[%eight_counter],1;
+STAGE1_DONE:
+st.global.u64 [%vector+0],%v0;
+st.global.u64 [%vector+8],%v1;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.global.u64 [%vector+32],%v4;
+st.global.u64 [%vector+40],%v5;
+st.global.u64 [%vector+48],%v6;
+st.global.u64 [%vector+56],%v7;
+st.global.u64 [%vector+64],%s0;
+st.global.u64 [%vector+72],%s6;
+st.global.u64 [%vector+80],%s7;
+st.global.u64 [%vector+88],%s14;
+st.global.u64 [%vector+96],%s12;
+st.global.u64 [%vector+104],%s13;
+st.global.u64 [%vector+112],%s17;
+st.global.u32 [%childctx],0;st.global.u32 [%childctx+4],1;st.global.u32 [%childctx+8],0;st.global.u32 [%childctx+12],0;st.global.u64 [%childctx+16],0;st.global.u64 [%childctx+24],0;st.global.u64 [%childctx+32],%arena;st.global.u64 [%childctx+40],1722624;st.global.u64 [%childctx+48],%gasrecord;st.global.u64 [%childctx+56],128;
+EIGHT_GAS_GATE:bar.sync 0;@%eight_leader st.shared.u32 [eight_pipeline_error],%error;bar.sync 0;ld.shared.u32 %eight_gate_error,[eight_pipeline_error];setp.ne.u32 %p,%eight_gate_error,0;@%p bra EIGHT_RESULT_JOIN;
+{.param .u64 eight_gas_0,eight_gas_1,eight_gas_2;
+st.param.u64 [eight_gas_0],%vector;st.param.u64 [eight_gas_1],%childctx;st.param.u64 [eight_gas_2],%eight_aux;call.uni md2asm_gpu_radintg_worker_gas_optics_fp64_eight_columns,(eight_gas_0,eight_gas_1,eight_gas_2);}
+@!%eight_leader bra EIGHT_LONGWAVE_GATE;ld.global.u32 %error,[%childctx];ld.global.u32 %raised,[%childctx+8];ld.global.u64 %child_event,[%childctx+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra EIGHT_LONGWAVE_GATE;setp.eq.u64 %p,%child_event,0;@%p bra STAGE2_NO_EVENT;add.u64 %event,%child_event,144115188075855872;
+STAGE2_NO_EVENT:
+setp.eq.u64 %p,%stageowners,0;@%p bra STAGE2_DONE;ld.global.u64 %owner,[%stageowners+8];{.param .u64 eight_counter_call_7_a,eight_counter_call_7_p,eight_counter_call_7_r;st.param.u64 [eight_counter_call_7_a],%eight_aux;st.param.u64 [eight_counter_call_7_p],%owner;call.uni (eight_counter_call_7_r),md2asm_gpu_radiation_eight_private_counter,(eight_counter_call_7_a,eight_counter_call_7_p);ld.param.u64 %eight_counter,[eight_counter_call_7_r];}atom.global.add.u64 %tmp,[%eight_counter],1;
+STAGE2_DONE:
+st.global.u64 [%vector+0],%cloudclass;
+st.global.u64 [%vector+8],%v2;
+st.global.u64 [%vector+16],%v3;
+st.global.u64 [%vector+24],%fraction_threshold;
+st.global.u64 [%vector+32],%water_threshold;
+st.param.u64 [pvec],%vector;st.param.u64 [pscratch],%arena;call.uni (childflags),md2asm_gpu_crop_cloud_fraction_values,(pvec,pscratch);ld.param.u32 %raised,[childflags];or.b32 %flags,%flags,%raised;
+setp.eq.u64 %p,%stageowners,0;@%p bra STAGE3_DONE;ld.global.u64 %owner,[%stageowners+16];{.param .u64 eight_counter_call_6_a,eight_counter_call_6_p,eight_counter_call_6_r;st.param.u64 [eight_counter_call_6_a],%eight_aux;st.param.u64 [eight_counter_call_6_p],%owner;call.uni (eight_counter_call_6_r),md2asm_gpu_radiation_eight_private_counter,(eight_counter_call_6_a,eight_counter_call_6_p);ld.param.u64 %eight_counter,[eight_counter_call_6_r];}atom.global.add.u64 %tmp,[%eight_counter],1;
+STAGE3_DONE:
+st.global.u64 [%vector+0],%v1;
+st.global.u64 [%vector+8],%v2;
+st.global.u64 [%vector+16],%v3;
+st.global.u64 [%vector+24],%v4;
+st.global.u64 [%vector+32],%v6;
+st.global.u64 [%vector+40],%cloud;
+st.global.u64 [%vector+48],%s3;
+st.global.u64 [%vector+56],%s4;
+st.global.u64 [%vector+64],%s5;
+st.global.u64 [%vector+72],%s9;
+st.global.u64 [%vector+80],%s10;
+st.global.u64 [%vector+88],%s11;
+st.global.u32 [%childctx],0;st.global.u32 [%childctx+4],1;st.global.u32 [%childctx+8],0;st.global.u32 [%childctx+12],0;st.global.u64 [%childctx+16],0;st.global.u64 [%childctx+24],0;st.global.u64 [%childctx+32],%arena;st.global.u64 [%childctx+40],1722624;st.global.u64 [%childctx+48],0;st.global.u64 [%childctx+56],0;
+st.param.u64 [pvec],%vector;st.param.u64 [pctx],%childctx;call.uni md2asm_gpu_radintg_worker_cloud_optics_fp64,(pvec,pctx);ld.global.u32 %error,[%childctx];ld.global.u32 %raised,[%childctx+8];ld.global.u64 %child_event,[%childctx+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra EIGHT_LONGWAVE_GATE;setp.eq.u64 %p,%child_event,0;@%p bra STAGE4_NO_EVENT;add.u64 %event,%child_event,288230376151711744;
+STAGE4_NO_EVENT:
+setp.eq.u64 %p,%stageowners,0;@%p bra STAGE4_DONE;ld.global.u64 %owner,[%stageowners+24];{.param .u64 eight_counter_call_5_a,eight_counter_call_5_p,eight_counter_call_5_r;st.param.u64 [eight_counter_call_5_a],%eight_aux;st.param.u64 [eight_counter_call_5_p],%owner;call.uni (eight_counter_call_5_r),md2asm_gpu_radiation_eight_private_counter,(eight_counter_call_5_a,eight_counter_call_5_p);ld.param.u64 %eight_counter,[eight_counter_call_5_r];}atom.global.add.u64 %tmp,[%eight_counter],1;
+STAGE4_DONE:
+st.global.u64 [%vector+0],%v1;
+st.global.u64 [%vector+8],%v2;
+st.global.u64 [%vector+16],%v3;
+st.global.u64 [%vector+24],%v4;
+st.global.u64 [%vector+32],%v6;
+st.global.u64 [%vector+40],%v7;
+st.global.u64 [%vector+48],%v9;
+st.global.u64 [%vector+56],%s0;
+st.global.u64 [%vector+64],%s1;
+st.global.u64 [%vector+72],%s2;
+st.global.u64 [%vector+80],%s6;
+st.global.u64 [%vector+88],%s7;
+st.global.u64 [%vector+96],%s8;
+st.global.u32 [%childctx],0;st.global.u32 [%childctx+4],1;st.global.u32 [%childctx+8],0;st.global.u32 [%childctx+12],0;st.global.u64 [%childctx+16],0;st.global.u64 [%childctx+24],0;st.global.u64 [%childctx+32],%arena;st.global.u64 [%childctx+40],1722624;st.global.u64 [%childctx+48],0;st.global.u64 [%childctx+56],0;
+st.param.u64 [pvec],%vector;st.param.u64 [pctx],%childctx;call.uni md2asm_gpu_radintg_worker_aerosol_optics_fp64,(pvec,pctx);ld.global.u32 %error,[%childctx];ld.global.u32 %raised,[%childctx+8];ld.global.u64 %child_event,[%childctx+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra EIGHT_LONGWAVE_GATE;setp.eq.u64 %p,%child_event,0;@%p bra STAGE5_NO_EVENT;add.u64 %event,%child_event,360287970189639680;
+STAGE5_NO_EVENT:
+setp.eq.u64 %p,%stageowners,0;@%p bra STAGE5_DONE;ld.global.u64 %owner,[%stageowners+32];{.param .u64 eight_counter_call_4_a,eight_counter_call_4_p,eight_counter_call_4_r;st.param.u64 [eight_counter_call_4_a],%eight_aux;st.param.u64 [eight_counter_call_4_p],%owner;call.uni (eight_counter_call_4_r),md2asm_gpu_radiation_eight_private_counter,(eight_counter_call_4_a,eight_counter_call_4_p);ld.param.u64 %eight_counter,[eight_counter_call_4_r];}atom.global.add.u64 %tmp,[%eight_counter],1;
+STAGE5_DONE:
+st.global.u64 [%vector+0],%v1;
+st.global.u64 [%vector+8],%v2;
+st.global.u64 [%vector+16],%v3;
+st.global.u64 [%vector+24],%v4;
+st.global.u64 [%vector+32],%v5;
+st.global.u64 [%vector+40],%cloud;
+st.global.u64 [%vector+48],%s0;
+st.global.u64 [%vector+56],%s1;
+st.global.u64 [%vector+64],%s2;
+st.global.u64 [%vector+72],%s3;
+st.global.u64 [%vector+80],%s4;
+st.global.u64 [%vector+88],%s5;
+st.global.u64 [%vector+96],%s12;
+st.global.u64 [%vector+104],%s13;
+st.global.u64 [%vector+112],%s14;
+st.global.u64 [%vector+120],%flux;
+st.global.u32 [%childctx],0;st.global.u32 [%childctx+4],1;st.global.u32 [%childctx+8],0;st.global.u32 [%childctx+12],0;st.global.u64 [%childctx+16],0;st.global.u64 [%childctx+24],0;st.global.u64 [%childctx+32],%arena;st.global.u64 [%childctx+40],1722624;st.global.u64 [%childctx+48],%lwrecord;st.global.u64 [%childctx+56],%lwbytes;
+EIGHT_LONGWAVE_GATE:bar.sync 0;@%eight_leader st.shared.u32 [eight_pipeline_error],%error;bar.sync 0;ld.shared.u32 %eight_gate_error,[eight_pipeline_error];setp.ne.u32 %p,%eight_gate_error,0;@%p bra EIGHT_RESULT_JOIN;
+{.param .u64 eight_longwave_0,eight_longwave_1,eight_longwave_2,eight_longwave_3;
+st.param.u64 [eight_longwave_0],%vector;st.param.u64 [eight_longwave_1],%childctx;st.param.u64 [eight_longwave_2],%eight_rows;st.param.u64 [eight_longwave_3],364544;call.uni md2asm_gpu_radintg_worker_longwave_cloud_parent_fp64_eight_columns,(eight_longwave_0,eight_longwave_1,eight_longwave_2,eight_longwave_3);}
+@!%eight_leader bra EIGHT_SHORTWAVE_GATE;ld.global.u32 %error,[%childctx];ld.global.u32 %raised,[%childctx+8];ld.global.u64 %child_event,[%childctx+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra EIGHT_SHORTWAVE_GATE;setp.eq.u64 %p,%child_event,0;@%p bra STAGE6_NO_EVENT;add.u64 %event,%child_event,432345564227567616;
+STAGE6_NO_EVENT:
+setp.eq.u64 %p,%stageowners,0;@%p bra STAGE6_DONE;ld.global.u64 %owner,[%stageowners+40];{.param .u64 eight_counter_call_3_a,eight_counter_call_3_p,eight_counter_call_3_r;st.param.u64 [eight_counter_call_3_a],%eight_aux;st.param.u64 [eight_counter_call_3_p],%owner;call.uni (eight_counter_call_3_r),md2asm_gpu_radiation_eight_private_counter,(eight_counter_call_3_a,eight_counter_call_3_p);ld.param.u64 %eight_counter,[eight_counter_call_3_r];}atom.global.add.u64 %tmp,[%eight_counter],1;
+STAGE6_DONE:
+st.global.u64 [%vector+0],%v1;
+st.global.u64 [%vector+8],%v2;
+st.global.u64 [%vector+16],%v3;
+st.global.u64 [%vector+24],%v4;
+st.global.u64 [%vector+32],%v5;
+st.global.u64 [%vector+40],%cloud;
+st.global.u64 [%vector+48],%s6;
+st.global.u64 [%vector+56],%s7;
+st.global.u64 [%vector+64],%s8;
+st.global.u64 [%vector+72],%s9;
+st.global.u64 [%vector+80],%s10;
+st.global.u64 [%vector+88],%s11;
+st.global.u64 [%vector+96],%s15;
+st.global.u64 [%vector+104],%s16;
+st.global.u64 [%vector+112],%s17;
+st.global.u64 [%vector+120],%flux;
+st.global.u32 [%childctx],0;st.global.u32 [%childctx+4],1;st.global.u32 [%childctx+8],0;st.global.u32 [%childctx+12],0;st.global.u64 [%childctx+16],0;st.global.u64 [%childctx+24],0;st.global.u64 [%childctx+32],%arena;st.global.u64 [%childctx+40],1722624;st.global.u64 [%childctx+48],%swrecord;st.global.u64 [%childctx+56],%swbytes;
+EIGHT_SHORTWAVE_GATE:bar.sync 0;@%eight_leader st.shared.u32 [eight_pipeline_error],%error;bar.sync 0;ld.shared.u32 %eight_gate_error,[eight_pipeline_error];setp.ne.u32 %p,%eight_gate_error,0;@%p bra EIGHT_RESULT_JOIN;
+{.param .u64 eight_shortwave_0,eight_shortwave_1,eight_shortwave_2,eight_shortwave_3;
+st.param.u64 [eight_shortwave_0],%vector;st.param.u64 [eight_shortwave_1],%childctx;st.param.u64 [eight_shortwave_2],%eight_rows;st.param.u64 [eight_shortwave_3],364544;call.uni md2asm_gpu_radintg_worker_shortwave_cloud_parent_fp64_eight_columns,(eight_shortwave_0,eight_shortwave_1,eight_shortwave_2,eight_shortwave_3);}
+@!%eight_leader bra EIGHT_RESULT_JOIN;ld.global.u32 %error,[%childctx];ld.global.u32 %raised,[%childctx+8];ld.global.u64 %child_event,[%childctx+16];or.b32 %flags,%flags,%raised;setp.ne.u32 %p,%error,0;@%p bra EIGHT_RESULT_JOIN;setp.eq.u64 %p,%child_event,0;@%p bra STAGE7_NO_EVENT;add.u64 %event,%child_event,504403158265495552;
+STAGE7_NO_EVENT:
+setp.eq.u64 %p,%stageowners,0;@%p bra STAGE7_DONE;ld.global.u64 %owner,[%stageowners+48];{.param .u64 eight_counter_call_2_a,eight_counter_call_2_p,eight_counter_call_2_r;st.param.u64 [eight_counter_call_2_a],%eight_aux;st.param.u64 [eight_counter_call_2_p],%owner;call.uni (eight_counter_call_2_r),md2asm_gpu_radiation_eight_private_counter,(eight_counter_call_2_a,eight_counter_call_2_p);ld.param.u64 %eight_counter,[eight_counter_call_2_r];}atom.global.add.u64 %tmp,[%eight_counter],1;
+STAGE7_DONE:
+st.global.u64 [%vector+0],%fluxclass;
+st.global.u64 [%vector+8],%v4;
+st.global.u64 [%vector+16],%v2;
+st.global.u64 [%vector+24],%v3;
+st.param.u64 [pvec],%vector;st.param.u64 [pscratch],%arena;call.uni (childflags),md2asm_gpu_calc_surface_spectral_values,(pvec,pscratch);ld.param.u32 %raised,[childflags];or.b32 %flags,%flags,%raised;
+setp.eq.u64 %p,%stageowners,0;@%p bra STAGE8_DONE;ld.global.u64 %owner,[%stageowners+56];{.param .u64 eight_counter_call_1_a,eight_counter_call_1_p,eight_counter_call_1_r;st.param.u64 [eight_counter_call_1_a],%eight_aux;st.param.u64 [eight_counter_call_1_p],%owner;call.uni (eight_counter_call_1_r),md2asm_gpu_radiation_eight_private_counter,(eight_counter_call_1_a,eight_counter_call_1_p);ld.param.u64 %eight_counter,[eight_counter_call_1_r];}atom.global.add.u64 %tmp,[%eight_counter],1;
+STAGE8_DONE:
+ld.global.u64 %dst,[%originals+0];add.u64 %src,%scratch,1255552;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_0:setp.ge.u64 %p,%index,1216;@%p bra COMMIT_RETURN_0_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_0;
+COMMIT_RETURN_0_DONE:
+ld.global.u64 %dst,[%originals+8];add.u64 %src,%scratch,1256768;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_1:setp.ge.u64 %p,%index,1280;@%p bra COMMIT_RETURN_1_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_1;
+COMMIT_RETURN_1_DONE:
+ld.global.u64 %dst,[%originals+16];add.u64 %src,%scratch,1258048;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_2:setp.ge.u64 %p,%index,1280;@%p bra COMMIT_RETURN_2_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_2;
+COMMIT_RETURN_2_DONE:
+ld.global.u64 %dst,[%originals+24];add.u64 %src,%scratch,1259328;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_3:setp.ge.u64 %p,%index,1280;@%p bra COMMIT_RETURN_3_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_3;
+COMMIT_RETURN_3_DONE:
+ld.global.u64 %dst,[%originals+32];add.u64 %src,%scratch,1260608;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_4:setp.ge.u64 %p,%index,1280;@%p bra COMMIT_RETURN_4_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_4;
+COMMIT_RETURN_4_DONE:
+ld.global.u64 %dst,[%originals+40];add.u64 %src,%scratch,1261888;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_5:setp.ge.u64 %p,%index,1280;@%p bra COMMIT_RETURN_5_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_5;
+COMMIT_RETURN_5_DONE:
+ld.global.u64 %dst,[%originals+48];add.u64 %src,%scratch,1263168;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_6:setp.ge.u64 %p,%index,1280;@%p bra COMMIT_RETURN_6_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_6;
+COMMIT_RETURN_6_DONE:
+ld.global.u64 %dst,[%originals+56];add.u64 %src,%scratch,1264448;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_7:setp.ge.u64 %p,%index,1280;@%p bra COMMIT_RETURN_7_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_7;
+COMMIT_RETURN_7_DONE:
+ld.global.u64 %dst,[%originals+64];add.u64 %src,%scratch,1265728;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_8:setp.ge.u64 %p,%index,1280;@%p bra COMMIT_RETURN_8_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_8;
+COMMIT_RETURN_8_DONE:
+ld.global.u64 %dst,[%originals+72];add.u64 %src,%scratch,1267008;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_9:setp.ge.u64 %p,%index,1280;@%p bra COMMIT_RETURN_9_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_9;
+COMMIT_RETURN_9_DONE:
+ld.global.u64 %dst,[%originals+80];add.u64 %src,%scratch,1268288;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_10:setp.ge.u64 %p,%index,1280;@%p bra COMMIT_RETURN_10_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_10;
+COMMIT_RETURN_10_DONE:
+ld.global.u64 %dst,[%originals+88];add.u64 %src,%scratch,1269568;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_11:setp.ge.u64 %p,%index,8960;@%p bra COMMIT_RETURN_11_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_11;
+COMMIT_RETURN_11_DONE:
+ld.global.u64 %dst,[%originals+96];add.u64 %src,%scratch,1278528;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_12:setp.ge.u64 %p,%index,8960;@%p bra COMMIT_RETURN_12_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_12;
+COMMIT_RETURN_12_DONE:
+ld.global.u64 %dst,[%originals+104];add.u64 %src,%scratch,1287488;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_13:setp.ge.u64 %p,%index,7168;@%p bra COMMIT_RETURN_13_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_13;
+COMMIT_RETURN_13_DONE:
+ld.global.u64 %dst,[%originals+112];add.u64 %src,%scratch,1294656;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_14:setp.ge.u64 %p,%index,7168;@%p bra COMMIT_RETURN_14_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_14;
+COMMIT_RETURN_14_DONE:
+ld.global.u64 %dst,[%originals+120];add.u64 %src,%scratch,1301824;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_15:setp.ge.u64 %p,%index,7168;@%p bra COMMIT_RETURN_15_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_15;
+COMMIT_RETURN_15_DONE:
+ld.global.u64 %dst,[%originals+128];add.u64 %src,%scratch,1308992;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_16:setp.ge.u64 %p,%index,7168;@%p bra COMMIT_RETURN_16_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_16;
+COMMIT_RETURN_16_DONE:
+ld.global.u64 %dst,[%originals+136];add.u64 %src,%scratch,1316160;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_17:setp.ge.u64 %p,%index,896;@%p bra COMMIT_RETURN_17_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_17;
+COMMIT_RETURN_17_DONE:
+ld.global.u64 %dst,[%originals+144];add.u64 %src,%scratch,1317056;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_18:setp.ge.u64 %p,%index,896;@%p bra COMMIT_RETURN_18_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_18;
+COMMIT_RETURN_18_DONE:
+ld.global.u64 %dst,[%originals+152];add.u64 %src,%scratch,1317952;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_19:setp.ge.u64 %p,%index,896;@%p bra COMMIT_RETURN_19_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_19;
+COMMIT_RETURN_19_DONE:
+ld.global.u64 %dst,[%originals+160];add.u64 %src,%scratch,1318848;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_20:setp.ge.u64 %p,%index,896;@%p bra COMMIT_RETURN_20_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_20;
+COMMIT_RETURN_20_DONE:
+ld.global.u64 %dst,[%originals+168];add.u64 %src,%scratch,1319744;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_21:setp.ge.u64 %p,%index,384;@%p bra COMMIT_RETURN_21_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_21;
+COMMIT_RETURN_21_DONE:
+ld.global.u64 %dst,[%originals+176];add.u64 %src,%scratch,1320128;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_22:setp.ge.u64 %p,%index,384;@%p bra COMMIT_RETURN_22_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_22;
+COMMIT_RETURN_22_DONE:
+ld.global.u64 %dst,[%originals+184];add.u64 %src,%scratch,1320512;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_23:setp.ge.u64 %p,%index,64;@%p bra COMMIT_RETURN_23_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_23;
+COMMIT_RETURN_23_DONE:
+ld.global.u64 %dst,[%originals+192];add.u64 %src,%scratch,1320576;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_24:setp.ge.u64 %p,%index,64;@%p bra COMMIT_RETURN_24_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_24;
+COMMIT_RETURN_24_DONE:
+ld.global.u64 %dst,[%originals+200];add.u64 %src,%scratch,1320640;
+mov.u64 %dst,%dst;mov.u64 %src,%src;mov.u64 %index,0;
+COMMIT_RETURN_25:setp.ge.u64 %p,%index,1280;@%p bra COMMIT_RETURN_25_DONE;add.u64 %address,%src,%index;ld.global.u64 %word,[%address];add.u64 %address,%dst,%index;st.global.u64 [%address],%word;add.u64 %index,%index,8;bra COMMIT_RETURN_25;
+COMMIT_RETURN_25_DONE:
+EIGHT_RESULT_JOIN:bar.sync 0;@!%eight_leader bra EIGHT_RESULT_READY;
+st.shared.u32 [eight_pipeline_result],%flags;st.shared.u32 [eight_pipeline_result+4],%error;st.shared.u64 [eight_pipeline_result+8],%event;st.shared.u64 [eight_pipeline_result+16],0;st.shared.u64 [eight_pipeline_result+24],0;
+EIGHT_RESULT_READY:bar.sync 0;ld.shared.u32 %flags,[eight_pipeline_result];ld.shared.u32 %error,[eight_pipeline_result+4];ld.shared.u64 %event,[eight_pipeline_result+8];ld.shared.u64 %eight_tmp,[eight_pipeline_result+16];st.param.u32 [result],%flags;st.param.u32 [result+4],%error;st.param.u64 [result+8],%event;st.param.u64 [result+16],%eight_tmp;ld.shared.u64 %eight_tmp,[eight_pipeline_result+24];st.param.u64 [result+24],%eight_tmp;bar.sync 0;ret;
+}

@@ -3862,13 +3862,13 @@ ld.param.u32 %esm_original_last,[esm_original_last_column];
  mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
  mov.u32 %r,0;or.b32 %unique,%unique,%r;mov.u32 %r,0;or.b32 %unique,%unique,%r;mov.u32 %r,0;or.b32 %unique,%unique,%r;
  ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
- mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
  mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
  mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
  setp.ne.u32 %p,%thread,0;@%p bra WAIT;
  st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),md2asm_gpu_surfpp_ctl_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
 WAIT:
- bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
  ld.global.u64 %record,[%ctx+48];ld.global.u64 %scratch,[%ctx+32];{ .reg .u64 %esm_tally; .param .u64 esm_post_vector,esm_post_record,esm_post_scratch,esm_post_tally; .param .align 8 .b8 esm_post_returned[40];
 ld.global.u64 %esm_tally,[%record+104];add.u64 %esm_tally,%esm_tally,48;
 st.param.u64 [esm_post_vector],%args;st.param.u64 [esm_post_record],%record;st.param.u64 [esm_post_scratch],%scratch;st.param.u64 [esm_post_tally],%esm_tally;call.uni (esm_post_returned),md2asm_gpu_surface_postprocessing_values_turbulence_columns,(esm_post_vector,esm_post_record,esm_post_scratch,esm_post_tally);ld.param.u32 %r,[esm_post_returned];ld.param.u64 %event64,[esm_post_returned+8];ld.param.u64 %saved_entry_count0,[esm_post_returned+16];ld.param.u64 %saved_entry_count1,[esm_post_returned+24];ld.param.u64 %saved_entry_count2,[esm_post_returned+32];

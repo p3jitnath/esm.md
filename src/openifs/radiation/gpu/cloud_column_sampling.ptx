@@ -200,3 +200,76 @@ REFUSE: st.global.u32 [%ctx],%error; ret;
 {
  .reg .u64 %a,%c; .param .u64 a,c; ld.param.u64 %a,[original_vector]; ld.param.u64 %c,[context]; st.param.u64 [a],%a; st.param.u64 [c],%c; call.uni md2asm_gpu_cloud_column_sampling_fp64,(a,c); ret;
 }
+
+// Eight-column composition retains the original equations and serial entry.
+
+.visible .func (.param .u32 raised_flags) md2asm_gpu_cloud_column_values_eight_columns_journal(.param .u32 spectral_count,.param .u32 levels,.param .u32 column,.param .u64 stream,.param .u64 sampler,.param .u64 fraction,.param .u64 pair,.param .u64 cumulative,.param .u64 overhang,.param .u64 spread,.param .u64 inhomogeneity,.param .u32 top,.param .u32 last,.param .u64 output,.param .u64 scratch,.param .u64 write_journal)
+{
+ .reg .u64 %ecj_journal;
+ .reg .u32 %ecj_length;
+
+ .reg .u64 %stream,%sampler,%f,%p,%c,%h,%sd,%inh,%out,%scratch,%RC,%R1,%R2,%offset,%addr,%nbytes,%matrixoffset;
+ .reg .u32 %G,%N,%col,%top,%last,%ncloud,%iy,%j,%group,%k,%layer,%flags,%raised; .reg .pred %pred;
+ .reg .b64 %random,%upper,%lower,%pair,%overhang,%cumulative,%left,%right,%value,%spread;
+ .param .u64 us,uo,po; .param .s64 ustep; .param .u32 ucount; .param .b64 ma,mb,ps,pf; .param .align 8 .b8 math[16],pdf[16];
+ ld.param.u32 %G,[spectral_count];
+ ld.param.u32 %N,[levels];
+ ld.param.u32 %col,[column];
+ ld.param.u64 %stream,[stream];
+ ld.param.u64 %sampler,[sampler];
+ ld.param.u64 %f,[fraction];
+ ld.param.u64 %p,[pair];
+ ld.param.u64 %c,[cumulative];
+ ld.param.u64 %h,[overhang];
+ ld.param.u64 %sd,[spread];
+ ld.param.u64 %inh,[inhomogeneity];
+ ld.param.u32 %top,[top];
+ ld.param.u32 %last,[last];
+ ld.param.u64 %out,[output];
+ ld.param.u64 %scratch,[scratch];ld.param.u64 %ecj_journal,[write_journal];
+ mov.u32 %flags,0; mul.wide.u32 %nbytes,%N,8; mov.u64 %RC,%scratch; add.u64 %R1,%RC,%nbytes; add.u64 %R2,%R1,%nbytes; sub.u32 %ncloud,%last,%top; add.u32 %ncloud,%ncloud,1;ld.global.u32 %ecj_length,[%ecj_journal];max.u32 %ecj_length,%ecj_length,%ncloud;st.global.u32 [%ecj_journal],%ecj_length;
+ st.param.u64 [us],%stream; st.param.u64 [uo],%RC; st.param.s64 [ustep],8; st.param.u32 [ucount],%ncloud; call.uni md2asm_gpu_uniform_values,(us,uo,ustep,ucount);
+ mov.u32 %iy,0; mov.u32 %group,1; add.u32 %j,%top,1;
+LAYER:
+ setp.gt.u32 %pred,%j,%last; @%pred bra FILL_GROUP; mul.wide.u32 %offset,%iy,8;
+ add.u64 %addr,%RC,%offset; ld.global.b64 %random,[%addr];
+ add.u32 %iy,%iy,1; sub.u32 %layer,%j,2; mul.wide.u32 %offset,%layer,8;
+ add.u64 %addr,%f,%offset; ld.global.b64 %upper,[%addr];
+ add.u64 %addr,%p,%offset; ld.global.b64 %pair,[%addr];
+ setp.eq.u32 %pred,%group,0; @%pred bra BELOW_CLEAR; add.u64 %offset,%offset,8;
+ add.u64 %addr,%f,%offset; ld.global.b64 %lower,[%addr];
+ st.param.b64 [ma],%random; st.param.b64 [mb],%upper; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %left,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%lower; st.param.b64 [mb],%upper; call.uni (math),md2asm_gpu_add_status,(ma,mb); ld.param.b64 %right,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%right; st.param.b64 [mb],%pair; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %right,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ setp.lt.f64 %pred,%left,%right; @!%pred bra FILL_GROUP; add.u32 %group,%group,1; bra ADVANCE_LAYER;
+BELOW_CLEAR:
+ add.u64 %addr,%c,%offset; ld.global.b64 %cumulative,[%addr];
+ add.u64 %addr,%h,%offset; ld.global.b64 %overhang,[%addr];
+ st.param.b64 [ma],%cumulative; st.param.b64 [mb],%upper; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %left,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%random; st.param.b64 [mb],%left; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %left,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%pair; st.param.b64 [mb],%overhang; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %right,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [ma],%right; st.param.b64 [mb],%upper; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %right,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ setp.lt.f64 %pred,%left,%right; @%pred mov.u32 %group,1; bra ADVANCE_LAYER;
+FILL_GROUP:ld.global.u32 %ecj_length,[%ecj_journal+4];max.u32 %ecj_length,%ecj_length,%group;st.global.u32 [%ecj_journal+4],%ecj_length;
+ st.param.u64 [us],%stream; st.param.u64 [uo],%R1; st.param.s64 [ustep],8; st.param.u32 [ucount],%group; call.uni md2asm_gpu_uniform_values,(us,uo,ustep,ucount);
+ st.param.u64 [us],%stream; st.param.u64 [uo],%R2; st.param.s64 [ustep],8; st.param.u32 [ucount],%group; call.uni md2asm_gpu_uniform_values,(us,uo,ustep,ucount);
+ mov.u32 %k,1;
+SHARE:
+ setp.ge.u32 %pred,%k,%group; @%pred bra SAMPLE_START; mul.wide.u32 %offset,%k,8;
+ add.u64 %addr,%R2,%offset; ld.global.b64 %random,[%addr];
+ sub.u32 %layer,%j,%group; add.u32 %layer,%layer,%k; sub.u32 %layer,%layer,2; mul.wide.u32 %offset,%layer,8;
+ add.u64 %addr,%inh,%offset; ld.global.b64 %value,[%addr];
+ setp.lt.f64 %pred,%random,%value; @!%pred bra NEXT_SHARE; sub.u32 %layer,%k,1; mul.wide.u32 %offset,%layer,8;
+ add.u64 %addr,%R1,%offset; ld.global.b64 %value,[%addr];
+ add.u64 %offset,%offset,8; add.u64 %addr,%R1,%offset; st.global.b64 [%addr],%value;
+NEXT_SHARE: add.u32 %k,%k,1; bra SHARE;
+SAMPLE_START: mov.u32 %k,0;
+SAMPLE:
+ setp.ge.u32 %pred,%k,%group; @%pred bra GROUP_DONE; sub.u32 %layer,%j,%group; add.u32 %layer,%layer,%k; sub.u32 %layer,%layer,1; mul.wide.u32 %offset,%layer,8;
+ add.u64 %addr,%sd,%offset; ld.global.b64 %spread,[%addr];
+ mul.wide.u32 %offset,%k,8;
+ add.u64 %addr,%R1,%offset; ld.global.b64 %random,[%addr];
+ st.param.u64 [po],%sampler; st.param.b64 [ps],%spread; st.param.b64 [pf],%random; call.uni (pdf),md2asm_gpu_cloud_pdf_value,(po,ps,pf); ld.param.b64 %value,[pdf]; ld.param.u32 %raised,[pdf+8]; or.b32 %flags,%flags,%raised; mul.wide.u32 %matrixoffset,%layer,%G; cvt.u64.u32 %offset,%col; sub.u64 %offset,%offset,1; add.u64 %matrixoffset,%matrixoffset,%offset; shl.b64 %matrixoffset,%matrixoffset,3; add.u64 %addr,%out,%matrixoffset; st.global.b64 [%addr],%value; add.u32 %k,%k,1; bra SAMPLE;
+GROUP_DONE: mov.u32 %group,0;
+ADVANCE_LAYER: add.u32 %j,%j,1; add.u32 %layer,%last,1; setp.le.u32 %pred,%j,%layer; @%pred bra LAYER; st.param.u32 [raised_flags],%flags; ret;
+}

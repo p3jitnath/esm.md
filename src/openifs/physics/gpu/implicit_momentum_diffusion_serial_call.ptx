@@ -670,13 +670,13 @@ ld.param.u32 %esm_original_last,[esm_original_last_column];
  mov.u32 %thread,%tid.x;mov.u32 %unique,%thread;mov.u32 %r,%tid.y;or.b32 %unique,%unique,%r;mov.u32 %r,%tid.z;or.b32 %unique,%unique,%r;
  mov.u32 %r,0;or.b32 %unique,%unique,%r;mov.u32 %r,0;or.b32 %unique,%unique,%r;mov.u32 %r,0;or.b32 %unique,%unique,%r;
  ld.global.u32 %error,[%ctx];setp.ne.u32 %p,%error,0;@%p ret;
- mov.u32 %r,%ntid.x;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
+ mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.y;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,%ntid.z;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
  mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;mov.u32 %r,1;setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
  mov.u32 %r,%dynamic_smem_size;setp.ne.u32 %p,%r,0;@%p bra BAD_LAUNCH;ld.global.u32 %r,[%ctx+4];setp.ne.u32 %p,%r,1;@%p bra BAD_LAUNCH;
  setp.ne.u32 %p,%thread,0;@%p bra WAIT;
  st.param.u64 [av],%args;st.param.u64 [cv],%ctx;call.uni (rr),md2asm_gpu_vdfdifm_admit,(av,cv);ld.param.u32 %error,[rr];st.shared.u32 [admission],%error;
 WAIT:
- bar.sync 0;ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
+ ld.shared.u32 %error,[admission];setp.ne.u32 %p,%error,0;@%p bra REFUSE;
  ld.global.u64 %v0,[%args+0];
  ld.global.u64 %v1,[%args+8];
  ld.global.u64 %v2,[%args+16];
@@ -710,7 +710,7 @@ WAIT:
  st.param.b64 [ma],%gravity;st.param.b64 [mb],%dt;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %s,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
  st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%dt;call.uni (math),md2asm_gpu_div_status,(ma,mb);ld.param.b64 %it,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
  st.shared.b64 [coefficients],%dt;st.shared.b64 [coefficients+8],%s;st.shared.b64 [coefficients+16],%it;st.shared.u32 [coefficients+24],%flags;
-COEFFICIENT_WAIT:bar.sync 0;ld.shared.b64 %dt,[coefficients];ld.shared.b64 %s,[coefficients+8];ld.shared.b64 %it,[coefficients+16];ld.shared.u32 %flags,[coefficients+24];ld.global.u32 %first,[%v0];ld.global.u32 %last,[%v1];ld.global.u32 %P,[%v2];ld.global.u32 %N,[%v3];ld.global.u32 %top,[%v4];sub.u32 %top,%top,1;mul.wide.u32 %columnbytes,%P,8;ld.global.u64 %scratch,[%ctx+32];sub.u32 %column,%first,1;add.u32 %column,%column,%thread;
+COEFFICIENT_WAIT:ld.shared.b64 %dt,[coefficients];ld.shared.b64 %s,[coefficients+8];ld.shared.b64 %it,[coefficients+16];ld.shared.u32 %flags,[coefficients+24];ld.global.u32 %first,[%v0];ld.global.u32 %last,[%v1];ld.global.u32 %P,[%v2];ld.global.u32 %N,[%v3];ld.global.u32 %top,[%v4];sub.u32 %top,%top,1;mul.wide.u32 %columnbytes,%P,8;ld.global.u64 %scratch,[%ctx+32];sub.u32 %column,%first,1;add.u32 %column,%column,%thread;
 COLUMN:setp.ge.u32 %p,%column,%last;@%p bra COMPLETE;mul.wide.u32 %columnoffset,%column,8;mov.u32 %level,%top;
 FORWARD:mul.wide.u32 %offset,%level,%P;shl.b64 %offset,%offset,3;add.u64 %offset,%offset,%columnoffset;sub.u64 %previous,%offset,%columnbytes;add.u64 %next,%offset,%columnbytes;
  add.u64 %ptr,%v8,%next;ld.global.b64 %tmp0,[%ptr];

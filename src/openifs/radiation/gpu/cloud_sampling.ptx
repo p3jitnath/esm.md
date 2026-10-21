@@ -240,3 +240,106 @@ REFUSE: st.global.u32 [%ctx],%error; ret;
 {
  .reg .u64 %a,%c; .param .u64 a,c; ld.param.u64 %a,[original_vector]; ld.param.u64 %c,[context]; st.param.u64 [a],%a; st.param.u64 [c],%c; call.uni md2asm_gpu_cloud_sampling_fp64,(a,c); ret;
 }
+
+// Eight-column composition retains the original equations and serial entry.
+.extern .func (.param .u32 flags) md2asm_gpu_cloud_column_values_eight_columns_journal(.param .u32 a0,.param .u32 a1,.param .u32 a2,.param .u64 a3,.param .u64 a4,.param .u64 a5,.param .u64 a6,.param .u64 a7,.param .u64 a8,.param .u64 a9,.param .u64 a10,.param .u32 a11,.param .u32 a12,.param .u64 a13,.param .u64 a14,.param .u64 write_journal);
+.visible .func (.param .align 8 .b8 result[32]) md2asm_gpu_cloud_generator_values_eight_columns_journal(.param .u32 spectral_count,.param .u32 levels,.param .u32 seed_word,.param .b64 threshold_word,.param .u64 fraction,.param .u64 overlap,.param .b64 decorrelation_word,.param .u64 spread,.param .u64 sampler,.param .u64 matrix,.param .u64 total_output,.param .u32 beta_mode,.param .u64 private_scratch,.param .u64 write_journal)
+{
+ .reg .u64 %ecj_journal;
+ .reg .u32 %ecj_length;
+
+ .reg .u64 %f,%overlap,%spread,%sampler,%matrix,%total_out,%scratch,%stream,%cum,%pair,%overhang,%inh,%randtop,%column_scratch,%nbytes,%pairbytes,%matrixbytes,%address,%offset,%next,%fast,%wide,%increment;
+ .reg .u32 %G,%N,%seed,%beta,%first,%last,%current,%j,%g,%top,%bottom,%flags,%raised,%event,%new_event;
+ .reg .pred %pred;
+ .reg .b64 %threshold,%decorrelation,%total,%value,%upper,%lower,%exponent,%trigger;
+ .param .u32 cn,cb,returned,seed; .param .u64 cf,co,cc,cp,us,uo,po; .param .s64 step; .param .u32 count;
+ .param .b64 ma,mb,px,py; .param .align 8 .b8 math[16],power[32];
+ .param .u32 col0;
+ .param .u32 col1;
+ .param .u32 col2;
+ .param .u64 col3;
+ .param .u64 col4;
+ .param .u64 col5;
+ .param .u64 col6;
+ .param .u64 col7;
+ .param .u64 col8;
+ .param .u64 col9;
+ .param .u64 col10;
+ .param .u32 col11;
+ .param .u32 col12;
+ .param .u64 col13;
+ .param .u64 col14;
+ ld.param.u32 %G,[spectral_count];
+ ld.param.u32 %N,[levels];
+ ld.param.u32 %seed,[seed_word];
+ ld.param.b64 %threshold,[threshold_word];
+ ld.param.u64 %f,[fraction];
+ ld.param.u64 %overlap,[overlap];
+ ld.param.b64 %decorrelation,[decorrelation_word];
+ ld.param.u64 %spread,[spread];
+ ld.param.u64 %sampler,[sampler];
+ ld.param.u64 %matrix,[matrix];
+ ld.param.u64 %total_out,[total_output];
+ ld.param.u32 %beta,[beta_mode];
+ ld.param.u64 %scratch,[private_scratch];ld.param.u64 %ecj_journal,[write_journal];
+ mov.u32 %flags,0; mov.u32 %event,0; mov.u64 %fast,0; mov.u64 %wide,0;
+ mul.wide.u32 %nbytes,%N,8; sub.u64 %pairbytes,%nbytes,8; mul.wide.u32 %matrixbytes,%G,%N; shl.b64 %matrixbytes,%matrixbytes,3;
+ mov.u64 %stream,%scratch; add.u64 %cum,%stream,2448; add.u64 %pair,%cum,%nbytes; add.u64 %overhang,%pair,%pairbytes; add.u64 %inh,%overhang,%pairbytes; add.u64 %randtop,%inh,%pairbytes; mul.wide.u32 %offset,%G,8; add.u64 %column_scratch,%randtop,%offset;
+ st.param.u32 [cn],%N; st.param.u64 [cf],%f; st.param.u64 [co],%overlap; st.param.u64 [cc],%cum; st.param.u64 [cp],%pair; st.param.u32 [cb],%beta; call.uni (returned),md2asm_gpu_cumulative_cloud_cover_values,(cn,cf,co,cc,cp,cb); ld.param.u32 %raised,[returned]; or.b32 %flags,%flags,%raised;
+ add.u64 %address,%cum,%pairbytes; ld.global.b64 %total,[%address]; st.global.b64 [%total_out],%total; mov.u32 %j,1;
+OVERHANG:
+ setp.ge.u32 %pred,%j,%N; @%pred bra COVER_DECISION; mul.wide.u32 %offset,%j,8; add.u64 %address,%cum,%offset; ld.global.b64 %lower,[%address]; sub.u64 %offset,%offset,8; add.u64 %address,%cum,%offset; ld.global.b64 %upper,[%address];
+ st.param.b64 [ma],%lower; st.param.b64 [mb],%upper; call.uni (math),md2asm_gpu_sub_status,(ma,mb); ld.param.b64 %value,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ add.u64 %address,%overhang,%offset; st.global.b64 [%address],%value; add.u32 %j,%j,1; bra OVERHANG;
+COVER_DECISION:
+ setp.lt.f64 %pred,%total,%threshold; @!%pred bra FIND_FIRST; mov.b64 %total,0; st.global.b64 [%total_out],%total; bra COMPLETE;
+FIND_FIRST: mov.u32 %first,0;
+FIRST_LOOP:
+ mul.wide.u32 %offset,%first,8; add.u64 %address,%f,%offset; ld.global.b64 %value,[%address]; setp.gt.f64 %pred,%value,0d0000000000000000; @%pred bra FIND_LAST; add.u32 %first,%first,1; bra FIRST_LOOP;
+FIND_LAST: mov.u32 %last,%first; add.u32 %j,%first,1;
+LAST_LOOP:
+ setp.ge.u32 %pred,%j,%N; @%pred bra COPY_OVERLAP_START; mul.wide.u32 %offset,%j,8; add.u64 %address,%f,%offset; ld.global.b64 %value,[%address]; setp.gt.f64 %pred,%value,0d0000000000000000; @%pred mov.u32 %last,%j; add.u32 %j,%j,1; bra LAST_LOOP;
+COPY_OVERLAP_START: mov.u64 %offset,0;
+COPY_OVERLAP:
+ setp.ge.u64 %pred,%offset,%pairbytes; @%pred bra POWER_START; add.u64 %address,%overlap,%offset; ld.global.b64 %value,[%address]; add.u64 %address,%inh,%offset; st.global.b64 [%address],%value; add.u64 %offset,%offset,8; bra COPY_OVERLAP;
+POWER_START: mov.u32 %j,%first;
+POWER_INTERFACE:
+ setp.ge.u32 %pred,%j,%last; @%pred bra ZERO_MATRIX_START; mul.wide.u32 %offset,%j,8; add.u64 %address,%overlap,%offset; ld.global.b64 %value,[%address]; setp.le.f64 %pred,%value,0d0000000000000000; @%pred bra NEXT_POWER;
+ st.param.b64 [ma],0x3ff0000000000000; st.param.b64 [mb],%decorrelation; call.uni (math),md2asm_gpu_div_status,(ma,mb); ld.param.b64 %exponent,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ st.param.b64 [px],%value; st.param.b64 [py],%exponent; call.uni (power),md2asm_gpu_power_positive_unit,(px,py); ld.param.b64 %value,[power]; ld.param.u32 %raised,[power+8]; or.b32 %flags,%flags,%raised; ld.param.u32 %new_event,[power+12]; setp.ne.u32 %pred,%new_event,0; @%pred mov.u32 %event,%new_event; ld.param.u64 %increment,[power+16]; add.u64 %fast,%fast,%increment; ld.param.u64 %increment,[power+24]; add.u64 %wide,%wide,%increment; add.u64 %address,%inh,%offset; st.global.b64 [%address],%value;
+NEXT_POWER: add.u32 %j,%j,1; bra POWER_INTERFACE;
+ZERO_MATRIX_START: mov.u64 %offset,0;
+ZERO_MATRIX:
+ setp.ge.u64 %pred,%offset,%matrixbytes; @%pred bra INITIALIZE; add.u64 %address,%matrix,%offset; st.global.b64 [%address],0; add.u64 %offset,%offset,8; bra ZERO_MATRIX;
+INITIALIZE:
+ st.param.u32 [seed],%seed; st.param.u64 [us],%stream; call.uni md2asm_gpu_initialize_random_stream,(seed,us); st.param.u64 [us],%stream; st.param.u64 [uo],%randtop; st.param.s64 [step],8; st.param.u32 [count],%G; call.uni md2asm_gpu_uniform_values,(us,uo,step,count); mov.u32 %g,0;
+SAMPLE_COLUMN:
+ setp.ge.u32 %pred,%g,%G; @%pred bra COMPLETE; mul.wide.u32 %offset,%g,8; add.u64 %address,%randtop,%offset; ld.global.b64 %value,[%address];
+ st.param.b64 [ma],%value; st.param.b64 [mb],%total; call.uni (math),md2asm_gpu_mul_status,(ma,mb); ld.param.b64 %trigger,[math]; ld.param.u32 %raised,[math+8]; or.b32 %flags,%flags,%raised;
+ mov.u32 %current,%first;
+SELECT_TOP:
+ mul.wide.u32 %offset,%current,8; add.u64 %address,%cum,%offset; ld.global.b64 %value,[%address]; setp.le.f64 %pred,%trigger,%value; @%pred bra TOP_SELECTED; setp.ge.u32 %pred,%current,%last; @%pred bra TOP_SELECTED; add.u32 %current,%current,1; bra SELECT_TOP;
+TOP_SELECTED: add.u32 %top,%current,1; add.u32 %bottom,%last,1; add.u32 %current,%g,1;
+{
+.param .u32 ecj_call_arg0;.param .u32 ecj_call_arg1;.param .u32 ecj_call_arg2;.param .u64 ecj_call_arg3;.param .u64 ecj_call_arg4;.param .u64 ecj_call_arg5;.param .u64 ecj_call_arg6;.param .u64 ecj_call_arg7;.param .u64 ecj_call_arg8;.param .u64 ecj_call_arg9;.param .u64 ecj_call_arg10;.param .u32 ecj_call_arg11;.param .u32 ecj_call_arg12;.param .u64 ecj_call_arg13;.param .u64 ecj_call_arg14;.param .u64 ecj_call_arg15;.param .u32 ecj_call_return;
+ st.param.u32 [ecj_call_arg0],%G;
+ st.param.u32 [ecj_call_arg1],%N;
+ st.param.u32 [ecj_call_arg2],%current;
+ st.param.u64 [ecj_call_arg3],%stream;
+ st.param.u64 [ecj_call_arg4],%sampler;
+ st.param.u64 [ecj_call_arg5],%f;
+ st.param.u64 [ecj_call_arg6],%pair;
+ st.param.u64 [ecj_call_arg7],%cum;
+ st.param.u64 [ecj_call_arg8],%overhang;
+ st.param.u64 [ecj_call_arg9],%spread;
+ st.param.u64 [ecj_call_arg10],%inh;
+ st.param.u32 [ecj_call_arg11],%top;
+ st.param.u32 [ecj_call_arg12],%bottom;
+ st.param.u64 [ecj_call_arg13],%matrix;
+ st.param.u64 [ecj_call_arg14],%column_scratch;
+ st.param.u64 [ecj_call_arg15],%ecj_journal;call.uni (ecj_call_return),md2asm_gpu_cloud_column_values_eight_columns_journal,(ecj_call_arg0,ecj_call_arg1,ecj_call_arg2,ecj_call_arg3,ecj_call_arg4,ecj_call_arg5,ecj_call_arg6,ecj_call_arg7,ecj_call_arg8,ecj_call_arg9,ecj_call_arg10,ecj_call_arg11,ecj_call_arg12,ecj_call_arg13,ecj_call_arg14,ecj_call_arg15); ld.param.u32 %raised,[ecj_call_return]; or.b32 %flags,%flags,%raised;
+}
+ add.u32 %g,%g,1; bra SAMPLE_COLUMN;
+COMPLETE:
+ st.param.b64 [result],%total; st.param.u32 [result+8],%flags; st.param.u32 [result+12],%event; st.param.u64 [result+16],%fast; st.param.u64 [result+24],%wide; ret;
+}

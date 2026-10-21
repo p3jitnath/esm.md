@@ -1,6 +1,6 @@
-// Contract: skills/md2asm-gpu/references/openifs/radiation/parallel_radiation_climatology.md.
-/* Original 59-address RADINTG storage and public utility boundaries.
- * Every numerical phase runs as complete direct PTX.
+// Contract: skills/md2asm-gpu/references/openifs/radiation/radiation_grid_parent.md.
+/* Original59-address RADINTG storage and public utility boundaries.
+ * Every numerical phase is complete direct PTX. Contract skills/md2asm-gpu/references/openifs/radiation/radiation_grid_parent.md.
  */
 .arch armv8-a
 .text
@@ -1658,8 +1658,8 @@ ldr x8,[x8,:got_lo12:__yomhook_MOD_lhook]
 cbz x8,.Lgrid_host_failure
 movz x9,#4
 stp x8,x9,[x27,#144]
-movz x26,#2624
-movk x26,#7359,lsl #16
+movz x26,#4096
+movk x26,#19727,lsl #16
 mov x0,x26
 grid_host_call malloc
 cbz x0,.Lgrid_host_failure
@@ -1835,7 +1835,7 @@ add x0,x0,:lo12:.Lgrid_worker_entry
 mov x1,x19
 mov x2,x20
 mov w3,#128
-mov w4,#1
+mov w4,#8
 mov w5,#0
 grid_host_call md2asm_openifs_gpu_launch
 cbnz w0,.Lgrid_host_failure
