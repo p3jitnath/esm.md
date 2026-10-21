@@ -1,0 +1,253 @@
+// Complete cloud component. Contract: skills/md2asm-gpu/references/openifs/physics/cloud_microphysics_columns.md
+.text
+.p2align 2
+.global md2asm_gpu_host_cloud_microphysics
+.type md2asm_gpu_host_cloud_microphysics,%function
+md2asm_gpu_host_cloud_microphysics:
+ sub sp,sp,#1280
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mov x29,sp
+ stp x0,x1,[sp,#128]
+ stp x2,x3,[sp,#144]
+ stp x4,x5,[sp,#160]
+ stp x6,x7,[sp,#176]
+ add x9,sp,#1280
+ add x10,sp,#192
+ mov w11,#68
+.Lcopy_cloud_stack:
+ ldr x12,[x9],#8
+ str x12,[x10],#8
+ subs w11,w11,#1
+ b.ne .Lcopy_cloud_stack
+ add x19,sp,#128
+ add x20,sp,#768
+ add x21,sp,#832
+ stp xzr,xzr,[x20]
+ stp xzr,xzr,[x20,#16]
+ stp xzr,xzr,[x20,#32]
+ stp xzr,xzr,[x20,#48]
+ mov w9,#1
+ str w9,[x20,#4]
+ mov x9,x21
+ mov w10,#16
+.Lclear_cloud_record:
+ stp xzr,xzr,[x9],#16
+ subs w10,w10,#1
+ b.ne .Lclear_cloud_record
+ b .Lcloud_body
+.macro SERVICE target
+ str x0,[sp,#1160]
+ mrs x9,fpcr
+ str x9,[sp,#1120]
+ mrs x9,fpsr
+ str x9,[sp,#1128]
+ bl __errno_location
+ ldr x18,[sp,#96]
+ str x0,[sp,#1136]
+ ldr w9,[x0]
+ str w9,[sp,#1144]
+ ldr x0,[sp,#1160]
+ bl \target
+ ldr x18,[sp,#96]
+ str x0,[sp,#1168]
+ ldr x9,[sp,#1136]
+ ldr w10,[sp,#1144]
+ str w10,[x9]
+ ldr x9,[sp,#1120]
+ msr fpcr,x9
+ ldr x9,[sp,#1128]
+ msr fpsr,x9
+ ldr x0,[sp,#1168]
+.endm
+.Lcloud_body:
+ SERVICE omp_in_parallel
+ cbnz w0,.Lcloud_failure
+ ldr x9,[x19,#72]
+ ldrsw x22,[x9]
+ cmp x22,#1
+ b.lt .Lcloud_failure
+ cmp x22,#4096
+ b.gt .Lcloud_failure
+ ldr x9,[x19,#80]
+ ldrsw x23,[x9]
+ cmp x23,#2
+ b.lt .Lcloud_failure
+ cmp x23,#256
+ b.gt .Lcloud_failure
+ ldr x9,[x19,#64]
+ ldr w9,[x9]
+ cbz w9,.Lcloud_record
+ add x24,x23,#2
+ lsl x24,x24,#9
+ add x24,x24,#1,lsl #12
+ add x24,x24,#64
+ mul x24,x24,x22
+ mov x0,x24
+ SERVICE malloc
+ cbz x0,.Lcloud_failure
+ str x0,[x20,#32]
+ str x24,[x20,#40]
+.Lcloud_record:
+ str x21,[x20,#48]
+ mov x9,#256
+ str x9,[x20,#56]
+ adrp x9,:got:__yomcst_MOD_retv
+ ldr x9,[x9,:got_lo12:__yomcst_MOD_retv]
+ str x9,[x21,#0]
+ adrp x9,:got:__yomcst_MOD_rtt
+ ldr x9,[x9,:got_lo12:__yomcst_MOD_rtt]
+ str x9,[x21,#8]
+ adrp x9,:got:__yoethf_MOD_r2es
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_r2es]
+ str x9,[x21,#16]
+ adrp x9,:got:__yoethf_MOD_r3les
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_r3les]
+ str x9,[x21,#24]
+ adrp x9,:got:__yoethf_MOD_r3ies
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_r3ies]
+ str x9,[x21,#32]
+ adrp x9,:got:__yoethf_MOD_r4les
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_r4les]
+ str x9,[x21,#40]
+ adrp x9,:got:__yoethf_MOD_r4ies
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_r4ies]
+ str x9,[x21,#48]
+ adrp x9,:got:__yoethf_MOD_rtwat
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_rtwat]
+ str x9,[x21,#56]
+ adrp x9,:got:__yoethf_MOD_rtice
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_rtice]
+ str x9,[x21,#64]
+ adrp x9,:got:__yoethf_MOD_rtwat_rtice_r
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_rtwat_rtice_r]
+ str x9,[x21,#72]
+ adrp x9,:got:__yoethf_MOD_rkoop1
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_rkoop1]
+ str x9,[x21,#80]
+ adrp x9,:got:__yoethf_MOD_rkoop2
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_rkoop2]
+ str x9,[x21,#88]
+ adrp x9,:got:__yoethf_MOD_r5alvcp
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_r5alvcp]
+ str x9,[x21,#96]
+ adrp x9,:got:__yoethf_MOD_r5alscp
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_r5alscp]
+ str x9,[x21,#104]
+ adrp x9,:got:__yoethf_MOD_ralvdcp
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_ralvdcp]
+ str x9,[x21,#112]
+ adrp x9,:got:__yoethf_MOD_ralsdcp
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_ralsdcp]
+ str x9,[x21,#120]
+ adrp x9,:got:__yomcst_MOD_rg
+ ldr x9,[x9,:got_lo12:__yomcst_MOD_rg]
+ str x9,[x21,#128]
+ adrp x9,:got:__yomcst_MOD_rd
+ ldr x9,[x9,:got_lo12:__yomcst_MOD_rd]
+ str x9,[x21,#136]
+ adrp x9,:got:__yomcst_MOD_rcpd
+ ldr x9,[x9,:got_lo12:__yomcst_MOD_rcpd]
+ str x9,[x21,#144]
+ adrp x9,:got:__yomcst_MOD_rv
+ ldr x9,[x9,:got_lo12:__yomcst_MOD_rv]
+ str x9,[x21,#152]
+ adrp x9,:got:__yomcst_MOD_rlvtt
+ ldr x9,[x9,:got_lo12:__yomcst_MOD_rlvtt]
+ str x9,[x21,#160]
+ adrp x9,:got:__yomcst_MOD_rlstt
+ ldr x9,[x9,:got_lo12:__yomcst_MOD_rlstt]
+ str x9,[x21,#168]
+ adrp x9,:got:__yomcst_MOD_rpi
+ ldr x9,[x9,:got_lo12:__yomcst_MOD_rpi]
+ str x9,[x21,#176]
+ adrp x9,:got:__yoethf_MOD_r5les
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_r5les]
+ str x9,[x21,#184]
+ adrp x9,:got:__yoethf_MOD_r5ies
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_r5ies]
+ str x9,[x21,#192]
+ adrp x9,:got:__yoethf_MOD_ralfdcp
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_ralfdcp]
+ str x9,[x21,#200]
+ adrp x9,:got:__yoethf_MOD_rticecu
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_rticecu]
+ str x9,[x21,#208]
+ adrp x9,:got:__yoethf_MOD_rtwat_rticecu_r
+ ldr x9,[x9,:got_lo12:__yoethf_MOD_rtwat_rticecu_r]
+ str x9,[x21,#216]
+ adrp x9,:got:__yommp0_MOD_lscmec
+ ldr x9,[x9,:got_lo12:__yommp0_MOD_lscmec]
+ str x9,[x21,#224]
+ adrp x9,:got:md2asm_exponential_native_calls_storage
+ ldr x9,[x9,:got_lo12:md2asm_exponential_native_calls_storage]
+ str x9,[x21,#232]
+ adrp x9,:got:md2asm_product_sum_fast_calls
+ ldr x9,[x9,:got_lo12:md2asm_product_sum_fast_calls]
+ str x9,[x21,#240]
+ adrp x9,:got:md2asm_product_sum_wide_calls
+ ldr x9,[x9,:got_lo12:md2asm_product_sum_wide_calls]
+ str x9,[x21,#248]
+.Lcloud_launch:
+ SERVICE md2asm_openifs_gpu_prepare
+ cbnz w0,.Lcloud_failure
+ adrp x0,.Lcloud_entry
+ add x0,x0,:lo12:.Lcloud_entry
+ mov x1,x19
+ mov x2,x20
+ mov w3,#1
+ mov w4,#128
+ mov w5,#0
+ bl md2asm_cloud_columns_launch
+ ldr x18,[sp,#96]
+ cbnz w0,.Lcloud_failure
+ ldr x0,[x20,#32]
+ cbz x0,.Lcloud_released
+ SERVICE free
+.Lcloud_released:
+ adrp x9,:got:md2asm_gpu_cloud_microphysics_launches
+ ldr x9,[x9,:got_lo12:md2asm_gpu_cloud_microphysics_launches]
+ ldr x10,[x9]
+ add x10,x10,#1
+ str x10,[x9]
+ ldr x18,[sp,#96]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#1280
+ ret
+.size md2asm_gpu_host_cloud_microphysics,.-md2asm_gpu_host_cloud_microphysics
+.global cloudsc_
+.set cloudsc_,md2asm_gpu_host_cloud_microphysics
+.global md2asm_cloudsc_complete
+.set md2asm_cloudsc_complete,md2asm_gpu_host_cloud_microphysics
+.global md2asm_gpu_cloudsc_launch_count_get
+.type md2asm_gpu_cloudsc_launch_count_get,%function
+md2asm_gpu_cloudsc_launch_count_get:
+ adrp x9,:got:md2asm_gpu_cloud_microphysics_launches
+ ldr x9,[x9,:got_lo12:md2asm_gpu_cloud_microphysics_launches]
+ ldr x0,[x9]
+ ret
+.size md2asm_gpu_cloudsc_launch_count_get,.-md2asm_gpu_cloudsc_launch_count_get
+.Lcloud_failure:
+ bl abort
+ brk #0
+.section .rodata
+.Lcloud_entry: .asciz "md2asm_gpu_cloud_microphysics"
+.bss
+.balign 8
+.global md2asm_gpu_cloud_microphysics_launches
+.hidden md2asm_gpu_cloud_microphysics_launches
+md2asm_gpu_cloud_microphysics_launches: .zero 8
+.weak md2asm_exponential_native_calls_storage
+.weak md2asm_product_sum_fast_calls
+.weak md2asm_product_sum_wide_calls
+.section .note.GNU-stack,"",%progbits
