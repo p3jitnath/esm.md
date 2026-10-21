@@ -136,26 +136,66 @@ st.param.b64 [ma],%lower_pressure;st.param.b64 [mb],%pressure;st.param.u32 [esm_
 st.param.b64 [ma],%rg;st.param.b64 [mb],%dp;st.param.u32 [esm_accumulated_1],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_1);ld.param.b64 %gdp,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
  cvt.u64.u32 %index,%level;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;shl.b64 %index,%index,3;add.u64 %pointer,%v33,%index;ld.global.b64 %t0,[%pointer];
- { .param .u32 esm_accumulated_2;
-st.param.b64 [ma],%rd;st.param.b64 [mb],%T;st.param.u32 [esm_accumulated_2],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_2);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%rd;mov.b64 %inline_m_b,%T;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_0;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_0;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_0;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t1,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_0;
+INLINE_M_SLOW_0:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_0:
 }
  { .param .u32 esm_accumulated_3;
 st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_3],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_3);ld.param.b64 %rho,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
- { .param .u32 esm_accumulated_4;
-st.param.b64 [ma],%dt;st.param.b64 [mb],%gdp;st.param.u32 [esm_accumulated_4],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_4);ld.param.b64 %dtgdp,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%dt;mov.b64 %inline_m_b,%gdp;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_1;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_1;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_1;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %dtgdp,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_1;
+INLINE_M_SLOW_1:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %dtgdp,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_1:
 }
- { .param .u32 esm_accumulated_5;
-st.param.b64 [ma],%dt;st.param.b64 [mb],%rg;st.param.u32 [esm_accumulated_5],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_5);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%dt;mov.b64 %inline_m_b,%rg;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_2;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_2;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_2;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_2;
+INLINE_M_SLOW_2:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_2:
 }
  { .param .u32 esm_accumulated_6;
 st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_6],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_6);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
- { .param .u32 esm_accumulated_7;
-st.param.b64 [ma],%dp;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_7],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_7);ld.param.b64 %rdtgdp,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%dp;mov.b64 %inline_m_b,%t0;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_3;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_3;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_3;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %rdtgdp,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_3;
+INLINE_M_SLOW_3:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %rdtgdp,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_3:
 }
- { .param .u32 esm_accumulated_8;
-st.param.b64 [ma],%dt;st.param.b64 [mb],%rg;st.param.u32 [esm_accumulated_8],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_8);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%dt;mov.b64 %inline_m_b,%rg;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_4;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_4;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_4;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_4;
+INLINE_M_SLOW_4:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_4:
 }
  cvt.u64.u32 %index,%level;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;shl.b64 %index,%index,3;add.u64 %pointer,%v33,%index;ld.global.b64 %t1,[%pointer];
  cvt.u64.u32 %index,%above;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;shl.b64 %index,%index,3;add.u64 %pointer,%v33,%index;ld.global.b64 %t2,[%pointer];
@@ -174,15 +214,31 @@ st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_10],%f
  { .param .u32 esm_accumulated_11;
 st.param.b64 [ma],%T;st.param.b64 [mb],%r4water;st.param.u32 [esm_accumulated_11],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_11);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
- { .param .u32 esm_accumulated_12;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_12],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_12);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%t0;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_5;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_5;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_5;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_5;
+INLINE_M_SLOW_5:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_5:
 }
  { .param .u32 esm_accumulated_13;
 st.param.b64 [ma],%r5water;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_13],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_13);ld.param.b64 %facw,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
  ld.global.b64 %t0,[%row+144];
- { .param .u32 esm_accumulated_14;
-st.param.b64 [ma],%retv;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_14],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_14);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%retv;mov.b64 %inline_m_b,%t0;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_6;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_6;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_6;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_6;
+INLINE_M_SLOW_6:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_6:
 }
  { .param .u32 esm_accumulated_15;
 st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_15],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_15);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
@@ -190,15 +246,39 @@ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_acc
  { .param .u32 esm_accumulated_16;
 st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_16],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_16);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
- { .param .u32 esm_accumulated_17;
-st.param.b64 [ma],%facw;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_17],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_17);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%facw;mov.b64 %inline_m_b,%t0;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_7;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_7;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_7;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_7;
+INLINE_M_SLOW_7:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_7:
 }
  ld.global.b64 %t1,[%row+152];
- { .param .u32 esm_accumulated_18;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_18],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_18);ld.param.b64 %dqwater,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%t1;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_8;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_8;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_8;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %dqwater,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_8;
+INLINE_M_SLOW_8:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %dqwater,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_8:
 }
- { .param .u32 esm_accumulated_19;
-st.param.b64 [ma],%latent_water;st.param.b64 [mb],%dqwater;st.param.u32 [esm_accumulated_19],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_19);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%latent_water;mov.b64 %inline_m_b,%dqwater;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_9;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_9;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_9;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_9;
+INLINE_M_SLOW_9:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_9:
 }
  { .param .u32 esm_accumulated_20;
 st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_20],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_20);ld.param.b64 %corwater,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
@@ -206,15 +286,31 @@ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_acc
  { .param .u32 esm_accumulated_21;
 st.param.b64 [ma],%T;st.param.b64 [mb],%r4ice;st.param.u32 [esm_accumulated_21],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_21);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
- { .param .u32 esm_accumulated_22;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_22],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_22);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%t0;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_10;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_10;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_10;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_10;
+INLINE_M_SLOW_10:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_10:
 }
  { .param .u32 esm_accumulated_23;
 st.param.b64 [ma],%r5ice;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_23],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_23);ld.param.b64 %faci,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
  ld.global.b64 %t0,[%row+128];
- { .param .u32 esm_accumulated_24;
-st.param.b64 [ma],%retv;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_24],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_24);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%retv;mov.b64 %inline_m_b,%t0;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_11;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_11;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_11;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_11;
+INLINE_M_SLOW_11:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_11:
 }
  { .param .u32 esm_accumulated_25;
 st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_25],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_25);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
@@ -222,35 +318,83 @@ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_acc
  { .param .u32 esm_accumulated_26;
 st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_26],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_26);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
- { .param .u32 esm_accumulated_27;
-st.param.b64 [ma],%faci;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_27],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_27);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%faci;mov.b64 %inline_m_b,%t0;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_12;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_12;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_12;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_12;
+INLINE_M_SLOW_12:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_12:
 }
  ld.global.b64 %t1,[%row+136];
- { .param .u32 esm_accumulated_28;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_28],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_28);ld.param.b64 %dqice,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%t1;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_13;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_13;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_13;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %dqice,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_13;
+INLINE_M_SLOW_13:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %dqice,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_13:
 }
- { .param .u32 esm_accumulated_29;
-st.param.b64 [ma],%latent_ice;st.param.b64 [mb],%dqice;st.param.u32 [esm_accumulated_29],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_29);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%latent_ice;mov.b64 %inline_m_b,%dqice;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_14;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_14;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_14;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_14;
+INLINE_M_SLOW_14:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_14:
 }
  { .param .u32 esm_accumulated_30;
 st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_30],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_30);ld.param.b64 %corice,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
  ld.global.b64 %t0,[%row+104];
- { .param .u32 esm_accumulated_31;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%facw;st.param.u32 [esm_accumulated_31],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_31);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%facw;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_15;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_15;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_15;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t1,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_15;
+INLINE_M_SLOW_15:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_15:
 }
  { .param .u32 esm_accumulated_32;
 st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_32],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_32);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
- { .param .u32 esm_accumulated_33;
-st.param.b64 [ma],%t2;st.param.b64 [mb],%faci;st.param.u32 [esm_accumulated_33],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_33);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t2;mov.b64 %inline_m_b,%faci;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_16;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_16;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_16;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t2,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_16;
+INLINE_M_SLOW_16:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_16:
 }
  { .param .u32 esm_accumulated_34;
 st.param.b64 [ma],%t1;st.param.b64 [mb],%t2;st.param.u32 [esm_accumulated_34],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_34);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
  ld.global.b64 %t2,[%row+112];
- { .param .u32 esm_accumulated_35;
-st.param.b64 [ma],%retv;st.param.b64 [mb],%t2;st.param.u32 [esm_accumulated_35],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_35);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%retv;mov.b64 %inline_m_b,%t2;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_17;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_17;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_17;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t2,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_17;
+INLINE_M_SLOW_17:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_17:
 }
  { .param .u32 esm_accumulated_36;
 st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t2;st.param.u32 [esm_accumulated_36],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_36);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
@@ -258,27 +402,67 @@ st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t2;st.param.u32 [esm_acc
  { .param .u32 esm_accumulated_37;
 st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t2;st.param.u32 [esm_accumulated_37],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_37);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
- { .param .u32 esm_accumulated_38;
-st.param.b64 [ma],%t1;st.param.b64 [mb],%t2;st.param.u32 [esm_accumulated_38],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_38);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t1;mov.b64 %inline_m_b,%t2;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_18;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_18;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_18;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t1,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_18;
+INLINE_M_SLOW_18:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_18:
 }
  ld.global.b64 %t2,[%row+120];
- { .param .u32 esm_accumulated_39;
-st.param.b64 [ma],%t1;st.param.b64 [mb],%t2;st.param.u32 [esm_accumulated_39],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_39);ld.param.b64 %dqmix,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t1;mov.b64 %inline_m_b,%t2;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_19;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_19;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_19;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %dqmix,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_19;
+INLINE_M_SLOW_19:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %dqmix,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_19:
 }
- { .param .u32 esm_accumulated_40;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%latent_water;st.param.u32 [esm_accumulated_40],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_40);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%latent_water;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_20;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_20;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_20;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t1,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_20;
+INLINE_M_SLOW_20:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_20:
 }
  { .param .u32 esm_accumulated_41;
 st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_41],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_41);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
- { .param .u32 esm_accumulated_42;
-st.param.b64 [ma],%t2;st.param.b64 [mb],%latent_ice;st.param.u32 [esm_accumulated_42],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_42);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t2;mov.b64 %inline_m_b,%latent_ice;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_21;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_21;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_21;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t2,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_21;
+INLINE_M_SLOW_21:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_21:
 }
  { .param .u32 esm_accumulated_43;
 st.param.b64 [ma],%t1;st.param.b64 [mb],%t2;st.param.u32 [esm_accumulated_43],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_43);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
- { .param .u32 esm_accumulated_44;
-st.param.b64 [ma],%t1;st.param.b64 [mb],%dqmix;st.param.u32 [esm_accumulated_44],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_44);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t1;mov.b64 %inline_m_b,%dqmix;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_22;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_22;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_22;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t1,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_22;
+INLINE_M_SLOW_22:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_22:
 }
  { .param .u32 esm_accumulated_45;
 st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_45],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_45);ld.param.b64 %cormix,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
@@ -311,11 +495,27 @@ st.param.b64 [ma],%t0;st.param.b64 [mb],%corice;st.param.u32 [esm_accumulated_51
  { .param .u32 esm_accumulated_52;
 st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_52],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_52);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
- { .param .u32 esm_accumulated_53;
-st.param.b64 [ma],%ql;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_53],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_53);ld.param.b64 %liqcld,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%ql;mov.b64 %inline_m_b,%t0;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_23;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_23;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_23;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %liqcld,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_23;
+INLINE_M_SLOW_23:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %liqcld,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_23:
 }
- { .param .u32 esm_accumulated_54;
-st.param.b64 [ma],%qi;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_54],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_54);ld.param.b64 %icecld,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%qi;mov.b64 %inline_m_b,%t0;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_24;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_24;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_24;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %icecld,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_24;
+INLINE_M_SLOW_24:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %icecld,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_24:
 }
  { .param .u32 esm_accumulated_55;
 st.param.b64 [ma],%liqcld;st.param.b64 [mb],%icecld;st.param.u32 [esm_accumulated_55],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_55);ld.param.b64 %licld,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
@@ -347,8 +547,16 @@ SMALL_QL_READY:
 SMALL_QI_READY:
  setp.ge.u32 %p,%below,%N;@%p bra DETRAINMENT_READY;
  cvt.u64.u32 %index,%level;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;shl.b64 %index,%index,3;add.u64 %pointer,%v43,%index;ld.global.b64 %t0,[%pointer];
- { .param .u32 esm_accumulated_56;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%dtgdp;st.param.u32 [esm_accumulated_56],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_56);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%dtgdp;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_25;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_25;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_25;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_25;
+INLINE_M_SLOW_25:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_25:
 }
  cvt.u64.u32 %index,%level;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;shl.b64 %index,%index,3;add.u64 %pointer,%v43,%index;st.global.b64 [%pointer],%t0;
  shl.b64 %offset,%column64,2;add.u64 %pointer,%v37,%offset;ld.global.u32 %logical,[%pointer];setp.eq.u32 %p,%logical,0;@%p bra NO_DETRAINMENT;setp.le.f64 %p,%t0,0d3d06849b86a12b9b;@%p bra NO_DETRAINMENT;
@@ -361,8 +569,16 @@ st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_57],%f
 st.param.b64 [ma],%solac;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_58],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_58);ld.param.b64 %solac,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
  cvt.u64.u32 %index,%level;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;shl.b64 %index,%index,3;add.u64 %pointer,%v44,%index;ld.global.b64 %t0,[%pointer];
- { .param .u32 esm_accumulated_59;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%dtgdp;st.param.u32 [esm_accumulated_59],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_59);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%dtgdp;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_26;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_26;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_26;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_26;
+INLINE_M_SLOW_26:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_26:
 }
  st.global.b64 [%work+1664],%t0;
  ld.global.b64 %t1,[%work+1024];
@@ -371,8 +587,16 @@ st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_60],%f
 }
  st.global.b64 [%work+1024],%t1;
  cvt.u64.u32 %index,%level;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;mul.lo.u64 %offset,%plane_words,1;add.u64 %index,%index,%offset;shl.b64 %index,%index,3;add.u64 %pointer,%v44,%index;ld.global.b64 %t0,[%pointer];
- { .param .u32 esm_accumulated_61;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%dtgdp;st.param.u32 [esm_accumulated_61],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_61);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%dtgdp;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_27;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_27;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_27;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_27;
+INLINE_M_SLOW_27:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_27:
 }
  st.global.b64 [%work+1672],%t0;
  ld.global.b64 %t1,[%work+1072];
@@ -385,8 +609,16 @@ NO_DETRAINMENT:mov.b64 %t0,0;
  cvt.u64.u32 %index,%level;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;shl.b64 %index,%index,3;add.u64 %pointer,%v43,%index;st.global.b64 [%pointer],%t0;
 CONVECTIVE_SNOW:ld.global.u32 %logical,[%v1+268];setp.eq.u32 %p,%logical,0;@%p bra DETRAINMENT_READY;
  cvt.u64.u32 %index,%level;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;shl.b64 %index,%index,3;add.u64 %pointer,%v45,%index;ld.global.b64 %t0,[%pointer];
- { .param .u32 esm_accumulated_63;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%dtgdp;st.param.u32 [esm_accumulated_63],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_63);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%dtgdp;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_28;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_28;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_28;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_28;
+INLINE_M_SLOW_28:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_28:
 }
  st.global.b64 [%work+1680],%t0;
  ld.global.b64 %t1,[%work+1120];
@@ -395,8 +627,16 @@ st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_64],%f
 }
  st.global.b64 [%work+1120],%t1;
  cvt.u64.u32 %index,%level;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;mul.lo.u64 %offset,%plane_words,1;add.u64 %index,%index,%offset;shl.b64 %index,%index,3;add.u64 %pointer,%v45,%index;ld.global.b64 %t0,[%pointer];
- { .param .u32 esm_accumulated_65;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%dtgdp;st.param.u32 [esm_accumulated_65],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_65);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%dtgdp;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_29;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_29;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_29;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_29;
+INLINE_M_SLOW_29:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_29:
 }
  st.global.b64 [%work+1688],%t0;
  ld.global.b64 %t1,[%work+1168];
@@ -408,27 +648,67 @@ DETRAINMENT_READY:setp.le.u32 %p,%level,%cloud_top;@%p bra SUBSIDENCE_SOURCE_REA
  ld.global.b64 %advection_w,[%scratch+48];
  ld.global.b64 %advection_down,[%scratch+56];
  cvt.u64.u32 %index,%level;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;shl.b64 %index,%index,3;add.u64 %pointer,%v46,%index;ld.global.b64 %t0,[%pointer];
- { .param .u32 esm_accumulated_67;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%advection_w;st.param.u32 [esm_accumulated_67],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_67);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%advection_w;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_30;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_30;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_30;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_30;
+INLINE_M_SLOW_30:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_30:
 }
  cvt.u64.u32 %index,%level;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;shl.b64 %index,%index,3;add.u64 %pointer,%v47,%index;ld.global.b64 %t1,[%pointer];
- { .param .u32 esm_accumulated_68;
-st.param.b64 [ma],%t1;st.param.b64 [mb],%advection_down;st.param.u32 [esm_accumulated_68],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_68);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t1;mov.b64 %inline_m_b,%advection_down;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_31;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_31;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_31;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t1,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_31;
+INLINE_M_SLOW_31:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_31:
 }
  { .param .u32 esm_accumulated_69;
 st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_69],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_69);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
- { .param .u32 esm_accumulated_70;
-st.param.b64 [ma],%t2;st.param.b64 [mb],%dtgdp;st.param.u32 [esm_accumulated_70],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_70);ld.param.b64 %massflux,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t2;mov.b64 %inline_m_b,%dtgdp;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_32;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_32;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_32;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %massflux,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_32;
+INLINE_M_SLOW_32:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %massflux,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_32:
 }
  max.f64 %massflux,0d0000000000000000,%massflux;
  ld.global.b64 %t0,[%scratch+112];
- { .param .u32 esm_accumulated_71;
-st.param.b64 [ma],%massflux;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_71],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_71);ld.param.b64 %acust,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%massflux;mov.b64 %inline_m_b,%t0;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_33;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_33;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_33;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %acust,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_33;
+INLINE_M_SLOW_33:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %acust,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_33:
 }
  ld.global.b64 %t0,[%scratch+128];
- { .param .u32 esm_accumulated_72;
-st.param.b64 [ma],%massflux;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_72],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_72);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%massflux;mov.b64 %inline_m_b,%t0;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_34;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_34;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_34;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_34;
+INLINE_M_SLOW_34:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_34:
 }
  st.global.b64 [%work+1744],%t0;
  ld.global.b64 %t1,[%work+1664];
@@ -437,8 +717,16 @@ st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_73],%f
 }
  st.global.b64 [%work+1664],%t1;
  ld.global.b64 %t0,[%scratch+136];
- { .param .u32 esm_accumulated_74;
-st.param.b64 [ma],%massflux;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_74],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_74);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%massflux;mov.b64 %inline_m_b,%t0;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_35;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_35;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_35;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_35;
+INLINE_M_SLOW_35:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_35:
 }
  st.global.b64 [%work+1752],%t0;
  ld.global.b64 %t1,[%work+1672];
@@ -447,21 +735,45 @@ st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_75],%f
 }
  st.global.b64 [%work+1672],%t1;
  ld.global.b64 %t0,[%scratch+24];
- { .param .u32 esm_accumulated_76;
-st.param.b64 [ma],%t0;st.param.b64 [mb],0x3fe0000000000000;st.param.u32 [esm_accumulated_76],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_76);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,0x3fe0000000000000;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_36;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_36;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_36;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_36;
+INLINE_M_SLOW_36:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_36:
 }
  add.u64 %pointer,%row,-512;ld.global.b64 %t1,[%pointer];
  { .param .u32 esm_accumulated_77;
 st.param.b64 [ma],%t1;st.param.b64 [mb],%T;st.param.u32 [esm_accumulated_77],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_77);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
- { .param .u32 esm_accumulated_78;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_78],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_78);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%t1;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_37;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_37;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_37;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_37;
+INLINE_M_SLOW_37:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_37:
 }
  { .param .u32 esm_accumulated_79;
 st.param.b64 [ma],%t0;st.param.b64 [mb],%pressure;st.param.u32 [esm_accumulated_79],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_79);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
- { .param .u32 esm_accumulated_80;
-st.param.b64 [ma],%rg;st.param.b64 [mb],%t2;st.param.u32 [esm_accumulated_80],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_80);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%rg;mov.b64 %inline_m_b,%t2;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_38;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_38;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_38;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t1,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_38;
+INLINE_M_SLOW_38:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_38:
 }
  cvt.u64.u32 %index,%level;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;shl.b64 %index,%index,3;add.u64 %pointer,%v33,%index;ld.global.b64 %t2,[%pointer];
  cvt.u64.u32 %index,%above;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;shl.b64 %index,%index,3;add.u64 %pointer,%v33,%index;ld.global.b64 %t3,[%pointer];
@@ -472,18 +784,50 @@ st.param.b64 [ma],%t2;st.param.b64 [mb],%t3;st.param.u32 [esm_accumulated_81],%f
 st.param.b64 [ma],%t2;st.param.b64 [mb],%dt;st.param.u32 [esm_accumulated_82],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_82);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
  min.f64 %t1,%t1,%t2;
- { .param .u32 esm_accumulated_83;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%dt;st.param.u32 [esm_accumulated_83],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_83);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%dt;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_39;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_39;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_39;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_39;
+INLINE_M_SLOW_39:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_39:
 }
- { .param .u32 esm_accumulated_84;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_84],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_84);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%t1;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_40;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_40;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_40;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_40;
+INLINE_M_SLOW_40:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_40:
 }
  ld.global.b64 %t1,[%scratch+112];
- { .param .u32 esm_accumulated_85;
-st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_85],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_85);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t1;mov.b64 %inline_m_b,%t0;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_41;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_41;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_41;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_41;
+INLINE_M_SLOW_41:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_41:
 }
- { .param .u32 esm_accumulated_86;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%dqmix;st.param.u32 [esm_accumulated_86],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_86);ld.param.b64 %dqs,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%dqmix;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_42;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_42;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_42;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %dqs,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_42;
+INLINE_M_SLOW_42:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %dqs,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_42:
 }
  ld.global.b64 %t0,[%work+1744];
  { .param .u32 esm_accumulated_87;
@@ -556,18 +900,42 @@ SUBSIDENCE_SOURCE_READY:setp.ge.u32 %p,%below,%N;@%p bra SUBSIDENCE_SINK_READY;
  ld.global.b64 %advection_w,[%scratch+48];
  ld.global.b64 %advection_down,[%scratch+56];
  cvt.u64.u32 %index,%below;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;shl.b64 %index,%index,3;add.u64 %pointer,%v46,%index;ld.global.b64 %t0,[%pointer];
- { .param .u32 esm_accumulated_103;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%advection_w;st.param.u32 [esm_accumulated_103],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_103);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%advection_w;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_43;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_43;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_43;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_43;
+INLINE_M_SLOW_43:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_43:
 }
  cvt.u64.u32 %index,%below;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;shl.b64 %index,%index,3;add.u64 %pointer,%v47,%index;ld.global.b64 %t1,[%pointer];
- { .param .u32 esm_accumulated_104;
-st.param.b64 [ma],%t1;st.param.b64 [mb],%advection_down;st.param.u32 [esm_accumulated_104],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_104);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t1;mov.b64 %inline_m_b,%advection_down;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_44;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_44;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_44;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t1,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_44;
+INLINE_M_SLOW_44:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_44:
 }
  { .param .u32 esm_accumulated_105;
 st.param.b64 [ma],%t0;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_105],%flags;call.uni (math),md2asm_gpu_accumulated_add_status,(ma,mb,esm_accumulated_105);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
- { .param .u32 esm_accumulated_106;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%dtgdp;st.param.u32 [esm_accumulated_106],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_106);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%dtgdp;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_45;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_45;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_45;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_45;
+INLINE_M_SLOW_45:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_45:
 }
  max.f64 %t0,0d0000000000000000,%t0;
  { .param .u32 esm_accumulated_107;
@@ -586,32 +954,80 @@ st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_109],%
  st.global.b64 [%work+1272],%t1;
  st.global.b64 [%work+1712],%t0;
 SUBSIDENCE_SINK_READY:ld.global.b64 %t0,[%v0+8];
- { .param .u32 esm_accumulated_110;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%dt;st.param.u32 [esm_accumulated_110],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_110);ld.param.b64 %erosion_rate,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%dt;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_46;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_46;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_46;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %erosion_rate,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_46;
+INLINE_M_SLOW_46:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %erosion_rate,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_46:
 }
  shl.b64 %offset,%column64,2;add.u64 %pointer,%v39,%offset;ld.global.u32 %type,[%pointer];
  cvt.u64.u32 %index,%level;mul.lo.u64 %index,%index,%columns64;add.u64 %index,%index,%column64;shl.b64 %index,%index,3;add.u64 %pointer,%v43,%index;ld.global.b64 %t0,[%pointer];
  setp.le.f64 %p,%t0,0d3d06849b86a12b9b;@%p bra EROSION_RATE_READY;setp.lt.s32 %p,%type,2;@%p bra CHECK_DEEP_CONVECTION;shl.b64 %offset,%column64,3;add.u64 %pointer,%v41,%offset;ld.global.b64 %t0,[%pointer];setp.ge.f64 %p,%t0,0d4024000000000000;@%p bra CHECK_DEEP_CONVECTION;ld.global.b64 %t0,[%v0+16];
- { .param .u32 esm_accumulated_111;
-st.param.b64 [ma],0x4034000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_111],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_111);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,0x4034000000000000;mov.b64 %inline_m_b,%t0;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_47;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_47;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_47;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_47;
+INLINE_M_SLOW_47:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_47:
 }
- { .param .u32 esm_accumulated_112;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%erosion_rate;st.param.u32 [esm_accumulated_112],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_112);ld.param.b64 %erosion_rate,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%erosion_rate;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_48;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_48;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_48;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %erosion_rate,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_48;
+INLINE_M_SLOW_48:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %erosion_rate,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_48:
 }
  bra EROSION_RATE_READY;
 CHECK_DEEP_CONVECTION:setp.ne.u32 %p,%type,1;@%p bra EROSION_RATE_READY;ld.global.b64 %t0,[%v0+16];
- { .param .u32 esm_accumulated_113;
-st.param.b64 [ma],0x4000000000000000;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_113],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_113);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,0x4000000000000000;mov.b64 %inline_m_b,%t0;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_49;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_49;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_49;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_49;
+INLINE_M_SLOW_49:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_49:
 }
- { .param .u32 esm_accumulated_114;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%erosion_rate;st.param.u32 [esm_accumulated_114],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_114);ld.param.b64 %erosion_rate,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%erosion_rate;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_50;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_50;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_50;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %erosion_rate,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_50;
+INLINE_M_SLOW_50:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %erosion_rate,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_50:
 }
 EROSION_RATE_READY:
  ld.global.b64 %t0,[%row+176];
  setp.le.f64 %p,%t0,0d3d06849b86a12b9b;@%p bra EROSION_READY;
  ld.global.b64 %t1,[%row+120];
- { .param .u32 esm_accumulated_115;
-st.param.b64 [ma],%A;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_115],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_115);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%A;mov.b64 %inline_m_b,%t1;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_51;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_51;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_51;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t2,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_51;
+INLINE_M_SLOW_51:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_51:
 }
  { .param .u32 esm_accumulated_116;
 st.param.b64 [ma],%qv;st.param.b64 [mb],%t2;st.param.u32 [esm_accumulated_116],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_116);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
@@ -627,24 +1043,64 @@ st.param.b64 [ma],%t2;st.param.b64 [mb],%t3;st.param.u32 [esm_accumulated_118],%
 st.param.b64 [ma],%t1;st.param.b64 [mb],%t2;st.param.u32 [esm_accumulated_119],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_119);ld.param.b64 %t1,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
  max.f64 %t1,%t1,0d0000000000000000;
- { .param .u32 esm_accumulated_120;
-st.param.b64 [ma],0x3fd54fdf3b645a1d;st.param.b64 [mb],%A;st.param.u32 [esm_accumulated_120],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_120);ld.param.b64 %erosion,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,0x3fd54fdf3b645a1d;mov.b64 %inline_m_b,%A;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_52;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_52;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_52;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %erosion,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_52;
+INLINE_M_SLOW_52:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %erosion,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_52:
 }
  { .param .u32 esm_accumulated_121;
 st.param.b64 [ma],0x3ff0000000000000;st.param.b64 [mb],%A;st.param.u32 [esm_accumulated_121],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_121);ld.param.b64 %t2,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
- { .param .u32 esm_accumulated_122;
-st.param.b64 [ma],%erosion;st.param.b64 [mb],%t2;st.param.u32 [esm_accumulated_122],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_122);ld.param.b64 %erosion,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%erosion;mov.b64 %inline_m_b,%t2;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_53;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_53;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_53;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %erosion,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_53;
+INLINE_M_SLOW_53:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %erosion,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_53:
 }
- { .param .u32 esm_accumulated_123;
-st.param.b64 [ma],%erosion;st.param.b64 [mb],%erosion_rate;st.param.u32 [esm_accumulated_123],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_123);ld.param.b64 %erosion,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%erosion;mov.b64 %inline_m_b,%erosion_rate;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_54;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_54;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_54;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %erosion,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_54;
+INLINE_M_SLOW_54:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %erosion,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_54:
 }
- { .param .u32 esm_accumulated_124;
-st.param.b64 [ma],%erosion;st.param.b64 [mb],%t1;st.param.u32 [esm_accumulated_124],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_124);ld.param.b64 %erosion,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%erosion;mov.b64 %inline_m_b,%t1;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_55;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_55;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_55;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %erosion,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_55;
+INLINE_M_SLOW_55:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %erosion,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_55:
 }
  min.f64 %erosion,%erosion,%evapmix;min.f64 %erosion,%erosion,%t0;
- { .param .u32 esm_accumulated_125;
-st.param.b64 [ma],0x3fe0000000000000;st.param.b64 [mb],%erosion;st.param.u32 [esm_accumulated_125],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_125);ld.param.b64 %erosion_fraction,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,0x3fe0000000000000;mov.b64 %inline_m_b,%erosion;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_56;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_56;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_56;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %erosion_fraction,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_56;
+INLINE_M_SLOW_56:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %erosion_fraction,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_56:
 }
  { .param .u32 esm_accumulated_126;
 st.param.b64 [ma],%erosion_fraction;st.param.b64 [mb],%licld;st.param.u32 [esm_accumulated_126],%flags;call.uni (math),md2asm_gpu_accumulated_div_status,(ma,mb,esm_accumulated_126);ld.param.b64 %erosion_fraction,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
@@ -653,8 +1109,16 @@ st.param.b64 [ma],%erosion_fraction;st.param.b64 [mb],%licld;st.param.u32 [esm_a
 st.param.b64 [ma],%solac;st.param.b64 [mb],%erosion_fraction;st.param.u32 [esm_accumulated_127],%flags;call.uni (math),md2asm_gpu_accumulated_sub_status,(ma,mb,esm_accumulated_127);ld.param.b64 %solac,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
 }
  ld.global.b64 %t0,[%row+160];
- { .param .u32 esm_accumulated_128;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%erosion;st.param.u32 [esm_accumulated_128],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_128);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%erosion;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_57;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_57;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_57;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_57;
+INLINE_M_SLOW_57:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_57:
 }
  ld.global.b64 %t1,[%work+1056];
  { .param .u32 esm_accumulated_129;
@@ -667,8 +1131,16 @@ st.param.b64 [ma],%t1;st.param.b64 [mb],%t0;st.param.u32 [esm_accumulated_130],%
 }
  st.global.b64 [%work+1184],%t1;
  ld.global.b64 %t0,[%row+168];
- { .param .u32 esm_accumulated_131;
-st.param.b64 [ma],%t0;st.param.b64 [mb],%erosion;st.param.u32 [esm_accumulated_131],%flags;call.uni (math),md2asm_gpu_accumulated_mul_status,(ma,mb,esm_accumulated_131);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+ {
+.reg .b64 %inline_m_a,%inline_m_b,%inline_m_magnitude,%inline_m_delta;
+.reg .u32 %inline_m_test;.reg .pred %inline_m_p,%inline_m_q;.reg .f64 %inline_m_fa,%inline_m_fb,%inline_m_fr;
+mov.b64 %inline_m_a,%t0;mov.b64 %inline_m_b,%erosion;
+and.b32 %inline_m_test,%flags,16;setp.eq.u32 %inline_m_p,%inline_m_test,0;@%inline_m_p bra INLINE_M_SLOW_58;
+and.b64 %inline_m_magnitude,%inline_m_a,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_58;
+and.b64 %inline_m_magnitude,%inline_m_b,0x7fffffffffffffff;sub.u64 %inline_m_delta,%inline_m_magnitude,0x3370000000000000;setp.lt.u64 %inline_m_p,%inline_m_delta,0x1910000000000000;setp.eq.u64 %inline_m_q,%inline_m_magnitude,0;or.pred %inline_m_p,%inline_m_p,%inline_m_q;@!%inline_m_p bra INLINE_M_SLOW_58;
+mov.b64 %inline_m_fa,%inline_m_a;mov.b64 %inline_m_fb,%inline_m_b;mul.rn.f64 %inline_m_fr,%inline_m_fa,%inline_m_fb;mov.b64 %t0,%inline_m_fr;mov.u32 %raised,0;bra INLINE_M_DONE_58;
+INLINE_M_SLOW_58:st.param.b64 [ma],%inline_m_a;st.param.b64 [mb],%inline_m_b;call.uni (math),md2asm_gpu_mul_status,(ma,mb);ld.param.b64 %t0,[math];ld.param.u32 %raised,[math+8];or.b32 %flags,%flags,%raised;
+INLINE_M_DONE_58:
 }
  ld.global.b64 %t1,[%work+1096];
  { .param .u32 esm_accumulated_132;

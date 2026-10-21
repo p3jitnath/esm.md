@@ -31,7 +31,7 @@ Separate independent work across GPU blocks into preparation, workers and an ord
 
 Check the linked module’s constant-memory budget before combining large coefficient tables. When needed, store tables that stay unchanged in global memory, preserve every coefficient word, and prove that each calculated table index stays within its complete row.
 
-Use accumulated numerical flags to reduce repeated status reconstruction when a proof shows that an operation can add only flags already present. Prove that each returned additional flag is used only to update that same accumulated state. Keep the accumulated state local to its declared calculation, classify operand and result bits conservatively, and retain the complete qualified helper for all other cases. Preserve helper side effects and the original error-event and counter calls.
+Use accumulated numerical flags to reduce repeated status reconstruction when a proof shows that an operation can add only flags already present. Prove that each returned additional flag is used only to update that same accumulated state. Keep the accumulated state local to its declared calculation and classify operand and result bits conservatively. Place a checked common path at its caller when complete-parent measurements support it, retaining one full shared helper for other inputs. Capture operands before overwriting results and use private temporary registers and predicates. Reuse one template checked at operand boundaries across callers, reviewing register and code sizes. Preserve helper side effects and the original error-event and counter calls.
 
 ## Reuse Work Where Dependencies Permit
 
