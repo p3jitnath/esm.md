@@ -1,0 +1,39 @@
+// Contract: skills/md2asm-gpu/references/openifs/convection/parallel_convective_columns.md
+.version 8.5
+.target sm_90
+.address_size 64
+// Private integer coordination keeps each original column's FP64 instructions unchanged.
+// The caller supplies a zeroed 2176-byte owner and a fixed active-column mask.
+.visible .func (.param .align 8 .b8 result[8]) md2asm_gpu_convective_columns_any(.param .u64 coordination,.param .u32 phase,.param .u32 level,.param .u32 input_value)
+{
+.reg .pred %p;
+.reg .u32 %ph,%lev,%input,%column,%mask,%bit,%observed,%value,%failure,%unused;
+.reg .u64 %base,%slot,%offset,%start,%now,%elapsed;
+ld.param.u64 %base,[coordination];ld.param.u32 %ph,[phase];ld.param.u32 %lev,[level];ld.param.u32 %input,[input_value];
+mov.u32 %value,0;mov.u32 %failure,8890;
+setp.eq.u64 %p,%base,0;@%p bra DONE;
+setp.gt.u32 %p,%ph,1;@%p bra FAIL;
+setp.ge.u32 %p,%lev,64;@%p bra FAIL;
+mov.u32 %column,%ctaid.x;setp.ge.u32 %p,%column,32;@%p bra FAIL;
+ld.global.u32 %mask,[%base+8];mov.u32 %bit,1;shl.b32 %bit,%bit,%column;
+and.b32 %observed,%mask,%bit;setp.eq.u32 %p,%observed,0;@%p bra FAIL;
+ld.acquire.gpu.global.u32 %failure,[%base+12];setp.ne.u32 %p,%failure,0;@%p bra DONE;
+mul.wide.u32 %offset,%ph,1024;add.u64 %slot,%base,%offset;
+mul.wide.u32 %offset,%lev,16;add.u64 %slot,%slot,%offset;add.u64 %slot,%slot,128;
+setp.ne.u32 %p,%input,0;selp.u32 %input,1,0,%p;
+atom.acq_rel.gpu.global.or.b32 %unused,[%slot],%input;
+atom.release.gpu.global.or.b32 %unused,[%slot+4],%bit;
+mov.u64 %start,%clock64;
+WAIT:
+ld.acquire.gpu.global.u32 %observed,[%slot+4];setp.eq.u32 %p,%observed,%mask;@%p bra READY;
+ld.acquire.gpu.global.u32 %failure,[%base+12];setp.ne.u32 %p,%failure,0;@%p bra DONE;
+mov.u64 %now,%clock64;sub.u64 %elapsed,%now,%start;
+setp.ge.u64 %p,%elapsed,200000000;@%p bra FAIL;
+bra WAIT;
+READY:
+ld.acquire.gpu.global.u32 %value,[%slot];mov.u32 %failure,0;bra DONE;
+FAIL:
+mov.u32 %failure,8890;atom.release.gpu.global.or.b32 %unused,[%base+12],%failure;
+DONE:
+st.param.u32 [result],%value;st.param.u32 [result+4],%failure;ret;
+}

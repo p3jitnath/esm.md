@@ -1,0 +1,126 @@
+// Contract: skills/md2asm-gpu/references/openifs/convection/parallel_convective_columns.md
+.version 8.5
+.target sm_90
+.address_size 64
+.extern .func (.param .u32 result) md2asm_gpu_cumastrn_admit(.param .u64 vector,.param .u64 common_context);
+.extern .func (.param .u32 result) md2asm_gpu_cumastrn_arena_admit(.param .u64 vector,.param .u64 common_context,.param .u64 request,.param .u64 original_context);
+.extern .func (.param .align 8 .b8 returned[40]) md2asm_gpu_convective_column_values_convective_parallel(.param .u64 vector,.param .u64 record,.param .u64 scratch,.param .u64 column_coordination);
+.visible .entry md2asm_gpu_convective_columns_prepare(.param .u64 request,.param .u64 common_context)
+{
+.reg .pred %p,%q;
+.reg .u32 %w,%z,%flags,%mask;
+.reg .u64 %rq,%ctx,%v,%arena,%cap,%route,%probe,%rec,%n,%L,%first,%last,%active,%cells,%S,%stride,%coord,%g,%gr,%scratch,%source,%dest,%length,%width,%expected,%planes,%column,%end,%t,%u,%i,%j,%k,%off,%row,%EXP,%FAST,%WIDE,%counter,%seed;
+.param .u64 av,ac,ar,ao;.param .u32 admitted;
+mov.u32 %w,%ntid.x;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%ntid.y;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%ntid.z;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%nctaid.x;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%nctaid.y;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%nctaid.z;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%dynamic_smem_size;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%tid.x;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%ctaid.x;setp.ne.u32 %p,%w,0;@%p ret;
+ld.param.u64 %rq,[request];ld.param.u64 %ctx,[common_context];
+setp.eq.u64 %p,%rq,0;@%p ret;and.b64 %t,%rq,7;setp.ne.u64 %p,%t,0;@%p ret;add.u64 %end,%rq,40;setp.lt.u64 %p,%end,%rq;@%p ret;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p ret;
+setp.eq.u64 %p,%ctx,0;@%p ret;and.b64 %t,%ctx,7;setp.ne.u64 %p,%t,0;@%p ret;add.u64 %end,%ctx,64;setp.lt.u64 %p,%end,%ctx;@%p ret;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p ret;
+ld.global.u64 %v,[%rq];ld.global.u64 %arena,[%rq+8];ld.global.u64 %cap,[%rq+16];ld.global.u64 %route,[%rq+24];ld.global.u64 %probe,[%rq+32];
+setp.eq.u64 %p,%v,0;@%p ret;and.b64 %t,%v,7;setp.ne.u64 %p,%t,0;@%p ret;add.u64 %end,%v,544;setp.lt.u64 %p,%end,%v;@%p ret;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p ret;
+setp.eq.u64 %p,%arena,0;@%p ret;and.b64 %t,%arena,7;setp.ne.u64 %p,%t,0;@%p ret;add.u64 %end,%arena,67108864;setp.lt.u64 %p,%end,%arena;@%p ret;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p ret;
+setp.eq.u64 %p,%route,0;@%p ret;and.b64 %t,%route,7;setp.ne.u64 %p,%t,0;@%p ret;add.u64 %end,%route,8;setp.lt.u64 %p,%end,%route;@%p ret;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p ret;
+setp.eq.u64 %p,%probe,0;@%p ret;and.b64 %t,%probe,7;setp.ne.u64 %p,%t,0;@%p ret;add.u64 %end,%probe,64;setp.lt.u64 %p,%end,%probe;@%p ret;setp.gt.u64 %p,%end,0x7fffffffffffffff;@%p ret;
+setp.ne.u64 %p,%cap,67108864;@%p ret;ld.global.u64 %rec,[%ctx+48];ld.global.u64 %t,[%ctx+56];setp.ne.u64 %p,%t,320;@%p ret;
+st.param.u64 [av],%v;st.param.u64 [ac],%ctx;call.uni (admitted),md2asm_gpu_cumastrn_admit,(av,ac);ld.param.u32 %w,[admitted];setp.ne.u32 %p,%w,0;@%p ret;
+ld.global.u64 %source,[%v+56];ld.global.u32 %w,[%source];cvt.u64.u32 %n,%w;setp.gt.u64 %p,%n,32;@%p ret;ld.global.u64 %source,[%v+64];ld.global.u32 %w,[%source];cvt.u64.u32 %L,%w;setp.gt.u64 %p,%L,64;@%p ret;
+ld.global.u64 %source,[%v+40];ld.global.u32 %w,[%source];cvt.u64.u32 %first,%w;sub.u64 %first,%first,1;ld.global.u64 %source,[%v+48];ld.global.u32 %w,[%source];cvt.u64.u32 %last,%w;sub.u64 %last,%last,1;setp.gt.u64 %p,%first,%last;@%p ret;sub.u64 %active,%last,%first;add.u64 %active,%active,1;
+ld.global.u64 %t,[%probe+32];setp.ne.u64 %p,%t,%arena;@%p ret;ld.global.u64 %t,[%probe+40];setp.ne.u64 %p,%t,%cap;@%p ret;ld.global.u64 %t,[%probe+48];setp.ne.u64 %p,%t,%rec;@%p ret;
+st.param.u64 [av],%v;st.param.u64 [ac],%probe;st.param.u64 [ar],%rq;st.param.u64 [ao],%ctx;call.uni (admitted),md2asm_gpu_cumastrn_arena_admit,(av,ac,ar,ao);ld.param.u32 %w,[admitted];setp.ne.u32 %p,%w,0;@%p ret;
+mul.lo.u64 %cells,%n,%L;mul.lo.u64 %S,%cells,268;add.u64 %S,%S,7;and.b64 %S,%S,0xfffffffffffffff8;mad.lo.u64 %S,%n,248,%S;add.u64 %S,%S,16384;mul.lo.u64 %t,%cells,224;mad.lo.u64 %t,%n,84,%t;add.u64 %t,%t,7;and.b64 %t,%t,0xfffffffffffffff8;add.u64 %S,%S,%t;mul.lo.u64 %t,%n,28;add.u64 %t,%t,7;and.b64 %t,%t,0xfffffffffffffff8;add.u64 %S,%S,%t;mad.lo.u64 %S,%cells,232,%S;mad.lo.u64 %S,%n,48,%S;add.u64 %S,%S,4104;add.u64 %stride,%S,8191;and.b64 %stride,%stride,0xfffffffffffff000;mul.lo.u64 %t,%stride,%active;add.u64 %t,%t,65536;setp.gt.u64 %p,%t,%cap;@%p ret;
+mov.u64 %i,0;ZERO_HEADER:add.u64 %t,%arena,%i;st.global.u64 [%t],0;add.u64 %i,%i,8;setp.lt.u64 %p,%i,65536;@%p bra ZERO_HEADER;
+st.global.u64 [%arena],0x434f4e56434f4c31;st.global.u64 [%arena+16],%n;st.global.u64 [%arena+24],%L;st.global.u64 [%arena+32],%first;st.global.u64 [%arena+40],%active;st.global.u64 [%arena+48],%S;st.global.u64 [%arena+56],%stride;st.global.u64 [%arena+64],%v;st.global.u64 [%arena+72],%rec;ld.global.u32 %w,[%ctx+8];st.global.u32 [%arena+80],%w;
+add.u64 %coord,%arena,4096;st.global.u64 [%coord],0x434f4e56424f4f4c;cvt.u32.u64 %w,%active;mov.u32 %mask,0xffffffff;setp.eq.u32 %p,%w,32;@%p bra MASK_READY;mov.u32 %mask,1;shl.b32 %mask,%mask,%w;sub.u32 %mask,%mask,1;MASK_READY:st.global.u32 [%coord+8],%mask;
+mov.u64 %i,0;PREPARE_ROW:mad.lo.u64 %g,%i,%stride,%arena;add.u64 %g,%g,65536;mov.u64 %k,0;COPY_VECTOR:add.u64 %t,%v,%k;ld.global.u64 %u,[%t];add.u64 %t,%g,%k;st.global.u64 [%t],%u;add.u64 %k,%k,8;setp.lt.u64 %p,%k,544;@%p bra COPY_VECTOR;
+add.u64 %gr,%g,640;mov.u64 %k,0;COPY_RECORD:add.u64 %t,%rec,%k;ld.global.u64 %u,[%t];add.u64 %t,%gr,%k;st.global.u64 [%t],%u;add.u64 %k,%k,8;setp.lt.u64 %p,%k,320;@%p bra COPY_RECORD;
+add.u64 %t,%g,608;st.global.u64 [%g+40],%t;add.u64 %u,%first,%i;add.u64 %u,%u,1;cvt.u32.u64 %w,%u;st.global.u32 [%t],%w;add.u64 %t,%g,612;st.global.u64 [%g+48],%t;st.global.u32 [%t],%w;st.global.u64 [%g+1000],0;
+add.u64 %t,%g,616;st.global.u64 [%t],0;st.global.u64 [%gr+256],%t;mov.u64 %u,8;st.global.u64 [%gr+264],%u;
+add.u64 %t,%g,624;st.global.u64 [%t],0;st.global.u64 [%gr+272],%t;mov.u64 %u,8;st.global.u64 [%gr+280],%u;
+add.u64 %t,%g,632;st.global.u64 [%t],0;st.global.u64 [%gr+288],%t;mov.u64 %u,8;st.global.u64 [%gr+296],%u;
+add.u64 %i,%i,1;setp.lt.u64 %p,%i,%active;@%p bra PREPARE_ROW;fence.sc.sys;st.global.u64 [%route],0;ret;
+}
+.visible .entry md2asm_gpu_convective_columns_workers(.param .u64 request,.param .u64 common_context)
+{
+.reg .pred %p,%q;
+.reg .u32 %w,%z,%flags,%mask;
+.reg .u64 %rq,%ctx,%v,%arena,%cap,%route,%probe,%rec,%n,%L,%first,%last,%active,%cells,%S,%stride,%coord,%g,%gr,%scratch,%source,%dest,%length,%width,%expected,%planes,%column,%end,%t,%u,%i,%j,%k,%off,%row,%EXP,%FAST,%WIDE,%counter,%seed;
+.param .u64 av,ar,as,ap;.param .align 8 .b8 returned[40];
+mov.u32 %w,%ntid.x;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%ntid.y;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%ntid.z;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%nctaid.x;setp.ne.u32 %p,%w,32;@%p ret;
+mov.u32 %w,%nctaid.y;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%nctaid.z;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%dynamic_smem_size;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%tid.x;setp.ne.u32 %p,%w,0;@%p ret;
+ld.param.u64 %rq,[request];ld.global.u64 %route,[%rq+24];ld.global.u64 %t,[%route];setp.ne.u64 %p,%t,0;@%p ret;ld.global.u64 %arena,[%rq+8];ld.global.u64 %active,[%arena+40];mov.u32 %w,%ctaid.x;cvt.u64.u32 %i,%w;setp.ge.u64 %p,%i,%active;@%p ret;ld.global.u64 %stride,[%arena+56];mad.lo.u64 %g,%i,%stride,%arena;add.u64 %g,%g,65536;add.u64 %gr,%g,640;add.u64 %scratch,%g,4096;add.u64 %coord,%arena,4096;
+st.param.u64 [av],%g;st.param.u64 [ar],%gr;st.param.u64 [as],%scratch;st.param.u64 [ap],%coord;call.uni (returned),md2asm_gpu_convective_column_values_convective_parallel,(av,ar,as,ap);ld.param.u32 %w,[returned];st.global.u32 [%g+960],%w;ld.param.u32 %w,[returned+4];st.global.u32 [%g+964],%w;ld.param.u64 %t,[returned+8];st.global.u64 [%g+968],%t;ld.param.u64 %t,[returned+16];st.global.u64 [%g+976],%t;ld.param.u64 %t,[returned+24];st.global.u64 [%g+984],%t;ld.param.u64 %t,[returned+32];st.global.u64 [%g+992],%t;fence.sc.sys;st.global.u64 [%g+1000],1;ret;
+}
+.visible .entry md2asm_gpu_convective_columns_join(.param .u64 request,.param .u64 common_context)
+{
+.reg .pred %p,%q;
+.reg .u32 %w,%z,%flags,%mask;
+.reg .u64 %rq,%ctx,%v,%arena,%cap,%route,%probe,%rec,%n,%L,%first,%last,%active,%cells,%S,%stride,%coord,%g,%gr,%scratch,%source,%dest,%length,%width,%expected,%planes,%column,%end,%t,%u,%i,%j,%k,%off,%row,%EXP,%FAST,%WIDE,%counter,%seed;
+mov.u32 %w,%ntid.x;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%ntid.y;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%ntid.z;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%nctaid.x;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%nctaid.y;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%nctaid.z;setp.ne.u32 %p,%w,1;@%p ret;
+mov.u32 %w,%dynamic_smem_size;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%tid.x;setp.ne.u32 %p,%w,0;@%p ret;
+mov.u32 %w,%ctaid.x;setp.ne.u32 %p,%w,0;@%p ret;
+ld.param.u64 %rq,[request];ld.param.u64 %ctx,[common_context];ld.global.u64 %route,[%rq+24];ld.global.u64 %t,[%route];setp.ne.u64 %p,%t,0;@%p ret;ld.global.u64 %arena,[%rq+8];ld.global.u64 %v,[%arena+64];ld.global.u64 %rec,[%arena+72];ld.global.u64 %n,[%arena+16];ld.global.u64 %L,[%arena+24];ld.global.u64 %first,[%arena+32];ld.global.u64 %active,[%arena+40];ld.global.u64 %S,[%arena+48];ld.global.u64 %stride,[%arena+56];ld.global.u32 %flags,[%arena+80];ld.global.u32 %w,[%arena+4108];setp.ne.u32 %p,%w,0;@%p bra FALLBACK;mov.u64 %EXP,0;mov.u64 %FAST,0;mov.u64 %WIDE,0;mov.u64 %i,0;
+CHECK_ROW:mad.lo.u64 %g,%i,%stride,%arena;add.u64 %g,%g,65536;add.u64 %scratch,%g,4096;ld.global.u64 %t,[%g+1000];setp.ne.u64 %p,%t,1;@%p bra FALLBACK;ld.global.u32 %w,[%g+964];setp.ne.u32 %p,%w,0;@%p bra FALLBACK;ld.global.u64 %t,[%g+968];setp.ne.u64 %p,%t,0;@%p bra FALLBACK;ld.global.u32 %w,[%g+960];or.b32 %flags,%flags,%w;ld.global.u64 %t,[%g+976];add.u64 %EXP,%EXP,%t;ld.global.u64 %t,[%g+984];add.u64 %FAST,%FAST,%t;ld.global.u64 %t,[%g+992];add.u64 %WIDE,%WIDE,%t;mov.u64 %j,0;
+CHECK_OWNER:mul.lo.u64 %off,%j,32;add.u64 %row,%scratch,8192;add.u64 %row,%row,%off;ld.global.u64 %source,[%row+8];ld.global.u64 %length,[%row+16];ld.global.u64 %u,[%row+24];
+setp.eq.u64 %p,%j,0;@!%p bra GEOM_NEXT_0;ld.global.u64 %dest,[%v+88];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_0:
+setp.eq.u64 %p,%j,1;@!%p bra GEOM_NEXT_1;ld.global.u64 %dest,[%v+96];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_1:
+setp.eq.u64 %p,%j,2;@!%p bra GEOM_NEXT_2;ld.global.u64 %dest,[%v+136];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_2:
+setp.eq.u64 %p,%j,3;@!%p bra GEOM_NEXT_3;ld.global.u64 %dest,[%v+216];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_3:
+setp.eq.u64 %p,%j,4;@!%p bra GEOM_NEXT_4;ld.global.u64 %dest,[%v+224];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_4:
+setp.eq.u64 %p,%j,5;@!%p bra GEOM_NEXT_5;ld.global.u64 %dest,[%v+232];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_5:
+setp.eq.u64 %p,%j,6;@!%p bra GEOM_NEXT_6;ld.global.u64 %dest,[%v+240];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_6:
+setp.eq.u64 %p,%j,7;@!%p bra GEOM_NEXT_7;ld.global.u64 %dest,[%v+264];mov.u64 %width,4;mul.lo.u64 %expected,%n,4;bra GEOM_READY;GEOM_NEXT_7:
+setp.eq.u64 %p,%j,8;@!%p bra GEOM_NEXT_8;ld.global.u64 %dest,[%v+272];mov.u64 %width,4;mul.lo.u64 %expected,%n,4;bra GEOM_READY;GEOM_NEXT_8:
+setp.eq.u64 %p,%j,9;@!%p bra GEOM_NEXT_9;ld.global.u64 %dest,[%v+280];mov.u64 %width,4;mul.lo.u64 %expected,%n,4;bra GEOM_READY;GEOM_NEXT_9:
+setp.eq.u64 %p,%j,10;@!%p bra GEOM_NEXT_10;ld.global.u64 %dest,[%v+288];mov.u64 %width,4;mul.lo.u64 %expected,%n,4;bra GEOM_READY;GEOM_NEXT_10:
+setp.eq.u64 %p,%j,11;@!%p bra GEOM_NEXT_11;ld.global.u64 %dest,[%v+296];mov.u64 %width,4;mul.lo.u64 %expected,%n,4;bra GEOM_READY;GEOM_NEXT_11:
+setp.eq.u64 %p,%j,12;@!%p bra GEOM_NEXT_12;ld.global.u64 %dest,[%v+304];mov.u64 %width,4;mul.lo.u64 %expected,%n,4;bra GEOM_READY;GEOM_NEXT_12:
+setp.eq.u64 %p,%j,13;@!%p bra GEOM_NEXT_13;ld.global.u64 %dest,[%v+312];mov.u64 %width,4;mul.lo.u64 %expected,%n,4;bra GEOM_READY;GEOM_NEXT_13:
+setp.eq.u64 %p,%j,14;@!%p bra GEOM_NEXT_14;ld.global.u64 %dest,[%v+320];mov.u64 %width,4;mul.lo.u64 %expected,%n,4;bra GEOM_READY;GEOM_NEXT_14:
+setp.eq.u64 %p,%j,15;@!%p bra GEOM_NEXT_15;ld.global.u64 %dest,[%v+328];mov.u64 %width,4;mul.lo.u64 %expected,%n,4;bra GEOM_READY;GEOM_NEXT_15:
+setp.eq.u64 %p,%j,16;@!%p bra GEOM_NEXT_16;ld.global.u64 %dest,[%v+352];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_16:
+setp.eq.u64 %p,%j,17;@!%p bra GEOM_NEXT_17;ld.global.u64 %dest,[%v+360];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_17:
+setp.eq.u64 %p,%j,18;@!%p bra GEOM_NEXT_18;ld.global.u64 %dest,[%v+368];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_18:
+setp.eq.u64 %p,%j,19;@!%p bra GEOM_NEXT_19;ld.global.u64 %dest,[%v+376];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_19:
+setp.eq.u64 %p,%j,20;@!%p bra GEOM_NEXT_20;ld.global.u64 %dest,[%v+384];mov.u64 %width,8;mul.lo.u64 %expected,%n,32;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_20:
+setp.eq.u64 %p,%j,21;@!%p bra GEOM_NEXT_21;ld.global.u64 %dest,[%v+392];mov.u64 %width,8;mul.lo.u64 %expected,%n,16;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_21:
+setp.eq.u64 %p,%j,22;@!%p bra GEOM_NEXT_22;ld.global.u64 %dest,[%v+400];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_22:
+setp.eq.u64 %p,%j,23;@!%p bra GEOM_NEXT_23;ld.global.u64 %dest,[%v+408];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;add.u64 %t,%L,1;mul.lo.u64 %expected,%expected,%t;bra GEOM_READY;GEOM_NEXT_23:
+setp.eq.u64 %p,%j,24;@!%p bra GEOM_NEXT_24;ld.global.u64 %dest,[%v+416];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;add.u64 %t,%L,1;mul.lo.u64 %expected,%expected,%t;bra GEOM_READY;GEOM_NEXT_24:
+setp.eq.u64 %p,%j,25;@!%p bra GEOM_NEXT_25;ld.global.u64 %dest,[%v+424];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;bra GEOM_READY;GEOM_NEXT_25:
+setp.eq.u64 %p,%j,26;@!%p bra GEOM_NEXT_26;ld.global.u64 %dest,[%v+432];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_26:
+setp.eq.u64 %p,%j,27;@!%p bra GEOM_NEXT_27;ld.global.u64 %dest,[%v+440];mov.u64 %width,8;mul.lo.u64 %expected,%n,16;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_27:
+setp.eq.u64 %p,%j,28;@!%p bra GEOM_NEXT_28;ld.global.u64 %dest,[%v+448];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_28:
+setp.eq.u64 %p,%j,29;@!%p bra GEOM_NEXT_29;ld.global.u64 %dest,[%v+456];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_29:
+setp.eq.u64 %p,%j,30;@!%p bra GEOM_NEXT_30;ld.global.u64 %dest,[%v+464];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_30:
+setp.eq.u64 %p,%j,31;@!%p bra GEOM_NEXT_31;ld.global.u64 %dest,[%v+472];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_31:
+setp.eq.u64 %p,%j,32;@!%p bra GEOM_NEXT_32;ld.global.u64 %dest,[%v+480];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;bra GEOM_READY;GEOM_NEXT_32:
+setp.eq.u64 %p,%j,33;@!%p bra GEOM_NEXT_33;ld.global.u64 %dest,[%v+488];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;bra GEOM_READY;GEOM_NEXT_33:
+setp.eq.u64 %p,%j,34;@!%p bra GEOM_NEXT_34;ld.global.u64 %dest,[%v+496];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;bra GEOM_READY;GEOM_NEXT_34:
+setp.eq.u64 %p,%j,35;@!%p bra GEOM_NEXT_35;ld.global.u64 %dest,[%v+504];mov.u64 %width,8;mul.lo.u64 %expected,%n,8;mul.lo.u64 %expected,%expected,%L;bra GEOM_READY;GEOM_NEXT_35:
+GEOM_READY:ld.global.u64 %t,[%row];setp.ne.u64 %p,%t,%dest;@%p bra FALLBACK;setp.ne.u64 %p,%u,%width;@%p bra FALLBACK;setp.ne.u64 %p,%length,%expected;@%p bra FALLBACK;setp.lt.u64 %p,%source,%scratch;@%p bra FALLBACK;add.u64 %end,%source,%length;setp.lt.u64 %p,%end,%source;@%p bra FALLBACK;add.u64 %t,%scratch,%S;setp.gt.u64 %p,%end,%t;@%p bra FALLBACK;sub.u64 %t,%width,1;and.b64 %t,%t,%source;setp.ne.u64 %p,%t,0;@%p bra FALLBACK;add.u64 %j,%j,1;setp.lt.u64 %p,%j,36;@%p bra CHECK_OWNER;add.u64 %i,%i,1;setp.lt.u64 %p,%i,%active;@%p bra CHECK_ROW;
+mov.u64 %i,0;COMMIT_ROW:mad.lo.u64 %g,%i,%stride,%arena;add.u64 %g,%g,65536;add.u64 %scratch,%g,4096;add.u64 %column,%first,%i;mov.u64 %j,0;COMMIT_OWNER:mul.lo.u64 %off,%j,32;add.u64 %row,%scratch,8192;add.u64 %row,%row,%off;ld.global.u64 %dest,[%row];ld.global.u64 %source,[%row+8];ld.global.u64 %length,[%row+16];ld.global.u64 %width,[%row+24];setp.eq.u64 %p,%i,0;@%p bra BASE_IMAGE;mul.lo.u64 %t,%width,%n;div.u64 %planes,%length,%t;mov.u64 %k,0;MERGE_PLANE:mad.lo.u64 %off,%k,%n,%column;mul.lo.u64 %off,%off,%width;bra COPY_ELEMENT;BASE_IMAGE:mov.u64 %off,0;COPY_ELEMENT:add.u64 %t,%source,%off;setp.eq.u64 %p,%width,4;@%p bra COPY_INTEGER;ld.global.u64 %u,[%t];add.u64 %t,%dest,%off;st.global.u64 [%t],%u;bra ADVANCE;COPY_INTEGER:ld.global.u32 %w,[%t];add.u64 %t,%dest,%off;st.global.u32 [%t],%w;ADVANCE:setp.ne.u64 %p,%i,0;@%p bra NEXT_PLANE;add.u64 %off,%off,%width;setp.lt.u64 %p,%off,%length;@%p bra COPY_ELEMENT;bra NEXT_OWNER;NEXT_PLANE:add.u64 %k,%k,1;setp.lt.u64 %p,%k,%planes;@%p bra MERGE_PLANE;NEXT_OWNER:add.u64 %j,%j,1;setp.lt.u64 %p,%j,36;@%p bra COMMIT_OWNER;add.u64 %i,%i,1;setp.lt.u64 %p,%i,%active;@%p bra COMMIT_ROW;
+st.global.u32 [%ctx+8],%flags;
+ld.global.u64 %counter,[%rec+256];setp.eq.u64 %p,%counter,0;@%p bra COUNTER_NEXT_EXP;ld.global.u64 %t,[%counter];add.u64 %t,%t,%EXP;st.global.u64 [%counter],%t;COUNTER_NEXT_EXP:
+ld.global.u64 %counter,[%rec+272];setp.eq.u64 %p,%counter,0;@%p bra COUNTER_NEXT_FAST;ld.global.u64 %t,[%counter];add.u64 %t,%t,%FAST;st.global.u64 [%counter],%t;COUNTER_NEXT_FAST:
+ld.global.u64 %counter,[%rec+288];setp.eq.u64 %p,%counter,0;@%p bra COUNTER_NEXT_WIDE;ld.global.u64 %t,[%counter];add.u64 %t,%t,%WIDE;st.global.u64 [%counter],%t;COUNTER_NEXT_WIDE:
+st.global.u64 [%arena+8],3;fence.sc.sys;st.global.u64 [%route],1;ret;FALLBACK:fence.sc.sys;st.global.u64 [%route],2;ret;
+}

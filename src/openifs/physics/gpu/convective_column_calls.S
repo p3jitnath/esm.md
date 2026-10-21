@@ -112,7 +112,7 @@
  mov w3,#1
  mov w4,#1
  mov w5,#0
- bl md2asm_openifs_gpu_launch
+ bl md2asm_convective_parallel_dispatch
  ldr x18,[sp,#224]
  cbnz w0,.Ldraft_failure
  .if \release

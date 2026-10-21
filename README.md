@@ -62,7 +62,16 @@ The OpenIFS GPU extension has passed six complete 24-hour forecasts with combine
 
 Complete GPU timing candidates have a 14.13-second process limit, matching the accepted CPU median. A full verification screen may run for up to 60 seconds. The latest verification screen reached that limit before final outputs, so no complete GPU runtime or speedup is accepted.
 
-The [parallel radiation climatology stage](skills/md2asm-gpu/references/openifs/radiation/parallel_radiation_climatology.md) reproduces the accepted serial stage byte for byte, both normally and after a missing worker triggers recovery. The [parallel surface-column component](skills/md2asm-gpu/references/openifs/surface/parallel_surface_radiation_columns.md) preserves its retained complete-parent outputs, saved states and diagnostics. The [tile-fraction validation stage](skills/md2asm-gpu/references/openifs/radiation/surface_tile_validation.md) retains the original complete-parent outputs and first error state. The [gravity-wave column component](skills/md2asm-gpu/references/openifs/physics/gravity_wave_momentum_drag.md) preserves complete outputs, scratch and actual counters while calculating independent columns in parallel. The [parallel turbulence component](skills/md2asm-gpu/references/openifs/surface/turbulence_diffusion_entry.md) preserves complete model owners, actual counters and serial recovery while keeping each column’s vertical calculations in order.
+These GPU components pass their declared exact-output checks.
+
+| Component | Accepted scope |
+| --- | --- |
+| [Radiation climatology](skills/md2asm-gpu/references/openifs/radiation/parallel_radiation_climatology.md) | Complete stage and recovery after a missing worker |
+| [Surface radiation columns](skills/md2asm-gpu/references/openifs/surface/parallel_surface_radiation_columns.md) | Complete parent outputs, saved state and diagnostics |
+| [Tile-fraction validation](skills/md2asm-gpu/references/openifs/radiation/surface_tile_validation.md) | Complete parent outputs and first error state |
+| [Gravity-wave columns](skills/md2asm-gpu/references/openifs/physics/gravity_wave_momentum_drag.md) | Complete outputs, scratch and actual counters |
+| [Turbulence columns](skills/md2asm-gpu/references/openifs/surface/turbulence_diffusion_entry.md) | Complete model owners, actual counters and serial recovery |
+| [Convective columns](skills/md2asm-gpu/references/openifs/convection/parallel_convective_columns.md) | Complete owners, shared integer decisions, physical checks and actual counters |
 
 Separately, 257 distinct original routines have passed their component checks. The complete required-routine total and the number used on the GPU during a forecast remain under review, so these results do not give a completion percentage.
 

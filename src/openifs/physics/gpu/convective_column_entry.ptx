@@ -30,12 +30,16 @@ RANGE_DONE:st.param.u32 [result],%e;ret;
 SEPARATE_DONE:st.param.u32 [result],%e;ret;
 }
 .extern .func (.param .align 8 .b8 returned[40]) md2asm_gpu_convective_column_values(.param .u64 vector,.param .u64 record,.param .u64 scratch);
-.visible .func (.param .u32 returned) md2asm_gpu_cumastrn_admit(.param .u64 vector,.param .u64 common_context)
+.func (.param .u32 returned) md2asm_gpu_cumastrn_admit_span(.param .u64 vector,.param .u64 common_context,.param .u64 transport_request,.param .u64 original_context,.param .u32 full_capacity)
 {
+.reg .u32 %esm_mode,%esm_owner_limit;
+.reg .pred %esm_wide;
+ld.param.u32 %esm_mode,[full_capacity];setp.ne.u32 %esm_wide,%esm_mode,0;
+.reg .u64 %arena_span,%transport,%original_context,%original_scratch,%original_capacity,%route;
 .reg .u64 %args,%ctx,%v<68>,%record,%record_bytes,%constant<32>,%hook,%capacity,%temporary,%pointer,%word,%absolute,%bytes,%scratch,%required,%cells,%layer_bytes,%column_bytes,%integer_columns,%face_bytes,%species_bytes,%four_species,%random_bytes,%tracer_bytes,%tracer_columns,%owners,%a,%an,%b,%bn,%counter<3>;
 .reg .u32 %P,%N,%first,%last,%NRF,%T,%r,%r1,%ii,%jj,%error;.reg .pred %p;
 .local .align 8 .b8 owner_rows[2048];.param .u64 rb,rn,rm,da,dn,db,dm;.param .u32 rr;
-ld.param.u64 %args,[vector];ld.param.u64 %ctx,[common_context];
+ld.param.u64 %transport,[transport_request];ld.param.u64 %original_context,[original_context];ld.param.u64 %args,[vector];ld.param.u64 %ctx,[common_context];
 
  st.param.u64 [rb],%args;st.param.u64 [rn],544;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
 
@@ -574,8 +578,8 @@ mov.u32 %error,8803;setp.lt.u64 %p,%capacity,4;@%p bra ADMIT_DONE;
 
 mov.u32 %error,8803;ld.global.u32 %r,[%hook];setp.ne.u32 %p,%r,0;@%p bra ADMIT_DONE;
 mul.lo.u64 %required,%cells,268;add.u64 %required,%required,7;and.b64 %required,%required,0xfffffffffffffff8;mul.wide.u32 %temporary,%P,248;add.u64 %required,%required,%temporary;add.u64 %required,%required,16384;mul.lo.u64 %temporary,%cells,224;mul.wide.u32 %bytes,%P,84;add.u64 %temporary,%temporary,%bytes;add.u64 %temporary,%temporary,7;and.b64 %temporary,%temporary,0xfffffffffffffff8;add.u64 %required,%required,%temporary;mul.wide.u32 %temporary,%P,28;add.u64 %temporary,%temporary,7;and.b64 %temporary,%temporary,0xfffffffffffffff8;add.u64 %required,%required,%temporary;mul.lo.u64 %temporary,%cells,232;add.u64 %required,%required,%temporary;mul.wide.u32 %temporary,%P,48;add.u64 %required,%required,%temporary;add.u64 %required,%required,4104;ld.global.u64 %scratch,[%ctx+32];ld.global.u64 %capacity,[%ctx+40];
-mov.u32 %error,8803;setp.lt.u64 %p,%capacity,%required;@%p bra ADMIT_DONE;
- st.param.u64 [rb],%scratch;st.param.u64 [rn],%required;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
+selp.u64 %arena_span,%capacity,%required,%esm_wide;mov.u32 %error,8803;setp.lt.u64 %p,%capacity,%required;@%p bra ADMIT_DONE;
+ st.param.u64 [rb],%scratch;st.param.u64 [rn],%arena_span;st.param.u64 [rm],7;call.uni (rr),md2asm_gpu_cumastrn_range,(rb,rn,rm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
 
 ld.global.u64 %counter0,[%record+256];ld.global.u64 %capacity,[%record+264];setp.eq.u64 %p,%counter0,0;@%p bra COUNTER_ABSENT_0;
 mov.u32 %error,8803;setp.lt.u64 %p,%capacity,8;@%p bra ADMIT_DONE;
@@ -703,14 +707,33 @@ add.u64 %temporary,%owners,1600;st.u64 [%temporary],%v61;mov.u64 %bytes,%column_
 add.u64 %temporary,%owners,1616;st.u64 [%temporary],%v62;mov.u64 %bytes,%column_bytes;st.u64 [%temporary+8],%bytes;
 add.u64 %temporary,%owners,1632;st.u64 [%temporary],%v63;mov.u64 %bytes,%layer_bytes;st.u64 [%temporary+8],%bytes;
 add.u64 %temporary,%owners,1648;st.u64 [%temporary],%ctx;mov.u64 %bytes,64;st.u64 [%temporary+8],%bytes;
-add.u64 %temporary,%owners,1664;st.u64 [%temporary],%scratch;mov.u64 %bytes,%required;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1664;st.u64 [%temporary],%scratch;mov.u64 %bytes,%arena_span;st.u64 [%temporary+8],%bytes;
 add.u64 %temporary,%owners,1680;st.u64 [%temporary],%counter0;setp.eq.u64 %p,%counter0,0;selp.u64 %bytes,0,8,%p;st.u64 [%temporary+8],%bytes;
 add.u64 %temporary,%owners,1696;st.u64 [%temporary],%counter1;setp.eq.u64 %p,%counter1,0;selp.u64 %bytes,0,8,%p;st.u64 [%temporary+8],%bytes;
 add.u64 %temporary,%owners,1712;st.u64 [%temporary],%counter2;setp.eq.u64 %p,%counter2,0;selp.u64 %bytes,0,8,%p;st.u64 [%temporary+8],%bytes;
-mov.u32 %ii,67;MUTABLE_OWNER:mul.wide.u32 %temporary,%ii,16;add.u64 %pointer,%owners,%temporary;ld.u64 %a,[%pointer];ld.u64 %an,[%pointer+8];mov.u32 %jj,0;OWNER_PAIR:mul.wide.u32 %temporary,%jj,16;add.u64 %pointer,%owners,%temporary;ld.u64 %b,[%pointer];ld.u64 %bn,[%pointer+8];
+@!%esm_wide bra ESM_EXTRA_OWNERS_READY;ld.global.u64 %route,[%transport+24];ld.global.u64 %original_scratch,[%original_context+32];ld.global.u64 %original_capacity,[%original_context+40];
+add.u64 %temporary,%owners,1728;st.u64 [%temporary],%transport;mov.u64 %bytes,40;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1744;st.u64 [%temporary],%route;mov.u64 %bytes,8;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1760;st.u64 [%temporary],%original_context;mov.u64 %bytes,64;st.u64 [%temporary+8],%bytes;
+add.u64 %temporary,%owners,1776;st.u64 [%temporary],%original_scratch;mov.u64 %bytes,%original_capacity;st.u64 [%temporary+8],%bytes;
+ESM_EXTRA_OWNERS_READY:mov.u32 %ii,67;MUTABLE_OWNER:mul.wide.u32 %temporary,%ii,16;add.u64 %pointer,%owners,%temporary;ld.u64 %a,[%pointer];ld.u64 %an,[%pointer+8];mov.u32 %jj,0;OWNER_PAIR:mul.wide.u32 %temporary,%jj,16;add.u64 %pointer,%owners,%temporary;ld.u64 %b,[%pointer];ld.u64 %bn,[%pointer+8];
  st.param.u64 [da],%a;st.param.u64 [dn],%an;st.param.u64 [db],%b;st.param.u64 [dm],%bn;call.uni (rr),md2asm_gpu_cumastrn_disjoint,(da,dn,db,dm);ld.param.u32 %error,[rr];setp.ne.u32 %p,%error,0;@%p bra ADMIT_DONE;
 
-add.u32 %jj,%jj,1;setp.lt.u32 %p,%jj,%ii;@%p bra OWNER_PAIR;add.u32 %ii,%ii,1;setp.lt.u32 %p,%ii,108;@%p bra MUTABLE_OWNER;mov.u32 %error,0;ADMIT_DONE:st.param.u32 [returned],%error;ret;
+add.u32 %jj,%jj,1;setp.lt.u32 %p,%jj,%ii;@%p bra OWNER_PAIR;add.u32 %ii,%ii,1;selp.u32 %esm_owner_limit,112,108,%esm_wide;setp.lt.u32 %p,%ii,%esm_owner_limit;@%p bra MUTABLE_OWNER;mov.u32 %error,0;ADMIT_DONE:st.param.u32 [returned],%error;ret;
+}
+
+.visible .func (.param .u32 returned) md2asm_gpu_cumastrn_admit(.param .u64 vector,.param .u64 common_context)
+{
+.reg .u64 %v,%c,%r,%o;.reg .u32 %e;.param .u64 a,b,c,d;.param .u32 m,result;
+ld.param.u64 %v,[vector];ld.param.u64 %c,[common_context];mov.u64 %r,0;mov.u64 %o,0;
+st.param.u64 [a],%v;st.param.u64 [b],%c;st.param.u64 [c],%r;st.param.u64 [d],%o;st.param.u32 [m],0;call.uni (result),md2asm_gpu_cumastrn_admit_span,(a,b,c,d,m);ld.param.u32 %e,[result];st.param.u32 [returned],%e;ret;
+}
+
+.visible .func (.param .u32 returned) md2asm_gpu_cumastrn_arena_admit(.param .u64 vector,.param .u64 common_context,.param .u64 transport_request,.param .u64 original_context)
+{
+.reg .u64 %v,%c,%r,%o;.reg .u32 %e;.param .u64 a,b,c,d;.param .u32 m,result;
+ld.param.u64 %v,[vector];ld.param.u64 %c,[common_context];ld.param.u64 %r,[transport_request];ld.param.u64 %o,[original_context];
+st.param.u64 [a],%v;st.param.u64 [b],%c;st.param.u64 [c],%r;st.param.u64 [d],%o;st.param.u32 [m],1;call.uni (result),md2asm_gpu_cumastrn_admit_span,(a,b,c,d,m);ld.param.u32 %e,[result];st.param.u32 [returned],%e;ret;
 }
 
 .visible .entry md2asm_gpu_cumastrn(.param .u64 original_vector,.param .u64 context)
