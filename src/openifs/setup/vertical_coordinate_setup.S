@@ -1,6 +1,6 @@
 /* Contract: skills/md2asm/references/openifs/setup/vertical_coordinate_setup.md. */
-/* Selected source-ordered SUVV1 vertical-coordinate construction.
- * x0 Geometry17096B, x1 file A[0:19], x2 file B[0:19], x3 five outputs:
+/* Source-ordered SUVV1 construction for matched19 or137 levels.
+ * x0 Geometry17096B, x1 file A[0:N], x2 file B[0:N], x3 five outputs:
  * DVALH[201],DVBH[201],VVP00,VP00,TOPPRES; all FP64, disjoint and aligned.
  * w0=0 ready,1 allocation failure after cleanup,2 unsupported before mutation.
  * All 27 numerical owners are fresh; no source-unwritten payload is filled.
@@ -32,6 +32,9 @@ md2asm_initialize_vertical_coordinate_setup:
  ldr x10,[x0,#3264]
  cmp x10,x9
  b.ne .Lvertical_reject
+ ldr w9,[x0,#5224]
+ cmp w9,#137
+ b.eq .Lvertical137_begin
  adr x9,.Lvertical_controls
  mov x10,#0
 .Lvertical_control_check:
@@ -307,6 +310,283 @@ md2asm_initialize_vertical_coordinate_setup:
 .Lvertical_reject:
  mov w0,#2
  ret
+/* The N137 path preserves source order with complete138-word scratch. */
+.Lvertical137_begin:
+ adr x9,.Lvertical137_controls
+ mov x10,#0
+.Lvertical137_control_check:
+ ldp w11,w12,[x9],#8
+ ldr w13,[x0,w11,uxtw]
+ cmp w13,w12
+ b.ne .Lvertical137_reject
+ add x10,x10,#1
+ cmp x10,#8
+ b.lo .Lvertical137_control_check
+ adr x9,.Lvertical137_main_owners
+ mov x10,#0
+.Lvertical137_fresh_main:
+ ldr w11,[x9],#32
+ ldr x12,[x0,w11,uxtw]
+ cbnz x12,.Lvertical137_reject
+ add x10,x10,#1
+ cmp x10,#19
+ b.lo .Lvertical137_fresh_main
+ add x9,x0,#3,lsl#12
+ add x9,x9,#2536
+ mov x10,#0
+.Lvertical137_fresh_io:
+ ldr x11,[x9,x10]
+ cbnz x11,.Lvertical137_reject
+ add x10,x10,#64
+ cmp x10,#512
+ b.lo .Lvertical137_fresh_io
+ mov x9,#0
+.Lvertical137_output_addresses:
+ ldr x10,[x3,x9,lsl#3]
+ cbz x10,.Lvertical137_reject
+ tst x10,#7
+ b.ne .Lvertical137_reject
+ add x9,x9,#1
+ cmp x9,#5
+ b.lo .Lvertical137_output_addresses
+ mov x9,#0
+.Lvertical137_input_finite:
+ ldr x10,[x1,x9,lsl#3]
+ ubfx x10,x10,#52,#11
+ cmp x10,#2047
+ b.eq .Lvertical137_reject
+ ldr x10,[x2,x9,lsl#3]
+ ubfx x10,x10,#52,#11
+ cmp x10,#2047
+ b.eq .Lvertical137_reject
+ add x9,x9,#1
+ cmp x9,#138
+ b.lo .Lvertical137_input_finite
+ ldr d0,.Lvertical_epsilon
+ ldr d1,[x1,#1096]
+ fabs d1,d1
+ fcmp d1,d0
+ b.gt .Lvertical137_reject
+ ldr d1,[x2]
+ fabs d1,d1
+ fcmp d1,d0
+ b.gt .Lvertical137_reject
+ ldr d1,[x2,#1096]
+ fmov d2,#1.0
+ fsub d1,d1,d2
+ fabs d1,d1
+ fcmp d1,d0
+ b.gt .Lvertical137_reject
+ sub sp,sp,#2320
+ stp x29,x30,[sp]
+ mov x29,sp
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x18,[sp,#80]
+ mrs x9,fpsr
+ str x9,[sp,#96]
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ mov x22,x3
+ bl __errno_location
+ mov x27,x0
+ ldr w9,[x27]
+ str w9,[sp,#104]
+ adr x23,.Lvertical137_main_owners
+ mov x24,#0
+.Lvertical137_allocate:
+ cmp x24,#13
+ b.ne .Lvertical137_extent
+ mov w9,#135
+ str w9,[x19,#3068]
+.Lvertical137_extent:
+ ldr w9,[x23]
+ add x25,x19,w9,uxtw
+ ldp x10,x11,[x23,#8]
+ sub x26,x11,x10
+ add x26,x26,#1
+ ldr x12,[x23,#24]
+ cmp x12,#0
+ mov x13,#1
+ csel x12,x12,x13,ne
+ mul x0,x26,x12
+ lsl x0,x0,#3
+ bl malloc
+ cbz x0,.Lvertical137_failed
+ str x0,[x25]
+ ldr x10,[x23,#8]
+ ldr x11,[x23,#16]
+ ldr x12,[x23,#24]
+ neg x13,x10
+ cbz x12,.Lvertical137_descriptor_offset
+ sub x13,x13,x26
+.Lvertical137_descriptor_offset:
+ str x13,[x25,#8]
+ mov x13,#8
+ str x13,[x25,#16]
+ str xzr,[x25,#24]
+ mov w14,#0x301
+ cmp x12,#0
+ cinc w14,w14,ne
+ str w14,[x25,#28]
+ str x13,[x25,#32]
+ mov x13,#1
+ str x13,[x25,#40]
+ str x10,[x25,#48]
+ str x11,[x25,#56]
+ cbz x12,.Lvertical137_allocated
+ str x26,[x25,#64]
+ str x13,[x25,#72]
+ str x12,[x25,#80]
+.Lvertical137_allocated:
+ add x23,x23,#32
+ add x24,x24,#1
+ cmp x24,#19
+ b.lo .Lvertical137_allocate
+ add x9,x19,#16
+ str x9,[x19,#3240]
+ add x9,x19,#528
+ str x9,[x19,#3248]
+ add x9,x19,#848
+ str x9,[x19,#3256]
+ /* Source zeroes private arrays, computes defaults, then selects file input. */
+ mov x9,#0
+.Lvertical137_zero_private:
+ add x10,sp,#112
+ str xzr,[x10,x9,lsl#3]
+ add x10,sp,#1216
+ str xzr,[x10,x9,lsl#3]
+ add x9,x9,#1
+ cmp x9,#138
+ b.lo .Lvertical137_zero_private
+ ldr x9,[sp,#96]
+ msr fpsr,x9
+ mov w0,#1
+ mov w1,#137
+ add x2,sp,#112
+ add x3,sp,#1216
+ ldr x4,[x22,#16]
+ bl md2asm_initialize_default_hybrid_coefficients
+ cbnz w0,.Lvertical137_failed
+ ldp x4,x5,[x22]
+ mov x9,#0
+.Lvertical137_copy_defaults:
+ add x10,sp,#112
+ ldr x11,[x10,x9,lsl#3]
+ str x11,[x4,x9,lsl#3]
+ add x10,sp,#1216
+ ldr x11,[x10,x9,lsl#3]
+ str x11,[x5,x9,lsl#3]
+ add x9,x9,#1
+ cmp x9,#138
+ b.lo .Lvertical137_copy_defaults
+ ldr x9,[x22,#16]
+ ldr x10,[x9]
+ ldr x9,[x22,#24]
+ str x10,[x9]
+ ldr x9,[x22,#32]
+ ldr x10,.Lvertical_top_pressure
+ str x10,[x9]
+ mov x9,#0
+.Lvertical137_select_file:
+ ldr x10,[x20,x9,lsl#3]
+ str x10,[x4,x9,lsl#3]
+ ldr x10,[x21,x9,lsl#3]
+ str x10,[x5,x9,lsl#3]
+ add x9,x9,#1
+ cmp x9,#138
+ b.lo .Lvertical137_select_file
+ /* Preserve source comparison arithmetic after the exact file override. */
+ ldr d0,.Lvertical_epsilon
+ mov x9,#0
+.Lvertical137_source_checks_a:
+ ldr d1,[x4,x9,lsl#3]
+ ldr d2,[x20,x9,lsl#3]
+ fsub d1,d1,d2
+ fabs d1,d1
+ fcmp d1,d0
+ add x9,x9,#1
+ cmp x9,#138
+ b.lo .Lvertical137_source_checks_a
+ mov x9,#0
+.Lvertical137_source_checks_b:
+ ldr d1,[x5,x9,lsl#3]
+ ldr d2,[x21,x9,lsl#3]
+ fsub d1,d1,d2
+ fabs d1,d1
+ fcmp d1,d0
+ add x9,x9,#1
+ cmp x9,#138
+ b.lo .Lvertical137_source_checks_b
+ ldr d1,[x4,#1096]
+ fabs d1,d1
+ fcmp d1,d0
+ ldr d1,[x5]
+ fabs d1,d1
+ fcmp d1,d0
+ ldr d1,[x5,#1096]
+ fmov d2,#1.0
+ fsub d1,d1,d2
+ fabs d1,d1
+ fcmp d1,d0
+ ldr x6,[x19,#144]
+ ldr x7,[x19,#16]
+ ldr x8,[x19,#80]
+ ldr x9,[x22,#24]
+ ldr d0,[x9]
+ mov x9,#0
+.Lvertical137_main_interfaces:
+ ldr d1,[x4,x9,lsl#3]
+ str d1,[x6,x9,lsl#3]
+ fdiv d1,d1,d0
+ str d1,[x7,x9,lsl#3]
+ ldr d1,[x5,x9,lsl#3]
+ str d1,[x8,x9,lsl#3]
+ add x9,x9,#1
+ cmp x9,#138
+ b.lo .Lvertical137_main_interfaces
+ /* I/O coordinate owners follow every main allocation and conversion. */
+ mov x9,#0
+.Lvertical137_io_private:
+ ldr x10,[x4,x9,lsl#3]
+ add x11,sp,#112
+ str x10,[x11,x9,lsl#3]
+ ldr x10,[x5,x9,lsl#3]
+ add x11,sp,#1216
+ str x10,[x11,x9,lsl#3]
+ add x9,x9,#1
+ cmp x9,#138
+ b.lo .Lvertical137_io_private
+ add x0,x19,#3,lsl#12
+ add x0,x0,#2536
+ mov w1,#137
+ add x2,sp,#112
+ add x3,sp,#1216
+ bl md2asm_initialize_hybrid_coordinate_owners
+ cbnz w0,.Lvertical137_failed
+ mov w0,#0
+ b .Lvertical137_return
+.Lvertical137_failed:
+ mov x0,x19
+ bl md2asm_release_vertical_coordinate_setup
+ mov w0,#1
+.Lvertical137_return:
+ ldr w9,[sp,#104]
+ str w9,[x27]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x18,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#2320
+ ret
+.Lvertical137_reject:
+ mov w0,#2
+ ret
 .size md2asm_initialize_vertical_coordinate_setup,.-md2asm_initialize_vertical_coordinate_setup
 .p2align 4
 .global md2asm_release_vertical_coordinate_setup
@@ -369,4 +649,28 @@ md2asm_release_vertical_coordinate_setup:
  .quad 1528,1,19,21
  .quad 1616,1,19,21
  .quad 1088,1,20,21
+.p2align 3
+.Lvertical137_controls:
+ .word 5224,137,5252,137,3052,3,3056,4
+ .word 3060,3,3064,3,3076,1,3180,0
+.Lvertical137_main_owners:
+ .quad 16,0,137,0
+ .quad 144,0,137,0
+ .quad 80,0,137,0
+ .quad 208,1,137,0
+ .quad 464,1,137,0
+ .quad 528,0,137,0
+ .quad 656,0,138,0
+ .quad 592,0,137,0
+ .quad 720,0,138,0
+ .quad 272,1,137,0
+ .quad 336,1,137,0
+ .quad 400,1,137,0
+ .quad 784,1,137,0
+ .quad 848,1,135,0
+ .quad 1352,1,137,139
+ .quad 1440,1,137,139
+ .quad 1528,1,137,139
+ .quad 1616,1,137,139
+ .quad 1088,1,138,139
 .section .note.GNU-stack,"",%progbits
