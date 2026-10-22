@@ -58,6 +58,7 @@ md2asm_allocate_surface_field_owners:
  add x9,x9,#16
  subs w10,w10,#1
  b.ne .Lsurface_validate
+.Lsurface_operational_validated:
  sub sp,sp,#144
  stp x29,x30,[sp]
  stp x18,x19,[sp,#16]
@@ -264,6 +265,65 @@ md2asm_release_surface_field_owners:
  mov w0,#2
  ret
 .size md2asm_release_surface_field_owners,.-md2asm_release_surface_field_owners
+/* Allocate the complete operational shape after checking every source tuple.
+ * x0 is the 18,224-byte surface record; w1=17 and w2=388217.
+ * The original allocation, descriptor, zero and release paths are shared.
+ */
+.text
+.p2align 4
+.global md2asm_allocate_operational_surface_field_owners
+.type md2asm_allocate_operational_surface_field_owners,%function
+md2asm_allocate_operational_surface_field_owners:
+ cbz x0,.Lsurface_reject
+ tst x0,#7
+ b.ne .Lsurface_reject
+ mov x9,#18224
+ adds x9,x0,x9
+ b.cs .Lsurface_reject
+ cmp w1,#17
+ b.ne .Lsurface_reject
+ movz w9,#0xec79
+ movk w9,#5,lsl#16
+ cmp w2,w9
+ b.ne .Lsurface_reject
+ mrs x9,fpcr
+ cbnz x9,.Lsurface_reject
+ adr x9,.Lsurface_owners
+ adr x15,.Lsurface_operational_counts
+ mov w10,#34
+.Lsurface_operational_validate:
+ ldr w11,[x9]
+ add x11,x0,w11,uxtw
+ ldr w12,[x9,#12]
+ mov w13,#14
+ cmp w12,#4
+ b.ne .Lsurface_operational_empty
+ mov w13,#17
+.Lsurface_operational_empty:
+ ldr x14,[x11],#8
+ cbnz x14,.Lsurface_reject
+ subs w13,w13,#1
+ b.ne .Lsurface_operational_empty
+ ldr w11,[x9,#4]
+ ldr w11,[x0,w11,uxtw]
+ ldr w16,[x15]
+ cmp w11,w16
+ b.ne .Lsurface_reject
+ cmp w12,#4
+ b.ne .Lsurface_operational_next
+ ldr w11,[x9,#8]
+ ldr w11,[x0,w11,uxtw]
+ ldr w17,[x15,#4]
+ cmp w11,w17
+ b.ne .Lsurface_reject
+.Lsurface_operational_next:
+ add x9,x9,#16
+ add x15,x15,#8
+ subs w10,w10,#1
+ b.ne .Lsurface_operational_validate
+ b .Lsurface_operational_validated
+.size md2asm_allocate_operational_surface_field_owners,.-md2asm_allocate_operational_surface_field_owners
+
 .section .rodata
 .p2align 3
 .Lsurface_owners:
@@ -303,4 +363,41 @@ md2asm_release_surface_field_owners:
  .word 8512,8652,8656,4 /* SD_XP2 */
  .p2align 2
 .Lsurface_zero_order: .word 2,3,1,9
+
+.p2align 3
+.Lsurface_operational_counts:
+ .word 6,4 /* SP_SB */
+ .word 10,5 /* SP_SG */
+ .word 14,1 /* SP_SL */
+ .word 4,1 /* SP_RR */
+ .word 0,1 /* SP_CL */
+ .word 0,0 /* SP_OM */
+ .word 0,0 /* SP_EP */
+ .word 0,1 /* SP_X2 */
+ .word 0,1 /* SP_CI */
+ .word 38,1 /* SD_VF */
+ .word 0,1 /* SD_VP */
+ .word 0,1 /* SD_VV */
+ .word 5,1 /* SD_VN */
+ .word 0,1 /* SD_VH */
+ .word 0,1 /* SD_VK */
+ .word 0,1 /* SD_VA */
+ .word 0,1 /* SD_VC */
+ .word 0,1 /* SD_V2 */
+ .word 0,0 /* SD_V3 */
+ .word 272,1 /* SD_VD */
+ .word 0,0 /* SD_SM */
+ .word 3,1 /* SD_WS */
+ .word 6,1 /* SD_WW */
+ .word 0,1 /* SD_VX */
+ .word 0,0 /* SD_XA */
+ .word 0,0 /* SD_XR */
+ .word 0,1 /* SD_X2 */
+ .word 0,1 /* SD_SFL */
+ .word 0,1 /* SD_SFO */
+ .word 1,137 /* SD_PF */
+ .word 0,0 /* SD_DI */
+ .word 0,1 /* SD_OC */
+ .word 0,0 /* SD_XP */
+ .word 0,0 /* SD_XP2 */
 .section .note.GNU-stack,"",%progbits
