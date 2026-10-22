@@ -1,6 +1,7 @@
 /* Direct selected SUVFE_IMPLICITBC value boundaries.
  * Contract: skills/md2asm/references/openifs/setup/spline_value_boundary_contract.md. x0=top[2],x1=bottom[2],
- * x2=&order4,x3=&basis21..24,x4=pieces[basis,4,4].
+ * x2=&order (4), x3=&basis (21 through 24, or 139 or 140),
+ * x4=pieces[basis,4,4].
  * Return0 complete,2 rejected before mutation. No stack or external call.
  */
 .arch armv8-a
@@ -27,7 +28,8 @@ md2asm_spline_value_boundaries:
     ldr w5,[x3]
     sub w9,w5,#21
     cmp w9,#3
-    b.hi .Lreject
+    b.hi .Llarge_domain
+.Lboundary_flags:
     ldp w6,w9,[x0]
     cbnz w9,.Lreject
     cmp w6,#1
@@ -55,5 +57,10 @@ md2asm_spline_value_boundaries:
 .Lreject:
     mov w0,#2
     ret
+.Llarge_domain:
+    sub w9,w5,#139
+    cmp w9,#1
+    b.hi .Lreject
+    b .Lboundary_flags
 .size md2asm_spline_value_boundaries,.-md2asm_spline_value_boundaries
 .section .note.GNU-stack,"",%progbits

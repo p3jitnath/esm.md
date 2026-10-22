@@ -32,12 +32,13 @@ md2asm_vertical_spline_knots:
     cmp w7,w5
     b.lt .Lreject
     cmp w6,#24
-    b.gt .Lreject
+    b.gt .Llarge_domain
     cmp w7,#24
     b.gt .Lreject
     sub w8,w6,w5
     cmp w8,w7
     b.gt .Lreject
+ .Leta_setup:
     fmov d0,xzr
     fmov d1,#1.0
     mov x9,#0
@@ -134,5 +135,17 @@ md2asm_vertical_spline_knots:
 .Lreject:
     mov w0,#2
     ret
+.Llarge_domain:
+    cmp w5,#4
+    b.ne .Lreject
+    sub w9,w6,#139
+    cmp w9,#1
+    b.hi .Lreject
+    cmp w7,#139
+    b.ne .Lreject
+    sub w8,w6,w5
+    cmp w8,w7
+    b.gt .Lreject
+    b .Leta_setup
 .size md2asm_vertical_spline_knots,.-md2asm_vertical_spline_knots
 .section .note.GNU-stack,"",%progbits
