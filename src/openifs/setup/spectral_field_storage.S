@@ -18,11 +18,17 @@ md2asm_initialize_serial_spectral_field:
  b.ne .Lspec_reject
  tst x3,#3
  b.ne .Lspec_reject
+ cmp w2,#1279
+ b.ne .Lspec_legacy_dimensions
+ cmp w1,#137
+ b.eq .Lspec_dimensions_ready
+.Lspec_legacy_dimensions:
  sub w9,w1,#1
  cmp w9,#63
  b.hi .Lspec_reject
  cmp w2,#63
  b.hi .Lspec_reject
+.Lspec_dimensions_ready:
  mrs x9,fpcr
  cbnz x9,.Lspec_reject
  /* A fresh record is an explicit owned input, not a source type table. */

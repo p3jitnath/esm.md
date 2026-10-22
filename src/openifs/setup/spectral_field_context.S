@@ -9,11 +9,17 @@
 .global md2asm_create_serial_spectral_field
 .type md2asm_create_serial_spectral_field,%function
 md2asm_create_serial_spectral_field:
+ cmp w1,#1279
+ b.ne .Lspec_context_legacy_dimensions
+ cmp w0,#137
+ b.eq .Lspec_context_dimensions_ready
+.Lspec_context_legacy_dimensions:
  sub w9,w0,#1
  cmp w9,#63
  b.hi .Lspec_context_reject
  cmp w1,#63
  b.hi .Lspec_context_reject
+.Lspec_context_dimensions_ready:
  cbz x2,.Lspec_context_reject
  cbz x3,.Lspec_context_reject
  tst x2,#3
