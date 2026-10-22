@@ -139,7 +139,7 @@ The existing 9 km case has 137 atmospheric layers and 6,599,680 horizontal point
 | [Vertical system](skills/md2asm/references/openifs/setup/owned_vertical_system_contract.md) and [startup context](skills/md2asm/references/openifs/setup/vertical_startup_context.md) | Complete 137-layer operators, coordinate update, ownership and release |
 | [Latitude geometry](skills/md2asm/references/openifs/setup/operational_latitude_geometry.md) and [Laplacian setup](skills/md2asm/references/openifs/setup/serial_laplacian_setup.md) | Complete arrays and independent geometric relations |
 | [Field configuration](skills/md2asm/references/openifs/setup/operational_grid_field_configuration.md) and [field storage](skills/md2asm/references/openifs/setup/operational_grid_point_field_storage.md) | Complete namespace, control effects, raw model buffers and release |
-| [Serial block sizing](skills/md2asm/references/openifs/setup/operational_serial_block_size.md) | Original integer search selects 17 positions per block with one public-runtime thread |
+| [Complete serial partition setup](skills/md2asm/references/openifs/setup/serial_partition_map_contract.md) | All 36 arrays, public transform queries, 17-position blocks, complete maps and release |
 | [Inactive chemistry and aerosol storage](skills/md2asm/references/openifs/setup/inactive_composition_owners.md) | Complete defaults, the 152-byte allocated buffer and release |
 
 Surface-state conversion, complete horizontal geometry, enclosing model ownership, distribution, output and full CPU/GPU forecast acceptance remain unfinished. Native physics and GPU kernels still need qualified operational shapes. The earlier 14.13-second CPU result is for T21 and is not a 9 km timing.
