@@ -1,4 +1,4 @@
-/* Owned surface group initialization, revision 1.
+/* Owned surface group initialization, revision 2.
  * Contract: skills/md2asm/references/openifs/setup/surface_group_initialization.md.
  * x0 48-byte controls, x1 60-byte group, x2 fields, x3 field byte capacity.
  * No allocation or physical value is changed by this metadata stage. */
@@ -35,6 +35,8 @@ md2asm_initialize_surface_group:
  b.ne .Lsurface_group_reject
  b .Lsurface_group_logical
 .Lsurface_group_layers:
+ cmp w6,#137
+ b.eq .Lsurface_group_logical
  cmp w6,#64
  b.hi .Lsurface_group_reject
 .Lsurface_group_logical:
@@ -49,7 +51,12 @@ md2asm_initialize_surface_group:
  movk w13,#0xfffe,lsl#16
  ldr w12,[x0,#20]
  cmp w12,w13
+ b.eq .Lsurface_group_undefined_ok
+ mov w13,#48577
+ movk w13,#65520,lsl#16
+ cmp w12,w13
  b.ne .Lsurface_group_reject
+.Lsurface_group_undefined_ok:
  mov x8,#64
  mov x12,#288
  cmp w4,#2

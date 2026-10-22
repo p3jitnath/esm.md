@@ -1,4 +1,4 @@
-/* Owned layered surface field registration, revision 1.
+/* Owned layered surface field registration, revision 2.
  * Contract: skills/md2asm/references/openifs/setup/layered_surface_field_registration.md.
  * x0 group60, x1 field288, x2 trajectory408, x3 read-only plan40.
  * Source allocations contain identifiers, names, defaults and requests. */
@@ -40,9 +40,12 @@ md2asm_define_layered_surface_field:
  LAYERED_DISJOINT x1,x9,x3,x11
  LAYERED_DISJOINT x2,x10,x3,x11
  ldr w4,[x0,#8]
+ cmp w4,#137
+ b.eq .Llayered_level_ok
  sub w12,w4,#1
  cmp w12,#63
  b.hi .Llayered_reject
+.Llayered_level_ok:
  ldr w12,[x0,#56]
  cbnz w12,.Llayered_reject
  ldr w7,[x0,#12]

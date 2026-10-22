@@ -1,13 +1,98 @@
-/* Selected complete surface metadata ownership, revision 1.
+/* Complete selected and operational surface metadata ownership, revision 2.
  * Contract: skills/md2asm/references/openifs/setup/selected_surface_configuration.md.
  * Construct: x0 TSURF18224, x1 trajectory408, x2 TPHYDS46080, x3 TEPHY448.
+ * Operational entry adds x4 controls48 for levels137 and source-backed controls.
  * The input namespace is fresh zero. No original state or callable is used. */
 .arch armv8.2-a
 .text
 .p2align 4
+.global md2asm_construct_operational_surface_configuration
+.type md2asm_construct_operational_surface_configuration,%function
+md2asm_construct_operational_surface_configuration:
+ /* Read-only controls48 must be disjoint from all three output records. */
+ cbz x4,.Lsc_reject
+ tst x4,#7
+ b.ne .Lsc_reject
+ adds x8,x4,#48
+ b.cs .Lsc_reject
+ mov x9,#18224
+ adds x10,x0,x9
+ b.cs .Lsc_reject
+ cmp x4,x10
+ b.hs .Lsc_op_range_tr
+ cmp x0,x8
+ b.lo .Lsc_reject
+.Lsc_op_range_tr:
+ adds x10,x1,#408
+ b.cs .Lsc_reject
+ cmp x4,x10
+ b.hs .Lsc_op_range_pd
+ cmp x1,x8
+ b.lo .Lsc_reject
+.Lsc_op_range_pd:
+ mov x9,#46080
+ adds x10,x2,x9
+ b.cs .Lsc_reject
+ cmp x4,x10
+ b.hs .Lsc_op_controls
+ cmp x2,x8
+ b.lo .Lsc_reject
+.Lsc_op_controls:
+ ldr w9,[x4,#0]
+ mov w10,#137
+ cmp w9,w10
+ b.ne .Lsc_reject
+ ldr w9,[x4,#4]
+ mov w10,#48577
+ movk w10,#65520,lsl#16
+ cmp w9,w10
+ b.ne .Lsc_reject
+ ldr w9,[x4,#8]
+ cmp w9,#0
+ b.le .Lsc_reject
+ ldr w9,[x4,#12]
+ mov w10,#1
+ cmp w9,w10
+ b.ne .Lsc_reject
+ ldr w9,[x4,#16]
+ mov w10,#1
+ cmp w9,w10
+ b.ne .Lsc_reject
+ ldr w9,[x4,#20]
+ mov w10,#0
+ cmp w9,w10
+ b.ne .Lsc_reject
+ ldr w9,[x4,#24]
+ mov w10,#0
+ cmp w9,w10
+ b.ne .Lsc_reject
+ ldr w9,[x4,#28]
+ mov w10,#1
+ cmp w9,w10
+ b.ne .Lsc_reject
+ ldr w9,[x4,#32]
+ mov w10,#0
+ cmp w9,w10
+ b.ne .Lsc_reject
+ ldr w9,[x4,#36]
+ mov w10,#0
+ cmp w9,w10
+ b.ne .Lsc_reject
+ ldr w9,[x4,#40]
+ mov w10,#0
+ cmp w9,w10
+ b.ne .Lsc_reject
+ ldr w9,[x4,#44]
+ mov w10,#1
+ cmp w9,w10
+ b.ne .Lsc_reject
+ mov w17,#1
+ b .Lsc_shared_entry
 .global md2asm_construct_selected_surface_configuration
 .type md2asm_construct_selected_surface_configuration,%function
 md2asm_construct_selected_surface_configuration:
+ mov w17,#0
+.Lsc_shared_entry:
  mov x6,x3
  cbz x6,.Lsc_reject
  tst x6,#7
@@ -87,7 +172,8 @@ md2asm_construct_selected_surface_configuration:
  cmp w9,#0
  b.ne .Lsc_reject
  ldr w9,[x6,#376]
- cmp w9,#1
+ add w10,w17,#1
+ cmp w9,w10
  b.ne .Lsc_reject
 
  mrs x9,fpcr
@@ -107,6 +193,7 @@ md2asm_construct_selected_surface_configuration:
  stp x24,x25,[sp,#64]
  stp x26,x27,[sp,#80]
  str x28,[sp,#96]
+ str w17,[sp,#104]
  mov x29,sp
  mrs x9,fpcr
  str x9,[sp,#112]
@@ -169,6 +256,18 @@ md2asm_construct_selected_surface_configuration:
  stp x9,x10,[sp,#176]
  ldp w9,w10,[sp,#192]
  stp w9,w10,[sp,#156]
+ ldr w9,[sp,#104]
+ cbz w9,.Lsc_operational_ini_done
+ mov w9,#48577
+ movk w9,#65520,lsl#16
+ str w9,[sp,#164]
+ ldr w9,[x22]
+ mov w10,#17760
+ cmp w9,w10
+ b.ne .Lsc_operational_ini_done
+ mov w9,#137
+ str w9,[sp,#148]
+.Lsc_operational_ini_done:
  add x0,sp,#144
  mov x1,x28
  mov x2,x26
@@ -186,6 +285,33 @@ md2asm_construct_selected_surface_configuration:
  str w9,[sp,#132]
  ldr x9,[x22,#80]
  str x9,[sp,#136]
+ ldr w9,[sp,#104]
+ cbz w9,.Lsc_operational_plan_done
+ ldr w9,[x22]
+ mov w10,#8896
+ cmp w9,w10
+ b.ne .Lsc_operational_plan_ws
+ adrp x9,.Lsc_operational_vf
+ add x9,x9,:lo12:.Lsc_operational_vf
+ b .Lsc_operational_plan_store
+.Lsc_operational_plan_ws:
+ mov w10,#15248
+ cmp w9,w10
+ b.ne .Lsc_operational_plan_pf
+ mov w9,#3
+ str w9,[sp,#132]
+ adrp x9,.Lsc_operational_ws
+ add x9,x9,:lo12:.Lsc_operational_ws
+ b .Lsc_operational_plan_store
+.Lsc_operational_plan_pf:
+ mov w10,#17760
+ cmp w9,w10
+ b.ne .Lsc_operational_plan_done
+ adrp x9,.Lsc_operational_pf
+ add x9,x9,:lo12:.Lsc_operational_pf
+.Lsc_operational_plan_store:
+ str x9,[sp,#136]
+.Lsc_operational_plan_done:
  ldr w9,[sp,#132]
  cbz w9,.Lsc_finalize
 .Lsc_register:
@@ -223,6 +349,11 @@ md2asm_construct_selected_surface_configuration:
  mov x3,x19
  adrp x4,.Lsc_final_controls
  add x4,x4,:lo12:.Lsc_final_controls
+ ldr w9,[sp,#104]
+ cbz w9,.Lsc_operational_final_done
+ adrp x4,.Lsc_operational_final
+ add x4,x4,:lo12:.Lsc_operational_final
+.Lsc_operational_final_done:
  bl md2asm_finalize_surface_group
  str wzr,[x28,#48]
  cbnz w0,.Lsc_child_failed
@@ -237,6 +368,20 @@ md2asm_construct_selected_surface_configuration:
  add x0,x19,w9,uxtw
  ldr x1,[x19,w10,uxtw]
  ldr w9,[x22,#8]
+ ldr w10,[sp,#104]
+ cbz w10,.Lsc_operational_alias_done
+ ldr w10,[x22]
+ mov w11,#15392
+ cmp w10,w11
+ b.ne .Lsc_operational_alias_v
+ mov w9,#64
+ b .Lsc_operational_alias_done
+.Lsc_operational_alias_v:
+ mov w11,#15400
+ cmp w10,w11
+ b.ne .Lsc_operational_alias_done
+ mov w9,#128
+.Lsc_operational_alias_done:
  add x1,x1,w9,uxtw
  ldr w3,[x22,#12]
  cbz w3,.Lsc_bind_scalar
@@ -250,10 +395,14 @@ md2asm_construct_selected_surface_configuration:
  add x22,x22,#24
  subs w23,w23,#1
  b.ne .Lsc_bind_alias
+ ldr w11,[sp,#104]
  mov w9,#27
+ add w9,w9,w11,lsl#2
  mov w10,#9304
  str w9,[x19,x10]
  mov w9,#30
+ mov w10,#6
+ madd w9,w11,w10,w9
  mov w10,#9308
  str w9,[x19,x10]
  ldr w9,[sp,#192]
@@ -318,6 +467,7 @@ md2asm_construct_selected_surface_configuration:
  mov w0,#2
  ret
 .size md2asm_construct_selected_surface_configuration,.-md2asm_construct_selected_surface_configuration
+.size md2asm_construct_operational_surface_configuration,.-md2asm_construct_operational_surface_configuration
 
 /* This helper changes x0,x1,x9 only and preserves every other register. */
 .Lsc_zero:
@@ -3118,5 +3268,238 @@ md2asm_release_selected_surface_configuration:
  .word 32120,99,-999
  .word 32516,99,-999
  .word 46076,1,1
+
+.p2align 3
+.Lsc_operational_vf:
+ /* Source line 1129, YSD_VF%YZ0F. */
+ .word 31,173
+ .quad 4576918229304087675
+ .word 2,1
+ .ascii "SURFZ0.FOIS.G   "
+ /* Source line 1132, YSD_VF%YALBF. */
+ .word 31,174
+ .quad 4602678819172646912
+ .word 2,1
+ .ascii "SURFALBEDO      "
+ /* Source line 1135, YSD_VF%YEMISF. */
+ .word 30,0
+ .quad 4607137382803743703
+ .word 2,-1
+ .ascii "SURFEMISSIVITE  "
+ /* Source line 1138, YSD_VF%YGETRL. */
+ .word 27,160
+ .quad 0
+ .word 2,1
+ .ascii "SURFET.GEOPOTENT"
+ /* Source line 1141, YSD_VF%YLSM. */
+ .word 27,172
+ .quad 0
+ .word 2,1
+ .ascii "SURFIND.TERREMER"
+ /* Source line 1145, YSD_VF%YVRLAN. */
+ .word 27,161
+ .quad 0
+ .word 2,1
+ .ascii "SURFVAR.GEOP.ANI"
+ /* Source line 1148, YSD_VF%YVRLDI. */
+ .word 27,162
+ .quad 0
+ .word 2,1
+ .ascii "SURFVAR.GEOP.DIR"
+ /* Source line 1151, YSD_VF%YSIG. */
+ .word 27,163
+ .quad 0
+ .word 2,1
+ .ascii "SURFMEAN SLOPE  "
+ /* Source line 1154, YSD_VF%YLZ0H. */
+ .word 27,234
+ .quad 0
+ .word 2,1
+ .ascii "SURFLOGZ0H      "
+ /* Source line 1157, YSD_VF%YCVL. */
+ .word 27,27
+ .quad 0
+ .word 2,1
+ .ascii "LOW VEG. COVER  "
+ /* Source line 1160, YSD_VF%YCO2TYP. */
+ .word 31,129172
+ .quad 4613937818241073152
+ .word 2,1
+ .ascii "CO2 PHOTOS. TYPE"
+ /* Source line 1163, YSD_VF%YCVH. */
+ .word 31,28
+ .quad 4621374387125768684
+ .word 2,1
+ .ascii "HIGH VEG. COVER "
+ /* Source line 1166, YSD_VF%YCUR. */
+ .word 27,200199
+ .quad 0
+ .word 2,1
+ .ascii "URBAN COVER     "
+ /* Source line 1169, YSD_VF%YFWET. */
+ .word 27,200026
+ .quad 0
+ .word 2,-1
+ .ascii "WETLAND FRACTION"
+ /* Source line 1172, YSD_VF%YTVL. */
+ .word 27,29
+ .quad 0
+ .word 2,1
+ .ascii "LOW VEG. TYPE   "
+ /* Source line 1175, YSD_VF%YTVH. */
+ .word 27,30
+ .quad 0
+ .word 2,1
+ .ascii "HIGH VEG. TYPE  "
+ /* Source line 1178, YSD_VF%YLAIL. */
+ .word 27,66
+ .quad 0
+ .word 2,1
+ .ascii "LOW VEG. LAI    "
+ /* Source line 1181, YSD_VF%YLAIH. */
+ .word 27,67
+ .quad 0
+ .word 2,1
+ .ascii "HIGH VEG. LAI   "
+ /* Source line 1184, YSD_VF%YSOTY. */
+ .word 27,43
+ .quad 0
+ .word 2,1
+ .ascii "SOIL TYPE       "
+ /* Source line 1187, YSD_VF%YCLK. */
+ .word 27,26
+ .quad 0
+ .word 2,1
+ .ascii "LAKE COVER      "
+ /* Source line 1190, YSD_VF%YDL. */
+ .word 27,228007
+ .quad 0
+ .word 2,1
+ .ascii "LAKE DEPTH      "
+ /* Source line 1193, YSD_VF%YCI. */
+ .word 27,31
+ .quad 0
+ .word 2,1
+ .ascii "SEA ICE COVER   "
+ /* Source line 1198, YSD_VF%YSST. */
+ .word 31,34
+ .quad 4643897311074713600
+ .word 2,1
+ .ascii "SEA SURFACE TEMP"
+ /* Source line 1201, YSD_VF%YUCUR. */
+ .word 31,151131
+ .quad 0
+ .word 2,-1
+ .ascii "UCOM OCEAN CURRE"
+ /* Source line 1204, YSD_VF%YVCUR. */
+ .word 31,151132
+ .quad 0
+ .word 2,-1
+ .ascii "VCOM OCEAN CURRE"
+ /* Source line 1208, YSD_VF%YSDFOR. */
+ .word 27,74
+ .quad 0
+ .word 2,1
+ .ascii "SD FILTRED OROG "
+ /* Source line 1225, YSD_VF%YALUVP. */
+ .word 27,15
+ .quad 0
+ .word 2,-1
+ .ascii "M_ALB.UVis PARAL"
+ /* Source line 1229, YSD_VF%YALUVD. */
+ .word 27,16
+ .quad 0
+ .word 2,-1
+ .ascii "M_ALB.UVis DIFFU"
+ /* Source line 1233, YSD_VF%YALNIP. */
+ .word 27,17
+ .quad 0
+ .word 2,-1
+ .ascii "M_ALB.N-IR PARAL"
+ /* Source line 1237, YSD_VF%YALNID. */
+ .word 27,18
+ .quad 0
+ .word 2,-1
+ .ascii "M_ALB.N-IR DIFFU"
+ /* Source line 1243, YSD_VF%YALUVI. */
+ .word 27,210186
+ .quad 0
+ .word 2,1
+ .ascii "M_ALB.UVisPARALI"
+ /* Source line 1247, YSD_VF%YALUVV. */
+ .word 27,210187
+ .quad 0
+ .word 2,1
+ .ascii "M_ALB.UVisPARALV"
+ /* Source line 1251, YSD_VF%YALUVG. */
+ .word 27,210188
+ .quad 0
+ .word 2,1
+ .ascii "M_ALB.UVisPARALG"
+ /* Source line 1255, YSD_VF%YALNII. */
+ .word 27,210189
+ .quad 0
+ .word 2,1
+ .ascii "M_ALB.N-IRPARALI"
+ /* Source line 1259, YSD_VF%YALNIV. */
+ .word 27,210190
+ .quad 0
+ .word 2,1
+ .ascii "M_ALB.N-IRPARALV"
+ /* Source line 1263, YSD_VF%YALNIG. */
+ .word 27,210191
+ .quad 0
+ .word 2,1
+ .ascii "M_ALB.N-IRPARALG"
+ /* Source line 1441, YSD_VF%YCGPP. */
+ .word 27,228078
+ .quad 0
+ .word 2,-1
+ .ascii "GPP FLUX ADJ. CO"
+ /* Source line 1444, YSD_VF%YCREC. */
+ .word 27,228079
+ .quad 0
+ .word 2,-1
+ .ascii "REC FLUX ADJ. CO"
+.p2align 3
+.Lsc_operational_ws:
+ /* Source line 2639, YSD_WS%YCHAR. */
+ .word 31,148
+ .quad 4580845368179154747
+ .word 1,1
+ .ascii "CHARNOCK_PARAM  "
+.p2align 3
+ .word 6,0
+ .quad 0
+ .word 0,0
+ .ascii "U-STOKES_DRIFT  "
+ .word 6,0
+ .quad 0
+ .word 0,0
+ .ascii "V-STOKES_DRIFT  "
+.p2align 3
+.Lsc_operational_pf:
+ .word 7,0
+ .quad .Lsc_operational_pf_grib
+ .quad .Lsc_operational_pf_name
+ .quad .Lsc_operational_pf_default
+ .quad 0
+.Lsc_operational_final:
+ .word 1,-999999
+.p2align 3
+.Lsc_operational_pf_grib:
+ .rept 137
+ .word -999
+ .endr
+.p2align 3
+.Lsc_operational_pf_name:
+ .rept 137
+ .ascii "                "
+ .endr
+.p2align 3
+.Lsc_operational_pf_default:
+ .rept 137
+ .quad 0
+ .endr
 
 .section .note.GNU-stack,"",%progbits

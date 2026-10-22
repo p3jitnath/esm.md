@@ -1,4 +1,4 @@
-/* Owned surface group finalization, revision 1.
+/* Owned surface group finalization, revision 2.
  * Contract: skills/md2asm/references/openifs/setup/surface_group_finalization.md.
  * x0 group60, x1 fields, x2 byte capacity, x3 totals24, x4 controls8.
  * Only the returned metadata calculations are included; diagnostics are separate. */
@@ -67,8 +67,11 @@ md2asm_finalize_surface_group:
  mov w11,#1
  b .Lfinal_shape_ok
 .Lfinal_layered:
+ cmp w11,#137
+ b.eq .Lfinal_operational_layers
  cmp w11,#64
  b.hi .Lfinal_reject
+.Lfinal_operational_layers:
  cmp w14,#1
  b.ne .Lfinal_reject
  mov x9,#288
@@ -86,7 +89,12 @@ md2asm_finalize_surface_group:
  mov w15,#0x7961
  movk w15,#0xfffe,lsl #16
  cmp w14,w15
+ b.eq .Lfinal_undefined_ok
+ mov w15,#48577
+ movk w15,#65520,lsl#16
+ cmp w14,w15
  b.ne .Lfinal_reject
+.Lfinal_undefined_ok:
  cbz w10,.Lfinal_fields_valid
  mov w14,#1
  mov x15,x1
