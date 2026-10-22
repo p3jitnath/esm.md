@@ -1,6 +1,7 @@
 /* Consumed SUVFE_MATRIX knot intervals, direct owned-buffer utility.
  * Contract: skills/md2asm/references/openifs/setup/spline_knot_interval_contract.md. x0=counts[2],x1=input knots,
- * x2=weight knots,x3=&threshold,x4=records[55*32],x5=&record_count.
+ * x2=weight knots, x3=&threshold, x4=records, x5=&record_count.
+ * Records reserve 55 old slots or 287 slots for the exact new count pairs.
  * Records contain lower,upper,width FP64 and two int32 cumulative indices.
  * Return0 complete,2 rejected before mutation. No stack or external call.
  */
@@ -27,10 +28,11 @@ md2asm_spline_knot_intervals:
     ldp w6,w7,[x0]
     sub w9,w6,#25
     cmp w9,#3
-    b.hi .Lreject
+    b.hi .Llarge_domain
     sub w9,w7,#25
     cmp w9,#3
     b.hi .Lreject
+.Lcount_domain_done:
     mov x13,#0x3ff0000000000000
     mov x8,#0
     mov x14,#0
@@ -127,5 +129,17 @@ md2asm_spline_knot_intervals:
 .Lreject:
     mov w0,#2
     ret
+.Llarge_domain:
+    sub w9,w6,#143
+    cmp w9,#1
+    b.hi .Lreject
+    sub w9,w7,#143
+    cmp w9,#1
+    b.hi .Lreject
+    cmp w6,#144
+    b.ne .Lcount_domain_done
+    cmp w7,#144
+    b.ne .Lreject
+    b .Lcount_domain_done
 .size md2asm_spline_knot_intervals,.-md2asm_spline_knot_intervals
 .section .note.GNU-stack,"",%progbits
