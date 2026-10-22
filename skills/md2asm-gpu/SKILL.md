@@ -41,6 +41,8 @@ Assign independent field reductions to different threads while keeping each fiel
 
 Omit private register stores that every path overwrites before any read. Preserve required status fields, observable stack writes, and complete call and return records.
 
+Keep original array bounds and spacing in private buffers, initialise only cells read before their first write, and publish assigned cells while preserving other public cells in place. Retain required whole-array writes and their publication order.
+
 Copy disjoint buffers with aligned transfers of several bytes at once, followed by a bounded byte remainder. Retain the original buffer order and the qualified copy route for other admitted layouts. When replacing a copy loop with a helper, retain every final word, address, index and condition that later instructions use.
 
 Copy required initial boundary edges once before a nonempty batch when later update threads can publish their own corresponding ghosts. Reuse the same rounded result for an interior value and its ghosts. This can remove separate boundary launches while keeping a unique source for every copied cell.
