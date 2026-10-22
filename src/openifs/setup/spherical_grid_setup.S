@@ -39,6 +39,7 @@ md2asm_initialize_spherical_grid:
     mov x3, #7896
     ldr x4, [x0, x3]
     cbnz x4, .Lgrid_unsupported
+.Lgrid_construct:
     stp x29, x30, [sp, #-64]!
     mov x29, sp
     stp x19, x20, [sp, #16]
@@ -184,4 +185,74 @@ md2asm_initialize_spherical_grid:
     mov w0, #2
     ret
 .size md2asm_initialize_spherical_grid,.-md2asm_initialize_spherical_grid
+
+/* Operational one-process entry. The accepted arithmetic body is shared. */
+.p2align 4
+.global md2asm_initialize_operational_spherical_grid
+.type md2asm_initialize_operational_spherical_grid,%function
+md2asm_initialize_operational_spherical_grid:
+    cbz x0,.Lgrid_operational_reject
+    cbz x1,.Lgrid_operational_reject
+    orr x9,x0,x1
+    tst x9,#7
+    b.ne .Lgrid_operational_reject
+    mrs x9,fpcr
+    cbnz x9,.Lgrid_operational_reject
+    ldr w4,[x0,#4872]
+    mov w5,#2560
+    cmp w4,w5
+    b.ne .Lgrid_operational_reject
+    ldr w4,[x0,#4876]
+    mov w5,#2560
+    cmp w4,w5
+    b.ne .Lgrid_operational_reject
+    ldr w4,[x0,#4892]
+    mov w5,#1
+    cmp w4,w5
+    b.ne .Lgrid_operational_reject
+    ldr w4,[x0,#4908]
+    mov w5,#2560
+    cmp w4,w5
+    b.ne .Lgrid_operational_reject
+    ldr w4,[x0,#4936]
+    mov w5,#5136
+    cmp w4,w5
+    b.ne .Lgrid_operational_reject
+    ldr w4,[x0,#5172]
+    mov w5,#1279
+    cmp w4,w5
+    b.ne .Lgrid_operational_reject
+    ldr w4,[x0,#5144]
+    mov w5,#17
+    cmp w4,w5
+    b.ne .Lgrid_operational_reject
+    ldr w4,[x0,#5160]
+    movz w5,#60537
+    movk w5,#5,lsl#16
+    cmp w4,w5
+    b.ne .Lgrid_operational_reject
+    ldr w4,[x0,#7244]
+    mov w5,#0
+    cmp w4,w5
+    b.ne .Lgrid_operational_reject
+    ldr w4,[x1]
+    cmp w4,#1
+    b.ne .Lgrid_operational_reject
+    ldr w4,[x1,#4]
+    cmp w4,#1
+    b.ne .Lgrid_operational_reject
+    ldr x4,[x0,#7512]
+    mov x5,#0x3ff0000000000000
+    cmp x4,x5
+    b.ne .Lgrid_operational_reject
+    ldr x4,[x0,#7896]
+    cbnz x4,.Lgrid_operational_reject
+    ldr w4,[x0,#4892]
+    ldr w5,[x0,#4908]
+    sub w6,w5,w4
+    b .Lgrid_construct
+.Lgrid_operational_reject:
+    mov w0,#2
+    ret
+.size md2asm_initialize_operational_spherical_grid,.-md2asm_initialize_operational_spherical_grid
 .section .note.GNU-stack,"",%progbits
