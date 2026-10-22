@@ -1,7 +1,7 @@
 // Contract: skills/md2asm/references/openifs/setup/serial_laplacian_setup.md.
 // Construct serial spectral maps and spherical Laplacian factors from inputs.
 // Contract: skills/md2asm/references/openifs/setup/serial_laplacian_setup.md.
-// ABI: x0 owns an unassociated 576-byte TLAP record; w1 is N in 0..21;
+// ABI: x0 owns an unassociated 576-byte TLAP record; w1 is N in 0..21 or 1279;
 // d0 is the physical radius 6371229 metres. Return w0: 0 ready, 1 allocation
 // failure with all data pointers cleared, 2 unsupported N before mutation.
 // Bounds written before allocation failure can remain. Caller owns successful
@@ -11,8 +11,11 @@
 .global md2asm_initialize_serial_laplacian
 .type md2asm_initialize_serial_laplacian,%function
 md2asm_initialize_serial_laplacian:
+    cmp w1, #1279
+    b.eq .Llap_supported
     cmp w1, #21
     b.hi .Llap_domain_failed
+.Llap_supported:
     stp x29, x30, [sp, #-96]!
     mov x29, sp
     stp x19, x20, [sp, #16]
