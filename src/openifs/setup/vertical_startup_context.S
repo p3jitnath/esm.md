@@ -178,4 +178,194 @@ md2asm_release_vertical_startup_context:
 .size md2asm_release_vertical_startup_context,.-md2asm_release_vertical_startup_context
 .p2align 3
 .Lowned_vertical_magic: .quad 0x4d44325645525431
+
+/* BEGIN OPERATIONAL CONTEXT ADDITION
+ * Create owns a 20,400-byte zero namespace and 27 coordinate arrays.
+ * A and B each contain 138 words. Configuration contains six int32 words:
+ * levels, ECMWF, nonhydrostatic, two-dimensional, NVSCH and LVFE_GWMPA.
+ * Only its first four words are copied to the inline configuration area.
+ * Complete SUVERT remains a separate call with explicit scalar inputs.
+ */
+.text
+.p2align 4
+.global md2asm_create_operational_vertical_startup_context
+.type md2asm_create_operational_vertical_startup_context,%function
+md2asm_create_operational_vertical_startup_context:
+ cbz x0,.Lop_owned_vertical_reject
+ cbz x1,.Lop_owned_vertical_reject
+ cbz x2,.Lop_owned_vertical_reject
+ cbz x3,.Lop_owned_vertical_reject
+ orr x9,x0,x1
+ orr x9,x9,x2
+ orr x9,x9,x3
+ tst x9,#7
+ b.ne .Lop_owned_vertical_reject
+ adds x9,x0,#1104
+ b.cs .Lop_owned_vertical_reject
+ adds x9,x1,#1104
+ b.cs .Lop_owned_vertical_reject
+ adds x9,x2,#8
+ b.cs .Lop_owned_vertical_reject
+ adds x9,x3,#24
+ b.cs .Lop_owned_vertical_reject
+ mrs x9,fpcr
+ cbnz x9,.Lop_owned_vertical_reject
+ ldp w9,w10,[x3]
+ cmp w9,#137
+ b.ne .Lop_owned_vertical_reject
+ cmp w10,#1
+ b.ne .Lop_owned_vertical_reject
+ ldp w9,w10,[x3,#8]
+ orr w9,w9,w10
+ cbnz w9,.Lop_owned_vertical_reject
+ ldp w9,w10,[x3,#16]
+ cmp w9,#3
+ b.ne .Lop_owned_vertical_reject
+ cmp w10,#1
+ b.ne .Lop_owned_vertical_reject
+ sub sp,sp,#96
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x18,[sp,#64]
+ mov x29,sp
+ mov x20,x0
+ mov x21,x1
+ mov x22,x2
+ mov x23,x3
+ bl __errno_location
+ mov x24,x0
+ ldr w25,[x24]
+ mov x0,#20400
+ bl malloc
+ cbz x0,.Lop_owned_vertical_allocation_failed
+ mov x19,x0
+ mov x9,x0
+ mov x10,#1275
+.Lop_owned_vertical_zero_record:
+ stp xzr,xzr,[x9],#16
+ subs x10,x10,#1
+ b.ne .Lop_owned_vertical_zero_record
+ /* Empty descriptors and declaration RLAPL2PI=0 now have owned storage.
+  * Other Geometry components remain unconstructed canonical scratch. */
+ ldp x9,x10,[x23]
+ str x9,[x19,#20376]
+ str x10,[x19,#20384]
+ add x9,x19,#8
+ str x9,[x19]
+ add x9,x19,#3024
+ str x9,[x19,#3264]
+ mov w10,#137
+ str w10,[x19,#5224]
+ str w10,[x19,#5252]
+ mov x0,x9
+ mov w1,#1
+ mov w2,#0
+ mov w3,#0
+ bl md2asm_initialize_vertical_configuration
+ cbnz w0,.Lop_owned_vertical_child_failed
+ ldp w9,w10,[x23,#16]
+ str w9,[x19,#3048]
+ str w10,[x19,#3128]
+ add x9,x19,#4,lsl#12
+ add x9,x9,#3952
+ add x10,x19,#4,lsl#12
+ add x10,x10,#712
+ str x10,[x9]
+ add x10,x19,#4,lsl#12
+ add x10,x10,#2320
+ str x10,[x9,#8]
+ add x10,x19,#4,lsl#12
+ add x10,x10,#3928
+ str x10,[x9,#16]
+ add x10,x10,#8
+ str x10,[x9,#24]
+ add x10,x10,#8
+ str x10,[x9,#32]
+ str w25,[x24]
+ mov x0,x19
+ mov x1,x20
+ mov x2,x21
+ mov x3,x9
+ bl md2asm_initialize_vertical_coordinate_setup
+ cbnz w0,.Lop_owned_vertical_child_failed
+ ldr x9,.Lop_owned_vertical_magic
+ str x9,[x19,#20392]
+ str x19,[x22]
+ mov w0,#0
+ b .Lop_owned_vertical_return
+.Lop_owned_vertical_child_failed:
+ str w0,[sp,#80]
+ mov x0,x19
+ bl md2asm_release_vertical_coordinate_setup
+ mov x0,x19
+ bl free
+ ldr w0,[sp,#80]
+ b .Lop_owned_vertical_return
+.Lop_owned_vertical_allocation_failed:
+ mov w0,#1
+.Lop_owned_vertical_return:
+ str w25,[x24]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x18,[sp,#64]
+ ldp x29,x30,[sp]
+ add sp,sp,#96
+ ret
+.Lop_owned_vertical_reject:
+ mov w0,#2
+ ret
+.size md2asm_create_operational_vertical_startup_context,.-md2asm_create_operational_vertical_startup_context
+.p2align 4
+.p2align 4
+.global md2asm_release_operational_vertical_startup_context
+.type md2asm_release_operational_vertical_startup_context,%function
+md2asm_release_operational_vertical_startup_context:
+ cbz x0,.Lop_owned_vertical_release_reject
+ tst x0,#7
+ b.ne .Lop_owned_vertical_release_reject
+ ldr x9,[x0,#20392]
+ ldr x10,.Lop_owned_vertical_magic
+ cmp x9,x10
+ b.ne .Lop_owned_vertical_release_reject
+ sub sp,sp,#80
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x18,[sp,#32]
+ mov x29,sp
+ mov x19,x0
+ mrs x9,fpcr
+ str x9,[sp,#48]
+ mrs x9,fpsr
+ str x9,[sp,#56]
+ bl __errno_location
+ mov x20,x0
+ ldr w21,[x20]
+ str xzr,[x19,#20392]
+ mov x0,x19
+ bl md2asm_release_owned_vertical_system
+ mov x0,x19
+ bl md2asm_release_vertical_coordinate_setup
+ mov x0,x19
+ bl free
+ str w21,[x20]
+ ldr x9,[sp,#48]
+ msr fpcr,x9
+ ldr x9,[sp,#56]
+ msr fpsr,x9
+ mov w0,#0
+ ldp x19,x20,[sp,#16]
+ ldp x21,x18,[sp,#32]
+ ldp x29,x30,[sp]
+ add sp,sp,#80
+ ret
+.Lop_owned_vertical_release_reject:
+ mov w0,#2
+ ret
+.size md2asm_release_operational_vertical_startup_context,.-md2asm_release_operational_vertical_startup_context
+.p2align 3
+.Lop_owned_vertical_magic: .quad 0x4d44325645523137
+/* END OPERATIONAL CONTEXT ADDITION */
 .section .note.GNU-stack,"",%progbits
