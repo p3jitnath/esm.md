@@ -60,7 +60,7 @@ Reject a mismatch before timing and report its first stage, step, field, cell, a
 
 Run all development, file work, simulations and benchmarks through `srun` in an owned, verified exclusive allocation on a quiet compute node. Use the [Slurm allocation rules](https://slurm.schedmd.com/salloc.html). Check node exclusivity and load before timing, stop disturbed measurements, and record the job ID, node, affinity, memory placement, and observed load. Keep compilation and model inference outside timed work, and exclude login nodes and unallocated nodes from benchmarking.
 
-Cancel a GPU forecast candidate when its complete-process wall time exceeds the accepted CPU forecast for the same workload. Set an explicit process timeout before launch. Improve a slower candidate through bounded component work before another full-forecast screen. Record the cutoff and cancellation locally, and do not count an interrupted forecast as verified.
+Cancel an ordinary GPU forecast candidate when its complete-process wall time exceeds the accepted CPU forecast for the same workload. For the current progress diagnostics, the user permits a 120-second cutoff. Reaching model step 8 or later meets the current progress target. A step entry marks its start, so it does not prove that the step finished. Set an explicit process timeout before launch. Improve a slower candidate through bounded component work before another full-forecast screen. Record the cutoff and cancellation locally, and do not count an interrupted forecast as verified.
 
 During an active allocation, check the allocation and forecast status at intervals of at most five minutes. Use a four-minute target to allow time for each check.
 
