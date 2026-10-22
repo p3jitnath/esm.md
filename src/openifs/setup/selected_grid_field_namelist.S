@@ -1,4 +1,4 @@
-/* Parse the six selected NAMGFL assignments into nine owned source profiles.
+/* Parse the nine supported NAMGFL assignments into nine owned source profiles.
  * x0 text[1..262144],x1 bytes,x2 profiles[2304],8-byte aligned and disjoint.
  * Return 0/2; output is unchanged on failure. Contract is in the repository.
  * The 2400-byte aligned frame owns a temporary copy; no external/FP calls.
@@ -238,7 +238,7 @@ md2asm_apply_selected_grid_field_namelist:
  ret
 .Lnamgfl_lookup:
  adr x9,.Lnamgfl_keys
- mov w10,#6
+ mov w10,#9
 .Lnamgfl_lookup_row:
  ldr w11,[x9,#16]
  cmp x1,x11
@@ -361,4 +361,13 @@ md2asm_apply_selected_grid_field_namelist:
  .ascii "ys_nl%nreqin"
  .zero 4
  .word 12,788,1,0
+ .ascii "yl_nl%lgp"
+ .zero 7
+ .word 9,300,0,0
+ .ascii "yi_nl%lgp"
+ .zero 7
+ .word 9,556,0,0
+ .ascii "ya_nl%lgp"
+ .zero 7
+ .word 9,1324,0,0
 .section .note.GNU-stack,"",%progbits
