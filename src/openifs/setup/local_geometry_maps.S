@@ -330,4 +330,287 @@ md2asm_local_geometry_native_count_get:
 .p2align 3
 .Lnative_count:
  .zero 8
+
+/* Exact operational SUGEM3: 2,560 physical rows and two global halo rows.
+ * The original entry, helper and adapter stay unchanged.
+ */
+.text
+.p2align 4
+.global md2asm_initialize_operational_local_geometry_maps
+.type md2asm_initialize_operational_local_geometry_maps,%function
+md2asm_initialize_operational_local_geometry_maps:
+ cbz x0,.Loplocal_reject
+ tst x0,#7
+ b.ne .Loplocal_reject
+ mov x9,#17096
+ adds x9,x0,x9
+ b.cs .Loplocal_reject
+ cmp w1,#1
+ b.ne .Loplocal_reject
+ ldr w9,[x0,#4888]
+ cmn w9,#1
+ b.ne .Loplocal_reject
+ ldr w9,[x0,#4904]
+ cmp w9,#2562
+ b.ne .Loplocal_reject
+ ldr w9,[x0,#4892]
+ cmp w9,#1
+ b.ne .Loplocal_reject
+ ldr w9,[x0,#4876]
+ cmp w9,#2560
+ b.ne .Loplocal_reject
+ ldr w9,[x0,#4908]
+ cmp w9,#2560
+ b.ne .Loplocal_reject
+ ldr w9,[x0,#7232]
+ cbnz w9,.Loplocal_reject
+ sub sp,sp,#160
+ stp x29,x30,[sp]
+ mov x29,sp
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mrs x9,fpcr
+ str x9,[sp,#104]
+ mrs x9,fpsr
+ str x9,[sp,#112]
+ mov x19,x0
+ mov x0,#7640
+ add x0,x19,x0
+ mov w1,#4
+ mov w2,#1
+ bl .Loplocal_check_global
+ cbz x0,.Loplocal_guard_failed
+ mov x20,x0
+ mov x0,#7768
+ add x0,x19,x0
+ mov w1,#4
+ mov w2,#1
+ bl .Loplocal_check_global
+ cbz x0,.Loplocal_guard_failed
+ mov x21,x0
+ mov x0,#4744
+ add x0,x19,x0
+ mov w1,#8
+ mov w2,#3
+ bl .Loplocal_check_global
+ cbz x0,.Loplocal_guard_failed
+ mov x22,x0
+ mov x9,#5512
+ add x9,x19,x9
+ ldr x10,[x9]
+ cbz x10,.Loplocal_guard_failed
+ tst x10,#3
+ b.ne .Loplocal_guard_failed
+ ldr x11,[x9,#8]
+ cmn x11,#1
+ b.ne .Loplocal_guard_failed
+ ldr x11,[x9,#16]
+ cmp x11,#4
+ b.ne .Loplocal_guard_failed
+ ldrb w11,[x9,#28]
+ cmp w11,#1
+ b.ne .Loplocal_guard_failed
+ ldrb w11,[x9,#29]
+ cmp w11,#1
+ b.ne .Loplocal_guard_failed
+ ldr x11,[x9,#32]
+ cmp x11,#4
+ b.ne .Loplocal_guard_failed
+ ldp x11,x12,[x9,#40]
+ cmp x11,#1
+ b.ne .Loplocal_guard_failed
+ cmp x12,#1
+ b.ne .Loplocal_guard_failed
+ ldr x11,[x9,#56]
+ cmp x11,#1
+ b.ne .Loplocal_guard_failed
+ adds x11,x10,#4
+ b.cs .Loplocal_guard_failed
+ ldr w10,[x10]
+ mov w26,w10
+ cmp w10,#1
+ b.ne .Loplocal_guard_failed
+ bl __errno_location
+ str x0,[sp,#120]
+ ldr w9,[x0]
+ str w9,[sp,#128]
+ // NDGSAH=max(NDGSAG,NDGSAL+NFRSTLOFF-48)-NFRSTLOFF.
+ ldr w9,[x19,#4892]
+ ldr w10,[x19,#7232]
+ add w9,w9,w10
+ sub w9,w9,#48
+ ldr w11,[x19,#4888]
+ cmp w9,w11
+ csel w9,w9,w11,ge
+ sub w9,w9,w10
+ str w9,[x19,#4896]
+ // NDGENH=min(NDGENG,NDGENL+NFRSTLOFF+48)-NFRSTLOFF.
+ ldr w9,[x19,#4908]
+ add w9,w9,w10
+ add w9,w9,#48
+ ldr w11,[x19,#4904]
+ cmp w9,w11
+ csel w9,w9,w11,le
+ sub w9,w9,w10
+ str w9,[x19,#4912]
+ adrp x23,.Lowners
+ add x23,x23,:lo12:.Lowners
+ mov w24,#3
+.Loplocal_release_old:
+ ldr w25,[x23],#4
+ ldr x0,[x19,w25,uxtw]
+ cbz x0,.Loplocal_old_released
+ bl free
+.Loplocal_old_released:
+ str xzr,[x19,w25,uxtw]
+ subs w24,w24,#1
+ b.ne .Loplocal_release_old
+ mov x0,#10624
+ bl malloc
+ cbz x0,.Loplocal_allocation_failed
+ mov x1,x0
+ mov x0,#7576
+ add x0,x19,x0
+ mov x2,#4
+ mov x3,#1
+ mov x4,#-47
+ mov x5,#2608
+ bl .Ldescriptor
+ mov x23,x1
+ mov x0,#10624
+ bl malloc
+ cbz x0,.Loplocal_allocation_failed
+ mov x1,x0
+ mov x0,#7704
+ add x0,x19,x0
+ mov x2,#4
+ mov x3,#1
+ mov x4,#-47
+ mov x5,#2608
+ bl .Ldescriptor
+ mov x24,x1
+ mov x0,#20512
+ bl malloc
+ cbz x0,.Loplocal_allocation_failed
+ mov x1,x0
+ mov x0,#4808
+ add x0,x19,x0
+ mov x2,#8
+ mov x3,#3
+ mov x4,#-1
+ mov x5,#2562
+ bl .Ldescriptor
+ mov x25,x1
+ mov x9,#-47
+.Loplocal_integer_loop:
+ add x13,x26,x9
+ sub x13,x13,#1
+ cmn x13,#1
+ b.lt .Loplocal_integer_next
+ cmp x13,#2562
+ b.gt .Loplocal_integer_next
+ ldr w10,[x20,x13,lsl #2]
+ ldr w11,[x21,x13,lsl #2]
+ add x12,x9,#47
+ str w10,[x23,x12,lsl #2]
+ str w11,[x24,x12,lsl #2]
+.Loplocal_integer_next:
+ add x9,x9,#1
+ cmp x9,#2608
+ b.le .Loplocal_integer_loop
+ ldrsw x26,[x19,#7232]
+ mov x9,#-1
+.Loplocal_latitude_loop:
+ add x13,x9,x26
+ ldr x10,[x22,x13,lsl #3]
+ add x11,x9,#1
+ str x10,[x25,x11,lsl #3]
+ add x9,x9,#1
+ cmp x9,#2562
+ b.le .Loplocal_latitude_loop
+ mov w28,#0
+ b .Loplocal_return_status
+.Loplocal_allocation_failed:
+ adrp x23,.Lowners
+ add x23,x23,:lo12:.Lowners
+ mov w24,#3
+.Loplocal_release_failed:
+ ldr w25,[x23],#4
+ ldr x0,[x19,w25,uxtw]
+ cbz x0,.Loplocal_failed_released
+ bl free
+.Loplocal_failed_released:
+ str xzr,[x19,w25,uxtw]
+ subs w24,w24,#1
+ b.ne .Loplocal_release_failed
+ mov w28,#1
+.Loplocal_return_status:
+ ldr x9,[sp,#120]
+ ldr w10,[sp,#128]
+ str w10,[x9]
+ b .Loplocal_restore
+.Loplocal_guard_failed:
+ mov w28,#2
+.Loplocal_restore:
+ ldr x9,[sp,#104]
+ msr fpcr,x9
+ ldr x9,[sp,#112]
+ msr fpsr,x9
+ mov w0,w28
+ ldr x18,[sp,#96]
+ ldp x27,x28,[sp,#80]
+ ldp x25,x26,[sp,#64]
+ ldp x23,x24,[sp,#48]
+ ldp x21,x22,[sp,#32]
+ ldp x19,x20,[sp,#16]
+ ldp x29,x30,[sp]
+ add sp,sp,#160
+ ret
+.Loplocal_reject:
+ mov w0,#2
+ ret
+.size md2asm_initialize_operational_local_geometry_maps,.-md2asm_initialize_operational_local_geometry_maps
+.Loplocal_check_global:
+ ldr x9,[x0]
+ cbz x9,.Loplocal_check_failed
+ sub w10,w1,#1
+ tst x9,x10
+ b.ne .Loplocal_check_failed
+ ldr x10,[x0,#16]
+ cmp x10,x1
+ b.ne .Loplocal_check_failed
+ ldrb w10,[x0,#28]
+ cmp w10,#1
+ b.ne .Loplocal_check_failed
+ ldrb w10,[x0,#29]
+ cmp w10,w2
+ b.ne .Loplocal_check_failed
+ ldr x10,[x0,#32]
+ cmp x10,x1
+ b.ne .Loplocal_check_failed
+ ldp x10,x11,[x0,#40]
+ cmp x10,#1
+ b.ne .Loplocal_check_failed
+ cmn x11,#1
+ b.ne .Loplocal_check_failed
+ ldr x12,[x0,#56]
+ cmp x12,#2562
+ b.ne .Loplocal_check_failed
+ ldr x10,[x0,#8]
+ add x10,x10,x11
+ cbnz x10,.Loplocal_check_failed
+ mov x10,#2564
+ mul x10,x10,x1
+ adds x10,x9,x10
+ b.cs .Loplocal_check_failed
+ mul x11,x11,x1
+ sub x0,x9,x11
+ ret
+.Loplocal_check_failed:
+ mov x0,#0
+ ret
 .section .note.GNU-stack,"",%progbits
