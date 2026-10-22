@@ -26,6 +26,8 @@ md2asm_initialize_stream_geometry_metadata:
  orr x9,x9,x10
  cbnz x9,.Lstream_bad
  ldr w9,[x1,#5224]
+ cmp w9,#137
+ b.eq .Lstream_operational
  cmp w9,#19
  b.ne .Lstream_bad
  ldr w9,[x1,#5172]
@@ -34,6 +36,15 @@ md2asm_initialize_stream_geometry_metadata:
  ldr w9,[x1,#4872]
  cmp w9,#32
  b.ne .Lstream_bad
+ b .Lstream_dimensions_ready
+.Lstream_operational:
+ ldr w9,[x1,#5172]
+ cmp w9,#1279
+ b.ne .Lstream_bad
+ ldr w9,[x1,#4872]
+ cmp w9,#2560
+ b.ne .Lstream_bad
+.Lstream_dimensions_ready:
  ldr w9,[x1,#7228]
  cmp w9,#1
  b.ne .Lstream_bad
@@ -59,10 +70,10 @@ md2asm_initialize_stream_geometry_metadata:
  mov x23,#0
 .Lstream_allocate:
  mov x24,#64
- mov x25,#19
+ ldrsw x25,[x20,#5224]
  cbz x23,.Lstream_shape
  mov x24,#144
- mov x25,#32
+ ldrsw x25,[x20,#4872]
 .Lstream_shape:
  add x24,x19,x24
  lsl x0,x25,#2
