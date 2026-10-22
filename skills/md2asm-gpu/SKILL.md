@@ -5,7 +5,7 @@ description: Generate and optimise GPU assembly directly from physics and mathem
 
 # Markdown to GPU Assembly
 
-Use this skill to generate a complete GPU solver directly from a short Markdown physics formulation. A numerical contract fixes the method, arithmetic order, storage and output bytes. Read that contract before emitting or changing assembly, and write for a first-year undergraduate. Keep the formulation focused on basic physics and mathematics.
+Use this skill to generate a complete GPU solver directly from a short Markdown physics formulation. A numerical contract fixes the method, arithmetic order, storage and output bytes. When changing model resolution, derive GPU field layouts and buffer sizes from the complete configuration and its exact requested-field lists. Read that contract before emitting or changing assembly, and write for a first-year undergraduate. Keep the formulation focused on basic physics and mathematics.
 
 For this project, read [AGENTS.md](../../AGENTS.md), the [writing convention](../../standards/ASD-STE100-CONV.md), and the [GPU execution contract](references/gpu-contract.md). Model inputs are the [shallow-water formulation](../../formulations/sw/2d_periodic.md) with its [Rusanov–SSPRK2 contract](../md2asm/references/2d_rusanov_ssprk2.md), or the [energy-balance formulation](../../formulations/ebm/budyko_sellers.md) with its [numerical contract](../md2asm/references/budyko_sellers.md). Resolve the repository from the installed skill’s real directory when it uses a symbolic link.
 
