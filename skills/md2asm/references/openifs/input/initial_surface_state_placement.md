@@ -2,6 +2,8 @@
 
 This integer assembly stage copies the converted initial surface fields into the original model's blocked storage. A block holds up to 24 grid points. The selected coarse case has 2,048 points in 86 blocks, with eight active points in the final block. This stage changes storage order without changing a physical value or setting any other state to zero.
 
+The separate [operational entry](operational_surface_state_placement.md) supports the actual 9 km field list, six complete arrays and 17-position blocks.
+
 ## Interface and Complete Storage
 
 The application binary interface (ABI) is `int md2asm_place_initial_surface_fields(field2d, bytes2d, field3d, bytes3d, parameters, parameter_bytes, owners, owner_table_bytes)`. Registers `x0` through `x7` carry the eight arguments. Return 0 means success, 1 means an invalid span, alignment or overlap, and 2 means the wrong fixed parameter sequence. Every rejected call leaves all complete output buffers unchanged.
