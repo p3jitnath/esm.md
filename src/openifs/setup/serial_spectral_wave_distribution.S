@@ -1,7 +1,7 @@
 /* Contract: skills/md2asm/references/openifs/setup/spectral_field_storage.md. */
 /* Serial source wave distribution from SUWAVEDI/INI_SPEC_DIST.
  * x0 int32 ASM0[N+1],x1 ALLMS[N+1],x2 PTRMS[1],x3 NUMPP[1],w4=N.
- * Arrays are mapped,4-byte aligned,disjoint;0<=N<=63;w0=0 or2 before stores.
+ * Arrays are mapped,4-byte aligned,disjoint;N in0..63 or1279;w0=0 or2 before stores.
  * Source KPRTRW=KMYSETW=1. No floating point, stack or external call.
  */
 .arch armv8.2-a
@@ -19,8 +19,11 @@ md2asm_serial_spectral_wave_distribution:
  orr x9,x9,x3
  tst x9,#3
  b.ne .Lserial_wave_reject
+ cmp w4,#1279
+ b.eq .Lserial_wave_admitted
  cmp w4,#63
  b.hi .Lserial_wave_reject
+.Lserial_wave_admitted:
  mov w5,#0
  mov w6,#1
 .Lserial_wave_loop:
