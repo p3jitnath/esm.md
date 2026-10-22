@@ -21,3 +21,9 @@ Compare all 2,304 produced bytes with the existing complete genuine source confi
 ## Completed Checkpoint
 
 Two incoming patterns and arithmetic-flag cases match 4,608 complete bytes against the retained genuine source record, leaving 1,040 constant-record bytes unchanged. All eleven immediate ABI and status calls pass with zero native register masks. Nine invalid inputs reject before mutation. Forty-seven physical-range and representation checks pass, including both complete vegetation tables, their desert defaults, the water density and every unused output word. The standalone assembly process constructs both records and writes all 2,304 configuration bytes exactly. It has no shared-library dependency. Its unchanged logarithm child retains its direct Linux exit_group rejection service. Independent source and ABI review passes.
+
+## Operational Extension
+
+Revision 2 adds `md2asm_initialize_operational_surface_input_configuration` with the same three arguments and complete 520-byte and 2,304-byte buffer bounds. It sets the point count to 6,599,680. The original entry still sets 2,048. Every other output word, source table, flag and arithmetic operation is shared and unchanged. Both entries retain the same return, ownership and ABI rules.
+
+The operational source control reads the actual first NAMMCC group through original SUMCC after SU0PHY. It uses the original registered surface handle for SURF_INQ. The observed flags remain LECURR false, LEOCCO and LEOCWA true and LMCC04 false. RCIMIN remains 0.02 and the leaf-area override remains zero. All 2,304 native bytes match this genuine source configuration exactly. A focused legacy construction also matches all 2,304 bytes, with complete constants unchanged and zero native ABI masks. The original source process is a separate verification reference; production has no original module dependency.

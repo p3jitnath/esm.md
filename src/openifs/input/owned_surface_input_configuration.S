@@ -1,13 +1,26 @@
-/* Owned selected surface-input configuration, revision 1.
+/* Owned selected surface-input configuration, revision 2.
  * Contract: skills/md2asm/references/openifs/input/owned_surface_input_configuration.md.
- * x0 owned 520-byte constants, x1 writable 2304-byte output, x2 capacity.
- * Source tables come from SUSVEG, with selected SUSSOIL/SUPHEC controls. */
+ * x0 read-only owned 520-byte constants, x1 writable 2,304-byte output,
+ * x2 output capacity. Both records are aligned, mapped and disjoint.
+ * The original entry selects 2,048 points; the explicit operational entry
+ * selects 6,599,680 points. Source tables and all other output words agree.
+ * Return 0 success or 2 before mutation for unsupported input or FPCR.
+ * Preserve FPCR, errno, x18 and saved registers; FPSR accumulates arithmetic.
+ */
 .arch armv8.2-a
 .text
 .p2align 4
 .global md2asm_initialize_surface_input_configuration
 .type md2asm_initialize_surface_input_configuration,%function
 md2asm_initialize_surface_input_configuration:
+ mov x8,#2048
+ b .Lsurface_config_selected
+.global md2asm_initialize_operational_surface_input_configuration
+.type md2asm_initialize_operational_surface_input_configuration,%function
+md2asm_initialize_operational_surface_input_configuration:
+ movz x8,#46080
+ movk x8,#100,lsl#16
+.Lsurface_config_selected:
  cbz x0,.Lsurface_config_reject
  cbz x1,.Lsurface_config_reject
  orr x9,x0,x1
@@ -35,7 +48,7 @@ md2asm_initialize_surface_input_configuration:
  stp xzr,xzr,[x9],#16
  subs w10,w10,#1
  b.ne .Lsurface_config_clear
- mov x9,#2048
+ mov x9,x8
  str x9,[x1,#8]
  mov x9,#20
  str x9,[x1,#16]
@@ -76,6 +89,7 @@ md2asm_initialize_surface_input_configuration:
  mov w0,#2
  ret
 .size md2asm_initialize_surface_input_configuration,.-md2asm_initialize_surface_input_configuration
+.size md2asm_initialize_operational_surface_input_configuration,.-md2asm_initialize_operational_surface_input_configuration
 .section .rodata
 .p2align 3
 .Lsurface_constant_literals:

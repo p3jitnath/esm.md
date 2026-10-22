@@ -1,17 +1,18 @@
-/*
- * Surface initial-state conversion, revision 1.
- * Physics: formulations/openifs/input/surface_initial_state_conversion.md
- * Contract: skills/md2asm/references/openifs/input/surface_initial_state_conversion.md
- * x0..x7: field2d, bytes2d, field3d, bytes3d, parameters, parameter_bytes,
- * configuration and configuration_bytes. Required spans 770048/409600/208/2304.
- * FP64 is 64-bit floating point. FPCR controls its arithmetic and must be zero.
- * FPSR records arithmetic flags. Preserve FPCR, errno, x18 and ABI saved state.
- * Fields change in place. Immutable configuration and parameters may overlap.
- * Fields must be disjoint from each other and immutable input spans, aligned
- * to eight bytes. Parameter identifiers are aligned to four bytes.
+/* Surface initial-state conversion, revision 2.
+ * Contract: skills/md2asm/references/openifs/input/surface_initial_state_conversion.md.
+ * The original entry selects 2,048 points and 47 ordinary fields. The explicit
+ * operational entry selects 6,599,680 points and 50 ordinary fields. Both use
+ * five fields with five snow layers and the same ordered FP64 arithmetic.
+ * x0..x7: writable ordinary fields, their capacity, writable layered fields,
+ * their capacity, read-only IDs, ID capacity, configuration and its capacity.
+ * Operational spans are 2,639,872,000/1,319,936,000/220/2,304 bytes.
+ * Pointer bounds and field strides use 64-bit arithmetic. The fields are
+ * aligned, mapped and disjoint from each other and both read-only inputs.
  * Return 0 success, 1 bad spans, 2 bad FPCR, 3 bad configuration,
- * 4 absent required field, 5 out-of-table vegetation type. Reject before writes.
- * Finite field values and valid physical constants/tables are caller inputs.
+ * 4 missing required field or 5 invalid vegetation index. Refuse before writes.
+ * Finite field values and declared source constants/tables are caller inputs.
+ * Preserve FPCR, errno, x18 and saved registers. FPSR records arithmetic flags.
+ * The 384-byte frame includes selected integer extents and field pointers.
  */
 .arch armv8.2-a
 .text
@@ -34,6 +35,18 @@
 .global md2asm_convert_initial_surface_state
 .type md2asm_convert_initial_surface_state,%function
 md2asm_convert_initial_surface_state:
+ mov x14,#2048
+ mov x15,#47
+ b .Lconversion_selected
+.global md2asm_convert_operational_initial_surface_state
+.type md2asm_convert_operational_initial_surface_state,%function
+md2asm_convert_operational_initial_surface_state:
+ movz x14,#46080
+ movk x14,#100,lsl#16
+ mov x15,#50
+.Lconversion_selected:
+ lsl x16,x14,#3
+ add x17,x16,x16,lsl#2
  cbz x0,.Lbad
  cbz x2,.Lbad
  cbz x4,.Lbad
@@ -44,21 +57,21 @@ md2asm_convert_initial_surface_state:
  b.ne .Lbad
  tst x4,#3
  b.ne .Lbad
- movz x8,#0xc000
- movk x8,#11,lsl#16
+ mul x8,x16,x15
  cmp x1,x8
  b.lo .Lbad
  adds x9,x0,x8
  b.cs .Lbad
- movz x8,#0x4000
- movk x8,#6,lsl#16
+ add x8,x17,x17,lsl#2
  cmp x3,x8
  b.lo .Lbad
  adds x10,x2,x8
  b.cs .Lbad
- cmp x5,#208
+ add x8,x15,#5
+ lsl x8,x8,#2
+ cmp x5,x8
  b.lo .Lbad
- adds x11,x4,#208
+ adds x11,x4,x8
  b.cs .Lbad
  cmp x7,#2304
  b.lo .Lbad
@@ -75,7 +88,7 @@ md2asm_convert_initial_surface_state:
  ldr x8,[x6]
  cbnz x8,.Lconfig
  ldr x8,[x6,#8]
- cmp x8,#2048
+ cmp x8,x14
  b.ne .Lconfig
  ldr x8,[x6,#16]
  cmp x8,#127
@@ -105,6 +118,8 @@ md2asm_convert_initial_surface_state:
  stp x23,x24,[sp,#48]
  stp x25,x26,[sp,#64]
  stp x27,x28,[sp,#80]
+ stp x14,x15,[sp,#96]
+ stp x16,x17,[sp,#112]
  mrs x8,fpsr
  str x8,[sp,#352]
  mov x19,x0
@@ -137,12 +152,14 @@ md2asm_convert_initial_surface_state:
  cmp w8,w15
  b.eq .Lfind2d_found
  add x9,x9,#1
- cmp x9,#47
+ ldr x8,[sp,#104]
+ cmp x9,x8
  b.ne .Lfind2d_search
  mov w0,#4
  b .Lrestore_reject
 .Lfind2d_found:
- add x8,x19,x9,lsl#14
+ ldr x8,[sp,#112]
+ madd x8,x9,x8,x19
  str x8,[x26,x13,lsl#3]
 .Lfind2d_next:
  add x13,x13,#1
@@ -150,7 +167,8 @@ md2asm_convert_initial_surface_state:
  b.ne .Lfind2d_field
  adrp x14,.Lrequired3d
  add x14,x14,:lo12:.Lrequired3d
- add x12,x21,#188
+ ldr x8,[sp,#104]
+ add x12,x21,x8,lsl#2
  mov x13,#0
 .Lfind3d_field:
  ldr w15,[x14,x13,lsl#2]
@@ -165,8 +183,7 @@ md2asm_convert_initial_surface_state:
  mov w0,#4
  b .Lrestore_reject
 .Lfind3d_found:
- movz x8,#0x4000
- movk x8,#1,lsl#16
+ ldr x8,[sp,#120]
  madd x8,x9,x8,x20
  add x10,sp,#312
  str x8,[x10,x13,lsl#3]
@@ -193,7 +210,8 @@ md2asm_convert_initial_surface_state:
  fcmp d0,d1
  b.ge .Lvegetation_bad
  add x23,x23,#1
- cmp x23,#2048
+ ldr x8,[sp,#96]
+ cmp x23,x8
  b.ne .Lpreflight_vegetation
  ldr x8,[sp,#352]
  msr fpsr,x8
@@ -202,16 +220,24 @@ md2asm_convert_initial_surface_state:
  ldr x8,[x22,#80]
  str x8,[sp,#344]
  mov x0,x19
- movz x1,#0xc000
- movk x1,#11,lsl#16
+ ldp x8,x9,[sp,#104]
+ mul x1,x8,x9
  mov x2,x20
- movz x3,#0x4000
- movk x3,#6,lsl#16
+ ldr x9,[sp,#120]
+ add x3,x9,x9,lsl#2
  mov x4,x21
- mov x5,#208
+ add x5,x8,#5
+ lsl x5,x5,#2
  add x6,sp,#336
  mov x7,#16
+ ldr x8,[sp,#96]
+ cmp x8,#2048
+ b.eq .Lscale_legacy
+ bl md2asm_scale_operational_initial_surface_fields
+ b .Lscale_complete
+.Lscale_legacy:
  bl md2asm_scale_initial_surface_fields
+.Lscale_complete:
  // The validated child has no remaining reject route for these arguments.
  cbnz w0,.Lreturn
  fmov d31,xzr
@@ -258,7 +284,8 @@ md2asm_convert_initial_surface_state:
  mov x9,#5
 .Lsea_snow_zero:
  str d31,[x8]
- add x8,x8,#16384
+ ldr x11,[sp,#112]
+ add x8,x8,x11
  subs x9,x9,#1
  b.ne .Lsea_snow_zero
  STORE_FIELD d1,3
@@ -274,7 +301,8 @@ md2asm_convert_initial_surface_state:
  fmaxnm d0,d31,d0
  str d0,[x8]
  fadd d16,d16,d0
- add x8,x8,#16384
+ ldr x11,[sp,#112]
+ add x8,x8,x11
  subs x9,x9,#1
  b.ne .Lsnow_depth
  ldr x8,[sp,#328]
@@ -286,7 +314,8 @@ md2asm_convert_initial_surface_state:
  fmaxnm d0,d31,d0
  str d0,[x8]
  fadd d17,d17,d0
- add x8,x8,#16384
+ ldr x11,[sp,#112]
+ add x8,x8,x11
  subs x9,x9,#1
  b.ne .Lsnow_water
  fsub d0,d16,d17
@@ -300,8 +329,9 @@ md2asm_convert_initial_surface_state:
 .Lsnow_no_ice_zero:
  str d31,[x8]
  str d31,[x10]
- add x8,x8,#16384
- add x10,x10,#16384
+ ldr x11,[sp,#112]
+ add x8,x8,x11
+ add x10,x10,x11
  subs x9,x9,#1
  b.ne .Lsnow_no_ice_zero
 .Lsnow_kept:
@@ -312,7 +342,8 @@ md2asm_convert_initial_surface_state:
  ldr d0,[x8]
  fminnm d0,d0,d29
  str d0,[x8]
- add x8,x8,#16384
+ ldr x11,[sp,#112]
+ add x8,x8,x11
  subs x9,x9,#1
  b.ne .Lsnow_temperature
  LOAD_FIELD d0,15
@@ -371,7 +402,8 @@ md2asm_convert_initial_surface_state:
  STORE_FIELD d31,22
 .Lcurrents_ready:
  add x23,x23,#1
- cmp x23,#2048
+ ldr x8,[sp,#96]
+ cmp x23,x8
  b.ne .Lpoint
  mov w0,#0
  b .Lreturn
@@ -398,6 +430,7 @@ md2asm_convert_initial_surface_state:
  mov w0,#3
  ret
 .size md2asm_convert_initial_surface_state,.-md2asm_convert_initial_surface_state
+.size md2asm_convert_operational_initial_surface_state,.-md2asm_convert_operational_initial_surface_state
 .section .rodata
 .p2align 3
 .Lrequired2d:
