@@ -1,4 +1,4 @@
-/* Source default coefficient stores for ECMWF19 or the common1-level edge.
+/* Source defaults: one/ECMWF19 tables, or N137 pressure-only publication.
  * Contract: skills/md2asm/references/openifs/setup/hybrid_coordinate_defaults.md.
  * w0=canonical ECMWF flag,w1=N,x2=A[0:N],x3=B[0:N],x4=P0out.
  * Return w0=0, or2 before output mutation. No allocation or FP arithmetic.
@@ -12,6 +12,8 @@ md2asm_initialize_default_hybrid_coefficients:
  cmp w0,#1
  b.hi .Lhybrid_default_reject
  cmp w1,#1
+ b.eq .Lhybrid_default_buffers
+ cmp w1,#137
  b.eq .Lhybrid_default_buffers
  cmp w0,#1
  b.ne .Lhybrid_default_reject
@@ -49,6 +51,8 @@ md2asm_initialize_default_hybrid_coefficients:
  cmp x4,x6
  b.lo .Lhybrid_default_reject
 .Lhybrid_default_table:
+ cmp w1,#137
+ b.eq .Lhybrid_default_store_pressure
  cmp w1,#1
  b.ne .Lhybrid_default_nineteen
  adrp x5,md2asm_hybrid_defaults_1
@@ -68,6 +72,7 @@ md2asm_initialize_default_hybrid_coefficients:
  add x10,x10,#8
  cmp x10,x9
  b.lo .Lhybrid_default_copy
+.Lhybrid_default_store_pressure:
  adr x9,.Lhybrid_default_pressure
  ldr x10,[x9]
  str x10,[x4]
