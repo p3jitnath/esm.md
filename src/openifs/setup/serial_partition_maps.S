@@ -497,6 +497,389 @@ md2asm_release_serial_partition_maps:
  ldp x29,x30,[sp],#64
  ret
 .size md2asm_release_serial_partition_maps,.-md2asm_release_serial_partition_maps
+
+/* Complete operational SUMP for the frozen global, hydrostatic serial route.
+ * x0 Geometry[17096], x1 stream[872], x2 settings[9] (seven ones, zero, one).
+ * The 6,144-byte frame includes all 1,280 IMYMS int32 words at 1024..6143.
+ * Public queries and all qualified children retain their source call order.
+ * The old parent, shared helpers, release and owner table remain unchanged.
+ */
+.p2align 4
+.global md2asm_initialize_operational_serial_partition_maps
+.type md2asm_initialize_operational_serial_partition_maps,%function
+md2asm_initialize_operational_serial_partition_maps:
+ cbz x0,.Lomap_bad
+ cbz x1,.Lomap_bad
+ cbz x2,.Lomap_bad
+ orr x9,x0,x1
+ tst x9,#7
+ b.ne .Lomap_bad
+ tst x2,#3
+ b.ne .Lomap_bad
+ mov x9,#0
+.Lomap_check_serial:
+ ldr w10,[x2,x9,lsl#2]
+ cmp w10,#1
+ b.ne .Lomap_bad
+ add x9,x9,#1
+ cmp x9,#7
+ b.lo .Lomap_check_serial
+ ldp w9,w10,[x2,#28]
+ cbnz w9,.Lomap_bad
+ cmp w10,#1
+ b.ne .Lomap_bad
+ mrs x9,fpcr
+ cbnz x9,.Lomap_bad
+ ldr x9,[x0]
+ cbz x9,.Lomap_bad
+ ldr w9,[x9]
+ cbnz w9,.Lomap_bad
+ ldr w9,[x0,#5172]
+ cmp w9,#1279
+ b.ne .Lomap_bad
+ ldr w9,[x0,#5208]
+ cmp w9,#1279
+ b.ne .Lomap_bad
+ ldr w9,[x0,#5176]
+ cmp w9,#1279
+ b.ne .Lomap_bad
+ ldr w9,[x0,#4872]
+ cmp w9,#2560
+ b.ne .Lomap_bad
+ ldr w9,[x0,#4936]
+ mov w10,#5136
+ cmp w9,w10
+ b.ne .Lomap_bad
+ ldr w9,[x0,#5144]
+ cmp w9,#16
+ b.ne .Lomap_bad
+ ldr w9,[x0,#5164]
+ cmp w9,#1
+ b.ne .Lomap_bad
+ ldr w9,[x0,#5224]
+ cmp w9,#137
+ b.ne .Lomap_bad
+ ldr w9,[x0,#5168]
+ cmp w9,#1
+ b.lt .Lomap_bad
+ /* The caller supplies the complete canonical halo-row descriptor. */
+ ldr x9,[x0,#7640]
+ cbz x9,.Lomap_bad
+ tst x9,#3
+ b.ne .Lomap_bad
+ ldr x10,[x0,#7656]
+ cmp x10,#4
+ b.ne .Lomap_bad
+ ldr x10,[x0,#7664]
+ mov x11,#0x101
+ lsl x11,x11,#32
+ cmp x10,x11
+ b.ne .Lomap_bad
+ ldr x10,[x0,#7672]
+ cmp x10,#4
+ b.ne .Lomap_bad
+ ldr x10,[x0,#7680]
+ cmp x10,#1
+ b.ne .Lomap_bad
+ ldr x10,[x0,#7688]
+ cmn x10,#1
+ b.ne .Lomap_bad
+ ldr x10,[x0,#7696]
+ cmp x10,#2562
+ b.ne .Lomap_bad
+ add x9,x9,#8
+ mov x10,#0
+ mov x12,#0
+ mov w13,#5136
+.Lomap_global_counts:
+ ldr w11,[x9,x10,lsl#2]
+ cmp w11,#1
+ b.lt .Lomap_bad
+ cmp w11,w13
+ b.gt .Lomap_bad
+ add x12,x12,x11
+ add x10,x10,#1
+ cmp x10,#2560
+ b.lo .Lomap_global_counts
+ movz x11,#0xb400
+ movk x11,#0x64,lsl#16
+ cmp x12,x11
+ b.ne .Lomap_bad
+ ldr x9,[x1,#64]
+ ldr x10,[x1,#144]
+ orr x9,x9,x10
+ cbnz x9,.Lomap_bad
+ adr x9,.Lmap_owned_offsets
+ mov x10,#0
+.Lomap_fresh_owners:
+ ldr w11,[x9,x10,lsl#2]
+ ldr x11,[x0,x11]
+ cbnz x11,.Lomap_bad
+ add x10,x10,#1
+ cmp x10,#34
+ b.lo .Lomap_fresh_owners
+ mov x9,#6144
+ sub sp,sp,x9
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mov x29,sp
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ mov x1,x21
+ mov x2,#0
+ bl md2asm_allocate_operational_partition_arrays
+ cbnz w0,.Lomap_fail
+ /* Source vertical partition, selected one-processor domain. */
+ ldr w9,[x19,#5224]
+ ldr x10,[x19,#5832]
+ stp w9,wzr,[x10]
+ str w9,[x19,#5228]
+ str w9,[x19,#5232]
+ str w9,[x19,#5236]
+ mov w9,#1
+ ldr x10,[x19,#6024]
+ str w9,[x10]
+ str w9,[x19,#7208]
+ bl .Lmap_zero_arguments
+ SLOT 0,5168
+ SLOT 1,5196
+ SLOT 2,5200
+ SLOT 4,5204
+ SLOT 5,5212
+ SLOT 12,5256
+ SLOT 13,7248
+ SLOT 14,5384
+ SLOT 15,5448
+ SLOT 16,7312
+ add x0,sp,#128
+ bl md2asm_call_public_transform_inquiry
+ bl .Lmap_zero_arguments
+ SLOT 0,5208
+ SLOT 1,5208
+ str x21,[sp,#144]
+ str x21,[sp,#152]
+ DATA 6,5320
+ add x9,sp,#792
+ str x9,[sp,#184]
+ add x9,sp,#1024
+ str x9,[sp,#224]
+ add x0,sp,#128
+ bl md2asm_call_public_spectral_distribution
+ ldr w9,[sp,#792]
+ str w9,[x19,#5216]
+ bl .Lmap_zero_arguments
+ SLOT 0,5168
+ SLOT 6,7376
+ SLOT 7,7388
+ SLOT 8,7384
+ SLOT 9,7392
+ SLOT 17,6456
+ SLOT 18,6520
+ SLOT 19,7232
+ SLOT 20,6392
+ SLOT 21,6264
+ SLOT 22,6328
+ SLOT 23,7244
+ SLOT 34,7080
+ mov x9,#6088
+ add x1,x19,x9
+ add x0,sp,#504
+ bl .Lmap_section
+ add x9,sp,#504
+ str x9,[sp,#320]
+ mov x9,#6176
+ add x1,x19,x9
+ add x0,sp,#592
+ bl .Lmap_section
+ add x9,sp,#592
+ str x9,[sp,#328]
+ add x0,sp,#128
+ bl md2asm_call_public_transform_inquiry
+ bl .Lmap_zero_arguments
+ SLOT 0,5168
+ /* KULTPP is an assumed-shape public argument, so pass a rank-one descriptor. */
+ add x9,sp,#796
+ str x9,[sp,#816]
+ mov x9,#-1
+ str x9,[sp,#824]
+ mov x9,#4
+ str x9,[sp,#832]
+ str x9,[sp,#848]
+ mov x9,#0x101
+ lsl x9,x9,#32
+ str x9,[sp,#840]
+ mov x9,#1
+ str x9,[sp,#856]
+ str x9,[sp,#864]
+ str x9,[sp,#872]
+ add x9,sp,#816
+ str x9,[sp,#336]
+ SLOT 27,5512
+ add x0,sp,#128
+ bl md2asm_call_public_transform_inquiry
+ /* Local latitude dimensions and active limits. */
+ ldr w9,[sp,#796]
+ str w9,[x19,#4876]
+ mov w10,#1
+ str w10,[x19,#4892]
+ str w10,[x19,#4928]
+ ldr x10,[x19,#6520]
+ ldr w11,[x10]
+ ldr w12,[x19,#7232]
+ sub w12,w11,w12
+ str w12,[x19,#4908]
+ ldr x10,[x19,#6456]
+ ldr w13,[x10]
+ ldr w14,[x19,#4924]
+ add w15,w13,w9
+ sub w16,w14,w13
+ add w16,w16,#1
+ cmp w15,w14
+ csel w9,w9,w16,le
+ str w9,[x19,#4932]
+ str w13,[x19,#7236]
+ str w11,[x19,#7240]
+ /* The selected query covers every active longitude row. */
+ ldr x10,[x19,#5576]
+ mov w9,#1
+ ldr w11,[x19,#5200]
+ add w12,w11,#1
+ stp w9,w12,[x10]
+ /* Source whole-column partition. Retain its reverse accumulation order. */
+ ldr x10,[x19,#5704]
+ mov w9,#1
+ ldr w12,[x19,#5212]
+ add w13,w12,#1
+ stp w9,w13,[x10]
+ mov w14,#0
+ sub w12,w12,#1
+ add x10,sp,#1024
+.Lomap_column_sum:
+ ldr w13,[x10,w12,uxtw#2]
+ mov w15,#1280
+ sub w15,w15,w13
+ add w14,w14,w15,lsl#1
+ subs w12,w12,#1
+ b.pl .Lomap_column_sum
+ ldr x10,[x19,#5640]
+ add w14,w14,#1
+ stp w9,w14,[x10]
+ ldr x10,[x19,#5768]
+ mov w9,#-999
+ mov x11,#0
+.Lomap_start_sentinel:
+ str w9,[x10,x11,lsl#2]
+ add x11,x11,#1
+ cmp x11,#1280
+ b.lo .Lomap_start_sentinel
+ add x11,sp,#1024
+ ldr w12,[x19,#5212]
+ mov w9,#1
+ mov x13,#0
+.Lomap_spectral_starts:
+ ldr w14,[x11,x13,lsl#2]
+ str w9,[x10,w14,uxtw#2]
+ mov w15,#1280
+ sub w15,w15,w14
+ add w9,w9,w15,lsl#1
+ add x13,x13,#1
+ cmp x13,x12
+ b.lo .Lomap_spectral_starts
+ ldr x10,[x19,#5896]
+ mov w9,#1
+ ldr w11,[x19,#5224]
+ add w12,w11,#1
+ stp w9,w12,[x10]
+ str w9,[x19,#7228]
+ ldr x10,[x19,#6584]
+ mov x12,#0
+.Lomap_level_sets:
+ str w9,[x10,x12,lsl#2]
+ add x12,x12,#1
+ cmp x12,x11
+ b.lo .Lomap_level_sets
+ /* Preserve the source's selected stream metadata stage here. */
+ mov x0,x20
+ mov x1,x19
+ add x2,x21,#20
+ bl md2asm_initialize_stream_geometry_metadata
+ cbnz w0,.Lomap_fail
+ ldr x10,[x19,#5576]
+ ldp w9,w11,[x10]
+ sub w11,w11,w9
+ str w11,[x19,#7212]
+ ldr x10,[x19,#5640]
+ ldp w9,w12,[x10]
+ sub w12,w12,w9
+ str w12,[x19,#7216]
+ str wzr,[x19,#7224]
+ /* Complete qualified SUOPTPROMA retains the actual public thread query. */
+ ldp w9,w10,[x21,#28]
+ add x11,sp,#880
+ stp w9,w10,[x11]
+ mov x0,x19
+ mov x1,x11
+ bl md2asm_initialize_operational_serial_block_size
+ cbnz w0,.Lomap_fail
+ ldr w9,[x19,#5144]
+ ldr w10,[x19,#7376]
+ sub w11,w10,#1
+ sdiv w11,w11,w9
+ add w11,w11,#1
+ str w11,[x19,#5160]
+ mov x0,x19
+ mov x1,x21
+ mov x2,#1
+ bl md2asm_allocate_operational_partition_arrays
+ cbnz w0,.Lomap_fail
+ ldr w9,[x19,#7376]
+ str w9,[x19,#7380]
+ mov x0,x19
+ mov x1,x21
+ mov x2,#2
+ bl md2asm_allocate_operational_partition_arrays
+ cbnz w0,.Lomap_fail
+ /* The qualified child completes all eight maps and owns full IGLOBAL. */
+ mov x0,x19
+ mov x1,x21
+ bl md2asm_initialize_operational_serial_grid_maps
+ cbnz w0,.Lomap_fail
+ b .Lomap_return
+.Lomap_fail:
+ mov w23,w0
+ mov x0,x20
+ bl md2asm_release_stream_geometry_metadata
+ mov x0,x19
+ mov x1,#2
+ bl md2asm_release_serial_partition_arrays
+ mov x0,x19
+ mov x1,#1
+ bl md2asm_release_serial_partition_arrays
+ mov x0,x19
+ mov x1,#0
+ bl md2asm_release_serial_partition_arrays
+ mov w0,w23
+.Lomap_return:
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldr x18,[sp,#96]
+ ldp x29,x30,[sp]
+ mov x9,#6144
+ add sp,sp,x9
+ ret
+.Lomap_bad:
+ mov w0,#2
+ ret
+.size md2asm_initialize_operational_serial_partition_maps,.-md2asm_initialize_operational_serial_partition_maps
 .section .rodata
 .p2align 2
 .Lmap_owned_offsets:
