@@ -1,27 +1,33 @@
 /*
- * Initial spectral, upper-air and surface field readers, revision 3.
+ * Initial spectral, upper-air and surface field readers, revision 4.
  *
- * Four six-argument entries share one private direct assembly decoder.
+ * Six six-argument entries share one private direct assembly decoder.
  * Contracts: skills/md2asm/references/openifs/input/initial_spectral_field_reader.md
  * skills/md2asm/references/openifs/input/initial_upper_air_field_reader.md and
- * skills/md2asm/references/openifs/input/initial_surface_field_reader.md.
+ * skills/md2asm/references/openifs/input/initial_surface_field_reader.md and
+ * skills/md2asm/references/openifs/input/operational_gridpoint_field_readers.md.
  *
  * int entry(path, values, values_bytes, metadata, metadata_bytes, messages_read)
  * Arguments x0..x5 have the same order as the original spectral reader.
  * Trusted read-only schema headers define record count, uniform value count,
  * values extent and metadata extent. Each following row holds paramId/level.
  * Public entries select a fixed schema before entering the shared body.
- * Surface rows also freeze dataDate/dataTime and the 64 by 32 Gaussian grid.
- * FP64 means 64-bit floating-point values. Spectral and upper-air metadata
- * have three signed 64-bit integers per record, while surface metadata has
- * five. The completed-record counter is unsigned 64-bit.
+ * Surface and operational grid-point rows also freeze dataDate/dataTime.
+ * The coarse surface grid is 64 by 32; operational grids have 2,560 reduced rows.
+ * FP64 means 64-bit floating-point values. Coarse spectral/upper-air and
+ * operational spectral metadata have three signed 64-bit words per record.
+ * Surface and operational grid-point metadata have five signed 64-bit words.
+ * The completed-record counter is unsigned 64-bit.
  * Output pointers are eight-byte aligned and their fixed extents are disjoint.
  * The caller supplies a readable zero-byte-terminated path and mapped buffers.
  * Spectral extents are 315744/1872/8 bytes for 78 records of 506 values.
  * Operational spectral extents are 5417502720/9912/8 bytes for 413 records of 1639680 values.
  * Upper-air extents are 1245184/1824/8 bytes for 76 records of 2048 values.
  * Surface extents are 2293760/5600/8 bytes for 140 records of 2048 values.
- * Surface metadata adds date and time after parameter, level and count.
+ * Operational surface extents are 4276592640/3240/8 bytes for 81 records.
+ * Operational upper-air extents are 50632744960/38360/8 bytes for 959 records.
+ * Both operational grid-point files have 6,599,680 FP64 values per record.
+ * Five-word metadata adds date/time after parameter, level and value count.
  * The surface codec retains the original missingValue setting of -9999.
  *
  * Return 0 for success, 1 for an invalid argument or a nonzero floating-point control register, 2 for open
@@ -34,7 +40,9 @@
  * The 224-byte frame is 16-byte aligned. Preserve x18..x30 and all required
  * vector low halves through ordinary C child calls. FPCR is the floating-point
  * control register and FPSR records floating-point status. Both and errno
- * are restored on return. No forecast arithmetic or Fortran call is used.
+ * are restored on return. The private operational grid checker has a 20,624-byte
+ * frame for all row counts, giving 20,848 nested assembly bytes.
+ * No forecast arithmetic or Fortran call is used.
  */
 .arch armv8.2-a
 .text
@@ -67,6 +75,20 @@ md2asm_read_operational_initial_spectral_fields:
     add x6, x6, :lo12:.Loperational_spectral_schema
     b .Lread_initial_records
 .size md2asm_read_operational_initial_spectral_fields, .-md2asm_read_operational_initial_spectral_fields
+.global md2asm_read_operational_initial_surface_fields
+.type md2asm_read_operational_initial_surface_fields, %function
+md2asm_read_operational_initial_surface_fields:
+    adrp x6, .Loperational_surface_schema
+    add x6, x6, :lo12:.Loperational_surface_schema
+    b .Lread_initial_records
+.size md2asm_read_operational_initial_surface_fields, .-md2asm_read_operational_initial_surface_fields
+.global md2asm_read_operational_initial_upper_air_fields
+.type md2asm_read_operational_initial_upper_air_fields, %function
+md2asm_read_operational_initial_upper_air_fields:
+    adrp x6, .Loperational_upper_air_schema
+    add x6, x6, :lo12:.Loperational_upper_air_schema
+    b .Lread_initial_records
+.size md2asm_read_operational_initial_upper_air_fields, .-md2asm_read_operational_initial_upper_air_fields
 .type .Lread_initial_records, %function
 .Lread_initial_records:
     stp x29, x30, [sp, #-224]!
@@ -204,6 +226,16 @@ md2asm_read_operational_initial_spectral_fields:
     b.ne .Lscope_failure
     cmp x11, x13
     b.ne .Lscope_failure
+    ldr x9, [x27, #40]
+    cmp x9, #1280
+    b.ne .Lregular_grid_identity
+    mov x0, x24
+    bl .Lvalidate_operational_initial_grid
+    cmp w0, #3
+    b.eq .Lcodec_failure
+    cbnz w0, .Lscope_failure
+    b .Lidentity_ready
+.Lregular_grid_identity:
     mov x0, x24
     adrp x1, .LNi_key
     add x1, x1, :lo12:.LNi_key
@@ -330,6 +362,101 @@ md2asm_read_operational_initial_spectral_fields:
     ldp x29, x30, [sp], #224
     ret
 .size .Lread_initial_records, .-.Lread_initial_records
+/* Check the complete reduced-grid row list through the public codec.
+ * x0 is a live codec handle. Return 0, codec error 3 or wrong-grid status 4.
+ * The 20,624-byte frame holds all 2,560 int64 row counts and saved registers.
+ * This private child preserves x18 and the required integer registers.
+ */
+.p2align 2
+.type .Lvalidate_operational_initial_grid, %function
+.Lvalidate_operational_initial_grid:
+    sub sp, sp, #5, lsl #12
+    sub sp, sp, #144
+    stp x29, x30, [sp]
+    stp x19, x20, [sp, #16]
+    stp x21, x18, [sp, #32]
+    mov x29, sp
+    mov x19, x0
+.macro OPERATIONAL_GRID_LONG key, expected
+    mov x0, x19
+    adrp x1, \key
+    add x1, x1, :lo12:\key
+    add x2, sp, #80
+    bl codes_get_long
+    cbnz w0, .Loperational_grid_codec
+    ldr x9, [sp, #80]
+    cmp x9, #\expected
+    b.ne .Loperational_grid_bad
+.endm
+    OPERATIONAL_GRID_LONG .LN_key, 1280
+    OPERATIONAL_GRID_LONG .LNj_key, 2560
+    OPERATIONAL_GRID_LONG .Lscan_key, 0
+.purgem OPERATIONAL_GRID_LONG
+    str wzr, [sp, #72]
+    mov x0, x19
+    adrp x1, .LNi_key
+    add x1, x1, :lo12:.LNi_key
+    add x2, sp, #72
+    bl codes_is_missing
+    ldr w9, [sp, #72]
+    cbnz w9, .Loperational_grid_codec
+    cmp w0, #1
+    b.ne .Loperational_grid_bad
+    mov x0, x19
+    adrp x1, .Loperational_PL_key
+    add x1, x1, :lo12:.Loperational_PL_key
+    add x2, sp, #64
+    bl codes_get_size
+    cbnz w0, .Loperational_grid_codec
+    ldr x9, [sp, #64]
+    cmp x9, #2560
+    b.ne .Loperational_grid_bad
+    mov x0, x19
+    adrp x1, .Loperational_PL_key
+    add x1, x1, :lo12:.Loperational_PL_key
+    add x2, sp, #144
+    add x3, sp, #64
+    bl codes_get_long_array
+    cbnz w0, .Loperational_grid_codec
+    ldr x9, [sp, #64]
+    cmp x9, #2560
+    b.ne .Loperational_grid_bad
+    add x21, sp, #144
+    mov x20, #0
+.Loperational_grid_rows:
+    mov x11, #2559
+    sub x11, x11, x20
+    cmp x20, x11
+    csel x11, x20, x11, lo
+    lsl x11, x11, #2
+    add x11, x11, #20
+    ldr x9, [x21, x20, lsl #3]
+    cmp x9, x11
+    b.ne .Loperational_grid_bad
+    add x20, x20, #1
+    cmp x20, #2560
+    b.lo .Loperational_grid_rows
+    mov x0, x19
+    adrp x1, .Lmissing_key
+    add x1, x1, :lo12:.Lmissing_key
+    mov x2, #-9999
+    bl codes_set_long
+    cbnz w0, .Loperational_grid_codec
+    mov w0, #0
+    b .Loperational_grid_return
+.Loperational_grid_codec:
+    mov w0, #3
+    b .Loperational_grid_return
+.Loperational_grid_bad:
+    mov w0, #4
+.Loperational_grid_return:
+    ldp x21, x18, [sp, #32]
+    ldp x19, x20, [sp, #16]
+    ldp x29, x30, [sp]
+    add sp, sp, #144
+    add sp, sp, #5, lsl #12
+    ret
+.size .Lvalidate_operational_initial_grid, .-.Lvalidate_operational_initial_grid
 .section .rodata
 .p2align 3
 .Lbinary_mode:
@@ -499,4 +626,111 @@ md2asm_read_operational_initial_spectral_fields:
     .set .Loperational_level, .Loperational_level+1
     .endr
     .xword 129, 0, 0, 0
+.Loperational_PL_key:
+    .asciz "pl"
+
+.p2align 3
+.Loperational_surface_schema:
+    .xword 81, 6599680, 4276592640, 3240, 5, 1280
+    .xword 172, 0, 20110131, 0
+    .xword 32, 1, 20260621, 0
+    .xword 32, 2, 20260621, 0
+    .xword 32, 3, 20260621, 0
+    .xword 32, 4, 20260621, 0
+    .xword 32, 5, 20260621, 0
+    .xword 139, 0, 20260621, 0
+    .xword 170, 7, 20260621, 0
+    .xword 183, 28, 20260621, 0
+    .xword 236, 100, 20260621, 0
+    .xword 39, 0, 20260621, 0
+    .xword 40, 7, 20260621, 0
+    .xword 41, 28, 20260621, 0
+    .xword 42, 100, 20260621, 0
+    .xword 198, 0, 20260621, 0
+    .xword 235, 0, 20260621, 0
+    .xword 31, 0, 20260621, 0
+    .xword 228008, 0, 20260621, 0
+    .xword 228009, 0, 20260621, 0
+    .xword 228010, 0, 20260621, 0
+    .xword 228011, 0, 20260621, 0
+    .xword 228012, 0, 20260621, 0
+    .xword 228013, 0, 20260621, 0
+    .xword 228014, 0, 20260621, 0
+    .xword 34, 0, 20260621, 0
+    .xword 35, 0, 20260621, 0
+    .xword 36, 7, 20260621, 0
+    .xword 37, 28, 20260621, 0
+    .xword 38, 100, 20260621, 0
+    .xword 148, 0, 20260621, 0
+    .xword 228141, 1, 20260621, 0
+    .xword 238, 1, 20260621, 0
+    .xword 33, 1, 20260621, 0
+    .xword 228038, 1, 20260621, 0
+    .xword 228141, 2, 20260621, 0
+    .xword 238, 2, 20260621, 0
+    .xword 33, 2, 20260621, 0
+    .xword 228038, 2, 20260621, 0
+    .xword 228141, 3, 20260621, 0
+    .xword 238, 3, 20260621, 0
+    .xword 33, 3, 20260621, 0
+    .xword 228038, 3, 20260621, 0
+    .xword 228141, 4, 20260621, 0
+    .xword 238, 4, 20260621, 0
+    .xword 33, 4, 20260621, 0
+    .xword 228038, 4, 20260621, 0
+    .xword 228141, 5, 20260621, 0
+    .xword 238, 5, 20260621, 0
+    .xword 33, 5, 20260621, 0
+    .xword 228038, 5, 20260621, 0
+    .xword 172, 0, 20260621, 0
+    .xword 173, 0, 20260621, 0
+    .xword 174, 0, 20260621, 0
+    .xword 15, 0, 20260621, 0
+    .xword 17, 0, 20260621, 0
+    .xword 16, 0, 20260621, 0
+    .xword 18, 0, 20260621, 0
+    .xword 210186, 0, 20260621, 0
+    .xword 210187, 0, 20260621, 0
+    .xword 210188, 0, 20260621, 0
+    .xword 210189, 0, 20260621, 0
+    .xword 210190, 0, 20260621, 0
+    .xword 210191, 0, 20260621, 0
+    .xword 66, 0, 20260621, 0
+    .xword 67, 0, 20260621, 0
+    .xword 74, 0, 20260621, 0
+    .xword 43, 0, 20260621, 0
+    .xword 160, 0, 20260621, 0
+    .xword 161, 0, 20260621, 0
+    .xword 162, 0, 20260621, 0
+    .xword 163, 0, 20260621, 0
+    .xword 234, 0, 20260621, 0
+    .xword 28, 0, 20260621, 0
+    .xword 27, 0, 20260621, 0
+    .xword 30, 0, 20260621, 0
+    .xword 29, 0, 20260621, 0
+    .xword 26, 0, 20260621, 0
+    .xword 228007, 0, 20260621, 0
+    .xword 200199, 0, 99990615, 0
+    .xword 129172, 0, 20110131, 0
+    .xword 200026, 0, 20260621, 0
+
+.p2align 3
+.Loperational_upper_air_schema:
+    .xword 959, 6599680, 50632744960, 38360, 5, 1280
+    .set .Loperational_level, 1
+    .rept 137
+    .xword 133, .Loperational_level, 20260621, 0
+    .xword 203, .Loperational_level, 20260621, 0
+    .set .Loperational_level, .Loperational_level+1
+    .endr
+    .set .Loperational_level, 1
+    .rept 137
+    .xword 75, .Loperational_level, 20260621, 0
+    .xword 76, .Loperational_level, 20260621, 0
+    .xword 246, .Loperational_level, 20260621, 0
+    .xword 247, .Loperational_level, 20260621, 0
+    .xword 248, .Loperational_level, 20260621, 0
+    .set .Loperational_level, .Loperational_level+1
+    .endr
+
 .section .note.GNU-stack,"",%progbits
