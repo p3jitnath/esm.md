@@ -126,6 +126,8 @@ The [basic formulations](formulations/openifs/README.md) explain the physical ba
 
 ## Notes
 
+The [initial-file header reader](src/openifs/input/initial_model_file_headers.S) now accepts the existing 9 km case with 137 layers and 2,560 reduced-grid rows. Its metadata matches an independent file-format check, and the legacy T21 record remains exact. Full field loading, geometry, model storage and complete forecast acceptance at this resolution remain unfinished.
+
 The original aerosol-climatology routine fills a temporary latitude basis from column 1. The selected forecast also starts every block at column 1, and full and cropped-last comparisons agree exactly. For a first column above 1, the original can read an uninitialized tail. Separate partial-first Arm and GPU checks therefore claim agreement with each other, while retaining this original limitation.
 
 In tested vertical-diffusion calls, the source and GPU results both show a gap of up to 0.139 W/m² between the column heat change and the tested boundary-flow balance. The source sets its upper boundary separately, so we preserve its equations and do not claim whole-column heat conservation.

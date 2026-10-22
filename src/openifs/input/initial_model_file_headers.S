@@ -1,10 +1,11 @@
 /* Contract: skills/md2asm/references/openifs/input/initial_model_file_headers.md. */
 // Read selected real spectral/grid initial-file headers through ecCodes C.
-// ABI: x0 spectral path, x1 grid path, x2 output, x3 output bytes>=5232.
+// ABI: x0 spectral path, x1 grid path, x2 output, x3 output capacity.
+// Commit C=max(5232,align8(4208+4*northern_rows)); maximum C=9328.
 // The output is eight-byte aligned. Only supported active prefixes change.
 // Return 0 success,1 arguments/FPCR,2 open,3 codec,4 metadata,5 close.
-// Every error leaves all 5232 output bytes unchanged. All resources close once.
-// The 10352-byte frame preserves x18..x30 and caller FPCR/FPSR/errno.
+// Every error leaves all public bytes unchanged. All resources close once.
+// The 34352-byte frame preserves x18..x30 and caller FPCR/FPSR/errno.
 // Only file-format calls can use floating point; no OpenIFS code is called.
 .arch armv8.2-a
 .text
@@ -31,16 +32,20 @@ md2asm_read_initial_model_headers:
     stp x27,x28,[sp,#80]
     str x18,[sp,#96]
     mov x29,sp
-    sub sp,sp,#2,lsl #12
-    sub sp,sp,#2048
+    sub sp,sp,#8,lsl #12
+    sub sp,sp,#1472
     mov x19,x0
     mov x20,x1
     mov x21,x2
     mov x22,sp
-    add x27,sp,#1,lsl #12
-    add x27,x27,#1184
-    add x28,sp,#2,lsl #12
-    add x28,x28,#1280
+    // Private record[0,9328), PV[9328,13440), PL[13440,33920).
+    add x27,sp,#2,lsl #12
+    add x27,x27,#1136
+    add x28,sp,#8,lsl #12
+    add x28,x28,#1152
+    str x3,[x28,#224]
+    mov x9,#5232
+    str x9,[x28,#232]
     mov x23,#0
     mov x24,#0
     mov w25,#0
@@ -202,21 +207,27 @@ md2asm_read_initial_model_headers:
     GET_LONG .Lgaussian_order,40
     GET_LONG .Lpl_present,48
     ldr x9,[x28,#48]
-    cbnz x9,.Lscope_failure
+    cmp x9,#1
+    b.hi .Lscope_failure
     ldr x9,[x28,#24]
     cmp x9,#2
     b.lo .Lscope_failure
-    cmp x9,#512
+    cmp x9,#2560
     b.hi .Lscope_failure
     tbnz x9,#0,.Lscope_failure
     ldr x10,[x28,#40]
     cmp x10,#1
     b.lo .Lscope_failure
+    cmp x10,#1280
+    b.hi .Lscope_failure
+    lsl x11,x10,#1
+    cmp x11,x9
+    b.ne .Lscope_failure
+    ldr x11,[x28,#48]
+    cbnz x11,.Lreduced_header
+    // Keep the complete legacy regular-grid bounds and row-fill route.
     cmp x10,#256
     b.hi .Lscope_failure
-    lsl x10,x10,#1
-    cmp x10,x9
-    b.ne .Lscope_failure
     ldr x10,[x28,#32]
     cbz x10,.Lscope_failure
     tbnz x10,#63,.Lscope_failure
@@ -235,11 +246,120 @@ md2asm_read_initial_model_headers:
     add w12,w12,#1
     cmp w12,w9
     b.lo .Lcopy_longitudes
+    b .Lgrid_dates
+.Lreduced_header:
+    // x9 is Nj. Before staging the extension, check its exact public span.
+    lsr x10,x9,#1
+    str x10,[x28,#72]
+    lsl x11,x10,#2
+    mov x12,#4208
+    add x11,x11,x12
+    add x11,x11,#7
+    and x11,x11,#-8
+    mov x12,#5232
+    cmp x11,x12
+    csel x11,x11,x12,hs
+    ldr x12,[x28,#224]
+    cmp x12,x11
+    b.lo .Largument_failure
+    adds x12,x21,x11
+    b.cs .Largument_failure
+    str x11,[x28,#232]
+    mov x12,#5232
+.Lcopy_extended_before_image:
+    cmp x12,x11
+    b.hs .Lread_reduced_PL
+    ldr x13,[x21,x12]
+    str x13,[x22,x12]
+    add x12,x12,#8
+    b .Lcopy_extended_before_image
+.Lread_reduced_PL:
+    mov x0,x24
+    ADDRESS x1,.Lpl
+    add x2,x28,#80
+    bl codes_get_size
+    cbnz w0,.Lcodec_failure
+    ldr x9,[x28,#80]
+    ldr x10,[x28,#24]
+    cmp x9,x10
+    b.ne .Lscope_failure
+    mov x0,x24
+    ADDRESS x1,.Lpl
+    add x2,sp,#3,lsl #12
+    add x2,x2,#1152
+    add x3,x28,#80
+    bl codes_get_long_array
+    cbnz w0,.Lcodec_failure
+    ldr x9,[x28,#80]
+    ldr x13,[x28,#24]
+    cmp x9,x13
+    b.ne .Lscope_failure
+    // Validate every decoded row and the full checked signed-int32 sum.
+    add x12,sp,#3,lsl #12
+    add x12,x12,#1152
+    mov x9,#0
+    mov x10,#0
+    mov x11,#0x7fffffff
+.Lvalidate_full_PL:
+    ldr x14,[x12,x10,lsl #3]
+    cbz x14,.Lscope_failure
+    tbnz x14,#63,.Lscope_failure
+    cmp x14,x11
+    b.hi .Lscope_failure
+    adds x9,x9,x14
+    b.cs .Lscope_failure
+    cmp x9,x11
+    b.hi .Lscope_failure
+    add x10,x10,#1
+    cmp x10,x13
+    b.lo .Lvalidate_full_PL
+    str x9,[x28,#88]
+    // This record retains only north rows, so require mirrored south rows.
+    ldr x13,[x28,#72]
+    ldr x14,[x28,#24]
+    ldr x16,[x12]
+    mov x15,#0
+    mov w17,#0
+    mov x10,#0
+    add x9,x22,#1,lsl #12
+    add x9,x9,#112
+.Lcopy_reduced_north:
+    sub x7,x14,#1
+    sub x7,x7,x10
+    ldr x11,[x12,x10,lsl #3]
+    ldr x8,[x12,x7,lsl #3]
+    cmp x11,x8
+    b.ne .Lscope_failure
+    cmp x11,x16
+    cset w8,ne
+    orr w17,w17,w8
+    cmp x11,x15
+    csel x15,x11,x15,hi
+    str w11,[x9,x10,lsl #2]
+    add x10,x10,#1
+    cmp x10,x13
+    b.lo .Lcopy_reduced_north
+    ldr w9,[x28,#24]
+    str w9,[x22,#8]
+    str w15,[x22,#12]
+    lsl w17,w17,#1
+    str w17,[x22,#20]
+    str w13,[x22,#56]
+    GET_LONG .Lpoints,64
+    ldr x9,[x28,#88]
+    ldr x10,[x28,#64]
+    cmp x9,x10
+    b.ne .Lscope_failure
+.Lgrid_dates:
+    // Preserve each file's source date and time independently.
     ldr w9,[x28,#0]
     ldr w10,[x28,#8]
     ldr w11,[x28,#16]
     stp w9,w10,[x22,#44]
     str w11,[x22,#52]
+    b .Lcleanup
+.Largument_failure:
+    mov w26,#1
     b .Lcleanup
 .Lopen_failure:
     mov w26,#2
@@ -272,7 +392,7 @@ md2asm_read_initial_model_headers:
     b .Lopen_file
 .Lcommit:
     mov x9,#0
-    mov x10,#5232
+    ldr x10,[x28,#232]
 .Lcommit_record:
     ldr x11,[x22,x9]
     str x11,[x21,x9]
@@ -325,6 +445,8 @@ md2asm_initial_model_header_count_get:
 .Llongitudes: .asciz "Ni"
 .Lgaussian_order: .asciz "N"
 .Lpl_present: .asciz "PLPresent"
+.Lpl: .asciz "pl"
+.Lpoints: .asciz "numberOfDataPoints"
 .bss
 .p2align 3
 .Lcompleted: .zero 8

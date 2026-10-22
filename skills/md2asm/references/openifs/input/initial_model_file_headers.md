@@ -1,47 +1,71 @@
 # Initial File Header Contract
 
-GRIB is a weather-data file format, and ecCodes is the C library that decodes it. FP64 means the IEEE 64-bit floating-point representation. Spectral truncation gives the largest wave index represented by the spectral fields.
+Revision 2 reads the first spectral and grid messages from real initial-condition files. GRIB is the weather-file format, and ecCodes is the public C library that decodes it. A regular Gaussian grid has the same number of points in every latitude row. A reduced Gaussian grid can have different row lengths. This component reads their metadata and changes no physical field.
 
-The selected startup reads geometry and vertical-coordinate metadata from two real initial-condition files. `SUARG`, in `arpifs/setup/suarg.F90`, sets `NSUPERSEDE` to one before reading `NAMARG`, calls `SUOPH0` to select the experiment filenames, and reads the spectral file and then the gridpoint file. For experiment `epc8`, these files are `ICMSHepc8INIT` and `ICMGGepc8INIT`. The selected configuration is ECMWF, spherical, regular Gaussian, with both files present and GRIB encoding.
+The direct [assembly reader](../../../../../src/openifs/input/initial_model_file_headers.S) follows the selected header reads in `INQUIRE_GRIB` and the metadata assignments in `SUARG`. Production uses only ecCodes and libc. It has no original OpenIFS provider, constructor, module data or model-state packet. Geometry construction, field loading and the forecast remain separate stages.
 
-The spectral path reaches `IOSTREAM_MIX::IO_INQUIRE`, then its public child `INQUIRE_GRIB`. Source lines 4451–4500 return the date, seconds within the day, forecast seconds, vertical level count and the A/B coefficients; lines 4628–4633 return the spectral truncation. The grid path uses source lines 4531–4573 for latitude-row and longitude counts. The short `SUARG` assignments copy the selected coefficients, choose regular-grid type zero or varying-longitude type two, take the largest northern longitude count, and set `NUCMAX` equal to `NUSMAX`.
+## Interface and bounds
 
-## Direct child
+The interface is `int md2asm_read_initial_model_headers(const char *spectral_path, const char *grid_path, void *record, uint64_t capacity)`. Registers x0 through x3 pass these arguments, and w0 returns the status. Paths are readable C strings ending in zero bytes. The record address is nonnull and aligned to eight bytes. The caller supplies mapped readable and writable storage for the required committed extent.
 
-`int md2asm_read_initial_model_headers(const char *spectral_path, const char *grid_path, void *record, uint64_t record_bytes)` owns opening the two files, decoding their first GRIB headers, deleting each handle, closing each file, checking bounds and copying the source-defined metadata. Its four arguments use `x0` through `x3`, and `w0` returns zero for success. It requires a separate, eight-byte-aligned output record with at least 5,232 bytes and readable zero-terminated path strings. The complete output stays unchanged on failure. The caller supplies readable zero-terminated paths and a mapped, readable and writable record. Record words use the little-endian Arm representation. The selected spectral file uses GRIB edition one, while the first gridpoint message uses edition two.
+Let $`R`$ be the number of northern latitude rows. For these grids, Gaussian order $`N`$ equals $`R`$. The full latitude count is $`\mathrm{Nj}=2R`$. The committed extent $`C`$, in bytes, is
 
-The selected bounds are 1–256 vertical levels, spectral truncation from zero to 4,096, an even number of latitude rows from 2 to 512, and positive signed 32-bit longitude counts. This revision accepts regular Gaussian grids with `PLPresent=0` and `Nj=2*N`, where `N` is the Gaussian order. Reduced grids are rejected. The date must fit the positive YYYYMMDD range, the clock must be a valid HHMM value, forecast hours must convert into nonnegative signed 32-bit seconds, and the decoded coefficients must be finite. The file supplies all coefficients and active counts; no production packet or retained model object supplies them. Only active array prefixes change. The unused coefficient and longitude tails, and reserved record bytes, keep their incoming values.
+```math
+C=\max\left(5232,\;8\left\lceil\frac{4208+4R}{8}\right\rceil\right).
+```
 
-| Byte offset | Source metadata | Storage and units |
+The multiplication and rounding give room for $`R`$ four-byte row lengths and any final alignment padding. The legacy T21 record remains exactly 5,232 bytes. $`R=1280`$ needs 9,328 bytes. The capacity must be at least $`C`$. Address-wrap checks cover the required span, not unused numeric capacity. Bytes beyond $`C`$ remain untouched.
+
+Spectral truncation $`J`$ is the largest retained wave index and is zero through 4096. The file's combined A/B vertical-coordinate array `PV` has an even count from 4 through 514, giving 1 through 256 layers. Every decoded coefficient must be finite. GRIB editions one and two are accepted through their ecCodes template-number keys: 50 for the spectral message and 40 for the Gaussian grid message.
+
+| Grid route | Supported dimensions | Row conditions |
 | --- | --- | --- |
-| 0, 4, 8, 12, 16, 20, 24, 28 | NUSMAX, NUCMAX, NUDGL, NUDLON, NUFLEV, NUHTYP, NUSTTYP, NGRIBFILE | Eight signed 32-bit integers; counts or choices have no unit |
-| 32, 36, 40 | Spectral date, seconds within day, forecast seconds | Three signed 32-bit integers; date is YYYYMMDD, times use seconds |
-| 44, 48, 52 | Grid date, seconds within day, forecast seconds | Three signed 32-bit integers with the same meanings |
-| 56 | Number of northern latitude rows | Signed 32-bit count |
-| 64, 72, 80 | USTRET, UMUCEN, ULOCEN | FP64 values one, one and positive zero |
-| 88 | NSUPERSEDE | Signed 32-bit value one for this selected input route |
-| 96 | UVALH, indices 0 through 256 | 257 FP64 coefficients in pascals |
-| 2152 | UVBH, indices 0 through 256 | 257 FP64 coefficients with no unit |
-| 4208 | NULOEN, northern rows 1 through 256 | 256 signed 32-bit longitude counts |
+| Regular, `PLPresent`=0 | Gaussian order $`N`$ from 1 through 256 and $`\mathrm{Nj}=2N`$ | A positive signed 32-bit `Ni` supplies every row length |
+| Reduced, `PLPresent`=1 | $`N`$ from 1 through 1280 and $`\mathrm{Nj}=2N`$ | Exactly `Nj` positive signed 32-bit `PL` entries, with equal mirrored north and south rows |
 
-Pressure at a layer boundary is A plus B times surface pressure. The A coefficient therefore has units of pascals, while B has no unit. This child copies their exact decoded FP64 bits and performs no physical update. Integer arithmetic converts the file's HHMM clock and forecast hours into seconds, following the original header child.
+For reduced input, the complete `PL` sum must fit a positive signed 32-bit integer and equal `numberOfDataPoints`. `NUDLON` is the maximum northern row length. `NUHTYP` is zero when all northern rows equal the first, and two otherwise. A constant-row reduced input therefore still returns zero. No operational date, coefficient, row length or point total is built into the assembly.
 
-## Interface limits and verification
+Each file keeps its own date and time. The date identifier is positive and no greater than 99,999,999. Its HHMM clock has an hour from 0 through 23 and a minute from 0 through 59. Forecast hours must convert to nonnegative signed 32-bit seconds. The utility does not require the two file dates to match.
 
-Production depends only on the ecCodes C file-format interface and libc. The assembly owns both file streams and both message handles, and each live resource is released once on every exit. It uses a 10,352-byte stack frame, preserves the Arm saved registers and `x18`, and requires FPCR zero before decoding. FPCR controls floating-point rounding and exception settings, FPSR records arithmetic flags, and errno is the C library error indicator. As a file-decoding utility, this child preserves caller FPCR, FPSR and errno, following the accepted initial-field reader contract. The original header composition has a different status boundary: its Gaussian route evaluates discarded latitude arithmetic, and its library calls can change errno. The source control retains those raw effects separately; this utility does not force flags or errno to imitate them. No full `SUARG` or `IO_INQUIRE` replacement is claimed, because their namelist, calendar, stream-owner and diagnostic stages remain separate work. The output record is owned by the caller and uses no OpenIFS type, module data, virtual table or callable. `md2asm_initial_model_header_count_get()` returns the number of completed successful two-file reads and is initially zero. The selected study is serial.
+## Output record
 
-Return zero for complete success, one for an invalid argument or nonzero FPCR, two for file-open failure, three for message/codec/deletion failure, four for unsupported or inconsistent metadata, and five for a close failure after otherwise successful reading. Earlier errors take precedence over cleanup errors. Every failure leaves the whole public output unchanged. Source-unused coefficient and longitude tails and reserved words are copied from the incoming record rather than normalised.
+All words use the little-endian Arm representation. An `int32` value is a four-byte signed integer. FP64 is the eight-byte floating-point format. Pressure at a layer boundary is A plus the product of B and surface pressure; A is in pascals, while B has no unit. Their decoded bits are copied without arithmetic or unit conversion.
 
-Before admission, compare the complete defined record and preserved tails with the original public `INQUIRE_GRIB` child and the short source `SUARG` assignments. Independently inspect the actual first GRIB header and its hybrid-pressure identities. Check the real two-file input, critical malformed inputs, output bounds, cleanup and the ABI. No model or performance measurement is part of this child checkpoint.
+| Byte offset | Value | Representation |
+| --- | --- | --- |
+| 0, 4 | `NUSMAX` and `NUCMAX`, both $`J`$ | Signed `int32` |
+| 8, 12, 16 | `NUDGL`, `NUDLON` and layer count | Signed `int32` counts |
+| 20, 24, 28 | `NUHTYP`, `NUSTTYP`=1 and `NGRIBFILE`=1 | Signed `int32` choices |
+| 32, 36, 40 | Spectral date, seconds within day and forecast seconds | Three signed `int32` values |
+| 44, 48, 52 | Grid date, seconds within day and forecast seconds | Three signed `int32` values |
+| 56 | Northern latitude-row count $`R`$ | Signed `int32` |
+| 64, 72, 80 | `USTRET`=1, `UMUCEN`=1 and `ULOCEN`=positive zero | FP64 |
+| 88 | `NSUPERSEDE`=1 | Signed `int32` |
+| 96 | A, capacity 257 values | FP64; only layers+1 values change |
+| 2152 | B, capacity 257 values | FP64; only layers+1 values change |
+| 4208 | `NULOEN`, the $`R`$ northern row lengths | Signed `int32` |
 
-## Completed checks
+Reserved words, inactive coefficient entries, inactive row entries and alignment padding retain their caller bytes. The routine stages a before-image of every byte that it can commit. It first copies the legacy prefix, then checks the dimension-derived extent and copies any additional caller bytes before filling the private `PL` tail.
 
-The original public `INQUIRE_GRIB` control reads both actual files and applies the short `SUARG` assignments to the same owned record. Two incoming byte patterns produce 10,464 complete source bytes. Three native successful placements, including a protected page end, compare 15,696 bytes with zero differences. Reserved words, inactive A/B entries, unused longitude entries and larger caller-buffer tails remain unchanged.
+## Failure and resource rules
 
-Twelve semantic and bounds cases cover the real two-format input, extra output capacity, short capacity, misalignment, missing first and second files, malformed input, second-file truncation, an odd vertical-coordinate count before array decoding, odd latitude rows, swapped file types and an address-wrapping output range. Every failed call leaves the full public owner unchanged, every file descriptor count is balanced, and only completed successful reads increment the counter. Four native ABI checks cover success at a protected page end, early rejection, second-file failure and nonzero FPCR. All saved-register masks are zero, and caller FPCR, FPSR and errno are preserved exactly.
+| Status | Meaning |
+| --- | --- |
+| 0 | Both headers and all checks complete; both files close successfully |
+| 1 | Invalid argument, alignment, required capacity, wrapped span or nonzero FPCR |
+| 2 | File open failure |
+| 3 | Codec, message creation or handle deletion failure |
+| 4 | Unsupported or inconsistent metadata |
+| 5 | File close failure after otherwise successful reading |
 
-The independent check reads GRIB1 and GRIB2 sections without ecCodes. It reconstructs all forty coefficients from the GRIB1 IBM 32-bit representation and checks the GRIB2 date, template, Gaussian order and point counts. All 320 coefficient bytes and 64 northern-longitude bytes match the source record. At surface pressures of 80,000, 101,325 and 110,000 pascals, 123 exact rational relations verify the top and bottom pressures, increasing layer-boundary pressure and pressure bounds.
+Every failure leaves all public output bytes unchanged. Checks available at entry run before file calls. The larger capacity check follows the decoded dimensions; an earlier file or metadata failure keeps precedence. Cleanup errors replace success only. Each held message handle and open file is released once. The success counter increments only after complete publication. `md2asm_initial_model_header_count_get()` returns that serial counter, which starts at zero.
 
-The reference composition has different raw effects from the declared utility interface. Its cold call returns FPCR/FPSR/errno 0/16/2 from seed 0/777 and has register mask two because x18 changes. Its subsequent call returns 0/31/777 from seed 31/777 and has mask zero. These are retained raw observations, rather than a universal status rule. The native utility always follows its preserved-status interface.
+The application binary interface requires FPCR zero at entry. FPCR controls rounding and exceptions, FPSR records arithmetic status, and errno is the C library error indicator. The utility restores all three on return. It preserves x18 through x29, the return address, the required lower halves of v8 through v15 and sixteen-byte stack alignment. It performs no floating-point arithmetic itself.
 
-The assembler and linker build the direct source without compiler-generated assembly or intermediate representation. The production library requires only ecCodes and libc, and the pure native verification process maps no OpenIFS, FIAT, Fortran-runtime or ecCodes-Fortran library. Original Fortran and MPI initialisation occur only in the separate reference process. No model forecast or performance measurement was run. The local ready packet records the exact commands, versions, implementation hashes and all check receipts.
+The stack frame has 112 saved-register bytes and 34,240 private bytes. Private offsets [0,9328) hold the staged record, [9328,13440) hold at most 514 FP64 `PV` values, [13440,33920) hold at most 2560 eight-byte C-long `PL` values, and [33920,34240) hold local scalars and saved status. These regions are disjoint and sixteen-byte aligned. No heap allocation, new allocation error or private pointer is added to the public record.
+
+## Checks and limits
+
+The accepted legacy checks compare complete T21 records and preserved tails with the original public `INQUIRE_GRIB` child and `SUARG` assignments. They retain independent file-format and hybrid-pressure checks, protected bounds, malformed inputs, balanced cleanup and native ABI/status checks. The original reference can raise different flags or errno and can change x18; those raw differences remain separate from this utility's preserved-status ABI.
+
+The revision-2 critical packet passes 15 semantic cases, six protected ABI/status cases and the required-span wrap check. All 62,464 complete owner bytes match exactly, including the 9,328-byte operational record, legacy T21 records and preserved tails. All native ABI masks are zero, FPCR/FPSR/errno are preserved, and file counts are balanced. The separate raw-GRIB check and 831 exact hybrid-pressure relations also pass. Deletion and close fault injection were not repeated; their error paths retain the reviewed legacy source. No model, full-field decode or performance measurement forms part of this checkpoint. Header acceptance does not establish operational geometry, complete initial loading or a forecast.
