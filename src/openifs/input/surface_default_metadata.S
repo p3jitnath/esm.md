@@ -311,3 +311,283 @@ md2asm_surface_default_metadata_direct_:
  .word 8240,8376,8448,4 // SD_XP
  .word 8512,8648,8720,4 // SD_XP2
 .section .note.GNU-stack,"",%progbits
+
+/* Operational metadata collector. Contract: skills/md2asm/references/openifs/input/operational_surface_defaults.md.
+ * Keep all 33 source groups and field/level order. Frame 192 bytes.
+ */
+.text
+.p2align 4
+.global md2asm_operational_surface_default_metadata
+.type md2asm_operational_surface_default_metadata,%function
+md2asm_operational_surface_default_metadata:
+ mov x5,x2
+ mov x6,#96
+.Lodm_clear_owners:
+ stp xzr,xzr,[x5],#16
+ subs x6,x6,#1
+ b.ne .Lodm_clear_owners
+ mov x5,x3
+ mov x6,#6144
+.Lodm_clear_assignments:
+ stp xzr,xzr,[x5],#16
+ subs x6,x6,#1
+ b.ne .Lodm_clear_assignments
+ stp xzr,xzr,[x4]
+ stp xzr,xzr,[x4,#16]
+ stp xzr,xzr,[x4,#32]
+ stp xzr,xzr,[x4,#48]
+ mov x5,#1
+ str x5,[x4]
+ ldr w5,[x0,#5144]
+ cmp w5,#17
+ b.ne .Lodm_early
+ ldr w5,[x0,#5160]
+ movz w6,#60537
+ movk w6,#5,lsl#16
+ cmp w5,w6
+ b.ne .Lodm_early
+ stp x19,x20,[sp,#-192]!
+ stp x21,x22,[sp,#16]
+ stp x23,x24,[sp,#32]
+ stp x25,x26,[sp,#48]
+ stp x27,x28,[sp,#64]
+ mov x19,x1
+ mov x20,x2
+ mov x21,x3
+ mov x22,x4
+ adrp x23,.Lgroups
+ add x23,x23,:lo12:.Lgroups
+ mov x24,#0
+ mov x25,#0
+ mov x26,#0
+ mov x27,#33
+.Lodm_group:
+ ldr w8,[x23,#4]
+ add x8,x19,x8
+ ldrsw x9,[x8,#4]
+ cmp x9,#0
+ b.le .Lodm_next_group
+ cmp x9,#4096
+ b.hi .Lodm_reject
+ str x9,[sp,#88]
+ ldrsw x10,[x8]
+ cmp x10,#0
+ b.lt .Lodm_reject
+ str x10,[sp,#104]
+ ldr w11,[x23,#12]
+ str x11,[sp,#80]
+ mov x12,#1
+ cmp x11,#4
+ b.ne .Lodm_levels_ready
+ ldrsw x12,[x8,#8]
+ cmp x12,#1
+ b.lt .Lodm_reject
+.Lodm_levels_ready:
+ str x12,[sp,#96]
+ mul x13,x9,x12
+ cmp x13,#4096
+ b.hi .Lodm_reject
+ ldr w14,[x23]
+ add x14,x19,x14
+ ldr x15,[x14]
+ cbz x15,.Lodm_reject
+ ldr x16,[x14,#16]
+ cmp x16,#8
+ b.ne .Lodm_reject
+ ldrb w16,[x14,#28]
+ cmp x16,x11
+ b.ne .Lodm_reject
+ // Validate every dimension of the true complete allocation.
+ mov x0,#0
+ mov x1,#1
+.Lodm_dimension:
+ cmp x0,#0
+ b.ne .Lodm_not_first
+ mov x2,#17
+ b .Lodm_dimension_extent
+.Lodm_not_first:
+ sub x3,x11,#1
+ cmp x0,x3
+ b.ne .Lodm_not_last
+ movz x2,#60537
+ movk x2,#5,lsl#16
+ b .Lodm_dimension_extent
+.Lodm_not_last:
+ cmp x11,#4
+ b.ne .Lodm_plane_dimension
+ cmp x0,#1
+ b.ne .Lodm_plane_dimension
+ mov x2,x12
+ b .Lodm_dimension_extent
+.Lodm_plane_dimension:
+ mov x2,x9
+.Lodm_dimension_extent:
+ add x3,x0,x0,lsl#1
+ add x3,x14,x3,lsl#3
+ ldr x4,[x3,#40]
+ cmp x4,x1
+ b.ne .Lodm_reject
+ ldp x4,x5,[x3,#48]
+ sub x5,x5,x4
+ add x5,x5,#1
+ cmp x5,x2
+ b.ne .Lodm_reject
+ mul x1,x1,x2
+ add x0,x0,#1
+ cmp x0,x11
+ b.ne .Lodm_dimension
+ // Validate the original contiguous array of field metadata.
+ ldr w8,[x23,#8]
+ add x8,x19,x8
+ ldr x28,[x8]
+ cbz x28,.Lodm_reject
+ ldr x0,[x8,#40]
+ cmp x0,#1
+ b.ne .Lodm_reject
+ ldp x0,x1,[x8,#48]
+ sub x1,x1,x0
+ add x1,x1,#1
+ cmp x10,x1
+ b.gt .Lodm_reject
+ ldrb w0,[x8,#28]
+ cmp w0,#1
+ b.ne .Lodm_reject
+ mov x0,#64
+ cmp x11,#3
+ b.eq .Lodm_metadata_size
+ mov x0,#288
+.Lodm_metadata_size:
+ ldr x1,[x8,#16]
+ cmp x1,x0
+ b.ne .Lodm_reject
+ str x0,[sp,#112]
+ movz x0,#41032
+ movk x0,#805,lsl#16
+ mul x0,x13,x0
+ add x1,x24,x24,lsl#1
+ add x1,x20,x1,lsl#3
+ stp x15,x0,[x1]
+ str x13,[x1,#16]
+ add x26,x26,x0
+ add x24,x24,#1
+ str x10,[sp,#120]
+ cbz x10,.Lodm_next_group
+.Lodm_field:
+ ldr x11,[sp,#80]
+ cmp x11,#4
+ b.eq .Lodm_layered
+ ldr w0,[x28,#56]
+ cmn w0,#1
+ b.ne .Lodm_next_field
+ ldrsw x1,[x28]
+ ldr x2,[sp,#88]
+ cmp x1,#1
+ b.lt .Lodm_reject
+ cmp x1,x2
+ b.gt .Lodm_reject
+ sub x1,x1,#1
+ ldr x2,[x28,#48]
+ b .Lodm_append_2d
+.Lodm_layered:
+ add x8,x28,#224
+ ldr x9,[x8]
+ cbz x9,.Lodm_reject
+ ldr x10,[x8,#16]
+ cmp x10,#4
+ b.ne .Lodm_reject
+ ldr x10,[x8,#40]
+ cmp x10,#1
+ b.ne .Lodm_reject
+ ldp x10,x11,[x8,#48]
+ cmp x10,#1
+ b.gt .Lodm_reject
+ ldr x12,[sp,#96]
+ cmp x11,x12
+ b.lt .Lodm_reject
+ sub x10,x10,#1
+ sub x9,x9,x10,lsl#2
+ str x9,[sp,#144]
+ mov x4,#0
+.Lodm_level:
+ ldr x9,[sp,#144]
+ ldr w0,[x9,x4,lsl#2]
+ cmn w0,#1
+ b.ne .Lodm_next_level
+ add x8,x28,#160
+ ldr x9,[x8]
+ cbz x9,.Lodm_reject
+ ldr x10,[x8,#16]
+ cmp x10,#8
+ b.ne .Lodm_reject
+ ldr x10,[x8,#40]
+ cmp x10,#1
+ b.ne .Lodm_reject
+ ldp x10,x11,[x8,#48]
+ add x12,x4,#1
+ cmp x12,x10
+ b.lt .Lodm_reject
+ cmp x12,x11
+ b.gt .Lodm_reject
+ sub x12,x12,x10
+ ldr x2,[x9,x12,lsl#3]
+ ldrsw x1,[x28]
+ ldr x9,[sp,#88]
+ cmp x1,#1
+ b.lt .Lodm_reject
+ cmp x1,x9
+ b.gt .Lodm_reject
+ sub x1,x1,#1
+ ldr x9,[sp,#96]
+ madd x1,x1,x9,x4
+ cmp x25,#4096
+ b.hs .Lodm_reject
+ add x8,x25,x25,lsl#1
+ add x8,x21,x8,lsl#3
+ sub x0,x24,#1
+ stp x0,x1,[x8]
+ str x2,[x8,#16]
+ add x25,x25,#1
+.Lodm_next_level:
+ add x4,x4,#1
+ ldr x9,[sp,#96]
+ cmp x4,x9
+ b.ne .Lodm_level
+ b .Lodm_next_field
+.Lodm_append_2d:
+ cmp x25,#4096
+ b.hs .Lodm_reject
+ add x8,x25,x25,lsl#1
+ add x8,x21,x8,lsl#3
+ sub x0,x24,#1
+ stp x0,x1,[x8]
+ str x2,[x8,#16]
+ add x25,x25,#1
+.Lodm_next_field:
+ ldr x0,[sp,#112]
+ add x28,x28,x0
+ ldr x0,[sp,#120]
+ subs x0,x0,#1
+ str x0,[sp,#120]
+ b.ne .Lodm_field
+.Lodm_next_group:
+ add x23,x23,#16
+ subs x27,x27,#1
+ b.ne .Lodm_group
+ str xzr,[x22]
+ stp x24,x25,[x22,#8]
+ mov x0,#17
+ movz x1,#60537
+ movk x1,#5,lsl#16
+ stp x0,x1,[x22,#24]
+ str x26,[x22,#40]
+.Lodm_reject:
+ ldp x19,x20,[sp]
+ ldp x21,x22,[sp,#16]
+ ldp x23,x24,[sp,#32]
+ ldp x25,x26,[sp,#48]
+ ldp x27,x28,[sp,#64]
+ add sp,sp,#192
+.Lodm_early:
+ ret
+.size md2asm_operational_surface_default_metadata,.-md2asm_operational_surface_default_metadata
+.section .note.GNU-stack,"",%progbits
