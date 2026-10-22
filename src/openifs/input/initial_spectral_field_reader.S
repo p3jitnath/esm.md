@@ -1,7 +1,7 @@
 /*
  * Initial spectral, upper-air and surface field readers, revision 3.
  *
- * Three six-argument entries share one private direct assembly decoder.
+ * Four six-argument entries share one private direct assembly decoder.
  * Contracts: skills/md2asm/references/openifs/input/initial_spectral_field_reader.md
  * skills/md2asm/references/openifs/input/initial_upper_air_field_reader.md and
  * skills/md2asm/references/openifs/input/initial_surface_field_reader.md.
@@ -18,6 +18,7 @@
  * Output pointers are eight-byte aligned and their fixed extents are disjoint.
  * The caller supplies a readable zero-byte-terminated path and mapped buffers.
  * Spectral extents are 315744/1872/8 bytes for 78 records of 506 values.
+ * Operational spectral extents are 5417502720/9912/8 bytes for 413 records of 1639680 values.
  * Upper-air extents are 1245184/1824/8 bytes for 76 records of 2048 values.
  * Surface extents are 2293760/5600/8 bytes for 140 records of 2048 values.
  * Surface metadata adds date and time after parameter, level and count.
@@ -59,6 +60,13 @@ md2asm_read_initial_surface_fields:
     add x6, x6, :lo12:.Lsurface_schema
     b .Lread_initial_records
 .size md2asm_read_initial_surface_fields, .-md2asm_read_initial_surface_fields
+.global md2asm_read_operational_initial_spectral_fields
+.type md2asm_read_operational_initial_spectral_fields, %function
+md2asm_read_operational_initial_spectral_fields:
+    adrp x6, .Loperational_spectral_schema
+    add x6, x6, :lo12:.Loperational_spectral_schema
+    b .Lread_initial_records
+.size md2asm_read_operational_initial_spectral_fields, .-md2asm_read_operational_initial_spectral_fields
 .type .Lread_initial_records, %function
 .Lread_initial_records:
     stp x29, x30, [sp, #-224]!
@@ -479,4 +487,16 @@ md2asm_read_initial_surface_fields:
     .xword 200199, 0, 99990615, 0
     .xword 129172, 0, 20110131, 0
     .xword 200026, 0, 99990615, 0
+.p2align 3
+.Loperational_spectral_schema:
+    .xword 413, 1639680, 5417502720, 9912, 3, 0
+    .xword 152, 1, 0, 0
+    .set .Loperational_level, 1
+    .rept 137
+    .xword 138, .Loperational_level, 0, 0
+    .xword 155, .Loperational_level, 0, 0
+    .xword 130, .Loperational_level, 0, 0
+    .set .Loperational_level, .Loperational_level+1
+    .endr
+    .xword 129, 0, 0, 0
 .section .note.GNU-stack,"",%progbits
