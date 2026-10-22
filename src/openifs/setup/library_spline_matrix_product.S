@@ -1,9 +1,9 @@
-/* Complete public-runtime product for the three qualified large spline pairs.
+/* Complete public-runtime product for the qualified large spline pairs.
  * Contract: skills/md2asm/references/openifs/setup/library_spline_matrix_product.md.
- * x0=&int32 rows138/139, x1=left[rows,139], x2=right[139,139], x3=output.
+ * x0=&int32 rows 137, 138 or 139; x1=left[rows,139], x2=right[139,139], x3=output.
  * Matrices are column-major FP64 with eight-byte alignment; the row word is four-byte aligned.
  * Return 0 means complete; return 2 refuses the interface before mutation.
- * Private frame: 416 bytes. Arithmetic stays in the original public GNU MATMUL service.
+ * Stack: 416 bytes. Arithmetic stays in the original public GNU MATMUL service.
  */
 .arch armv8-a
 .text
@@ -24,8 +24,8 @@ md2asm_library_spline_matrix_product:
     adds x4,x0,#4
     b.cs .Lreject
     ldr w5,[x0]
-    sub w9,w5,#138
-    cmp w9,#1
+    sub w9,w5,#137
+    cmp w9,#2
     b.hi .Lreject
     mov x6,#1112
     mul x6,x5,x6
