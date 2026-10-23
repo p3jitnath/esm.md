@@ -148,6 +148,7 @@ The existing 9 km case has 137 atmospheric layers and 6,599,680 horizontal point
 | [Owned surface startup](skills/md2asm/references/openifs/setup/operational_owned_surface_state_startup.md) | Complete metadata, all 104 owners, defaults, surface-file loading and release, with caller-owned constants and physics |
 | [Complete serial partition setup](skills/md2asm/references/openifs/setup/serial_partition_map_contract.md) | All 36 arrays, public transform queries, 17-position blocks, complete maps and release |
 | [Terrain storage](skills/md2asm/references/openifs/setup/orography_owner_storage.md#operational-grid) and [initialisation](skills/md2asm/references/openifs/setup/operational_orography_initialization.md) | Complete scalar and derivative transforms, both layouts, all block owners, independent physical checks and exact reference agreement |
+| [Complete serial operational Geometry](skills/md2asm/references/openifs/setup/operational_owned_geometry_system.md) | 9 km grid and 137 layers, with 3,866,085,928 complete owner, metadata and status bytes matching exactly; distribution remains unfinished |
 | [Inactive chemistry and aerosol storage](skills/md2asm/references/openifs/setup/inactive_composition_owners.md) | Complete defaults, the 152-byte allocated buffer and release |
 
 Complete initialization, enclosing model ownership, distribution, output and full CPU/GPU forecast acceptance remain unfinished. Native physics and GPU kernels still need qualified operational shapes. The earlier 14.13-second CPU result is for T21 and is not a 9 km timing.
