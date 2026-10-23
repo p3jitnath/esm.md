@@ -1,3 +1,4 @@
+/* Qualified live-provider contract: skills/md2asm/references/openifs/input/initial_spectral_field_reader.md. */
 /*
  * Initial spectral, upper-air and surface field readers, revision 4.
  *
@@ -68,13 +69,13 @@ md2asm_read_initial_surface_fields:
     add x6, x6, :lo12:.Lsurface_schema
     b .Lread_initial_records
 .size md2asm_read_initial_surface_fields, .-md2asm_read_initial_surface_fields
-.global md2asm_read_operational_initial_spectral_fields
-.type md2asm_read_operational_initial_spectral_fields, %function
-md2asm_read_operational_initial_spectral_fields:
+.global md2asm_grid_decoder_unused_operational_spectral_fields
+.type md2asm_grid_decoder_unused_operational_spectral_fields, %function
+md2asm_grid_decoder_unused_operational_spectral_fields:
     adrp x6, .Loperational_spectral_schema
     add x6, x6, :lo12:.Loperational_spectral_schema
     b .Lread_initial_records
-.size md2asm_read_operational_initial_spectral_fields, .-md2asm_read_operational_initial_spectral_fields
+.size md2asm_grid_decoder_unused_operational_spectral_fields, .-md2asm_grid_decoder_unused_operational_spectral_fields
 .global md2asm_read_operational_initial_surface_fields
 .type md2asm_read_operational_initial_surface_fields, %function
 md2asm_read_operational_initial_surface_fields:

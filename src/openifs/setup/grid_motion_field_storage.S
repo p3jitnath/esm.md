@@ -1,3 +1,4 @@
+/* Qualified live-provider contract: skills/md2asm/references/openifs/setup/operational_enclosing_model_storage.md. */
 /* Own selected SETUP_GMV and its integer index maps.
  * Physics formulations/openifs/dynamics/forecast_time_loop.md.
  * Contract skills/md2asm/references/openifs/setup/grid_motion_field_storage.md.
@@ -313,10 +314,13 @@ md2asm_initialize_grid_motion_index_maps:
  add w11,w11,#1
  str w11,[x0,#1100]
 .Lgm_t0_0_no_pressure_derivatives:
+ ldr w9,[x2,#200]
+ cbz w9,.Lgm_t0_0_no_spectral_gradients
  add w10,w10,#1
  str w10,[x0,#1088]
  add w10,w10,#1
  str w10,[x0,#1092]
+.Lgm_t0_0_no_spectral_gradients:
  str w10,[x0,#1000]
  str w11,[x0,#1004]
  mov w10,#0
@@ -356,10 +360,13 @@ md2asm_initialize_grid_motion_index_maps:
  add w11,w11,#1
  str w11,[x0,#1548]
 .Lgm_t0_1_no_pressure_derivatives:
+ ldr w9,[x2,#200]
+ cbz w9,.Lgm_t0_1_no_spectral_gradients
  add w10,w10,#1
  str w10,[x0,#1536]
  add w10,w10,#1
  str w10,[x0,#1540]
+.Lgm_t0_1_no_spectral_gradients:
  str w10,[x0,#1448]
  str w11,[x0,#1452]
  ldr w10,[x0,#1000]
@@ -378,10 +385,13 @@ md2asm_initialize_grid_motion_index_maps:
  str w10,[x0,#1156]
  add w10,w10,#1
  str w10,[x0,#1164]
+ ldr w9,[x2,#200]
+ cbz w9,.Lgm_t9_no_spectral_gradients
  add w10,w10,#1
  str w10,[x0,#1316]
  add w10,w10,#1
  str w10,[x0,#1320]
+.Lgm_t9_no_spectral_gradients:
  sub w9,w10,w12
  str w9,[x0,#1108]
  mov w9,#0
