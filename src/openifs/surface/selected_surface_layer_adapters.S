@@ -1,5 +1,5 @@
 /* Contract: skills/md2asm/references/openifs/surface/surface_private_bindings.md. */
-/* Direct AArch64 layer equations. Private candidates: no numerical execution or admission. */
+/* Direct AArch64 layer equations. Runtime SURFBC acceptance: runtime_surface_boundary_layer.md. */
 #include "selected_surface_layer_helpers.inc.S"
 .macro INVOKE count,symbol
  mov x10,#8
@@ -293,6 +293,7 @@ ENTER md2asm_surface_boundary_adapter_7358525,42,16384
  EXIT 16384
 .size md2asm_surface_boundary_adapter_7358525,.-md2asm_surface_boundary_adapter_7358525
 
+#ifndef MD2ASM_SURFBC_ONLY
 ENTER md2asm_snow_initialisation_adapter_7358525,18,16384
  ARG x9,3
  ldrsw x21,[x9]
@@ -663,6 +664,7 @@ ENTER md2asm_surface_turbulence_layer_sea_r2_layout_r2_7358525,18,32768
  HOOK .Lsl_turb_name,16,1,3608
  EXIT 32768
 .size md2asm_surface_turbulence_layer_sea_r2_layout_r2_7358525,.-md2asm_surface_turbulence_layer_sea_r2_layout_r2_7358525
+#endif
 .Lsl_bad:
  brk #0x7c1
  b .Lsl_bad
