@@ -70,3 +70,7 @@ The combined coarse forecast in exclusive allocation 7240564 on nid010555 passes
 The support interface adds zero routines to the weather count. Its private SLTEND child is counted separately. The pair also preserves 412,800 unused placeholder bytes with zero differences.
 
 All ten saved files also match across 618,140 bytes. The accepted critical physics and interface checks are reused. These checks cover the declared routine domains and saved files. Whole-forecast physical verification, whole-process byte identity and comparative timing remain open in the [coverage record](../../../../../src/openifs/README.md).
+
+## Runtime provider binding
+
+The accepted body also covers the runtime provider for `SLTEND_LAYER`. Its explicit 40-byte context supplies the live step, five field positions, the dry-air gas constant and gravity. Sixteen private, read-only constant words match the actual setup outputs. The linked exponential calls reach the accepted mathematical bodies. Complete parent, cloud-child and wrapper-library objects remain unchanged, so their accepted physical, buffer, status and exact-output checks are reused. Complete `CALLPAR` forwarding and a loaded-weather forecast remain pending.

@@ -1,5 +1,5 @@
 /* Source build for the qualified private forecast graph.
- * Contract: skills/md2asm/references/openifs/dynamics/private_forecast_graph_sources.md.
+ * Contract: skills/md2asm/references/openifs/physics/runtime_height_wind_interpolation.md.
  * Preserve the original interface, ordered arithmetic, and caller-owned storage. */
 // Direct VDFVINT from height_wind_interpolation_contract.md.
 .text
