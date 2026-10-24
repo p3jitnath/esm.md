@@ -1,0 +1,17 @@
+# Distributed Grid-Point Norms
+
+A grid-point norm summarises a field stored at physical grid points. This GPNORM1 component returns a weighted mean, minimum and maximum for each field, in the field’s own units. It keeps the original public transform calculation and all three broadcasts, which copy each result to every process.
+
+`md2asm_operational_grid_point_norm(G,PGP,KFIELDS,LDLEVELS,label,PNORMS,hidden_length,dependency)` uses registers x0 through x7. G is the live 20,400-byte geometry record. KFIELDS and LDLEVELS point to 32-bit integers. KFIELDS is 1 through 16 and LDLEVELS is zero. The optional label is absent, its hidden length is zero, and PNORMS is present. Source profiling is disabled by the caller, matching the qualified route.
+
+The dependency has 32 bytes, with borrowed partition4096 at byte 0, configuration67616 at byte 8, an unused HYD64 address at byte 16 and reserved zero at byte 24. HYD64 may be null for this entry. The partition selects four processes and a process number from 1 through 4. Configuration selects the spherical grid. All records and their complete backing buffers stay mapped through return.
+
+PGP contains 17 positions per block, KFIELDS fields and 97,055 blocks, in that dimension order. Its complete capacity is 13,199,480 times KFIELDS bytes. Only 1,649,920 positions per field are physical points, so the final block has two active positions. The public transform owns the grid weights and excludes the remaining padding. PNORMS has 24 times KFIELDS bytes, storing mean, minimum and maximum as three FP64 values for each field.
+
+The application binary interface, or ABI, defines register and stack use. Records and FP64 buffers are aligned to eight bytes, and integer arguments to four bytes. Complete ranges do not wrap around the address space. PNORMS is disjoint from PGP and every borrowed record. Other mapped-buffer bounds and valid geometry descriptors are caller obligations. All participating processes agree admission before entering a collective call, which requires them to participate together.
+
+The entry constructs the declared GNU array descriptors in a 1,280-byte stack frame. It calls public ECTRANS GPNORM_TRANS with LDAVE_ONLY false, then public FIAT MPL_BROADCAST_REAL8 for the mean, minimum and maximum, in source order. The tags are 12345, 12445 and 12545, with root process 1 and the original 12-byte labels. Method, communicator, error and request arguments remain absent. No original OpenIFS routine or global supplies production work.
+
+Return 0 on success or 2 for unsupported input before any collective call or output store. The entry has no heap allocation or floating-point instructions. It preserves x18, x19 through x30 and stack alignment. FPCR, the floating-point control register, is zero. Natural numerical flags and system error values remain visible through the public calls. Enabled outer profiling and recovery from a library’s fatal failure are outside this selected interface.
+
+Three field counts, 2, 5 and 10, pass across all four real process maps. All 1,632 result bytes and 288 raw-status bytes match the genuine source exactly. Each implementation passes 272 independent extrema and mean-bound relations. Native ABI, 44 coordinated refusals, unchanged inputs, output guards and complete owner release pass. The source results were saved once and reused. These are component results, with no complete forecast or performance claim.
