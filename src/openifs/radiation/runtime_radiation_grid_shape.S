@@ -1,0 +1,308 @@
+/* Direct SUECRAD radiation component.
+ * Contract skills/md2asm/references/openifs/radiation/radiation_grid_shape.md. */
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_create_runtime_radiation_grid_shape
+.type md2asm_create_runtime_radiation_grid_shape,%function
+md2asm_create_runtime_radiation_grid_shape:
+ cbz x0,.Ls_bad
+ cbz x2,.Ls_bad
+ orr x8,x0,x2
+ tst x8,#7
+ b.ne .Ls_bad
+ mov x8,#20400
+ cmp x1,x8
+ b.lo .Ls_bad
+ adds x8,x0,x8
+ b.cs .Ls_bad
+ ldr x9,=4275088
+ cmp x3,x9
+ b.lo .Ls_bad
+ adds x9,x2,x9
+ b.cs .Ls_bad
+ cmp x0,x9
+ b.hs .Ls_records_apart
+ cmp x2,x8
+ b.lo .Ls_bad
+.Ls_records_apart:
+ mrs x8,fpcr
+ cbnz x8,.Ls_bad
+ ldr w8,[x0,#4872]
+ sub w9,w8,#2
+ mov w10,#32766
+ cmp w9,w10
+ b.hi .Ls_bad
+ tbnz w8,#0,.Ls_bad
+ ldr x9,=1609236
+ ldr w9,[x2,x9]
+ cmp w9,#1
+ b.ne .Ls_bad
+ ldr x9,=1608752
+ add x9,x2,x9
+ ldp w10,w11,[x9]
+ sub w10,w10,#2
+ cmp w10,#1
+ b.hi .Ls_bad
+ cbnz w11,.Ls_resolution
+ lsr w8,w8,#1
+ adrp x9,.Ls_defaults
+ add x9,x9,:lo12:.Ls_defaults
+ mov x10,#24
+.Ls_lookup:
+ ldp w12,w13,[x9],#8
+ cmp w8,w12
+ b.eq .Ls_found
+ subs x10,x10,#1
+ b.ne .Ls_lookup
+ b .Ls_bad
+.Ls_found:
+ mov w11,w13
+.Ls_resolution:
+ sub w12,w11,#1
+ mov w13,#8190
+ cmp w12,w13
+ b.hi .Ls_bad
+ tbz w11,#0,.Ls_bad
+ ldr w12,[x0,#5172]
+ cmp w11,w12
+ b.eq .Ls_bad
+ add w11,w11,#1
+ ldr x9,=4098608
+ add x9,x2,x9
+ ldr x10,[x9,#88]
+ ldr x12,[x9,#152]
+ orr x10,x10,x12
+ cbnz x10,.Ls_bad
+ sub sp,sp,#112
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ str x18,[sp,#80]
+ mov x29,sp
+ mov x19,x2
+ mov x20,x9
+ mov x21,x11
+ lsl x0,x21,#2
+ bl malloc
+ cbz x0,.Ls_nomem
+ mov x22,x0
+ add x0,x21,#4
+ lsl x0,x0,#2
+ bl malloc
+ cbz x0,.Ls_rollback
+ mov x23,x0
+ mov x24,#0
+ sub x25,x21,#1
+.Ls_fill:
+ sub x9,x25,x24
+ cmp x24,x9
+ csel x9,x24,x9,lo
+ lsl w9,w9,#2
+ add w9,w9,#20
+ str w9,[x22,x24,lsl#2]
+ add x24,x24,#1
+ cmp x24,x21
+ b.lo .Ls_fill
+ mov x24,#0
+ add x10,x23,#8
+.Ls_copy:
+ ldr w9,[x22,x24,lsl#2]
+ str w9,[x10,x24,lsl#2]
+ add x24,x24,#1
+ cmp x24,x21
+ b.lo .Ls_copy
+ ldr w9,[x22,#4]
+ ldr w10,[x22]
+ stp w9,w10,[x23]
+ sub x11,x21,#1
+ ldr w9,[x22,x11,lsl#2]
+ sub x11,x21,#2
+ ldr w10,[x22,x11,lsl#2]
+ add x11,x23,x21,lsl#2
+ stp w9,w10,[x11,#8]
+ add x9,x20,#88
+ mov x10,#-1
+ stp x22,x10,[x9]
+ mov x10,#4
+ ldr x11,=0x0000010100000000
+ stp x10,x11,[x9,#16]
+ mov x11,#1
+ stp x10,x11,[x9,#32]
+ stp x11,x21,[x9,#48]
+ add x9,x20,#152
+ stp x23,x11,[x9]
+ mov x10,#4
+ ldr x11,=0x0000010100000000
+ stp x10,x11,[x9,#16]
+ mov x11,#1
+ stp x10,x11,[x9,#32]
+ mov x10,#-1
+ add x11,x21,#2
+ stp x10,x11,[x9,#48]
+ ldr x9,=1608756
+ sub w10,w21,#1
+ str w10,[x19,x9]
+ str wzr,[x20,#20]
+ lsr x9,x21,#1
+ sub x9,x9,#1
+ ldr w10,[x22,x9,lsl#2]
+ str w10,[x20,#32]
+ str w21,[x20,#52]
+ mov w9,#-1
+ str w9,[x20,#56]
+ add w9,w21,#2
+ str w9,[x20,#60]
+ mov w9,#2
+ str w9,[x20,#76]
+ mov w0,#0
+ b .Ls_return
+.Ls_rollback:
+ mov x0,x22
+ bl free
+.Ls_nomem:
+ mov w0,#1
+.Ls_return:
+ ldr x18,[sp,#80]
+ ldp x25,x26,[sp,#64]
+ ldp x23,x24,[sp,#48]
+ ldp x21,x22,[sp,#32]
+ ldp x19,x20,[sp,#16]
+ ldp x29,x30,[sp]
+ add sp,sp,#112
+ ret
+.Ls_bad:
+ mov w0,#2
+ ret
+.size md2asm_create_runtime_radiation_grid_shape,.-md2asm_create_runtime_radiation_grid_shape
+.p2align 4
+.global md2asm_release_runtime_radiation_grid_shape
+.type md2asm_release_runtime_radiation_grid_shape,%function
+md2asm_release_runtime_radiation_grid_shape:
+ cbz x0,.Lsr_bad
+ tst x0,#7
+ b.ne .Lsr_bad
+ ldr x8,=4275088
+ cmp x1,x8
+ b.lo .Lsr_bad
+ adds x8,x0,x8
+ b.cs .Lsr_bad
+ ldr x9,=4098608
+ add x9,x0,x9
+ ldr x10,[x9,#88]
+ ldr x11,[x9,#152]
+ orr x12,x10,x11
+ cbz x12,.Lsr_empty
+ cbz x10,.Lsr_bad
+ cbz x11,.Lsr_bad
+ orr x12,x10,x11
+ tst x12,#3
+ b.ne .Lsr_bad
+ ldr w12,[x9,#52]
+ sub w13,w12,#2
+ mov w14,#8190
+ cmp w13,w14
+ b.hi .Lsr_bad
+ tbnz w12,#0,.Lsr_bad
+ lsl x13,x12,#2
+ adds x14,x10,x13
+ b.cs .Lsr_bad
+ add x13,x13,#16
+ adds x15,x11,x13
+ b.cs .Lsr_bad
+ cmp x10,x15
+ b.hs .Lsr_apart
+ cmp x11,x14
+ b.lo .Lsr_bad
+.Lsr_apart:
+ cmp x10,x8
+ b.hs .Lsr_nrclear
+ cmp x0,x14
+ b.lo .Lsr_bad
+.Lsr_nrclear:
+ cmp x11,x8
+ b.hs .Lsr_nlclear
+ cmp x0,x15
+ b.lo .Lsr_bad
+.Lsr_nlclear:
+ add x16,x9,#88
+ mov x17,#0
+.Lsr_shape:
+ ldr x1,[x16,#8]
+ mov x2,#-1
+ cmp x17,#0
+ cneg x2,x2,ne
+ cmp x1,x2
+ b.ne .Lsr_bad
+ ldr x1,[x16,#16]
+ cmp x1,#4
+ b.ne .Lsr_bad
+ ldr x1,[x16,#24]
+ ldr x2,=0x0000010100000000
+ cmp x1,x2
+ b.ne .Lsr_bad
+ ldr x1,[x16,#32]
+ cmp x1,#4
+ b.ne .Lsr_bad
+ ldr x1,[x16,#40]
+ cmp x1,#1
+ b.ne .Lsr_bad
+ ldr x1,[x16,#48]
+ mov x2,#1
+ cmp x17,#0
+ cneg x2,x2,ne
+ cmp x1,x2
+ b.ne .Lsr_bad
+ ldr x1,[x16,#56]
+ add x2,x12,x17,lsl#1
+ cmp x1,x2
+ b.ne .Lsr_bad
+ add x16,x16,#64
+ add x17,x17,#1
+ cmp x17,#2
+ b.lo .Lsr_shape
+ sub sp,sp,#80
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ str x18,[sp,#64]
+ mov x29,sp
+ mov x19,x9
+ mov x20,x10
+ mov x21,x11
+ mrs x22,fpsr
+ bl __errno_location
+ mov x23,x0
+ ldr w24,[x0]
+ mov x0,x21
+ bl free
+ str xzr,[x19,#152]
+ mov x0,x20
+ bl free
+ str xzr,[x19,#88]
+ str w24,[x23]
+ msr fpsr,x22
+ ldr x18,[sp,#64]
+ ldp x23,x24,[sp,#48]
+ ldp x21,x22,[sp,#32]
+ ldp x19,x20,[sp,#16]
+ ldp x29,x30,[sp]
+ add sp,sp,#80
+.Lsr_empty:
+ mov w0,#0
+ ret
+.Lsr_bad:
+ mov w0,#2
+ ret
+.size md2asm_release_runtime_radiation_grid_shape,.-md2asm_release_runtime_radiation_grid_shape
+.section .rodata
+.p2align 3
+.Ls_defaults:
+ .word 16,21,32,21,48,63,64,63,80,63,96,63,128,95,160,159
+ .word 200,159,256,159,320,255,400,319,512,399,640,511,800,799,912,799
+ .word 1024,799,1280,799,1600,1023,2000,1023,2560,2047,4000,2047,8000,2047
+ .word -1,0
+.section .note.GNU-stack,"",%progbits
