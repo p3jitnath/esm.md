@@ -1,0 +1,168 @@
+/* Source interfaces, bounds and source-order scope: skills/md2asm/references/openifs/radiation/live_radiation_second_interpolation.md. */
+/* Bind actual RADGRID dimensions/maps to the complete RO child. */
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_initialize_owned_radiation_output_interpolation_buffer
+.type md2asm_initialize_owned_radiation_output_interpolation_buffer,%function
+md2asm_initialize_owned_radiation_output_interpolation_buffer:
+ cbz x0,.Lov_bad
+ cbz x2,.Lov_bad
+ cbz x4,.Lov_bad
+ orr x9,x0,x2
+ orr x9,x9,x4
+ tst x9,#7
+ b.ne .Lov_bad
+ mov x9,#20400
+ cmp x1,x9
+ b.lo .Lov_bad
+ adds x10,x0,x9
+ b.cs .Lov_bad
+ ldr x9,=4275088
+ cmp x3,x9
+ b.lo .Lov_bad
+ adds x10,x2,x9
+ b.cs .Lov_bad
+ cmp x5,#4096
+ b.lo .Lov_bad
+ adds x10,x4,#4096
+ b.cs .Lov_bad
+ ldr x9,[x4]
+ cmp x9,x0
+ b.ne .Lov_bad
+ ldr x9,[x4,#8]
+ ldr x10,=0x445054585f4f574e
+ cmp x9,x10
+ b.ne .Lov_bad
+ sub sp,sp,#4,lsl#12
+ sub sp,sp,#1024
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ str x18,[sp,#64]
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ mov x22,x3
+ mov x23,x4
+ add x10,sp,#256
+ mov x9,x19
+ mov x11,#17096
+.Lov_copy_geometry:
+ ldr x12,[x9],#8
+ str x12,[x10],#8
+ subs x11,x11,#8
+ b.ne .Lov_copy_geometry
+ ldr x9,=4098608
+ add x24,x21,x9
+ add x20,sp,#256
+ ldr w9,[x24,#52]
+ str w9,[x20,#4872]
+ ldr w9,[x24,#32]
+ str w9,[x20,#4936]
+ ldr w9,[x24,#56]
+ str w9,[x20,#4888]
+ ldr w9,[x24,#60]
+ str w9,[x20,#4904]
+ ldr w9,[x24,#36]
+ str w9,[x20,#4892]
+ ldr w9,[x24,#40]
+ str w9,[x20,#4908]
+ ldr w9,[x24,#72]
+ str w9,[x20,#4940]
+ ldr w9,[x24,#64]
+ str w9,[x20,#4948]
+ ldr w9,[x24,#76]
+ str w9,[x20,#4884]
+ ldr w9,[x24,#4]
+ str w9,[x20,#7376]
+ ldr w9,[x24,#68]
+ str w9,[x20,#7232]
+ ldr w9,[x24,#24]
+ str w9,[x20,#7244]
+ ldr w9,[x24,#80]
+ str w9,[x20,#7236]
+ ldr w9,[x24,#84]
+ str w9,[x20,#7240]
+ add x9,x24,#152
+ mov x10,#7640
+ add x10,x20,x10
+ mov x11,#64
+ bl .Lov_copy
+ add x9,x24,#536
+ mov x10,#6088
+ add x10,x20,x10
+ mov x11,#88
+ bl .Lov_copy
+ add x9,x24,#624
+ mov x10,#6176
+ add x10,x20,x10
+ mov x11,#88
+ bl .Lov_copy
+ add x9,x24,#216
+ mov x10,#6264
+ add x10,x20,x10
+ mov x11,#64
+ bl .Lov_copy
+ add x9,x24,#280
+ mov x10,#6456
+ add x10,x20,x10
+ mov x11,#64
+ bl .Lov_copy
+ add x9,x24,#344
+ mov x10,#6520
+ add x10,x20,x10
+ mov x11,#64
+ bl .Lov_copy
+
+ ldr w9,[x23,#24]
+ str w9,[sp,#128]
+ ldr w9,[x23,#28]
+ str w9,[sp,#132]
+ ldr w9,[x23,#48]
+ str w9,[sp,#136]
+ ldr w9,[x23,#52]
+ str w9,[sp,#140]
+ ldr w9,[x23,#932]
+ str w9,[sp,#144]
+ ldr w9,[x23,#936]
+ str w9,[sp,#148]
+ str xzr,[sp,#152]
+ ldr x9,[x23,#216]
+ str x9,[sp,#160]
+ ldr x9,[x23,#280]
+ str x9,[sp,#168]
+ mov w9,#6
+ str w9,[sp,#176]
+ str wzr,[sp,#180]
+ mov w9,#1
+ str w9,[sp,#184]
+ str wzr,[sp,#188]
+ mov x0,x20
+ mov x1,#17096
+ mov x2,x21
+ mov x3,x22
+ add x4,sp,#128
+ mov x5,#64
+ bl md2asm_initialize_runtime_radiation_output_interpolation_buffer
+ ldr x18,[sp,#64]
+ ldp x23,x24,[sp,#48]
+ ldp x21,x22,[sp,#32]
+ ldp x19,x20,[sp,#16]
+ ldp x29,x30,[sp]
+ add sp,sp,#1024
+ add sp,sp,#4,lsl#12
+ ret
+.Lov_bad:
+ mov w0,#2
+ ret
+.Lov_copy:
+ ldr x12,[x9],#8
+ str x12,[x10],#8
+ subs x11,x11,#8
+ b.ne .Lov_copy
+ ret
+.size md2asm_initialize_owned_radiation_output_interpolation_buffer,.-md2asm_initialize_owned_radiation_output_interpolation_buffer
+.ltorg
+.section .note.GNU-stack,"",%progbits

@@ -1,4 +1,5 @@
-/* Shared direct SL and RI SLCSET. Contract: skills/md2asm/references/openifs/radiation/live_radiation_first_interpolation.md.
+/* Source interfaces, bounds and source-order scope: skills/md2asm/references/openifs/radiation/live_radiation_second_interpolation.md. */
+/* Shared direct SL, RI and RO SLCSET. Contract: skills/md2asm/references/openifs/radiation/live_radiation_first_interpolation.md.
  * x0 Geometry, x1 capacity, x2 MODEL, x3 capacity, x4 process64, x5 capacity.
  * Integer map payloads use live typed Geometry views. No original callables. */
 .text
@@ -109,7 +110,11 @@ MD2ASM_INTERPOLATION_ENTRY:
  cbnz w9,.Lrefuse
  ldrh w9,[x20]
 #ifdef MD2ASM_RI
+#ifdef MD2ASM_RO
+ mov w10,#0x4f52
+#else
  mov w10,#0x4952
+#endif
 #else
  mov w10,#0x4c53
 #endif
@@ -118,12 +123,25 @@ MD2ASM_INTERPOLATION_ENTRY:
  ldr w9,[x20,#1024]
  cbnz w9,.Lrefuse
  ldr w22,[x19,#4872]
+#ifdef MD2ASM_RO
+ cmp w22,#32
+ b.eq .Lro_dimension_ready
+ cmp w22,#800
+ b.ne .Lrefuse
+.Lro_dimension_ready:
+ ldr w23,[x19,#4936]
+ lsl w9,w22,#1
+ add w9,w9,#16
+ cmp w23,w9
+ b.ne .Lrefuse
+#else
  cmp w22,#2560
  b.ne .Lrefuse
  ldr w23,[x19,#4936]
  mov w9,#5136
  cmp w23,w9
  b.ne .Lrefuse
+#endif
 #ifdef MD2ASM_RI
  ldr w9,[x20,#1348]
  ldr w10,[x20,#1352]
@@ -157,18 +175,35 @@ MD2ASM_INTERPOLATION_ENTRY:
  DCHK 4944,2
  DCHK 4956,1
  ldr w9,[x19,#4904]
- mov w10,#2562
+#ifdef MD2ASM_RO
+ add w10,w22,#2
  cmp w9,w10
  b.ne .Lrefuse
+#else
+#ifdef MD2ASM_RO
+ add w10,w22,#2
+#else
+ mov w10,#2562
+#endif
+ cmp w9,w10
+ b.ne .Lrefuse
+#endif
  ldr w9,[x19,#4948]
  add w10,w23,#3
  cmp w9,w10
  b.ne .Lrefuse
  ldr w9,[x19,#4908]
+#ifdef MD2ASM_RO
+ cmp w9,#1
+ b.lt .Lrefuse
+ cmp w9,w22
+ b.hi .Lrefuse
+#else
  cmp w9,#754
  b.eq .Llocal_rows_ready
  cmp w9,#904
  b.ne .Lrefuse
+#endif
 .Llocal_rows_ready:
  str w9,[sp,#2228]
  ldr w9,[x19,#7232]
@@ -217,7 +252,11 @@ MD2ASM_INTERPOLATION_ENTRY:
  b.le .Ldescriptor_region
  cmn x11,#1
  b.ne .Lrefuse
+#ifdef MD2ASM_RO
+ add w13,w22,#2
+#else
  mov w13,#2562
+#endif
  cmp w10,#2
  cinc w13,w13,eq
  cmp w10,#2
@@ -227,7 +266,11 @@ MD2ASM_INTERPOLATION_ENTRY:
  cmp w10,#2
  b.ne .Ldescriptor_done
  ldr x11,[x9,#64]
+#ifdef MD2ASM_RO
+ add w12,w22,#6
+#else
  mov w12,#2566
+#endif
  cmp x11,x12
  b.ne .Lrefuse
  str w12,[sp,#2216]
@@ -337,7 +380,11 @@ MD2ASM_INTERPOLATION_ENTRY:
  add w9,w9,w11
  add w9,w9,w24
 #endif
+#ifdef MD2ASM_RO
+ add w10,w22,#2
+#else
  mov w10,#2562
+#endif
  cmp w9,w10
  csel w9,w9,w10,le
  sub w9,w9,w11
@@ -505,7 +552,11 @@ MD2ASM_INTERPOLATION_ENTRY:
  ldr w9,[sp,#2236]
  add w9,w9,w24
 #endif
+#ifdef MD2ASM_RO
+ add w10,w22,#2
+#else
  mov w10,#2562
+#endif
  cmp w9,w10
  csel w9,w9,w10,le
  sub w9,w9,w11
@@ -796,7 +847,11 @@ MD2ASM_INTERPOLATION_ENTRY:
  ldr w9,[sp,#2284]
  add w9,w9,w24
 #endif
+#ifdef MD2ASM_RO
+ add w10,w22,#2
+#else
  mov w10,#2562
+#endif
  cmp w9,w10
  csel w9,w9,w10,le
  sub w9,w9,w11
@@ -896,7 +951,11 @@ MD2ASM_INTERPOLATION_ENTRY:
  mov x0,x21
  mov x1,x19
  ldr x2,[sp,#2200]
+#ifdef MD2ASM_RO
+ bl md2asm_initialize_radiation_output_interpolation_communication
+#else
  bl md2asm_initialize_distributed_interpolation_communication
+#endif
  cbnz w0,.Lrollback_status
  mov x9,x21
  mov x10,x20

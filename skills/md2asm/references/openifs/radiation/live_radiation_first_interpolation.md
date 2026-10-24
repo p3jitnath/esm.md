@@ -26,4 +26,4 @@ All 18 new allocation positions, numbered 21 through 38 in the live enclosing ca
 
 The [shared helper interfaces](radiation_interpolation_interfaces.md) record each public setup, communication, reporting and release ABI, including caller bounds and ownership duties.
 
-This entry stops after the first `RI` call. The outer report at line 1826, the following `RO` update and second `SLCSET` call, and later radiation setup remain pending. This checkpoint does not complete whole `SUECRAD` or an autonomous forecast.
+This entry stops after the first RI call. The separate [second interpolation continuation](live_radiation_second_interpolation.md) now owns both outer reports and the RO call through line 1838 for the consistent stencil-width-2 input. Its 56-byte configuration extends this entry's layout. Later SUECRAD and the full autonomous forecast remain pending.
