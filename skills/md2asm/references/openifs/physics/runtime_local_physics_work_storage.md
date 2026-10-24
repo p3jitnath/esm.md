@@ -1,0 +1,21 @@
+# Runtime Local Physics Work Storage
+
+LOCAL_ARRAYS_INI prepares temporary arrays for CALLPAR, which calculates the physical processes in one block of atmospheric columns. LOCAL_ARRAYS_FIN releases those arrays. A column is one vertical line of air. Both entries read the live dimensions, so the same assembled object can serve different grids. They preserve the original equations and their ordered FP64 operations.
+
+| Live dimension | Offset in the dimensions record | Admitted values |
+| --- | --- | --- |
+| Stored columns, KLON | 12 bytes | 1 to 1,024 |
+| Vertical layers, KLEV | 48 bytes | 1 to 512 |
+| Ozone coefficient planes, KVCLIS | 52 bytes | 0 to 64 |
+
+`md2asm_initialize_runtime_local_physics_work` takes the original fourteen addresses, followed by a borrowed 16-byte policy. The original order is Geometry, surface metadata, MODEL, dimensions, local keys, auxiliary fields, local diagnostics, local surface work, local perturbation work, local chemical work, radiation, surface work, tracers and tracer tendencies. Argument fifteen is at incoming stack byte 48. `md2asm_release_runtime_local_physics_work` takes local keys, local diagnostics, local surface work, local perturbation work and local chemical work, followed by that policy in x5.
+
+The complete original dimensions record has 192 bytes. This leaf consumes its first 128 bytes. KIDIA and KFDIA at bytes zero and four give the first and last active columns, both included. An empty interval has KFDIA equal to KIDIA minus one. The policy holds the address of the caller-owned four-byte LHOOK flag at byte zero and a zero reserved word at byte eight. This selected route requires false profiling, zero extra aerosol and chemical tracer counts, enabled lake physics and disabled ocean mixing. These physical options are separate from grid dimensions.
+
+All argument addresses are aligned to eight bytes, and the pointed-to flag is aligned to four bytes. The caller supplies complete valid mapped source records and descriptors, with exact element sizes, ranks, offsets, strides and bounds. Geometry has 20,400 bytes and MODEL has 4,275,088 bytes. The remaining work-record extents are 664, 1,992, 2,336, 2,096, 336, 4,680, 2,664 and 13,680 bytes in argument order. The tracer spans follow the live column count, layer count and MODEL field counts. Every local chemical pointer head starts null. Borrowed records, payloads and the new owners must be disjoint and remain live until their last use.
+
+The initialiser sets the source keys, copies clear radiation values and converts cloud level values to integers after adding FP64 0.01. It retains the source whole-array positive-zero writes and both borrowed emissivity columns. It allocates all 52 source owners, including unused singleton aerosol arrays and both rank-four descriptors. Unwritten payload bytes retain their incoming allocation state. Release clears only the two emissivity heads, frees the chemical owners in source order and retains all other descriptor bytes. Return zero means success, one means allocation failure after releasing acquired owners, and two means unsupported input rejected before mutation. The enclosing caller must handle failure before continuing.
+
+The 1,024-byte frame is aligned to 16 bytes. Both entries preserve x18, x19 through x29, the return address and the low 64 bits of d8 through d15. FPCR must be zero, with round-to-nearest, gradual underflow, preserved signed zeros and no contraction. Malloc and free are the only external services. The [assembly](../../../../../src/openifs/physics/runtime_local_physics_work_storage.S) contains every storage operation and uses no original OpenIFS provider.
+
+The same object passes the retained 17-column, 137-layer, seven-plane cases and a new eight-column, five-layer, three-plane case. All 645,636 compared owner, record and local-field bytes agree exactly. Independent assignment and descriptor checks, unchanged inputs, ABI and raw status, guards, allocation rollback and atomic refusals pass. Earlier original banks are reused. The separate original binary runs only once for the new shape. This accepts the selected runtime storage boundary. Complete live field association, CALLPAR, EC_PHYS and the autonomous forecast remain separate requirements.

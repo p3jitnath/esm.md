@@ -1,5 +1,7 @@
 # Source-Ordered Operational Model Initialisation
 
+This entry retains the SUMP0 default on-demand halo policy. Use the [runtime configured entry](runtime_configured_model_initialization.md) for the supplied first NAMPAR1 group, which sets LSLONDEM false. The earlier numerical banks remain unchanged.
+
 This parent joins the accepted model storage, initial-file loading, terrain calculation, temperature conversion and initial spectral norms. A spectral norm measures the size of a field represented by spherical waves. The selected configuration is the supplied 9 km grid with 137 layers and four MPI processes. MPI is the public interface for communication between processes. Full physics setup, time steps and forecast output remain separate work.
 
 The [assembly source](../../../../../src/openifs/input/source_ordered_operational_model_initialization.S) uses the accepted [loaded-model storage](loaded_operational_model_composition.md), [live interpolation halo](../dynamics/spherical_interpolation_halo.md), [terrain](../setup/distributed_operational_orography_initialization.md), [temperature conversion](operational_virtual_temperature_conversion.md) and [distributed norms](../dynamics/distributed_spectral_norms.md). Production uses direct assembly children and public libraries. The original OpenIFS norm routine appears only in the separate verification process.

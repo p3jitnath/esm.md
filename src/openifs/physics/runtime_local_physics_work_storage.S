@@ -1,0 +1,1764 @@
+// Direct runtime LOCAL_ARRAYS_INI and LOCAL_ARRAYS_FIN storage.
+// Contract skills/md2asm/references/openifs/physics/runtime_local_physics_work_storage.md.
+// Read the live scalar prefix of dimensions192 and preserve source arithmetic, owner bounds and the original release order.
+.text
+.p2align 4
+.global md2asm_initialize_runtime_local_physics_work
+.type md2asm_initialize_runtime_local_physics_work,%function
+md2asm_initialize_runtime_local_physics_work:
+mov x16,sp
+sub sp,sp,#1024
+add x17,sp,#512
+stp x18,x19,[x17,#128]
+stp x20,x21,[x17,#144]
+stp x22,x23,[x17,#160]
+stp x24,x25,[x17,#176]
+stp x26,x27,[x17,#192]
+stp x28,x29,[x17,#208]
+str x30,[sp,#736]
+stp d8,d9,[x17,#240]
+stp d10,d11,[x17,#256]
+stp d12,d13,[x17,#272]
+stp d14,d15,[x17,#288]
+add x19,sp,#128
+str x0,[x19,#0]
+str x1,[x19,#8]
+str x2,[x19,#16]
+str x3,[x19,#24]
+str x4,[x19,#32]
+str x5,[x19,#40]
+str x6,[x19,#48]
+str x7,[x19,#56]
+ldr x8,[x16,#0]
+str x8,[x19,#64]
+ldr x8,[x16,#8]
+str x8,[x19,#72]
+ldr x8,[x16,#16]
+str x8,[x19,#80]
+ldr x8,[x16,#24]
+str x8,[x19,#88]
+ldr x8,[x16,#32]
+str x8,[x19,#96]
+ldr x8,[x16,#40]
+str x8,[x19,#104]
+ldr x8,[x16,#48]
+str x8,[x19,#112]
+mrs x8,fpcr
+cbnz x8,.Llocal_reject
+b .Llocal_policy_ini
+.Llocal_ini_return:
+add x17,sp,#512
+ldp x18,x19,[x17,#128]
+ldp x20,x21,[x17,#144]
+ldp x22,x23,[x17,#160]
+ldp x24,x25,[x17,#176]
+ldp x26,x27,[x17,#192]
+ldp x28,x29,[x17,#208]
+ldr x30,[sp,#736]
+ldp d8,d9,[x17,#240]
+ldp d10,d11,[x17,#256]
+ldp d12,d13,[x17,#272]
+ldp d14,d15,[x17,#288]
+add sp,sp,#1024
+ret
+.Llocal_policy_ini:
+ldr x8,[x19,#0]
+cbz x8,.Llocal_reject
+tst x8,#7
+b.ne .Llocal_reject
+ldr x8,[x19,#8]
+cbz x8,.Llocal_reject
+tst x8,#7
+b.ne .Llocal_reject
+ldr x8,[x19,#16]
+cbz x8,.Llocal_reject
+tst x8,#7
+b.ne .Llocal_reject
+ldr x8,[x19,#24]
+cbz x8,.Llocal_reject
+tst x8,#7
+b.ne .Llocal_reject
+ldr x8,[x19,#32]
+cbz x8,.Llocal_reject
+tst x8,#7
+b.ne .Llocal_reject
+ldr x8,[x19,#40]
+cbz x8,.Llocal_reject
+tst x8,#7
+b.ne .Llocal_reject
+ldr x8,[x19,#48]
+cbz x8,.Llocal_reject
+tst x8,#7
+b.ne .Llocal_reject
+ldr x8,[x19,#56]
+cbz x8,.Llocal_reject
+tst x8,#7
+b.ne .Llocal_reject
+ldr x8,[x19,#64]
+cbz x8,.Llocal_reject
+tst x8,#7
+b.ne .Llocal_reject
+ldr x8,[x19,#72]
+cbz x8,.Llocal_reject
+tst x8,#7
+b.ne .Llocal_reject
+ldr x8,[x19,#80]
+cbz x8,.Llocal_reject
+tst x8,#7
+b.ne .Llocal_reject
+ldr x8,[x19,#88]
+cbz x8,.Llocal_reject
+tst x8,#7
+b.ne .Llocal_reject
+ldr x8,[x19,#96]
+cbz x8,.Llocal_reject
+tst x8,#7
+b.ne .Llocal_reject
+ldr x8,[x19,#104]
+cbz x8,.Llocal_reject
+tst x8,#7
+b.ne .Llocal_reject
+ldr x8,[x19,#112]
+cbz x8,.Llocal_reject
+tst x8,#7
+b.ne .Llocal_reject
+ldr x8,[x19,#112]
+ldr x9,[x8,#8]
+cbnz x9,.Llocal_reject
+ldr x8,[x8]
+cbz x8,.Llocal_reject
+tst x8,#3
+b.ne .Llocal_reject
+ldr w8,[x8]
+cbnz w8,.Llocal_reject
+ldr x20,[x19,#24]
+ldr x21,[x19,#16]
+ldr w22,[x20,#12]
+cmp w22,#1
+b.lt .Llocal_reject
+cmp w22,#1024
+b.gt .Llocal_reject
+ldr w23,[x20,#48]
+cmp w23,#1
+b.lt .Llocal_reject
+cmp w23,#512
+b.gt .Llocal_reject
+ldr w24,[x20]
+ldr w25,[x20,#4]
+cmp w24,#1
+b.lt .Llocal_reject
+cmp w25,w22
+b.gt .Llocal_reject
+sub w8,w24,#1
+cmp w25,w8
+b.lt .Llocal_reject
+add w8,w22,#1
+cmp w24,w8
+b.gt .Llocal_reject
+ldr w8,[x20,#52]
+cmp w8,#0
+b.lt .Llocal_reject
+cmp w8,#64
+b.gt .Llocal_reject
+mov x8,#300
+movk x8,#0,lsl #16
+ldr w8,[x21,x8]
+cbnz w8,.Llocal_reject
+mov x8,#304
+movk x8,#0,lsl #16
+ldr w8,[x21,x8]
+cbnz w8,.Llocal_reject
+mov x8,#392
+movk x8,#0,lsl #16
+ldr w8,[x21,x8]
+cbnz w8,.Llocal_reject
+mov x8,#412
+movk x8,#0,lsl #16
+ldr w8,[x21,x8]
+cbnz w8,.Llocal_reject
+mov x8,#292
+movk x8,#0,lsl #16
+ldr w8,[x21,x8]
+cbnz w8,.Llocal_reject
+mov x8,#388
+movk x8,#0,lsl #16
+ldr w8,[x21,x8]
+cbnz w8,.Llocal_reject
+mov x8,#64628
+movk x8,#62,lsl #16
+ldr w8,[x21,x8]
+cbnz w8,.Llocal_reject
+mov x8,#64584
+movk x8,#62,lsl #16
+ldr w8,[x21,x8]
+cbnz w8,.Llocal_reject
+mov x8,#5220
+movk x8,#24,lsl #16
+ldr w8,[x21,x8]
+cmp w8,#1
+b.ne .Llocal_reject
+mov x8,#5224
+movk x8,#24,lsl #16
+ldr w8,[x21,x8]
+cmp w8,#0
+b.ne .Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#0
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#8
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#72
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#136
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#224
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#336
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#448
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#560
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#648
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#736
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#824
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#912
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#976
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#1112
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#1224
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#1336
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#1448
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#1560
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#1672
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#1784
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#1896
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#1984
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#2072
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#2160
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#2248
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#2336
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#2400
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#2464
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#2528
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#2592
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#2656
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#2720
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#2784
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#2848
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#2912
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#2976
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#3040
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#3104
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#3168
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#3256
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#3344
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#3456
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#3568
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#3680
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#3792
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#3904
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+add x8,x8,#4016
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+mov x16,#4152
+add x8,x8,x16
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+mov x16,#4264
+add x8,x8,x16
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+mov x16,#4376
+add x8,x8,x16
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+mov x16,#4440
+add x8,x8,x16
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+mov x16,#4504
+add x8,x8,x16
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+ldr x8,[x19,#72]
+mov x16,#4568
+add x8,x8,x16
+ldr x8,[x8]
+cbnz x8,.Llocal_reject
+cmp w24,w25
+b.gt .Llocal_rows_done
+mov x26,x24
+.Llocal_key_loop:
+ldr x0,[x19,#32]
+add x0,x0,#320
+mov x1,x26
+mov x2,#0
+mov x3,#0
+bl .Llocal_at
+mov w8,#1
+str w8,[x0]
+ldr x0,[x19,#32]
+add x0,x0,#192
+mov x1,x26
+mov x2,#0
+mov x3,#0
+bl .Llocal_at
+mov w8,#0
+str w8,[x0]
+ldr x0,[x19,#32]
+add x0,x0,#256
+mov x1,x26
+mov x2,#0
+mov x3,#0
+bl .Llocal_at
+mov w8,#0
+str w8,[x0]
+ldr x0,[x19,#32]
+add x0,x0,#512
+mov x1,x26
+mov x2,#0
+mov x3,#0
+bl .Llocal_at
+mov w8,#0
+str w8,[x0]
+add x26,x26,#1
+cmp x26,x25
+b.le .Llocal_key_loop
+mov x26,x24
+.Llocal_radiation_loop:
+ldr x0,[x19,#80]
+add x0,x0,#1008
+mov x1,x26
+mov x2,#0
+mov x3,#0
+bl .Llocal_at
+ldr d8,[x0]
+ldr x0,[x19,#48]
+add x0,x0,#584
+mov x1,x26
+mov x2,#0
+mov x3,#0
+bl .Llocal_at
+str d8,[x0]
+ldr x0,[x19,#80]
+add x0,x0,#440
+mov x1,x26
+mov x2,#1
+mov x3,#0
+bl .Llocal_at
+ldr d8,[x0]
+ldr x0,[x19,#48]
+add x0,x0,#888
+mov x1,x26
+mov x2,#0
+mov x3,#0
+bl .Llocal_at
+str d8,[x0]
+ldr x0,[x19,#80]
+add x0,x0,#440
+mov x1,x26
+add x2,x23,#1
+mov x3,#0
+bl .Llocal_at
+ldr d8,[x0]
+ldr x0,[x19,#48]
+add x0,x0,#888
+mov x1,x26
+mov x2,#1
+mov x3,#0
+bl .Llocal_at
+str d8,[x0]
+ldr x0,[x19,#80]
+add x0,x0,#528
+mov x1,x26
+mov x2,#1
+mov x3,#0
+bl .Llocal_at
+ldr d8,[x0]
+ldr x0,[x19,#48]
+add x0,x0,#800
+mov x1,x26
+mov x2,#0
+mov x3,#0
+bl .Llocal_at
+str d8,[x0]
+ldr x0,[x19,#80]
+add x0,x0,#528
+mov x1,x26
+add x2,x23,#1
+mov x3,#0
+bl .Llocal_at
+ldr d8,[x0]
+ldr x0,[x19,#48]
+add x0,x0,#800
+mov x1,x26
+mov x2,#1
+mov x3,#0
+bl .Llocal_at
+str d8,[x0]
+ldr x0,[x19,#80]
+add x0,x0,#880
+mov x1,x26
+mov x2,#0
+mov x3,#0
+bl .Llocal_at
+ldr d8,[x0]
+ldr x0,[x19,#48]
+add x0,x0,#520
+mov x1,x26
+mov x2,#0
+mov x3,#0
+bl .Llocal_at
+str d8,[x0]
+ldr x8,[x19,#8]
+ldr x8,[x8,#10608]
+ldr w27,[x8]
+ldr x0,[x19,#88]
+mov x16,#8816
+add x0,x0,x16
+mov x1,x26
+mov x2,x27
+mov x3,#0
+bl .Llocal_at
+ldr d8,[x0]
+adrp x8,.Llocal_001
+ldr d9,[x8,:lo12:.Llocal_001]
+fadd d8,d8,d9
+fcvtzs w27,d8
+ldr x0,[x19,#48]
+add x0,x0,#264
+mov x1,x26
+mov x2,#0
+mov x3,#0
+bl .Llocal_at
+str w27,[x0]
+ldr x8,[x19,#8]
+ldr x8,[x8,#10616]
+ldr w27,[x8]
+ldr x0,[x19,#88]
+mov x16,#8816
+add x0,x0,x16
+mov x1,x26
+mov x2,x27
+mov x3,#0
+bl .Llocal_at
+ldr d8,[x0]
+adrp x8,.Llocal_001
+ldr d9,[x8,:lo12:.Llocal_001]
+fadd d8,d8,d9
+fcvtzs w27,d8
+ldr x0,[x19,#48]
+add x0,x0,#328
+mov x1,x26
+mov x2,#0
+mov x3,#0
+bl .Llocal_at
+str w27,[x0]
+add x26,x26,#1
+cmp x26,x25
+b.le .Llocal_radiation_loop
+ldr x0,[x19,#48]
+add x0,x0,#200
+bl .Llocal_zero_full
+.Llocal_rows_done:
+ldr x0,[x19,#56]
+add x0,x0,#944
+mov x1,#1
+mov x2,#1
+mov x3,#0
+bl .Llocal_at
+mov x27,x0
+ldr x0,[x19,#56]
+add x0,x0,#816
+mov x1,x27
+mov x2,x22
+bl .Llocal_alias_vector
+ldr x0,[x19,#56]
+add x0,x0,#944
+mov x1,#1
+mov x2,#2
+mov x3,#0
+bl .Llocal_at
+mov x27,x0
+ldr x0,[x19,#56]
+add x0,x0,#880
+mov x1,x27
+mov x2,x22
+bl .Llocal_alias_vector
+ldr x0,[x19,#56]
+add x0,x0,#0
+bl .Llocal_zero_full
+ldr x0,[x19,#56]
+add x0,x0,#64
+bl .Llocal_zero_full
+ldr x0,[x19,#56]
+add x0,x0,#496
+bl .Llocal_zero_full
+ldr x0,[x19,#56]
+add x0,x0,#560
+bl .Llocal_zero_full
+ldr x0,[x19,#56]
+add x0,x0,#1624
+bl .Llocal_zero_full
+ldr x0,[x19,#56]
+add x0,x0,#1712
+bl .Llocal_zero_full
+ldr x0,[x19,#56]
+add x0,x0,#1360
+bl .Llocal_zero_full
+ldr x8,[x19,#72]
+mov x9,#0
+add x27,x8,x9
+mov x0,#4
+bl malloc
+cbz x0,.Llocal_allocation_failure
+str x0,[x27]
+str wzr,[x0]
+ldr x0,[x19,#72]
+add x0,x0,#8
+mov x1,#4
+mov x2,#1
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#72
+mov x1,#4
+mov x2,#1
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#2336
+mov x1,#8
+mov x2,#1
+mov x3,x22
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#2400
+mov x1,#8
+mov x2,#1
+mov x3,x22
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+mov x16,#4376
+add x0,x0,x16
+mov x1,#8
+mov x2,#1
+mov x3,x22
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+mov x16,#4376
+add x0,x0,x16
+bl .Llocal_zero_full
+ldr x0,[x19,#72]
+mov x16,#4440
+add x0,x0,x16
+mov x1,#8
+mov x2,#1
+mov x3,x22
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+mov x16,#4440
+add x0,x0,x16
+bl .Llocal_zero_full
+ldr x0,[x19,#72]
+mov x16,#4504
+add x0,x0,x16
+mov x1,#8
+mov x2,#1
+mov x3,x22
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+mov x16,#4504
+add x0,x0,x16
+bl .Llocal_zero_full
+ldr x0,[x19,#72]
+add x0,x0,#136
+mov x1,#8
+mov x2,#2
+mov x3,x22
+mov x4,x23
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+mov x16,#4568
+add x0,x0,x16
+mov x1,#8
+mov x2,#3
+mov x3,x22
+mov x4,x23
+ldr w5,[x20,#52]
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#224
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#224
+bl .Llocal_zero_full
+ldr x0,[x19,#72]
+add x0,x0,#336
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#336
+bl .Llocal_zero_full
+ldr x0,[x19,#72]
+add x0,x0,#448
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#448
+bl .Llocal_zero_full
+ldr x0,[x19,#72]
+add x0,x0,#560
+mov x1,#8
+mov x2,#2
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#560
+bl .Llocal_zero_full
+ldr x0,[x19,#72]
+add x0,x0,#824
+mov x1,#8
+mov x2,#2
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#824
+bl .Llocal_zero_full
+ldr x0,[x19,#72]
+add x0,x0,#648
+mov x1,#8
+mov x2,#2
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#648
+bl .Llocal_zero_full
+ldr x0,[x19,#72]
+add x0,x0,#912
+mov x1,#8
+mov x2,#1
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#912
+bl .Llocal_zero_full
+ldr x0,[x19,#72]
+add x0,x0,#736
+mov x1,#8
+mov x2,#2
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#736
+bl .Llocal_zero_full
+ldr x0,[x19,#72]
+add x0,x0,#2912
+mov x1,#8
+mov x2,#1
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#2976
+mov x1,#8
+mov x2,#1
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#3040
+mov x1,#8
+mov x2,#1
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#3104
+mov x1,#8
+mov x2,#1
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#3168
+mov x1,#8
+mov x2,#2
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#2464
+mov x1,#8
+mov x2,#1
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#2528
+mov x1,#8
+mov x2,#1
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#2592
+mov x1,#8
+mov x2,#1
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#2656
+mov x1,#8
+mov x2,#1
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#2720
+mov x1,#8
+mov x2,#1
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#2784
+mov x1,#8
+mov x2,#1
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#2848
+mov x1,#8
+mov x2,#1
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#1336
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#1448
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#1896
+mov x1,#8
+mov x2,#2
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#1984
+mov x1,#8
+mov x2,#2
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#2072
+mov x1,#8
+mov x2,#2
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#2160
+mov x1,#8
+mov x2,#2
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#2248
+mov x1,#8
+mov x2,#2
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#1224
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#1112
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#1560
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#1672
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#1784
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#976
+mov x1,#8
+mov x2,#4
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#3344
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#3456
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#3568
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#3680
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#3792
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#3904
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+add x0,x0,#4016
+mov x1,#8
+mov x2,#4
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+mov x16,#4264
+add x0,x0,x16
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+ldr x0,[x19,#72]
+mov x16,#4152
+add x0,x0,x16
+mov x1,#8
+mov x2,#3
+mov x3,#1
+mov x4,#1
+mov x5,#1
+bl .Llocal_allocate
+cbnz w0,.Llocal_allocation_failure
+mov w0,#0
+b .Llocal_ini_return
+.Llocal_allocation_failure:
+ldr x0,[x19,#32]
+ldr x1,[x19,#48]
+ldr x2,[x19,#56]
+ldr x3,[x19,#64]
+ldr x4,[x19,#72]
+ldr x5,[x19,#112]
+bl md2asm_release_runtime_local_physics_work
+mov w0,#1
+b .Llocal_ini_return
+.Llocal_reject:
+mov w0,#2
+b .Llocal_ini_return
+.size md2asm_initialize_runtime_local_physics_work,.-md2asm_initialize_runtime_local_physics_work
+.global md2asm_release_runtime_local_physics_work
+.type md2asm_release_runtime_local_physics_work,%function
+md2asm_release_runtime_local_physics_work:
+mov x16,sp
+sub sp,sp,#1024
+add x17,sp,#512
+stp x18,x19,[x17,#128]
+stp x20,x21,[x17,#144]
+stp x22,x23,[x17,#160]
+stp x24,x25,[x17,#176]
+stp x26,x27,[x17,#192]
+stp x28,x29,[x17,#208]
+str x30,[sp,#736]
+stp d8,d9,[x17,#240]
+stp d10,d11,[x17,#256]
+stp d12,d13,[x17,#272]
+stp d14,d15,[x17,#288]
+add x19,sp,#128
+str x0,[x19,#0]
+str x1,[x19,#8]
+str x2,[x19,#16]
+str x3,[x19,#24]
+str x4,[x19,#32]
+str x5,[x19,#40]
+ldr x8,[x19,#0]
+cbz x8,.Llocal_finish_reject
+tst x8,#7
+b.ne .Llocal_finish_reject
+ldr x8,[x19,#8]
+cbz x8,.Llocal_finish_reject
+tst x8,#7
+b.ne .Llocal_finish_reject
+ldr x8,[x19,#16]
+cbz x8,.Llocal_finish_reject
+tst x8,#7
+b.ne .Llocal_finish_reject
+ldr x8,[x19,#24]
+cbz x8,.Llocal_finish_reject
+tst x8,#7
+b.ne .Llocal_finish_reject
+ldr x8,[x19,#32]
+cbz x8,.Llocal_finish_reject
+tst x8,#7
+b.ne .Llocal_finish_reject
+ldr x8,[x19,#40]
+cbz x8,.Llocal_finish_reject
+tst x8,#7
+b.ne .Llocal_finish_reject
+ldr x8,[x19,#40]
+ldr x9,[x8,#8]
+cbnz x9,.Llocal_finish_reject
+ldr x8,[x8]
+cbz x8,.Llocal_finish_reject
+tst x8,#3
+b.ne .Llocal_finish_reject
+ldr w8,[x8]
+cbnz w8,.Llocal_finish_reject
+ldr x0,[x19,#16]
+add x0,x0,#816
+str xzr,[x0]
+ldr x0,[x19,#16]
+add x0,x0,#880
+str xzr,[x0]
+ldr x27,[x19,#32]
+add x27,x27,#0
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#224
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#336
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#448
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#560
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#912
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#8
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#72
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#2336
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#2400
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#2912
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#2976
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#3040
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#3104
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+mov x16,#4376
+add x27,x27,x16
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+mov x16,#4440
+add x27,x27,x16
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+mov x16,#4504
+add x27,x27,x16
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#3168
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#136
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+mov x16,#4568
+add x27,x27,x16
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#2464
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#2528
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#2592
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#2656
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#2720
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#2784
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#2848
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#1336
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#1448
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#1896
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#1984
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#2072
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#2160
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#2248
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#1224
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#1112
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#1560
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#1672
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#1784
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#976
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#3344
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#3456
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#3568
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#3680
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#3792
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#3904
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#4016
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+mov x16,#4264
+add x27,x27,x16
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+mov x16,#4152
+add x27,x27,x16
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#648
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#824
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+ldr x27,[x19,#32]
+add x27,x27,#736
+ldr x0,[x27]
+cbz x0,8f
+bl free
+str xzr,[x27]
+8:
+mov w0,#0
+b .Llocal_finish_return
+.Llocal_finish_reject:
+mov w0,#2
+.Llocal_finish_return:
+add x17,sp,#512
+ldp x18,x19,[x17,#128]
+ldp x20,x21,[x17,#144]
+ldp x22,x23,[x17,#160]
+ldp x24,x25,[x17,#176]
+ldp x26,x27,[x17,#192]
+ldp x28,x29,[x17,#208]
+ldr x30,[sp,#736]
+ldp d8,d9,[x17,#240]
+ldp d10,d11,[x17,#256]
+ldp d12,d13,[x17,#272]
+ldp d14,d15,[x17,#288]
+add sp,sp,#1024
+ret
+.size md2asm_release_runtime_local_physics_work,.-md2asm_release_runtime_local_physics_work
+
+// Return one descriptor-indexed element address. Integer address work is exact.
+.Llocal_at:
+ ldr x8,[x0]
+ ldr x9,[x0,#8]
+ ldrb w10,[x0,#28]
+ ldr x11,[x0,#40]
+ madd x9,x11,x1,x9
+ cmp w10,#1
+ b.eq 1f
+ ldr x11,[x0,#64]
+ madd x9,x11,x2,x9
+ cmp w10,#2
+ b.eq 1f
+ ldr x11,[x0,#88]
+ madd x9,x11,x3,x9
+1:
+ ldr x11,[x0,#32]
+ madd x0,x9,x11,x8
+ ret
+// Write positive zero to the complete declared dense view, including inactive rows.
+.Llocal_zero_full:
+ ldrb w8,[x0,#28]
+ mov x9,#0
+ ldr x10,[x0,#8]
+ mov x11,#1
+ add x12,x0,#40
+1:
+ ldp x13,x14,[x12,#8]
+ sub x15,x14,x13
+ add x15,x15,#1
+ cmp x15,#0
+ b.le 4f
+ mul x11,x11,x15
+ ldr x14,[x12]
+ madd x10,x14,x13,x10
+ add x12,x12,#24
+ add w9,w9,#1
+ cmp w9,w8
+ b.lt 1b
+ ldr x12,[x0,#32]
+ ldr x13,[x0]
+ madd x13,x10,x12,x13
+ cmp x12,#4
+ b.eq 3f
+2:
+ str xzr,[x13],#8
+ subs x11,x11,#1
+ b.ne 2b
+ ret
+3:
+ str wzr,[x13],#4
+ subs x11,x11,#1
+ b.ne 3b
+4:
+ ret
+// Associate the source's first two spectral-emissivity columns as rank-one views.
+.Llocal_alias_vector:
+ str x1,[x0]
+ mov x8,#-1
+ str x8,[x0,#8]
+ mov x8,#8
+ str x8,[x0,#16]
+ str wzr,[x0,#24]
+ mov w9,#1
+ strb w9,[x0,#28]
+ mov w9,#3
+ strb w9,[x0,#29]
+ strh wzr,[x0,#30]
+ str x8,[x0,#32]
+ mov x9,#1
+ stp x9,x9,[x0,#40]
+ str x2,[x0,#56]
+ ret
+// Allocate the original dense work shape. This supplies storage, not numerical work.
+.Llocal_allocate:
+ sub sp,sp,#80
+ stp x29,x30,[sp,#64]
+ stp x0,x1,[sp]
+ stp x2,x3,[sp,#16]
+ stp x4,x5,[sp,#32]
+ mul x6,x3,x4
+ mul x6,x6,x5
+ mul x0,x6,x1
+ cmp x0,#0
+ mov x6,#1
+ csel x0,x0,x6,gt
+ bl malloc
+ cbz x0,.Llocal_allocate_fail
+ mov x6,x0
+ ldp x0,x1,[sp]
+ ldp x2,x3,[sp,#16]
+ ldp x4,x5,[sp,#32]
+ str x6,[x0]
+ str x1,[x0,#16]
+ str wzr,[x0,#24]
+ strb w2,[x0,#28]
+ cmp x1,#8
+ mov w6,#1
+ mov w7,#3
+ csel w6,w7,w6,eq
+ strb w6,[x0,#29]
+ strh wzr,[x0,#30]
+ str x1,[x0,#32]
+ mov x6,#1
+ stp x6,x6,[x0,#40]
+ str x3,[x0,#56]
+ neg x7,x6
+ cmp x2,#1
+ b.eq 3f
+ str x3,[x0,#64]
+ str x6,[x0,#72]
+ str x4,[x0,#80]
+ sub x7,x7,x3
+ cmp x2,#2
+ b.eq 3f
+ mul x3,x3,x4
+ str x3,[x0,#88]
+ str x6,[x0,#96]
+ str x5,[x0,#104]
+ sub x7,x7,x3
+ cmp x2,#3
+ b.eq 3f
+ str x3,[x0,#112]
+ str x6,[x0,#120]
+ str x6,[x0,#128]
+ sub x7,x7,x3
+3:
+ str x7,[x0,#8]
+ mov w0,#0
+ b .Llocal_allocate_return
+.Llocal_allocate_fail:
+ mov w0,#1
+.Llocal_allocate_return:
+ ldp x29,x30,[sp,#64]
+ add sp,sp,#80
+ ret
+.section .rodata
+.p2align 3
+.Llocal_001: .double 0.01
+.Lhook_LOCAL_ARRAYS_INI: .ascii "LOCAL_ARRAYS_INI"
+.Lhook_LOCAL_ARRAYS_FIN: .ascii "LOCAL_ARRAYS_FIN"
+.section .note.GNU-stack,"",%progbits
