@@ -1,0 +1,309 @@
+/* skills/md2asm/references/openifs/radiation/live_radiation_first_interpolation.md.
+ * Create: ten address/capacity arguments; release: sidecar, Geometry and partition pairs.
+ * The live enclosing entry owns every setup calculation through SUECRAD1825. */
+.arch armv8.2-a
+.text
+.macro span base,cap,length,bad
+ cbz \base,\bad
+ tst \base,#7
+ b.ne \bad
+ ldr x9,=\length
+ cmp \cap,x9
+ b.lo \bad
+ adds x9,\base,x9
+ b.cs \bad
+.endm
+.p2align 4
+.global md2asm_create_live_radiation_first_interpolation
+.type md2asm_create_live_radiation_first_interpolation,%function
+md2asm_create_live_radiation_first_interpolation:
+ sub sp,sp,#4096
+ stp x29,x30,[sp,#16]
+ stp x19,x20,[sp,#32]
+ stp x21,x22,[sp,#48]
+ stp x23,x24,[sp,#64]
+ stp x25,x26,[sp,#80]
+ stp x27,x28,[sp,#96]
+ str x18,[sp,#112]
+ mov x29,sp
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ mov x22,x3
+ mov x23,x4
+ mov x24,x5
+ mov x25,x6
+ mov x26,x7
+ ldr x27,[sp,#4096]
+ ldr x9,[sp,#4104]
+ str x9,[sp,#192]
+ bl __errno_location
+ mov x28,x0
+ span x19,x20,4275088,.Lcreate_bad
+ span x21,x22,4096,.Lcreate_bad
+ span x23,x24,160,.Lcreate_bad
+ span x25,x26,520,.Lcreate_bad
+ ldr x10,[sp,#192]
+ span x27,x10,48,.Lcreate_bad
+ ldp x10,x11,[x27,#16]
+ span x10,x11,20400,.Lcreate_bad
+ ldr x9,[x21]
+ cmp x9,x10
+ b.ne .Lcreate_bad
+ str x10,[sp,#184]
+ ldp x10,x11,[x27,#32]
+ span x10,x11,64,.Lcreate_bad
+ str x10,[sp,#176]
+ ldr x9,=4122568
+ add x10,x19,x9
+ adr x11,.Lri_owner_offsets
+ mov w12,#14
+.Lfresh_owner:
+ ldr w13,[x11],#4
+ ldr x14,[x10,x13]
+ cbnz x14,.Lcreate_bad
+ subs w12,w12,#1
+ b.ne .Lfresh_owner
+ /* The actual two inactive Gaussian arguments remain present and typed. */
+ ldr x10,[sp,#184]
+ add x10,x10,#4096
+ add x10,x10,#200
+ bl .Lgaussian_descriptor
+ cbnz w0,.Lcreate_bad
+ ldr x10,[sp,#184]
+ add x10,x10,#4096
+ add x10,x10,#456
+ bl .Lgaussian_descriptor
+ cbnz w0,.Lcreate_bad
+ mov w9,#0
+ b .Lcreate_admit
+.Lcreate_bad:
+ mov w9,#2
+.Lcreate_admit:
+ str w9,[sp,#128]
+ bl .Lri_agree
+ ldr w0,[sp,#132]
+ cbnz w0,.Lcreate_return
+ ldr x9,=4098608
+ add x10,x19,x9
+ add x11,sp,#256
+ mov x12,#1376
+ bl .Lcopy
+ ldr x9,=4122568
+ add x10,x19,x9
+ add x11,sp,#1648
+ mov x12,#1800
+ bl .Lcopy
+ ldr x9,=4125716
+ add x10,x19,x9
+ add x11,sp,#3456
+ mov x12,#16
+ bl .Lcopy
+ ldr x10,[sp,#176]
+ add x11,sp,#3472
+ mov x12,#64
+ bl .Lcopy
+ str x27,[sp]
+ ldr x9,[sp,#192]
+ str x9,[sp,#8]
+ mov x0,x19
+ mov x1,x20
+ mov x2,x21
+ mov x3,x22
+ mov x4,x23
+ mov x5,x24
+ mov x6,x25
+ mov x7,x26
+ bl md2asm_create_live_radiation_halo_setup
+ cbnz w0,.Lcreate_return
+ ldr x9,=4122568
+ add x9,x19,x9
+ mov w10,#0x4952
+ strh w10,[x9]
+ ldp x0,x1,[x27,#16]
+ mov x2,x19
+ mov x3,x20
+ mov x4,x21
+ mov x5,x22
+ bl md2asm_initialize_owned_runtime_radiation_interpolation_buffer
+ cbnz w0,.Lcreate_rollback
+ ldr x9,=0x52414453544f5234
+ str x9,[x23]
+ mov w0,#0
+ b .Lcreate_return
+.Lcreate_rollback:
+ str w0,[sp,#200]
+ mov x0,x23
+ mov x1,x24
+ bl md2asm_release_live_radiation_halo_setup
+ cbnz w0,.Lri_abort
+ add x10,sp,#256
+ ldr x9,=4098608
+ add x11,x19,x9
+ mov x12,#1376
+ bl .Lcopy
+ add x10,sp,#1648
+ ldr x9,=4122568
+ add x11,x19,x9
+ mov x12,#1800
+ bl .Lcopy
+ add x10,sp,#3456
+ ldr x9,=4125716
+ add x11,x19,x9
+ mov x12,#16
+ bl .Lcopy
+ add x10,sp,#3472
+ ldr x11,[sp,#176]
+ mov x12,#64
+ bl .Lcopy
+ ldr w0,[sp,#200]
+.Lcreate_return:
+ ldr x18,[sp,#112]
+ ldp x27,x28,[sp,#96]
+ ldp x25,x26,[sp,#80]
+ ldp x23,x24,[sp,#64]
+ ldp x21,x22,[sp,#48]
+ ldp x19,x20,[sp,#32]
+ ldp x29,x30,[sp,#16]
+ add sp,sp,#4096
+ ret
+.size md2asm_create_live_radiation_first_interpolation,.-md2asm_create_live_radiation_first_interpolation
+.Lgaussian_descriptor:
+ ldr x9,[x10]
+ cbz x9,1f
+ tst x9,#7
+ b.ne 1f
+ mov x11,#20512
+ adds x9,x9,x11
+ b.cs 1f
+ ldr x9,[x10,#8]
+ cmp x9,#1
+ b.ne 1f
+ ldr x9,[x10,#16]
+ cmp x9,#8
+ b.ne 1f
+ ldr x9,[x10,#24]
+ ldr x11,=0x0000030100000000
+ cmp x9,x11
+ b.ne 1f
+ ldr x9,[x10,#32]
+ cmp x9,#8
+ b.ne 1f
+ ldr x9,[x10,#40]
+ cmp x9,#1
+ b.ne 1f
+ ldr x9,[x10,#48]
+ cmn x9,#1
+ b.ne 1f
+ ldr x9,[x10,#56]
+ mov x11,#2562
+ cmp x9,x11
+ b.ne 1f
+ mov w0,#0
+ ret
+1:
+ mov w0,#2
+ ret
+.Lcopy:
+ ldr x13,[x10],#8
+ str x13,[x11],#8
+ subs x12,x12,#8
+ b.ne .Lcopy
+ ret
+.p2align 4
+.global md2asm_release_live_radiation_first_interpolation
+.type md2asm_release_live_radiation_first_interpolation,%function
+md2asm_release_live_radiation_first_interpolation:
+ sub sp,sp,#2048
+ stp x29,x30,[sp,#16]
+ stp x19,x20,[sp,#32]
+ stp x21,x22,[sp,#48]
+ stp x23,x24,[sp,#64]
+ stp x25,x26,[sp,#80]
+ stp x27,x28,[sp,#96]
+ str x18,[sp,#112]
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ mov x22,x3
+ mov x23,x4
+ mov x24,x5
+ bl __errno_location
+ mov x28,x0
+ mov x0,x19
+ mov x1,x20
+ bl md2asm_validate_first_interpolation_parent
+ cbnz w0,.Lrelease_return
+ ldr x25,[x19,#8]
+ ldr x9,=4098608
+ subs x25,x25,x9
+ b.lo .Lrelease_bad
+ mov x0,x25
+ ldr x1,=4275088
+ mov x2,x19
+ mov x3,x20
+ mov x4,x21
+ mov x5,x22
+ mov x6,x23
+ mov x7,x24
+ bl md2asm_validate_radiation_interpolation_owners
+ mov w9,w0
+ b .Lrelease_admit
+.Lrelease_bad:
+ mov w9,#2
+.Lrelease_admit:
+ str w9,[sp,#128]
+ bl .Lri_agree
+ ldr w0,[sp,#132]
+ cbnz w0,.Lrelease_return
+ mov x0,x25
+ ldr x1,=4275088
+ bl md2asm_release_runtime_radiation_interpolation_buffer
+ cbnz w0,.Lri_abort
+ ldr x9,=0x52414453544f5233
+ str x9,[x19]
+ mov x0,x19
+ mov x1,x20
+ bl md2asm_release_live_radiation_halo_setup
+ cbnz w0,.Lri_abort
+.Lrelease_return:
+ ldr x18,[sp,#112]
+ ldp x27,x28,[sp,#96]
+ ldp x25,x26,[sp,#80]
+ ldp x23,x24,[sp,#64]
+ ldp x21,x22,[sp,#48]
+ ldp x19,x20,[sp,#32]
+ ldp x29,x30,[sp,#16]
+ add sp,sp,#2048
+ ret
+.size md2asm_release_live_radiation_first_interpolation,.-md2asm_release_live_radiation_first_interpolation
+.Lri_agree:
+ str x30,[sp,#136]
+ mrs x8,fpcr
+ mrs x9,fpsr
+ stp x8,x9,[sp,#144]
+ ldr w9,[x28]
+ str w9,[sp,#160]
+ add x0,sp,#128
+ add x1,sp,#132
+ mov w2,#1
+ ldr w3,=0x4c000405
+ ldr w4,=0x58000001
+ ldr w5,=0x44000000
+ bl MPI_Allreduce
+ cbnz w0,.Lri_abort
+ ldp x8,x9,[sp,#144]
+ msr fpcr,x8
+ msr fpsr,x9
+ ldr w9,[sp,#160]
+ str w9,[x28]
+ ldr x30,[sp,#136]
+ ret
+.Lri_abort:
+ bl abort
+ brk #0
+.ltorg
+.p2align 2
+.Lri_owner_offsets:
+.word 1736,8,72,136,1456,328,1056,1120,1272,608,672,736,800,864
+.section .note.GNU-stack,"",%progbits
