@@ -15,6 +15,7 @@
  bl \target
  ldr x18,[sp,#1184]
 .endm
+#ifndef NEMO_LAYER_ONLY
 .global CLDPRG_LAYER_SYMBOL
 .type CLDPRG_LAYER_SYMBOL,%function
 CLDPRG_LAYER_SYMBOL:
@@ -369,6 +370,9 @@ md2asm_visibility_layer_state_r2_7358525:
  add sp,sp,#2048
  ret
 .size md2asm_visibility_layer_state_r2_7358525,.-md2asm_visibility_layer_state_r2_7358525
+#endif
+#endif
+#ifndef CLDPRG_RUNTIME_ONLY
 .global md2asm_uncoupled_ocean_fields_state_r2_7358525
 .type md2asm_uncoupled_ocean_fields_state_r2_7358525,%function
 md2asm_uncoupled_ocean_fields_state_r2_7358525:
