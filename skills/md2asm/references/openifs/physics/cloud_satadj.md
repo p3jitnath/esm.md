@@ -85,3 +85,13 @@ The combined coarse forecast uses exclusive allocation 7259755 on nid010824. The
 A separate observer checks the configured humidity floor over 972,800 values at CALLPAR return. It also checks 6,809,600 finite rate values and their ordered additions with the unchanged 64-epsilon allowance. This observer adds zero routines.
 
 All ten saved files match across 618,140 bytes. Accepted critical physics and interface checks are reused. Independent physics for the whole forecast, whole-process byte agreement, autonomous execution and comparative timing remain open in the [coverage record](../../../../../src/openifs/README.md).
+
+## Runtime Provider Binding
+
+The runtime binding retains the complete accepted parent and both numerical children. The parent, QSATMIXADJ and CLOUD_SUPERSATCHECK objects each match their accepted objects byte for byte. The separate private child objects used by the paired verification also remain identical. Production calls the canonical children directly, with no new wrapper, branch or numerical instruction.
+
+The supported range remains 0 through 4,096 columns and 0 through 512 levels, including 17 columns and 137 levels. All selected-range, model-record, diagnostic, stochastic, complete-owner and conditional child-domain requirements above still apply. The parent remains a partial tendency calculation: signed temporary vapour requires its accepted water, available-condensate and actual phase-heating checks. The later caller owns the complete humidity-floor check.
+
+Five physical constants share the initialized 520-byte physical record: `RG`, `RD`, `RCPD`, `RETV` and `RTT`, at byte offsets 112, 184, 200, 240 and 368. Fourteen thermal constants share the initialized 1,920-byte thermal record: `R2ES`, `R3LES`, `R3IES`, `R4LES`, `R4IES`, `R5ALVCP`, `R5ALSCP`, `RALVDCP`, `RALSDCP`, `RTWAT`, `RTICE`, `RTWAT_RTICE_R`, `RKOOP1` and `RKOOP2`, at byte offsets 0, 8, 16, 24, 32, 72, 80, 88, 96, 112, 136, 152, 168 and 176. Existing module names and the linker’s stored addresses reach these actual producer bytes. All nineteen consumed words equal the accepted values, and no original OpenIFS global supplies them.
+
+Eight static EXP call sites reach private copies of the exact accepted primary mathematical objects. Two actual parent call sites reach the complete accepted saturation children. The binding check runs only the unchanged physical and thermal setup producers. Existing independent physical, complete-output, protected-buffer, status and Arm interface records are reused without a cloud calculation or numerical bank replay. Complete `CALLPAR` forwarding, later model-record setup and the loaded autonomous forecast remain pending.
