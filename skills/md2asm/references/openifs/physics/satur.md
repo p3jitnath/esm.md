@@ -35,3 +35,7 @@ The native body passed 40 guarded calls, 84,320 complete returned bytes and 41,7
 ## Actual Forecast Acceptance
 
 The combined coarse forecast in exclusive allocation 7240564 on nid010555 observed 17,150 genuine calls. The same-input comparison covers 46,998,400 complete returned owner bytes with zero differences. Independent critical physics, unchanged inputs and the declared interface checks passed. All ten saved forecast files also match across 618,140 bytes. This result covers the declared routine domain and saved files. Independent whole-forecast physics, whole-process byte identity and comparative speed remain unproved.
+
+## Runtime owned binding
+
+The operational CALLPAR site uses KFLAG two at 17 columns and 137 levels. The unchanged accepted body reads its ten consumed constants from assembly-owned physical and thermal records. Both linear-mode branches therefore use the ordinary mixed-phase constants. The two convective constants remain unread at this site and need their later setup updates before a different flag can be admitted. The two linked exponential calls reach the exact accepted mathematical implementation and its constant tables. Whole object identities, actual addresses and reused independent numerical evidence pass without replaying an accepted bank. Complete CALLPAR forwarding and the operational forecast remain separate.

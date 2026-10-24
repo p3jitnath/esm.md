@@ -126,7 +126,7 @@ The [basic formulations](formulations/openifs/README.md) explain the physical ba
 
 ## Notes
 
-The existing 9 km case has 137 atmospheric layers and 6,599,680 horizontal points. The requested operational run has a one-hour lead time, using eight 450-second steps and four processes. Its separate run configuration changes only the stop time and process count. The following setup and input components pass complete byte comparisons and their required independent checks. These are component results. The complete operational forecast has not run.
+The existing 9 km case has 137 atmospheric layers and 6,599,680 horizontal points. The requested operational run has a one-hour lead time, using eight 450-second steps and four processes. Its separate run configuration changes only the stop time and process count. The following setup and input components pass complete byte comparisons and their required independent checks. These are component results. No complete operational forecast is accepted.
 
 | Accepted component | Checked extent or result |
 | --- | --- |
@@ -176,7 +176,9 @@ The existing 9 km case has 137 atmospheric layers and 6,599,680 horizontal point
 | [Runtime radiation transform storage](skills/md2asm/references/openifs/radiation/radiation_transform_storage.md) | Source-ordered public setup, nine owners and query, actual process maps, exact data and coordinated failure cleanup |
 | [Runtime prognostic departure update](skills/md2asm/references/openifs/dynamics/runtime_prognostic_departure_update.md) | Shared numerical body, 137 layers and actual source strides, exact complete component bytes, independent checks and final-column boundaries |
 | [Preallocated radiation Gaussian fields](skills/md2asm/references/openifs/radiation/preallocated_radiation_gaussian_fields.md) | Real parent-produced owners, exact vectors and status, preserved complete records, independent geometry checks and no new allocation |
-| [Humidity floor](skills/md2asm/references/openifs/physics/qnegat.md) | Unchanged accepted provider, live owned gravity binding, exact object identity and reused independent water checks |
+| [Humidity floor](skills/md2asm/references/openifs/physics/qnegat.md) and [saturation humidity](skills/md2asm/references/openifs/physics/satur.md) | Unchanged accepted providers, owned constants and exact mathematical call targets, with reused independent water checks |
+| [Runtime physics working fields](skills/md2asm/references/openifs/setup/runtime_ecmwf_physics_field_storage.md) | Live allocation dimensions, exact new complete records and payloads, wide integer bounds and reused full operational zero-state evidence |
+| [Live radiation setup](skills/md2asm/references/openifs/radiation/live_radiation_gaussian_setup.md) | Source-ordered storage and Gaussian calls, complete exact bytes on four process maps, independent checks and coordinated cleanup |
 | [Inactive chemistry and aerosol storage](skills/md2asm/references/openifs/setup/inactive_composition_owners.md) | Complete defaults, the 152-byte allocated buffer and release |
 
 Complete physics initialisation, the remaining operational time-step calculations, output and full CPU/GPU forecast acceptance remain unfinished. Native physics and GPU kernels still need qualified operational shapes. The earlier 14.13-second CPU result is for T21 and is not a 9 km timing.
@@ -196,5 +198,7 @@ The original urban setup stores `RSBCONS=5.67e+08`, although its comment describ
 In a tested ice-formation call, the OpenIFS lake update stores an average water temperature of 277.13 K, while its limited temperature profile can represent at most 276.334 K. The profile describes how water temperature changes with depth. We retain the original OpenIFS equations and update rules, and report this known limitation separately from exact assembly byte agreement. Independent whole-forecast physics remains unverified.
 
 The supplied 21 June 2026 climate input has two present top-soil temperature entries that original OpenIFS uses as sea-surface temperatures. Its update and assembly both produce −1870.689453125 K and −830.193359375 K at those sea cells. The input values and source update are preserved. Exact implementation agreement passes at this boundary, while physical temperature admissibility fails.
+
+A separate unchanged operational Fortran run reaches step 0, then its weather-file encoder repeats indefinitely with a not-a-number input. The value’s origin remains unresolved. This run supplies no accepted forecast or comparative timing.
 
 The complete-storage verification gives both separate runs the same 7,744 incoming bytes in unused table bands and array padding, which holds allocated cells outside the physical grid. It preserves earlier frozen input bytes and checks active physical values unchanged before the first forecast calculation. Every returned byte remains compared, and the production run uses only original files without this verification initializer. Unused call arguments and incoming process-status values remain distinct and visible. Both forecasts naturally return the same floating-point controls, exception flags and system error value. The [direct power routine](skills/md2asm/references/openifs/support/power_original_rounding.md) supplies the accepted mathematical helper without the original C implementation.
