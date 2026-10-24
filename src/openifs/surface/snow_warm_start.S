@@ -2006,6 +2006,9 @@ ARG x9,16
 ldr d1,[x9,#400]
 fmax d0,d0,d1
 PUTLOCAL1 d0,15
+#ifdef MD2ASM_RUNTIME_SURFACE_PARAMETERS
+ARG x9,16
+#endif
 ldr d1,[x9,#392]
 fcmp d0,d1
 cset w10,lt

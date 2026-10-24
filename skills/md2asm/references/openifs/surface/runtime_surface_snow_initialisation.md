@@ -1,0 +1,60 @@
+# Runtime surface snow initialisation
+
+The selected entry implements the original `SURFWS_LAYER` call. It turns the supplied snow state into five snow layers, keeps each column's total water mass, and copies the returned temperature, density, mass and liquid water into both surface time slots. The [snow formulation](../../../../../formulations/openifs/surface/snow_warm_start.md) defines these quantities and their units.
+
+## Entry and ordered calculations
+
+[`runtime_surface_snow_initialisation.S`](../../../../../src/openifs/surface/runtime_surface_snow_initialisation.S) selects the six-address layer and its 18-address SURFWS adapter from [the shared surface source](../../../../../src/openifs/surface/selected_surface_layer_adapters.S). It exports `md2asm_snow_initialisation_layer_layout_r2_7358525`. An application binary interface (ABI) specifies argument addresses and the registers a call preserves. The arguments occupy `x0` through `x5` in this order.
+
+| Argument | Typed owner | Complete record size, bytes |
+|---|---|---:|
+| 1 | `YDSURF`, surface-field metadata | 18,224 |
+| 2 | `YDEPHY`, physics control inside the actual MODEL | 448 |
+| 3 | `KDIM`, live dimensions and selected interval | 192 |
+| 4 | `PSURF`, surface input and output fields | 13,680 |
+| 5 | `SURFL`, local surface fields | 2,096 |
+| 6 | `PAUX`, auxiliary fields | 1,992 |
+
+Let $`P`$ be the live number of columns and $`S=5`$ the selected number of snow layers. The layer allocates $`32PS`$ bytes for four complete private FP64 owners. For each selected column, it first copies the complete incoming snow-mass profile. It then fills every private density layer with the incoming first-layer density, every private temperature layer with the incoming first-layer temperature, and every private liquid layer with positive zero. Unselected private rows are not consumed.
+
+The [18-address map](../../../../../src/openifs/surface/selected_surfws_layer_argument_addresses.inc.S) follows the original source order: surface handle; first and last column; column, soil-layer, snow-layer and tile counts; terrain variation; land mask; tile fractions; solar cosine; soil temperature; skin temperature; snow albedo; private temperature, mass, density and liquid profiles. The adapter obtains the actual surface object through GET_SURF and makes the 17-address controller call. This call removes the soil-layer and tile-count arguments and appends the actual TCST and TSOIL records, at surface-object offsets 3,816 and 7,680 bytes.
+
+[`runtime_snow_warm_start.S`](../../../../../src/openifs/surface/runtime_snow_warm_start.S) selects `md2asm_runtime_snow_warm_start`. It calls the unchanged complete snow-grid, profile-initialisation, exponential-profile and water-mass children. After this calculation, the layer copies returned mass into `SURFL%ZSNM1M`, then copies mass, density, temperature and liquid into the MP9 fields and then into the MP1 fields. MP9 and MP1 are the original metadata selectors for the two surface time slots. The [closing views](../../../../../src/openifs/surface/selected_snow_closing_views.inc.S) and [copy order](../../../../../src/openifs/surface/selected_snow_closing_copies.inc.S) retain those exact associations. The parent releases its four-owner allocation before returning.
+
+## Bounds and caller prerequisites
+
+The selected interval satisfies $`1\leq\mathrm{first}\leq\mathrm{last}\leq P\leq4096`$. The actual parameter route uses four soil layers, nine tiles, five snow layers and snow warm-start mode 2. Its four snow parameter-table owners each have five FP64 values. A caller must supply these same dimensions and keep these actual parameter owners live; the generic parent's wider raw dimension guards do not extend this selected provider's domain. An empty interval is outside the selected domain. The surface calculation has no atmospheric-level loop; the ownership gate keeps the actual 137-level vertical Geometry.
+
+The accepted descriptor layout is the dense GNU Fortran layout with lower bounds 1, live extents and eight-byte FP64 elements. Snow profiles have shape $`P\times5`$, tile fractions have shape $`P\times9`$, and soil temperature has four levels. The checked complete surface snow owner has nine field planes: four MP9 fields, four separate MP1 fields, and albedo. Field selectors come from live metadata and must remain within their descriptor bounds. The layer derives its byte sizes, strides and loop bounds from these live owners.
+
+Every record, descriptor and array must have a complete live mapped span, aligned to eight bytes and without address wrap. The seven surface-field metadata blocks for soil temperature, skin temperature, snow mass, density, temperature, liquid and albedo are separate live 16-byte owners, aligned to four bytes. Their MP9 and MP1 int32 selectors are at block offsets 8 and 12. The land-mask selector is a separate live four-byte int32 owner. All eight metadata owners and their complete spans must remain disjoint from mutable output spans.
+
+The complete snow-mass owner and the eight mutable surface field planes must be mutually disjoint and disjoint from other input arrays, albedo, records, metadata owners, the complete MODEL, the complete surface object and all parameter tables. The raw interface checks dimensions and selected source bounds, but it does not prove all pointer capacities, mapped ranges or alias relations. These remain explicit caller prerequisites. The checked cases place every owned buffer against both protected boundaries and compare every public output byte, including unselected columns and the untouched albedo plane.
+
+Mass is in kilograms per square metre, density in kilograms per cubic metre, and temperature in kelvin. Liquid mass stays between zero and total layer mass. Solar cosine, albedo and tile fractions are dimensionless. Inputs must satisfy the accepted children's finite-value and physical admission limits. In particular, stored snow mass is nonnegative, density is positive and no greater than 1,000 kilograms per cubic metre, and the prepared temperature is between 100 kelvin and the actual melting temperature. The inherited children retain their accepted treatment of shallow snow, deep snow and glacier-like mass.
+
+## Snow-cover pointer correction
+
+The source computes the snow-cover fraction as the larger of the sum of tile fractions 5 and 7 and `RFRTINY`. It skips reconstruction when this fraction is less than the actual TSOIL `RFRSMALL` value. A local-store helper in the accepted default controller overwrites the scratch pointer before that second scalar load. The new selected runtime controller reloads argument 16, the original TSOIL address, before the same load. This one integer reload restores the source field association; it changes no floating-point instruction or tolerance.
+
+The actual child-boundary record exposed the defect for a snow-free lake column that retained incoming snow mass. All eleven array payloads and all four scalar arguments matched the source inputs. The failed native returned mass is retained locally. The corrected raw child now matches all four complete source returns in both protected placements, and the enclosing parent matches all saved source cases. The unchanged default controller remains available and its complete object is byte-identical to the accepted default. The complete default surface-layer object and the accepted SURFBC-only object are also unchanged.
+
+## Actual ownership and status
+
+The [accepted surface association](runtime_surface_boundary_layer.md) supplies the real MODEL, surface constructor, parameter tables and GET_SURF service. MODEL has 4,275,088 bytes and borrows a 20,400-byte Geometry. The actual surface constructor owns an 11,584-byte surface record and 79 table owners. The source-ordered integer association stores its surface address at MODEL offset 1,578,328; `YDEPHY` begins at MODEL offset 1,577,888. Geometry stays live through every MODEL consumer. Cleanup detaches the surface, releases its tables and MODEL, and releases Geometry last.
+
+The preceding accepted SURFBC assembly call produces the tile fractions used in this gate. The checking driver supplies explicit physical input fields and controls; it supplies no omitted numerical stage, parameter calculation, model registry or numerical fallback. The production link contains accepted assembly and public support libraries, with no original OpenIFS numerical routine. The original program is loaded only in the separate source comparison process.
+
+The layer and adapter each use a 16,384-byte stack frame; the controller uses 8,192 bytes before its children's own storage. The stack remains aligned to 16 bytes. The native entries preserve `x18`, `x19` through `x30`, and the required low halves of `v8` through `v15`. They retain the original void interface. FPCR, the floating-point control register, must be zero. The routines preserve the natural floating-point status and `errno`, the C error value, rather than clearing them. The selected link owns the same read-only false profiling policy as SURFBC.
+
+A failed parent allocation traps before any public field write. The new failure check covers both protected placements and proves that 103,040 complete shared owner bytes stay unchanged. Invalid raw pointers and unsupported scientific inputs remain outside the accepted domain; this checkpoint does not claim a general recovery interface.
+
+## Acceptance and remaining scope
+
+Twelve genuine source calls and twelve native parent calls cover $`P=1,8,17,4096`$, full and partial nonempty intervals, and both protected placements. The 3,317,840 complete output and status bytes agree exactly. Each route passes 484,380 independent physical and copy relations, preserves 55,538,456 input and parameter bytes, and retains 336,800 output bytes outside the selected interval or in albedo. The source observer checks 165,600 private preparation relations and the actual 18-address map before forwarding to the real original child.
+
+The independent checker sums total column water with 110-digit arithmetic. Its unchanged budget is $`128S\epsilon\max(1,|M_\mathrm{in}|+|M_\mathrm{out}|)`$, where $`\epsilon=2^{-52}`$. It checks density, temperature, total and liquid mass limits, both time-slot copies, the exact retained state of snow-free columns, and the liquid-capacity relation with an independent sine series. The liquid tolerance is $`128\epsilon\max(1,|m_k|)`$ for each layer. An initial checker mistakenly used cosine; that failed result and the explicit correction to the original sine law are archived locally. No output was masked or changed to pass a check.
+
+Canonical bytes contain the complete surface snow owner first, then the complete snow-mass owner, then little-endian FPCR and FPSR uint64 words and the int32 errno value. Column is the fastest-changing array index, followed by snow layer and then field plane. ABI masks are recorded separately. All native ABI masks are zero. The original source masks are 2 because the original code uses `x18` as scratch. Both routes return FPCR 0, FPSR 17 or 25 according to the incoming status bit, and unchanged `errno=71`. A separate two-call raw child gate compares 5,480 complete return and status bytes against the retained actual source-child returns; it makes no new original call. The new parent gate reuses the unchanged children and their accepted evidence without replaying their old banks.
+
+The loaded image checks the actual getter address, owned false-hook address, two mathematical-function targets and six local numerical branch targets. The same assembled entries handle every checked column count. The main Fortran executable is unchanged. This checkpoint qualifies a component runtime provider. Complete CALLPAR forwarding, a complete surface call on loaded weather state, and a complete autonomous forecast remain separate gates.

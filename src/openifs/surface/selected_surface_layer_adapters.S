@@ -107,6 +107,7 @@
 .Lsl_replicate_done:
  ret
 
+#ifndef MD2ASM_SURFWS_ONLY
 ENTER md2asm_surface_boundary_layer_layout_r2_7358525,7,16384
  HOOK .Lsl_bc_layer_name,12,0,3608
 #include "selected_surfbc_layer_argument_addresses.inc.S"
@@ -293,6 +294,7 @@ ENTER md2asm_surface_boundary_adapter_7358525,42,16384
  EXIT 16384
 .size md2asm_surface_boundary_adapter_7358525,.-md2asm_surface_boundary_adapter_7358525
 
+#endif
 #ifndef MD2ASM_SURFBC_ONLY
 ENTER md2asm_snow_initialisation_adapter_7358525,18,16384
  ARG x9,3
@@ -494,6 +496,7 @@ ENTER md2asm_snow_initialisation_layer_layout_r2_7358525,6,16384
  EXIT 16384
 .size md2asm_snow_initialisation_layer_layout_r2_7358525,.-md2asm_snow_initialisation_layer_layout_r2_7358525
 
+#ifndef MD2ASM_SURFWS_ONLY
 ENTER md2asm_surface_turbulence_layer_sea_r2_layout_r2_7358525,18,32768
  ARG x20,1
  // Selected original switches. Unknown controls fail before a numerical write.
@@ -664,6 +667,7 @@ ENTER md2asm_surface_turbulence_layer_sea_r2_layout_r2_7358525,18,32768
  HOOK .Lsl_turb_name,16,1,3608
  EXIT 32768
 .size md2asm_surface_turbulence_layer_sea_r2_layout_r2_7358525,.-md2asm_surface_turbulence_layer_sea_r2_layout_r2_7358525
+#endif
 #endif
 .Lsl_bad:
  brk #0x7c1
