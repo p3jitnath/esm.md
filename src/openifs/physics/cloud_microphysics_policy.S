@@ -1,0 +1,9 @@
+.section .rodata
+.p2align 2
+.global md2asm_owned_cloud_scm_policy
+.type md2asm_owned_cloud_scm_policy,%object
+md2asm_owned_cloud_scm_policy:.word 0
+.size md2asm_owned_cloud_scm_policy,4
+.global __yommp0_MOD_lscmec
+.set __yommp0_MOD_lscmec,md2asm_owned_cloud_scm_policy
+.section .note.GNU-stack,"",%progbits
