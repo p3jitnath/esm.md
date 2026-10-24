@@ -1,0 +1,28 @@
+# Live-level prognostic-cloud parameter setup
+
+The source calculation is SUCLDP. It sets the rain, ice and snow coefficients, cloud switches and two incomplete-beta tables used by prognostic cloud physics. The [accepted setup contract](prognostic_cloud_parameter_setup.md) defines the unchanged equations, parameter units, physical limits and mathematical approximation limits. This extension derives the cloud-top scan from the live full-level count. It does not change those equations or complete the CLOUD_LAYER caller.
+
+The guarded entry is [md2asm_initialize_runtime_prognostic_cloud_parameters](../../../../../src/openifs/setup/runtime_prognostic_cloud_parameter_setup.S). Its application binary interface, ABI, has six ordinary arguments.
+
+| Register | Argument and complete consumed span |
+| --- | --- |
+| `x0` | Read-only namelist text |
+| `x1` | Text length, 1 through 262144 bytes |
+| `x2` | Writable TECLDP output, 2776 bytes |
+| `x3` | Output capacity, at least 2776 bytes |
+| `x4` | Read-only input table, four address/capacity pairs occupying 64 bytes |
+| `x5` | Read-only int32 live level count, four bytes |
+
+Let $`L`$ be the number of full levels, with $`2\le L\le256`$. The four input pairs retain their order: standard pressure STPRE with at least $`8L`$ bytes; physical constants with 520 bytes; the dimensionless dynamics scalings `RPLRG` and `RPLDARE` with 16 bytes; and the physics interval `TPHY2.TSPHY` with eight bytes, in seconds. The caller supplies each actual producer's owner before this consumer runs. STPRE is in Pa. The physical record comes from `md2asm_initialize_physical_constants`; this calculation consumes pi, gravity and reference temperature at offsets 0, 112 and 368. The initial SUPHY2 assignment of 1 s is retained as an explicit upstream input where selected; this component does not replace the complete interval producer with the model time step.
+
+All spans must be live mapped and nonwrapping. Text is byte-aligned, the level scalar is four-byte aligned, and FP64 owners and the table are eight-byte aligned. The complete output must be disjoint from text, table, level scalar and all consumed input spans. The parent checks these numerical spans, alignment, capacities and overlaps before any output write. Mapping validity remains a caller prerequisite. The first source-recognized uppercase NAMCLDP group must be empty under the accepted parser. Every consumed pressure must be positive and finite. All remaining physical and scalar domains retain the accepted contract, including the incoming source-unwritten `RCLDTOPP` field, its selected 100 Pa value and preserved padding.
+
+The raw [md2asm_runtime_prognostic_cloud_parameter_fields](../../../../../src/openifs/setup/runtime_prognostic_cloud_parameter_fields.S) takes output, STPRE, physical constants, scalings and TSPHY in `x0` through `x4`. Its sixth argument `x5` is the level count by value. Raw callers must establish the full checked contract. The guarded frame is 112 bytes and the raw numerical frame is 256 bytes. Both preserve `x18`, `x19` through `x29`, the required low 64 bits of `v8` through `v15`, sixteen-byte stack alignment and FPCR zero. The utility returns zero on success and two on refusal. A refusal leaves output, inputs, floating-point status and errno unchanged.
+
+The source starts `NCLDTOP` at two. It then scans level indices from $`L`$ down through two. A strict `STPRE(level) > RCLDTOPP` comparison assigns that level to `NCLDTOP`. Thus the final result is the smallest eligible level, or two if none qualifies; equality does not select a level. The runtime child saves the live count across the unchanged gamma, beta and other mathematical calls, then performs this exact descending scan. Every other calculation and FP64 rounding point is unchanged. Shared source bodies preserve both complete default 19-level objects byte for byte.
+
+Eight genuine source calls and eight native calls pass at actual L137, a seven-level pressure-tie case, minimum L2 and maximum L256 with no crossing. Both protected owner placements pass. Each route covers 22,336 complete output and floating-point-status bytes with zero differences, 11,416 unchanged input bytes and 828 independent pressure-selection relations. The independent check uses the smallest eligible level in exact rational arithmetic, rather than repeating the descending implementation. Native ABI masks are zero; original masks are retained separately. The original formatted diagnostic I/O returns its raw observed errno, while the no-I/O utility preserves incoming errno 777. These values are disclosed without normalisation, and FPCR/FPSR match exactly.
+
+One additional native call passes the actual initialized physical-record address directly through the input table. It matches 2,792 complete output/status bytes from the new actual-L137 source record and preserves 1,708 immutable owner bytes. Actual LOG, POW and SIN jump-slot targets and local EXP joins pass. The production closure has no original OpenIFS or Fortran dependency. Eleven new live-level refusal cases preserve 49,456 complete mapped-owner bytes and native ABI/status. They cover the scalar pointer, scalar bounds, output overlap, the complete live pressure extent and invalid final pressures.
+
+The complete gamma/beta object rebuilds identically. Its accepted 211-case mathematical comparison and independent gamma/integral limits, the old 45 parent refusals and the unchanged default evidence are reused without replay. The same original main Fortran executable is retained; only the small verification interface was built to pass a live level count to unchanged SUCLDP. Full upstream configuration, CLOUD_LAYER, CALLPAR forwarding, a complete forecast and timing remain separate gates.

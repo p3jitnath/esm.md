@@ -792,7 +792,10 @@ md2asm_call_sl_heap2_7358525:
  ldr x9,[x29,#952]
  ldr x9,[x9,#48]
  cmp x9,#1
+ b.eq .Lretained_world_member_ok
+ cmp x9,#4
  b.ne .Lreject
+.Lretained_world_member_ok:
  mov x0,x19
  mov x1,#128
  bl .Lruntime_borrowed_span
