@@ -39,4 +39,7 @@ SURFACE_TAIL md2asm_vdffblend_7240564,vdffblend_
 SURFACE_TAIL md2asm_vdfhghtn_7240564,vdfhghtn_
 SURFACE_TAIL md2asm_vdfincr_7240564,vdfincr_
 SURFACE_TAIL md2asm_vdftofdc_7240564,vdftofdc_
+SURFACE_TAIL md2asm_layer_updcal_child,md2asm_layer_updcal_body
+SURFACE_TAIL md2asm_layer_icestate_child,md2asm_layer_icestate_body
+SURFACE_TAIL md2asm_layer_surfrad_child,md2asm_layer_surfrad_body
 .section .note.GNU-stack,"",%progbits

@@ -47,3 +47,13 @@ The combined coarse forecast in exclusive allocation 7240564 on nid010555 passes
 | methox | 2,150 | 7,843,200 | Complete returned routine owners |
 
 All ten saved files also match across 618,140 bytes. The accepted critical physics and interface checks are reused. These checks cover the declared routine domains and saved files. Whole-forecast physical verification, whole-process byte identity and comparative timing remain open in the [coverage record](../../../../../src/openifs/README.md).
+
+## Runtime Provider Binding
+
+The runtime provider keeps the complete accepted numerical object and its seven-address Arm interface unchanged. The supported range remains 0 through 4,096 columns and 0 through 512 levels, including the operational 17-column, 137-level shape. Every physical, selected-range, alignment, disjoint-owner and status condition above still applies.
+
+The physical and methane setup entries write their own records before this leaf runs. The physical record has 520 bytes: `RPI` shares its bytes at offset 0, and `RDAYI` shares its bytes at offset 48. The methane record has 72 bytes. Its nine FP64 fields are `RALPHA1`, `RALPHA2`, `RQLIM`, `RPBOTOX`, `RPBOTPH`, `RPTOPOX`, `RPTOPPH`, `RALPHA3` and `RLOGPPH`, at offsets 0 through 64 in steps of eight bytes. These are actual producer addresses under the existing module symbol names. The linker’s global offset table stores those same addresses; no original OpenIFS global supplies a value.
+
+The unchanged [methane parameter producer](../setup/ecmwf_physics_tail.md) supplies the selected empty `NAMMETHOX` defaults. Its complete object and the consumer object match their accepted objects byte for byte. All eleven initialized words match the frozen numerical values, including the 86,400 seconds per model day in `RDAYI`. The producer retains the source’s literal expressions, separate rounding points and pressure-ratio logarithm.
+
+LOG and EXP use private copies of the exact accepted primary mathematical objects. Loaded call addresses reach those bodies directly. The COS and POWER call addresses reach their accepted original-compatible mathematical providers. The ownership check executes only the unchanged setup producers; it does not call METHOX or replay an accepted numerical bank. Existing independent rate checks, complete output bytes, protected buffers, status and Arm interface results are reused. Complete `CALLPAR` forwarding, later setup joins and the loaded autonomous forecast remain pending.
