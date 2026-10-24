@@ -8,6 +8,7 @@
 .text
 #ifndef MD2ASM_RUNTIME_WMS_PARAMETERS
 .p2align 4
+#ifndef MD2ASM_OROGRAPHIC_ONLY
 .global md2asm_diagnostic_cloud_parameter_fields
 .type md2asm_diagnostic_cloud_parameter_fields,%function
 /* x0 TECLD264, x1 fresh CETA152 owner, x2 eta152. Integer leaf. */
@@ -44,20 +45,42 @@ md2asm_diagnostic_cloud_parameter_fields:
  b.lo .Lcloud_eta
  ret
 .size md2asm_diagnostic_cloud_parameter_fields,.-md2asm_diagnostic_cloud_parameter_fields
+#endif
 .p2align 4
-.global md2asm_orographic_gravity_wave_parameter_fields
-.type md2asm_orographic_gravity_wave_parameter_fields,%function
+#ifdef MD2ASM_RUNTIME_OROGRAPHIC_PARAMETERS
+#define OROGRAPHIC_FIELD_ENTRY md2asm_runtime_orographic_gravity_wave_parameter_fields
+#else
+#define OROGRAPHIC_FIELD_ENTRY md2asm_orographic_gravity_wave_parameter_fields
+#endif
+.global OROGRAPHIC_FIELD_ENTRY
+.type OROGRAPHIC_FIELD_ENTRY,%function
 /* x0 TEGWD96, x1 STPRE152, x2 VAH160, x3 VBH160, x4 RHOUR8,
  * w5 LEPHYS. Leaf with160 bytes for the source ZPM1R(19) scratch. */
-md2asm_orographic_gravity_wave_parameter_fields:
+OROGRAPHIC_FIELD_ENTRY:
+#ifdef MD2ASM_RUNTIME_OROGRAPHIC_PARAMETERS
+ mov w14,w6
+ lsl x16,x14,#3
+ add x15,x16,#15
+ and x15,x15,#-16
+ sub sp,sp,x15
+#else
  sub sp,sp,#160
+#endif
  adrp x6,.Lwave_constants
  add x6,x6,:lo12:.Lwave_constants
  ldp d16,d17,[x6] /* 80000 Pa and1/2. */
  ldp d18,d19,[x6,#16] /* sigma0.94 and pressure9.9Pa. */
+#ifdef MD2ASM_RUNTIME_OROGRAPHIC_PARAMETERS
+ mov w6,w14
+#else
  mov w6,#19
+#endif
  str w6,[x0]
+#ifdef MD2ASM_RUNTIME_OROGRAPHIC_PARAMETERS
+ sub x6,x16,#8
+#else
  mov x6,#144
+#endif
 .Lorographic_midpoint:
  ldr d0,[x2,x6]
  add x7,x6,#8
@@ -92,7 +115,11 @@ md2asm_orographic_gravity_wave_parameter_fields:
  str w7,[x0,#8]
 .Lorographic_top_next:
  add x6,x6,#8
+#ifdef MD2ASM_RUNTIME_OROGRAPHIC_PARAMETERS
+ cmp x6,x16
+#else
  cmp x6,#152
+#endif
  b.lo .Lorographic_top
  adrp x6,.Lwave_drag_constants
  add x6,x6,:lo12:.Lwave_drag_constants
@@ -113,7 +140,18 @@ md2asm_orographic_gravity_wave_parameter_fields:
  ldr d16,[x4]
  adrp x6,.Lwave_limiter_pressure
  ldr d17,[x6,:lo12:.Lwave_limiter_pressure]
+#ifdef MD2ASM_RUNTIME_OROGRAPHIC_PARAMETERS
+ cmp w14,#19
+ b.le .Lorographic_selected_limiter
+ adrp x6,.Lwave_limiter_pressure_fine
+ ldr d17,[x6,:lo12:.Lwave_limiter_pressure_fine]
+.Lorographic_selected_limiter:
+#endif
+#ifdef MD2ASM_RUNTIME_OROGRAPHIC_PARAMETERS
+ sub x6,x16,#8
+#else
  mov x6,#144
+#endif
 .Lorographic_limit:
  ldr d0,[x1,x6]
  fcmp d0,d17
@@ -138,11 +176,16 @@ md2asm_orographic_gravity_wave_parameter_fields:
  mov w6,#5
  str w6,[x0,#12]
  str wzr,[x0,#92]
+#ifdef MD2ASM_RUNTIME_OROGRAPHIC_PARAMETERS
+ add sp,sp,x15
+#else
  add sp,sp,#160
+#endif
  ret
-.size md2asm_orographic_gravity_wave_parameter_fields,.-md2asm_orographic_gravity_wave_parameter_fields
+.size OROGRAPHIC_FIELD_ENTRY,.-OROGRAPHIC_FIELD_ENTRY
 #endif
 .p2align 4
+#ifndef MD2ASM_OROGRAPHIC_ONLY
 #ifdef MD2ASM_RUNTIME_WMS_PARAMETERS
 #define WMS_FIELD_ENTRY md2asm_runtime_nonorographic_gravity_wave_parameter_fields
 #else
@@ -242,12 +285,16 @@ WMS_FIELD_ENTRY:
  str w5,[x0,#32]
  ret
 .size WMS_FIELD_ENTRY,.-WMS_FIELD_ENTRY
+#endif
 .section .rodata
 #include "cloud_parameter_constants.inc.S"
 .p2align 3
 .Lwave_constants: .double 80000.0,0.5,0.94,9.9
 .Lwave_drag_constants: .double 0.3,1.0,0.15,3.0,0.25,0.40,0.10,1.0e-12,1.0e-7
 .Lwave_limiter_pressure: .double 1000.0
+#ifdef MD2ASM_RUNTIME_OROGRAPHIC_PARAMETERS
+.Lwave_limiter_pressure_fine: .double 5000.0
+#endif
 .Lwave_tendency_constants: .double 20.0,80.0
 .Lnonorographic_constants: .double 0.00375,1.0,2000.0,2.0,20.0,-0.25
 .Lwave_launch_pressures: .double 45000.0,70000.0,20000.0
