@@ -10,9 +10,9 @@
  bl \target
  ldr x18,[sp,#48]
 .endm
-.global md2asm_operational_grid_point_norm
-.type md2asm_operational_grid_point_norm,%function
-md2asm_operational_grid_point_norm:
+.global md2asm_runtime_grid_point_norm
+.type md2asm_runtime_grid_point_norm,%function
+md2asm_runtime_grid_point_norm:
  cbz x0,.Logn_early_refuse
  cbz x1,.Logn_early_refuse
  cbz x2,.Logn_early_refuse
@@ -46,42 +46,45 @@ md2asm_operational_grid_point_norm:
  tst x12,#7
  b.ne .Logn_early_refuse
  ldr w12,[x10,#24]
- cmp w12,#4
- b.ne .Logn_early_refuse
- ldr w12,[x10,#28]
- sub w12,w12,#1
- cmp w12,#3
- b.hi .Logn_early_refuse
+ cmp w12,#1
+ b.lt .Logn_early_refuse
+ ldr w13,[x10,#28]
+ cmp w13,#1
+ b.lt .Logn_early_refuse
+ cmp w13,w12
+ b.gt .Logn_early_refuse
  movz x12,#(67600&65535)
  movk x12,#(67600>>16),lsl#16
  ldr w12,[x11,x12]
  cbnz w12,.Logn_early_refuse
- ldr w10,[x0,#5144]
- cmp w10,#17
- b.ne .Logn_early_refuse
- ldr w10,[x0,#5160]
- mov w11,#31519
- movk w11,#1,lsl#16
- cmp w10,w11
- b.ne .Logn_early_refuse
- ldr w10,[x0,#7376]
- mov w11,#(1649920&65535)
- movk w11,#25,lsl#16
- cmp w10,w11
- b.ne .Logn_early_refuse
+ ldr w13,[x0,#5144]
+ sub w10,w13,#1
+ cmp w10,#4095
+ b.hi .Logn_early_refuse
+ ldr w14,[x0,#5160]
+ cmp w14,#1
+ b.lt .Logn_early_refuse
+ ldr w15,[x0,#7376]
+ cmp w15,#1
+ b.lt .Logn_early_refuse
+ mul x16,x13,x14
+ cmp x15,x16
+ b.hi .Logn_early_refuse
+ sub x10,x16,x13
+ cmp x15,x10
+ b.ls .Logn_early_refuse
  /* Bound complete input/output ranges before constructing public descriptors. */
- mov x10,#(13199480&65535)
- movk x10,#(13199480>>16),lsl#16
- mul x10,x9,x10
+ mul x10,x9,x16
+ lsl x10,x10,#3
  adds x11,x1,x10
  b.cs .Logn_early_refuse
  mov x12,#24
  mul x12,x12,x9
- adds x13,x5,x12
+ adds x17,x5,x12
  b.cs .Logn_early_refuse
  cmp x5,x11
  b.hs .Logn_ranges_disjoint
- cmp x13,x1
+ cmp x17,x1
  b.hi .Logn_early_refuse
 .Logn_ranges_disjoint:
  sub sp,sp,#1280
@@ -99,15 +102,17 @@ md2asm_operational_grid_point_norm:
  mov x22,x9
  mov x23,x5
  mov x24,x7
+ mov x26,x13
+ mov x27,x14
+ mov x28,x15
  str wzr,[sp,#168]
  mov w9,#1
  str w9,[sp,#172]
  add x0,sp,#192
  mov x1,x20
- mov x2,#17
+ mov x2,x26
  mov x3,x22
- mov x4,#31519
- movk x4,#1,lsl#16
+ mov x4,x27
  mov w5,#3
  bl .Logn_descriptor
  add x0,sp,#320
@@ -136,6 +141,10 @@ md2asm_operational_grid_point_norm:
  mov x9,#5168
  add x7,x19,x9
  OGN_CALL gpnorm_trans_
+ ldr x9,[x24]
+ ldr w9,[x9,#24]
+ cmp w9,#1
+ b.eq .Logn_begin_publish
  mov x25,#0
 .Logn_broadcast:
  adr x9,.Logn_tags
@@ -157,6 +166,7 @@ md2asm_operational_grid_point_norm:
  add x25,x25,#1
  cmp x25,#3
  b.lo .Logn_broadcast
+.Logn_begin_publish:
  mov x25,#0
 .Logn_publish:
  add x9,sp,#576
@@ -185,7 +195,7 @@ md2asm_operational_grid_point_norm:
 .Logn_early_refuse:
  mov w0,#2
  ret
-.size md2asm_operational_grid_point_norm,.-md2asm_operational_grid_point_norm
+.size md2asm_runtime_grid_point_norm,.-md2asm_runtime_grid_point_norm
 /* Same GNU REAL8 descriptor layout as accepted public ECTRANS callers. */
 .Logn_descriptor:
  str x1,[x0]
@@ -216,6 +226,8 @@ md2asm_operational_grid_point_norm:
  neg x8,x8
  str x8,[x0,#8]
  ret
+.global md2asm_operational_grid_point_norm
+.set md2asm_operational_grid_point_norm,md2asm_runtime_grid_point_norm
 .section .rodata
 .p2align 2
 .Logn_tags: .word 12345,12445,12545
