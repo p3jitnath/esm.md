@@ -23,7 +23,7 @@ Map field pointers and their views by separate named offsets, since their declar
 
 State whether each output replaces a value or adds to it, then use that meaning in physical balances. Include every boundary flow and added source when deriving a conservation check. Convert rates to finite changes with the declared time interval, and weight changes per unit mass by cell mass before forming a conservation balance. Retain required input setup for empty output intervals, including the arithmetic flags that record rounding and other numerical events.
 
-Derive mathematical-helper ranges from all consumed coefficients and their signs, units and magnitudes, including accumulated arguments such as angles over several cycles. Use the spacing of stored floating-point values to bound a small nonzero difference from a fixed stored threshold. Carry that bound through later powers.
+Derive mathematical-helper ranges from all consumed coefficients and their signs, units and magnitudes, including accumulated arguments such as angles over several cycles. Use each function’s rounded result as the next function’s input, and derive the next function’s supported range from those stored values. Use the spacing of stored floating-point values to bound a small nonzero difference from a fixed stored threshold. Carry that bound through later powers.
 
 When a function needs a smaller error than a single 64-bit floating-point (FP64) value can provide, retain the rounding remainder in a second FP64 value. Freeze the operation order and prove the return-value error bound across every supported branch before emission.
 

@@ -24,7 +24,10 @@ MD2ASM_RAD_POINT_ENTRY:
  b.cs .Lpoint_release_bad
  ldr x9,[x19]
 #ifdef MD2ASM_RAD_STORAGE_ZMU_RETIRED
- ldr x10,=0x52414453544f5232
+#ifndef MD2ASM_RAD_STORAGE_RETIRED_MAGIC
+#define MD2ASM_RAD_STORAGE_RETIRED_MAGIC 0x52414453544f5232
+#endif
+ ldr x10,=MD2ASM_RAD_STORAGE_RETIRED_MAGIC
 #else
  ldr x10,=0x52414453544f5231
 #endif
@@ -211,6 +214,9 @@ MD2ASM_RAD_POINT_ENTRY:
  mov x1,x20
  bl .Lpoint_validate_storage
  cbnz w0,.Lpoint_release_return
+#ifdef MD2ASM_RAD_VALIDATE_ONLY
+ mov w0,#0
+#else
 #ifdef MD2ASM_RAD_RETIRE_ZMU
  ldr x0,[x19,#16]
  bl free
@@ -233,6 +239,7 @@ MD2ASM_RAD_POINT_ENTRY:
  bl md2asm_release_runtime_radiation_transform_storage
 #endif
  cbnz w0,.Lpoints_abort
+#endif
 #endif
 .Lpoint_release_return:
  ldr x18,[sp,#112]
