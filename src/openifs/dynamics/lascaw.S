@@ -61,11 +61,19 @@ MD2ASM_LASCAW_SYMBOL:
  str x12,[x10],#8
  subs x11,x11,#1
  b.ne .Llc_args
+#ifdef LASCAW_LOCAL_HALO_ONLY
+ /* The configured local-halo route keeps every source demand branch false. */
+ PTR x9,1
+ cbz x9,.Llc_reject
+ ldr w9,[x9,#1036]
+ cbnz w9,.Llc_reject
+#else
  adrp x9,:got:__yommp0_MOD_nproc
  ldr x9,[x9,:got_lo12:__yommp0_MOD_nproc]
  ldr w9,[x9]
  cmp w9,#1
  b.ne .Llc_reject
+#endif
  mrs x9,fpcr
  cbnz x9,.Llc_reject
  INT w19,4
