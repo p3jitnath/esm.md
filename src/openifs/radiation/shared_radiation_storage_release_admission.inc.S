@@ -20,7 +20,11 @@
  adds x9,x19,#160
  b.cs MD2ASM_RAD_STORAGE_BAD
  ldr x9,[x19]
+#ifdef MD2ASM_RAD_STORAGE_ZMU_RETIRED
+ ldr x10,=0x52414453544f5232
+#else
  ldr x10,=0x52414453544f5231
+#endif
  cmp x9,x10
  b.ne MD2ASM_RAD_STORAGE_BAD
  ldr x20,[x19,#8]
@@ -28,9 +32,13 @@
  tst x20,#7
  b.ne MD2ASM_RAD_STORAGE_BAD
  ldr x9,[x19,#16]
+#ifdef MD2ASM_RAD_STORAGE_ZMU_RETIRED
+ cbnz x9,MD2ASM_RAD_STORAGE_BAD
+#else
  cbz x9,MD2ASM_RAD_STORAGE_BAD
  tst x9,#7
  b.ne MD2ASM_RAD_STORAGE_BAD
+#endif
  ldr x11,[x19,#40]
  cmp x11,#2
  b.lo MD2ASM_RAD_STORAGE_BAD
@@ -52,8 +60,12 @@
  add x14,x11,#4
  lsl x14,x14,#3
  ldr x9,[x19,#24]
+#ifdef MD2ASM_RAD_STORAGE_ZMU_RETIRED
+ cbnz x9,MD2ASM_RAD_STORAGE_BAD
+#else
  cmp x9,x14
  b.ne MD2ASM_RAD_STORAGE_BAD
+#endif
  ldr x9,[x19,#112]
  ldr x10,[x19,#16]
  cmp x9,x10
