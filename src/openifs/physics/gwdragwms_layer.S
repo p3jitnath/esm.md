@@ -121,6 +121,27 @@ GW_LAYER_SYMBOL:
     b.lt .Llayer_domain
     cmp w23,w20
     b.gt .Llayer_domain
+#ifdef GW_RUNTIME_GRID_SPACING
+    // The runtime route uses the selected default configuration.
+    ldr w9,[x24]
+    cmp w9,#1
+    b.ne .Llayer_domain
+    ldp w9,w10,[x24,#4]
+    orr w9,w9,w10
+    ldr w10,[x24,#12]
+    orr w9,w9,w10
+    cbnz w9,.Llayer_domain
+    ldr w9,[x24,#36]
+    cmp w9,#1
+    b.ne .Llayer_domain
+    ldr w9,[x24,#40]
+    cmp w9,#2
+    b.ne .Llayer_domain
+    ldr d0,[x24,#112]
+    fmov d1,#2.0
+    fcmp d0,d1
+    b.ne .Llayer_domain
+#endif
     cmp w25,#0
     b.lt .Llayer_domain
     cmp w25,#3
@@ -217,10 +238,12 @@ GW_LAYER_SYMBOL:
     fmul d0,d3,d0
     ldr d1,.Llayer_hundred
     fmaxnm d0,d0,d1
+#ifndef GW_RUNTIME_GRID_SPACING
     ldr d1,.Llayer_grid_min
     fcmp d0,d1
     b.lt .Llayer_domain
     b.vs .Llayer_domain
+#endif
     add x27,x27,#1
     cmp x27,x23
     b.le .Llayer_grid

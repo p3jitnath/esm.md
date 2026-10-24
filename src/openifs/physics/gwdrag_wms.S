@@ -197,7 +197,13 @@
     add w4,w22,#1
     add w5,w23,#1
     mov x6,sp
+#ifdef GW_RUNTIME_GRID_SPACING
+    str x18,[sp,#704]
+#endif
     bl native_gw_trace
+#ifdef GW_RUNTIME_GRID_SPACING
+    ldr x18,[sp,#704]
+#endif
 #endif
 .endm
 .global GWDRAG_SYMBOL
@@ -265,6 +271,27 @@ GWDRAG_SYMBOL:
     add x10,x25,#80
     ldr d0,[x10,x9,lsl #3]
     str d0,[sp,#S_TMP]
+#ifdef GW_RUNTIME_GRID_SPACING
+    // The runtime route uses the selected default configuration.
+    ldr w9,[x25]
+    cmp w9,#1
+    b.ne .Ldomain
+    ldp w9,w10,[x25,#4]
+    orr w9,w9,w10
+    ldr w10,[x25,#12]
+    orr w9,w9,w10
+    cbnz w9,.Ldomain
+    ldr w9,[x25,#36]
+    cmp w9,#1
+    b.ne .Ldomain
+    ldr w9,[x25,#40]
+    cmp w9,#2
+    b.ne .Ldomain
+    ldr d0,[x25,#112]
+    fmov d1,#2.0
+    fcmp d0,d1
+    b.ne .Ldomain
+#endif
     ldr w9,[x25,#36]
     cmp w9,#-1
     b.lt .Ldomain
@@ -323,10 +350,12 @@ GWDRAG_SYMBOL:
     fmul d0,d1,d0
     C 1,hundred
     fmaxnm d0,d0,d1
+#ifndef GW_RUNTIME_GRID_SPACING
     C 1,grid
     fcmp d0,d1
     b.lt .Ldomain
     b.vs .Ldomain
+#endif
     add x27,x27,#1
     cmp x27,x23
     b.le .Lgrid
@@ -760,10 +789,19 @@ GWDRAG_SYMBOL:
     b.lt .Lintegrate_launch_inc
     mov x27,x22
 .Lnormalise_col:
+#ifdef GW_RUNTIME_GRID_SPACING
+    LDV 0,A16
+    ldr d1,[sp,#S_PI]
+    ldr d2,[sp,#S_RA]
+    bl md2asm_wave_launch_grid_factor
+    ldr d1,[sp,#S_FGLOB]
+    fmul d0,d1,d0
+#else
     // Source grid factor is exactly one throughout the checked >=29km domain.
     ldr d0,[sp,#S_FGLOB]
     C 1,one
     fmul d0,d0,d1
+#endif
     STV 0,P_LAUN
     LD3 1,P_PU
     fdiv d0,d0,d1

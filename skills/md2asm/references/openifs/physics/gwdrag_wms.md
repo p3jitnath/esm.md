@@ -51,3 +51,6 @@ The combined coarse forecast in exclusive allocation 7240564 on nid010555 passes
 | gwdrag_wms | 1,118 | 16,743,168 | Native private wave child, compared complete parent owners and child proof |
 
 All ten saved files also match across 618,140 bytes. The accepted critical physics and interface checks are reused. These checks cover the declared routine domains and saved files. Whole-forecast physical verification, whole-process byte identity and comparative timing remain open in the [coverage record](../../../../../src/openifs/README.md).
+
+
+The separate [runtime fine-grid extension](runtime_nonorographic_gravity_waves.md) restores the original spacing factor for its declared default parameter selection. It retains this coarse entry and its complete accepted object unchanged.
