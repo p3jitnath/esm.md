@@ -1,0 +1,320 @@
+/* Direct SUECRAD Gaussian field owner and source-ordered calculations.
+ * See skills/md2asm/references/openifs/radiation/radiation_gaussian_fields.md. x0 record,x1 capacity,x2 ZMU,x3 bytes,x4 physical,x5 bytes,x6 NRADINT.
+ */
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_create_runtime_radiation_gaussian_fields
+.type md2asm_create_runtime_radiation_gaussian_fields,%function
+md2asm_create_runtime_radiation_gaussian_fields:
+ cbz x0,.Lrg_bad
+ cbz x2,.Lrg_bad
+ cbz x4,.Lrg_bad
+ orr x9,x0,x2
+ orr x9,x9,x4
+ tst x9,#7
+ b.ne .Lrg_bad
+ cmp x1,#1376
+ b.lo .Lrg_bad
+ cmp x5,#520
+ b.lo .Lrg_bad
+ mrs x9,fpcr
+ cbnz x9,.Lrg_bad
+ sub w9,w6,#2
+ cmp w9,#1
+ b.hi .Lrg_bad
+ ldr w10,[x0,#52]
+ cmp w10,#2
+ b.lo .Lrg_bad
+ mov w9,#8192
+ cmp w10,w9
+ b.hi .Lrg_bad
+ tbnz w10,#0,.Lrg_bad
+ ldr w9,[x0,#56]
+ cmn w9,#1
+ b.ne .Lrg_bad
+ ldr w9,[x0,#60]
+ add w11,w10,#2
+ cmp w9,w11
+ b.ne .Lrg_bad
+ ldr w9,[x0,#76]
+ cmp w9,#2
+ b.ne .Lrg_bad
+ ldr x9,[x0,#968]
+ ldr x11,[x0,#1032]
+ orr x9,x9,x11
+ ldr x11,[x0,#1096]
+ orr x9,x9,x11
+ cbnz x9,.Lrg_bad
+ add x11,x10,#4
+ lsl x11,x11,#3
+ cmp x3,x11
+ b.lo .Lrg_bad
+ adds x9,x2,x11
+ b.cs .Lrg_bad
+ adds x9,x0,#1376
+ b.cs .Lrg_bad
+ adds x9,x4,#520
+ b.cs .Lrg_bad
+ ldr x9,[x4]
+ ldr x12,=0x4008000000000000
+ cmp x9,x12
+ b.lo .Lrg_bad
+ ldr x12,=0x4010000000000000
+ cmp x9,x12
+ b.hs .Lrg_bad
+ mov x9,#0
+ fmov d1,#1.0
+ ldr x12,=0x3ff0000000000000
+.Lrg_input:
+ add x13,x9,#2
+ ldr x14,[x2,x13,lsl#3]
+ and x15,x14,#0x7fffffffffffffff
+ cmp x15,x12
+ b.hs .Lrg_bad
+ fmov d0,x14
+ fcmp d1,d0
+ b.le .Lrg_bad
+ fmov d1,d0
+ add x9,x9,#1
+ cmp x9,x10
+ b.lo .Lrg_input
+ sub sp,sp,#128
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mov x29,sp
+ mov x19,x0
+ mov x20,x2
+ mov x21,x4
+ mov x22,x10
+ mov x23,x11
+ mov x0,x23
+ bl malloc
+ cbz x0,.Lrg_nomem
+ mov x24,x0
+ mov x0,x23
+ bl malloc
+ cbz x0,.Lrg_fail2
+ mov x25,x0
+ mov x0,x23
+ bl malloc
+ cbz x0,.Lrg_fail3
+ mov x26,x0
+ add x0,x19,#968
+ mov x1,x24
+ bl .Lrg_descriptor
+ add x0,x19,#1032
+ mov x1,x25
+ bl .Lrg_descriptor
+ add x0,x19,#1096
+ mov x1,x26
+ bl .Lrg_descriptor
+ mov x27,#2
+ add x28,x22,#2
+.Lrg_copy:
+ ldr x9,[x20,x27,lsl#3]
+ str x9,[x24,x27,lsl#3]
+ add x27,x27,#1
+ cmp x27,x28
+ b.lo .Lrg_copy
+ mov x27,#2
+.Lrg_calc:
+ ldr d0,[x20,x27,lsl#3]
+ fmul d1,d0,d0
+ fmov d2,#1.0
+ fsub d1,d2,d1
+ fsqrt d1,d1
+ str d1,[x25,x27,lsl#3]
+ bl asin
+ str d0,[x26,x27,lsl#3]
+ add x27,x27,#1
+ cmp x27,x28
+ b.lo .Lrg_calc
+ mov x27,#1
+.Lrg_north:
+ add x9,x27,#1
+ mov x10,#2
+ sub x10,x10,x27
+ ldr x11,[x20,x9,lsl#3]
+ str x11,[x20,x10,lsl#3]
+ ldr x11,[x24,x9,lsl#3]
+ str x11,[x24,x10,lsl#3]
+ ldr x11,[x25,x9,lsl#3]
+ str x11,[x25,x10,lsl#3]
+ ldr d0,[x21]
+ ldr d1,[x26,x9,lsl#3]
+ fsub d0,d0,d1
+ str d0,[x26,x10,lsl#3]
+ add x27,x27,#1
+ cmp x27,#2
+ b.ls .Lrg_north
+ mov x27,#1
+.Lrg_south:
+ add x9,x22,#2
+ sub x9,x9,x27
+ add x10,x22,x27
+ add x10,x10,#1
+ ldr x11,[x20,x9,lsl#3]
+ str x11,[x20,x10,lsl#3]
+ ldr x11,[x24,x9,lsl#3]
+ str x11,[x24,x10,lsl#3]
+ ldr x11,[x25,x9,lsl#3]
+ str x11,[x25,x10,lsl#3]
+ ldr d0,[x21]
+ fneg d0,d0
+ ldr d1,[x26,x9,lsl#3]
+ fsub d0,d0,d1
+ str d0,[x26,x10,lsl#3]
+ add x27,x27,#1
+ cmp x27,#2
+ b.ls .Lrg_south
+ mov w0,#0
+ b .Lrg_return
+.Lrg_descriptor:
+ mov x9,#1
+ stp x1,x9,[x0]
+ mov x9,#8
+ ldr x10,=0x0000030100000000
+ stp x9,x10,[x0,#16]
+ mov x10,#1
+ stp x9,x10,[x0,#32]
+ mov x9,#-1
+ add x10,x22,#2
+ stp x9,x10,[x0,#48]
+ ret
+.Lrg_fail3:
+ mov x0,x25
+ bl free
+.Lrg_fail2:
+ mov x0,x24
+ bl free
+.Lrg_nomem:
+ mov w0,#1
+.Lrg_return:
+ ldr x18,[sp,#96]
+ ldp x27,x28,[sp,#80]
+ ldp x25,x26,[sp,#64]
+ ldp x23,x24,[sp,#48]
+ ldp x21,x22,[sp,#32]
+ ldp x19,x20,[sp,#16]
+ ldp x29,x30,[sp]
+ add sp,sp,#128
+ ret
+.Lrg_bad:
+ mov w0,#2
+ ret
+.size md2asm_create_runtime_radiation_gaussian_fields,.-md2asm_create_runtime_radiation_gaussian_fields
+
+.p2align 4
+.global md2asm_release_runtime_radiation_gaussian_fields
+.type md2asm_release_runtime_radiation_gaussian_fields,%function
+md2asm_release_runtime_radiation_gaussian_fields:
+ cbz x0,.Lrg_release_bad
+ tst x0,#7
+ b.ne .Lrg_release_bad
+ cmp x1,#1376
+ b.lo .Lrg_release_bad
+ ldr x2,[x0,#968]
+ ldr x3,[x0,#1032]
+ ldr x4,[x0,#1096]
+ orr x9,x2,x3
+ orr x9,x9,x4
+ cbz x9,.Lrg_empty
+ cbz x2,.Lrg_release_bad
+ cbz x3,.Lrg_release_bad
+ cbz x4,.Lrg_release_bad
+ cmp x2,x3
+ b.eq .Lrg_release_bad
+ cmp x2,x4
+ b.eq .Lrg_release_bad
+ cmp x3,x4
+ b.eq .Lrg_release_bad
+ ldr w5,[x0,#52]
+ cmp w5,#2
+ b.lo .Lrg_release_bad
+ mov w9,#8192
+ cmp w5,w9
+ b.hi .Lrg_release_bad
+ tbnz w5,#0,.Lrg_release_bad
+ add x5,x5,#2
+ mov x6,#0
+ add x7,x0,#968
+.Lrg_release_shape:
+ ldr x9,[x7]
+ tst x9,#7
+ b.ne .Lrg_release_bad
+ ldr x9,[x7,#8]
+ cmp x9,#1
+ b.ne .Lrg_release_bad
+ ldr x9,[x7,#16]
+ cmp x9,#8
+ b.ne .Lrg_release_bad
+ ldr x9,[x7,#24]
+ ldr x10,=0x0000030100000000
+ cmp x9,x10
+ b.ne .Lrg_release_bad
+ ldr x9,[x7,#32]
+ cmp x9,#8
+ b.ne .Lrg_release_bad
+ ldr x9,[x7,#40]
+ cmp x9,#1
+ b.ne .Lrg_release_bad
+ ldr x9,[x7,#48]
+ cmn x9,#1
+ b.ne .Lrg_release_bad
+ ldr x9,[x7,#56]
+ cmp x9,x5
+ b.ne .Lrg_release_bad
+ add x7,x7,#64
+ add x6,x6,#1
+ cmp x6,#3
+ b.lo .Lrg_release_shape
+ sub sp,sp,#80
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ str x18,[sp,#64]
+ mov x29,sp
+ mov x19,x0
+ mov x20,x2
+ mov x21,x3
+ mov x22,x4
+ mrs x23,fpsr
+ bl __errno_location
+ mov x24,x0
+ ldr w9,[x0]
+ str w9,[sp,#72]
+ mov x0,x22
+ bl free
+ str xzr,[x19,#1096]
+ mov x0,x21
+ bl free
+ str xzr,[x19,#1032]
+ mov x0,x20
+ bl free
+ str xzr,[x19,#968]
+ ldr w9,[sp,#72]
+ str w9,[x24]
+ msr fpsr,x23
+ mov w0,#0
+ ldr x18,[sp,#64]
+ ldp x23,x24,[sp,#48]
+ ldp x21,x22,[sp,#32]
+ ldp x19,x20,[sp,#16]
+ ldp x29,x30,[sp]
+ add sp,sp,#80
+ ret
+.Lrg_empty:
+ mov w0,#0
+ ret
+.Lrg_release_bad:
+ mov w0,#2
+ ret
+.size md2asm_release_runtime_radiation_gaussian_fields,.-md2asm_release_runtime_radiation_gaussian_fields
+.section .note.GNU-stack,"",%progbits

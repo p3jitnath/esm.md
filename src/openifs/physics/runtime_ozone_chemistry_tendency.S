@@ -1,0 +1,478 @@
+/* Original O3CHEM runtime interface.
+ * Contract skills/md2asm/references/openifs/physics/runtime_ozone_chemistry_tendency.md.
+ * Direct assembly with live dimensions and unchanged accepted arithmetic. */
+/* O3CHEM, runtime row/layer HLO7 safe chemistry. RN64, no contraction.
+ * x0 G,x1 M,x2 controls16,x3 C520,x4 solar16,x5 fields56,x6 capacity.
+ * Inputs are complete borrowed extents. Only active tendency rows change.
+ * Runtime bounded stack owns depths, new ozone, column integrals and light. */
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_calculate_runtime_ozone_tendency
+.type md2asm_calculate_runtime_ozone_tendency,%function
+md2asm_calculate_runtime_ozone_tendency:
+ mrs x7,fpcr
+ cbnz x7,.Lchem_bad
+ cbz x0,.Lchem_bad
+ cbz x1,.Lchem_bad
+ cbz x2,.Lchem_bad
+ cbz x3,.Lchem_bad
+ cbz x4,.Lchem_bad
+ cbz x5,.Lchem_bad
+ orr x7,x0,x1
+ orr x7,x7,x2
+ orr x7,x7,x3
+ orr x7,x7,x4
+ orr x7,x7,x5
+ tst x7,#7
+ b.ne .Lchem_bad
+ ldr w16,[x0,#5144]
+ sub w7,w16,#1
+ cmp w7,#127
+ b.hi .Lchem_bad
+ ldr w17,[x0,#5224]
+ sub w7,w17,#1
+ cmp w7,#511
+ b.hi .Lchem_bad
+ mul x11,x16,x17
+ lsl x11,x11,#3
+ cmp x6,x11
+ b.lo .Lchem_bad
+ ldp w7,w8,[x2]
+ cmp w7,#1
+ b.lt .Lchem_bad
+ add w9,w16,#1
+ cmp w7,w9
+ b.gt .Lchem_bad
+ sub w9,w7,#1
+ cmp w8,w9
+ b.lt .Lchem_bad
+ cmp w8,w16
+ b.gt .Lchem_bad
+ ldp w9,w10,[x2,#8]
+ cmp w9,#1
+ b.ne .Lchem_bad
+ cmp w10,#7
+ b.ne .Lchem_bad
+ lsl x12,x16,#3
+ lsl x13,x11,#1
+ add x13,x13,x12,lsl#1
+ add x13,x13,#527
+ and x13,x13,#-16
+ sub sp,sp,x13
+ stp x29,x30,[sp]
+ mov x29,sp
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ stp d8,d9,[sp,#96]
+ stp d10,d11,[sp,#112]
+ stp d12,d13,[sp,#128]
+ stp d14,d15,[sp,#144]
+ str x18,[sp,#160]
+ str x16,[sp,#400]
+ str x17,[sp,#408]
+ str x12,[sp,#416]
+ str x11,[sp,#424]
+ str x13,[sp,#432]
+ add x14,sp,#512
+ str x14,[sp,#440]
+ add x14,x14,x11
+ str x14,[sp,#448]
+ add x14,x14,x11
+ str x14,[sp,#456]
+ add x14,x14,x12
+ str x14,[sp,#464]
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ mov x22,x3
+ mov x23,x4
+ mov x24,x5
+ str w7,[sp,#288]
+ str w8,[sp,#292]
+
+ mov x8,#4564
+ movk x8,#24,lsl#16
+ add x8,x20,x8
+ ldr w9,[x8]
+ cmp w9,#7
+ b.ne .Lchem_bad_frame
+ mov x8,#4572
+ movk x8,#24,lsl#16
+ add x8,x20,x8
+ ldr w9,[x8]
+ cmp w9,#1
+ b.ne .Lchem_bad_frame
+ mov x8,#4576
+ movk x8,#24,lsl#16
+ add x8,x20,x8
+ ldr w9,[x8]
+ cmp w9,#0
+ b.ne .Lchem_bad_frame
+ mov x8,#5096
+ movk x8,#24,lsl#16
+ add x8,x20,x8
+ ldr w9,[x8]
+ cmp w9,#1
+ b.ne .Lchem_bad_frame
+ mov x8,#5100
+ movk x8,#24,lsl#16
+ add x8,x20,x8
+ ldr w9,[x8]
+ cmp w9,#1
+ b.ne .Lchem_bad_frame
+ mov x8,#5104
+ movk x8,#24,lsl#16
+ add x8,x20,x8
+ ldr w9,[x8]
+ cmp w9,#0
+ b.ne .Lchem_bad_frame
+ mov x8,#5108
+ movk x8,#24,lsl#16
+ add x8,x20,x8
+ ldr w9,[x8]
+ cmp w9,#0
+ b.ne .Lchem_bad_frame
+ mov x8,#5112
+ movk x8,#24,lsl#16
+ add x8,x20,x8
+ ldr w9,[x8]
+ cmp w9,#1
+ b.ne .Lchem_bad_frame
+ ldr x25,[x24,#48]
+ cbz x25,.Lchem_bad_frame
+ tst x25,#7
+ b.ne .Lchem_bad_frame
+ ldr x7,[sp,#424]
+ adds x26,x25,x7
+ b.cs .Lchem_bad_frame
+ mov x10,x19
+ mov x11,#20400
+ bl .Lchem_disjoint
+ cbnz w0,.Lchem_bad_frame
+ mov x10,x20
+ mov x11,#15248
+ movk x11,#65,lsl#16
+ bl .Lchem_disjoint
+ cbnz w0,.Lchem_bad_frame
+ mov x10,x21
+ mov x11,#16
+ bl .Lchem_disjoint
+ cbnz w0,.Lchem_bad_frame
+ mov x10,x22
+ mov x11,#520
+ bl .Lchem_disjoint
+ cbnz w0,.Lchem_bad_frame
+ mov x10,x23
+ mov x11,#16
+ bl .Lchem_disjoint
+ cbnz w0,.Lchem_bad_frame
+ mov x10,x24
+ mov x11,#56
+ bl .Lchem_disjoint
+ cbnz w0,.Lchem_bad_frame
+ mov x27,#0
+.Lchem_fields:
+ ldr x10,[x24,x27,lsl#3]
+ cbz x10,.Lchem_bad_frame
+ tst x10,#7
+ b.ne .Lchem_bad_frame
+ str x10,[sp,#208]
+ ldr x11,[sp,#424]
+ cmp x27,#0
+ ldr x12,[sp,#416]
+ add x12,x11,x12
+ csel x11,x12,x11,eq
+ cmp x27,#2
+ mov x12,#7
+ mul x12,x11,x12
+ csel x11,x12,x11,eq
+ bl .Lchem_disjoint
+ cbnz w0,.Lchem_bad_frame
+ ldr x10,[sp,#208]
+ add x12,sp,#320
+ str x10,[x12,x27,lsl#3]
+ add x27,x27,#1
+ cmp x27,#6
+ b.lo .Lchem_fields
+ mov x27,#0
+.Lchem_solar:
+ ldr x10,[x23,x27,lsl#3]
+ cbz x10,.Lchem_bad_frame
+ tst x10,#7
+ b.ne .Lchem_bad_frame
+ str x10,[sp,#208]
+ ldr x11,[sp,#416]
+ bl .Lchem_disjoint
+ cbnz w0,.Lchem_bad_frame
+ ldr x10,[sp,#208]
+ add x12,sp,#368
+ str x10,[x12,x27,lsl#3]
+ add x27,x27,#1
+ cmp x27,#2
+ b.lo .Lchem_solar
+ ldr d8,[x22,#112]
+ ldr d10,[x22]
+ fcmp d8,#0.0
+ b.le .Lchem_bad_frame
+ b.vs .Lchem_bad_frame
+ mov x8,#21248
+ movk x8,#63,lsl#16
+ add x8,x20,x8
+ ldr d9,[x8]
+ fcmp d9,#0.0
+ b.le .Lchem_bad_frame
+ b.vs .Lchem_bad_frame
+ adrp x8,.Lchem_constants
+ add x8,x8,:lo12:.Lchem_constants
+ ldp d12,d13,[x8]
+ ldp d14,d15,[x8,#16]
+ mov x8,#48688
+ movk x8,#20,lsl#16
+ add x8,x20,x8
+ ldr d0,[x8]
+ bl tan
+ fmov d11,d0
+ ldr w27,[sp,#288]
+.Lchem_light:
+ ldr w8,[sp,#292]
+ cmp w27,w8
+ b.gt .Lchem_depth_start
+ sub w28,w27,#1
+ ldr x8,[sp,#368]
+ ldr d1,[x8,x28,lsl#3]
+ fmul d2,d1,d1
+ adrp x8,.Lchem_constants
+ add x8,x8,:lo12:.Lchem_constants
+ ldr d3,[x8,#32]
+ fsub d2,d3,d2
+ fsqrt d2,d2
+ fmul d0,d11,d1
+ fdiv d0,d0,d2
+ str d0,[sp,#216]
+ fabs d1,d0
+ fcmp d1,d12
+ b.ge .Lchem_polar
+ bl acos
+ fdiv d0,d0,d10
+ fsub d0,d12,d0
+ fmov d1,#0.5
+ fcmp d0,d1
+ fcsel d2,d0,d1,ge
+ b .Lchem_sign
+.Lchem_polar:
+ fmov d2,#1.0
+.Lchem_sign:
+ ldr x8,[sp,#376]
+ ldr d0,[x8,x28,lsl#3]
+ fsub d0,d0,d15
+ fmov x8,d0
+ and x8,x8,#0x8000000000000000
+ mov x9,#0x3fe0000000000000
+ orr x8,x8,x9
+ fmov d0,x8
+ fmov d1,#0.5
+ fadd d0,d1,d0
+ fdiv d0,d0,d2
+ ldr x8,[sp,#464]
+ str d0,[x8,x28,lsl#3]
+ add w27,w27,#1
+ b .Lchem_light
+.Lchem_depth_start:
+ mov x27,#0
+.Lchem_depth_level:
+ ldr w26,[sp,#288]
+.Lchem_depth_row:
+ ldr w8,[sp,#292]
+ cmp w26,w8
+ b.gt .Lchem_depth_next
+ sub w28,w26,#1
+ ldr x8,[sp,#400]
+ madd x28,x27,x8,x28
+ ldr x8,[sp,#328]
+ ldr d0,[x8,x28,lsl#3]
+ ldr x8,[sp,#320]
+ ldr d1,[x8,x28,lsl#3]
+ fsub d0,d0,d1
+ ldr x8,[sp,#440]
+ str d0,[x8,x28,lsl#3]
+ add w26,w26,#1
+ b .Lchem_depth_row
+.Lchem_depth_next:
+ add x27,x27,#1
+ ldr x8,[sp,#408]
+ cmp x27,x8
+ b.lo .Lchem_depth_level
+ ldr x8,[sp,#456]
+ mov x9,#0
+.Lchem_zero_column:
+ str xzr,[x8,x9,lsl#3]
+ add x9,x9,#1
+ ldr x10,[sp,#400]
+ cmp x9,x10
+ b.lo .Lchem_zero_column
+ mov x27,#0
+.Lchem_level:
+ ldr w26,[sp,#288]
+.Lchem_row:
+ ldr w8,[sp,#292]
+ cmp w26,w8
+ b.gt .Lchem_next_level
+ sub w28,w26,#1
+ ldr x8,[sp,#400]
+ madd x28,x27,x8,x28
+ ldr x8,[sp,#352]
+ ldr d0,[x8,x28,lsl#3]
+ ldr x8,[sp,#336]
+ add x8,x8,x28,lsl#3
+ ldr d1,[x8]
+ ldr x9,[sp,#424]
+ ldr d2,[x8,x9]
+ ldr x9,[sp,#424]
+ lsl x9,x9,#1
+ ldr d3,[x8,x9]
+ ldr x9,[sp,#424]
+ add x9,x9,x9,lsl#1
+ ldr d4,[x8,x9]
+ ldr x9,[sp,#424]
+ lsl x9,x9,#2
+ ldr d5,[x8,x9]
+ ldr x9,[sp,#424]
+ add x9,x9,x9,lsl#2
+ ldr d6,[x8,x9]
+ ldr x9,[sp,#424]
+ mov x10,#6
+ mul x9,x9,x10
+ ldr d7,[x8,x9]
+ fsub d16,d0,d4
+ fcmp d16,d14
+ b.le .Lchem_lower_clip
+ fadd d0,d4,d14
+.Lchem_lower_clip:
+ fsub d16,d0,d4
+ fneg d17,d14
+ fcmp d16,d17
+ b.ge .Lchem_temperature_ready
+ fsub d0,d4,d14
+.Lchem_temperature_ready:
+ fsub d16,d0,d4
+ fmul d16,d5,d16
+ fadd d16,d2,d16
+ sub w9,w26,#1
+ ldr x8,[sp,#456]
+ ldr d17,[x8,x9,lsl#3]
+ fsub d18,d17,d6
+ fmul d18,d7,d18
+ fadd d16,d16,d18
+ fmul d18,d1,d3
+ fsub d16,d16,d18
+ fmul d16,d9,d16
+ ldr x8,[sp,#360]
+ ldr d18,[x8,x28,lsl#3]
+ fadd d16,d18,d16
+ ldr x8,[sp,#440]
+ ldr d19,[x8,x28,lsl#3]
+ fmul d19,d7,d19
+ fdiv d19,d19,d8
+ fadd d19,d3,d19
+ fmul d19,d9,d19
+ fsub d19,d12,d19
+ fdiv d16,d16,d19
+ fcmp d16,d13
+ fcsel d16,d16,d13,ge
+ ldr x8,[sp,#448]
+ str d16,[x8,x28,lsl#3]
+ ldr x8,[sp,#408]
+ sub x8,x8,#1
+ cmp x27,x8
+ b.eq .Lchem_no_next_column
+ ldr x8,[sp,#344]
+ ldr d19,[x8,x28,lsl#3]
+ fmul d19,d19,d16
+ fdiv d19,d19,d8
+ fadd d19,d17,d19
+ ldr x8,[sp,#456]
+ sub w9,w26,#1
+ str d19,[x8,x9,lsl#3]
+.Lchem_no_next_column:
+ add w26,w26,#1
+ b .Lchem_row
+.Lchem_next_level:
+ add x27,x27,#1
+ ldr x8,[sp,#408]
+ cmp x27,x8
+ b.lo .Lchem_level
+ mov x27,#0
+.Lchem_tendency_level:
+ ldr w26,[sp,#288]
+.Lchem_tendency_row:
+ ldr w8,[sp,#292]
+ cmp w26,w8
+ b.gt .Lchem_tendency_next
+ sub w28,w26,#1
+ ldr x8,[sp,#400]
+ madd x28,x27,x8,x28
+ ldr x8,[sp,#448]
+ ldr d0,[x8,x28,lsl#3]
+ ldr x8,[sp,#360]
+ ldr d1,[x8,x28,lsl#3]
+ fsub d0,d0,d1
+ fdiv d0,d0,d9
+ str d0,[x25,x28,lsl#3]
+ add w26,w26,#1
+ b .Lchem_tendency_row
+.Lchem_tendency_next:
+ add x27,x27,#1
+ ldr x8,[sp,#408]
+ cmp x27,x8
+ b.lo .Lchem_tendency_level
+ mov w0,#0
+ b .Lchem_restore
+.Lchem_bad_frame:
+ mov w0,#2
+.Lchem_restore:
+ ldp d8,d9,[sp,#96]
+ ldp d10,d11,[sp,#112]
+ ldp d12,d13,[sp,#128]
+ ldp d14,d15,[sp,#144]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldr x18,[sp,#160]
+ ldr x9,[sp,#432]
+ ldp x29,x30,[sp]
+ add sp,sp,x9
+ ret
+.Lchem_bad:
+ mov w0,#2
+ ret
+/* Internal: x10 borrowed base,x11 bytes; x25/outbase,x26/outend.
+ * Return2 for wrap/overlap,0 for disjoint. Other registers unchanged. */
+.Lchem_disjoint:
+ adds x11,x10,x11
+ b.cs .Lchem_disjoint_bad
+ cmp x25,x11
+ b.hs .Lchem_disjoint_ok
+ cmp x10,x26
+ b.lo .Lchem_disjoint_bad
+.Lchem_disjoint_ok:
+ mov w0,#0
+ ret
+.Lchem_disjoint_bad:
+ mov w0,#2
+ ret
+.size md2asm_calculate_runtime_ozone_tendency,.-md2asm_calculate_runtime_ozone_tendency
+.section .rodata
+.p2align 3
+.Lchem_constants:
+ .quad 0x3ff0000000000000
+ .quad 0x3e112e0be826d695
+ .quad 0x402e000000000000
+ .quad 0x3faacbc8c0ce91c9
+ .quad 0x3ff000000000afec
+.section .note.GNU-stack,"",%progbits
