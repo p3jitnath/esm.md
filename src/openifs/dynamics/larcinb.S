@@ -257,9 +257,14 @@ md2asm_larcinb_7259755:
  cmp x14,#1
  b.lt .Lparent_bad
  mul x15,x13,x14
- mov x9,#0x7fffffff
+ mov x9,#0x0fffffffffffffff
  cmp x15,x9
  b.gt .Lparent_bad
+ cbz x23,.Lparent_bad
+ tst x23,#7
+ b.ne .Lparent_bad
+ adds x9,x23,x15,lsl #3
+ b.cs .Lparent_bad
  str x14,[sp,#656]
 
  ldr x9,[sp,#304]

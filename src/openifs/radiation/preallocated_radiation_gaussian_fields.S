@@ -1,0 +1,363 @@
+/* SUECRAD Gaussian fill after source-order owner allocation.
+ * Contract: skills/md2asm/references/openifs/radiation/preallocated_radiation_gaussian_fields.md.
+ * x0 RG1376,x1 capacity,x2 ZMU,x3 bytes,x4 physical520,x5 capacity,x6 NRADINT.
+ * Even N2..8192; three existing complete FP64 owners; no allocation or release.
+ * Preserve original arithmetic, records, register obligations and incoming flags.
+ */
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_fill_preallocated_radiation_gaussian_fields
+.type md2asm_fill_preallocated_radiation_gaussian_fields,%function
+md2asm_fill_preallocated_radiation_gaussian_fields:
+ cbz x0,.Lrg_bad
+ cbz x2,.Lrg_bad
+ cbz x4,.Lrg_bad
+ orr x9,x0,x2
+ orr x9,x9,x4
+ tst x9,#7
+ b.ne .Lrg_bad
+ cmp x1,#1376
+ b.lo .Lrg_bad
+ cmp x5,#520
+ b.lo .Lrg_bad
+ mrs x9,fpcr
+ cbnz x9,.Lrg_bad
+ sub w9,w6,#2
+ cmp w9,#1
+ b.hi .Lrg_bad
+ ldr w10,[x0,#52]
+ cmp w10,#2
+ b.lo .Lrg_bad
+ mov w9,#8192
+ cmp w10,w9
+ b.hi .Lrg_bad
+ tbnz w10,#0,.Lrg_bad
+ ldr w9,[x0,#56]
+ cmn w9,#1
+ b.ne .Lrg_bad
+ ldr w9,[x0,#60]
+ add w11,w10,#2
+ cmp w9,w11
+ b.ne .Lrg_bad
+ ldr w9,[x0,#76]
+ cmp w9,#2
+ b.ne .Lrg_bad
+ adds x9,x0,#1376
+ b.cs .Lrg_bad
+ adds x9,x4,#520
+ b.cs .Lrg_bad
+ add x11,x10,#4
+ lsl x11,x11,#3
+ cmp x3,x11
+ b.lo .Lrg_bad
+ adds x9,x2,x11
+ b.cs .Lrg_bad
+ add x7,x0,#968
+ ldr x8,[x7]
+ cbz x8,.Lrg_bad
+ tst x8,#7
+ b.ne .Lrg_bad
+ adds x9,x8,x11
+ b.cs .Lrg_bad
+ ldr x9,[x7,#8]
+ mov x12,#1
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#16]
+ mov x12,#8
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#24]
+ ldr x12,=0x0000030100000000
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#32]
+ mov x12,#8
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#40]
+ mov x12,#1
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#48]
+ mov x12,#-1
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#56]
+ add x12,x10,#2
+ cmp x9,x12
+ b.ne .Lrg_bad
+ add x7,x0,#1032
+ ldr x8,[x7]
+ cbz x8,.Lrg_bad
+ tst x8,#7
+ b.ne .Lrg_bad
+ adds x9,x8,x11
+ b.cs .Lrg_bad
+ ldr x9,[x7,#8]
+ mov x12,#1
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#16]
+ mov x12,#8
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#24]
+ ldr x12,=0x0000030100000000
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#32]
+ mov x12,#8
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#40]
+ mov x12,#1
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#48]
+ mov x12,#-1
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#56]
+ add x12,x10,#2
+ cmp x9,x12
+ b.ne .Lrg_bad
+ add x7,x0,#1096
+ ldr x8,[x7]
+ cbz x8,.Lrg_bad
+ tst x8,#7
+ b.ne .Lrg_bad
+ adds x9,x8,x11
+ b.cs .Lrg_bad
+ ldr x9,[x7,#8]
+ mov x12,#1
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#16]
+ mov x12,#8
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#24]
+ ldr x12,=0x0000030100000000
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#32]
+ mov x12,#8
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#40]
+ mov x12,#1
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#48]
+ mov x12,#-1
+ cmp x9,x12
+ b.ne .Lrg_bad
+ ldr x9,[x7,#56]
+ add x12,x10,#2
+ cmp x9,x12
+ b.ne .Lrg_bad
+ mov x7,x0
+ mov x8,x2
+ add x9,x7,#1376
+ cmp x9,x8
+ b.ls .Lgaussian_pair_0_1
+ add x9,x8,x11
+ cmp x9,x7
+ b.hi .Lrg_bad
+.Lgaussian_pair_0_1:
+ mov x7,x0
+ mov x8,x4
+ add x9,x7,#1376
+ cmp x9,x8
+ b.ls .Lgaussian_pair_0_2
+ add x9,x8,#520
+ cmp x9,x7
+ b.hi .Lrg_bad
+.Lgaussian_pair_0_2:
+ mov x7,x0
+ ldr x8,[x0,#968]
+ add x9,x7,#1376
+ cmp x9,x8
+ b.ls .Lgaussian_pair_0_3
+ add x9,x8,x11
+ cmp x9,x7
+ b.hi .Lrg_bad
+.Lgaussian_pair_0_3:
+ mov x7,x0
+ ldr x8,[x0,#1032]
+ add x9,x7,#1376
+ cmp x9,x8
+ b.ls .Lgaussian_pair_0_4
+ add x9,x8,x11
+ cmp x9,x7
+ b.hi .Lrg_bad
+.Lgaussian_pair_0_4:
+ mov x7,x0
+ ldr x8,[x0,#1096]
+ add x9,x7,#1376
+ cmp x9,x8
+ b.ls .Lgaussian_pair_0_5
+ add x9,x8,x11
+ cmp x9,x7
+ b.hi .Lrg_bad
+.Lgaussian_pair_0_5:
+ mov x7,x2
+ mov x8,x4
+ add x9,x7,x11
+ cmp x9,x8
+ b.ls .Lgaussian_pair_1_2
+ add x9,x8,#520
+ cmp x9,x7
+ b.hi .Lrg_bad
+.Lgaussian_pair_1_2:
+ mov x7,x2
+ ldr x8,[x0,#968]
+ add x9,x7,x11
+ cmp x9,x8
+ b.ls .Lgaussian_pair_1_3
+ add x9,x8,x11
+ cmp x9,x7
+ b.hi .Lrg_bad
+.Lgaussian_pair_1_3:
+ mov x7,x2
+ ldr x8,[x0,#1032]
+ add x9,x7,x11
+ cmp x9,x8
+ b.ls .Lgaussian_pair_1_4
+ add x9,x8,x11
+ cmp x9,x7
+ b.hi .Lrg_bad
+.Lgaussian_pair_1_4:
+ mov x7,x2
+ ldr x8,[x0,#1096]
+ add x9,x7,x11
+ cmp x9,x8
+ b.ls .Lgaussian_pair_1_5
+ add x9,x8,x11
+ cmp x9,x7
+ b.hi .Lrg_bad
+.Lgaussian_pair_1_5:
+ mov x7,x4
+ ldr x8,[x0,#968]
+ add x9,x7,#520
+ cmp x9,x8
+ b.ls .Lgaussian_pair_2_3
+ add x9,x8,x11
+ cmp x9,x7
+ b.hi .Lrg_bad
+.Lgaussian_pair_2_3:
+ mov x7,x4
+ ldr x8,[x0,#1032]
+ add x9,x7,#520
+ cmp x9,x8
+ b.ls .Lgaussian_pair_2_4
+ add x9,x8,x11
+ cmp x9,x7
+ b.hi .Lrg_bad
+.Lgaussian_pair_2_4:
+ mov x7,x4
+ ldr x8,[x0,#1096]
+ add x9,x7,#520
+ cmp x9,x8
+ b.ls .Lgaussian_pair_2_5
+ add x9,x8,x11
+ cmp x9,x7
+ b.hi .Lrg_bad
+.Lgaussian_pair_2_5:
+ ldr x7,[x0,#968]
+ ldr x8,[x0,#1032]
+ add x9,x7,x11
+ cmp x9,x8
+ b.ls .Lgaussian_pair_3_4
+ add x9,x8,x11
+ cmp x9,x7
+ b.hi .Lrg_bad
+.Lgaussian_pair_3_4:
+ ldr x7,[x0,#968]
+ ldr x8,[x0,#1096]
+ add x9,x7,x11
+ cmp x9,x8
+ b.ls .Lgaussian_pair_3_5
+ add x9,x8,x11
+ cmp x9,x7
+ b.hi .Lrg_bad
+.Lgaussian_pair_3_5:
+ ldr x7,[x0,#1032]
+ ldr x8,[x0,#1096]
+ add x9,x7,x11
+ cmp x9,x8
+ b.ls .Lgaussian_pair_4_5
+ add x9,x8,x11
+ cmp x9,x7
+ b.hi .Lrg_bad
+.Lgaussian_pair_4_5:
+ add x11,x10,#4
+ lsl x11,x11,#3
+ cmp x3,x11
+ b.lo .Lrg_bad
+ adds x9,x2,x11
+ b.cs .Lrg_bad
+ adds x9,x0,#1376
+ b.cs .Lrg_bad
+ adds x9,x4,#520
+ b.cs .Lrg_bad
+ ldr x9,[x4]
+ ldr x12,=0x4008000000000000
+ cmp x9,x12
+ b.lo .Lrg_bad
+ ldr x12,=0x4010000000000000
+ cmp x9,x12
+ b.hs .Lrg_bad
+ mov x9,#0
+ fmov d1,#1.0
+ ldr x12,=0x3ff0000000000000
+.Lrg_input:
+ add x13,x9,#2
+ ldr x14,[x2,x13,lsl#3]
+ and x15,x14,#0x7fffffffffffffff
+ cmp x15,x12
+ b.hs .Lrg_bad
+ fmov d0,x14
+ fcmp d1,d0
+ b.le .Lrg_bad
+ fmov d1,d0
+ add x9,x9,#1
+ cmp x9,x10
+ b.lo .Lrg_input
+ sub sp,sp,#128
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ mov x29,sp
+ mov x19,x0
+ mov x20,x2
+ mov x21,x4
+ mov x22,x10
+ mov x23,x11
+ ldr x24,[x19,#968]
+ ldr x25,[x19,#1032]
+ ldr x26,[x19,#1096]
+#include "shared_radiation_gaussian_arithmetic.inc.S"
+ mov w0,#0
+ b .Lrg_return
+.Lrg_return:
+ ldr x18,[sp,#96]
+ ldp x27,x28,[sp,#80]
+ ldp x25,x26,[sp,#64]
+ ldp x23,x24,[sp,#48]
+ ldp x21,x22,[sp,#32]
+ ldp x19,x20,[sp,#16]
+ ldp x29,x30,[sp]
+ add sp,sp,#128
+ ret
+.Lrg_bad:
+ mov w0,#2
+ ret
+.size md2asm_fill_preallocated_radiation_gaussian_fields,.-md2asm_fill_preallocated_radiation_gaussian_fields
+.section .note.GNU-stack,"",%progbits
