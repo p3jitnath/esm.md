@@ -1,0 +1,220 @@
+/* Contract: skills/md2asm/references/openifs/dynamics/runtime_transport_field_handoff.md. */
+/* Direct CPG section 5.2 bit-copy handoff, with live typed dimensions.
+ * Complete mapped owners and the numerical caller contract remain required. */
+.arch armv8.2-a
+.text
+.p2align 4
+.macro SCATTER_RANGE base,bytes
+ adds x11,\base,\bytes
+ b.cs .Lscatter_bad
+ cmp x11,x23
+ b.ls .Lscatter_apart_\@
+ ldr x12,[sp,#104]
+ cmp \base,x12
+ b.lo .Lscatter_bad
+.Lscatter_apart_\@:
+.endm
+.global md2asm_admit_transport_field_block
+.type md2asm_admit_transport_field_block,%function
+md2asm_admit_transport_field_block:
+ mov x6,#0
+ b .Lscatter_common
+.global md2asm_scatter_transport_field_block
+.type md2asm_scatter_transport_field_block,%function
+md2asm_scatter_transport_field_block:
+ mov x6,#1
+.Lscatter_common:
+ stp x18,x30,[sp,#-128]!
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x6,[sp,#96]
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ mov x22,x3
+ mov x23,x4
+ mov x24,x5
+ cbz x0,.Lscatter_bad
+ cbz x1,.Lscatter_bad
+ cbz x2,.Lscatter_bad
+ cbz x3,.Lscatter_bad
+ cbz x4,.Lscatter_bad
+ cbz x5,.Lscatter_bad
+ orr x9,x0,x1
+ orr x9,x9,x2
+ orr x9,x9,x3
+ orr x9,x9,x4
+ orr x9,x9,x5
+ tst x9,#7
+ b.ne .Lscatter_bad
+ adds x9,x24,#96
+ b.cs .Lscatter_bad
+ ldr x9,[x24,#88]
+ cbnz x9,.Lscatter_bad
+ mrs x9,fpcr
+ cbnz x9,.Lscatter_bad
+ ldr x10,[x24,#8]
+ cbz x10,.Lscatter_bad
+ adds x9,x23,x10
+ b.cs .Lscatter_bad
+ str x9,[sp,#104]
+ mov x9,x24
+ mov x10,#96
+ SCATTER_RANGE x9,x10
+ ldr x10,[x24,#40]
+ mov x9,#20400
+ cmp x10,x9
+ b.lo .Lscatter_bad
+ mov x9,x19
+ SCATTER_RANGE x9,x10
+ ldr x10,[x24,#48]
+ movz x9,#(4275088&65535)
+ movk x9,#(4275088>>16),lsl#16
+ cmp x10,x9
+ b.lo .Lscatter_bad
+ mov x9,x20
+ SCATTER_RANGE x9,x10
+ ldr x10,[x24,#56]
+ cmp x10,#1800
+ b.lo .Lscatter_bad
+ mov x9,x21
+ SCATTER_RANGE x9,x10
+ mov x9,#5144
+ ldr w26,[x19,x9]
+ sub w9,w26,#1
+ cmp w9,#1023
+ b.hi .Lscatter_bad
+ movz x9,#(1573016&65535)
+ movk x9,#(1573016>>16),lsl#16
+ ldr w27,[x20,x9]
+ sub w9,w27,#1
+ cmp w9,#4095
+ b.hi .Lscatter_bad
+ ldrsw x25,[x21,#1016]
+ cmp x25,#1
+ b.lt .Lscatter_bad
+ mul x9,x26,x27
+ lsl x9,x9,#3
+ ldr x10,[x24]
+ cmp x10,x9
+ b.lo .Lscatter_bad
+ mov x9,x22
+ SCATTER_RANGE x9,x10
+ mul x9,x25,x27
+ lsl x9,x9,#3
+ ldr x10,[x24,#8]
+ cmp x10,x9
+ b.lo .Lscatter_bad
+ add x13,x21,#1456
+ ldr x9,[x13]
+ cbz x9,.Lscatter_bad
+ tst x9,#3
+ b.ne .Lscatter_bad
+ str x9,[sp,#112]
+ ldr x10,[x13,#16]
+ cmp x10,#4
+ b.ne .Lscatter_bad
+ ldr x10,[x13,#32]
+ cmp x10,#4
+ b.ne .Lscatter_bad
+ ldrb w10,[x13,#28]
+ cmp w10,#1
+ b.ne .Lscatter_bad
+ ldrb w10,[x13,#29]
+ cmp w10,#1
+ b.ne .Lscatter_bad
+ ldr x10,[x13,#40]
+ cmp x10,#1
+ b.ne .Lscatter_bad
+ ldr x14,[x13,#48]
+ ldr x15,[x13,#56]
+ cmp x14,#1
+ b.lt .Lscatter_bad
+ cmp x15,x14
+ b.lt .Lscatter_bad
+ mov x16,#0x7fffffff
+ cmp x15,x16
+ b.hi .Lscatter_bad
+ ldr x10,[x13,#8]
+ neg x11,x14
+ cmp x10,x11
+ b.ne .Lscatter_bad
+ sub x10,x15,x14
+ add x10,x10,#1
+ lsl x10,x10,#2
+ ldr x11,[x24,#64]
+ cmp x11,x10
+ b.lo .Lscatter_bad
+ mov x10,x11
+ SCATTER_RANGE x9,x10
+ ldr x16,[x24,#16]
+ cmp x16,#1
+ b.lt .Lscatter_bad
+ mov x9,#0x7fffffff
+ cmp x16,x9
+ b.hi .Lscatter_bad
+ ldr x17,[x24,#24]
+ cmp x17,#1
+ b.lt .Lscatter_bad
+ ldr x18,[x24,#32]
+ cmp x18,x26
+ b.hi .Lscatter_bad
+ add x9,x18,#1
+ cmp x17,x9
+ b.hi .Lscatter_bad
+ sub x28,x9,x17
+ str x28,[sp,#120]
+ cbz x28,.Lscatter_good
+ add x9,x16,x17
+ sub x9,x9,#1
+ cmp x9,x14
+ b.lt .Lscatter_bad
+ add x10,x16,x18
+ sub x10,x10,#1
+ cmp x10,x15
+ b.gt .Lscatter_bad
+ sub x9,x9,x14
+ ldr x10,[sp,#112]
+ add x10,x10,x9,lsl#2
+ str x10,[sp,#112]
+ mov x9,#0
+.Lscatter_check_map:
+ ldrsw x11,[x10,x9,lsl#2]
+ cmp x11,#1
+ b.lt .Lscatter_bad
+ cmp x11,x25
+ b.gt .Lscatter_bad
+ add x9,x9,#1
+ cmp x9,x28
+ b.lo .Lscatter_check_map
+ ldr x9,[sp,#96]
+ cbz x9,.Lscatter_good
+ mov x19,x22
+ sub x17,x17,#1
+ add x19,x19,x17,lsl#3
+ mov x20,x23
+ mov x22,x28
+ ldr x23,[sp,#112]
+ mov x24,#4
+ lsl x26,x26,#3
+ mov x28,#0
+#define MD2ASM_RUNTIME_SCATTER 1
+#include "shared_transport_field_scatter.inc.S"
+.Lscatter_good:
+ mov w0,#0
+ b .Lscatter_return
+.Lscatter_bad:
+ mov w0,#2
+.Lscatter_return:
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldp x18,x30,[sp],#128
+ ret
+.size md2asm_scatter_transport_field_block,.-md2asm_scatter_transport_field_block
+.section .note.GNU-stack,"",%progbits

@@ -1670,22 +1670,7 @@ md2asm_cpg_7358525:
  add x19,x27,x19
  ldr x20,[x29,#2032]
  mov x28,#0
-.Lscatter_field:
- mov x10,#0
-.Lscatter_row:
- mul x11,x10,x24
- ldrsw x12,[x23,x11]
- sub x12,x12,#1
- madd x12,x28,x25,x12
- ldr x13,[x19,x10,lsl #3]
- str x13,[x20,x12,lsl #3]
- add x10,x10,#1
- cmp x10,x22
- b.lo .Lscatter_row
- add x19,x19,#192
- add x28,x28,#1
- cmp x28,#463
- b.lo .Lscatter_field
+#include "shared_transport_field_scatter.inc.S"
  ldr x0,[x29,#1488]
  ldr x1,[x29,#1504]
  add x1,x1,#1856
