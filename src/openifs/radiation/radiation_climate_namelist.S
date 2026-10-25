@@ -1,4 +1,7 @@
 /* Contract: skills/md2asm/references/openifs/radiation/runtime_radiation_flux_owners.md. */
+#ifndef MD2ASM_RADSEL_RECORD_BYTES
+#define MD2ASM_RADSEL_RECORD_BYTES 1072
+#endif
 #ifndef MD2ASM_RADSEL_ENTRY
 #define MD2ASM_RADSEL_ENTRY md2asm_apply_selected_radiation_namelist
 #endif
@@ -21,7 +24,7 @@ MD2ASM_RADSEL_ENTRY:
  stp x25,x26,[sp,#64]
  stp x27,x28,[sp,#80]
  mov x29,sp
- sub sp,sp,#1072
+ sub sp,sp,#MD2ASM_RADSEL_RECORD_BYTES
  mov x19,x0
  mov x21,x2
  mov x22,sp
@@ -34,7 +37,7 @@ MD2ASM_RADSEL_ENTRY:
  b.ne .Lradsel_bad
  adds x20,x0,x1
  b.cs .Lradsel_bad
- adds x9,x2,#1072
+ adds x9,x2,#MD2ASM_RADSEL_RECORD_BYTES
  b.cs .Lradsel_bad
  cmp x9,x0
  b.ls .Lradsel_disjoint
@@ -50,7 +53,7 @@ MD2ASM_RADSEL_ENTRY:
  add x12,x22,x9
  stp x10,x11,[x12]
  add x9,x9,#16
- cmp x9,#1072
+ cmp x9,#MD2ASM_RADSEL_RECORD_BYTES
  b.lo .Lradsel_copy_in
  /* The source group marker is the first nonblank token on its line. */
 .Lradsel_start_line:
@@ -215,14 +218,14 @@ MD2ASM_RADSEL_ENTRY:
  add x12,x21,x9
  stp x10,x11,[x12]
  add x9,x9,#16
- cmp x9,#1072
+ cmp x9,#MD2ASM_RADSEL_RECORD_BYTES
  b.lo .Lradsel_copy_out
  mov w0,#0
  b .Lradsel_return
 .Lradsel_bad:
  mov w0,#2
 .Lradsel_return:
- add sp,sp,#1072
+ add sp,sp,#MD2ASM_RADSEL_RECORD_BYTES
  ldp x19,x20,[sp,#16]
  ldp x21,x22,[sp,#32]
  ldp x23,x24,[sp,#48]
@@ -499,5 +502,23 @@ MD2ASM_RADSEL_ENTRY:
  .ascii "lsrtm"
  .zero 27
  .word 5,44,0,0
+#endif
+
+#ifdef MD2ASM_RAD_FREQUENCY_KEYS
+ .ascii "nradfr"
+ .zero 26
+ .word 6,1072,1,0
+ .ascii "nradpfr"
+ .zero 25
+ .word 7,1076,1,0
+ .ascii "nradpla"
+ .zero 25
+ .word 7,1080,1,0
+ .ascii "nraduv"
+ .zero 26
+ .word 6,1084,1,0
+ .ascii "nlngr1h"
+ .zero 25
+ .word 7,1088,1,0
 #endif
 .section .note.GNU-stack,"",%progbits
