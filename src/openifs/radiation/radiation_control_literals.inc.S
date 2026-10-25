@@ -423,12 +423,14 @@
     // terdi.RCCCL4: 0.0
     .word 1, 160, 8, 0
     .xword 0x0000000000000000
+#ifndef MD2ASM_RUNTIME_RAD_PREFIX
     // namespace.DIFF: 1.66
     .word 5, 80, 8, 0
     .xword 0x3ffa8f5c28f5c28f
     // namespace.R10E: 0.4342945
     .word 5, 16, 8, 0
     .xword 0x3fdbcb7b28954a80
+#endif
     // tecmip.NO3CMIP: 0
     .word 4, 4, 4, 0
     .xword 0x0000000000000000

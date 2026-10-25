@@ -1,3 +1,6 @@
+#ifndef MD2ASM_CLIMATE_ENTRY
+#define MD2ASM_CLIMATE_ENTRY md2asm_select_radiation_climate_files
+#endif
 /* Contract: skills/md2asm/references/openifs/radiation/radiation_climate_files.md.
  * x0 text,x1 bytes,x2 output2640,x3 capacity,x4 upstream24:
  * int32 LEPHYS,LARPEGEF,LRAYFM,YO3.LGP,LOPT_SCALAR,reserved.
@@ -7,9 +10,9 @@
 .arch armv8.2-a
 .text
 .p2align 4
-.global md2asm_select_radiation_climate_files
-.type md2asm_select_radiation_climate_files,%function
-md2asm_select_radiation_climate_files:
+.global MD2ASM_CLIMATE_ENTRY
+.type MD2ASM_CLIMATE_ENTRY,%function
+MD2ASM_CLIMATE_ENTRY:
  cbz x0,.Lrs_bad_leaf
  cbz x1,.Lrs_bad_leaf
  cmp x1,#64,lsl#12
@@ -103,7 +106,14 @@ md2asm_select_radiation_climate_files:
  mov x0,x20
  mov x1,x21
  mov x2,x23
+#ifdef MD2ASM_RUNTIME_RAD_PREFIX
+ mov w9,#1
+ str w9,[x23,#36]
+ str w9,[x23,#44]
+ bl md2asm_apply_radiation_owner_namelist
+#else
  bl md2asm_apply_selected_radiation_namelist
+#endif
  cbnz w0,.Lrs_bad_frame
  ldr w9,[x23,#4]
  cmp w9,#0
@@ -306,7 +316,7 @@ md2asm_select_radiation_climate_files:
 .Lrs_bad_leaf:
  mov w0,#2
  ret
-.size md2asm_select_radiation_climate_files,.-md2asm_select_radiation_climate_files
+.size MD2ASM_CLIMATE_ENTRY,.-MD2ASM_CLIMATE_ENTRY
 /* Return1 for an all-space 256-byte Fortran field. */
 .Lrs_blank_field:
  mov x9,#0

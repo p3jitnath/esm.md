@@ -1,3 +1,6 @@
+#ifndef MD2ASM_RAD_CONTROL_ENTRY
+#define MD2ASM_RAD_CONTROL_ENTRY md2asm_initialize_selected_radiation_controls
+#endif
 // Selected source control stage before SUECRAD SURDI.
 // Contract: skills/md2asm/references/openifs/radiation/radiation_control_setup.md.
 // x0 records112,x1 text,x2 bytes,x3 constants520,x4 upstream112.
@@ -5,9 +8,9 @@
 // Return0 success,1 allocation failure,2 atomic input rejection. FPCR0.
 .text
 .p2align 4
-.global md2asm_initialize_selected_radiation_controls
-.type md2asm_initialize_selected_radiation_controls,%function
-md2asm_initialize_selected_radiation_controls:
+.global MD2ASM_RAD_CONTROL_ENTRY
+.type MD2ASM_RAD_CONTROL_ENTRY,%function
+MD2ASM_RAD_CONTROL_ENTRY:
     cbz x0,.Lrad_bad_leaf
     cbz x1,.Lrad_bad_leaf
     cbz x2,.Lrad_bad_leaf
@@ -99,7 +102,7 @@ md2asm_initialize_selected_radiation_controls:
     add x10,x10,#1
     cmp x10,#7
     b.lo .Lrad_overlap_output
-// Validate the exact selected upstream branch and bounded live timestep.
+// Validate the selected source inputs with each entry's consumed bounds.
     adrp x9,.Lrad_upstream_words
     add x9,x9,:lo12:.Lrad_upstream_words
     mov x10,#0
@@ -117,8 +120,21 @@ md2asm_initialize_selected_radiation_controls:
     b.hi .Lrad_bad_frame
 .Lrad_upstream_next:
     add x10,x10,#1
+#ifdef MD2ASM_RUNTIME_RAD_PREFIX
+    cmp x10,#13
+#else
     cmp x10,#22
+#endif
     b.lo .Lrad_upstream_check
+#ifdef MD2ASM_RUNTIME_RAD_PREFIX
+    ldr w9,[x23,#56]
+    sub w9,w9,#1
+    mov w10,#8190
+    cmp w9,w10
+    b.hi .Lrad_bad_frame
+    ldr w9,[x23,#84]
+    cbnz w9,.Lrad_bad_frame
+#else
     ldr x10,[x23,#88]
     adrp x9,.Lrad_timesteps
     add x9,x9,:lo12:.Lrad_timesteps
@@ -132,6 +148,7 @@ md2asm_initialize_selected_radiation_controls:
     b.lo .Lrad_timestep_check
     b .Lrad_bad_frame
 .Lrad_timestep_ok:
+#endif
     ldp x9,x10,[x23,#96]
     orr x9,x9,x10
     cbnz x9,.Lrad_bad_frame
@@ -180,15 +197,28 @@ md2asm_initialize_selected_radiation_controls:
     mov x3,#2640
     add x4,sp,#1,lsl #12
     add x4,x4,#1104
+#ifdef MD2ASM_RUNTIME_RAD_PREFIX
+    bl md2asm_select_runtime_radiation_prefix_climate
+#else
     bl md2asm_select_radiation_climate_files
+#endif
     cbnz w0,.Lrad_bad_restore
     mov w9,#-8
     str w9,[x25,#24]
     mov x0,x20
     mov x1,x21
     mov x2,x25
+#ifdef MD2ASM_RUNTIME_RAD_PREFIX
+    bl md2asm_apply_radiation_owner_namelist
+#else
     bl md2asm_apply_selected_radiation_namelist
+#endif
     cbnz w0,.Lrad_bad_restore
+#ifdef MD2ASM_RUNTIME_RAD_PREFIX
+    ldr w9,[x25,#44]
+    cmp w9,#1
+    b.ne .Lrad_bad_restore
+#endif
     ldr w9,[x25,#24]
     cbz w9,.Lrad_nrproma_ok
     cmn w9,#8
@@ -258,14 +288,22 @@ md2asm_initialize_selected_radiation_controls:
     str w9,[x24,#464]
     ldr w9,[x25,#32]
     str w9,[x24,#396]
+#ifdef MD2ASM_RUNTIME_RAD_PREFIX
+    ldr w9,[x25,#36]
+    str w9,[x24,#488]
+    ldr w9,[x25,#40]
+    str w9,[x24,#508]
+#endif
     mov w9,#2
     str w9,[x24,#72]
     mov w9,#1
     str w9,[x24,#76]
     str wzr,[x24,#436]
+#ifndef MD2ASM_RUNTIME_RAD_PREFIX
     str wzr,[x24,#24]
     mov w9,#21
     str w9,[x24,#28]
+#endif
     ldr d0,[x22,#144]
     str d0,[x27,#168]
     add x0,x24,#1224
@@ -303,10 +341,19 @@ md2asm_initialize_selected_radiation_controls:
     add x11,x28,#688
     stp xzr,xzr,[x11]
     mov x9,#1
+#ifdef MD2ASM_RUNTIME_RAD_PREFIX
+    str w9,[x28,#704]
+#else
     str x9,[x28,#704]
+#endif
     add x11,x28,#712
     stp xzr,xzr,[x11]
+#ifdef MD2ASM_RUNTIME_RAD_PREFIX
+    str w9,[x28,#728]
+#else
     str x9,[x28,#728]
+#endif
+#ifndef MD2ASM_RUNTIME_RAD_PREFIX
     ldp w9,w10,[x23,#64]
     add x11,x28,#736
     stp w9,w10,[x11]
@@ -315,6 +362,7 @@ md2asm_initialize_selected_radiation_controls:
     str w10,[x9,#16]
     str wzr,[x9,#12]
     str wzr,[x9,#20]
+#endif
     ldr x9,[x19,#32]
     movz x10,#(205296 & 65535)
     movk x10,#(205296 >> 16),lsl #16
@@ -373,7 +421,7 @@ md2asm_initialize_selected_radiation_controls:
 .Lrad_bad_leaf:
     mov w0,#2
     ret
-.size md2asm_initialize_selected_radiation_controls,.-md2asm_initialize_selected_radiation_controls
+.size MD2ASM_RAD_CONTROL_ENTRY,.-MD2ASM_RAD_CONTROL_ENTRY
 // x0 source-record pointer table, w1 count of permitted destination records.
 .Lrad_apply_literals:
     adrp x9,.Lrad_literal_plan
