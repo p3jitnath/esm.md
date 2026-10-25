@@ -125,4 +125,15 @@ md2asm_owned_runtime_convection_clock:.zero 360
 .type __yomct3_MOD_nstep,%object
 .set __yomct3_MOD_nstep,md2asm_owned_runtime_convection_clock+36
 .size __yomct3_MOD_nstep,4
+#ifdef MD2ASM_CANONICAL_INITIAL_CLOCK_ALIASES
+/* The selected namespace keeps date, seconds and step in this same owner. */
+.global __yomrip0_MOD_nindat
+.type __yomrip0_MOD_nindat,%object
+.set __yomrip0_MOD_nindat,md2asm_owned_runtime_convection_clock
+.size __yomrip0_MOD_nindat,4
+.global __yomrip0_MOD_nsssss
+.type __yomrip0_MOD_nsssss,%object
+.set __yomrip0_MOD_nsssss,md2asm_owned_runtime_convection_clock+4
+.size __yomrip0_MOD_nsssss,4
+#endif
 .section .note.GNU-stack,"",%progbits
