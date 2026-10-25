@@ -1,5 +1,11 @@
+// One service selector preserves the complete mailbox and direct-launch variants.
+#ifdef MD2ASM_GPU_DIRECT_CUDA_SERVICE
+// Assembly-owned CUDA process services. No weather arithmetic is supplied here.
+// Contract: skills/md2asm-gpu/references/openifs/convection/runtime_convection_layer.md.
+#else
 // Assembly-owned CUDA process services. No weather arithmetic is supplied here. // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
 // Interface: skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+#endif
 // Each public frame has 384 bytes, including 32 bytes of outgoing arguments.
 // CUDA effects are isolated from the caller's numerical flags and errno.
 .text
@@ -48,8 +54,14 @@
  add sp,sp,#384
  ret
 .endm
+#ifdef MD2ASM_GPU_DIRECT_CUDA_SERVICE
+.global md2asm_openifs_gpu_initialize
+.type md2asm_openifs_gpu_initialize,%function
+md2asm_openifs_gpu_initialize:
+#else
 .type mailbox_initialize_unlocked,%function
 mailbox_initialize_unlocked:
+#endif
  GPU_ENTER
  ldp x19,x20,[sp,#160]
  ldr x9,[sp,#136]
@@ -90,6 +102,7 @@ mailbox_initialize_unlocked:
  mov x1,x19
  GPU_CALL cuModuleLoad
  cbnz w0,.Linit_load_error
+#ifndef MD2ASM_GPU_DIRECT_CUDA_SERVICE
  str xzr,[sp,#296]
  str xzr,[sp,#304]
  str xzr,[sp,#320]
@@ -128,6 +141,7 @@ mailbox_initialize_unlocked:
  mov w1,#1
  GPU_CALL cuStreamCreate
  cbnz w0,.Linit_stream_error
+#endif
  add x0,sp,#240
  GPU_CALL cuCtxPopCurrent_v2
  cbnz w0,.Linit_pop_error
@@ -137,13 +151,16 @@ mailbox_initialize_unlocked:
  adrp x9,.Lgpu_module
  ldr x10,[sp,#232]
  str x10,[x9,:lo12:.Lgpu_module]
+#ifndef MD2ASM_GPU_DIRECT_CUDA_SERVICE
  adrp x9,.Lordinary_stream
  ldr x10,[sp,#296]
  str x10,[x9,:lo12:.Lordinary_stream]
  adrp x9,.Lworker_stream
  ldr x10,[sp,#304]
  str x10,[x9,:lo12:.Lworker_stream]
+#endif
  GPU_RETURN
+#ifndef MD2ASM_GPU_DIRECT_CUDA_SERVICE
 .Linit_preload_memory:
  mov w0,#2
 .Linit_stream_error:
@@ -166,6 +183,7 @@ mailbox_initialize_unlocked:
  add x0,sp,#240
  GPU_CALL cuCtxPopCurrent_v2
  b .Linit_destroy
+#endif
 .Linit_load_error:
  mov w26,w0
  add x0,sp,#240
@@ -186,6 +204,7 @@ mailbox_initialize_unlocked:
 .Linit_error:
  mov w26,w0
  GPU_RETURN
+#ifndef MD2ASM_GPU_DIRECT_CUDA_SERVICE
 .size mailbox_initialize_unlocked,.-mailbox_initialize_unlocked
 
 
@@ -221,7 +240,9 @@ md2asm_openifs_gpu_initialize:
  mov w26,w0
  MAILBOX_UNLOCK
  GPU_RETURN
+#endif
 .size md2asm_openifs_gpu_initialize,.-md2asm_openifs_gpu_initialize
+#ifndef MD2ASM_GPU_DIRECT_CUDA_SERVICE
 .global md2asm_openifs_gpu_finalize
 .type md2asm_openifs_gpu_finalize,%function
 md2asm_openifs_gpu_finalize:
@@ -232,12 +253,15 @@ md2asm_openifs_gpu_finalize:
  MAILBOX_UNLOCK
  GPU_RETURN
 .size md2asm_openifs_gpu_finalize,.-md2asm_openifs_gpu_finalize
+#endif
 
 .global md2asm_openifs_gpu_launch
 .type md2asm_openifs_gpu_launch,%function
 md2asm_openifs_gpu_launch:
  GPU_ENTER
+#ifndef MD2ASM_GPU_DIRECT_CUDA_SERVICE
  MAILBOX_LOCK
+#endif
  ldp x19,x20,[sp,#160]
  ldr x21,[sp,#176]
  ldr w22,[sp,#184]
@@ -264,6 +288,7 @@ md2asm_openifs_gpu_launch:
  GPU_CALL cuCtxPushCurrent_v2
  cbnz w0,.Llaunch_error
  mov w28,#1
+#ifndef MD2ASM_GPU_DIRECT_CUDA_SERVICE
  cmp w22,#1
  b.ne .Lordinary_launch
  cmp w23,#1
@@ -407,6 +432,7 @@ md2asm_openifs_gpu_launch:
  adrp x9,.Lworker_active
  str wzr,[x9,:lo12:.Lworker_active]
 .Lordinary_worker_joined:
+#endif
  add x0,sp,#248
  adrp x9,.Lgpu_module
  ldr x1,[x9,:lo12:.Lgpu_module]
@@ -420,9 +446,13 @@ md2asm_openifs_gpu_launch:
  add x9,sp,#256
  add x10,sp,#264
  stp x9,x10,[sp,#272]
+#ifdef MD2ASM_GPU_DIRECT_CUDA_SERVICE
+ str xzr,[sp]
+#else
  adrp x9,.Lordinary_stream
  ldr x9,[x9,:lo12:.Lordinary_stream]
  str x9,[sp]
+#endif
  add x9,sp,#272
  str x9,[sp,#8]
  str xzr,[sp,#16]
@@ -436,11 +466,17 @@ md2asm_openifs_gpu_launch:
  mov w7,w27
  GPU_CALL cuLaunchKernel
  cbnz w0,.Llaunch_error
+#ifdef MD2ASM_GPU_DIRECT_CUDA_SERVICE
+ GPU_CALL cuCtxSynchronize
+#else
  adrp x9,.Lordinary_stream
  ldr x0,[x9,:lo12:.Lordinary_stream]
  GPU_CALL cuStreamSynchronize
+#endif
  cbnz w0,.Llaunch_error
+#ifndef MD2ASM_GPU_DIRECT_CUDA_SERVICE
 .Llaunch_status:
+#endif
  ldr w9,[x21]
  cbnz w9,.Llaunch_invalid
  ldr w9,[x21,#8]
@@ -461,12 +497,20 @@ md2asm_openifs_gpu_launch:
  cbnz w26,.Llaunch_return
  mov w26,w0
 .Llaunch_return:
+#ifndef MD2ASM_GPU_DIRECT_CUDA_SERVICE
  MAILBOX_UNLOCK
+#endif
  GPU_RETURN
 .size md2asm_openifs_gpu_launch,.-md2asm_openifs_gpu_launch
 
+#ifdef MD2ASM_GPU_DIRECT_CUDA_SERVICE
+.global md2asm_openifs_gpu_finalize
+.type md2asm_openifs_gpu_finalize,%function
+md2asm_openifs_gpu_finalize:
+#else
 .type mailbox_finalize_unlocked,%function
 mailbox_finalize_unlocked:
+#endif
  GPU_ENTER
  adrp x9,.Lgpu_context
  ldr x19,[x9,:lo12:.Lgpu_context]
@@ -474,6 +518,7 @@ mailbox_finalize_unlocked:
  mov x0,x19
  GPU_CALL cuCtxPushCurrent_v2
  cbnz w0,.Lfinal_error
+#ifndef MD2ASM_GPU_DIRECT_CUDA_SERVICE
  adrp x9,.Lworker_active
  ldr w10,[x9,:lo12:.Lworker_active]
  cbz w10,.Lfinal_streams
@@ -504,11 +549,14 @@ mailbox_finalize_unlocked:
  cbnz w26,.Lfinal_module
  mov w26,w0
 .Lfinal_module:
+#endif
  adrp x9,.Lgpu_module
  ldr x0,[x9,:lo12:.Lgpu_module]
  cbz x0,.Lfinal_pop
  GPU_CALL cuModuleUnload
+#ifndef MD2ASM_GPU_DIRECT_CUDA_SERVICE
  cbnz w26,.Lfinal_pop
+#endif
  mov w26,w0
 .Lfinal_pop:
  add x0,sp,#240
@@ -525,18 +573,24 @@ mailbox_finalize_unlocked:
  str xzr,[x9,:lo12:.Lgpu_context]
  adrp x9,.Lgpu_module
  str xzr,[x9,:lo12:.Lgpu_module]
+#ifndef MD2ASM_GPU_DIRECT_CUDA_SERVICE
  adrp x9,.Lordinary_stream
  str xzr,[x9,:lo12:.Lordinary_stream]
  adrp x9,.Lworker_stream
  str xzr,[x9,:lo12:.Lworker_stream]
  adrp x9,.Lworker_active
  str wzr,[x9,:lo12:.Lworker_active]
+#endif
 .Lfinal_return:
  GPU_RETURN
 .Lfinal_error:
  mov w26,w0
  GPU_RETURN
+#ifdef MD2ASM_GPU_DIRECT_CUDA_SERVICE
+.size md2asm_openifs_gpu_finalize,.-md2asm_openifs_gpu_finalize
+#else
 .size mailbox_finalize_unlocked,.-mailbox_finalize_unlocked
+#endif
 .bss
 .balign 8
 .Lgpu_context: .zero 8
@@ -544,14 +598,20 @@ mailbox_finalize_unlocked:
 .section .note.GNU-stack,"",%progbits
 
 // Nonnumerical environment and module lifetime service.
+#ifdef MD2ASM_GPU_DIRECT_CUDA_SERVICE
+// ABI and storage: pointwise_forecast_bridge.md, revision 2.
+#else
 // ABI and storage: skills/md2asm-gpu/references/openifs/cuda_runtime.md, revision 4.
+#endif
 .text
 .p2align 2
 .global md2asm_openifs_gpu_prepare
 .type md2asm_openifs_gpu_prepare,%function
 md2asm_openifs_gpu_prepare:
  GPU_ENTER
+#ifndef MD2ASM_GPU_DIRECT_CUDA_SERVICE
  MAILBOX_LOCK
+#endif
  ldr x9,[sp,#136]
  cbnz x9,.Lprepare_invalid
  adrp x9,.Lgpu_context
@@ -562,25 +622,36 @@ md2asm_openifs_gpu_prepare:
  GPU_CALL getenv
  cbz x0,.Lprepare_invalid
  mov w1,#0
+#ifdef MD2ASM_GPU_DIRECT_CUDA_SERVICE
+ GPU_CALL md2asm_openifs_gpu_initialize
+#else
  GPU_CALL mailbox_initialize_unlocked
+#endif
  cbnz w0,.Lprepare_error
  adrp x0,:got:md2asm_openifs_gpu_finalize
  ldr x0,[x0,:got_lo12:md2asm_openifs_gpu_finalize]
  mov x1,xzr
  GPU_CALL on_exit
  cbz w0,.Lprepare_return
+#ifdef MD2ASM_GPU_DIRECT_CUDA_SERVICE
+ GPU_CALL md2asm_openifs_gpu_finalize
+#else
  GPU_CALL mailbox_finalize_unlocked
+#endif
 .Lprepare_invalid:
  mov w26,#1
  b .Lprepare_return
 .Lprepare_error:
  mov w26,w0
 .Lprepare_return:
+#ifndef MD2ASM_GPU_DIRECT_CUDA_SERVICE
  MAILBOX_UNLOCK
+#endif
  GPU_RETURN
 .size md2asm_openifs_gpu_prepare,.-md2asm_openifs_gpu_prepare
 .section .rodata
 .Lgpu_module_environment: .asciz "MD2ASM_OPENIFS_GPU_MODULE"
+#ifndef MD2ASM_GPU_DIRECT_CUDA_SERVICE
 
 .bss
 .balign 8
@@ -1280,3 +1351,4 @@ md2asm_openifs_gpu_prepare:
 .Lbatch_name_158: .asciz "openifs_verder_ptx"
 .Lbatch_name_159: .asciz "openifs_verdisint_ptx"
 .Lbatch_name_160: .asciz "openifs_verint_ptx"
+#endif

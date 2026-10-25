@@ -1,3 +1,6 @@
+#ifndef MD2ASM_GPU_CUMASTRN_LAUNCH
+#define MD2ASM_GPU_CUMASTRN_LAUNCH md2asm_convective_parallel_dispatch
+#endif
 // Contract: skills/md2asm-gpu/references/openifs/physics/convective_column_update.md.
 // Original ABI storage/launch draft from original_host_contract.md revision1.
 .text
@@ -112,7 +115,7 @@
  mov w3,#1
  mov w4,#1
  mov w5,#0
- bl md2asm_convective_parallel_dispatch
+ bl MD2ASM_GPU_CUMASTRN_LAUNCH
  ldr x18,[sp,#224]
  cbnz w0,.Ldraft_failure
  .if \release
