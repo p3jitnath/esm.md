@@ -107,7 +107,7 @@
 .Lsl_replicate_done:
  ret
 
-#ifndef MD2ASM_SURFWS_ONLY
+#if !defined(MD2ASM_SURFWS_ONLY) && !defined(MD2ASM_TURBULENCE_ONLY)
 ENTER md2asm_surface_boundary_layer_layout_r2_7358525,7,16384
  HOOK .Lsl_bc_layer_name,12,0,3608
 #include "selected_surfbc_layer_argument_addresses.inc.S"
@@ -296,6 +296,7 @@ ENTER md2asm_surface_boundary_adapter_7358525,42,16384
 
 #endif
 #ifndef MD2ASM_SURFBC_ONLY
+#ifndef MD2ASM_TURBULENCE_ONLY
 ENTER md2asm_snow_initialisation_adapter_7358525,18,16384
  ARG x9,3
  ldrsw x21,[x9]
@@ -496,6 +497,7 @@ ENTER md2asm_snow_initialisation_layer_layout_r2_7358525,6,16384
  EXIT 16384
 .size md2asm_snow_initialisation_layer_layout_r2_7358525,.-md2asm_snow_initialisation_layer_layout_r2_7358525
 
+#endif
 #ifndef MD2ASM_SURFWS_ONLY
 ENTER md2asm_surface_turbulence_layer_sea_r2_layout_r2_7358525,18,32768
  ARG x20,1

@@ -1,3 +1,10 @@
+/* Shared default and original-source selection: skills/md2asm/references/openifs/surface/runtime_surface_turbulence.md. */
+#ifndef MD2ASM_SURFACE_EXCHANGE_CONTROLLER_ENTRY
+#define MD2ASM_SURFACE_EXCHANGE_CONTROLLER_ENTRY md2asm_surface_exchange_controller_sea_r2_7358525
+#endif
+#ifndef MD2ASM_SURFACE_SATURATION_ENTRY
+#define MD2ASM_SURFACE_SATURATION_ENTRY md2asm_vsurf_sea_derivative_r2_7358525
+#endif
 /* Direct selected SURFEXCDRIVER_CTL body from OpenIFS 48.1.1.
  * Physics formulations/openifs/surface/surface_physical_updates.md.
  * Contract skills/md2asm/references/openifs/surface/surface_physical_updates.md.
@@ -202,9 +209,9 @@
  tst x10,#(\element-1)
  b.ne .Lsc_reject
 .endm
-.global md2asm_surface_exchange_controller_sea_r2_7358525
-.type md2asm_surface_exchange_controller_sea_r2_7358525,%function
-md2asm_surface_exchange_controller_sea_r2_7358525:
+.global MD2ASM_SURFACE_EXCHANGE_CONTROLLER_ENTRY
+.type MD2ASM_SURFACE_EXCHANGE_CONTROLLER_ENTRY,%function
+MD2ASM_SURFACE_EXCHANGE_CONTROLLER_ENTRY:
  mov x16,sp
  sub sp,sp,#4,lsl #12
  add x17,sp,#1024
@@ -894,7 +901,7 @@ md2asm_surface_exchange_controller_sea_r2_7358525:
  PARG 48,131
  PARG 49,132
  PARG 50,133
- CALL md2asm_vsurf_sea_derivative_r2_7358525
+ CALL MD2ASM_SURFACE_SATURATION_ENTRY
  add x21,x21,#1
  cmp x21,#9
  b.lt .Lsc_surface_tile
@@ -1483,7 +1490,7 @@ md2asm_surface_exchange_controller_sea_r2_7358525:
  ret
 .Lsc_reject:
  brk #0x531
-.size md2asm_surface_exchange_controller_sea_r2_7358525,.-md2asm_surface_exchange_controller_sea_r2_7358525
+.size MD2ASM_SURFACE_EXCHANGE_CONTROLLER_ENTRY,.-MD2ASM_SURFACE_EXCHANGE_CONTROLLER_ENTRY
 // Memory-only helper: clear each requested row over all remaining dimensions.
 .Lsc_zero_selected:
  ldp x11,x12,[x9,#72]

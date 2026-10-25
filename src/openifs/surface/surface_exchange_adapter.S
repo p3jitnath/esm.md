@@ -1,3 +1,7 @@
+/* Shared default and original-source selection: skills/md2asm/references/openifs/surface/runtime_surface_turbulence.md. */
+#ifndef MD2ASM_SURFACE_EXCHANGE_CONTROLLER_ENTRY
+#define MD2ASM_SURFACE_EXCHANGE_CONTROLLER_ENTRY md2asm_surface_exchange_controller_sea_r2_7358525
+#endif
 /* Contract: skills/md2asm/references/openifs/surface/surface_private_bindings.md. */
 // Direct SURFEXCDRIVER ABI adapter; all numerical stages belong to its direct child.
 // GET_SURF resolves through the owned registry metadata interface.
@@ -1415,7 +1419,7 @@ md2asm_surface_exchange_adapter_sea_r2_7358525:
  PLACE 133
  ldr x9,[sp,#2384]
  str x9,[sp,#1008]
- CALL md2asm_surface_exchange_controller_sea_r2_7358525
+ CALL MD2ASM_SURFACE_EXCHANGE_CONTROLLER_ENTRY
  ldr w9,[sp,#2360]
  cbz w9,.Lsa_return
  adr x0,.Lsa_hook_name

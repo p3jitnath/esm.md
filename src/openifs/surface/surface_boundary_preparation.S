@@ -1,3 +1,7 @@
+/* Shared default and original-source selection: skills/md2asm/references/openifs/surface/runtime_surface_turbulence.md. */
+#ifndef MD2ASM_VSURF_ENTRY
+#define MD2ASM_VSURF_ENTRY md2asm_vsurf_sea_derivative_r2_7358525
+#endif
 /* Direct selected VSURF body from OpenIFS 48.1.1.
  * Physics formulations/openifs/surface/surface_physical_updates.md.
  * Contract skills/md2asm/references/openifs/surface/surface_physical_updates.md.
@@ -207,9 +211,9 @@
  .endif
  cbnz x15,.Lvsurf_reject
 .endm
-.global md2asm_vsurf_sea_derivative_r2_7358525
-.type md2asm_vsurf_sea_derivative_r2_7358525,%function
-md2asm_vsurf_sea_derivative_r2_7358525:
+.global MD2ASM_VSURF_ENTRY
+.type MD2ASM_VSURF_ENTRY,%function
+MD2ASM_VSURF_ENTRY:
  sub sp,sp,#4096
  stp x19,x20,[sp,#192]
  stp x21,x22,[sp,#208]
@@ -432,11 +436,13 @@ md2asm_vsurf_sea_derivative_r2_7358525:
  fdiv d1,d2,d1
  fmul d0,d0,d1
  OUT d0,28
+#ifndef MD2ASM_ORIGINAL_SEA_DERIVATIVE
  cmp w26,#1
  b.ne .Lvsurf_derivative_factor_ready
  CONST d2,one
  fdiv d1,d2,d3 // Sea dq/dT has one salinity factor, already in q.
 .Lvsurf_derivative_factor_ready:
+#endif
  fmul d0,d0,d1
  ldr d1,[sp,#1016]
  fmul d0,d0,d1
@@ -1090,7 +1096,7 @@ md2asm_vsurf_sea_derivative_r2_7358525:
  str d0,[sp,#864]
  ldr x30,[sp,#992]
  ret
-.size md2asm_vsurf_sea_derivative_r2_7358525,.-md2asm_vsurf_sea_derivative_r2_7358525
+.size MD2ASM_VSURF_ENTRY,.-MD2ASM_VSURF_ENTRY
 .section .rodata
 .p2align 3
 .Lvsurf_one: .double 1.0
