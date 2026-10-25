@@ -1,5 +1,8 @@
+// MD2ASM_REGISTRY_LAYOUT_ONLY assembles only the unchanged read-only tables.
+// MD2ASM_PUBLISH_REGISTRY_CLEANUP_LAYOUTS exposes those table addresses beside the normal entries.
 // Contract: skills/md2asm/references/openifs/setup/field_registry.md.
 // x0 registry; x1 SURFVARS pointer slot; x2 TSURF source metadata and owners.
+#ifndef MD2ASM_REGISTRY_LAYOUT_ONLY
 .text
 .p2align 4
 .global md2asm_registry_register_surface
@@ -121,6 +124,7 @@ md2asm_registry_register_surface:
     ldp x29, x30, [sp], #160
     ret
 .size md2asm_registry_register_surface,.-md2asm_registry_register_surface
+#endif
 .section .rodata
 .p2align 3
 .Lsurface_groups:
@@ -996,4 +1000,15 @@ md2asm_registry_register_surface:
     .word 159184,15744,2,0,11,0
     .ascii "SD_WW_VCURW     "
     .zero 8
+#if defined(MD2ASM_REGISTRY_LAYOUT_ONLY) || defined(MD2ASM_PUBLISH_REGISTRY_CLEANUP_LAYOUTS)
+.section .rodata
+.global md2asm_registry_surface_variable_layout
+.type md2asm_registry_surface_variable_layout,%object
+.set md2asm_registry_surface_variable_layout,.Lsurface_rows
+.size md2asm_registry_surface_variable_layout,13632
+.global md2asm_registry_surface_group_layout
+.type md2asm_registry_surface_group_layout,%object
+.set md2asm_registry_surface_group_layout,.Lsurface_groups
+.size md2asm_registry_surface_group_layout,608
+#endif
 .section .note.GNU-stack,"",%progbits

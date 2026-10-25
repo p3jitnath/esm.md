@@ -1,6 +1,9 @@
+// MD2ASM_REGISTRY_LAYOUT_ONLY assembles only the unchanged read-only tables.
+// MD2ASM_PUBLISH_REGISTRY_CLEANUP_LAYOUTS exposes those table addresses beside the normal entries.
 // Source-ordered field-variable clone, block-view and reset services.
 // Contract skills/md2asm/references/openifs/support/field_variable_arrays.md. No numerical value is changed.
 .arch armv8.2-a
+#ifndef MD2ASM_REGISTRY_LAYOUT_ONLY
 .text
 .macro count_call index
     adrp x9, .Lvariable_calls
@@ -312,13 +315,16 @@ md2asm_field_variable_call_count_get:
     mov x0, #0
     ret
 .size md2asm_field_variable_call_count_get,.-md2asm_field_variable_call_count_get
+#endif
 .section .rodata
 .p2align 3
+#ifndef MD2ASM_REGISTRY_LAYOUT_ONLY
 .Ldefault_variable:
     .zero 16
     .ascii "                "
     .word -999
     .zero 692
+#endif
 .Larray_offsets:
     .word 29680, 29744 // GHG
     .word 29808, 29872 // CHEM
@@ -418,8 +424,21 @@ md2asm_field_variable_call_count_get:
     .word 56120, 3, 0 // ECPHYS%AHFSTI
     .word 56848, 3, 0 // ECPHYS%EVAPTI
     .word 57576, 3, 0 // ECPHYS%TSKTI
+#ifndef MD2ASM_REGISTRY_LAYOUT_ONLY
 .bss
 .p2align 3
 .Lvariable_calls:
     .zero 40
+#endif
+#if defined(MD2ASM_REGISTRY_LAYOUT_ONLY) || defined(MD2ASM_PUBLISH_REGISTRY_CLEANUP_LAYOUTS)
+.section .rodata
+.global md2asm_registry_variable_view_layout
+.type md2asm_registry_variable_view_layout,%object
+.set md2asm_registry_variable_view_layout,.Lupdate_offsets
+.size md2asm_registry_variable_view_layout,948
+.global md2asm_registry_variable_array_layout
+.type md2asm_registry_variable_array_layout,%object
+.set md2asm_registry_variable_array_layout,.Larray_offsets
+.size md2asm_registry_variable_array_layout,144
+#endif
 .section .note.GNU-stack,"",%progbits

@@ -1,5 +1,8 @@
+// MD2ASM_REGISTRY_LAYOUT_ONLY assembles only the unchanged read-only tables.
+// MD2ASM_PUBLISH_REGISTRY_CLEANUP_LAYOUTS exposes those table addresses beside the normal entries.
 // Contract: skills/md2asm/references/openifs/setup/field_registry.md.
 // Register named views of existing numerical owners. Metadata only.
+#ifndef MD2ASM_REGISTRY_LAYOUT_ONLY
 .text
 .p2align 4
 .global md2asm_registry_register_geometry
@@ -125,6 +128,7 @@ md2asm_registry_allocate_variables:
 
 .size md2asm_registry_allocate_variables,.-md2asm_registry_allocate_variables
 
+#endif
 .section .rodata
 .p2align 3
 .Lgeometry_fields:
@@ -335,4 +339,15 @@ md2asm_registry_allocate_variables:
     .word 70848 // RADIATION%SRFDIR
     .word 71408 // RADIATION%SRCDIR
     .word 71968 // RADIATION%DERIVATIVELW
+#if defined(MD2ASM_REGISTRY_LAYOUT_ONLY) || defined(MD2ASM_PUBLISH_REGISTRY_CLEANUP_LAYOUTS)
+.section .rodata
+.global md2asm_registry_geometry_variable_layout
+.type md2asm_registry_geometry_variable_layout,%object
+.set md2asm_registry_geometry_variable_layout,.Lgeometry_fields
+.size md2asm_registry_geometry_variable_layout,672
+.global md2asm_registry_radiation_variable_layout
+.type md2asm_registry_radiation_variable_layout,%object
+.set md2asm_registry_radiation_variable_layout,.Lradiation_fields
+.size md2asm_registry_radiation_variable_layout,736
+#endif
 .section .note.GNU-stack,"",%progbits
