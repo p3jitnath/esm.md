@@ -1,12 +1,19 @@
+/* Contract: skills/md2asm/references/openifs/radiation/runtime_radiation_flux_owners.md. */
+#ifndef MD2ASM_RADSEL_ENTRY
+#define MD2ASM_RADSEL_ENTRY md2asm_apply_selected_radiation_namelist
+#endif
+#ifndef MD2ASM_RADSEL_KEY_COUNT
+#define MD2ASM_RADSEL_KEY_COUNT 13
+#endif
 /* Apply the first NAERAD group to a 1072-byte typed radiation selection record. Supported keys below.
  * x0 bounded text,x1 bytes1..262144,x2 record. Return 0/2, no writes on rejection.
  * Scalar integer tokens with optional sign and magnitude0..65535, boolean tokens as in Fortran. Frame 1168 bytes. */
 .arch armv8.2-a
 .text
 .p2align 4
-.global md2asm_apply_selected_radiation_namelist
-.type md2asm_apply_selected_radiation_namelist,%function
-md2asm_apply_selected_radiation_namelist:
+.global MD2ASM_RADSEL_ENTRY
+.type MD2ASM_RADSEL_ENTRY,%function
+MD2ASM_RADSEL_ENTRY:
  stp x29,x30,[sp,#-96]!
  stp x19,x20,[sp,#16]
  stp x21,x22,[sp,#32]
@@ -223,7 +230,7 @@ md2asm_apply_selected_radiation_namelist:
  ldp x27,x28,[sp,#80]
  ldp x29,x30,[sp],#96
  ret
-.size md2asm_apply_selected_radiation_namelist,.-md2asm_apply_selected_radiation_namelist
+.size MD2ASM_RADSEL_ENTRY,.-MD2ASM_RADSEL_ENTRY
 /* Local helpers use only caller-saved x0..x17. */
 .Lradsel_skip_blank:
  cmp x0,x1
@@ -254,7 +261,7 @@ md2asm_apply_selected_radiation_namelist:
 .Lradsel_lookup:
  adrp x9,.Lradsel_keys
  add x9,x9,:lo12:.Lradsel_keys
- mov w10,#13
+ mov w10,#MD2ASM_RADSEL_KEY_COUNT
 .Lradsel_lookup_row:
  ldr w11,[x9,#32]
  cmp x1,x11
@@ -482,4 +489,15 @@ md2asm_apply_selected_radiation_namelist:
  .ascii "cghgtimeseriesfile"
  .zero 14
  .word 18,560,2,256
+#ifdef MD2ASM_RAD_OWNER_KEYS
+ .ascii "lapproxlwupdate"
+ .zero 17
+ .word 15,36,0,0
+ .ascii "lecompgrid"
+ .zero 22
+ .word 10,40,0,0
+ .ascii "lsrtm"
+ .zero 27
+ .word 5,44,0,0
+#endif
 .section .note.GNU-stack,"",%progbits
