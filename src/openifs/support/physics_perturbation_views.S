@@ -379,6 +379,7 @@ md2asm_finalize_perturbation_views:
  stp x9,x9,[x0,#64]
  str x9,[x0,#80]
  ret
+#ifndef MD2ASM_PERTURBATION_RAW_ONLY
 .global __ecphys_perturb_type_mod_MOD_perturb_type_update_view
 .type __ecphys_perturb_type_mod_MOD_perturb_type_update_view,%function
 __ecphys_perturb_type_mod_MOD_perturb_type_update_view:
@@ -447,4 +448,5 @@ __ecphys_perturb_type_mod_MOD_perturb_type_final:
 md2asm_perturbation_view_native_counters:
  .zero 16
 .size md2asm_perturbation_view_native_counters,16
+#endif
 .section .note.GNU-stack,"",%progbits
