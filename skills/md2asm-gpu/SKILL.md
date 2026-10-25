@@ -37,7 +37,7 @@ Use a calculation's live accumulated flags to skip repeated status checks within
 
 ## Reuse Work Where Dependencies Permit
 
-When a fixed argument proves that a helper loop is empty, inline its original pre-loop checks and exact returns to remove call overhead.
+When a fixed argument proves that a helper loop is empty, inline its original pre-loop calculations, checks and exact returns to remove call overhead.
 
 Before emitting a kernel, map independent cells, columns, fields or output coefficients to threads and blocks. Keep each ordered recurrence or reduction inside its owning thread. Use independent outer groups to provide enough blocks for the device, and combine small calculations in a complete parent when their data dependencies permit it. Pause independent callers at the same child boundary, keeping their live registers and stack storage private until the grouped call returns. Include caller collection, allocation and release when measuring the complete group. Neighbouring threads should access neighbouring values when this reduces memory transactions. Compare block sizes and complete launch sequences on their intended workloads. Carry the launch shape through every nested child. Check one successful component case at the production grid and confirm that it used the intended parallel code. Cache a repeated rounded value outside a component loop when its operands stay unchanged. Before fusing repeated child calls, distinguish the values cached by their original parent from values reloaded at each child boundary, and retain the same load order when source owners can alias. Place workload-specific dispatch thresholds in the execution contract and local measurement records.
 

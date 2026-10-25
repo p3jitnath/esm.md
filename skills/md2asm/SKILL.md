@@ -83,7 +83,7 @@ Use the smaller compute or bandwidth limit, adding justified dependency and inst
 
 ## Apply successful methods
 
-When a fixed argument proves that a helper loop is empty, inline its original pre-loop checks and exact returns to remove call overhead.
+When a fixed argument proves that a helper loop is empty, inline its original pre-loop calculations, checks and exact returns to remove call overhead.
 
 Retain a method when its complete-step gain exceeds measured variation and the frozen outputs remain identical. Prove fast-path guards from the mathematical domain, then qualify varied shapes, values, branch conditions and fallback cases. Use proved properties of prior rounded results and accumulated flags to simplify later tests, preserving the results and every flag update. Keep this argument with the source and state which input ranges the performance measurements cover.
 

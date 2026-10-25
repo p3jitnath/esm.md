@@ -1,7 +1,8 @@
 /* Source build for the qualified private forecast graph.
  * Contract: skills/md2asm/references/openifs/dynamics/private_forecast_graph_sources.md.
  * Preserve the original interface, ordered arithmetic, and caller-owned storage. */
-// Complete selected surface-time layer. The shared numerical checks are pending.
+// Preserve the accepted default object and select the qualified runtime shape route.
+// Runtime contract: skills/md2asm/references/openifs/surface/runtime_surface_time_layer.md.
 .text
 .p2align 4
 .macro CALL target
@@ -13,7 +14,75 @@
 .type md2asm_surface_time_layer_lake_profile_r3_7358525,%function
 md2asm_surface_time_layer_lake_profile_r3_7358525:
  mov x16,sp
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ mov x12,x4
+ cbz x12,.Lruntime_refuse
+ tst x12,#7
+ b.ne .Lruntime_refuse
+ ldr w9,[x12,#12]
+ sub w10,w9,#1
+ cmp w10,#127
+ b.hi .Lruntime_refuse
+ ldr w10,[x12,#48]
+ sub w11,w10,#6
+ cmp w11,#506
+ b.hi .Lruntime_refuse
+ ldr w11,[x12,#20]
+ cmp w11,#4
+ b.ne .Lruntime_refuse
+ ldr w11,[x12,#24]
+ cmp w11,#9
+ b.ne .Lruntime_refuse
+ ldr w11,[x12,#64]
+ cmp w11,#5
+ b.ne .Lruntime_refuse
+ ldp w11,w14,[x12]
+ cmp w11,#1
+ b.lt .Lruntime_refuse
+ add w15,w9,#1
+ cmp w11,w15
+ b.gt .Lruntime_refuse
+ sub w11,w11,#1
+ cmp w14,w11
+ b.lt .Lruntime_refuse
+ cmp w14,w9
+ b.gt .Lruntime_refuse
+ ldr x13,[x16,#32]
+ cbz x13,.Lruntime_refuse
+ tst x13,#7
+ b.ne .Lruntime_refuse
+ adds x11,x13,#64
+ b.cs .Lruntime_refuse
+ ldr x11,[x13,#16]
+ cbz x11,.Lruntime_refuse
+ tst x11,#7
+ b.ne .Lruntime_refuse
+ ldr x14,[x11,#8]
+ cbnz x14,.Lruntime_refuse
+ ldr x11,[x11]
+ cbz x11,.Lruntime_refuse
+ tst x11,#3
+ b.ne .Lruntime_refuse
+ ldr w11,[x11]
+ cbnz w11,.Lruntime_refuse
+ ldr x11,[x13,#8]
+ cbz x11,.Lruntime_refuse
+ tst x11,#3
+ b.ne .Lruntime_refuse
+ ldr w11,[x11]
+ cmp w11,#8
+ b.hi .Lruntime_refuse
+ lsl x15,x9,#3
+ mov x14,#43
+ mul x15,x15,x14
+ add x15,x15,#16,lsl#12
+ add x15,x15,#15
+ and x15,x15,#-16
+ sub sp,sp,x15
+ str x15,[sp,#12312]
+#else
  sub sp,sp,#65536
+#endif
  str x29,[sp,#4096]
  str x30,[sp,#4104]
  mov x29,sp
@@ -29,6 +98,9 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x28,[sp,#4184]
  mov x17,#5120
  add x19,sp,x17
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ str x13,[x19,#280]
+#endif
  str x0,[x19,#0]
  str x1,[x19,#8]
  str x2,[x19,#16]
@@ -48,6 +120,9 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  mrs x9,fpcr
  cbnz x9,.Ldispatch_reject
  ldr x21,[x19,#32]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ /* Live dimensions were checked before this frame was acquired. */
+#else
  ldr w9,[x21,#12]
  cmp w9,#24
  b.ne .Ldispatch_reject
@@ -64,76 +139,237 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  mov x3,#14
  CALL __yomhook_MOD_dr_hook_default8
 9:
+#endif
  ldr x9,[x19,#32]
  ldr w9,[x9,#20]
  cmp w9,#4
  b.ne .Ldispatch_reject
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#5
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#17344
+#endif
  add x9,sp,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x10,[x19,#32]
+ ldrsw x10,[x10,#12]
+ lsl x10,x10,#1
+#else
  mov x10,#48
+#endif
 .Lstp_zero_zrespbstr:
  str xzr,[x9],#8
  subs x10,x10,#1
  b.ne .Lstp_zero_zrespbstr
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#7
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#17728
+#endif
  add x9,sp,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x10,[x19,#32]
+ ldrsw x10,[x10,#12]
+ lsl x10,x10,#1
+#else
  mov x10,#48
+#endif
 .Lstp_zero_zrespbstr2:
  str xzr,[x9],#8
  subs x10,x10,#1
  b.ne .Lstp_zero_zrespbstr2
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#9
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#18112
+#endif
  add x9,sp,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x10,[x19,#32]
+ ldrsw x10,[x10,#12]
+ lsl x10,x10,#1
+#else
  mov x10,#48
+#endif
 .Lstp_zero_zbiomass_last:
  str xzr,[x9],#8
  subs x10,x10,#1
  b.ne .Lstp_zero_zbiomass_last
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#11
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#18496
+#endif
  add x9,sp,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x10,[x19,#32]
+ ldrsw x10,[x10,#12]
+ lsl x10,x10,#1
+#else
  mov x10,#48
+#endif
 .Lstp_zero_zbiomasstr_last:
  str xzr,[x9],#8
  subs x10,x10,#1
  b.ne .Lstp_zero_zbiomasstr_last
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#13
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#18880
+#endif
  add x9,sp,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x10,[x19,#32]
+ ldrsw x10,[x10,#12]
+ lsl x10,x10,#1
+#else
  mov x10,#48
+#endif
 .Lstp_zero_zbiomasstr2_last:
  str xzr,[x9],#8
  subs x10,x10,#1
  b.ne .Lstp_zero_zbiomasstr2_last
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#15
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#19264
+#endif
  add x9,sp,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x10,[x19,#32]
+ ldrsw x10,[x10,#12]
+ lsl x10,x10,#1
+#else
  mov x10,#48
+#endif
 .Lstp_zero_zblossvt:
  str xzr,[x9],#8
  subs x10,x10,#1
  b.ne .Lstp_zero_zblossvt
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#17
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#19648
+#endif
  add x9,sp,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x10,[x19,#32]
+ ldrsw x10,[x10,#12]
+ lsl x10,x10,#1
+#else
  mov x10,#48
+#endif
 .Lstp_zero_zbgainvt:
  str xzr,[x9],#8
  subs x10,x10,#1
  b.ne .Lstp_zero_zbgainvt
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#25
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#21184
+#endif
  add x9,sp,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x10,[x19,#32]
+ ldrsw x10,[x10,#12]
+ lsl x10,x10,#1
+#else
  mov x10,#48
+#endif
 .Lstp_zero_zlaie1:
  str xzr,[x9],#8
  subs x10,x10,#1
  b.ne .Lstp_zero_zlaie1
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#27
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#21568
+#endif
  add x9,sp,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x10,[x19,#32]
+ ldrsw x10,[x10,#12]
+ lsl x10,x10,#2
+#else
  mov x10,#96
+#endif
 .Lstp_zero_zbstre1:
  str xzr,[x9],#8
  subs x10,x10,#1
  b.ne .Lstp_zero_zbstre1
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#31
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#22336
+#endif
  add x9,sp,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x10,[x19,#32]
+ ldrsw x10,[x10,#12]
+ lsl x10,x10,#1
+#else
  mov x10,#48
+#endif
 .Lstp_zero_zbstr2e1:
  str xzr,[x9],#8
  subs x10,x10,#1
@@ -174,8 +410,13 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x0,[sp,#8256]
  ldr x0,[x19,#16]
  str x0,[sp,#8264]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x0,[x19,#280]
+ ldr x0,[x0,#8]
+#else
  adrp x0,:got:__yomct3_MOD_nstep
  ldr x0,[x0,:got_lo12:__yomct3_MOD_nstep]
+#endif
  str x0,[sp,#8272]
  ldr x0,[x19,#32]
  mov x16,#76
@@ -243,13 +484,30 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  // KTVH: preserve its source assumed-shape descriptor.
  str x0,[sp,#8416]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#0
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#16384
+#endif
  add x0,sp,x16
  // KVEG: preserve its source assumed-shape descriptor.
  mov x13,#36480
  add x13,sp,x13
  str x0,[x13]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+ add x9,x9,#1
+ neg x9,x9
+#else
  mov x9,#-25
+#endif
  str x9,[x13,#8]
  mov x9,#4
  str x9,[x13,#16]
@@ -261,9 +519,19 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#64]
  mov x9,#1
  str x9,[x13,#72]
@@ -359,13 +627,30 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  mov x2,#0
  bl .Ldispatch_first
  str x0,[sp,#8544]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#3
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#16960
+#endif
  add x0,sp,x16
  // PCVT: preserve its source assumed-shape descriptor.
  mov x13,#38528
  add x13,sp,x13
  str x0,[x13]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+ add x9,x9,#1
+ neg x9,x9
+#else
  mov x9,#-25
+#endif
  str x9,[x13,#8]
  mov x9,#8
  str x9,[x13,#16]
@@ -377,9 +662,19 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#64]
  mov x9,#1
  str x9,[x13,#72]
@@ -387,13 +682,30 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#80]
  mov x0,x13
  str x0,[sp,#8552]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#1
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#16576
+#endif
  add x0,sp,x16
  // PLAIVT: preserve its source assumed-shape descriptor.
  mov x13,#38656
  add x13,sp,x13
  str x0,[x13]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+ add x9,x9,#1
+ neg x9,x9
+#else
  mov x9,#-25
+#endif
  str x9,[x13,#8]
  mov x9,#8
  str x9,[x13,#16]
@@ -405,9 +717,19 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#64]
  mov x9,#1
  str x9,[x13,#72]
@@ -557,7 +879,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  ldr x0,[x19,#48]
  mov x16,#360
  add x0,x0,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x1,[x19,#32]
+ ldrsw x1,[x1,#48]
+#else
  mov x1,#19
+#endif
  mov x2,#0
  mov x3,#40576
  add x3,sp,x3
@@ -805,7 +1132,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  ldr x0,[x19,#80]
  mov x16,#1144
  add x0,x0,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x1,[x19,#32]
+ ldrsw x1,[x1,#48]
+#else
  mov x1,#19
+#endif
  mov x2,#0
  mov x3,#42752
  add x3,sp,x3
@@ -817,7 +1149,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  ldr x0,[x19,#80]
  mov x16,#1320
  add x0,x0,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x1,[x19,#32]
+ ldrsw x1,[x1,#48]
+#else
  mov x1,#19
+#endif
  mov x2,#0
  mov x3,#42880
  add x3,sp,x3
@@ -829,7 +1166,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  ldr x0,[x19,#80]
  mov x16,#1936
  add x0,x0,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x1,[x19,#32]
+ ldrsw x1,[x1,#48]
+#else
  mov x1,#19
+#endif
  mov x2,#0
  mov x3,#43008
  add x3,sp,x3
@@ -841,7 +1183,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  ldr x0,[x19,#80]
  mov x16,#1232
  add x0,x0,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x1,[x19,#32]
+ ldrsw x1,[x1,#48]
+#else
  mov x1,#19
+#endif
  mov x2,#0
  mov x3,#43136
  add x3,sp,x3
@@ -853,7 +1200,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  ldr x0,[x19,#80]
  mov x16,#1408
  add x0,x0,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x1,[x19,#32]
+ ldrsw x1,[x1,#48]
+#else
  mov x1,#19
+#endif
  mov x2,#0
  mov x3,#43264
  add x3,sp,x3
@@ -890,7 +1242,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  ldr x0,[x19,#40]
  mov x16,#32
  add x0,x0,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x1,[x19,#32]
+ ldrsw x1,[x1,#48]
+#else
  mov x1,#19
+#endif
  mov x2,#0
  mov x3,#44032
  add x3,sp,x3
@@ -902,7 +1259,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  ldr x0,[x19,#40]
  mov x16,#120
  add x0,x0,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x1,[x19,#32]
+ ldrsw x1,[x1,#48]
+#else
  mov x1,#19
+#endif
  mov x2,#0
  mov x3,#44160
  add x3,sp,x3
@@ -914,7 +1276,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  ldr x0,[x19,#40]
  mov x16,#208
  add x0,x0,x16
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x1,[x19,#32]
+ ldrsw x1,[x1,#48]
+#else
  mov x1,#19
+#endif
  mov x2,#0
  mov x3,#44288
  add x3,sp,x3
@@ -1451,13 +1818,30 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  bl .Lstp_source_section
  // POTKE: preserve its source assumed-shape descriptor.
  str x0,[sp,#9200]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#5
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#17344
+#endif
  add x0,sp,x16
  // PRESPBSTR: preserve its source assumed-shape descriptor.
  mov x13,#49024
  add x13,sp,x13
  str x0,[x13]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+ add x9,x9,#1
+ neg x9,x9
+#else
  mov x9,#-25
+#endif
  str x9,[x13,#8]
  mov x9,#8
  str x9,[x13,#16]
@@ -1469,9 +1853,19 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#64]
  mov x9,#1
  str x9,[x13,#72]
@@ -1479,13 +1873,30 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#80]
  mov x0,x13
  str x0,[sp,#9208]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#7
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#17728
+#endif
  add x0,sp,x16
  // PRESPBSTR2: preserve its source assumed-shape descriptor.
  mov x13,#49152
  add x13,sp,x13
  str x0,[x13]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+ add x9,x9,#1
+ neg x9,x9
+#else
  mov x9,#-25
+#endif
  str x9,[x13,#8]
  mov x9,#8
  str x9,[x13,#16]
@@ -1497,9 +1908,19 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#64]
  mov x9,#1
  str x9,[x13,#72]
@@ -1507,13 +1928,30 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#80]
  mov x0,x13
  str x0,[sp,#9216]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#9
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#18112
+#endif
  add x0,sp,x16
  // PBIOMASS_LAST: preserve its source assumed-shape descriptor.
  mov x13,#49280
  add x13,sp,x13
  str x0,[x13]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+ add x9,x9,#1
+ neg x9,x9
+#else
  mov x9,#-25
+#endif
  str x9,[x13,#8]
  mov x9,#8
  str x9,[x13,#16]
@@ -1525,9 +1963,19 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#64]
  mov x9,#1
  str x9,[x13,#72]
@@ -1535,13 +1983,30 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#80]
  mov x0,x13
  str x0,[sp,#9224]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#11
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#18496
+#endif
  add x0,sp,x16
  // PBIOMASSTR_LAST: preserve its source assumed-shape descriptor.
  mov x13,#49408
  add x13,sp,x13
  str x0,[x13]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+ add x9,x9,#1
+ neg x9,x9
+#else
  mov x9,#-25
+#endif
  str x9,[x13,#8]
  mov x9,#8
  str x9,[x13,#16]
@@ -1553,9 +2018,19 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#64]
  mov x9,#1
  str x9,[x13,#72]
@@ -1563,13 +2038,30 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#80]
  mov x0,x13
  str x0,[sp,#9232]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#13
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#18880
+#endif
  add x0,sp,x16
  // PBIOMASSTR2_LAST: preserve its source assumed-shape descriptor.
  mov x13,#49536
  add x13,sp,x13
  str x0,[x13]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+ add x9,x9,#1
+ neg x9,x9
+#else
  mov x9,#-25
+#endif
  str x9,[x13,#8]
  mov x9,#8
  str x9,[x13,#16]
@@ -1581,9 +2073,19 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#64]
  mov x9,#1
  str x9,[x13,#72]
@@ -1591,13 +2093,30 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#80]
  mov x0,x13
  str x0,[sp,#9240]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#15
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#19264
+#endif
  add x0,sp,x16
  // PBLOSSVT: preserve its source assumed-shape descriptor.
  mov x13,#49664
  add x13,sp,x13
  str x0,[x13]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+ add x9,x9,#1
+ neg x9,x9
+#else
  mov x9,#-25
+#endif
  str x9,[x13,#8]
  mov x9,#8
  str x9,[x13,#16]
@@ -1609,9 +2128,19 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#64]
  mov x9,#1
  str x9,[x13,#72]
@@ -1619,13 +2148,30 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#80]
  mov x0,x13
  str x0,[sp,#9248]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#17
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#19648
+#endif
  add x0,sp,x16
  // PBGAINVT: preserve its source assumed-shape descriptor.
  mov x13,#49792
  add x13,sp,x13
  str x0,[x13]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+ add x9,x9,#1
+ neg x9,x9
+#else
  mov x9,#-25
+#endif
  str x9,[x13,#8]
  mov x9,#8
  str x9,[x13,#16]
@@ -1637,9 +2183,19 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#64]
  mov x9,#1
  str x9,[x13,#72]
@@ -1647,7 +2203,17 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#80]
  mov x0,x13
  str x0,[sp,#9256]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#19
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#20032
+#endif
  add x0,sp,x16
  // PLAI: preserve its source assumed-shape descriptor.
  mov x13,#49920
@@ -1665,11 +2231,26 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
  mov x0,x13
  str x0,[sp,#9264]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#20
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#20224
+#endif
  add x0,sp,x16
  // PBIOM: preserve its source assumed-shape descriptor.
  mov x13,#50048
@@ -1687,11 +2268,26 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
  mov x0,x13
  str x0,[sp,#9272]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#21
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#20416
+#endif
  add x0,sp,x16
  // PBLOSS: preserve its source assumed-shape descriptor.
  mov x13,#50176
@@ -1709,11 +2305,26 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
  mov x0,x13
  str x0,[sp,#9280]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#22
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#20608
+#endif
  add x0,sp,x16
  // PBGAIN: preserve its source assumed-shape descriptor.
  mov x13,#50304
@@ -1731,11 +2342,26 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
  mov x0,x13
  str x0,[sp,#9288]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#23
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#20800
+#endif
  add x0,sp,x16
  // PBIOMSTR: preserve its source assumed-shape descriptor.
  mov x13,#50432
@@ -1753,11 +2379,26 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
  mov x0,x13
  str x0,[sp,#9296]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#24
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#20992
+#endif
  add x0,sp,x16
  // PBIOMSTR2: preserve its source assumed-shape descriptor.
  mov x13,#50560
@@ -1775,7 +2416,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
  mov x0,x13
  str x0,[sp,#9304]
@@ -1886,13 +2532,30 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  // PSOE1: preserve its source assumed-shape descriptor.
  str x0,[sp,#9464]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#25
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#21184
+#endif
  add x0,sp,x16
  // PLAIE1: preserve its source assumed-shape descriptor.
  mov x13,#53248
  add x13,sp,x13
  str x0,[x13]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+ add x9,x9,#1
+ neg x9,x9
+#else
  mov x9,#-25
+#endif
  str x9,[x13,#8]
  mov x9,#8
  str x9,[x13,#16]
@@ -1904,9 +2567,19 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#64]
  mov x9,#1
  str x9,[x13,#72]
@@ -1914,13 +2587,30 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#80]
  mov x0,x13
  str x0,[sp,#9472]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#27
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#21568
+#endif
  add x0,sp,x16
  // PBSTRE1: preserve its source assumed-shape descriptor.
  mov x13,#53376
  add x13,sp,x13
  str x0,[x13]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+ add x9,x9,#1
+ neg x9,x9
+#else
  mov x9,#-25
+#endif
  str x9,[x13,#8]
  mov x9,#8
  str x9,[x13,#16]
@@ -1932,9 +2622,19 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#64]
  mov x9,#1
  str x9,[x13,#72]
@@ -1942,13 +2642,30 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#80]
  mov x0,x13
  str x0,[sp,#9480]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#31
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#22336
+#endif
  add x0,sp,x16
  // PBSTR2E1: preserve its source assumed-shape descriptor.
  mov x13,#53504
  add x13,sp,x13
  str x0,[x13]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+ add x9,x9,#1
+ neg x9,x9
+#else
  mov x9,#-25
+#endif
  str x9,[x13,#8]
  mov x9,#8
  str x9,[x13,#16]
@@ -1960,9 +2677,19 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#64]
  mov x9,#1
  str x9,[x13,#72]
@@ -2000,13 +2727,31 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  add x0,x0,x16
  // PDHWLS: preserve its source assumed-shape descriptor.
  str x0,[sp,#9536]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x16,[x19,#32]
+ ldrsw x16,[x16,#12]
+ lsl x16,x16,#3
+ mov x17,#33
+ mul x16,x16,x17
+ mov x17,#65536
+ add x16,x16,x17
+#else
  mov x16,#22720
+#endif
  add x0,sp,x16
  // PDHBIOS: preserve its source assumed-shape descriptor.
  mov x13,#54400
  add x13,sp,x13
  str x0,[x13]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+ add x9,x9,x9,lsl#1
+ add x9,x9,#1
+ neg x9,x9
+#else
  mov x9,#-73
+#endif
  str x9,[x13,#8]
  mov x9,#8
  str x9,[x13,#16]
@@ -2018,15 +2763,31 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  str x9,[x13,#40]
  mov x9,#1
  str x9,[x13,#48]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#56]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+#else
  mov x9,#24
+#endif
  str x9,[x13,#64]
  mov x9,#1
  str x9,[x13,#72]
  mov x9,#2
  str x9,[x13,#80]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[x19,#32]
+ ldrsw x9,[x9,#12]
+ lsl x9,x9,#1
+#else
  mov x9,#48
+#endif
  str x9,[x13,#88]
  mov x9,#1
  str x9,[x13,#96]
@@ -2374,6 +3135,9 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  ldr x6,[sp,#8240]
  ldr x7,[sp,#8248]
  CALL md2asm_surface_time_adapter_lake_partial_profile_r3_7358525
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ mov w0,#0
+#else
  adrp x9,:got:__yomhook_MOD_lhook
  ldr x9,[x9,:got_lo12:__yomhook_MOD_lhook]
  ldr w9,[x9]
@@ -2384,6 +3148,7 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  mov x3,#14
  CALL __yomhook_MOD_dr_hook_default8
 9:
+#endif
  ldr x19,[sp,#4112]
  ldr x20,[sp,#4120]
  ldr x21,[sp,#4128]
@@ -2396,7 +3161,12 @@ md2asm_surface_time_layer_lake_profile_r3_7358525:
  ldr x28,[sp,#4184]
  ldr x29,[sp,#4096]
  ldr x30,[sp,#4104]
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ ldr x9,[sp,#12312]
+ add sp,sp,x9
+#else
  add sp,sp,#65536
+#endif
  ret
 .size md2asm_surface_time_layer_lake_profile_r3_7358525,.-md2asm_surface_time_layer_lake_profile_r3_7358525
 // Build a section descriptor from metadata only. Keep signed source selectors.
@@ -2518,6 +3288,11 @@ ret
 .Ldispatch_reject:
 CALL abort
 brk #0
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+ .Lruntime_refuse:
+ mov w0,#2
+ ret
+#endif
 .section .rodata
 .p2align 2
 .Ldispatch_phase0:.word 0
@@ -2528,4 +3303,42 @@ brk #0
 .Lstp_ikdhfbios:.word 5
 .Lstp_ikdhvvegs:.word 7
 .Lstp_ikdhfvegs:.word 1
+
+#ifdef MD2ASM_RUNTIME_SURFACE_TIME
+.text
+// Preserve the source scalar setup before the qualified empty controller return.
+// The actual initialized owners provide TSPHY450 s and RHOH2O1000 kg/m3.
+.p2align 4
+.global __wrap_md2asm_surface_time_update_lake_partial_profile_r3_7358525
+.type __wrap_md2asm_surface_time_update_lake_partial_profile_r3_7358525,%function
+__wrap_md2asm_surface_time_update_lake_partial_profile_r3_7358525:
+ ldr w9,[x0]
+ ldr w10,[x1]
+ cmp w10,w9
+ b.ge .Lstp_runtime_controller_tail
+ ldr x9,[sp,#48]
+ ldr x10,[x9]
+ movz x11,#0x407c,lsl #48
+ movk x11,#0x2000,lsl #32
+ cmp x10,x11
+ b.ne .Lstp_runtime_empty_reject
+ adrp x12,:got:__yos_thf_MOD_rhoh2o
+ ldr x12,[x12,:got_lo12:__yos_thf_MOD_rhoh2o]
+ ldr x10,[x12]
+ movz x11,#0x408f,lsl #48
+ movk x11,#0x4000,lsl #32
+ cmp x10,x11
+ b.ne .Lstp_runtime_empty_reject
+ fmov d0,#1.0
+ ldr d1,[x9]
+ fdiv d2,d0,d1
+ ldr d1,[x12]
+ fdiv d2,d0,d1
+.Lstp_runtime_controller_tail:
+ b __real_md2asm_surface_time_update_lake_partial_profile_r3_7358525
+ .Lstp_runtime_empty_reject:
+ b abort
+.size __wrap_md2asm_surface_time_update_lake_partial_profile_r3_7358525,.-__wrap_md2asm_surface_time_update_lake_partial_profile_r3_7358525
+#endif
+
 .section .note.GNU-stack,"",%progbits
