@@ -1,0 +1,53 @@
+# Seven Self-Owned Physics Work Records
+
+A work record holds temporary arrays and views that select the current block. A FIELD record stores an array address, its dimensions and its ownership flags. This component owns the complete creation, view update and release of the seven self-owned types in `EC_PHYS_DRV`: ZFLUX, ZDIAG, ZDDHS, ZAUXL, ZSURFL, ZLLKEYS and ZPERTL. The three earlier records that borrow VARIABLE and SURFVARS fields remain separate. No weather equation or complete EC_PHYS parent is claimed.
+
+Reuse every accepted raw INIT, UPDATE_VIEW and FINAL body in `src/openifs/support/additional_work_records.S`. Keep their source order, distinct allocation and release tables, integer/logical dtypes, lower-bound changes and the complete perturbation zero request. A zero request writes positive-zero bits to the full selected private view, including stored columns outside the active final interval. It must not be reduced to the final two active columns.
+
+| Record | Owner byte | Record bytes | Owned fields | Actual payload reservation bytes |
+| --- | ---: | ---: | ---: | ---: |
+| FLUX_TYPE | 96 | 5,064 | 57 | 660,417 |
+| AUX_DIAG_TYPE | 5,160 | 4,104 | 49 | 414,800 |
+| DDH_SURF_TYPE | 9,264 | 912 | 7 | 49,504 |
+| AUX_DIAG_LOCAL_TYPE | 10,176 | 2,336 | 27 | 262,820 |
+| SURF_AND_MORE_LOCAL_TYPE | 12,512 | 2,096 | 20 | 14,144 |
+| KEYS_LOCAL_TYPE | 14,608 | 664 | 9 | 612 |
+| PERTURB_LOCAL_TYPE | 15,272 | 336 | 4 | 37,536 |
+
+The outer owner has 15,608 bytes. Its header has a lifetime marker at byte zero, borrowed Geometry, MODEL, TSURF, dimensions and configuration addresses at bytes 8, 16, 24, 32 and 40, a completed-or-current construction stage at byte 48, a reserved zero word at byte 56, and eight int32 shape counts at bytes 64–95. All seven records start with the explicit zero incoming metadata policy. This includes the declared null AUX_DIAG_LOCAL pointer; it does not claim that undefined physical payloads are zero.
+
+The actual shape vector is `[137,4,0,8,5,9,14,2]`, in NLEV, NLEVS, NACTAERO, NPAERODIAG, NLEVSN, NTILES, NTSW and NLWEMISS order. Obtain it only through the [live shape binding](runtime_physics_work_shape_counts.md), `md2asm_bind_runtime_physics_work_shape_counts`, which reads the actual MODEL TERAD owner and the other live source owners. The separate surface-parameter namespace with coincident counts is not the declared EC_PHYS input. The radiation prefix and its three Planck owners remain unchanged. The fourteen soil class assignments and complete dimension initialization precede this component.
+
+There are 173 owned FIELD records, with 52,064 metadata bytes, and 173 numerical allocations. Their logical payloads contain 1,439,832 bytes; the zero-extent aerosol allocation reserves one additional byte. Together with the outer record, native construction has 347 direct owners and 1,507,505 reserved bytes at this actual shape. Nonpersistent source storage has one thread-local block. Actual Geometry still has 97,055 physical blocks of width 17, with 137 layers. The source FIAT maximum thread count must be one for this entire owner lifetime, with dynamic threading disabled.
+
+## Interfaces And Source Order
+
+`int md2asm_create_runtime_self_owned_physics_work(context, context_bytes, out_owner)` uses x0 through x2. The read-only 80-byte context holds five address/capacity pairs: Geometry 20,400 bytes, MODEL 4,275,088 bytes, TSURF 18,224 bytes, dimensions 192 bytes and configuration 67,616 bytes. The writable eight-byte output slot starts null. All complete ranges are mapped, eight-byte aligned and nonwrapping. The output, table and five records are mutually disjoint. The configuration names the same MODEL, Geometry and FIELDS, and TSURF is FIELDS plus 4,512. The dimensions came from the accepted actual 26-count initialization for these same owners. All borrowed owners remain live and retain their shapes until release.
+
+Creation validates the top-level table and capacities, requires FPCR zero, obtains the complete shape vector, checks the selected positive grid bounds and actual one-thread service, and allocates the outer record with calloc. It calls the seven accepted raw INIT methods in table order with PERSISTENT false. FLUX receives shape bytes 64–79; DIAG, AUXL and PERT receive the NLEV word at byte 64; DDH receives the complete dimension record; SURFL receives shape bytes 80–95; KEYS reads no shape settings. The source-defined FIELD allocations stay inside the unchanged children.
+
+Return zero publishes the fully constructed owner. Return one releases all acquired nested owners and the outer record after an allocation failure, leaving the output slot null. Return two refuses unsupported input before publication or allocation. A child failure can leave metadata in the private outer record until cleanup, but it is never published. Creation owns no physical input array. The FIELD and payload addresses are never copied from an earlier process.
+
+`int md2asm_update_runtime_self_owned_physics_work(owner, block0)` takes x0 and a zero-based unsigned block in w1. Require a complete live seven-record owner and FPCR zero. First call the accepted `md2asm_update_runtime_physics_dimensions` with its borrowed dimensions and Geometry. It derives the true one-based block, local packed start, active count and actual GS latitude view. A return of two leaves all work records unchanged. On success, call all seven raw UPDATE_VIEW methods in source order with block `block0+1`. The private fields select thread one, while dimensions describe the actual first or final physical block. Only private views, the three dimension words, its latitude descriptor and PERTURB_LOCAL ZDISSGW values may change.
+
+`int md2asm_release_runtime_self_owned_physics_work(out_owner)` receives the original eight-byte owner slot in x0. A null slot value succeeds. For a live valid owner, call the source finalizers in table order, release every nested owner, free the outer allocation and clear the output slot. Partial construction cleanup calls only the reached prefix, including a failed child whose partial fields may already be null. Borrowed records and physical arrays stay live and unchanged. Parent finalization finishes before later upstream TEC_PHYS_FIELDS, radiation Planck, surface metadata, MODEL or Geometry owners are released.
+
+The new parent uses directly named raw entries, not original methods or procedure tables. Creation, update and release use 256-byte frames aligned to sixteen bytes. A private finalization helper has a 16-byte frame. Preserve x18, x19 through x29, required vector halves and sixteen-byte stack alignment. Creation and release transparently preserve FPCR, FPSR and errno around allocation, cleanup and the public threading query; update inherits the unchanged children's preserved status. The allowed external services are calloc, free, the errno-address service and public FIAT maximum-thread query. All other calls resolve to the frozen direct assembly children.
+
+## Comparison Rules
+
+The genuine four-process check uses the accepted source order of early physics and radiation controls, all six ECMWF working arrays, fourteen diagnostic counts, complete dimension initialization and the seven local work constructors. The actual upstream field and Planck owners stay live until their last consumer.
+
+Newly allocated numerical payloads are undefined until a producer writes them. Keep route-specific preimages and check each unwritten region against its own preimage; do not compare these undefined payloads between source and native. Supply distinct finite verification preimages only to the complete ZDISSGW owner that the source zero request fully overwrites, then require every one of its 18,632 bytes to be positive zero after both block updates. This also checks all stored columns beyond the final active two. A FIELD's null VIEW defines its base only; compare its undefined descriptor tail only for route-local preservation. Associated public descriptors and owned PTR/DATA descriptors are fully compared.
+
+## Parent Input Bounds
+
+The lifetime marker is `0x57524b31`. Geometry P is the block width, N is the local point count and B is the physical block count. These dimensionless counts require P from 1 through 1024, positive signed-int32 N and B equal to `1+(N-1)/P` with integer division. NLEV is 1–512, and each remaining shape word is 0–512. DDH KLEVI and its fourteen variable/flux class counts at dimension bytes 56 and 68–120 are 0–512. The four shape agreements checked by the shape child remain mandatory. These bounds keep each unchanged int32 extent addition at most 1024; all private storage uses one thread block. Actual qualification remains the genuine operational shape declared above. The joint resource admission must cover all simultaneous allocations for the selected live shape; a successful scalar bound check is not a separate memory admission.
+
+## Actual Component Check
+
+One admitted genuine four-process setup passed at P17, L137, 1,649,920 local points and 97,055 physical blocks with source thread count one. The same assembled parent checked both incoming FPSR zero and 24, all seven constructors/finalizers and first/final views, including final active count two. Across four ranks, 32 complete seven-record pairs, 496,384 record bytes per route and 380 immediate raw machine-status observations passed. Every native ABI mask was zero. The original source retains its previously qualified x18 limitation. Shape and complete dimension/latitude records matched, 173 FIELD owners and 173 payload owners per route obeyed their typed shapes, and all direct lifetimes closed. The full 18,632-byte source zero request passed on all stored columns. Newly undefined payloads were checked only against their own route preimages.
+
+Outer allocation failure, final-record allocation failure, out-of-range block and selected input refusals passed without a published owner or retained allocation. Both normal routes closed before the sequential failure cases. The joint gate also qualified the separate live TEC, shape and inactive-coupling bindings from their own contracts. The three earlier VARIABLE/SURFVARS borrowing work records and complete EC_PHYS parent remain pending. No transform, original Geometry bank or forecast ran.
+
+The check reused accepted physical and numerical child records. Complete borrowed input records were checked for preservation in process but were not separately archived. Undefined numerical postimages were not archived or compared between routes. Complete work-record, typed-owner, source-written zero and immediate status records remain local. The three earlier records that borrow registry fields and the complete physics parent remain open.

@@ -109,7 +109,7 @@ The shallow-water implementation combines direct carried registers, a compact sc
 
 For a group of independent input checks, return the first rejected value in the original order. Preserve the status raised before that point and keep every register and memory value that the original loop leaves unchanged.
 
-Reuse a bounded allocation split into aligned regions when complete-operation measurements support it. Describe its whole owned byte range for overlap checks, while keeping each argument’s true bounds and every borrowed range explicit. Rebuild address maps and refresh all required inputs for each call. Hold exclusive use through preparation, calculation, result publication and cleanup. Release storage when its shape or ownership changes, or at the final dependent call. Count actual allocations separately from reused regions.
+Reuse a bounded allocation split into aligned regions when complete-operation measurements support it. Describe its whole owned byte range for overlap checks, while keeping each argument’s true bounds and every borrowed range explicit. Rebuild address maps and refresh all required inputs for each call. Hold exclusive use through preparation, calculation, result publication and cleanup. Release storage when its shape or ownership changes, or at the final dependent call. Count actual allocations separately from reused regions. For protected storage, count whole memory pages, the blocks managed by the operating system, for every live data buffer and its guards.
 
 ## Maintain strong language controls
 
