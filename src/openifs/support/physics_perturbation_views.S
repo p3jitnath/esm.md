@@ -1,5 +1,7 @@
 // Solver contract skills/md2asm/references/openifs/support/physics_perturbation_views.md.
 // Contract: skills/md2asm/references/openifs/support/physics_perturbation_views.md. No floating-point calculation.
+// Runtime cellular selection preserves allocated arrays and observed inactive metadata.
+// Inactive cellular descriptions stay opaque through caller and transport stages.
 .arch armv8.2-a
 .text
 .p2align 4
@@ -139,6 +141,51 @@ md2asm_update_perturbation_views:
  mov w4,#0
  bl .Lpert_slice2
 .Lpert_no_forcing:
+// Match only the observed disabled, complete-zero cellular source pair.
+ movz x10,#14760
+ movk x10,#24,lsl #16
+ add x10,x20,x10
+ ldr w9,[x10]
+ cbnz w9,.Lpert_cellular_allocated
+ movz x1,#12112
+ movk x1,#24,lsl #16
+ add x1,x20,x1
+ ldp x9,x10,[x1]
+ orr x9,x9,x10
+ ldp x10,x11,[x1,#16]
+ orr x9,x9,x10
+ orr x9,x9,x11
+ ldp x10,x11,[x1,#32]
+ orr x9,x9,x10
+ orr x9,x9,x11
+ ldp x10,x11,[x1,#48]
+ orr x9,x9,x10
+ orr x9,x9,x11
+ ldp x10,x11,[x1,#64]
+ orr x9,x9,x10
+ orr x9,x9,x11
+ ldp x10,x11,[x1,#80]
+ orr x9,x9,x10
+ orr x9,x9,x11
+ ldp x10,x11,[x1,#96]
+ orr x9,x9,x10
+ orr x9,x9,x11
+ ldp x10,x11,[x1,#112]
+ orr x9,x9,x10
+ orr x9,x9,x11
+ cbnz x9,.Lpert_cellular_allocated
+ movz x0,#992
+ add x0,x19,x0
+ mov w2,w25
+ mov w3,w26
+ bl .Lpert_slice1_inactive_zero
+ movz x0,#1056
+ add x0,x19,x0
+ mov w2,w25
+ mov w3,w26
+ bl .Lpert_slice1_inactive_zero
+ b .Lpert_after_cellular_pair
+.Lpert_cellular_allocated:
  movz x0,#992
  add x0,x19,x0
  movz x1,#12112
@@ -155,6 +202,7 @@ md2asm_update_perturbation_views:
  mov w2,w25
  mov w3,w26
  bl .Lpert_slice1
+.Lpert_after_cellular_pair:
  movz x10,#14760
  movk x10,#24,lsl #16
  add x10,x20,x10
@@ -299,6 +347,21 @@ md2asm_finalize_perturbation_views:
 .size md2asm_finalize_perturbation_views,.-md2asm_finalize_perturbation_views
 .Lpert_unsupported:
  mov w0,#2
+ ret
+// Metadata only: x0 is the destination, w2 is the start, w3 is active count.
+// The disabled all-zero source pair has no cellular numerical owner.
+.Lpert_slice1_inactive_zero:
+ sxtw x9,w2
+ lsl x9,x9,#3
+ mov x10,#-1
+ stp x9,x10,[x0]
+ mov x9,#8
+ movz x10,#0x301,lsl #32
+ stp x9,x10,[x0,#16]
+ mov x10,#1
+ stp x9,x10,[x0,#32]
+ sxtw x9,w3
+ stp x10,x9,[x0,#48]
  ret
 .Lpert_slice1:
  ldp x9,x10,[x1]
