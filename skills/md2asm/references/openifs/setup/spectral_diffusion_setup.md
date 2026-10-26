@@ -25,3 +25,29 @@ Three complete genuine source profiles cover the current 19-level input, a four-
 A final current-input check places all four nonempty coefficient output ends, both consumed input ends and the private calculation scratch at protected memory boundaries. It again matches the complete 4,275,088-byte MODEL and 10,208 coefficient-owner bytes. All five owner allocation failures, the scratch failure, 19 atomic refusals and repeat release pass. Every protected mapping is released.
 
 The independent check passes 3,841 physical and coefficient relations on the exact current source and native output. It uses the squared spherical-Laplacian eigenvalue, a 96-digit exponential viscosity calculation, the live mapped vertical profile, exact positive-zero mean-mode rates and non-positive continuous modal-energy tendency. Its largest residual is 0.03253 of the stated floating-point conditioning bound. This check does not change an output value. No full forecast or performance measurement is part of this component gate.
+
+
+## Runtime Control-Only Entry
+
+Define `MD2ASM_RUNTIME_DIFFUSION_CONTROLS` when assembling this source to export only `md2asm_initialize_runtime_spectral_diffusion_controls(G, Gbytes, MODEL, Mbytes, constants, Cbytes)`, with six arguments in x0–x5. This mode creates no diffusion arrays and omits the coefficient and storage entries. The default build is byte-identical to the previously qualified object, whose coefficient and storage limits remain unchanged.
+
+Geometry has at least 17,096 mapped bytes, MODEL has at least 4,275,088 mapped bytes, and constants has at least 24 mapped bytes. The records align to eight bytes, have no address wrap and are pairwise separate. Constants are finite positive FP64 values `{RHOUR, VP00, RPLRADI}`, measured in seconds, pascals and a dimensionless scale. Require global layer count NFLEVG from 1 through 256, maximum spectral wave number NSMAX from 21 through 4,096, latitude count NDGLG greater than NSMAX+1 and at most 8,192, and positive longitude count NDLON. The local spectral layer count NFLEVL is not read by this control mode. Actual global/local counts 137/69 and 137/68 are therefore allowed here.
+
+Retain the selected hydrostatic, semi-Lagrangian MODEL flags and the two valid in-MODEL humidity/ozone references from the default control contract. Each referenced zero control at relative byte 56 must remain inside MODEL. This mode does not read the MYLEVS layer map or hybrid-pressure VAH array. Their separate coefficient requirements are not imposed on control metadata. It writes the same 80 typed scalar fields as the selected source route, preserving every other MODEL byte. Its frame remains 80 bytes with sixteen-byte alignment, and its two private helpers make no external call. Return zero succeeds; return two rejects unsupported input before output mutation or floating-point arithmetic. Preserve x18, saved registers, FPCR, errno and incoming FPSR while adding natural arithmetic flags.
+
+The complete original SUHDIR selector now includes the following upper spectral thresholds. Each row applies from its threshold up to the next higher row and gives the vorticity, divergence, temperature and humidity diffusion time in seconds. The previously qualified lower rows remain exact.
+
+| Minimum NSMAX | Diffusion time in seconds |
+| --- | --- |
+| 3,999 | 240 |
+| 2,047 | 450 |
+| 1,279 | 600 |
+| 799 | 1,200 |
+| 511 | 1,800 |
+| 319 | 2,100 |
+
+The source sponge-layer setting KLSPONGE is 16 below 60 global layers, 8 from 60 through 90, 10 from 91 through 136, and 14 from 137 onward. The top-vorticity flag becomes true at 137 layers. Preserve all source literal kinds, separate divisions, reciprocal stores and rounding points.
+
+A bounded gate compared 19 direct cases with a verification helper containing selected original SUDYN control statements and complete SUHDIR. It covers both sides of the six upper thresholds, all four layer settings, actual global/local counts 137/69 and 137/68, and the supported maximum dimensions. Nine refusals cover critical bounds and short capacities. Complete records, all 80 scalar fields, reciprocal identities, immediate ABI/status, protected bounds and cleanup agree. Two internal MODEL pointers use their corresponding owner and offset; every other byte compares directly. Whole SUDYN and unchanged numerical banks were not replayed, and the main Fortran executable was not rebuilt.
+
+These results accept the runtime control entry. They do not extend the default coefficient/storage bounds of NSMAX at most 255 and global layers at most 59, or accept a complete setup, live forecast, or another resolution's forecast. Those providers must be extended from their consumed runtime metadata before a general forecast route is claimed. Unchanged numerical banks were reused without replay.

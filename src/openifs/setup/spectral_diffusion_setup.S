@@ -1,6 +1,11 @@
 /* Complete selected SUDYN/SUHDIR/SUALDYNB/SUHDF_EC setup.
  * Contract: skills/md2asm/references/openifs/setup/spectral_diffusion_setup.md.
- * Inputs are live owned records. No original OpenIFS callable or state. */
+ * Inputs are live owned records. No original OpenIFS callable or state.
+ * MD2ASM_RUNTIME_DIFFUSION_CONTROLS selects only the separately qualified
+ * runtime control entry. Default coefficient/storage bounds stay unchanged. */
+#ifdef MD2ASM_RUNTIME_DIFFUSION_CONTROLS
+#define md2asm_initialize_spectral_diffusion_controls md2asm_initialize_runtime_spectral_diffusion_controls
+#endif
 .arch armv8.2-a
 .text
 .macro address out,base,offset
@@ -148,23 +153,41 @@
  mrs x8,fpcr
  cbnz x8,.Lsd_invalid
  ldr w8,[x0,#G_NFLEVG]
+#ifdef MD2ASM_RUNTIME_DIFFUSION_CONTROLS
+ cmp w8,#1
+#else
  cmp w8,#2
+#endif
  b.lo .Lsd_invalid
+#ifdef MD2ASM_RUNTIME_DIFFUSION_CONTROLS
+ cmp w8,#256
+#else
  cmp w8,#59
+#endif
  b.hi .Lsd_invalid
+#ifndef MD2ASM_RUNTIME_DIFFUSION_CONTROLS
  ldr w9,[x0,#G_NFLEVL]
  cmp w9,w8
  b.ne .Lsd_invalid
+#endif
  ldr w9,[x0,#G_NSMAX]
  cmp w9,#21
  b.lo .Lsd_invalid
+#ifdef MD2ASM_RUNTIME_DIFFUSION_CONTROLS
+ cmp w9,#4096
+#else
  cmp w9,#255
+#endif
  b.hi .Lsd_invalid
  ldr w10,[x0,#G_NDGLG]
  add w11,w9,#1
  cmp w10,w11
  b.le .Lsd_invalid
+#ifdef MD2ASM_RUNTIME_DIFFUSION_CONTROLS
+ cmp w10,#8192
+#else
  cmp w10,#1024
+#endif
  b.hi .Lsd_invalid
  ldr w10,[x0,#G_NDLON]
  cmp w10,#1
@@ -232,6 +255,7 @@
  b.hi .Lsd_invalid
  ldr w11,[x10,#56]
  cbnz w11,.Lsd_invalid
+#ifndef MD2ASM_RUNTIME_DIFFUSION_CONTROLS
  /* Live full-level mapping, with a contiguous int32 descriptor. */
  address x10,x0,G_MYLEVS
  ldr x11,[x10]
@@ -288,6 +312,7 @@
  fmov d1,#21.0
  fcmp d0,d1
  b.le .Lsd_invalid
+#endif
  mov w0,#0
  ret
 .Lsd_invalid:
@@ -630,6 +655,30 @@ md2asm_initialize_spectral_diffusion_controls:
  adrp x9,.Lsd_cv_69
  ldr x10,[x9,:lo12:.Lsd_cv_69]
  str x10,[x8]
+#ifdef MD2ASM_RUNTIME_DIFFUSION_CONTROLS
+ /* SUDYN source layer selector. Default16/false is already stored. */
+ ldr w8,[x19,#G_NFLEVG]
+ cmp w8,#60
+ b.lo .Lsd_runtime_layer_done
+ cmp w8,#91
+ b.lo .Lsd_runtime_layer_8
+ cmp w8,#137
+ b.lo .Lsd_runtime_layer_10
+ fmov d0,#14.0
+ address x9,x20,M_LTOP_VOR
+ mov w10,#1
+ str w10,[x9]
+ b .Lsd_runtime_layer_store
+.Lsd_runtime_layer_8:
+ fmov d0,#8.0
+ b .Lsd_runtime_layer_store
+.Lsd_runtime_layer_10:
+ fmov d0,#10.0
+.Lsd_runtime_layer_store:
+ address x9,x20,M_KLSPONGE
+ str d0,[x9]
+.Lsd_runtime_layer_done:
+#endif
  ldr w8,[x19,#G_NSMAX]
  address x9,x20,1564888
  str w8,[x9]
@@ -797,6 +846,7 @@ md2asm_initialize_spectral_diffusion_controls:
  ret
 .size md2asm_initialize_spectral_diffusion_controls,.-md2asm_initialize_spectral_diffusion_controls
 
+#ifndef MD2ASM_RUNTIME_DIFFUSION_CONTROLS
 .p2align 4
 .global md2asm_allocate_spectral_diffusion_storage
 .type md2asm_allocate_spectral_diffusion_storage,%function
@@ -1551,6 +1601,8 @@ md2asm_calculate_spectral_diffusion_coefficients:
 .Lsd_1p3: .double 1.3
 .Lsd_small_threshold: .double 1e-7
 
+#endif
+
 .section .rodata
 .p2align 3
 .Lsd_cv_0: .word 0
@@ -1694,6 +1746,20 @@ md2asm_calculate_spectral_diffusion_coefficients:
 .Lsd_cv_69: .quad 0x4030000000000000
 .p2align 3
 .Lsd_resolution_table:
+#ifdef MD2ASM_RUNTIME_DIFFUSION_CONTROLS
+.word 3999,0
+.double 240.0
+.word 2047,0
+.double 450.0
+.word 1279,0
+.double 600.0
+.word 799,0
+.double 1200.0
+.word 511,0
+.double 1800.0
+.word 319,0
+.double 2100.0
+#endif
 .word 255,0
 .double 2500.0
 .word 213,0
