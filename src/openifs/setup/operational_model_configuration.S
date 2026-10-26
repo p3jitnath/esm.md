@@ -1,6 +1,8 @@
-/* Qualified live-provider contract: skills/md2asm/references/openifs/setup/operational_model_configuration.md. */
-/* Final-address operational one-hour MODEL configuration.
- * Contract: skills/md2asm/references/openifs/setup/operational_model_configuration.md. */
+/* Operational MODEL settings at their final owned addresses.
+ * Default contract: skills/md2asm/references/openifs/setup/operational_model_configuration.md.
+ * MD2ASM_RUNTIME_DISTRIBUTED_PARTITION adds bounded runtime metadata:
+ * skills/md2asm/references/openifs/setup/runtime_model_configuration.md.
+ */
 .arch armv8.2-a
 .text
 .macro AT dst,base,off
@@ -113,6 +115,26 @@ md2asm_attach_operational_model_configuration:
  ldr x9,[x20,#1840]
  cmp x9,x19
  b.ne .Lcfg_bad
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ ldr w9,[x22,#0]
+ sub w10,w9,#1
+ mov w11,#4095
+ cmp w10,w11
+ b.hi .Lcfg_bad
+ ldr w10,[x22,#4]
+ cmp w9,w10
+ b.ne .Lcfg_bad
+ ldr w9,[x22,#8]
+ sub w10,w9,#2
+ mov w11,#8190
+ cmp w10,w11
+ b.hi .Lcfg_bad
+ ldr w9,[x22,#12]
+ sub w10,w9,#1
+ mov w11,#32767
+ cmp w10,w11
+ b.hi .Lcfg_bad
+#else
  ldp w9,w10,[x22]
  cmp w9,#1279
  b.ne .Lcfg_bad
@@ -124,6 +146,7 @@ md2asm_attach_operational_model_configuration:
  mov w11,#5136
  cmp w10,w11
  b.ne .Lcfg_bad
+#endif
  ldr w9,[x22,#16]
  cmp w9,#137
  b.ne .Lcfg_bad
@@ -186,9 +209,19 @@ md2asm_attach_operational_model_configuration:
  mov x4,#51512
  bl md2asm_initialize_operational_forecast_controls
  cbnz w0,.Lcfg_child_failed
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ LW w9,x26,51760
+ sub w10,w9,#8
+ mov w11,#568
+ cmp w10,w11
+ b.hi .Lcfg_hour_refusal
+ tst w9,#7
+ b.ne .Lcfg_hour_refusal
+#else
  LW w9,x26,51760
  cmp w9,#8
  b.ne .Lcfg_hour_refusal
+#endif
  LW w9,x26,35688
  cmp w9,#1
  b.ne .Lcfg_hour_refusal
@@ -702,9 +735,15 @@ md2asm_associate_operational_model_partition:
  movk x10,#0x4450,lsl#48
  cmp x9,x10
  b.ne .Lcfg_bad_leaf
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ ldr w9,[x1,#16]
+ cmp w9,#7
+ b.ne .Lcfg_bad_leaf
+#else
  ldr w9,[x1,#16]
  cmp w9,#3
  b.ne .Lcfg_bad_leaf
+#endif
  ldr x9,[x0,#16]
  ldr x10,[x1]
  cmp x9,x10
@@ -713,6 +752,70 @@ md2asm_associate_operational_model_partition:
  ldr x11,[x10,#8]
  cmp x11,x9
  b.ne .Lcfg_bad_leaf
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ ldr w9,[x1,#24]
+ sub w16,w9,#1
+ mov w17,#65535
+ cmp w16,w17
+ b.hi .Lcfg_bad_leaf
+ ldp w10,w11,[x1,#32]
+ sub w16,w10,#1
+ cmp w16,w9
+ b.hs .Lcfg_bad_leaf
+ sub w16,w11,#1
+ cmp w16,w9
+ b.hs .Lcfg_bad_leaf
+ umull x16,w10,w11
+ cmp x16,x9
+ b.ne .Lcfg_bad_leaf
+ ldr w12,[x1,#28]
+ sub w13,w12,#1
+ cmp w13,w9
+ b.hs .Lcfg_bad_leaf
+ udiv w14,w13,w11
+ msub w15,w14,w11,w13
+ add w14,w14,#1
+ add w15,w15,#1
+ ldr w16,[x1,#64]
+ cmp w16,w14
+ b.ne .Lcfg_bad_leaf
+ ldr w16,[x1,#68]
+ cmp w16,w15
+ b.ne .Lcfg_bad_leaf
+ ldr w16,[x1,#96]
+ cmp w16,w9
+ b.ne .Lcfg_bad_leaf
+ ldr w16,[x1,#100]
+ cmp w16,w12
+ b.ne .Lcfg_bad_leaf
+ ldp w16,w17,[x1,#40]
+ ldr w12,[x1,#104]
+ cmp w12,w16
+ b.ne .Lcfg_bad_leaf
+ ldr w12,[x1,#108]
+ cmp w12,w17
+ b.ne .Lcfg_bad_leaf
+ ldr w16,[x1,#112]
+ cmp w16,w10
+ b.ne .Lcfg_bad_leaf
+ ldr w16,[x1,#116]
+ cmp w16,w11
+ b.ne .Lcfg_bad_leaf
+ ldr w16,[x1,#120]
+ cmp w16,w10
+ b.ne .Lcfg_bad_leaf
+ ldr w16,[x1,#124]
+ cmp w16,w15
+ b.ne .Lcfg_bad_leaf
+ ldr w16,[x1,#128]
+ cmp w16,w14
+ b.ne .Lcfg_bad_leaf
+ ldr x16,[x0,#16]
+ ldr w17,[x16,#5224]
+ add w17,w17,#1
+ cmp w11,w17
+ b.hi .Lcfg_bad_leaf
+#else
  ldr w10,[x1,#24]
  cmp w10,#4
  b.ne .Lcfg_bad_leaf
@@ -736,6 +839,7 @@ md2asm_associate_operational_model_partition:
  ldr w12,[x1,#124]
  cmp w12,w15
  b.ne .Lcfg_bad_leaf
+#endif
  AT x16,x0,67600
  ldp x9,x10,[x16]
  orr x9,x9,x10

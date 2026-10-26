@@ -1,7 +1,9 @@
-/* Live operational SUDYNA control intake, with unchanged accepted defaults.
- * x0 text,x1 bytes,x2 TDYNA456,x3 capacity,x4 controls32.
- * Complete spans, alignment, atomic publication and register obligations are
- * in skills/md2asm/references/openifs/setup/operational_dynamics_controls.md. No original dependency. */
+/* Live operational SUDYNA controls, using the accepted source order.
+ * ABI: x0 text, x1 bytes, x2 TDYNA456, x3 capacity, x4 controls32.
+ * Default contract: skills/md2asm/references/openifs/setup/operational_dynamics_controls.md.
+ * MD2ASM_RUNTIME_DISTRIBUTED_PARTITION uses bounded horizontal metadata:
+ * skills/md2asm/references/openifs/setup/runtime_model_configuration.md.
+ */
 .arch armv8.2-a
 .text
 .p2align 4
@@ -37,6 +39,34 @@ md2asm_initialize_operational_dynamics_controls:
 .Lod_controls_clear:
  mrs x9,fpcr
  cbnz x9,.Lod_bad_leaf
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ ldr w9,[x4,#0]
+ sub w10,w9,#1
+ mov w11,#32767
+ cmp w10,w11
+ b.hi .Lod_bad_leaf
+ ldr w9,[x4,#4]
+ sub w10,w9,#2
+ mov w11,#8190
+ cmp w10,w11
+ b.hi .Lod_bad_leaf
+ ldr w9,[x4,#8]
+ sub w10,w9,#1
+ mov w11,#4095
+ cmp w10,w11
+ b.hi .Lod_bad_leaf
+ ldr w10,[x4,#12]
+ cmp w9,w10
+ b.ne .Lod_bad_leaf
+ ldr x9,[x4,#16]
+ cmp x9,#1
+ b.ne .Lod_bad_leaf
+ ldr x9,[x4,#24]
+ mov x10,#1
+ lsl x10,x10,#32
+ cmp x9,x10
+ b.ne .Lod_bad_leaf
+#else
  adr x9,.Lod_controls
  mov x10,x4
  mov w11,#8
@@ -47,6 +77,7 @@ md2asm_initialize_operational_dynamics_controls:
  b.ne .Lod_bad_leaf
  subs w11,w11,#1
  b.ne .Lod_controls_next
+#endif
  sub sp,sp,#560
  stp x29,x30,[sp]
  stp x19,x20,[sp,#16]
@@ -102,7 +133,9 @@ md2asm_initialize_operational_dynamics_controls:
  ret
 .size md2asm_initialize_operational_dynamics_controls,.-md2asm_initialize_operational_dynamics_controls
 .p2align 3
+#ifndef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
 .Lod_controls: .word 5136,2560,1279,1279,1,0,0,1
+#endif
 .Lod_group: .ascii "NAMDYNA"
 .p2align 3
 .Lod_keys:
