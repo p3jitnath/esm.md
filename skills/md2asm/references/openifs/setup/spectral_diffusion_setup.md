@@ -51,3 +51,42 @@ The source sponge-layer setting KLSPONGE is 16 below 60 global layers, 8 from 60
 A bounded gate compared 19 direct cases with a verification helper containing selected original SUDYN control statements and complete SUHDIR. It covers both sides of the six upper thresholds, all four layer settings, actual global/local counts 137/69 and 137/68, and the supported maximum dimensions. Nine refusals cover critical bounds and short capacities. Complete records, all 80 scalar fields, reciprocal identities, immediate ABI/status, protected bounds and cleanup agree. Two internal MODEL pointers use their corresponding owner and offset; every other byte compares directly. Whole SUDYN and unchanged numerical banks were not replayed, and the main Fortran executable was not rebuilt.
 
 These results accept the runtime control entry. They do not extend the default coefficient/storage bounds of NSMAX at most 255 and global layers at most 59, or accept a complete setup, live forecast, or another resolution's forecast. Those providers must be extended from their consumed runtime metadata before a general forecast route is claimed. Unchanged numerical banks were reused without replay.
+
+## Runtime Coefficient And Storage Mode
+
+Build the same source with `MD2ASM_RUNTIME_DIFFUSION_FIELDS` to select the separately qualified runtime field interfaces. Diffusion reduces small-scale noise. This mode retains the original high-atmosphere pressure damping, which is needed by the 137-layer model. The default build and runtime-control build keep their separate bounds and arithmetic.
+
+The entries are `md2asm_allocate_runtime_spectral_diffusion_storage`, `md2asm_calculate_runtime_spectral_diffusion_coefficients` and `md2asm_release_runtime_spectral_diffusion_storage`. They use the default allocation, calculation and release argument registers and record capacities. The calculation reads RHOUR in seconds, VP00 in pascals and dimensionless RPLRADI from the same 24-byte constant input. All owners stay mapped, correctly aligned and separate through their last reader. Capacity checks cannot establish that an arbitrary address is mapped, so that remains a caller obligation.
+
+Let G be the global layer count, L the process-local layer count, N the largest spectral wave number and R the latitude count. Their live signed 32-bit fields obey these bounds.
+
+```math
+1 \leq G \leq 2\,147\,483\,646,\qquad 0 \leq L \leq G,\qquad 1 \leq N \leq 46\,340,\qquad N+1<R \leq 46\,341.
+```
+
+Longitude count is positive. These product bounds preserve the original signed integer n(n+1). Byte sizes and array positions use 64-bit integers without address wrap. The local map has exactly L integers from 1 through G and no target read when L is zero. TVAB has 512 bytes, with contiguous FP64 hybrid-pressure B and A descriptions at 64 and 128. Both arrays cover indices zero through G. These field bounds do not widen the separate upstream coordinate and control providers or establish complete-forecast support.
+
+The selected source branch has hydrostatic ECMWF semi-Lagrangian dynamics, cubic-grid selection, spectral viscosity, no spectral tracer fields and disabled classical/semi-Lagrangian diffusion. Source-produced diffusion times are finite and greater than one second. The time step and physical constants are finite and positive. The live sponge threshold and depth are finite. REXPDH is four. Where the original top-vorticity branch is reached, its truncation lies from 1 through 46,340 and its bottom layer lies from zero through G. All five output descriptions must have their declared source shapes and valid separate owners.
+
+| Owner | FP64 shape |
+| --- | --- |
+| RDIVOR and RDIDIV | L by N+1 |
+| RDITG | G by N+1 |
+| RDIGFL | L by N+1 by zero |
+| RDISP | N+1 |
+
+Allocation retains the source order and undefined payloads. Every empty allocation owns at least one byte. Complete GNU descriptions publish only after all five acquisitions succeed. Private failure frees partial owners in reverse order. Release follows the same reverse order and clears only the five bases. The incoming layer map and hybrid-pressure A and B owners remain borrowed.
+
+The original pressure branch applies when half of A(1), rounded in FP64, is at most 10.5 Pa. Here A, the half-level pressure H and the layer pressure P are in pascals, B is dimensionless, and P0 is the input VP00. The dimensionless sponge threshold b selects where damping starts. Form each expression with its original separate operations and average the adjacent rounded half-level pressures.
+
+```math
+H_j=A_j+B_jP_0,\qquad P_j=0.5(H_j+H_{j-1}),\qquad z_j=\max\left\{b,\ 1+7.5\left[3-\log_{10}\left(\frac{P_j}{1\,\mathrm{Pa}}\right)\right]\right\}.
+```
+
+The pressure profile retains its complete range. The other branch retains the accepted level-based profile and source reset of b to one. Nonpositive or nonfinite pressure refuses after freeing private profile storage and before any public coefficient write.
+
+The complete ordered PDISPEL expression stays unchanged. Wind coefficients use the local map, while temperature spans all global layers. Retain the original pressure-dependent divergence terms and later top-vorticity overwrite with its HDIRDIV divisor and default-REAL conversion. Global one-layer work starts from the original zero coefficients. Empty local wind work leaves global temperature work active. Spectral viscosity uses the original N/2 threshold below N=1,999 and N-800 from that value onward. Its original diagnostic divisions retain their source local index into the global temperature array. Every address uses the corresponding local or global leading extent.
+
+The new runtime route calls the same public `log10` and `exp` functions as the unchanged original reference, with actual loaded bindings checked. These are allowed mathematical-library interfaces. The directly emitted power child remains unchanged. No original OpenIFS routine or state supplies a production stage. Keep separate FP64 operations, nearest-even rounding, gradual underflow, signed zeros, natural flags and errno. The application binary interface preserves x18, saved registers, stack alignment and FPCR. Frames remain 192 bytes for allocation, 288 for calculation and 64 for release, with the accepted private shape and power depths in addition. Public library internals are outside these private frame bounds.
+
+Six source/native cases pass all 42 calls with zero differing output bytes. They cover the retained 19-layer profile, actual 137-layer pressure inputs with a reordered 17-layer local map, both selected below-91 pressure branches, N=1,999, empty local wind arrays and one global layer. Complete defined MODEL records, descriptions and payloads match with only the declared owner-address correspondence. Immediate FPCR, FPSR and errno agree. Six critical refusals preserve their declared public state, including an explicitly initialized payload preimage for invalid pressure. All 168 saved files total 191,291,832 bytes. The independent 96-digit physical check passes 727,857 relations for pressure damping, viscosity, mean preservation and non-positive modal-energy change. Native ABI checks, input preservation, complete normal release, guard and file-handle cleanup, restored verification globals and process termination pass. These are component results. Full source-ordered setup, wider upstream providers and a complete autonomous forecast remain separate work, and no timing is claimed.

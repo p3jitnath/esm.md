@@ -2,9 +2,15 @@
  * Contract: skills/md2asm/references/openifs/setup/spectral_diffusion_setup.md.
  * Inputs are live owned records. No original OpenIFS callable or state.
  * MD2ASM_RUNTIME_DIFFUSION_CONTROLS selects only the separately qualified
- * runtime control entry. Default coefficient/storage bounds stay unchanged. */
+ * runtime control entry. MD2ASM_RUNTIME_DIFFUSION_FIELDS selects the runtime
+ * coefficient/storage entries. Default coefficient/storage bounds stay unchanged. */
 #ifdef MD2ASM_RUNTIME_DIFFUSION_CONTROLS
 #define md2asm_initialize_spectral_diffusion_controls md2asm_initialize_runtime_spectral_diffusion_controls
+#endif
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+#define md2asm_allocate_spectral_diffusion_storage md2asm_allocate_runtime_spectral_diffusion_storage
+#define md2asm_calculate_spectral_diffusion_coefficients md2asm_calculate_runtime_spectral_diffusion_coefficients
+#define md2asm_release_spectral_diffusion_storage md2asm_release_runtime_spectral_diffusion_storage
 #endif
 .arch armv8.2-a
 .text
@@ -152,6 +158,30 @@
 .Lsd_records_disjoint:
  mrs x8,fpcr
  cbnz x8,.Lsd_invalid
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ ldr w8,[x0,#G_NFLEVG]
+ cmp w8,#1
+ b.lt .Lsd_invalid
+ mov w12,#0x7ffffffe
+ cmp w8,w12
+ b.hi .Lsd_invalid
+ ldr w9,[x0,#G_NFLEVL]
+ cmp w9,w8
+ b.hi .Lsd_invalid
+ ldr w9,[x0,#G_NSMAX]
+ cmp w9,#1
+ b.lt .Lsd_invalid
+ mov w12,#46340
+ cmp w9,w12
+ b.hi .Lsd_invalid
+ ldr w10,[x0,#G_NDGLG]
+ add w11,w9,#1
+ cmp w10,w11
+ b.le .Lsd_invalid
+ add w12,w12,#1
+ cmp w10,w12
+ b.hi .Lsd_invalid
+#else
  ldr w8,[x0,#G_NFLEVG]
 #ifdef MD2ASM_RUNTIME_DIFFUSION_CONTROLS
  cmp w8,#1
@@ -189,6 +219,7 @@
  cmp w10,#1024
 #endif
  b.hi .Lsd_invalid
+#endif
  ldr w10,[x0,#G_NDLON]
  cmp w10,#1
  b.lt .Lsd_invalid
@@ -256,6 +287,81 @@
  ldr w11,[x10,#56]
  cbnz w11,.Lsd_invalid
 #ifndef MD2ASM_RUNTIME_DIFFUSION_CONTROLS
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ address x10,x2,M_LHDIFFM
+ ldr w11,[x10]
+ cbnz w11,.Lsd_invalid
+ address x10,x2,M_LSPECVIS
+ ldr w11,[x10]
+ cmp w11,#1
+ b.ne .Lsd_invalid
+ /* Local map descriptions remain valid for an empty local range. */
+ address x10,x0,G_MYLEVS
+ ldr x12,[x10,#16]
+ cmp x12,#4
+ b.ne .Lsd_invalid
+ ldr x12,[x10,#40]
+ cmp x12,#1
+ b.ne .Lsd_invalid
+ ldr x12,[x10,#48]
+ cmp x12,#1
+ b.ne .Lsd_invalid
+ ldr w14,[x0,#G_NFLEVL]
+ ldr x12,[x10,#56]
+ cmp x12,x14
+ b.ne .Lsd_invalid
+ cbz w14,.Lsd_runtime_map_done
+ ldr x11,[x10]
+ cbz x11,.Lsd_invalid
+ tst x11,#3
+ b.ne .Lsd_invalid
+ lsl x12,x14,#2
+ adds x12,x11,x12
+ b.cs .Lsd_invalid
+ mov x12,#0
+.Lsd_runtime_map_check:
+ ldr w13,[x11,x12,lsl#2]
+ cmp w13,#1
+ b.lt .Lsd_invalid
+ cmp w13,w8
+ b.gt .Lsd_invalid
+ add x12,x12,#1
+ cmp x12,x14
+ b.lo .Lsd_runtime_map_check
+.Lsd_runtime_map_done:
+ /* TVAB contains eight GNU 64-byte descriptions. VBH precedes VAH. */
+ ldr x10,[x0,#G_YRVAB_pointer]
+ cbz x10,.Lsd_invalid
+ tst x10,#7
+ b.ne .Lsd_invalid
+ adds x11,x10,#512
+ b.cs .Lsd_invalid
+ add x10,x10,#64
+ mov w14,#2
+.Lsd_runtime_hybrid_check:
+ ldr x11,[x10]
+ cbz x11,.Lsd_invalid
+ tst x11,#7
+ b.ne .Lsd_invalid
+ add x12,x8,#1
+ lsl x12,x12,#3
+ adds x12,x11,x12
+ b.cs .Lsd_invalid
+ ldr x12,[x10,#16]
+ cmp x12,#8
+ b.ne .Lsd_invalid
+ ldr x12,[x10,#40]
+ cmp x12,#1
+ b.ne .Lsd_invalid
+ ldr x12,[x10,#48]
+ cbnz x12,.Lsd_invalid
+ ldr x12,[x10,#56]
+ cmp x12,x8
+ b.ne .Lsd_invalid
+ add x10,x10,#64
+ subs w14,w14,#1
+ b.ne .Lsd_runtime_hybrid_check
+#else
  /* Live full-level mapping, with a contiguous int32 descriptor. */
  address x10,x0,G_MYLEVS
  ldr x11,[x10]
@@ -313,6 +419,7 @@
  fcmp d0,d1
  b.le .Lsd_invalid
 #endif
+#endif
  mov w0,#0
  ret
 .Lsd_invalid:
@@ -356,6 +463,7 @@
  mov w0,#0
  ret
 
+#ifndef MD2ASM_RUNTIME_DIFFUSION_FIELDS
 .p2align 4
 .global md2asm_initialize_spectral_diffusion_controls
 .type md2asm_initialize_spectral_diffusion_controls,%function
@@ -845,6 +953,7 @@ md2asm_initialize_spectral_diffusion_controls:
  ldp x29,x30,[sp],#80
  ret
 .size md2asm_initialize_spectral_diffusion_controls,.-md2asm_initialize_spectral_diffusion_controls
+#endif
 
 #ifndef MD2ASM_RUNTIME_DIFFUSION_CONTROLS
 .p2align 4
@@ -876,7 +985,12 @@ md2asm_allocate_spectral_diffusion_storage:
  address x8,x20,1565504
  ldr x9,[x8]
  cbnz x9,.Lsd_alloc_bad
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ ldr w21,[x19,#G_NFLEVL]
+ ldr w25,[x19,#G_NFLEVG]
+#else
  ldr w21,[x19,#G_NFLEVG]
+#endif
  ldr w22,[x19,#G_NSMAX]
  add x22,x22,#1
  mul x23,x21,x22
@@ -886,12 +1000,26 @@ md2asm_allocate_spectral_diffusion_storage:
  str xzr,[sp,#128]
  mov w24,#0
 .Lsd_allocate_loop:
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ cmp w24,#2
+ b.eq .Lsd_alloc_global
+#endif
  cmp w24,#3
  b.eq .Lsd_alloc_empty
  cmp w24,#4
  b.eq .Lsd_alloc_surface
  mov x0,x23
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ cmp x0,#1
+ csinc x0,x0,xzr,hs
+#endif
  b .Lsd_alloc_call
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+.Lsd_alloc_global:
+ mul x0,x25,x22
+ lsl x0,x0,#3
+ b .Lsd_alloc_call
+#endif
 .Lsd_alloc_empty:
  mov x0,#1
  b .Lsd_alloc_call
@@ -967,8 +1095,13 @@ md2asm_allocate_spectral_diffusion_storage:
  str x9,[x8,#40]
  mov x9,#1
  str x9,[x8,#48]
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ str x25,[x8,#56]
+ str x25,[x8,#64]
+#else
  str x21,[x8,#56]
  str x21,[x8,#64]
+#endif
  str xzr,[x8,#72]
  sub x9,x22,#1
  str x9,[x8,#80]
@@ -1121,6 +1254,9 @@ md2asm_calculate_spectral_diffusion_coefficients:
  bl .Lsd_constants
  cbnz w0,.Lsd_calculate_return
  ldr w22,[x19,#G_NFLEVG]
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ ldr w28,[x19,#G_NFLEVL]
+#endif
  ldr w23,[x19,#G_NSMAX]
  ldr w24,[x19,#G_NDGLG]
  sub w24,w24,#1
@@ -1139,10 +1275,18 @@ md2asm_calculate_spectral_diffusion_coefficients:
  cmp x9,#1
  b.ne .Lsd_calculate_bad
  ldr x9,[x8,#56]
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ cmp x9,x28
+#else
  cmp w9,w22
+#endif
  b.ne .Lsd_calculate_bad
  ldr x9,[x8,#64]
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ cmp x9,x28
+#else
  cmp w9,w22
+#endif
  b.ne .Lsd_calculate_bad
  ldr x9,[x8,#72]
  cbnz x9,.Lsd_calculate_bad
@@ -1164,10 +1308,18 @@ md2asm_calculate_spectral_diffusion_coefficients:
  cmp x9,#1
  b.ne .Lsd_calculate_bad
  ldr x9,[x8,#56]
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ cmp x9,x28
+#else
  cmp w9,w22
+#endif
  b.ne .Lsd_calculate_bad
  ldr x9,[x8,#64]
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ cmp x9,x28
+#else
  cmp w9,w22
+#endif
  b.ne .Lsd_calculate_bad
  ldr x9,[x8,#72]
  cbnz x9,.Lsd_calculate_bad
@@ -1214,10 +1366,18 @@ md2asm_calculate_spectral_diffusion_coefficients:
  cmp x9,#1
  b.ne .Lsd_calculate_bad
  ldr x9,[x8,#56]
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ cmp x9,x28
+#else
  cmp w9,w22
+#endif
  b.ne .Lsd_calculate_bad
  ldr x9,[x8,#64]
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ cmp x9,x28
+#else
  cmp w9,w22
+#endif
  b.ne .Lsd_calculate_bad
  ldr x9,[x8,#72]
  cbnz x9,.Lsd_calculate_bad
@@ -1270,10 +1430,74 @@ md2asm_calculate_spectral_diffusion_coefficients:
  b.eq .Lsd_calculate_bad
  cbz x9,.Lsd_calculate_bad
  fmov d15,x9
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ ldr x8,[x19,#G_YRVAB_pointer]
+ ldr x9,[x8,#128]
+ str x9,[sp,#176]
+ ldr x10,[x8,#64]
+ str x10,[sp,#184]
+ ldr d0,[x21,#8]
+ str d0,[sp,#200]
+ ldr x9,[x9,#8]
+ ubfx x10,x9,#52,#11
+ cmp x10,#2047
+ b.eq .Lsd_calculate_bad
+ fmov d0,x9
+ fmov d1,#0.5
+ fmul d0,d1,d0
+ fmov d1,#10.5
+ fcmp d0,d1
+ cset w8,le
+ str w8,[sp,#208]
+ address x8,x20,M_RBEGSPONGE
+ ldr x9,[x8]
+ ubfx x10,x9,#52,#11
+ cmp x10,#2047
+ b.eq .Lsd_calculate_bad
+ str x9,[sp,#192]
+ /* Source diffusion controls must be finite, including the sponge depth. */
+ address x8,x20,M_HDIRVOR
+ mov w11,#3
+.Lsd_runtime_times_check:
+ ldr x9,[x8],#8
+ ubfx x10,x9,#52,#11
+ cmp x10,#2047
+ b.eq .Lsd_calculate_bad
+ subs w11,w11,#1
+ b.ne .Lsd_runtime_times_check
+ address x8,x20,M_KLSPONGE
+ ldr x9,[x8]
+ ubfx x10,x9,#52,#11
+ cmp x10,#2047
+ b.eq .Lsd_calculate_bad
+ address x8,x20,M_LTOP_VOR
+ ldr w9,[x8]
+ cmp w9,#1
+ b.hi .Lsd_calculate_bad
+ ldr w10,[sp,#208]
+ cbz w10,.Lsd_runtime_top_checked
+ cmp w22,#91
+ b.lt .Lsd_runtime_top_checked
+ cbz w9,.Lsd_runtime_top_checked
+ ldr w9,[x8,#4]
+ cmp w9,#1
+ b.lt .Lsd_calculate_bad
+ mov w10,#46340
+ cmp w9,w10
+ b.hi .Lsd_calculate_bad
+ ldr w9,[x8,#8]
+ cmp w9,w22
+ b.hi .Lsd_calculate_bad
+.Lsd_runtime_top_checked:
+#endif
  lsl x0,x22,#3
  bl malloc
  cbz x0,.Lsd_calculate_bad
  mov x25,x0
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ ldr w8,[sp,#208]
+ cbnz w8,.Lsd_runtime_pressure_profile
+#endif
  /* Source integer power uses its ordered square-and-multiply route. */
  mov w26,#1
 .Lsd_profile_loop:
@@ -1313,11 +1537,176 @@ md2asm_calculate_spectral_diffusion_coefficients:
  address x8,x20,1565712
  fmov d0,#1.0
  str d0,[x8]
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ str d0,[sp,#192]
+ b .Lsd_runtime_profile_done
+.Lsd_runtime_pressure_profile:
+ ldr x8,[sp,#176]
+ ldr d0,[x8]
+ ldr x8,[sp,#184]
+ ldr d1,[x8]
+ ldr d2,[sp,#200]
+ fmul d1,d1,d2
+ fadd d14,d0,d1
+ mov w26,#1
+.Lsd_runtime_pressure_level:
+ ldr x8,[sp,#176]
+ ldr d0,[x8,x26,lsl#3]
+ ldr x8,[sp,#184]
+ ldr d1,[x8,x26,lsl#3]
+ ldr d2,[sp,#200]
+ fmul d1,d1,d2
+ fadd d13,d0,d1
+ fadd d0,d13,d14
+ fmov d1,#0.5
+ fmul d0,d1,d0
+ /* Invalid pressure stops before any public array write. */
+ fmov x8,d0
+ tbnz x8,#63,.Lsd_runtime_profile_failed
+ cbz x8,.Lsd_runtime_profile_failed
+ ubfx x9,x8,#52,#11
+ cmp x9,#2047
+ b.eq .Lsd_runtime_profile_failed
+ bl log10
+ fmov d1,#3.0
+ fsub d0,d1,d0
+ fmov d1,#7.5
+ fmul d0,d1,d0
+ fmov d1,#1.0
+ fadd d0,d1,d0
+ ldr d1,[sp,#192]
+ fmax d0,d1,d0
+ sub w8,w26,#1
+ str d0,[x25,x8,lsl#3]
+ fmov d14,d13
+ add w26,w26,#1
+ cmp w26,w22
+ b.le .Lsd_runtime_pressure_level
+.Lsd_runtime_profile_done:
+#endif
  /* Source ZZDIR is evaluated even when its later branch is inactive. */
  address x8,x20,M_NDIFFACT
  ldr w8,[x8]
  scvtf d0,w8
  fmul d0,d0,d15
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ mov w26,#0
+.Lsd_wave_loop:
+ mov w27,#0
+ cbz w28,.Lsd_runtime_wind_done
+.Lsd_wind_level_loop:
+ cmp w22,#1
+ b.eq .Lsd_zero_wind
+ address x8,x19,G_MYLEVS
+ ldr x8,[x8]
+ ldr w9,[x8,x27,lsl#2]
+ str w9,[sp,#216]
+ sub w9,w9,#1
+ ldr d8,[x25,x9,lsl#3]
+ ldr d0,[sp,#192]
+ fcmp d8,d0
+ b.le .Lsd_zero_wind
+ fsub d8,d8,d0
+ mov w0,w26
+ mov w1,w24
+ fmov d0,d8
+ fmov d1,#4.0
+ bl .Lsd_shape
+ address x8,x20,M_HDIRVOR
+ ldr d1,[x8]
+ fdiv d9,d0,d1
+ mov w0,w26
+ mov w1,w24
+ fmov d0,d8
+ fmov d1,#4.0
+ bl .Lsd_shape
+ fmov d10,d0
+ ldr w8,[sp,#208]
+ cbz w8,.Lsd_runtime_divide_divergence
+ cmp w22,#91
+ b.ge .Lsd_runtime_large_pressure_divergence
+ scvtf d0,w24
+ ldr d1,[x21,#16]
+ fdiv d0,d0,d1
+ adrp x8,.Lsd_runtime_200
+ ldr d1,[x8,:lo12:.Lsd_runtime_200]
+ fcmp d0,d1
+ b.le .Lsd_runtime_divide_divergence
+ mov w0,w26
+ mov w1,w24
+ bl .Lsd_runtime_wave_fraction
+ fmul d0,d0,d0
+ fmov d1,#5.0
+ fmul d0,d1,d0
+ b .Lsd_runtime_depth_term
+.Lsd_runtime_large_pressure_divergence:
+ mov w0,w26
+ mov w1,w24
+ bl .Lsd_runtime_wave_fraction
+.Lsd_runtime_depth_term:
+ address x8,x20,M_KLSPONGE
+ ldr d1,[x8]
+ ldr w8,[sp,#216]
+ scvtf d2,w8
+ fsub d1,d1,d2
+ fmov d2,xzr
+ fmax d1,d1,d2
+ fmul d0,d0,d1
+ fadd d10,d10,d0
+.Lsd_runtime_divide_divergence:
+ address x8,x20,M_HDIRDIV
+ ldr d1,[x8]
+ fdiv d10,d10,d1
+ ldr w8,[sp,#208]
+ cbz w8,.Lsd_store_wind
+ cmp w22,#91
+ b.lt .Lsd_store_wind
+ address x8,x20,M_LTOP_VOR
+ ldr w8,[x8]
+ cbz w8,.Lsd_store_wind
+ /* Preserve the source's later overwrite and its divergence divisor. */
+ mov w0,w26
+ mov w1,w24
+ fmov d0,d8
+ fmov d1,#4.0
+ bl .Lsd_shape
+ fmov d9,d0
+ mov w0,w26
+ address x8,x20,M_NTOP_VOR_TRUNC
+ ldr w1,[x8]
+ bl .Lsd_runtime_wave_fraction
+ fmov d1,#4.0
+ bl md2asm_pow_original_rounding_candidate
+ address x8,x20,M_NTOP_VOR_BOT
+ ldr w8,[x8]
+ ldr w9,[sp,#216]
+ sub w8,w8,w9
+ scvtf s1,w8
+ fcvt d1,s1
+ fmov d2,xzr
+ fmax d1,d1,d2
+ fmul d0,d0,d1
+ fadd d9,d9,d0
+ address x8,x20,M_HDIRDIV
+ ldr d1,[x8]
+ fdiv d9,d9,d1
+ b .Lsd_store_wind
+.Lsd_zero_wind:
+ fmov d9,xzr
+ fmov d10,xzr
+.Lsd_store_wind:
+ madd x9,x26,x28,x27
+ address x8,x20,M_RDIVOR
+ ldr x8,[x8]
+ str d9,[x8,x9,lsl#3]
+ address x8,x20,M_RDIDIV
+ ldr x8,[x8]
+ str d10,[x8,x9,lsl#3]
+ add w27,w27,#1
+ cmp w27,w28
+ b.lo .Lsd_wind_level_loop
+.Lsd_runtime_wind_done:
+#else
  mov w26,#0
 .Lsd_wave_loop:
  mov w27,#0
@@ -1363,10 +1752,19 @@ md2asm_calculate_spectral_diffusion_coefficients:
  add w27,w27,#1
  cmp w27,w22
  b.lo .Lsd_wind_level_loop
+#endif
  mov w27,#0
 .Lsd_temperature_loop:
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ cmp w22,#1
+ b.eq .Lsd_zero_temperature
+#endif
  ldr d8,[x25,x27,lsl#3]
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ ldr d0,[sp,#192]
+#else
  fmov d0,#1.0
+#endif
  fcmp d8,d0
  b.le .Lsd_zero_temperature
  fsub d8,d8,d0
@@ -1382,7 +1780,11 @@ md2asm_calculate_spectral_diffusion_coefficients:
 .Lsd_zero_temperature:
  fmov d0,xzr
 .Lsd_store_temperature:
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ madd x9,x26,x22,x27
+#else
  madd w9,w26,w22,w27
+#endif
  address x8,x20,1565128
  ldr x8,[x8]
  str d0,[x8,x9,lsl#3]
@@ -1402,6 +1804,11 @@ md2asm_calculate_spectral_diffusion_coefficients:
  fdiv d11,d1,d0
  fdiv d11,d11,d15
  lsr w24,w23,#1
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ cmp w23,#1999
+ sub w8,w23,#800
+ csel w24,w8,w24,ge
+#endif
  mov w26,#0
 .Lsd_viscosity_loop:
  cmp w26,w24
@@ -1415,7 +1822,11 @@ md2asm_calculate_spectral_diffusion_coefficients:
  scvtf d1,w8
  fmul d1,d1,d1
  fdiv d0,d0,d1
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ bl exp
+#else
  bl md2asm_exp_original_rounding
+#endif
  fmov d8,d0
  add w8,w26,#1
  mul w8,w26,w8
@@ -1433,8 +1844,15 @@ md2asm_calculate_spectral_diffusion_coefficients:
  fmov d12,xzr
 .Lsd_add_viscosity:
  mov w27,#0
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ cbz w28,.Lsd_runtime_viscosity_wind_done
+#endif
 .Lsd_add_viscosity_wind:
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ madd x9,x26,x28,x27
+#else
  madd w9,w26,w22,w27
+#endif
  address x8,x20,1564952
  ldr x8,[x8]
  ldr d0,[x8,x9,lsl#3]
@@ -1446,11 +1864,22 @@ md2asm_calculate_spectral_diffusion_coefficients:
  fadd d0,d0,d12
  str d0,[x8,x9,lsl#3]
  add w27,w27,#1
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ cmp w27,w28
+#else
  cmp w27,w22
+#endif
  b.lo .Lsd_add_viscosity_wind
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+.Lsd_runtime_viscosity_wind_done:
+#endif
  mov w27,#0
 .Lsd_add_viscosity_temperature:
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ madd x9,x26,x22,x27
+#else
  madd w9,w26,w22,w27
+#endif
  address x8,x20,1565128
  ldr x8,[x8]
  ldr d0,[x8,x9,lsl#3]
@@ -1466,9 +1895,18 @@ md2asm_calculate_spectral_diffusion_coefficients:
  cmp w26,w23
  b.le .Lsd_viscosity_loop
  /* Retain the source diagnostic divisions and their arithmetic status. */
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ cbz w28,.Lsd_runtime_diagnostics_done
+ sub w27,w28,#1
+#else
  sub w27,w22,#1
+#endif
 .Lsd_diagnostic_level:
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ madd x9,x23,x28,x27
+#else
  madd w9,w23,w22,w27
+#endif
  address x8,x20,1564952
  ldr x8,[x8]
  ldr d0,[x8,x9,lsl#3]
@@ -1481,6 +1919,9 @@ md2asm_calculate_spectral_diffusion_coefficients:
  ldr d1,[x21]
  fdiv d0,d0,d1
 .Lsd_diagnostic_skip_rdivor:
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ madd x9,x23,x22,x27
+#endif
  address x8,x20,1565128
  ldr x8,[x8]
  ldr d0,[x8,x9,lsl#3]
@@ -1493,6 +1934,9 @@ md2asm_calculate_spectral_diffusion_coefficients:
  ldr d1,[x21]
  fdiv d0,d0,d1
 .Lsd_diagnostic_skip_rditg:
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+ madd x9,x23,x28,x27
+#endif
  address x8,x20,1565040
  ldr x8,[x8]
  ldr d0,[x8,x9,lsl#3]
@@ -1507,10 +1951,18 @@ md2asm_calculate_spectral_diffusion_coefficients:
 .Lsd_diagnostic_skip_rdidiv:
  subs w27,w27,#1
  b.ge .Lsd_diagnostic_level
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+.Lsd_runtime_diagnostics_done:
+#endif
  mov x0,x25
  bl free
  mov w0,#0
  b .Lsd_calculate_return
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+.Lsd_runtime_profile_failed:
+ mov x0,x25
+ bl free
+#endif
 .Lsd_calculate_bad:
  mov w0,#2
 .Lsd_calculate_return:
@@ -1527,6 +1979,21 @@ md2asm_calculate_spectral_diffusion_coefficients:
  ldp x29,x30,[sp],#288
  ret
 .size md2asm_calculate_spectral_diffusion_coefficients,.-md2asm_calculate_spectral_diffusion_coefficients
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+/* Ordered normalized wave number used by source upper-atmosphere terms. */
+.Lsd_runtime_wave_fraction:
+ add w8,w0,#1
+ mul w8,w0,w8
+ scvtf d0,w8
+ add w8,w1,#1
+ mul w8,w1,w8
+ scvtf d1,w8
+ fdiv d0,d0,d1
+ fsqrt d0,d0
+ fmov d2,xzr
+ fmax d0,d0,d2
+ ret
+#endif
 /* Ordered original PDISPEL, including its zero-weighted second term. */
 .p2align 4
 .Lsd_shape:
@@ -1600,6 +2067,9 @@ md2asm_calculate_spectral_diffusion_coefficients:
 .p2align 3
 .Lsd_1p3: .double 1.3
 .Lsd_small_threshold: .double 1e-7
+#ifdef MD2ASM_RUNTIME_DIFFUSION_FIELDS
+.Lsd_runtime_200: .double 200.0
+#endif
 
 #endif
 
