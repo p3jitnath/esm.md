@@ -126,7 +126,7 @@ The [basic formulations](formulations/openifs/README.md) explain the physical ba
 
 ## Notes
 
-The existing 9 km case has 137 atmospheric layers and 6,599,680 horizontal points. The requested operational run has a one-hour lead time, using eight 450-second steps and four processes. Its separate run configuration changes only the stop time and process count. The following setup and input components pass complete byte comparisons and their required independent checks. These are component results. No complete operational forecast is accepted.
+The existing 9 km case has 137 atmospheric layers and 6,599,680 horizontal points. The current target is a 24-hour forecast with 192 steps of 450 seconds on 32 nodes, using 768 MPI processes and six OpenMP threads per process. MPI lets processes exchange data, while OpenMP lets threads share work within a process. Earlier component checks used a one-hour, four-process configuration. The following setup and input components pass complete byte comparisons and their required independent checks within their stated bounds. No complete operational forecast is accepted.
 
 | Accepted component | Checked extent or result |
 | --- | --- |
