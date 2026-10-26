@@ -1,21 +1,52 @@
 /* Contract: skills/md2asm/references/openifs/setup/operational_distributed_partition.md.
  * x0 text, x1 bytes, w2 world4. Return0 accepts the source process group,2 refuses.
- * Integer-only leaf. Preserve saved registers and numerical status. */
+ * Integer-only leaf. Preserve saved registers and numerical status.
+ * Runtime mode adds x3 out8/x4 capacity and uses the runtime process contract. */
 .arch armv8.2-a
 .text
 .p2align 4
-.global md2asm_operational_process_configuration_group
-.type md2asm_operational_process_configuration_group,%function
-md2asm_operational_process_configuration_group:
+#ifdef MD2ASM_RUNTIME_PROCESS_CONFIGURATION
+#define MD2ASM_PROCESS_GROUP_ENTRY md2asm_runtime_process_configuration_group
+#else
+#define MD2ASM_PROCESS_GROUP_ENTRY md2asm_operational_process_configuration_group
+#endif
+.global MD2ASM_PROCESS_GROUP_ENTRY
+.type MD2ASM_PROCESS_GROUP_ENTRY,%function
+MD2ASM_PROCESS_GROUP_ENTRY:
+#ifdef MD2ASM_RUNTIME_PROCESS_CONFIGURATION
+ sub sp,sp,#16
+ str x3,[sp]
+ mov w16,w2
+ mov w17,#0
+ cmp w16,#1
+ b.lt .Lprocess_group_reject
+ cmp w16,#16,lsl#12
+ b.gt .Lprocess_group_reject
+ cbz x3,.Lprocess_group_reject
+ tst x3,#7
+ b.ne .Lprocess_group_reject
+ cmp x4,#8
+ b.lo .Lprocess_group_reject
+ adds x10,x3,#8
+ b.cs .Lprocess_group_reject
+#else
  mov x16,x2
  cmp w16,#4
  b.ne .Lprocess_group_reject
+#endif
  adr x6,.Lprocess_group_name1
  mov x12,#7
  cbz x0,.Lprocess_group_reject
  cbz x1,.Lprocess_group_reject
  adds x9,x0,x1
  b.cs .Lprocess_group_reject
+#ifdef MD2ASM_RUNTIME_PROCESS_CONFIGURATION
+ cmp x3,x9
+ b.hs .Lruntime_text_output_separate
+ cmp x0,x10
+ b.lo .Lprocess_group_reject
+.Lruntime_text_output_separate:
+#endif
  mov x2,#0
  mov x13,#0
 .Lprocess_group_line:
@@ -224,6 +255,22 @@ md2asm_operational_process_configuration_group:
  b .Lassignment_integer
 .Lassignment_integer_done:
  cbz x5,.Lprocess_group_reject
+#ifdef MD2ASM_RUNTIME_PROCESS_CONFIGURATION
+ cmp x14,#9
+ b.ne .Lruntime_other_integer
+ mov w7,#0x4240
+ movk w7,#0xf,lsl#16
+ cmp w9,w7
+ b.hi .Lprocess_group_reject
+ mov w17,w9
+ b .Lassignment_value_end
+.Lruntime_other_integer:
+ cmp x14,#8
+ b.ne .Lruntime_integer_compare
+ cbnz w9,.Lruntime_integer_compare
+ mov w9,#1
+.Lruntime_integer_compare:
+#endif
  cmp w9,w10
  b.ne .Lprocess_group_reject
  b .Lassignment_value_end
@@ -285,12 +332,20 @@ md2asm_operational_process_configuration_group:
  mov x9,#8191
  cmp x15,x9
  b.ne .Lprocess_group_reject
+#ifdef MD2ASM_RUNTIME_PROCESS_CONFIGURATION
+ ldr x9,[sp]
+ stp w16,w17,[x9]
+ add sp,sp,#16
+#endif
  mov w0,#0
  ret
 .Lprocess_group_reject:
+#ifdef MD2ASM_RUNTIME_PROCESS_CONFIGURATION
+ add sp,sp,#16
+#endif
  mov w0,#2
  ret
-.size md2asm_operational_process_configuration_group,.-md2asm_operational_process_configuration_group
+.size MD2ASM_PROCESS_GROUP_ENTRY,.-MD2ASM_PROCESS_GROUP_ENTRY
 .section .rodata
 .p2align 2
 .Lprocess_group_name1: .ascii "NAMPAR0"
