@@ -57,7 +57,8 @@ md2asm_set_runtime_grib_packing:
  cmp w11,#64
  b.hi .Lpacking_invalid
  ldr w11,[x10,#12]
- cmp w11,#64
+ add w11,w11,#1
+ cmp w11,#65
  b.hi .Lpacking_invalid
  ldr w11,[x10,#16]
  cmp w11,#1

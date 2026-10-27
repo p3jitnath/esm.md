@@ -18,7 +18,7 @@ The first eight arguments use Arm registers x0 to x7. The final two use successi
 | Incoming stack 0 | Signed 32-bit spectral truncation stored in an eight-byte argument slot |
 | Incoming stack 8 | Address of six signed 32-bit controls |
 
-The six controls are current simulation index, source linearisation index, log-pressure bit count, expression bit count, forced geopotential switch and forced log-pressure switch. Bit counts are from 0 to 64 and switches are zero or one. FP64 values need eight-byte alignment and the controls need four-byte alignment. All input spans must be mapped, stable, disjoint and nonwrapping. The caller keeps ownership of the handle and all buffers.
+The six controls are current simulation index, source linearisation index, log-pressure bit count, expression bit count, forced geopotential switch and forced log-pressure switch. The log-pressure bit count is from 0 to 64. The expression bit count is from −1 to 64, where −1 keeps the original default policy and does not force a bit count. Switches are zero or one. FP64 values need eight-byte alignment and the controls need four-byte alignment. All input spans must be mapped, stable, disjoint and nonwrapping. The caller keeps ownership of the handle and all buffers.
 
 Spectral truncation $`N`$ is from 1 to 4,096 and requires exactly $`(N+1)(N+2)`$ values. Grid fields do not consume the truncation. The positive largest finite FP64 value is the source missing-data marker.
 
@@ -34,4 +34,4 @@ The entry returns zero on success, a public-service error after a failed setter 
 
 Eight spectral profiles cover truncations 1, 21, 31 and 213, both forced settings, gradient and level dispatch, and exponent clamping. Four grid profiles cover range policy, a constant field, an explicit bit count and a missing value. All 110,470 encoded message bytes match the separate original Fortran control. Immediate machine state, complete input guards and two prewrite refusals also pass. The grid comparison uses the same initialized public Multio service under its default encoding policy.
 
-This is component acceptance. Operational output fields, headers, time metadata, configured service initialisation, complete file writing and the full forecast remain separate integration requirements. Local source versions, build commands, diagnostics and comparison records remain under `.runtime/`.
+The enclosing [runtime template and field comparison](runtime_grib_encoding.md) also accepts the source default expression count of −1, an explicit count of 12 and the complete field caller. The guard extension changes only integer admission and preserves every numerical instruction. This remains component acceptance. Complete operational file writing and the full forecast require their own integration checks. Local source versions, build commands, diagnostics and comparison records remain under `.runtime/`.
