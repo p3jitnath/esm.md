@@ -1,0 +1,534 @@
+/* Contract skills/md2asm/references/openifs/dynamics/runtime_atmospheric_mass_correction.md. */
+/* Selected original CORMASSDRY with explicit runtime owners. */
+.arch armv8.2-a
+.text
+.p2align 4
+.equ MCCTX,240
+.equ MCDEP,248
+.equ MCPART,256
+.equ MCTDYN,272
+.equ MCSPEC,280
+.equ MCSTEP,296
+.equ MCLDGP,304
+.equ MCP,312
+.equ MCB,316
+.equ MCQ,320
+.equ MCC,324
+.equ MCV,328
+.equ MCIVSET,332
+.equ MCILF,336
+.equ MCRANK,340
+.equ MCWORLD,344
+.equ MCSTATUS,348
+.equ MCAGREED,352
+.equ MCWORK,360
+.equ MCBLOCK,368
+.equ MCNEED,376
+.equ MCGM,384
+.equ MCMASSI,392
+.equ MCMEAN,400
+.equ MCINCREMENT,408
+.equ MCINITIALIZE,416
+.equ MCONE,420
+.equ MCFALSE,424
+.equ MCNORMS,432
+.equ MCEND,456
+.equ MCRATIO,464
+.macro MCCALL name
+ bl \name
+ ldr x18,[sp,#128]
+.endm
+.macro MCCOMM reg
+ movz \reg,#0
+ movk \reg,#0x4400,lsl#16
+.endm
+.macro MCINT reg
+ movz \reg,#0x405
+ movk \reg,#0x4c00,lsl#16
+.endm
+.macro MCAGREEMENT
+ add x0,sp,#MCSTATUS
+ add x1,sp,#MCAGREED
+ mov w2,#1
+ MCINT w3
+ movz w4,#1
+ movk w4,#0x5800,lsl#16
+ MCCOMM w5
+ MCCALL MPI_Allreduce
+ cbnz w0,.Lmc_mpi_failed
+.endm
+.global md2asm_runtime_cormassdry
+.type md2asm_runtime_cormassdry,%function
+md2asm_runtime_cormassdry:
+ sub sp,sp,#1536
+ stp x18,x30,[sp,#128]
+ stp x19,x20,[sp,#144]
+ stp x21,x22,[sp,#160]
+ stp x23,x24,[sp,#176]
+ stp x25,x26,[sp,#192]
+ stp x27,x28,[sp,#208]
+ str x29,[sp,#224]
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ mov x22,x3
+ mov x23,x4
+ stp x5,x6,[sp,#MCSTEP]
+ str x7,[sp,#MCCTX]
+ str x21,[sp,#MCTDYN]
+ str x22,[sp,#MCSPEC]
+ str xzr,[sp,#MCWORK]
+ str wzr,[sp,#MCSTATUS]
+ MCCOMM w0
+ add x1,sp,#MCRANK
+ MCCALL MPI_Comm_rank
+ cbnz w0,.Lmc_mpi_failed
+ MCCOMM w0
+ add x1,sp,#MCWORLD
+ MCCALL MPI_Comm_size
+ cbnz w0,.Lmc_mpi_failed
+ cbz x19,.Lmc_bad
+ cbz x20,.Lmc_bad
+ cbz x21,.Lmc_bad
+ cbz x22,.Lmc_bad
+ cbz x23,.Lmc_bad
+ ldr x24,[sp,#MCCTX]
+ cbz x24,.Lmc_bad
+ orr x9,x19,x20
+ orr x9,x9,x21
+ orr x9,x9,x22
+ orr x9,x9,x23
+ orr x9,x9,x24
+ tst x9,#7
+ b.ne .Lmc_bad
+ ldp x9,x10,[sp,#MCSTEP]
+ cbz x9,.Lmc_bad
+ cbz x10,.Lmc_bad
+ orr x11,x9,x10
+ tst x11,#3
+ b.ne .Lmc_bad
+ ldr w10,[x10]
+ cbnz w10,.Lmc_bad
+ ldr w9,[x9]
+ tbnz w9,#31,.Lmc_bad
+ mov x9,#4576
+ ldr w9,[x21,x9]
+ cbnz w9,.Lmc_bad
+ mrs x9,fpcr
+ cbnz x9,.Lmc_bad
+ ldr x9,[x24,#24]
+ cbnz x9,.Lmc_bad
+ ldp x25,x26,[x24]
+ cbz x25,.Lmc_bad
+ cbz x26,.Lmc_bad
+ orr x9,x25,x26
+ tst x9,#7
+ b.ne .Lmc_bad
+ str x25,[sp,#MCPART]
+ str x26,[sp,#MCDEP]
+ ldr x9,[x26,#24]
+ cbnz x9,.Lmc_bad
+ ldr x9,[x26,#8]
+ cbz x9,.Lmc_bad
+ tst x9,#7
+ b.ne .Lmc_bad
+ movz x10,#(67600&65535)
+ movk x10,#(67600>>16),lsl#16
+ ldr w9,[x9,x10]
+ cbnz w9,.Lmc_bad
+ ldr x9,[x26]
+ cmp x9,x25
+ b.ne .Lmc_bad
+ ldr x9,[x25]
+ cmp x9,x19
+ b.ne .Lmc_bad
+ ldr w9,[x25,#16]
+ cmp w9,#7
+ b.ne .Lmc_bad
+ ldr w9,[sp,#MCWORLD]
+ sub w10,w9,#1
+ mov w11,#65535
+ cmp w10,w11
+ b.hi .Lmc_bad
+ ldr w10,[x25,#24]
+ cmp w9,w10
+ b.ne .Lmc_bad
+ ldr w9,[sp,#MCRANK]
+ add w9,w9,#1
+ ldr w10,[x25,#28]
+ cmp w9,w10
+ b.ne .Lmc_bad
+ ldp w9,w10,[x25,#32]
+ cmp w9,#1
+ b.lt .Lmc_bad
+ cmp w10,#1
+ b.lt .Lmc_bad
+ umull x11,w9,w10
+ ldr w12,[sp,#MCWORLD]
+ cmp x11,x12
+ b.ne .Lmc_bad
+ ldr w11,[x25,#64]
+ cmp w11,#1
+ b.lt .Lmc_bad
+ cmp w11,w9
+ b.gt .Lmc_bad
+ ldr w11,[x25,#68]
+ cmp w11,#1
+ b.lt .Lmc_bad
+ cmp w11,w10
+ b.gt .Lmc_bad
+ str w10,[sp,#MCV]
+ str w10,[sp,#MCIVSET]
+ cmp w11,w10
+ cset w12,eq
+ str w12,[sp,#MCILF]
+ ldr w9,[x19,#7208]
+ cmp w9,w12
+ b.ne .Lmc_bad
+ ldr w9,[x19,#5172]
+ sub w9,w9,#1
+ mov w10,#8190
+ cmp w9,w10
+ b.hi .Lmc_bad
+ ldr w9,[x19,#5224]
+ sub w9,w9,#1
+ cmp w9,#511
+ b.hi .Lmc_bad
+ ldr w9,[x19,#5144]
+ sub w10,w9,#1
+ cmp w10,#4095
+ b.hi .Lmc_bad
+ str w9,[sp,#MCP]
+ ldr w10,[x19,#7376]
+ cmp w10,#1
+ b.lt .Lmc_bad
+ str w10,[sp,#MCQ]
+ sub x11,x10,#1
+ udiv x11,x11,x9
+ add x11,x11,#1
+ ldr w12,[x19,#5160]
+ cmp x11,x12
+ b.ne .Lmc_bad
+ str w12,[sp,#MCB]
+ ldr w9,[x19,#5200]
+ tbnz w9,#31,.Lmc_bad
+ tbnz w9,#0,.Lmc_bad
+ str w9,[sp,#MCC]
+ ldr w12,[sp,#MCILF]
+ mul x9,x9,x12
+ add x0,x22,#2400
+ mov x1,#8
+ mov x2,#1
+ mov x3,x9
+ bl .Lmc_desc1
+ cbnz w0,.Lmc_bad
+ mov x9,#9240
+ add x0,x19,x9
+ mov x1,#8
+ mov x2,#1
+ ldr w3,[sp,#MCQ]
+ bl .Lmc_desc1
+ cbnz w0,.Lmc_bad
+ mov x9,#9240
+ ldr x9,[x19,x9]
+ str x9,[sp,#MCGM]
+ ldr w9,[sp,#MCP]
+ ldr w10,[sp,#MCB]
+ mul x9,x9,x10
+ ldr w10,[sp,#MCQ]
+ add x9,x9,x10
+ lsl x9,x9,#3
+ str x9,[sp,#MCNEED]
+ ldr x10,[x24,#16]
+ cbz x10,.Lmc_bad
+ mov x11,#1
+ lsl x11,x11,#36
+ cmp x10,x11
+ b.hi .Lmc_bad
+ cmp x9,x10
+ b.hi .Lmc_bad
+ b .Lmc_admission
+.Lmc_bad:
+ mov w9,#2
+ str w9,[sp,#MCSTATUS]
+.Lmc_admission:
+ MCAGREEMENT
+ ldr w9,[sp,#MCAGREED]
+ cbnz w9,.Lmc_refused
+ ldr x0,[sp,#MCNEED]
+ MCCALL malloc
+ str x0,[sp,#MCWORK]
+ cbnz x0,.Lmc_allocated
+ mov w9,#1
+ str w9,[sp,#MCSTATUS]
+.Lmc_allocated:
+ MCAGREEMENT
+ ldr w9,[sp,#MCAGREED]
+ cbnz w9,.Lmc_free_refused
+ ldr x20,[sp,#MCWORK]
+ ldr w9,[sp,#MCQ]
+ add x21,x20,x9,lsl#3
+ str x21,[sp,#MCBLOCK]
+ /* Source SPEREE one-field public inverse call. */
+ add x0,sp,#512
+ ldr x22,[sp,#MCSPEC]
+ ldr x1,[x22,#2400]
+ ldr w2,[sp,#MCILF]
+ ldr w3,[sp,#MCC]
+ bl .Lmc_spectral_descriptor
+ add x0,sp,#608
+ add x1,sp,#MCIVSET
+ mov x2,#4
+ mov x3,#1
+ bl .Lmc_integer_descriptor
+ add x0,sp,#672
+ mov x1,x20
+ ldr w2,[sp,#MCQ]
+ mov x3,#1
+ mov x4,#1
+ mov w5,#3
+ bl .Lmc_descriptor
+ stp xzr,xzr,[sp]
+ stp xzr,xzr,[sp,#16]
+ stp xzr,xzr,[sp,#32]
+ stp xzr,xzr,[sp,#48]
+ stp xzr,xzr,[sp,#64]
+ stp xzr,xzr,[sp,#80]
+ stp xzr,xzr,[sp,#96]
+ stp xzr,xzr,[sp,#112]
+ add x9,sp,#MCQ
+ str x9,[sp,#32]
+ add x9,sp,#608
+ str x9,[sp,#48]
+ mov x9,#5168
+ add x9,x19,x9
+ str x9,[sp,#56]
+ add x9,sp,#672
+ str x9,[sp,#88]
+ mov x0,xzr
+ mov x1,xzr
+ add x2,sp,#512
+ mov x3,xzr
+ mov x4,xzr
+ mov x5,xzr
+ mov x6,xzr
+ mov x7,xzr
+ MCCALL inv_trans_
+ mov x24,#0
+.Lmc_block:
+ ldr w9,[sp,#MCQ]
+ cmp x24,x9
+ b.hs .Lmc_norm
+ ldr w10,[sp,#MCP]
+ add x10,x24,x10
+ cmp x10,x9
+ csel x10,x10,x9,lo
+ str x10,[sp,#MCEND]
+ mov x25,x24
+.Lmc_exp:
+ ldr d0,[x20,x25,lsl#3]
+ MCCALL exp
+ str d0,[x21,x25,lsl#3]
+ add x25,x25,#1
+ ldr x9,[sp,#MCEND]
+ cmp x25,x9
+ b.lo .Lmc_exp
+ mov x25,x24
+ ldr x26,[sp,#MCGM]
+.Lmc_map_factor:
+ ldr d0,[x21,x25,lsl#3]
+ ldr d1,[x26,x25,lsl#3]
+ fmul d1,d1,d1
+ fdiv d0,d0,d1
+ str d0,[x21,x25,lsl#3]
+ add x25,x25,#1
+ ldr x9,[sp,#MCEND]
+ cmp x25,x9
+ b.lo .Lmc_map_factor
+ mov x24,x9
+ b .Lmc_block
+.Lmc_norm:
+ mov w9,#1
+ str w9,[sp,#MCONE]
+ str wzr,[sp,#MCFALSE]
+ mov x0,x19
+ mov x1,x21
+ add x2,sp,#MCONE
+ add x3,sp,#MCFALSE
+ mov x4,xzr
+ add x5,sp,#MCNORMS
+ mov x6,xzr
+ ldr x7,[sp,#MCDEP]
+ MCCALL md2asm_runtime_grid_point_norm
+ cbz w0,.Lmc_mass
+ mov w9,#2
+ str w9,[sp,#MCSTATUS]
+ b .Lmc_release
+.Lmc_mass:
+ ldr d0,[sp,#MCNORMS]
+ str d0,[sp,#MCMEAN]
+ ldr x21,[sp,#MCTDYN]
+ mov x9,#4600
+ ldr d1,[x21,x9]
+ str wzr,[sp,#MCINITIALIZE]
+ ldr x9,[sp,#MCSTEP]
+ ldr w9,[x9]
+ cbnz w9,.Lmc_have_initial
+ fcmp d1,#0.0
+ b.ne .Lmc_have_initial
+ fmov d1,d0
+ mov w9,#1
+ str w9,[sp,#MCINITIALIZE]
+.Lmc_have_initial:
+ str d1,[sp,#MCMASSI]
+ fdiv d0,d0,d1
+ str d0,[sp,#MCRATIO]
+ MCCALL log
+ str d0,[sp,#MCINCREMENT]
+.Lmc_release:
+ ldr x0,[sp,#MCWORK]
+ MCCALL free
+ str xzr,[sp,#MCWORK]
+ MCAGREEMENT
+ ldr w9,[sp,#MCAGREED]
+ cbnz w9,.Lmc_refused
+ ldr x21,[sp,#MCTDYN]
+ ldr x9,[sp,#MCMEAN]
+ mov x10,#4608
+ str x9,[x21,x10]
+ ldr w9,[sp,#MCINITIALIZE]
+ cbz w9,.Lmc_publish_increment
+ ldr x9,[sp,#MCMASSI]
+ mov x10,#4600
+ str x9,[x21,x10]
+.Lmc_publish_increment:
+ ldr x9,[sp,#MCINCREMENT]
+ mov x10,#4616
+ str x9,[x21,x10]
+ mov w0,#0
+ b .Lmc_return
+.Lmc_free_refused:
+ ldr x0,[sp,#MCWORK]
+ cbz x0,.Lmc_refused
+ MCCALL free
+ str xzr,[sp,#MCWORK]
+.Lmc_refused:
+ ldr w0,[sp,#MCAGREED]
+ b .Lmc_return
+.Lmc_mpi_failed:
+ ldr x0,[sp,#MCWORK]
+ cbz x0,.Lmc_mpi_result
+ MCCALL free
+.Lmc_mpi_result:
+ mov w0,#3
+.Lmc_return:
+ ldp x18,x30,[sp,#128]
+ ldp x19,x20,[sp,#144]
+ ldp x21,x22,[sp,#160]
+ ldp x23,x24,[sp,#176]
+ ldp x25,x26,[sp,#192]
+ ldp x27,x28,[sp,#208]
+ ldr x29,[sp,#224]
+ add sp,sp,#1536
+ ret
+.size md2asm_runtime_cormassdry,.-md2asm_runtime_cormassdry
+/* Validate source contiguous rank1 FP64 metadata without reading its payload. */
+.Lmc_desc1:
+ ldr x9,[x0]
+ cbz x9,.Lmc_desc_bad
+ tst x9,#7
+ b.ne .Lmc_desc_bad
+ ldr x9,[x0,#16]
+ cmp x9,x1
+ b.ne .Lmc_desc_bad
+ ldr w9,[x0,#28]
+ mov w10,#0x301
+ cmp w9,w10
+ b.ne .Lmc_desc_bad
+ ldr x9,[x0,#40]
+ cmp x9,#1
+ b.ne .Lmc_desc_bad
+ ldr x9,[x0,#48]
+ cmp x9,x2
+ b.ne .Lmc_desc_bad
+ ldr x9,[x0,#56]
+ cmp x9,x3
+ b.ne .Lmc_desc_bad
+ ldr x9,[x0,#8]
+ cmn x9,x2
+ b.ne .Lmc_desc_bad
+ sub x10,x3,x2
+ add x10,x10,#1
+ mul x10,x10,x1
+ ldr x9,[x0]
+ adds x10,x9,x10
+ b.cs .Lmc_desc_bad
+ mov w0,#0
+ ret
+.Lmc_desc_bad:
+ mov w0,#2
+ ret
+/* Source explicit PSPEC(KFLSUR,NSPEC2) passed as an assumed-shape public view. */
+.Lmc_spectral_descriptor:
+ str x1,[x0]
+ mov x9,#-2
+ str x9,[x0,#8]
+ mov x9,#8
+ str x9,[x0,#16]
+ str x9,[x0,#32]
+ mov x9,#0x302
+ lsl x9,x9,#32
+ str x9,[x0,#24]
+ mov x9,#1
+ stp x9,x9,[x0,#40]
+ str x2,[x0,#56]
+ str x9,[x0,#64]
+ str x9,[x0,#72]
+ str x3,[x0,#80]
+ ret
+.Lmc_integer_descriptor:
+ str x1,[x0]
+ mov x9,#-1
+ str x9,[x0,#8]
+ str x2,[x0,#16]
+ str x2,[x0,#32]
+ mov x9,#0x101
+ lsl x9,x9,#32
+ str x9,[x0,#24]
+ mov x9,#1
+ stp x9,x9,[x0,#40]
+ str x3,[x0,#56]
+ ret
+
+/* GNU contiguous REAL8 descriptor, source lower bound one. */
+.Lmc_descriptor:
+ str x1,[x0]
+ mov x6,#8
+ str x6,[x0,#16]
+ str wzr,[x0,#24]
+ mov w6,#0x300
+ orr w6,w6,w5
+ str w6,[x0,#28]
+ mov x6,#8
+ str x6,[x0,#32]
+ mov x6,#1
+ mov x7,#1
+ mov x8,#0
+ add x9,x0,#40
+.Lmc_descriptor_dimension:
+ stp x6,x7,[x9]
+ str x2,[x9,#16]
+ add x8,x8,x6
+ mul x6,x6,x2
+ add x9,x9,#24
+ subs w5,w5,#1
+ b.eq .Lmc_descriptor_done
+ mov x2,x3
+ mov x3,x4
+ b .Lmc_descriptor_dimension
+.Lmc_descriptor_done:
+ neg x8,x8
+ str x8,[x0,#8]
+ ret
+
+.section .note.GNU-stack,"",%progbits
