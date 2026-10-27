@@ -1,3 +1,4 @@
+/* Contract skills/md2asm/references/openifs/output/runtime_fullpos_norms.md. */
 /* Fullpos norm controllers retain source arithmetic and owned result lifetimes.
  * The numerical leaves retain original field and point order. */
 .arch armv8.2-a

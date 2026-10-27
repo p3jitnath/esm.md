@@ -1,5 +1,6 @@
+/* Contract skills/md2asm/references/openifs/output/runtime_fullpos_norms.md. */
 /* Direct assembly for the original EXTFPF and EXTFPNORM calculations.
- * Local contract leaf_transport_contract.md records the original argument ABI.
+ * The contract records the original argument ABI and buffer bounds.
  * Public MPI moves complete FP64 values without arithmetic reductions. */
 .arch armv8.2-a
 .text
