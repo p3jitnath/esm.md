@@ -1,3 +1,11 @@
+/* Runtime local surface contract
+ * skills/md2asm/references/openifs/input/runtime_partitioned_surface_startup.md
+ * Select MD2ASM_RUNTIME_SURFACE_DIMENSIONS for live local block dimensions.
+ * The accepted 81-record global input schema remains unchanged. */
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+#define md2asm_set_partitioned_initial_surface_defaults md2asm_set_runtime_partitioned_initial_surface_defaults
+#define md2asm_set_initial_surface_defaults md2asm_set_runtime_unused_small_surface_defaults
+#endif
 /* Qualified live-provider contract: skills/md2asm/references/openifs/input/partitioned_surface_state_startup.md. */
 /* Integer copies for source SETDEFAULT surface assignments, revision 1.
  * Contract: skills/md2asm/references/openifs/input/initial_surface_default_assignment.md
@@ -170,6 +178,16 @@ md2asm_set_initial_surface_defaults:
 .global md2asm_set_partitioned_initial_surface_defaults
 .type md2asm_set_partitioned_initial_surface_defaults,%function
 md2asm_set_partitioned_initial_surface_defaults:
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ mov x16,x7
+ mov w8,w16
+ sub w8,w8,#1
+ cmp w8,#1023
+ b.hi .Lods_bad
+ lsr x8,x16,#32
+ cbz x8,.Lods_bad
+ tbnz w8,#31,.Lods_bad
+#endif
  cbz x6,.Lods_bad
  tst x6,#3
  b.ne .Lods_bad
@@ -208,7 +226,12 @@ md2asm_set_partitioned_initial_surface_defaults:
  cmp x2,x7
  b.lo .Lods_bad
 .Lods_effect_assignment_table_ok:
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ stp x19,x20,[sp,#-112]!
+ str x16,[sp,#96]
+#else
  stp x19,x20,[sp,#-96]!
+#endif
  stp x6,x7,[sp,#80]
  stp x21,x22,[sp,#16]
  stp x23,x24,[sp,#32]
@@ -232,8 +255,15 @@ md2asm_set_partitioned_initial_surface_defaults:
  cbz x28,.Lods_reject
  cmp x28,#4096
  b.hi .Lods_reject
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ ldr x10,[sp,#96]
+ lsr x11,x10,#32
+ umull x10,w10,w11
+ lsl x10,x10,#3
+#else
  movz x10,#(13199480&65535)
  movk x10,#(13199480>>16),lsl#16
+#endif
  mul x10,x28,x10
  cmp x9,x10
  b.lo .Lods_reject
@@ -251,8 +281,15 @@ md2asm_set_partitioned_initial_surface_defaults:
  add x9,x19,x9,lsl#3
  ldr x10,[x9]
  ldr x11,[x9,#16]
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ ldr x12,[sp,#96]
+ lsr x13,x12,#32
+ umull x12,w12,w13
+ lsl x12,x12,#3
+#else
  movz x12,#(13199480&65535)
  movk x12,#(13199480>>16),lsl#16
+#endif
  madd x11,x11,x12,x10
  ODPART x26,x27,x10,x11
  add x8,x8,#1
@@ -288,14 +325,28 @@ md2asm_set_partitioned_initial_surface_defaults:
  add x12,x19,x12,lsl#3
  ldr x13,[x12]
  ldr x14,[x12,#16]
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ ldr w15,[sp,#96]
+ lsl x15,x15,#3
+#else
  mov x15,#136
+#endif
  madd x13,x10,x15,x13
  mul x14,x14,x15
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ sub x14,x14,x15
+ ldr w16,[sp,#100]
+#else
  sub x14,x14,#136
  movz x16,#(97055&65535)
  movk x16,#(97055>>16),lsl#16
+#endif
 .Lods_block:
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ ldr w17,[sp,#96]
+#else
  mov x17,#17
+#endif
 .Lods_row:
  str x11,[x13],#8
  subs x17,x17,#1
@@ -315,7 +366,11 @@ md2asm_set_partitioned_initial_surface_defaults:
  ldp x23,x24,[sp,#32]
  ldp x25,x26,[sp,#48]
  ldp x27,x28,[sp,#64]
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ ldp x19,x20,[sp],#112
+#else
  ldp x19,x20,[sp],#96
+#endif
  ret
 .Lods_empty:
  str wzr,[x6]

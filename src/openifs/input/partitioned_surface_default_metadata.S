@@ -1,3 +1,11 @@
+/* Runtime local surface contract
+ * skills/md2asm/references/openifs/input/runtime_partitioned_surface_startup.md
+ * Select MD2ASM_RUNTIME_SURFACE_DIMENSIONS for live local block dimensions.
+ * The accepted 81-record global input schema remains unchanged. */
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+#define md2asm_partitioned_surface_default_metadata md2asm_runtime_partitioned_surface_default_metadata
+#define md2asm_surface_default_metadata_direct_ md2asm_runtime_unused_surface_default_metadata_direct_
+#endif
 /* Qualified live-provider contract: skills/md2asm/references/openifs/input/partitioned_surface_state_startup.md. */
 /* Original GNU12 surface default metadata, fixed 33 source groups.
  * Inputs are geometry and surface objects. Outputs have 1536,98304,64 bytes.
@@ -339,6 +347,17 @@ md2asm_partitioned_surface_default_metadata:
  stp xzr,xzr,[x4,#48]
  mov x5,#1
  str x5,[x4]
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ ldr w5,[x0,#5144]
+ sub w6,w5,#1
+ cmp w6,#1023
+ b.hi .Lodm_early
+ ldr w6,[x0,#5160]
+ cmp w6,#1
+ b.lt .Lodm_early
+ umull x7,w5,w6
+ lsl x7,x7,#3
+#else
  ldr w5,[x0,#5144]
  cmp w5,#17
  b.ne .Lodm_early
@@ -347,11 +366,16 @@ md2asm_partitioned_surface_default_metadata:
  movk w6,#(97055>>16),lsl#16
  cmp w5,w6
  b.ne .Lodm_early
+#endif
  stp x19,x20,[sp,#-192]!
  stp x21,x22,[sp,#16]
  stp x23,x24,[sp,#32]
  stp x25,x26,[sp,#48]
  stp x27,x28,[sp,#64]
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ stp x5,x6,[sp,#152]
+ str x7,[sp,#168]
+#endif
  mov x19,x1
  mov x20,x2
  mov x21,x3
@@ -404,14 +428,22 @@ md2asm_partitioned_surface_default_metadata:
 .Lodm_dimension:
  cmp x0,#0
  b.ne .Lodm_not_first
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ ldr x2,[sp,#152]
+#else
  mov x2,#17
+#endif
  b .Lodm_dimension_extent
 .Lodm_not_first:
  sub x3,x11,#1
  cmp x0,x3
  b.ne .Lodm_not_last
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ ldr x2,[sp,#160]
+#else
  movz x2,#(97055&65535)
  movk x2,#(97055>>16),lsl#16
+#endif
  b .Lodm_dimension_extent
 .Lodm_not_last:
  cmp x11,#4
@@ -462,8 +494,12 @@ md2asm_partitioned_surface_default_metadata:
  cmp x1,x0
  b.ne .Lodm_reject
  str x0,[sp,#112]
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ ldr x0,[sp,#168]
+#else
  movz x0,#(13199480&65535)
  movk x0,#(13199480>>16),lsl#16
+#endif
  mul x0,x13,x0
  add x1,x24,x24,lsl#1
  add x1,x20,x1,lsl#3
@@ -576,9 +612,13 @@ md2asm_partitioned_surface_default_metadata:
  b.ne .Lodm_group
  str xzr,[x22]
  stp x24,x25,[x22,#8]
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ ldp x0,x1,[sp,#152]
+#else
  mov x0,#17
  movz x1,#(97055&65535)
  movk x1,#(97055>>16),lsl#16
+#endif
  stp x0,x1,[x22,#24]
  str x26,[x22,#40]
 .Lodm_reject:

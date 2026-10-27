@@ -1,3 +1,12 @@
+/* Runtime local surface contract
+ * skills/md2asm/references/openifs/input/runtime_partitioned_surface_startup.md
+ * Select MD2ASM_RUNTIME_SURFACE_DIMENSIONS for live local block dimensions.
+ * The accepted 81-record global input schema remains unchanged. */
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+#define md2asm_allocate_distributed_surface_field_owners md2asm_allocate_runtime_distributed_surface_field_owners
+#define md2asm_allocate_surface_field_owners md2asm_runtime_unused_small_surface_field_owners
+#define md2asm_release_surface_field_owners md2asm_release_runtime_surface_field_owners
+#endif
 /* Qualified live-provider contract: skills/md2asm/references/openifs/setup/operational_enclosing_model_storage.md. */
 /* Contract: skills/md2asm/references/openifs/setup/surface_field_storage.md. */
 /* Complete ALLO_SURF/DEALLO_SURF owner stage, revision 1.
@@ -281,12 +290,20 @@ md2asm_allocate_distributed_surface_field_owners:
  mov x9,#18224
  adds x9,x0,x9
  b.cs .Lsurface_reject
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ sub w9,w1,#1
+ cmp w9,#1023
+ b.hi .Lsurface_reject
+ cmp w2,#1
+ b.lt .Lsurface_reject
+#else
  cmp w1,#17
  b.ne .Lsurface_reject
  movz w9,#(97055&65535)
  movk w9,#(97055>>16),lsl#16
  cmp w2,w9
  b.ne .Lsurface_reject
+#endif
  mrs x9,fpcr
  cbnz x9,.Lsurface_reject
  adr x9,.Lsurface_owners

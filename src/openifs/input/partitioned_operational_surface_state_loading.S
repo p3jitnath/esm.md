@@ -1,3 +1,11 @@
+/* Runtime local surface contract
+ * skills/md2asm/references/openifs/input/runtime_partitioned_surface_startup.md
+ * Select MD2ASM_RUNTIME_SURFACE_DIMENSIONS for live local block dimensions.
+ * The accepted 81-record global input schema remains unchanged. */
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+#define md2asm_place_partitioned_operational_surface_fields md2asm_place_runtime_partitioned_operational_surface_fields
+#define md2asm_load_partitioned_operational_surface_state md2asm_load_runtime_partitioned_operational_surface_state
+#endif
 /* Complete partitioned operational surface file loading, revision 1.
  * Contract: skills/md2asm/references/openifs/input/partitioned_operational_surface_loading.md.
  * x0 path, x1 read-only 2,304-byte owned configuration, x2 capacity,
@@ -28,7 +36,11 @@ md2asm_load_partitioned_operational_surface_state:
  b.ne .Lbad
  cmp x2,#2304
  b.lo .Lbad
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ cmp x4,#144
+#else
  cmp x4,#128
+#endif
  b.lo .Lbad
  cmp x6,#220
  b.lo .Lbad
@@ -116,7 +128,11 @@ md2asm_load_partitioned_operational_surface_state:
  mov x4,x22
  mov x5,#220
  mov x6,x21
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ mov x7,#144
+#else
  mov x7,#128
+#endif
  bl md2asm_place_partitioned_operational_surface_fields
  cbz w0,.Lcleanup
  add w0,w0,#400

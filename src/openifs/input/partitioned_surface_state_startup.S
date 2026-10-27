@@ -1,3 +1,16 @@
+/* Runtime local surface contract
+ * skills/md2asm/references/openifs/input/runtime_partitioned_surface_startup.md
+ * Select MD2ASM_RUNTIME_SURFACE_DIMENSIONS for live local block dimensions.
+ * The accepted 81-record global input schema remains unchanged. */
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+#define md2asm_allocate_distributed_surface_field_owners md2asm_allocate_runtime_distributed_surface_field_owners
+#define md2asm_release_surface_field_owners md2asm_release_runtime_surface_field_owners
+#define md2asm_partitioned_surface_default_metadata md2asm_runtime_partitioned_surface_default_metadata
+#define md2asm_set_partitioned_initial_surface_defaults md2asm_set_runtime_partitioned_initial_surface_defaults
+#define md2asm_load_partitioned_operational_surface_state md2asm_load_runtime_partitioned_operational_surface_state
+#define md2asm_initialize_partitioned_operational_surface_state md2asm_initialize_runtime_partitioned_operational_surface_state
+#define md2asm_release_partitioned_operational_surface_state md2asm_release_runtime_partitioned_operational_surface_state
+#endif
 /* Qualified live-provider contract: skills/md2asm/references/openifs/input/partitioned_surface_state_startup.md. */
 /* Owned partitioned surface state startup, revision 1.
  * x0 path, x1 constants520, x2 TEPHY448, x3 TSURF18224,
@@ -67,6 +80,32 @@ md2asm_initialize_partitioned_operational_surface_state:
  ldr w15,[x10,x15]
  cmp x11,x15
  b.ne .Lss_reject
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ cbz x11,.Lss_reject
+ movz w15,#(6599680&65535)
+ movk w15,#(6599680>>16),lsl#16
+ cmp x11,x15
+ b.hi .Lss_reject
+ ldr w15,[x10,#5224]
+ cmp w15,#137
+ b.ne .Lss_reject
+ ldr w15,[x10,#5144]
+ sub w16,w15,#1
+ cmp w16,#1023
+ b.hi .Lss_reject
+ str x15,[sp,#128]
+ ldr w16,[x10,#5160]
+ cmp x14,x16
+ b.ne .Lss_reject
+ cmp w16,#1
+ b.lt .Lss_reject
+ str x16,[sp,#136]
+ sub x16,x15,#1
+ add x16,x11,x16
+ udiv x16,x16,x15
+ cmp x16,x14
+ b.ne .Lss_reject
+#else
  movz w15,#(1649920&65535)
  movk w15,#(1649920>>16),lsl#16
  cmp x11,x15
@@ -83,6 +122,7 @@ md2asm_initialize_partitioned_operational_surface_state:
  movk w15,#(97055>>16),lsl#16
  cmp x14,x15
  b.ne .Lss_reject
+#endif
  mov x15,#6648
  ldr x15,[x10,x15]
  cmp x12,x15
@@ -264,13 +304,22 @@ md2asm_initialize_partitioned_operational_surface_state:
  bl md2asm_construct_operational_surface_configuration
  cbnz w0,.Lss_metadata_failed
  mov x0,x22
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ ldp x1,x2,[sp,#128]
+#else
  mov w1,#17
  movz w2,#(97055&65535)
  movk w2,#(97055>>16),lsl#16
+#endif
  bl md2asm_allocate_distributed_surface_field_owners
  cbnz w0,.Lss_numerical_failed
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ movz x0,#54144
+ movk x0,#1,lsl#16
+#else
  movz x0,#54128
  movk x0,#1,lsl#16
+#endif
  bl malloc
  mov x27,x0
  ldr x9,[sp,#112]
@@ -280,8 +329,13 @@ md2asm_initialize_partitioned_operational_surface_state:
  str w26,[x25]
  cbz x27,.Lss_plan_allocation_failed
  mov x0,x27
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ movz x1,#54144
+ movk x1,#1,lsl#16
+#else
  movz x1,#54128
  movk x1,#1,lsl#16
+#endif
  bl .Lss_zero
  ldr x0,[sp,#272]
  mov x1,x22
@@ -297,12 +351,27 @@ md2asm_initialize_partitioned_operational_surface_state:
  b.ne .Lss_defaults_failed
  cmp x11,#423
  b.ne .Lss_defaults_failed
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ ldp x10,x11,[x9,#24]
+ ldp x12,x13,[sp,#128]
+ cmp x10,x12
+ b.ne .Lss_defaults_failed
+ cmp x11,x13
+ b.ne .Lss_defaults_failed
+ mul x11,x12,x13
+ mov x10,#4424
+ mul x11,x11,x10
+ ldr x10,[x9,#40]
+ cmp x10,x11
+ b.ne .Lss_defaults_failed
+#else
  ldr x10,[x9,#40]
  movz x11,#43832
  movk x11,#45842,lsl#16
  movk x11,#1,lsl#32
  cmp x10,x11
  b.ne .Lss_defaults_failed
+#endif
  SS_WORK x0,17096
  mov x1,#1536
  SS_WORK x2,18632
@@ -311,6 +380,11 @@ md2asm_initialize_partitioned_operational_surface_state:
  mov x4,#423
  mov x5,#10
  ldr x6,[sp,#264]
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ ldr x7,[sp,#128]
+ ldr x9,[sp,#136]
+ orr x7,x7,x9,lsl#32
+#endif
  bl md2asm_set_partitioned_initial_surface_defaults
  cbnz w0,.Lss_defaults_failed
  mov x0,x20
@@ -320,7 +394,12 @@ md2asm_initialize_partitioned_operational_surface_state:
  cbnz w0,.Lss_configuration_failed
  mov x0,x22
  SS_WORK x1,119304
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ SS_WORK x2,119448
+ ldp x3,x4,[sp,#128]
+#else
  SS_WORK x2,119432
+#endif
  bl .Lss_input_plan
  cbnz w0,.Lss_input_plan_failed
  SS_WORK x9,119400
@@ -328,12 +407,23 @@ md2asm_initialize_partitioned_operational_surface_state:
  stp x10,x11,[x9]
  ldp x10,x11,[sp,#304]
  stp x10,x11,[x9,#16]
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ ldr x10,[sp,#128]
+ movz x11,#(6599680&65535)
+ movk x11,#(6599680>>16),lsl#16
+ stp x10,x11,[x9,#32]
+#endif
  mov x0,x19
  SS_WORK x1,117000
  mov x2,#2304
  SS_WORK x3,119304
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ mov x4,#144
+ SS_WORK x5,119448
+#else
  mov x4,#128
  SS_WORK x5,119432
+#endif
  mov x6,#220
  bl md2asm_load_partitioned_operational_surface_state
  mov w28,w0
@@ -430,6 +520,9 @@ md2asm_initialize_partitioned_operational_surface_state:
 /* Private input plan: x0 owned TSURF, x1 owners80, x2 identifiers208.
  * Uses x0 through x17 only. Shapes and live source metadata must agree. */
 .Lss_input_plan:
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ stp x3,x4,[sp,#-16]!
+#endif
  mov x5,x0
  mov x6,x1
  mov x7,x2
@@ -455,6 +548,9 @@ md2asm_initialize_partitioned_operational_surface_state:
  add x8,x3,#12
  mov x14,#0
  mov x15,#1
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ mov x0,#0
+#endif
 .Lss_input_dimension:
  ldr x9,[x16]
  cmp x9,x15
@@ -464,6 +560,17 @@ md2asm_initialize_partitioned_operational_surface_state:
  cmp x9,#1
  b.ne .Lss_bad_plan
  ldr w17,[x8],#4
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ cbnz x0,.Lss_runtime_not_first
+ ldr x17,[sp]
+ b .Lss_runtime_extent
+.Lss_runtime_not_first:
+ cmp w13,#1
+ b.ne .Lss_runtime_extent
+ ldr x17,[sp,#8]
+.Lss_runtime_extent:
+ add x0,x0,#1
+#endif
  ldr x9,[x16,#16]
  cmp x9,x17
  b.ne .Lss_bad_plan
@@ -471,9 +578,14 @@ md2asm_initialize_partitioned_operational_surface_state:
  add x16,x16,#24
  subs w13,w13,#1
  b.ne .Lss_input_dimension
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ lsl x15,x15,#3
+ mov x10,x15
+#else
  lsl x15,x15,#3
  cmp x15,x10
  b.ne .Lss_bad_plan
+#endif
  ldr x9,[x11,#8]
  cmp x9,x14
  b.ne .Lss_bad_plan
@@ -516,9 +628,15 @@ md2asm_initialize_partitioned_operational_surface_state:
  subs w4,w4,#1
  b.ne .Lss_parameter
  mov w0,#0
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ add sp,sp,#16
+#endif
  ret
 .Lss_bad_plan:
  mov w0,#2
+#ifdef MD2ASM_RUNTIME_SURFACE_DIMENSIONS
+ add sp,sp,#16
+#endif
  ret
 
 .p2align 4
