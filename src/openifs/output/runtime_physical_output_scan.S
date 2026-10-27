@@ -1,0 +1,217 @@
+/* Contract skills/md2asm/references/openifs/output/runtime_physical_grid_output.md. */
+/* Original SCAN2M_HPOS block sections on the selected ECMWF route.
+ * The context follows the original nineteen addresses. */
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_runtime_scan2m_hpos
+.type md2asm_runtime_scan2m_hpos,%function
+md2asm_runtime_scan2m_hpos:
+ sub sp,sp,#2304
+ stp x0,x1,[sp,#176]
+ stp x2,x3,[sp,#192]
+ stp x4,x5,[sp,#208]
+ stp x6,x7,[sp,#224]
+ stp x19,x20,[sp,#336]
+ stp x21,x22,[sp,#352]
+ stp x23,x24,[sp,#368]
+ stp x25,x26,[sp,#384]
+ stp x27,x28,[sp,#400]
+ stp x29,x30,[sp,#416]
+ str x18,[sp,#432]
+ mov x29,sp
+ add x9,sp,#2304
+ add x10,sp,#240
+ mov x11,#12
+.Ls_args:
+ ldr x12,[x9],#8
+ str x12,[x10],#8
+ subs x11,x11,#1
+ b.ne .Ls_args
+ ldr x24,[sp,#328]
+ cbz x24,.Ls_bad
+ tst x24,#7
+ b.ne .Ls_bad
+ ldr x20,[sp,#248]
+ ldr x19,[sp,#256]
+ cbz x20,.Ls_bad
+ cbz x19,.Ls_bad
+ tst x20,#7
+ b.ne .Ls_bad
+ tst x19,#7
+ b.ne .Ls_bad
+ ldr w22,[x20,#5144]
+ sub w9,w22,#1
+ cmp w9,#1023
+ b.hi .Ls_bad
+ ldr w23,[x20,#5160]
+ cmp w23,#1
+ b.lt .Ls_bad
+ ldr x9,[sp,#224]
+ cbz x9,.Ls_bad
+ tst x9,#3
+ b.ne .Ls_bad
+ ldr w21,[x9]
+ cmp w21,#1
+ b.lt .Ls_bad
+ cmp w21,w23
+ b.gt .Ls_bad
+ ldr x9,[sp,#216]
+ cbz x9,.Ls_bad
+ ldr w9,[x9]
+ sub w10,w21,#1
+ mul w10,w10,w22
+ add w10,w10,#1
+ cmp w9,w10
+ b.ne .Ls_bad
+ ldr x9,[sp,#208]
+ cbz x9,.Ls_bad
+ ldr w9,[x9]
+ cbnz w9,.Ls_bad
+ ldr x9,[sp,#240]
+ cbz x9,.Ls_bad
+ ldr w9,[x9]
+ cbnz w9,.Ls_bad
+ ldr x9,[sp,#264]
+ cbz x9,.Ls_bad
+ tst x9,#7
+ b.ne .Ls_bad
+ ldr w9,[x9,#172]
+ cbnz w9,.Ls_bad
+ ldr x9,[sp,#272]
+ cbz x9,.Ls_bad
+ tst x9,#7
+ b.ne .Ls_bad
+ movz x10,#0x0994
+ movk x10,#5,lsl#16
+ ldr w9,[x9,x10]
+ cbnz w9,.Ls_bad
+ mov x25,#0
+.Ls_section:
+ adrp x9,.Ls_sections
+ add x9,x9,:lo12:.Ls_sections
+ add x9,x9,x25,lsl#3
+ ldp w10,w11,[x9]
+ add x27,x19,x10
+ mov x10,#112
+ madd x26,x25,x10,x29
+ add x26,x26,#512
+ /* The complete original descriptor is initialized by its owner. */
+ ldr x9,[x27,#16]
+ cmp x9,#8
+ b.ne .Ls_bad
+ ldr x9,[x27,#32]
+ cmp x9,#8
+ b.ne .Ls_bad
+ ldr x9,[x27,#24]
+ movz x10,#0x0303,lsl#32
+ cmp w11,#3
+ b.eq .Ls_dtype
+ movz x10,#0x0304,lsl#32
+.Ls_dtype:
+ cmp x9,x10
+ b.ne .Ls_bad
+ ldp x9,x10,[x27,#40]
+ cmp x9,#1
+ b.ne .Ls_bad
+ cmp x10,#1
+ b.ne .Ls_bad
+ ldr x9,[x27,#56]
+ cmp x9,x22
+ b.ne .Ls_bad
+ sub w12,w11,#1
+ mov x13,#24
+ umaddl x12,w12,w13,xzr
+ add x12,x27,x12
+ ldr x9,[x12,#48]
+ cmp x9,#1
+ b.ne .Ls_bad
+ ldr x9,[x12,#56]
+ cmp x9,x23
+ b.ne .Ls_bad
+ ldr x9,[x12,#40]
+ cmp x9,#0
+ b.lt .Ls_bad
+ sub x10,x21,#1
+ mul x10,x10,x9
+ lsl x10,x10,#3
+ ldr x9,[x27]
+ adds x9,x9,x10
+ b.cs .Ls_bad
+ mov x12,#0
+.Ls_copy_descriptor:
+ ldr x13,[x27,x12]
+ str x13,[x26,x12]
+ add x12,x12,#8
+ cmp x12,#112
+ b.lo .Ls_copy_descriptor
+ str x9,[x26]
+ movz x9,#0x0302,lsl#32
+ cmp w11,#3
+ b.eq .Ls_section_type
+ movz x9,#0x0303,lsl#32
+.Ls_section_type:
+ str x9,[x26,#24]
+ ldr x9,[x26,#64]
+ neg x9,x9
+ sub x9,x9,#1
+ cmp w11,#3
+ b.eq .Ls_section_bias
+ ldr x10,[x26,#88]
+ sub x9,x9,x10
+.Ls_section_bias:
+ str x9,[x26,#8]
+ add x9,x29,#16
+ str x26,[x9,x25,lsl#3]
+ add x25,x25,#1
+ cmp x25,#16
+ b.lo .Ls_section
+ ldr x9,[sp,#232]
+ str x9,[sp]
+ ldr x9,[sp,#216]
+ str x9,[sp,#8]
+ ldp x9,x10,[sp,#304]
+ stp x9,x10,[sp,#144]
+ ldr x9,[sp,#320]
+ stp x9,x24,[sp,#160]
+ ldp x0,x1,[sp,#176]
+ ldp x2,x3,[sp,#192]
+ ldr x4,[sp,#240]
+ mov x5,x20
+ mov x6,x19
+ ldr x7,[sp,#280]
+ bl md2asm_runtime_hpos
+ b .Ls_return
+.Ls_bad:
+ mov w0,#2
+.Ls_return:
+ ldp x19,x20,[sp,#336]
+ ldp x21,x22,[sp,#352]
+ ldp x23,x24,[sp,#368]
+ ldp x25,x26,[sp,#384]
+ ldp x27,x28,[sp,#400]
+ ldp x29,x30,[sp,#416]
+ ldr x18,[sp,#432]
+ add sp,sp,#2304
+ ret
+.size md2asm_runtime_scan2m_hpos,.-md2asm_runtime_scan2m_hpos
+.section .rodata
+.p2align 2
+.Ls_sections:
+ .word 5744,4
+ .word 6032,4
+ .word 6336,3
+ .word 6632,3
+ .word 8000,3
+ .word 15136,3
+ .word 12488,3
+ .word 15752,3
+ .word 8784,3
+ .word 10112,3
+ .word 9856,3
+ .word 11288,3
+ .word 11576,3
+ .word 16904,3
+ .word 14856,4
+ .word 17888,3
+.section .note.GNU-stack,"",%progbits
