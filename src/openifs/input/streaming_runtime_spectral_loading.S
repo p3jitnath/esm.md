@@ -1,0 +1,533 @@
+/* Contract skills/md2asm/references/openifs/input/streaming_runtime_spectral_loading.md.
+ * Stream spectral input into the canonical owned local fields.
+ * x0 path, x1 spectral2992, x2 capacity, x3 flag4, x4 mapview160, x5 capacity.
+ * Frame768, alignment16. Preserve x18, saved registers, FPCR/FPSR and errno.
+ * All placement instructions copy bits. No forecast arithmetic is supplied here.
+ */
+.arch armv8.2-a
+.macro sp_span number,pointer,bytes
+ mov x9,\bytes
+ cmp x9,#1
+ cinc x9,x9,lo
+ adds x10,\pointer,x9
+ b.cs .Lsp_finish
+ str \pointer,[sp,#(480+16*\number)]
+ str x10,[sp,#(488+16*\number)]
+.endm
+.text
+.p2align 4
+.global md2asm_load_streaming_runtime_spectral_state
+.type md2asm_load_streaming_runtime_spectral_state,%function
+md2asm_load_streaming_runtime_spectral_state:
+ mrs x9,fpcr
+ cbnz x9,.Lsp_bad_early
+ sub sp,sp,#768
+ stp x29,x30,[sp]
+ mov x29,sp
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ str x9,[sp,#104]
+ mrs x9,fpsr
+ str x9,[sp,#112]
+ str xzr,[sp,#120]
+ mov w9,#1
+ str w9,[sp,#132]
+ mov x19,x0
+ mov x20,x1
+ mov x21,x3
+ mov x22,x4
+ mov x23,#0
+ cbz x19,.Lsp_finish
+ cbz x20,.Lsp_finish
+ cbz x21,.Lsp_finish
+ cbz x22,.Lsp_finish
+ cmp x2,#2992
+ b.lo .Lsp_finish
+ cmp x5,#160
+ b.lo .Lsp_finish
+ orr x9,x20,x22
+ tst x9,#7
+ b.ne .Lsp_finish
+ tst x21,#3
+ b.ne .Lsp_finish
+ sp_span 0,x20,#2992
+ sp_span 1,x22,#160
+ sp_span 10,x21,#4
+ mov x9,#0
+.Lsp_path:
+ ldrb w10,[x19,x9]
+ add x9,x9,#1
+ cbz w10,.Lsp_path_end
+ cmp x9,#4096
+ b.lo .Lsp_path
+ b .Lsp_finish
+.Lsp_path_end:
+ cmp x9,#1
+ b.eq .Lsp_finish
+ mov x11,x9
+ sp_span 2,x19,x11
+ ldp w25,w26,[x22,#152]
+ sub w9,w25,#1
+ cmp w9,#4095
+ b.hi .Lsp_finish
+ sub w9,w26,#1
+ cmp w9,#255
+ b.hi .Lsp_finish
+ add x9,x25,#1
+ add x10,x25,#2
+ mul x9,x9,x10
+ str x9,[sp,#160]
+ ldr w10,[x20,#288]
+ cmp w10,w25
+ b.ne .Lsp_finish
+ ldr w10,[x20,#316]
+ cmp w10,w26
+ b.ne .Lsp_finish
+ ldr w10,[x20,#324]
+ cmp x10,x9
+ b.ne .Lsp_finish
+ ldr w27,[x22,#144]
+ cmp x27,x9
+ b.hi .Lsp_finish
+ tst w27,#1
+ b.ne .Lsp_finish
+ ldr w10,[x20,#320]
+ cmp w10,w27
+ b.ne .Lsp_finish
+ ldr w28,[x20,#312]
+ cmp w28,w26
+ b.hi .Lsp_finish
+ ldr w10,[x20,#296]
+ cmp w10,#0
+ b.eq .Lsp_surface_count
+ cmp w10,#2
+ b.ne .Lsp_finish
+.Lsp_surface_count:
+ str x10,[sp,#184]
+ ldr w11,[x20,#300]
+ cmp w11,#3
+ b.ne .Lsp_finish
+ ldr w11,[x20,#308]
+ cmp w11,#2
+ b.ne .Lsp_finish
+ ldr w11,[x22,#148]
+ add w12,w25,#1
+ cmp w11,w12
+ b.hi .Lsp_finish
+ str x11,[sp,#192]
+ ldr w12,[x20,#328]
+ cmp w12,w11
+ b.ne .Lsp_finish
+ add x0,x20,#1200
+ mov x1,x11
+ mov x2,#1
+ bl .Lsp_integer_descriptor
+ cbz x0,.Lsp_finish
+ str x0,[sp,#312]
+ ldr x11,[sp,#192]
+ lsl x11,x11,#2
+ sp_span 3,x0,x11
+ add x0,x20,#408
+ add x1,x25,#1
+ mov x2,#0
+ bl .Lsp_integer_descriptor
+ cbz x0,.Lsp_finish
+ str x0,[sp,#320]
+ add x11,x25,#1
+ lsl x11,x11,#2
+ sp_span 4,x0,x11
+ add x0,x20,#472
+ add x1,x25,#1
+ mov x2,#0
+ bl .Lsp_integer_descriptor
+ cbz x0,.Lsp_finish
+ str x0,[sp,#328]
+ add x11,x25,#1
+ lsl x11,x11,#2
+ sp_span 5,x0,x11
+ add x0,x20,#1264
+ mov x1,x28
+ mov x2,#1
+ bl .Lsp_integer_descriptor
+ cbz x0,.Lsp_finish
+ str x0,[sp,#336]
+ lsl x11,x28,#2
+ sp_span 6,x0,x11
+ add x0,x20,#1328
+ mov x1,#5
+ mov x2,#1
+ bl .Lsp_integer_descriptor
+ cbz x0,.Lsp_finish
+ sp_span 7,x0,#20
+ adr x9,.Lsp_ids
+ mov x10,#0
+.Lsp_id_check:
+ ldr w11,[x0,x10,lsl#2]
+ ldr w12,[x9,x10,lsl#2]
+ cmp w11,w12
+ b.ne .Lsp_finish
+ add x10,x10,#1
+ cmp x10,#5
+ b.ne .Lsp_id_check
+ add x0,x20,#88
+ mov x1,#3
+ mov x2,x28
+ mov x3,x27
+ mov x4,#3
+ bl .Lsp_real_descriptor
+ cbz x0,.Lsp_finish
+ str x0,[sp,#296]
+ mul x11,x28,x27
+ mov x12,#24
+ mul x11,x11,x12
+ str x11,[sp,#208]
+ sp_span 8,x0,x11
+ mov x0,x20
+ mov x1,#2
+ mov x2,x27
+ ldr x3,[sp,#184]
+ mov x4,#0
+ bl .Lsp_real_descriptor
+ cbz x0,.Lsp_finish
+ str x0,[sp,#304]
+ ldr x11,[sp,#184]
+ mul x11,x11,x27
+ lsl x11,x11,#3
+ str x11,[sp,#216]
+ sp_span 9,x0,x11
+ /* Validate every selected wave before a decoded value can be staged. */
+ ldr x0,[sp,#312]
+ ldr x1,[sp,#320]
+ ldr x2,[sp,#328]
+ ldr x3,[sp,#192]
+ mov x4,#0
+ mov x5,#0
+.Lsp_wave_check:
+ cmp x4,x3
+ b.hs .Lsp_wave_done
+ ldr w6,[x0,x4,lsl#2]
+ cmp w6,w25
+ b.hi .Lsp_finish
+ ldrsw x7,[x1,x6,lsl#2]
+ add x8,x5,#1
+ cmp x7,x8
+ b.ne .Lsp_finish
+ lsl x8,x25,#1
+ add x8,x8,#3
+ sub x8,x8,x6
+ mul x8,x8,x6
+ add x8,x8,#1
+ ldrsw x7,[x2,x6,lsl#2]
+ cmp x7,x8
+ b.ne .Lsp_finish
+ add x7,x25,#1
+ sub x7,x7,x6
+ add x5,x5,x7,lsl#1
+ cmp x5,x27
+ b.hi .Lsp_finish
+ add x4,x4,#1
+ b .Lsp_wave_check
+.Lsp_wave_done:
+ cmp x5,x27
+ b.ne .Lsp_finish
+ ldr x0,[sp,#336]
+ mov x1,#0
+ mov w2,#0
+.Lsp_level_check:
+ cmp x1,x28
+ b.hs .Lsp_level_done
+ ldr w3,[x0,x1,lsl#2]
+ cmp w3,w2
+ b.ls .Lsp_finish
+ cmp w3,w26
+ b.hi .Lsp_finish
+ mov w2,w3
+ add x1,x1,#1
+ b .Lsp_level_check
+.Lsp_level_done:
+ /* Three written spans must be separate from every borrowed input. */
+ mov x0,#8
+.Lsp_outer_span:
+ add x1,sp,#480
+ add x1,x1,x0,lsl#4
+ ldp x2,x3,[x1]
+ mov x4,#0
+.Lsp_inner_span:
+ add x1,sp,#480
+ add x1,x1,x4,lsl#4
+ ldp x5,x6,[x1]
+ cmp x2,x6
+ b.hs .Lsp_span_separate
+ cmp x5,x3
+ b.lo .Lsp_finish
+.Lsp_span_separate:
+ add x4,x4,#1
+ cmp x4,x0
+ b.lo .Lsp_inner_span
+ add x0,x0,#1
+ cmp x0,#11
+ b.lo .Lsp_outer_span
+ /* The complete uncommitted owner uses one allocation. */
+ ldr x9,[sp,#160]
+ lsl x9,x9,#3
+ str x9,[sp,#224]
+ ldr x10,[sp,#208]
+ cmp x10,#8
+ mov x12,#8
+ csel x10,x10,x12,hs
+ add x9,x9,x10
+ str x10,[sp,#352]
+ ldr x11,[sp,#216]
+ cmp x11,#8
+ csel x11,x11,x12,hs
+ str x11,[sp,#360]
+ add x9,x9,x11
+ add x9,x9,#128
+ mov x10,#3
+ madd x10,x26,x10,xzr
+ add x10,x10,#2
+ str x10,[sp,#200]
+ lsl x11,x10,#5
+ add x11,x11,#48
+ str x11,[sp,#232]
+ add x9,x9,x11
+ mov x11,#24
+ madd x9,x10,x11,x9
+ str x9,[sp,#240]
+ bl __errno_location
+ str x0,[sp,#120]
+ ldr w9,[x0]
+ str w9,[sp,#128]
+ ldr x0,[sp,#240]
+ bl malloc
+ mov x23,x0
+ cbz x23,.Lsp_no_memory
+ ldr x9,[sp,#224]
+ add x0,x23,x9
+ str x0,[sp,#280]
+ ldr x9,[sp,#352]
+ add x1,x0,x9
+ str x1,[sp,#288]
+ ldr x9,[sp,#360]
+ add x24,x1,x9
+ add x9,x24,#128
+ str x9,[sp,#264]
+ ldr x10,[sp,#232]
+ add x10,x9,x10
+ str x10,[sp,#272]
+ stp x0,x1,[x24]
+ stp x28,x27,[x24,#16]
+ ldr x9,[sp,#184]
+ ldr x10,[sp,#192]
+ stp x9,x10,[x24,#32]
+ ldp x9,x10,[sp,#312]
+ stp x9,x10,[x24,#48]
+ ldp x9,x10,[sp,#328]
+ stp x9,x10,[x24,#64]
+ stp x25,x26,[x24,#80]
+ ldp x9,x10,[sp,#208]
+ stp x9,x10,[x24,#96]
+ stp xzr,xzr,[x24,#112]
+ ldr x0,[sp,#280]
+ ldr x1,[sp,#296]
+ ldr x2,[sp,#208]
+ bl memcpy
+ ldr x0,[sp,#288]
+ ldr x1,[sp,#304]
+ ldr x2,[sp,#216]
+ bl memcpy
+ ldr x0,[sp,#264]
+ ldr x1,[sp,#200]
+ ldr x2,[sp,#160]
+ ldr x3,[sp,#224]
+ mov x4,#24
+ mul x4,x1,x4
+ stp x1,x2,[x0]
+ stp x3,x4,[x0,#16]
+ mov x3,#3
+ stp x3,xzr,[x0,#32]
+ add x0,x0,#48
+ mov x1,#0
+.Lsp_schema_row:
+ mov x2,#152
+ mov x3,#1
+ cbz x1,.Lsp_schema_store
+ sub x4,x1,#1
+ mov x5,#3
+ udiv x3,x4,x5
+ msub x4,x3,x5,x4
+ add x3,x3,#1
+ cmp x3,x26
+ b.hi .Lsp_schema_orography
+ adr x5,.Lsp_ids
+ ldr w2,[x5,x4,lsl#2]
+ b .Lsp_schema_store
+.Lsp_schema_orography:
+ mov x2,#129
+ mov x3,#0
+.Lsp_schema_store:
+ stp x2,x3,[x0],#16
+ stp xzr,xzr,[x0],#16
+ add x1,x1,#1
+ ldr x4,[sp,#200]
+ cmp x1,x4
+ b.ne .Lsp_schema_row
+ mov x0,x19
+ mov x1,x23
+ ldr x2,[sp,#224]
+ ldr x3,[sp,#272]
+ ldr x4,[sp,#200]
+ mov x5,#24
+ mul x4,x4,x5
+ add x5,x24,#120
+ ldr x6,[sp,#264]
+ mov x7,x24
+ bl md2asm_read_streaming_runtime_spectral_records
+ cbnz w0,.Lsp_reader_failed
+ ldr x0,[sp,#296]
+ ldr x1,[sp,#280]
+ ldr x2,[sp,#208]
+ bl memcpy
+ ldr x0,[sp,#304]
+ ldr x1,[sp,#288]
+ ldr x2,[sp,#216]
+ bl memcpy
+ mov w9,#1
+ str w9,[x21]
+ str wzr,[sp,#132]
+ b .Lsp_release
+.Lsp_reader_failed:
+ add w0,w0,#16
+ str w0,[sp,#132]
+ b .Lsp_release
+.Lsp_no_memory:
+ mov w9,#2
+ str w9,[sp,#132]
+.Lsp_release:
+ mov x0,x23
+ bl free
+ mov x23,#0
+.Lsp_finish:
+ ldr x9,[sp,#120]
+ cbz x9,.Lsp_restore
+ ldr w10,[sp,#128]
+ str w10,[x9]
+.Lsp_restore:
+ ldr x9,[sp,#104]
+ msr fpcr,x9
+ ldr x9,[sp,#112]
+ msr fpsr,x9
+ ldr w0,[sp,#132]
+ ldr x18,[sp,#96]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#768
+ ret
+.Lsp_bad_early:
+ mov w0,#1
+ ret
+.size md2asm_load_streaming_runtime_spectral_state,.-md2asm_load_streaming_runtime_spectral_state
+/* x0 int32 descriptor,w1 count,w2 lower. Scratch x0..x17, no stores. */
+.Lsp_integer_descriptor:
+ ldr x3,[x0]
+ cbz x3,.Lsp_integer_bad
+ tst x3,#3
+ b.ne .Lsp_integer_bad
+ ldr x4,[x0,#16]
+ cmp x4,#4
+ b.ne .Lsp_integer_bad
+ ldr w4,[x0,#24]
+ cbnz w4,.Lsp_integer_bad
+ ldrh w4,[x0,#28]
+ cmp w4,#257
+ b.ne .Lsp_integer_bad
+ ldr x4,[x0,#32]
+ cmp x4,#4
+ b.ne .Lsp_integer_bad
+ ldr x4,[x0,#40]
+ cmp x4,#1
+ b.ne .Lsp_integer_bad
+ ldr x4,[x0,#48]
+ cmp x4,x2
+ b.ne .Lsp_integer_bad
+ add x5,x1,x2
+ sub x5,x5,#1
+ ldr x4,[x0,#56]
+ cmp x4,x5
+ b.ne .Lsp_integer_bad
+ neg x5,x2
+ ldr x4,[x0,#8]
+ cmp x4,x5
+ b.ne .Lsp_integer_bad
+ mov x0,x3
+ ret
+.Lsp_integer_bad:
+ mov x0,#0
+ ret
+
+
+/* x0 descriptor, x1 rank2/3, x2/x3/x4 extents. Return its base or zero. */
+.Lsp_real_descriptor:
+ ldr x5,[x0]
+ cbz x5,.Lsp_real_bad
+ tst x5,#7
+ b.ne .Lsp_real_bad
+ ldr x6,[x0,#16]
+ cmp x6,#8
+ b.ne .Lsp_real_bad
+ ldr w6,[x0,#24]
+ cbnz w6,.Lsp_real_bad
+ ldrb w6,[x0,#28]
+ cmp w6,w1
+ b.ne .Lsp_real_bad
+ ldrb w6,[x0,#29]
+ cmp w6,#3
+ b.ne .Lsp_real_bad
+ ldr x6,[x0,#32]
+ cmp x6,#8
+ b.ne .Lsp_real_bad
+ mov x6,#1
+ neg x7,x6
+ add x8,x0,#40
+ mov x9,#0
+.Lsp_real_dimension:
+ cmp x9,#0
+ csel x10,x2,x3,eq
+ cmp x9,#2
+ csel x10,x4,x10,eq
+ ldp x11,x12,[x8]
+ cmp x11,x6
+ b.ne .Lsp_real_bad
+ cmp x12,#1
+ b.ne .Lsp_real_bad
+ ldr x11,[x8,#16]
+ cmp x11,x10
+ b.ne .Lsp_real_bad
+ add x8,x8,#24
+ mul x6,x6,x10
+ add x9,x9,#1
+ cmp x9,x1
+ b.eq .Lsp_real_offset
+ sub x7,x7,x6
+ b .Lsp_real_dimension
+.Lsp_real_offset:
+ ldr x6,[x0,#8]
+ cmp x6,x7
+ b.ne .Lsp_real_bad
+ mov x0,x5
+ ret
+.Lsp_real_bad:
+ mov x0,#0
+ ret
+.section .rodata
+.p2align 2
+.Lsp_ids: .word 138,155,130,152,129
+.section .note.GNU-stack,"",%progbits
