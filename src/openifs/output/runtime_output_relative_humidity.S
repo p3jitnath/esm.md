@@ -1,0 +1,215 @@
+/* The interface, bounds, units and component limits are in
+ * skills/md2asm/references/openifs/output/fullpos_vertical_physics.md.
+ */
+/* Source GPRH returns bounded relative humidity as a dimensionless fraction. */
+.arch armv8.2-a
+.symver md2asm_humidity_public_exponential,exp@GLIBC_2.29
+.macro ARG r,i
+ ldr \r,[sp,#(128+8*\i)]
+.endm
+.macro CALL name
+ bl \name
+ ldr x18,[sp,#96]
+.endm
+.text
+.p2align 4
+.global md2asm_runtime_output_relative_humidity
+.type md2asm_runtime_output_relative_humidity,%function
+md2asm_runtime_output_relative_humidity:
+ mov x17,sp
+ sub sp,sp,#384
+ stp x29,x30,[sp]
+ stp x19,x20,[sp,#16]
+ stp x21,x22,[sp,#32]
+ stp x23,x24,[sp,#48]
+ stp x25,x26,[sp,#64]
+ stp x27,x28,[sp,#80]
+ str x18,[sp,#96]
+ stp x0,x1,[sp,#128]
+ stp x2,x3,[sp,#144]
+ stp x4,x5,[sp,#160]
+ stp x6,x7,[sp,#176]
+ mov x9,#0
+ add x10,sp,#192
+.Largs:
+ ldr x11,[x17,x9,lsl#3]
+ str x11,[x10,x9,lsl#3]
+ add x9,x9,#1
+ cmp x9,#6
+ b.lo .Largs
+ add x9,sp,#128
+ mov x10,#12
+.Lnonnull:
+ ldr x11,[x9],#8
+ cbz x11,.Lbad
+ subs x10,x10,#1
+ b.ne .Lnonnull
+ ARG x9,13
+ cbz x9,.Lbad
+ mov x10,#0
+.Lcontext:
+ ldr x11,[x9,x10]
+ cbz x11,.Lbad
+ add x10,x10,#8
+ cmp x10,#32
+ b.lo .Lcontext
+ ldr x10,[x9,#16]
+ ldr w10,[x10]
+ cbnz w10,.Lbad
+ ldr x10,[x9,#24]
+ ldr w10,[x10]
+ cmp w10,#1
+ b.ne .Lbad
+ ARG x10,12
+ cbz x10,.Lsonntag_false
+ ldr w10,[x10]
+ cbnz w10,.Lbad
+.Lsonntag_false:
+ ldr w10,[x0]
+ cbnz w10,.Lbad
+ mrs x10,fpcr
+ cbnz x10,.Lbad
+ ldr w19,[x1]
+ sub w10,w19,#1
+ mov w11,#32768
+ cmp w10,w11
+ b.hi .Lbad
+ ldr w20,[x4]
+ sub w10,w20,#1
+ cmp w10,#511
+ b.hi .Lbad
+ ldr w21,[x2]
+ sub w10,w21,#1
+ cmp w10,w19
+ b.hs .Lbad
+ ldr w22,[x3]
+ cmp w22,w21
+ b.lt .Lbad
+ cmp w22,w19
+ b.gt .Lbad
+ sub w21,w21,#1
+ ARG x23,7
+ ARG x24,8
+ ARG x25,9
+ ARG x26,10
+ ARG x27,11
+ str wzr,[sp,#248]
+.Llevel:
+ str w21,[sp,#240]
+.Lsaturation_row:
+ ldr w9,[sp,#248]
+ ldr w10,[sp,#240]
+ madd x28,x9,x19,x10
+ ldr d0,[x24,x28,lsl#3]
+ str d0,[sp,#256]
+ ARG x9,13
+ ldr x9,[x9,#8]
+ ldr d1,[x9,#112]
+ fmin d1,d1,d0
+ ldr d2,[x9,#136]
+ fmax d1,d2,d1
+ fsub d1,d1,d2
+ ldr d2,[x9,#152]
+ fmul d1,d1,d2
+ fmul d1,d1,d1
+ fmov d2,#1.0
+ fmin d1,d2,d1
+ str d1,[sp,#264]
+ ldr d1,[x9,#8]
+ ldr d2,[x9,#24]
+ ARG x10,13
+ ldr x10,[x10]
+ ldr d3,[x10,#368]
+ fsub d3,d0,d3
+ fmul d1,d1,d3
+ fsub d0,d0,d2
+ fdiv d0,d1,d0
+ CALL md2asm_humidity_public_exponential
+ str d0,[sp,#272]
+ ldr d0,[sp,#256]
+ ARG x9,13
+ ldr x9,[x9,#8]
+ ldr d1,[x9,#16]
+ ldr d2,[x9,#32]
+ ARG x10,13
+ ldr x10,[x10]
+ ldr d3,[x10,#368]
+ fsub d3,d0,d3
+ fmul d1,d1,d3
+ fsub d0,d0,d2
+ fdiv d0,d1,d0
+ CALL md2asm_humidity_public_exponential
+ ldr d1,[sp,#264]
+ ldr d2,[sp,#272]
+ fmul d2,d1,d2
+ fmov d3,#1.0
+ fsub d1,d3,d1
+ fmul d0,d1,d0
+ fadd d0,d2,d0
+ ARG x9,13
+ ldr x10,[x9,#8]
+ ldr d1,[x10]
+ fmul d0,d1,d0
+ ldr x10,[x9]
+ ldr d1,[x10,#240]
+ fmov d2,#1.0
+ fadd d1,d1,d2
+ fmul d0,d1,d0
+ str d0,[x26,x28,lsl#3]
+ ldr w9,[sp,#240]
+ add w9,w9,#1
+ str w9,[sp,#240]
+ cmp w9,w22
+ b.lo .Lsaturation_row
+ str w21,[sp,#240]
+.Lhumidity_row:
+ ldr w9,[sp,#248]
+ ldr w10,[sp,#240]
+ madd x28,x9,x19,x10
+ ldr d0,[x25,x28,lsl#3]
+ ldr d1,[x23,x28,lsl#3]
+ fmul d0,d0,d1
+ ARG x9,13
+ ldr x9,[x9]
+ ldr d2,[x9,#240]
+ fmov d3,#1.0
+ fadd d4,d2,d3
+ fmul d0,d0,d4
+ fmul d1,d2,d1
+ fadd d1,d3,d1
+ ldr d2,[x26,x28,lsl#3]
+ fmul d1,d1,d2
+ fdiv d0,d0,d1
+ ARG x9,5
+ ldr d1,[x9]
+ fmin d0,d0,d1
+ ARG x9,6
+ ldr d1,[x9]
+ fmax d0,d1,d0
+ str d0,[x27,x28,lsl#3]
+ ldr w9,[sp,#240]
+ add w9,w9,#1
+ str w9,[sp,#240]
+ cmp w9,w22
+ b.lo .Lhumidity_row
+ ldr w9,[sp,#248]
+ add w9,w9,#1
+ str w9,[sp,#248]
+ cmp w9,w20
+ b.lo .Llevel
+ mov w0,#0
+ b .Lreturn
+.Lbad:
+ mov w0,#2
+.Lreturn:
+ ldr x18,[sp,#96]
+ ldp x19,x20,[sp,#16]
+ ldp x21,x22,[sp,#32]
+ ldp x23,x24,[sp,#48]
+ ldp x25,x26,[sp,#64]
+ ldp x27,x28,[sp,#80]
+ ldp x29,x30,[sp]
+ add sp,sp,#384
+ ret
+.size md2asm_runtime_output_relative_humidity,.-md2asm_runtime_output_relative_humidity
+.section .note.GNU-stack,"",%progbits
