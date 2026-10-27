@@ -118,9 +118,20 @@ md2asm_complete_runtime_operational_interpolation_halo:
  movk x10,#17488,lsl#48
  cmp x9,x10
  b.ne .Lbad
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w9,[x21,#16]
+ cmp w9,#7
+ b.ne .Lbad
+ ldr w9,[x21,#24]
+ sub w9,w9,#1
+ mov w10,#65535
+ cmp w9,w10
+ b.hi .Lbad
+#else
  ldr w9,[x21,#24]
  cmp w9,#4
  b.ne .Lbad
+#endif
  ldr x9,[x22]
  cmp x9,x20
  b.ne .Lbad

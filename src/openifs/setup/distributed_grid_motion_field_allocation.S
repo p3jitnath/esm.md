@@ -79,6 +79,29 @@ md2asm_allocate_distributed_grid_motion_fields:
  cmp x6,#5
  b.lo .Lgm_record_loop
  ldr x8,[x2]
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w12,[x8,#5144]
+ sub w9,w12,#1
+ cmp w9,#1023
+ b.hi .Lgm_bad_leaf
+ ldr w9,[x8,#5224]
+ cmp w9,#137
+ b.ne .Lgm_bad_leaf
+ ldr w13,[x8,#5160]
+ sub w9,w13,#1
+ mov w10,#(388216&65535)
+ movk w10,#(388216>>16),lsl#16
+ cmp w9,w10
+ b.hi .Lgm_bad_leaf
+ ldr w11,[x8,#7376]
+ cmp w11,#1
+ b.lt .Lgm_bad_leaf
+ add x11,x11,x12
+ sub x11,x11,#1
+ udiv x11,x11,x12
+ cmp x11,x13
+ b.ne .Lgm_bad_leaf
+#else
  ldr w9,[x8,#5144]
  cmp w9,#17
  b.ne .Lgm_bad_leaf
@@ -90,6 +113,7 @@ md2asm_allocate_distributed_grid_motion_fields:
  movk w10,#(97055>>16),lsl#16
  cmp w9,w10
  b.ne .Lgm_bad_leaf
+#endif
  ldr x8,[x2,#64]
  ldr w9,[x8,#0]
  cmp w9,#0

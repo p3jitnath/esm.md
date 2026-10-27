@@ -72,8 +72,13 @@ md2asm_operational_prepare_next_time_fields:
 .Lnext_shape:
  ldr w9,[x2]
  sub w9,w9,#1
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ cmp w9,#1023
+ b.hi .Lnext_reject
+#else
  cmp w9,#63
  b.hi .Lnext_reject
+#endif
  ldr w9,[x2,#4]
  sub w9,w9,#1
  cmp w9,#136

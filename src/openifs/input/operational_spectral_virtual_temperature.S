@@ -1,3 +1,7 @@
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+#define md2asm_initialize_operational_spectral_virtual_temperature md2asm_initialize_runtime_spectral_virtual_temperature
+#define md2asm_operational_virtual_temperature_cells md2asm_runtime_virtual_temperature_cells
+#endif
 /* Contract: skills/md2asm/references/openifs/input/operational_virtual_temperature_conversion.md.
  * Accepted component source. Complete operational forecast acceptance remains separate. */
 /* Operational initial SPECRT, KDIR zero, no spectral water or increments.
@@ -34,6 +38,47 @@ md2asm_initialize_operational_spectral_virtual_temperature:
  b.ne .Lvt_bad_leaf
  mrs x9,fpcr
  cbnz x9,.Lvt_bad_leaf
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w12,[x0,#5144]
+ sub w9,w12,#1
+ cmp w9,#1023
+ b.hi .Lvt_bad_leaf
+ ldr w13,[x0,#5160]
+ sub w9,w13,#1
+ mov w10,#(388216&65535)
+ movk w10,#(388216>>16),lsl#16
+ cmp w9,w10
+ b.hi .Lvt_bad_leaf
+ ldr w14,[x0,#7376]
+ cmp w14,#1
+ b.lt .Lvt_bad_leaf
+ add x9,x14,x12
+ sub x9,x9,#1
+ udiv x9,x9,x12
+ cmp x9,x13
+ b.ne .Lvt_bad_leaf
+ ldr w9,[x0,#5168]
+ cmp w9,#1
+ b.lt .Lvt_bad_leaf
+ ldr w9,[x0,#5224]
+ cmp w9,#137
+ b.ne .Lvt_bad_leaf
+ ldr w9,[x0,#5228]
+ cmp w9,#137
+ b.hi .Lvt_bad_leaf
+ ldr w9,[x0,#5172]
+ sub w10,w9,#1
+ cmp w10,#4095
+ b.hi .Lvt_bad_leaf
+ add w10,w9,#1
+ add w11,w9,#2
+ umull x10,w10,w11
+ ldr w9,[x0,#5200]
+ tst w9,#1
+ b.ne .Lvt_bad_leaf
+ cmp x9,x10
+ b.hi .Lvt_bad_leaf
+#else
  ldr w9,[x0,#5144]
  cmp w9,#17
  b.ne .Lvt_bad_leaf
@@ -63,6 +108,7 @@ md2asm_initialize_operational_spectral_virtual_temperature:
  movk w10,#(1649920>>16),lsl#16
  cmp w9,w10
  b.ne .Lvt_bad_leaf
+#endif
  ldr x9,[x1,#1088]
  cmp x9,x2
  b.ne .Lvt_bad_leaf
@@ -110,12 +156,39 @@ md2asm_initialize_operational_spectral_virtual_temperature:
  VT_CALL __errno_location
  mov x26,x0
  ldr w27,[x26]
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w9,[x19,#5144]
+ ldr w10,[x19,#7376]
+ str w9,[sp,#448]
+ str w10,[sp,#452]
+ ldr w10,[x19,#5160]
+ mov w11,#137
+ str w10,[sp,#456]
+ str w11,[sp,#460]
+ umull x12,w9,w11
+ lsl x12,x12,#3
+ str x12,[sp,#464]
+ mov x13,#9
+ mul x13,x12,x13
+ str x13,[sp,#472]
+ ldr w11,[x19,#7376]
+ sub w10,w10,#1
+ msub w10,w10,w9,w11
+ str w10,[sp,#480]
+ ldr w10,[sp,#456]
+ mul x0,x12,x10
+#else
  movz x0,#(1808328760&65535)
  movk x0,#(1808328760>>16),lsl#16
+#endif
  VT_CALL malloc
  cbz x0,.Lvt_allocation_failure
  mov x24,x0
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr x0,[sp,#464]
+#else
  mov x0,#18632
+#endif
  VT_CALL malloc
  cbz x0,.Lvt_allocation_failure
  mov x25,x0
@@ -124,6 +197,34 @@ md2asm_initialize_operational_spectral_virtual_temperature:
  stp xzr,x21,[sp,#400]
  stp xzr,xzr,[sp,#416]
  stp xzr,xzr,[sp,#432]
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ str x24,[sp,#240]
+ ldr w10,[sp,#448]
+ mov x11,#137
+ mul x12,x10,x11
+ add x9,x12,x10
+ add x9,x9,#1
+ neg x9,x9
+ str x9,[sp,#248]
+ mov x9,#8
+ str x9,[sp,#256]
+ mov x13,#0x303
+ lsl x13,x13,#32
+ str x13,[sp,#264]
+ str x9,[sp,#272]
+ mov x9,#1
+ stp x9,x9,[sp,#280]
+ stp x10,x10,[sp,#296]
+ str x9,[sp,#312]
+ str x11,[sp,#320]
+ str x12,[sp,#328]
+ str x9,[sp,#336]
+ ldr w13,[sp,#456]
+ str x13,[sp,#344]
+ str w10,[sp,#352]
+ str w9,[sp,#356]
+ str w11,[sp,#364]
+#else
  /* GNU12 real rank-three descriptor for ZT(17,137,97055). */
  str x24,[sp,#240]
  mov x9,#-2347
@@ -153,6 +254,7 @@ md2asm_initialize_operational_spectral_virtual_temperature:
  str w10,[sp,#356]
  mov w9,#137
  str w9,[sp,#364]
+#endif
  /* INV_TRANS optional arguments, with only T and PGP present. */
  stp xzr,xzr,[sp]
  stp xzr,xzr,[sp,#16]
@@ -180,18 +282,31 @@ md2asm_initialize_operational_spectral_virtual_temperature:
  VT_CALL inv_trans_
  mov x28,#0
 .Lvt_blocks:
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w9,[sp,#456]
+ sub x9,x9,#1
+ cmp x28,x9
+ ldr w9,[sp,#448]
+ ldr w10,[sp,#480]
+ csel w9,w10,w9,eq
+#else
  movz x9,#(97054&65535)
  movk x9,#(97054>>16),lsl#16
  cmp x28,x9
  mov w9,#17
  mov w10,#2
  csel w9,w10,w9,eq
+#endif
  str w9,[sp,#360]
  /* Unchanged complete generic mixture child, requesting only PR. */
  stp xzr,xzr,[sp]
  stp xzr,x25,[sp,#16]
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr x9,[sp,#472]
+#else
  movz x9,#(167688&65535)
  movk x9,#(167688>>16),lsl#16
+#endif
  mul x9,x28,x9
  ldr x10,[x20]
  add x9,x10,x9
@@ -208,15 +323,24 @@ md2asm_initialize_operational_spectral_virtual_temperature:
  add x9,sp,#384
  str x9,[sp,#64]
  VT_CALL md2asm_operational_hydrostatic_private_gprcp
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr x9,[sp,#464]
+ ldr w4,[sp,#448]
+#else
  mov x9,#18632
+#endif
  madd x0,x28,x9,x24
  mov x1,x25
  ldr w2,[sp,#360]
  mov x3,x23
  bl md2asm_operational_virtual_temperature_cells
  add x28,x28,#1
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w9,[sp,#456]
+#else
  movz x9,#(97055&65535)
  movk x9,#(97055>>16),lsl#16
+#endif
  cmp x28,x9
  b.lo .Lvt_blocks
  /* DIR_TRANS uses the same live field-set, resolution and temperature view. */
@@ -279,6 +403,15 @@ md2asm_initialize_operational_spectral_virtual_temperature:
 .global md2asm_operational_virtual_temperature_cells
 .type md2asm_operational_virtual_temperature_cells,%function
 md2asm_operational_virtual_temperature_cells:
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ sub w9,w4,#1
+ cmp w9,#1023
+ b.hi .Lvt_cells_bad
+ sub w9,w2,#1
+ cmp w9,w4
+ b.hs .Lvt_cells_bad
+ mov w6,w4
+#endif
  ldr d2,[x3,#184]
  mov w4,#137
 .Lvt_level:
@@ -292,10 +425,21 @@ md2asm_operational_virtual_temperature_cells:
  add x5,x5,#1
  cmp w5,w2
  b.lo .Lvt_cell
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ add x0,x0,x6,lsl#3
+ add x1,x1,x6,lsl#3
+#else
  add x0,x0,#136
  add x1,x1,#136
+#endif
  subs w4,w4,#1
  b.ne .Lvt_level
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ mov w0,#0
+ ret
+.Lvt_cells_bad:
+ mov w0,#2
+#endif
  ret
 .size md2asm_operational_virtual_temperature_cells,.-md2asm_operational_virtual_temperature_cells
 .section .note.GNU-stack,"",%progbits

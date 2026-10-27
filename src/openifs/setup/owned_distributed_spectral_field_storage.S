@@ -13,7 +13,12 @@ md2asm_initialize_owned_distributed_spectral_field:
  orr x9,x2,x4
  tst x9,#7
  b.ne .Ldsbind_bad
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ mov w9,#20400
+#else
  mov w9,#17096
+#endif
+
  cmp x3,x9
  b.lo .Ldsbind_bad
  cmp x5,#4096
@@ -30,7 +35,12 @@ md2asm_initialize_owned_distributed_spectral_field:
  cmp x9,x10
  b.ne .Ldsbind_bad
  ldr w9,[x4,#16]
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ cmp w9,#7
+#else
  cmp w9,#3
+#endif
+
  b.ne .Ldsbind_bad
  stp x29,x30,[sp,#-256]!
  mov x29,sp
@@ -54,8 +64,30 @@ md2asm_initialize_owned_distributed_spectral_field:
  add x27,x25,#16
  mov w15,#8
 .Ldsbind_map:
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ ldp w9,w10,[x26],#8
+ mov w12,w10
+ ldr w13,[x21,#5172]
+ add w13,w13,#1
+ ldr w14,[x22,#32]
+ ldr w16,[x22,#36]
+ cmp w10,#1
+ csel w10,w13,w14,eq
+ cmp w12,#2
+ csel w10,w16,w10,eq
+ cmp w12,#3
+ add w16,w16,#1
+ csel w10,w16,w10,eq
+ cmp w12,#4
+ ldr w16,[x21,#5212]
+ csel w10,w16,w10,eq
+ lsl x10,x10,#2
+ add x9,x21,x9
+#else
  ldp w9,w10,[x26],#8
  add x9,x21,x9
+#endif
+
  ldr x11,[x9]
  cbz x11,.Ldsbind_refuse
  ldr x12,[x9,#16]
@@ -77,11 +109,25 @@ md2asm_initialize_owned_distributed_spectral_field:
  ldr x10,[x25,#128]
  ldr w11,[x25]
  sub w11,w11,#1
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ ldr w12,[x25,#8]
+ cmp w11,w12
+ b.hs .Ldsbind_refuse
+#else
  cmp w11,#1
  b.hi .Ldsbind_refuse
+#endif
+
  ldr w10,[x10,x11,lsl#2]
  stp w9,w10,[x25,#144]
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ ldr w9,[x21,#5172]
+ ldr w10,[x21,#5224]
+ stp w9,w10,[x25,#152]
+#else
  str xzr,[x25,#152]
+#endif
+
  mov x0,x19
  mov x1,x20
  mov x2,x25
@@ -112,6 +158,18 @@ md2asm_release_distributed_spectral_field:
 .section .rodata
 .p2align 3
 .Ldsbind_cookie: .quad 0x445054585f4f574e
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+.Ldsbind_maps:
+ .word 3912,4
+ .word 5448,1
+ .word 5384,0
+ .word 5832,3
+ .word 5896,3
+ .word 6024,2
+ .word 3720,1
+ .word 5256,0
+
+#else
 .Ldsbind_maps:
  .word 3912,2560
  .word 5448,5120
@@ -121,4 +179,6 @@ md2asm_release_distributed_spectral_field:
  .word 6024,8
  .word 3720,5120
  .word 5256,8
+
+#endif
 .section .note.GNU-stack,"",%progbits

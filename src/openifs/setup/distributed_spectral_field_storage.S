@@ -30,6 +30,169 @@ md2asm_initialize_distributed_spectral_field:
  b.cs .Ldspec_reject
  adds x9,x5,#24
  b.cs .Ldspec_reject
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ /* Runtime dimensions and source-sized complete map spans. */
+ ldp w6,w7,[x2,#8]
+ sub w9,w6,#1
+ mov w10,#65535
+ cmp w9,w10
+ b.hi .Ldspec_reject
+ ldp w8,w9,[x2,#152]
+ sub w10,w8,#1
+ cmp w10,#4095
+ b.hi .Ldspec_reject
+ sub w10,w9,#1
+ cmp w10,#255
+ b.hi .Ldspec_reject
+ sub w10,w7,#1
+ cmp w10,w9
+ b.hi .Ldspec_reject
+ umull x10,w6,w7
+ mov x11,#65536
+ cmp x10,x11
+ b.hi .Ldspec_reject
+ ldp w10,w11,[x2]
+ sub w10,w10,#1
+ sub w11,w11,#1
+ cmp w10,w6
+ b.hs .Ldspec_reject
+ cmp w11,w7
+ b.hs .Ldspec_reject
+ add w10,w8,#1
+ add w11,w8,#2
+ umull x10,w10,w11
+ mov w11,#3
+ madd w11,w9,w11,wzr
+ add w11,w11,#2
+ mul x11,x10,x11
+ mov w12,#0x7fffffff
+ cmp x11,x12
+ b.hi .Ldspec_reject
+ ldp w11,w12,[x2,#144]
+ cmp w11,w10
+ b.hi .Ldspec_reject
+ tst w11,#1
+ b.ne .Ldspec_reject
+ add w13,w8,#1
+ cmp w12,w13
+ b.hi .Ldspec_reject
+ add x10,x2,#16
+ mov w11,#0
+.Ldspec_runtime_span:
+ mov w12,w6
+ cmp w11,#0
+ b.ne .Ldspec_runtime_not_local_span
+ ldr w12,[x2,#148]
+.Ldspec_runtime_not_local_span:
+ cmp w11,#1
+ csel w12,w13,w12,eq
+ cmp w11,#3
+ csel w12,w7,w12,eq
+ cmp w11,#4
+ csel w12,w7,w12,eq
+ cmp w11,#5
+ csel w12,w7,w12,eq
+ cmp w11,#6
+ csel w12,w13,w12,eq
+ lsl x12,x12,#2
+ ldp x14,x15,[x10],#16
+ cbz x14,.Ldspec_reject
+ tst x14,#3
+ b.ne .Ldspec_reject
+ cmp x15,x12
+ b.lo .Ldspec_reject
+ adds x15,x14,x12
+ b.cs .Ldspec_reject
+ add w11,w11,#1
+ cmp w11,#8
+ b.lo .Ldspec_runtime_span
+ /* Level and surface maps retain source values and cover the full column. */
+ ldr x10,[x2,#64]
+ ldr x11,[x2,#80]
+ ldr x12,[x2,#96]
+ mov w13,#0
+ mov w14,#0
+ mov w15,#0
+.Ldspec_runtime_level:
+ ldr w16,[x10,x13,lsl#2]
+ cmp w16,w9
+ b.hi .Ldspec_reject
+ add w14,w14,w16
+ ldr w17,[x11,x13,lsl#2]
+ add w16,w16,w17
+ add w17,w9,#1
+ cmp w16,w17
+ b.hi .Ldspec_reject
+ ldr w16,[x12,x13,lsl#2]
+ cmp w16,#1
+ b.hi .Ldspec_reject
+ add w15,w15,w16
+ add w13,w13,#1
+ cmp w13,w7
+ b.lo .Ldspec_runtime_level
+ cmp w14,w9
+ b.ne .Ldspec_reject
+ cmp w15,#1
+ b.ne .Ldspec_reject
+ /* Per-group counts and starts select the actual source wave ordering. */
+ ldr x10,[x2,#128]
+ ldr x11,[x2,#48]
+ udiv w12,w8,w6
+ add w12,w12,#1
+ mov w13,#0
+ mov w14,#1
+.Ldspec_runtime_wave_groups:
+ ldr w15,[x10,x13,lsl#2]
+ cmp w15,w12
+ b.hi .Ldspec_reject
+ ldr w16,[x11,x13,lsl#2]
+ cmp w16,w14
+ b.ne .Ldspec_reject
+ add w14,w14,w15
+ add w13,w13,#1
+ cmp w13,w6
+ b.lo .Ldspec_runtime_wave_groups
+ add w15,w8,#2
+ cmp w14,w15
+ b.ne .Ldspec_reject
+ ldr w13,[x2]
+ sub w13,w13,#1
+ ldr w14,[x10,x13,lsl#2]
+ ldr w15,[x2,#148]
+ cmp w14,w15
+ b.ne .Ldspec_reject
+ ldr w13,[x11,x13,lsl#2]
+ sub w13,w13,#1
+ ldr x10,[x2,#16]
+ ldr x11,[x2,#32]
+ ldr x12,[x2,#112]
+ mov w14,#0
+ mov w16,#1
+.Ldspec_runtime_local_wave:
+ cmp w14,w15
+ b.hs .Ldspec_runtime_local_wave_done
+ ldr w17,[x10,x14,lsl#2]
+ cmp w17,w8
+ b.hi .Ldspec_reject
+ add w6,w13,w14
+ ldr w6,[x11,x6,lsl#2]
+ cmp w6,w17
+ b.ne .Ldspec_reject
+ ldr w6,[x12,x17,lsl#2]
+ cmp w6,w16
+ b.ne .Ldspec_reject
+ add w6,w8,#1
+ sub w6,w6,w17
+ add w16,w16,w6,lsl#1
+ add w14,w14,#1
+ b .Ldspec_runtime_local_wave
+.Ldspec_runtime_local_wave_done:
+ sub w16,w16,#1
+ ldr w17,[x2,#144]
+ cmp w16,w17
+ b.ne .Ldspec_reject
+
+#else
  ldp w9,w10,[x2]
  sub w9,w9,#1
  sub w10,w10,#1
@@ -89,6 +252,8 @@ md2asm_initialize_distributed_spectral_field:
  b.ne .Ldspec_reject
  cmp w11,#640
  b.ne .Ldspec_reject
+
+#endif
  mrs x9,fpcr
  cbnz x9,.Ldspec_reject
  /* A fresh record is an explicit owned input, not a source type table. */
@@ -136,7 +301,12 @@ md2asm_initialize_distributed_spectral_field:
  sub w9,w9,#1
  ldr x10,[x22,#64]
  ldr w20,[x10,x9,lsl#2]
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ ldr w21,[x22,#152]
+#else
  mov w21,#1279
+#endif
+
  mov x23,x5
  str x4,[sp,#144]
  ldr w28,[x22,#144]
@@ -196,27 +366,63 @@ md2asm_initialize_distributed_spectral_field:
  mov w11,#2
  str w11,[x19,#308]
  str w20,[x19,#312]
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ ldr w11,[x22,#156]
+#else
  mov w11,#137
+#endif
+
  str w11,[x19,#316]
  str w28,[x19,#320]
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ add w11,w21,#1
+ add w12,w21,#2
+ mul w11,w11,w12
+#else
  movz w11,#(1639680&65535)
  movk w11,#(1639680>>16),lsl#16
+#endif
+
  str w11,[x19,#324]
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ ldr w11,[x22,#148]
+#else
  mov w11,#640
+#endif
+
  str w11,[x19,#328]
  madd w10,w20,w10,w9
  mul w10,w10,w28
  str w10,[x19,#332]
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ ldr w10,[x22,#156]
+ mov w11,#3
+ mul w10,w10,w11
+ add w10,w10,#2
+ ldr w11,[x19,#324]
+ mul w10,w10,w11
+#else
  movz w10,#(677187840&65535)
  movk w10,#(677187840>>16),lsl#16
+#endif
+
  str w10,[x19,#336]
  /* Borrowed maps have the same qualified distribution inputs as CREATE_SPEC. */
  adr x27,.Ldspec_copy_maps
  mov w26,#8
 .Ldspec_copy_map:
  ldp w9,w10,[x27]
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ ldr w0,[x27,#8]
+ bl .Ldspec_extent
+ lsl x2,x0,#2
+ ldp w9,w10,[x27]
+ ldr x0,[x19,x9]
+#else
  ldr w2,[x27,#8]
  ldr x0,[x19,x9]
+#endif
+
  ldr x1,[x22,x10]
  bl memcpy
  add x27,x27,#16
@@ -228,30 +434,94 @@ md2asm_initialize_distributed_spectral_field:
  mov w11,#0
 .Ldspec_global_waves:
  str w10,[x9,x11,lsl#2]
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ add w12,w21,#1
+#else
  mov w12,#1280
+#endif
+
  sub w12,w12,w11
  add w10,w10,w12,lsl#1
  add w11,w11,#1
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ add w12,w21,#1
+ cmp w11,w12
+#else
  cmp w11,#1280
+#endif
+
  b.lo .Ldspec_global_waves
  ldr x9,[x19,#1264]
  ldr w10,[x22,#4]
  sub w10,w10,#1
  ldr x11,[x22,#80]
  ldr w10,[x11,x10,lsl#2]
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ mov w11,#0
+ cbz w20,.Ldspec_level_map_done
+.Ldspec_level_map:
+#else
  mov w11,#0
 .Ldspec_level_map:
+#endif
+
  add w12,w10,w11
  str w12,[x9,x11,lsl#2]
  add w11,w11,#1
  cmp w11,w20
  b.lo .Ldspec_level_map
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+.Ldspec_level_map_done:
+ ldr x9,[x19,#344]
+ ldr x10,[x22,#96]
+ ldr w12,[x22,#12]
+ mov w13,#0
+.Ldspec_runtime_surface:
+ ldr w11,[x10,x13,lsl#2]
+ lsl w11,w11,#1
+ str w11,[x9,x13,lsl#2]
+ add w13,w13,#1
+ cmp w13,w12
+ b.lo .Ldspec_runtime_surface
+#else
  ldr x9,[x19,#344]
  ldr x10,[x22,#96]
  ldp w11,w12,[x10]
  lsl w11,w11,#1
  lsl w12,w12,#1
  stp w11,w12,[x9]
+#endif
+
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ /* Populate only the source-defined cells of each process column. */
+ ldr x9,[x19,#856]
+ ldr x10,[x19,#792]
+ ldr x11,[x19,#1136]
+ ldr x17,[x19,#728]
+ ldr w6,[x22,#8]
+ udiv w7,w21,w6
+ add w7,w7,#1
+ mov w12,#0
+.Ldspec_ms_process:
+ ldr w13,[x11,x12,lsl#2]
+ sub w13,w13,#1
+ ldr w8,[x17,x12,lsl#2]
+ mov w14,#0
+ cbz w8,.Ldspec_ms_process_next
+.Ldspec_ms_process_wave:
+ add w15,w13,w14
+ ldr w15,[x10,x15,lsl#2]
+ madd w16,w12,w7,w14
+ str w15,[x9,x16,lsl#2]
+ add w14,w14,#1
+ cmp w14,w8
+ b.lo .Ldspec_ms_process_wave
+.Ldspec_ms_process_next:
+ add w12,w12,#1
+ cmp w12,w6
+ b.lo .Ldspec_ms_process
+
+#else
  /* Two process columns are complete because both own640 waves. */
  ldr x9,[x19,#856]
  ldr x10,[x19,#792]
@@ -273,6 +543,8 @@ md2asm_initialize_distributed_spectral_field:
  add w12,w12,#1
  cmp w12,#2
  b.lo .Ldspec_ms_process
+
+#endif
  ldr x9,[x19,#1328]
  adr x10,.Ldspec_ids
  mov x11,#0
@@ -419,13 +691,41 @@ md2asm_initialize_distributed_spectral_field:
  b.eq .Ldspec_extent_surface
  cmp w0,#7
  b.eq .Ldspec_extent_local_waves
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ cmp w0,#9
+ b.eq .Ldspec_extent_process_width
+ cmp w0,#10
+ b.eq .Ldspec_extent_vertical_groups
+ cmp w0,#11
+ b.eq .Ldspec_extent_two
+ ldr w0,[x22,#8]
+ ret
+.Ldspec_extent_process_width:
+ ldr w9,[x22,#8]
+ udiv w0,w21,w9
+ add w0,w0,#1
+ ret
+.Ldspec_extent_vertical_groups:
+ ldr w0,[x22,#12]
+ ret
+.Ldspec_extent_two:
+ mov w0,#2
+ ret
+#else
  cmp w0,#9
  b.eq .Ldspec_extent_local_waves
  mov w0,#2
  ret
+#endif
+
 .Ldspec_extent_one: mov w0,#1
  ret
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+.Ldspec_extent_waves: add w0,w21,#1
+#else
 .Ldspec_extent_waves: mov w0,#1280
+#endif
+
  ret
 .Ldspec_extent_levels: mov w0,w20
  ret
@@ -442,7 +742,12 @@ md2asm_initialize_distributed_spectral_field:
  ldr w0,[x10,x9,lsl#2]
  lsl w0,w0,#1
  ret
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+.Ldspec_extent_local_waves: ldr w0,[x22,#148]
+#else
 .Ldspec_extent_local_waves: mov w0,#640
+#endif
+
  ret
 /* GNU descriptor from actual source type layout; higher lower bounds are1. */
 .Ldspec_descriptor:
@@ -495,19 +800,44 @@ md2asm_initialize_distributed_spectral_field:
  .word 1200,1,4,7,1,0,0,0 /* MYMS */
  .word 792,1,4,1,1,0,0,0 /* NALLMS */
  .word 1136,1,4,8,1,0,0,0 /* NPTRMS */
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ .word 944,1,4,10,1,0,0,0 /* NUMLL */
+#else
  .word 944,1,4,8,1,0,0,0 /* NUMLL */
+#endif
+
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ .word 1008,1,4,10,1,0,0,0 /* NPTRLL */
+#else
  .word 1008,1,4,8,1,0,0,0 /* NPTRLL */
+#endif
+
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ .word 1072,1,4,10,1,0,0,0 /* NPSURF */
+#else
  .word 1072,1,4,8,1,0,0,0 /* NPSURF */
+#endif
+
  .word 1264,1,4,2,1,0,0,0 /* MYLEVS */
  .word 408,1,4,1,0,0,0,0 /* NASM0 */
  .word 472,1,4,1,0,0,0,0 /* NASM0G */
  .word 728,1,4,8,1,0,0,0 /* NUMPP */
  .word 856,2,4,9,1,8,0,0 /* MS_PROC */
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ .word 344,1,4,10,1,0,0,0 /* NS2L */
+#else
  .word 344,1,4,8,1,0,0,0 /* NS2L */
+#endif
+
  .word 1328,1,4,3,1,0,0,0 /* NGRIB */
  .word 88,3,8,2,1,4,5,0 /* SP3D */
  .word 0,2,8,4,1,6,0,0 /* SP2D */
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+ .word 200,2,8,0,1,11,0,0,0 /* SP1D */
+#else
  .word 200,2,8,0,1,8,0,0 /* SP1D */
+#endif
+
 .Ldspec_views:
  .word 1520,2,0,0,2,4,0,0 /* VOR */
  .word 1608,2,0,1,2,4,0,0 /* DIV */
@@ -527,6 +857,18 @@ md2asm_initialize_distributed_spectral_field:
  .word 2928,1,2,1,0,0,0,0 /* VB */
  .p2align 3
 .Ldspec_input_sizes: .word 2560,5120,8,8,8,8,5120,8
+#ifdef MD2ASM_RUNTIME_DISTRIBUTED_PARTITION
+.Ldspec_copy_maps:
+ .word 1200,16,7,0
+ .word 792,32,1,0
+ .word 1136,48,8,0
+ .word 944,64,10,0
+ .word 1008,80,10,0
+ .word 1072,96,10,0
+ .word 408,112,1,0
+ .word 728,128,8,0
+
+#else
 .Ldspec_copy_maps:
  .word 1200,16,2560,0
  .word 792,32,5120,0
@@ -536,4 +878,6 @@ md2asm_initialize_distributed_spectral_field:
  .word 1072,96,8,0
  .word 408,112,5120,0
  .word 728,128,8,0
+
+#endif
 .section .note.GNU-stack,"",%progbits

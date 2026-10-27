@@ -216,10 +216,19 @@ md2asm_advance_distributed_forecast_work_storage:
  ldr w10,[x9]
  cmp w10,#64
  b.hi .Ladvance_bad_env
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ mov x9,#5144
+ ldr w9,[x19,x9]
+ str w9,[sp,#112]
+ mov x9,#5224
+ ldr w9,[x19,x9]
+ str w9,[sp,#116]
+#else
  mov w9,#17
  str w9,[sp,#112]
  mov w9,#137
  str w9,[sp,#116]
+#endif
  mov x9,#5160
  ldr w9,[x19,x9]
  str w9,[sp,#120]
@@ -374,18 +383,49 @@ md2asm_release_distributed_forecast_work_storage:
 .Lrecord_shape:
  mov x9,#5144
  ldr w10,[x19,x9]
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ sub w11,w10,#1
+ cmp w11,#1023
+ b.hi .Lhelper_bad
+ mov w12,w10
+#else
  cmp w10,#17
  b.ne .Lhelper_bad
+#endif
  mov x9,#5224
  ldr w10,[x19,x9]
  cmp w10,#137
  b.ne .Lhelper_bad
  mov x9,#5160
  ldr w10,[x19,x9]
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ sub w11,w10,#1
+ mov w13,#(388216 & 65535)
+ movk w13,#(388216 >> 16),lsl#16
+ cmp w11,w13
+ b.hi .Lhelper_bad
+ mov w13,w10
+ mov x9,#7376
+ ldr w11,[x19,x9]
+ cmp w11,#1
+ b.lt .Lhelper_bad
+ add x11,x11,x12
+ sub x11,x11,#1
+ udiv x11,x11,x12
+ cmp x11,x13
+ b.ne .Lhelper_bad
+ ldr x9,[x20,#8]
+ cmp x9,x19
+ b.ne .Lhelper_bad
+ ldr x9,[x21,#1840]
+ cmp x9,x20
+ b.ne .Lhelper_bad
+#else
  mov w11,#(97055 & 65535)
  movk w11,#(97055 >> 16),lsl#16
  cmp w10,w11
  b.ne .Lhelper_bad
+#endif
  mov w0,#0
  ret
 .Loutput_clear:

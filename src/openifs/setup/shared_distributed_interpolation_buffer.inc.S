@@ -67,6 +67,44 @@ MD2ASM_INTERPOLATION_ENTRY:
  mov x11,#1800
  bl .Lcopy
  ldr x4,[sp,#2200]
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ ldp w9,w10,[x4]
+ sub w11,w9,#1
+ cmp w11,#16,lsl#12
+ b.hs .Lrefuse
+ str w9,[sp,#2312]
+ sub w11,w10,#1
+ cmp w11,w9
+ b.hs .Lrefuse
+ ldp w9,w10,[x4,#8]
+ cmp w9,#1
+ b.lt .Lrefuse
+ cmp w10,#1
+ b.lt .Lrefuse
+ ldr w11,[sp,#2312]
+ cmp w9,w11
+ b.hi .Lrefuse
+ cmp w10,w11
+ b.hi .Lrefuse
+ umull x12,w9,w10
+ cmp x12,x11
+ b.lo .Lrefuse
+ str w9,[sp,#2240]
+ str w10,[sp,#2244]
+ ldp w9,w10,[x4,#16]
+ cmp w9,#1
+ b.lt .Lrefuse
+ cmp w10,#1
+ b.lt .Lrefuse
+ ldr w11,[sp,#2240]
+ cmp w9,w11
+ b.hi .Lrefuse
+ ldr w11,[sp,#2244]
+ cmp w10,w11
+ b.hi .Lrefuse
+ str w9,[sp,#2212]
+ str w10,[sp,#2208]
+#else
  ldp w9,w10,[x4]
  cmp w9,#4
  b.ne .Lrefuse
@@ -89,6 +127,7 @@ MD2ASM_INTERPOLATION_ENTRY:
  b.hi .Lrefuse
  str w9,[sp,#2212]
  str w10,[sp,#2208]
+#endif
  ldp w9,w10,[x4,#24]
  orr w9,w9,w10
  cbnz w9,.Lrefuse
@@ -122,6 +161,36 @@ MD2ASM_INTERPOLATION_ENTRY:
  b.ne .Lrefuse
  ldr w9,[x20,#1024]
  cbnz w9,.Lrefuse
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ ldr w22,[x19,#4872]
+ cmp w22,#2
+ b.lo .Lrefuse
+ mov w9,#8192
+ cmp w22,w9
+ b.hi .Lrefuse
+ tbnz w22,#0,.Lrefuse
+ ldr w23,[x19,#4936]
+ cmp w23,#1
+ b.lt .Lrefuse
+#ifdef MD2ASM_RO
+ lsl w9,w22,#1
+ add w9,w9,#16
+ cmp w23,w9
+ b.ne .Lrefuse
+#else
+ mov w9,#32768
+ cmp w23,w9
+ b.hi .Lrefuse
+#endif
+ ldr w9,[sp,#2240]
+ add x9,x9,x22
+ add x9,x9,#3
+ ldr w10,[sp,#2244]
+ mul x9,x9,x10
+ mov x10,#0x7fffffff
+ cmp x9,x10
+ b.hi .Lrefuse
+#else
  ldr w22,[x19,#4872]
 #ifdef MD2ASM_RO
  cmp w22,#32
@@ -141,6 +210,7 @@ MD2ASM_INTERPOLATION_ENTRY:
  mov w9,#5136
  cmp w23,w9
  b.ne .Lrefuse
+#endif
 #endif
 #ifdef MD2ASM_RI
  ldr w9,[x20,#1348]
@@ -183,7 +253,11 @@ MD2ASM_INTERPOLATION_ENTRY:
 #ifdef MD2ASM_RO
  add w10,w22,#2
 #else
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ add w10,w22,#2
+#else
  mov w10,#2562
+#endif
 #endif
  cmp w9,w10
  b.ne .Lrefuse
@@ -199,10 +273,17 @@ MD2ASM_INTERPOLATION_ENTRY:
  cmp w9,w22
  b.hi .Lrefuse
 #else
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ cmp w9,#1
+ b.lt .Lrefuse
+ cmp w9,w22
+ b.hi .Lrefuse
+#else
  cmp w9,#754
  b.eq .Llocal_rows_ready
  cmp w9,#904
  b.ne .Lrefuse
+#endif
 #endif
 .Llocal_rows_ready:
  str w9,[sp,#2228]
@@ -255,21 +336,46 @@ MD2ASM_INTERPOLATION_ENTRY:
 #ifdef MD2ASM_RO
  add w13,w22,#2
 #else
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ add w13,w22,#2
+#else
  mov w13,#2562
 #endif
+#endif
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ cmp w10,#2
+ b.ne .Lruntime_first_extent_ready
+ ldr w11,[sp,#2240]
+ add w13,w22,w11
+ add w13,w13,#1
+.Lruntime_first_extent_ready:
+#else
  cmp w10,#2
  cinc w13,w13,eq
  cmp w10,#2
  cinc w13,w13,eq
+#endif
  cmp x12,x13
  b.ne .Lrefuse
  cmp w10,#2
  b.ne .Ldescriptor_done
  ldr x11,[x9,#64]
 #ifdef MD2ASM_RO
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ ldr w12,[sp,#2240]
+ add w12,w12,w22
+ add w12,w12,#3
+#else
  add w12,w22,#6
+#endif
+#else
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ ldr w12,[sp,#2240]
+ add w12,w12,w22
+ add w12,w12,#3
 #else
  mov w12,#2566
+#endif
 #endif
  cmp x11,x12
  b.ne .Lrefuse
@@ -277,14 +383,26 @@ MD2ASM_INTERPOLATION_ENTRY:
  ldp x11,x12,[x9,#72]
  cmp x11,#1
  b.ne .Lrefuse
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ ldr w11,[sp,#2244]
+ cmp x12,x11
+ b.ne .Lrefuse
+#else
  cmp x12,#2
  b.ne .Lrefuse
+#endif
  b .Ldescriptor_done
 .Ldescriptor_region:
  cmp x11,#1
  b.ne .Lrefuse
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ ldr w11,[sp,#2240]
+ cmp x12,x11
+ b.ne .Lrefuse
+#else
  cmp x12,#3
  b.ne .Lrefuse
+#endif
 .Ldescriptor_done:
  subs w28,w28,#1
  b.ne .Lcheck_descriptor
@@ -322,6 +440,10 @@ MD2ASM_INTERPOLATION_ENTRY:
  ldr w13,[x11,w9,uxtw#2]
  cmp w13,#0
  b.lt .Lrefuse
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ cmp w13,w23
+ b.hi .Lrefuse
+#endif
  add w10,w10,w13
  add w9,w9,#1
  cmp w9,w12
@@ -329,6 +451,12 @@ MD2ASM_INTERPOLATION_ENTRY:
  ldr w9,[x19,#7376]
  cmp w9,w10
  b.ne .Lrefuse
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ cbz w9,.Lrefuse
+ movz w11,#4096,lsl#16
+ cmp w9,w11
+ b.hi .Lrefuse
+#endif
  CPDIM 4872,1648
  CPDIM 4936,1652
  CPDIM 4888,1656
@@ -383,7 +511,11 @@ MD2ASM_INTERPOLATION_ENTRY:
 #ifdef MD2ASM_RO
  add w10,w22,#2
 #else
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ add w10,w22,#2
+#else
  mov w10,#2562
+#endif
 #endif
  cmp w9,w10
  csel w9,w9,w10,le
@@ -555,7 +687,11 @@ MD2ASM_INTERPOLATION_ENTRY:
 #ifdef MD2ASM_RO
  add w10,w22,#2
 #else
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ add w10,w22,#2
+#else
  mov w10,#2562
+#endif
 #endif
  cmp w9,w10
  csel w9,w9,w10,le
@@ -850,7 +986,11 @@ MD2ASM_INTERPOLATION_ENTRY:
 #ifdef MD2ASM_RO
  add w10,w22,#2
 #else
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ add w10,w22,#2
+#else
  mov w10,#2562
+#endif
 #endif
  cmp w9,w10
  csel w9,w9,w10,le
@@ -913,6 +1053,11 @@ MD2ASM_INTERPOLATION_ENTRY:
  lsl w9,w9,#10
  add w9,w9,#29
  str w9,[x21,#1016]
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ movz w10,#4096,lsl#16
+ cmp w9,w10
+ b.hi .Lrefuse
+#endif
  add w26,w9,#4
  add x0,x21,#1056
  mov x1,#1
@@ -948,6 +1093,16 @@ MD2ASM_INTERPOLATION_ENTRY:
  add x1,x1,#48
  bl md2asm_write_distributed_halo_status
  cbnz w0,.Lhalo_report_fatal
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+ ldr w9,[sp,#2312]
+ cmp w9,#1
+ b.ne .Lruntime_use_slrset
+ str wzr,[x21,#1336]
+ str wzr,[x21,#1340]
+ str wzr,[x21,#1344]
+ b .Lruntime_communication_done
+.Lruntime_use_slrset:
+#endif
  mov x0,x21
  mov x1,x19
  ldr x2,[sp,#2200]
@@ -957,6 +1112,9 @@ MD2ASM_INTERPOLATION_ENTRY:
  bl md2asm_initialize_distributed_interpolation_communication
 #endif
  cbnz w0,.Lrollback_status
+#ifdef MD2ASM_RUNTIME_RADIATION_PARTITION
+.Lruntime_communication_done:
+#endif
  mov x9,x21
  mov x10,x20
  mov x11,#1800

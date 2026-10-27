@@ -25,16 +25,31 @@ md2asm_initialize_distributed_operational_orography:
  orr w9,w9,w10
  cbnz w9,.Ldistributed_orography_bad
  ldp w9,w10,[x4,#8]
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ sub w11,w10,#1
+ cmp w11,#137
+ b.hi .Ldistributed_orography_bad
+ cmp w9,#1
+ b.lt .Ldistributed_orography_bad
+ cmp w9,w10
+ b.hi .Ldistributed_orography_bad
+#else
  cmp w10,#2
  b.ne .Ldistributed_orography_bad
  sub w11,w9,#1
  cmp w11,#1
  b.hi .Ldistributed_orography_bad
+#endif
  cmp w9,w10
  cset w6,eq
  mov x7,#1
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w8,[x0,#5200]
+ lsl x8,x8,#3
+#else
  movz x8,#5120
  movk x8,#100,lsl#16
+#endif
  cmp w6,#0
  csel x7,x7,x8,eq
  cmp x3,x7
@@ -65,6 +80,42 @@ md2asm_initialize_distributed_operational_orography:
  cbz x9,.Ldistributed_orography_bad
  ldr w9,[x9]
  cbnz w9,.Ldistributed_orography_bad
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w12,[x0,#5144]
+ sub w9,w12,#1
+ cmp w9,#1023
+ b.hi .Ldistributed_orography_bad
+ ldr w13,[x0,#5160]
+ sub w9,w13,#1
+ mov w10,#(388216&65535)
+ movk w10,#(388216>>16),lsl#16
+ cmp w9,w10
+ b.hi .Ldistributed_orography_bad
+ ldr w14,[x0,#7376]
+ cmp w14,#1
+ b.lt .Ldistributed_orography_bad
+ add x9,x14,x12
+ sub x9,x9,#1
+ udiv x9,x9,x12
+ cmp x9,x13
+ b.ne .Ldistributed_orography_bad
+ ldr w15,[x0,#5172]
+ sub w9,w15,#1
+ cmp w9,#4095
+ b.hi .Ldistributed_orography_bad
+ ldr w14,[x0,#5200]
+ tst w14,#1
+ b.ne .Ldistributed_orography_bad
+ add x9,x15,#1
+ add x10,x15,#2
+ mul x9,x9,x10
+ cmp x14,x9
+ b.hi .Ldistributed_orography_bad
+ ldr w14,[x0,#5212]
+ add w9,w15,#1
+ cmp w14,w9
+ b.hi .Ldistributed_orography_bad
+#else
  ldr w9,[x0,#5144]
  cmp w9,#17
  b.ne .Ldistributed_orography_bad
@@ -89,6 +140,7 @@ md2asm_initialize_distributed_operational_orography:
  ldr w9,[x0,#5212]
  cmp w9,#640
  b.ne .Ldistributed_orography_bad
+#endif
  ldr w9,[x0,#5168]
  cmp w9,#1
  b.lt .Ldistributed_orography_bad
@@ -106,25 +158,53 @@ md2asm_initialize_distributed_operational_orography:
  cbz x10,.Ldistributed_orography_bad
  cbz x11,.Ldistributed_orography_bad
  cbz x12,.Ldistributed_orography_bad
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ mov x13,#0
+ ldr w14,[x0,#5212]
+ cbz w14,.Ldistributed_orography_check_modes_done
+.Ldistributed_orography_check_mode:
+#else
  mov x13,#0
 .Ldistributed_orography_check_mode:
+#endif
  ldrsw x14,[x10,x13,lsl#2]
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w16,[x0,#5172]
+ cmp x14,x16
+#else
  cmp x14,#1279
+#endif
  b.hi .Ldistributed_orography_bad
  ldrsw x15,[x11,x14,lsl#2]
  cmp x15,#1
  b.lt .Ldistributed_orography_bad
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w16,[x0,#5172]
+ add x16,x16,#1
+#else
  mov x16,#1280
+#endif
  sub x16,x16,x14
  add x15,x15,x16,lsl#1
  sub x15,x15,#1
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w16,[x0,#5200]
+#else
  movz x16,#33408
  movk x16,#12,lsl#16
+#endif
  cmp x15,x16
  b.hi .Ldistributed_orography_bad
  add x13,x13,#1
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w14,[x0,#5212]
+ cmp x13,x14
+ b.lo .Ldistributed_orography_check_mode
+.Ldistributed_orography_check_modes_done:
+#else
  cmp x13,#640
  b.lo .Ldistributed_orography_check_mode
+#endif
  sub sp,sp,#1024
  stp x18,x30,[sp,#128]
  stp x19,x20,[sp,#144]
@@ -136,11 +216,35 @@ md2asm_initialize_distributed_operational_orography:
  str x6,[sp,#240]
  mov x19,x0
  mov x20,x2
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w9,[x4,#12]
+ str w9,[sp,#344]
+#endif
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w9,[x19,#5144]
+ str w9,[sp,#312]
+ ldr w10,[x19,#5160]
+ str w10,[sp,#316]
+ mul x11,x9,x10
+ str x11,[sp,#336]
+ ldr w9,[x19,#7376]
+ str w9,[sp,#320]
+ lsl x9,x9,#3
+ str x9,[sp,#248]
+ ldr w10,[x19,#5172]
+ str w10,[sp,#324]
+ ldr w10,[x19,#5212]
+ str w10,[sp,#328]
+ ldr w10,[x19,#5200]
+ str w10,[sp,#332]
+ lsl x10,x10,#3
+#else
  movz x9,#26624
  movk x9,#201,lsl#16
  str x9,[sp,#248]
  movz x10,#5120
  movk x10,#100,lsl#16
+#endif
  mul x10,x10,x6
  str x10,[sp,#256]
  add x11,x9,x10
@@ -165,8 +269,13 @@ md2asm_initialize_distributed_operational_orography:
  bl .Ldistributed_orography_real_spectral_descriptor
  add x0,sp,#800
  add x1,sp,#988
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w9,[sp,#344]
+ str w9,[x1]
+#else
  mov w9,#2
  str w9,[x1]
+#endif
  mov x2,#4
  mov x3,#1
  bl .Ldistributed_orography_rank_one_descriptor
@@ -174,9 +283,14 @@ md2asm_initialize_distributed_operational_orography:
  mov x1,x21
  mov x2,#1
  bl .Ldistributed_orography_grid_descriptor
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w9,[sp,#320]
+ str w9,[sp,#984]
+#else
  movz w9,#11520
  movk w9,#25,lsl#16
  str w9,[sp,#984]
+#endif
  bl .Ldistributed_orography_clear_transform_arguments
  add x2,sp,#512
  add x9,sp,#800
@@ -190,8 +304,15 @@ md2asm_initialize_distributed_operational_orography:
  ldr x9,[x19,#4112]
  add x26,x26,x9,lsl#3
  ldr x10,[x19,#3912]
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ mov x27,#0
+ ldr w9,[sp,#328]
+ cbz w9,.Ldistributed_orography_modes_done
+.Ldistributed_orography_mode:
+#else
  mov x27,#0
 .Ldistributed_orography_mode:
+#endif
  ldrsw x14,[x10,x27,lsl#2]
  str x14,[sp,#288]
  ldrsw x28,[x22,x14,lsl#2]
@@ -222,10 +343,21 @@ md2asm_initialize_distributed_operational_orography:
 .Ldistributed_orography_next_degree:
  add x28,x28,#1
  add x14,x14,#1
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w9,[sp,#324]
+ add x9,x9,#1
+ cmp x14,x9
+#else
  cmp x14,#1280
+#endif
  b.lo .Ldistributed_orography_degree
  add x27,x27,#1
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w9,[sp,#328]
+ cmp x27,x9
+#else
  cmp x27,#640
+#endif
  b.lo .Ldistributed_orography_mode
 .Ldistributed_orography_modes_done:
  add x0,sp,#608
@@ -249,18 +381,33 @@ md2asm_initialize_distributed_operational_orography:
  str x9,[sp,#40]
  bl inv_trans_
  /* SUOROG allocates these blocked owners after both transforms. */
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr x0,[sp,#336]
+ lsl x0,x0,#3
+#else
  movz x0,#26744
  movk x0,#201,lsl#16
+#endif
  bl malloc
  cbz x0,.Ldistributed_orography_allocation_failed
  mov x23,x0
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr x0,[sp,#336]
+ lsl x0,x0,#3
+#else
  movz x0,#26744
  movk x0,#201,lsl#16
+#endif
  bl malloc
  cbz x0,.Ldistributed_orography_allocation_failed
  mov x24,x0
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr x0,[sp,#336]
+ lsl x0,x0,#3
+#else
  movz x0,#26744
  movk x0,#201,lsl#16
+#endif
  bl malloc
  cbz x0,.Ldistributed_orography_allocation_failed
  mov x25,x0
@@ -279,8 +426,13 @@ md2asm_initialize_distributed_operational_orography:
  ldr x22,[x19,#14024]
  mov x26,#0
 .Ldistributed_orography_copy_point:
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w9,[sp,#312]
+ udiv x10,x26,x9
+#else
  mov x9,#17
  udiv x10,x26,x9
+#endif
  msub x11,x10,x9,x26
  mov x12,#384
  madd x12,x10,x12,x22
@@ -359,9 +511,14 @@ md2asm_initialize_distributed_operational_orography:
  str x9,[x0,#56]
  str x9,[x0,#64]
  str x10,[x0,#72]
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w9,[sp,#332]
+ str x9,[x0,#80]
+#else
  movz x9,#33408
  movk x9,#12,lsl#16
  str x9,[x0,#80]
+#endif
  ret
 .Ldistributed_orography_rank_one_descriptor:
  str x1,[x0]
@@ -403,8 +560,15 @@ md2asm_initialize_distributed_operational_orography:
  ret
 .Ldistributed_orography_blocked_descriptor:
  str x1,[x0]
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w9,[sp,#312]
+ add x9,x9,#1
+ neg x9,x9
+ str x9,[x0,#8]
+#else
  mov x9,#-18
  str x9,[x0,#8]
+#endif
  mov x9,#8
  str x9,[x0,#16]
  str x9,[x0,#32]
@@ -413,12 +577,20 @@ md2asm_initialize_distributed_operational_orography:
  str x9,[x0,#24]
  mov x9,#1
  stp x9,x9,[x0,#40]
+#ifdef MD2ASM_RUNTIME_INPUT_DIMENSIONS
+ ldr w10,[sp,#312]
+ stp x10,x10,[x0,#56]
+ str x9,[x0,#72]
+ ldr w10,[sp,#316]
+ str x10,[x0,#80]
+#else
  mov x10,#17
  stp x10,x10,[x0,#56]
  str x9,[x0,#72]
  movz x10,#31519
  movk x10,#1,lsl#16
  str x10,[x0,#80]
+#endif
  ret
 .Ldistributed_orography_clear_transform_arguments:
  stp xzr,xzr,[sp]
