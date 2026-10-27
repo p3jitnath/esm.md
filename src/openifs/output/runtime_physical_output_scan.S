@@ -67,7 +67,9 @@ md2asm_runtime_scan2m_hpos:
  ldr x9,[sp,#208]
  cbz x9,.Ls_bad
  ldr w9,[x9]
- cbnz w9,.Ls_bad
+ cmp w9,#1
+ b.hi .Ls_bad
+ str w9,[sp,#448]
  ldr x9,[sp,#240]
  cbz x9,.Ls_bad
  ldr w9,[x9]
@@ -166,6 +168,21 @@ md2asm_runtime_scan2m_hpos:
  add x25,x25,#1
  cmp x25,#16
  b.lo .Ls_section
+ ldr w9,[sp,#448]
+ cbz w9,.Ls_checked
+ bl .Ls_orography
+ mov x4,x0
+ ldr x0,[sp,#192]
+ str w22,[sp,#452]
+ add x1,sp,#452
+ mov x2,x19
+ ldr x3,[sp,#232]
+ add x5,sp,#1296
+ add x6,sp,#1520
+ mov x7,x24
+ bl md2asm_runtime_check_input_climatology
+ cbnz w0,.Ls_return
+.Ls_checked:
  ldr x9,[sp,#232]
  str x9,[sp]
  ldr x9,[sp,#216]
@@ -193,6 +210,69 @@ md2asm_runtime_scan2m_hpos:
  ldp x29,x30,[sp,#416]
  ldr x18,[sp,#432]
  add sp,sp,#2304
+ ret
+/* The required check borrows the same source orography block as HPOS. */
+.Ls_orography:
+ add x9,x20,#3,lsl#12
+ add x9,x9,#1736
+ ldr x10,[x9,#8]
+ cmn x10,#1
+ b.ne .Ls_bad
+ ldr x10,[x9,#16]
+ cmp x10,#384
+ b.ne .Ls_bad
+ ldr x10,[x9,#24]
+ movz x11,#0x0501,lsl#32
+ cmp x10,x11
+ b.ne .Ls_bad
+ ldr x10,[x9,#32]
+ cmp x10,#384
+ b.ne .Ls_bad
+ ldp x10,x11,[x9,#40]
+ cmp x10,#1
+ b.ne .Ls_bad
+ cmp x11,#1
+ b.ne .Ls_bad
+ ldr x10,[x9,#56]
+ cmp x10,x23
+ b.ne .Ls_bad
+ ldr x9,[x9]
+ cbz x9,.Ls_bad
+ tst x9,#7
+ b.ne .Ls_bad
+ mov x10,#384
+ mul x11,x23,x10
+ adds x11,x9,x11
+ b.cs .Ls_bad
+ sub x11,x21,#1
+ madd x9,x11,x10,x9
+ ldr x0,[x9]
+ cbz x0,.Ls_bad
+ tst x0,#7
+ b.ne .Ls_bad
+ ldr x10,[x9,#8]
+ cmn x10,#1
+ b.ne .Ls_bad
+ ldr x10,[x9,#16]
+ cmp x10,#8
+ b.ne .Ls_bad
+ ldr x10,[x9,#24]
+ movz x11,#0x0301,lsl#32
+ cmp x10,x11
+ b.ne .Ls_bad
+ ldr x10,[x9,#32]
+ cmp x10,#8
+ b.ne .Ls_bad
+ ldp x10,x11,[x9,#40]
+ cmp x10,#1
+ b.ne .Ls_bad
+ cmp x11,#1
+ b.ne .Ls_bad
+ ldr x10,[x9,#56]
+ cmp x10,x22
+ b.lo .Ls_bad
+ adds x10,x0,x22,lsl#3
+ b.cs .Ls_bad
  ret
 .size md2asm_runtime_scan2m_hpos,.-md2asm_runtime_scan2m_hpos
 .section .rodata

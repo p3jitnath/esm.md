@@ -1,6 +1,6 @@
 /* Contract skills/md2asm/references/openifs/output/runtime_physical_grid_output.md. */
 /* Original GRIDFPOS on the live model grid with all selected physical fields.
- * Original arguments and the GNU character length precede the 128-byte context. */
+ * Original arguments and the GNU character length precede context128. */
 .arch armv8.2-a
 .text
 .p2align 4
@@ -69,7 +69,8 @@ md2asm_runtime_physical_grid_output:
  cmp w9,#'S'
  b.eq .Lp_bad
  cmp w9,#'P'
- b.eq .Lp_bad
+ cset w10,eq
+ str w10,[sp,#480]
  ldr x19,[sp,#224]
  cbz x19,.Lp_bad
  tst x19,#7
@@ -269,7 +270,8 @@ md2asm_runtime_physical_grid_output:
  str x10,[sp,#600]
  str x9,[sp,#608]
  str x21,[sp,#616]
- str wzr,[sp,#640]
+ ldr w9,[sp,#480]
+ str w9,[sp,#640]
  str wzr,[sp,#644]
  mov w10,#1
  str w10,[sp,#648]
