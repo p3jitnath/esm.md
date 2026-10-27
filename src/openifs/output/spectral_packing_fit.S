@@ -1,9 +1,16 @@
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+#define md2asm_fitspectrum_original_rounding md2asm_fitspectrum_runtime_rounding
+#define __fitspectrum_mod_MOD_fitspectrum md2asm_runtime_fitspectrum_interface
+#define md2asm_fitspectrum_direct_calls md2asm_runtime_fitspectrum_direct_calls
+#endif
 /* Spectral packing fit, revision 1.
  * Contract: skills/md2asm/references/openifs/output/spectral_packing_fit.md.
- * Original six pointer arguments use x0 through x5. Controls are 21, 506, 10.
- * PSPEC has 506 finite FP64 values in a complete 4,048-byte read-only span.
+ * The six pointer arguments use x0 through x5. Default controls are 21, 506, 10.
+ * Select MD2ASM_RUNTIME_SPECTRAL_FIT for N1 through4096 and live subset/count.
+ * The read-only spectral array holds (N+1)(N+2) finite FP64 values.
  * Store the distinct slope output before the intercept output.
- * The 576-byte frame has 16-byte alignment. Preserve x18, saved GPRs,
+ * The default frame is576bytes. The selected frame is256+16(N+1)bytes.
+ * Both have16-byte alignment. Preserve x18, saved GPRs,
  * required vector halves, FPCR and errno. Keep cumulative FPSR flags.
  * The only numerical child is the direct positive-normal LOG leaf.
  * Source: original ifsaux/module/fitspectrum_mod.F90 ordered arithmetic.
@@ -34,6 +41,22 @@ __fitspectrum_mod_MOD_fitspectrum:
  orr x9,x9,x5
  tst x9,#7
  b.ne .Lreject
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ ldr w9,[x0]
+ sub w10,w9,#1
+ cmp w10,#4095
+ b.hi .Lreject
+ add x11,x9,#1
+ add x12,x9,#2
+ mul x11,x11,x12
+ ldr w12,[x1]
+ cmp x12,x11
+ b.ne .Lreject
+ ldr w12,[x3]
+ cmp w12,w9
+ b.hs .Lreject
+ adds x10,x2,x11,lsl#3
+#else
  ldr w9,[x0]
  cmp w9,#21
  b.ne .Lreject
@@ -44,6 +67,7 @@ __fitspectrum_mod_MOD_fitspectrum:
  cmp w9,#10
  b.ne .Lreject
  adds x10,x2,#4048
+#endif
  b.cs .Lreject
  adds x9,x4,#8
  b.cs .Lreject
@@ -62,7 +86,11 @@ __fitspectrum_mod_MOD_fitspectrum:
  b.lo .Lreject
 .Lfinite_scan:
  mov x9,x2
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ ldr w10,[x1]
+#else
  mov x10,#506
+#endif
  movz x13,#0x7ff0,lsl#48
 .Lfinite:
  ldr x11,[x9],#8
@@ -71,7 +99,16 @@ __fitspectrum_mod_MOD_fitspectrum:
  b.eq .Lreject
  subs x10,x10,#1
  b.ne .Lfinite
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ ldr w9,[x0]
+ add x9,x9,#1
+ lsl x16,x9,#4
+ add x16,x16,#271
+ and x16,x16,#-16
+ sub sp,sp,x16
+#else
  sub sp,sp,#576
+#endif
  stp x29,x30,[sp]
  mov x29,sp
  stp x19,x20,[sp,#16]
@@ -87,32 +124,65 @@ __fitspectrum_mod_MOD_fitspectrum:
  stp d10,d11,[sp,#176]
  stp d12,d13,[sp,#192]
  stp d14,d15,[sp,#208]
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ str x16,[sp,#224]
+ ldr w28,[x0]
+ add x28,x28,#1
+ ldr w27,[x3]
+#endif
  adrp x9,md2asm_fitspectrum_direct_calls
  add x9,x9,:lo12:md2asm_fitspectrum_direct_calls
  ldr x10,[x9]
  add x10,x10,#1
  str x10,[x9]
  mov x19,x2
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ add x23,sp,#256
+ add x24,x23,x28,lsl#3
+ add x22,x27,#1
+#else
  add x23,sp,#224
  add x24,sp,#400
  mov x22,#11
+#endif
 .Lweights:
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ sub x9,x28,#1
+ sub x9,x9,x27
+ scvtf d1,x9
+ sub x10,x22,x27
+#else
  fmov d1,#11.0
  sub x10,x22,#10
+#endif
  scvtf d0,x10
  fdiv d0,d1,d0
  str d0,[x23,x22,lsl#3]
  str xzr,[x24,x22,lsl#3]
  add x22,x22,#1
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ cmp x22,x28
+#else
  cmp x22,#22
+#endif
  b.ne .Lweights
  mov x20,#0
 .Lm:
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ lsl x9,x28,#1
+ add x9,x9,#1
+ sub x9,x9,x20
+#else
  mov x9,#45
  sub x9,x9,x20
+#endif
  mul x25,x20,x9
  mov x21,#0
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ add x9,x27,#1
+#else
  mov x9,#11
+#endif
  cmp x20,x9
  csel x26,x20,x9,ge
 .Lcomponent:
@@ -127,7 +197,11 @@ __fitspectrum_mod_MOD_fitspectrum:
  fmax d1,d1,d0
  str d1,[x24,x22,lsl#3]
  add x22,x22,#1
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ cmp x22,x28
+#else
  cmp x22,#22
+#endif
  b.ne .Lnorm
  cbz x20,.Lnext_m
  add x21,x21,#1
@@ -135,12 +209,20 @@ __fitspectrum_mod_MOD_fitspectrum:
  b.ne .Lcomponent
 .Lnext_m:
  add x20,x20,#1
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ cmp x20,x28
+#else
  cmp x20,#22
+#endif
  b.ne .Lm
  movz x9,#0x3cb0,lsl#48
  fmov d1,x9
  movz x10,#0x3d19,lsl#48
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ add x22,x27,#1
+#else
  mov x22,#11
+#endif
 .Lfloor:
  ldr d0,[x24,x22,lsl#3]
  fmax d0,d0,d1
@@ -150,12 +232,20 @@ __fitspectrum_mod_MOD_fitspectrum:
  str x10,[x23,x22,lsl#3]
 .Lnext_floor:
  add x22,x22,#1
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ cmp x22,x28
+#else
  cmp x22,#22
+#endif
  b.ne .Lfloor
  fmov d8,xzr
  fmov d9,xzr
  fmov d10,xzr
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ add x22,x27,#1
+#else
  mov x22,#11
+#endif
 .Lmeans:
  ldr d11,[x23,x22,lsl#3]
  add x9,x22,#1
@@ -172,13 +262,21 @@ __fitspectrum_mod_MOD_fitspectrum:
  fadd d9,d9,d0
  fadd d10,d10,d11
  add x22,x22,#1
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ cmp x22,x28
+#else
  cmp x22,#22
+#endif
  b.ne .Lmeans
  fdiv d14,d8,d10
  fdiv d15,d9,d10
  fmov d8,xzr
  fmov d9,xzr
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ add x22,x27,#1
+#else
  mov x22,#11
+#endif
 .Lfit:
  ldr d11,[x23,x22,lsl#3]
  add x9,x22,#1
@@ -198,7 +296,11 @@ __fitspectrum_mod_MOD_fitspectrum:
  fmul d0,d11,d0
  fadd d9,d9,d0
  add x22,x22,#1
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ cmp x22,x28
+#else
  cmp x22,#22
+#endif
  b.ne .Lfit
  fdiv d1,d8,d9
  ldr x9,[sp,#152]
@@ -207,6 +309,9 @@ __fitspectrum_mod_MOD_fitspectrum:
  fsub d0,d15,d0
  ldr x9,[sp,#144]
  str d0,[x9]
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ ldr x16,[sp,#224]
+#endif
  ldp d8,d9,[sp,#160]
  ldp d10,d11,[sp,#176]
  ldp d12,d13,[sp,#192]
@@ -218,7 +323,11 @@ __fitspectrum_mod_MOD_fitspectrum:
  ldp x25,x26,[sp,#64]
  ldp x27,x28,[sp,#80]
  ldp x29,x30,[sp]
+#ifdef MD2ASM_RUNTIME_SPECTRAL_FIT
+ add sp,sp,x16
+#else
  add sp,sp,#576
+#endif
  ret
 .Lreject:
  mov x0,#116
