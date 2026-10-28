@@ -1,0 +1,262 @@
+/* Original false-LFPDIST output distribution through public ECTRANS.
+ * Contract skills/md2asm/references/openifs/output/runtime_fullpos_file_writers.md.
+ */
+.arch armv8.2-a
+.text
+.p2align 4
+.global md2asm_gather_runtime_output_field
+.type md2asm_gather_runtime_output_field,%function
+md2asm_gather_runtime_output_field:
+ sub sp,sp,#544
+ stp x29,x30,[sp,#16]
+ add x29,sp,#16
+ stp x19,x20,[sp,#32]
+ stp x21,x22,[sp,#48]
+ stp x23,x24,[sp,#64]
+ stp x25,x26,[sp,#80]
+ stp x27,x28,[sp,#96]
+ str x18,[sp,#112]
+ mov x19,x0
+ mov x20,x1
+ mov x21,x2
+ mov x22,x3
+ mov x23,x4
+ mov x24,x5
+ mov x25,x6
+ mov x26,x7
+ mov w27,#2
+ cbz x19,.Lgather_admit
+ cbz x20,.Lgather_admit
+ cbz x21,.Lgather_admit
+ cbz x22,.Lgather_admit
+ cbz x25,.Lgather_admit
+ orr x9,x19,x20
+ tst x9,#7
+ b.ne .Lgather_admit
+ orr x9,x9,x21
+ orr x9,x9,x22
+ orr x9,x9,x25
+ tst x9,#3
+ b.ne .Lgather_admit
+ ldr x9,[x20]
+ cmp x9,x19
+ b.ne .Lgather_admit
+ ldr x9,[x20,#16]
+ cmp x9,#7
+ b.ne .Lgather_admit
+ ldr w9,[x20,#24]
+ cmp w9,#1
+ b.lt .Lgather_admit
+ ldr w28,[x20,#28]
+ cmp w28,#1
+ b.lt .Lgather_admit
+ cmp w28,w9
+ b.gt .Lgather_admit
+ ldr w9,[x22,#12]
+ cmp w9,#1
+ b.ne .Lgather_admit
+ cbz x24,.Lgather_admit
+ cbz x26,.Lgather_admit
+ movz x9,#0xffff
+ movk x9,#0x7fff,lsl#16
+ cmp x24,x9
+ b.hi .Lgather_admit
+ cmp x26,x9
+ b.hi .Lgather_admit
+ ldr w9,[x22]
+ cmp w9,#1
+ b.hi .Lgather_admit
+ str w9,[sp,#152]
+ cbnz w9,.Lgather_spectral_check
+ cbz x23,.Lgather_admit
+ ldrsw x9,[x19,#7376]
+ cmp x9,x24
+ b.ne .Lgather_admit
+ ldrsw x9,[x19,#7388]
+ cmp x9,x26
+ b.ne .Lgather_admit
+ b .Lgather_payload_check
+.Lgather_spectral_check:
+ ldr w9,[x22,#4]
+ cmp w9,#1
+ b.lt .Lgather_admit
+ ldr w10,[x20,#36]
+ cmp w9,w10
+ b.gt .Lgather_admit
+ ldr w9,[x22,#8]
+ mov w10,#32766
+ cmp w9,w10
+ b.hi .Lgather_admit
+ add x10,x9,#1
+ add x11,x9,#2
+ mul x10,x10,x11
+ cmp x10,x26
+ b.ne .Lgather_admit
+ ldr w9,[x22,#4]
+ ldr w10,[x20,#68]
+ cmp w9,w10
+ b.ne .Lgather_payload_check
+ cbz x23,.Lgather_admit
+.Lgather_payload_check:
+ cbz x23,.Lgather_global_span
+ tst x23,#7
+ b.ne .Lgather_admit
+ adds x9,x23,x24,lsl#3
+ b.cs .Lgather_admit
+.Lgather_global_span:
+ tst x25,#7
+ b.ne .Lgather_admit
+ cmp w28,#1
+ b.ne .Lgather_valid
+ adds x9,x25,x26,lsl#3
+ b.cs .Lgather_admit
+.Lgather_valid:
+ mov w27,#0
+.Lgather_admit:
+ mov w0,w27
+ bl .Loutput_gather_agreement
+ cbnz w0,.Lgather_restore
+ mov w9,#1
+ str w9,[sp,#128]
+ str w9,[sp,#132]
+ str w24,[sp,#136]
+ str wzr,[sp,#140]
+ ldr w9,[x22,#4]
+ str w9,[sp,#144]
+ ldr w9,[x22,#8]
+ str w9,[sp,#148]
+ /* KTO contains the one source CIO master. */
+ add x9,sp,#160
+ add x10,sp,#128
+ stp x10,xzr,[x9]
+ mov x11,#-1
+ str x11,[x9,#8]
+ mov x10,#4
+ str x10,[x9,#16]
+ mov x11,#0x10100000000
+ str x11,[x9,#24]
+ str x10,[x9,#32]
+ mov x11,#1
+ stp x11,x11,[x9,#40]
+ str x11,[x9,#56]
+ /* KVSET has the same complete rank-one metadata. */
+ add x10,sp,#224
+ ldp x11,x12,[x9]
+ stp x11,x12,[x10]
+ ldp x11,x12,[x9,#16]
+ stp x11,x12,[x10,#16]
+ ldp x11,x12,[x9,#32]
+ stp x11,x12,[x10,#32]
+ ldp x11,x12,[x9,#48]
+ stp x11,x12,[x10,#48]
+ add x11,sp,#144
+ str x11,[x10]
+ /* Every nonwriter retains the original one-word global token. */
+ mov x11,#1
+ cmp w28,#1
+ csel x11,x26,x11,eq
+ add x9,sp,#288
+ str x25,[x9]
+ add x10,x11,#1
+ neg x10,x10
+ str x10,[x9,#8]
+ mov x10,#8
+ str x10,[x9,#16]
+ mov x12,#0x30200000000
+ str x12,[x9,#24]
+ str x10,[x9,#32]
+ mov x10,#1
+ stp x10,x10,[x9,#40]
+ stp x11,x11,[x9,#56]
+ stp x10,x10,[x9,#72]
+ /* The local descriptor is coefficients by one, or Q by one by one. */
+ add x9,sp,#384
+ str x23,[x9]
+ ldr w10,[sp,#152]
+ cbnz w10,.Lgather_local_spectral
+ add x10,x24,x24
+ add x10,x10,#1
+ neg x10,x10
+ str x10,[x9,#8]
+ mov x10,#0x30300000000
+ b .Lgather_local_metadata
+.Lgather_local_spectral:
+ add x10,x24,#1
+ neg x10,x10
+ str x10,[x9,#8]
+ mov x10,#0x30200000000
+.Lgather_local_metadata:
+ str x10,[x9,#24]
+ mov x10,#8
+ str x10,[x9,#16]
+ str x10,[x9,#32]
+ mov x10,#1
+ stp x10,x10,[x9,#40]
+ stp x24,x24,[x9,#56]
+ stp x10,x10,[x9,#72]
+ str x24,[x9,#88]
+ stp x10,x10,[x9,#96]
+ ldr w9,[sp,#152]
+ cbnz w9,.Lgather_call_spectral
+ add x0,sp,#288
+ add x1,sp,#136
+ add x2,sp,#132
+ add x3,sp,#160
+ mov x4,x21
+ add x5,sp,#384
+ bl gath_grid_
+ b .Lgather_complete
+.Lgather_call_spectral:
+ str xzr,[sp]
+ add x0,sp,#288
+ add x1,sp,#132
+ add x2,sp,#160
+ add x3,sp,#224
+ mov x4,x21
+ ldr w9,[x22,#4]
+ ldr w10,[x20,#68]
+ cmp w9,w10
+ add x5,sp,#384
+ csel x5,x5,xzr,eq
+ add x6,sp,#140
+ add x7,sp,#148
+ bl gath_spec_
+.Lgather_complete:
+ mov w0,#0
+ bl .Loutput_gather_agreement
+.Lgather_restore:
+ ldr x18,[sp,#112]
+ ldp x19,x20,[sp,#32]
+ ldp x21,x22,[sp,#48]
+ ldp x23,x24,[sp,#64]
+ ldp x25,x26,[sp,#80]
+ ldp x27,x28,[sp,#96]
+ ldp x29,x30,[sp,#16]
+ add sp,sp,#544
+ ret
+.size md2asm_gather_runtime_output_field,.-md2asm_gather_runtime_output_field
+.p2align 2
+.Loutput_gather_agreement:
+ stp x29,x30,[sp,#-80]!
+ stp x18,x19,[sp,#16]
+ stp x20,x21,[sp,#32]
+ str w0,[sp,#48]
+ mrs x19,fpsr
+ mrs x20,fpcr
+ bl __errno_location
+ mov x21,x0
+ ldr w9,[x21]
+ str w9,[sp,#52]
+ ldr w0,[sp,#48]
+ bl md2asm_agree_owned_distributed_partition_status
+ str w0,[sp,#56]
+ ldr w9,[sp,#52]
+ str w9,[x21]
+ msr fpcr,x20
+ msr fpsr,x19
+ ldr w0,[sp,#56]
+ ldp x20,x21,[sp,#32]
+ ldp x18,x19,[sp,#16]
+ ldp x29,x30,[sp],#80
+ ret
+.section .note.GNU-stack,"",%progbits
