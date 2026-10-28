@@ -1,3 +1,11 @@
+// The default build retains the generic output entry and its declared trace default.
+// The runtime SUFPC configuration includes this body with its own name and default.
+#ifndef MD2ASM_OUTPUT_NAMELIST_ENTRY
+#define MD2ASM_OUTPUT_NAMELIST_ENTRY md2asm_parse_runtime_output_namfpc
+#endif
+#ifndef MD2ASM_OUTPUT_TRACE_DEFAULT
+#define MD2ASM_OUTPUT_TRACE_DEFAULT 1
+#endif
 // Contract skills/md2asm/references/openifs/output/runtime_output_namelist.md.
 // Parse one bounded NAMFPC group without external or floating-point calls.
 // x0 is the byte buffer, x1 its length (1..262144), x2 a disjoint 22608-byte output.
@@ -6,9 +14,9 @@
 // The leaf owns its scratch record. It preserves x18, saved registers and FP status.
 .text
 .p2align 4
-.global md2asm_parse_runtime_output_namfpc
-.type md2asm_parse_runtime_output_namfpc,%function
-md2asm_parse_runtime_output_namfpc:
+.global MD2ASM_OUTPUT_NAMELIST_ENTRY
+.type MD2ASM_OUTPUT_NAMELIST_ENTRY,%function
+MD2ASM_OUTPUT_NAMELIST_ENTRY:
     stp x29,x30,[sp,#-96]!
     stp x19,x20,[sp,#16]
     stp x21,x22,[sp,#32]
@@ -65,7 +73,7 @@ md2asm_parse_runtime_output_namfpc:
     str w10,[x9],#4
     subs w11,w11,#1
     b.ne .Lmodel_default
-    mov w9,#1
+    mov w9,#MD2ASM_OUTPUT_TRACE_DEFAULT
     str w9,[x22,#56]
     mov x0,#2943
     mov w1,#0
@@ -399,7 +407,7 @@ md2asm_parse_runtime_output_namfpc:
     ldp x27,x28,[sp,#80]
     ldp x29,x30,[sp],#96
     ret
-.size md2asm_parse_runtime_output_namfpc,.-md2asm_parse_runtime_output_namfpc
+.size MD2ASM_OUTPUT_NAMELIST_ENTRY,.-MD2ASM_OUTPUT_NAMELIST_ENTRY
 
 // Return the first byte after spaces, line endings and Fortran comments.
 .Lskip_space:
