@@ -1,6 +1,8 @@
 # Semi-Implicit Uncentering
 
-This stage sets how the semi-implicit update weights the current and previous states. It follows the selected ECMWF, three-dimensional, hydrostatic branch of SUDYN, with semi-Lagrangian transport and two time levels. The first NAMDYN and NAMDYNA groups must already have been admitted as empty, so no user override is omitted.
+This stage sets how the semi-implicit update weights the current and previous states. It follows the selected ECMWF, three-dimensional, hydrostatic branch of SUDYN, with semi-Lagrangian transport and two time levels. The accepted component checks used empty first `NAMDYN` and `NAMDYNA` groups.
+
+The current parent uses a reviewed input composition with nonempty first groups. `NAMDYN` contains `LMASCOR = true` and `NITMP = 3`. `NAMDYNA` contains `LSLAG = true`, `LNHEE = false`, `LNHQE = false` and `LGRADSP = false`. The enclosing configuration readers admit these controls, and the [operational Lagrangian reader](../setup/operational_lagrangian_controls.md) follows the field-interpolation and departure-point defaults so that the parsed values remain in force. These controls do not override `BETADT`, `VESL`, `XIDT`, `RBT` or `RBTS2`. The uncentering entry retains its live platform, hydrostatic, semi-Lagrangian, two-time-level and vertical-input checks. This source and interface review changes the caller composition only. It adds no numerical comparison or complete-forecast acceptance.
 
 ## Source and Equations
 
