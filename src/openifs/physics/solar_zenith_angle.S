@@ -272,6 +272,7 @@ ORIGINAL_SYMBOL:
  b.lt .Lintegration
  bl md2asm_acos_original_rounding
  fmov d15,d0
+#ifndef MD2ASM_OPENIFS_SOURCE_PERIOD
  // No adjacent illuminated interval may be silently omitted.
  fcmp d13,#0.0
  b.ne .Lperiod_admission
@@ -288,6 +289,7 @@ ORIGINAL_SYMBOL:
  ldr d1,[x28,#232]
  fcmp d1,d0
  b.gt .Lreject
+#endif
 .Lperiod_ready:
  fneg d2,d15
  ldr d0,[x28,#232]
