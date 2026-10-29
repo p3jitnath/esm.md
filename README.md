@@ -133,7 +133,6 @@ The existing 9 km case has 137 atmospheric layers and 6,599,680 horizontal point
 | Accepted component | Checked extent or result |
 | --- | --- |
 | [File headers](src/openifs/input/initial_model_file_headers.S) and [hybrid coordinates](skills/md2asm/references/openifs/setup/hybrid_coordinate_storage.md) | Actual grid metadata and all 137-layer coefficients |
-| [Shared physical constants](skills/md2asm/references/openifs/setup/physical_constant_publication.md) | All 516 defined bytes published exactly into the selected shared owner, with 14 required aliases and reserved storage checked |
 | [Spectral storage](skills/md2asm/references/openifs/setup/spectral_field_storage.md) and [complete loading](skills/md2asm/references/openifs/input/operational_spectral_initial_state_loading.md) | All 413 fields and 5.42 GB of coefficients |
 | [Distributed spectral storage](skills/md2asm/references/openifs/setup/distributed_spectral_field_storage.md) and [file loading](skills/md2asm/references/openifs/input/partitioned_operational_spectral_loading.md) | All four local wave and level layouts, 5.42 GB of exact loaded values, empty surface arrays, live setup connections and release |
 | [Grid-point readers](skills/md2asm/references/openifs/input/operational_gridpoint_field_readers.md) and [upper-air loading](skills/md2asm/references/openifs/input/operational_upper_air_initial_state_loading.md) | All 81 surface and 959 upper-air records decoded, with the complete 65.1 GB upper-air model buffer loaded |
