@@ -132,21 +132,19 @@ ICE_RADIUS_SYMBOL:
     ldr d0,[x25,#608]
     ldr w9,[x29,#276]
     cbz w9,.Lice_store_minimum
+    /* D11 stores RMINICE while the two functions run. Both preserve it. */
+    fmov d11,d0
     ldr x9,[x29,#248]
-    ldr x10,[x9,x24,lsl #3]
-    adrp x11,.Lice_gaussian_table
-    add x11,x11,:lo12:.Lice_gaussian_table
-    mov w12,#32
-.Lice_find_latitude:
-    ldr x13,[x11]
-    cmp x10,x13
-    b.eq .Lice_found_latitude
-    add x11,x11,#16
-    subs w12,w12,#1
-    b.ne .Lice_find_latitude
-    b .Lice_bad
-.Lice_found_latitude:
-    ldr d1,[x11,#8]
+    ldr d0,[x9,x24,lsl #3]
+    fmov x10,d0
+    and x10,x10,#0x7fffffffffffffff
+    mov x11,#0x3ff0000000000000
+    cmp x10,x11
+    b.hi .Lice_bad
+    bl md2asm_asin_original_rounding
+    bl md2asm_cos_original_rounding
+    fmov d1,d0
+    fmov d0,d11
     ldr d2,[x26,#8]
     fsub d0,d0,d2
     fmul d0,d0,d1
@@ -299,38 +297,4 @@ ICE_RADIUS_SYMBOL:
     .double 40.0,20.0,80.0,130.0,30.0,60.0,-0.1,326.3
     .double 12.42,0.197,0.0012,0.001,1000.0,0.2214,45.8966,0.2535
     .double 0.7957,83.15,1.2351,0.0105,155.0,1.0
-.p2align 4
-.Lice_gaussian_table:
-    .quad 0x3fefe995e70409b6,0x3fb2ecb28e1b54f8
-    .quad 0x3fef8a212714bcdc,0x3fc5a2a8d1292e09
-    .quad 0x3feedf5518053baa,0x3fd0d702773295b3
-    .quad 0x3fedeac0259f7f42,0x3fd6b69a82ff9e41
-    .quad 0x3fecaea9b4574cb9,0x3fdc60c137bd2841
-    .quad 0x3feb2e04fd686a13,0x3fe0e3c06f55b060
-    .quad 0x3fe96c69481c4bc5,0x3fe36ee1b06a2a4e
-    .quad 0x3fe76e0931d693ba,0x3fe5cba4e8c85f68
-    .quad 0x3fe537a89c487f89,0x3fe7f45e7108d59f
-    .quad 0x3fe2ce9146962ca5,0x3fe9e3e17c5a9c0f
-    .quad 0x3fe038862866b29e,0x3feb958b579e13a9
-    .quad 0x3fdaf76b57c6f8f1,0x3fed054defc9ba72
-    .quad 0x3fd53d55ce57bdf7,0x3fee2fb9377aabfe
-    .quad 0x3fcea0f7e19c0949,0x3fef120333e73813
-    .quad 0x3fc27e0ea717f236,0x3fefaa0e8ea0d481
-    .quad 0x3fa8bbc8488cc499,0x3feff66f94ecbbbb
-    .quad 0xbfa8bbc8488cc499,0x3feff66f94ecbbbb
-    .quad 0xbfc27e0ea717f236,0x3fefaa0e8ea0d481
-    .quad 0xbfcea0f7e19c0949,0x3fef120333e73813
-    .quad 0xbfd53d55ce57bdf7,0x3fee2fb9377aabfe
-    .quad 0xbfdaf76b57c6f8f1,0x3fed054defc9ba72
-    .quad 0xbfe038862866b29e,0x3feb958b579e13a9
-    .quad 0xbfe2ce9146962ca5,0x3fe9e3e17c5a9c0f
-    .quad 0xbfe537a89c487f89,0x3fe7f45e7108d59f
-    .quad 0xbfe76e0931d693ba,0x3fe5cba4e8c85f68
-    .quad 0xbfe96c69481c4bc5,0x3fe36ee1b06a2a4e
-    .quad 0xbfeb2e04fd686a13,0x3fe0e3c06f55b060
-    .quad 0xbfecaea9b4574cb9,0x3fdc60c137bd2841
-    .quad 0xbfedeac0259f7f42,0x3fd6b69a82ff9e41
-    .quad 0xbfeedf5518053baa,0x3fd0d702773295b3
-    .quad 0xbfef8a212714bcdc,0x3fc5a2a8d1292e09
-    .quad 0xbfefe995e70409b6,0x3fb2ecb28e1b54f8
 .section .note.GNU-stack,"",%progbits
