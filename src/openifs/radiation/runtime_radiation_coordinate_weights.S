@@ -213,16 +213,22 @@ md2asm_runtime_radiation_coordinate_weights:
  b.ne .Lweights_bad
  ldp x11,x12,[x9,#72]
  cmp x11,x23
- b.ne .Lweights_bad
+ b.gt .Lweights_bad
+ add x13,x23,x24
+ sub x13,x13,#1
+ cmp x12,x13
+ b.lt .Lweights_bad
  sub x12,x12,x11
  add x12,x12,#1
- cmp x12,x24
- b.ne .Lweights_bad
- madd x10,x23,x26,x10
+ cmp x12,#1
+ b.lt .Lweights_bad
+ cmp x12,#32,lsl#12
+ b.hi .Lweights_bad
+ madd x10,x11,x26,x10
  neg x10,x10
  cmp x28,x10
  b.ne .Lweights_bad
- mul x10,x24,x26
+ mul x10,x12,x26
  lsl x10,x10,#2
  adds x10,x25,x10
  b.cs .Lweights_bad

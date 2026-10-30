@@ -18,6 +18,8 @@ The grid record `YDSL` supplies the source interpolation rows and index tables. 
 
 The typed halo bounds are `NDGSAH` and `NDGENH` at record offsets 1,672 and 1,676. They are distinct from the global grid bounds. Their row count is from 1 to 131,072. The owning parent supplies a mapped record of at least 1,800 bytes, its genuine `NSLEXT` index descriptor and every consumed table element. Integer arrays need four-byte alignment and FP64 arrays need eight-byte alignment. Buffers are disjoint and their complete declared spans must not wrap around the address space.
 
+`NSLEXT` is a separate two-dimensional integer map. Its latitude bounds must cover `NDGSAH` through `NDGENH` and may include extra halo rows. Each dimension contains from 1 to 131,072 elements. Its first stride is one element, and its second stride equals the first dimension's extent. Let $`l_1`$ and $`l_2`$ be its lower bounds and $`s_2`$ its row stride in integer elements. The stored address bias is $`-(l_1+l_2s_2)`$. Check its full byte span from both owner extents, including extra rows, while keeping the coefficient view at its own bounds.
+
 The calculation retains the source coordinate-to-row conversion, ties-away integer rounding and separate FP64 products and additions. Selected coordinate values must be finite, select valid table entries and give nonzero source denominators. The source on-demand branch writes the same sixteen mask cells for each point. Its genuine mask covers the source local buffer and up to six extra stencil cells. Other points and all unused output padding remain unchanged.
 
 Metadata refusals return two before output writes. Invalid coordinate-derived indices can leave an earlier completed point prefix, so the caller must satisfy the coordinate prerequisites. Successful calls return zero. The 896-byte private frame is aligned to 16 bytes. The entry allocates no memory, calls no service, preserves x18 and all Arm saved registers, and requires unchanged FPCR zero. FPSR follows the source arithmetic and errno is unchanged.
@@ -39,5 +41,7 @@ Each subtraction, multiplication and addition remains a separate FP64 operation 
 ## Accepted Checks and Limits
 
 The joint check passes 40 calls across four shapes with zero differences in 11,096 complete output bytes. Checks include partial point ranges and full-pitch padding, source mask writes, four constant-field preservation cases, empty fields, eight prewrite refusals, buffer guards and immediate machine state. The original Fortran control uses the same typed halo bounds and an explicitly matched profiling setting. Local records retain the exact source revisions, build commands and checks.
+
+The map-owner extension passes three original/assembly pairs with matching bounds and with larger northern and southern halo owners. All 398,464 output and mask bytes agree. Two maps that do not cover the requested rows refuse before writes, with floating-point state, register, read-only input and buffer checks passing.
 
 These entries are accepted components. The live radiation communication, aerosol calculation, owning radiation parent, complete weather step and operational forecast remain separate integration requirements.
