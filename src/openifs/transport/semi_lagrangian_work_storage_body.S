@@ -1526,6 +1526,57 @@ md2asm_call_sl_heap2_7358525:
  ldr x9,[x20,#8]
  str x9,[sp,#120]
  bl md2asm_runtime_semi_lagrangian_transport
+#ifdef MD2ASM_DISCARD_COMPLETED_TRANSPORT_PAGES
+ ldr x9,[x19,#24]
+ cmp x9,#137
+ b.ne .Lcompleted_pages_done
+ ldr x9,[x29,#368]
+ movz x10,#61552
+ movk x10,#23,lsl #16
+ ldr w10,[x9,x10]
+ cbnz w10,.Lcompleted_pages_done
+ movz x10,#56884
+ movk x10,#23,lsl #16
+ add x9,x9,x10
+ ldr w10,[x9,#0]
+ cbnz w10,.Lcompleted_pages_done
+ ldr w10,[x9,#4]
+ cbnz w10,.Lcompleted_pages_done
+ ldr w10,[x9,#8]
+ cbnz w10,.Lcompleted_pages_done
+ ldr w10,[x9,#12]
+ cbnz w10,.Lcompleted_pages_done
+ ldr w10,[x9,#16]
+ cbnz w10,.Lcompleted_pages_done
+ ldr w10,[x9,#20]
+ cbnz w10,.Lcompleted_pages_done
+ ldr w10,[x9,#24]
+ cbnz w10,.Lcompleted_pages_done
+ ldr x9,[x29,#368]
+ ldr w12,[x9,#192]
+ cmp w12,#2163
+ b.hi .Lcompleted_pages_done
+ add x9,x9,#4040
+ movz x14,#21288
+ movk x14,#17484,lsl #16
+ movk x14,#41,lsl #32
+ cbz w12,.Lcompleted_pages_eligible
+.Lcompleted_pages_gfl_scan:
+ ldr x13,[x9,#160]
+ ubfx x15,x13,#16,#40
+ cmp x15,x14
+ b.eq .Lcompleted_pages_done
+ lsr x15,x13,#24
+ cmp x15,x14
+ b.eq .Lcompleted_pages_done
+ add x9,x9,#368
+ sub w12,w12,#1
+ cbnz w12,.Lcompleted_pages_gfl_scan
+.Lcompleted_pages_eligible:
+ mov x1,x19
+ bl md2asm_discard_completed_transport_private_pages
+.Lcompleted_pages_done:
+#endif
  add x23,x23,#1
  str xzr,[x19,#8]
  str x23,[x19,#88]
