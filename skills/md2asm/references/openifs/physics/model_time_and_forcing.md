@@ -2,6 +2,8 @@
 
 Revision 1 freezes the complete UPDTIM calculation selected by the original coarse T21 forecast. T21 names its large-scale horizontal resolution. The original entry is UPDTIM in arpifs/utility/updtim.F90. Physics comes from [Model Time And Solar Forcing](../../../../../formulations/openifs/physics/model_time_and_forcing.md). The separate [orbital contract](orbital_illumination.md) fixes the solar formulas and their ordered FP64 arithmetic.
 
+The separate [runtime time-parent contract](runtime_model_time_and_forcing.md) records the TCo1279 and 137-layer interface and its optional daily-update control checks. Its complete parent and forecast acceptance remain pending.
+
 ## Interface And Supported State
 
 The Arm application binary interface, or ABI, defines where arguments are passed and which registers a function preserves. This entry has nine ordinary pointers. The first eight are in x0 through x7. The ninth is at the incoming stack pointer. Their order is GEOMETRY, TSURF, MODEL, KSTEP, PTDT, PTSTEP, LDCLUPD, optional LDUPDECAEC and optional PI05. GEOMETRY contains 17,096 bytes, TSURF 18,224 bytes and MODEL 4,275,088 bytes. Step and logical arguments own four bytes. Each time or optional solar value owns eight bytes. Optional arguments use a null pointer when absent. Scalar inputs and geometry are read-only. The selected route leaves TSURF unchanged.
