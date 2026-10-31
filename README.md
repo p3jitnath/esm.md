@@ -1,12 +1,16 @@
 # esm.md
 
-esm.md generates Arm assembly from short physics and mathematics notes in Markdown. Assembly is a processor’s low-level instruction language. We compare it with Fortran, Julia, and compiled Python on a Neoverse V2 processor, using identical 64-bit floating-point calculations.
+esm.md generates Arm assembly directly from physics and mathematics in Markdown. Assembly is the processor’s low-level instruction language. The models use ordered 64-bit floating-point calculations, with independent physical checks and exact output comparisons.
 
-The tables show median speed in million complete cell updates per second for optimised solvers across twelve quiet-node runs. Each update advances one cell by one full time step. All seven variants, including the unchanged vanilla language controls, pass independent physics checks and produce identical output bytes. Detailed results, including the controls and timing variation, are kept with the local research records.
+Start with the [short template](formulations/TEMPLATE.md), [shallow-water formulation](formulations/sw/2d_periodic.md) or [energy-balance formulation](formulations/ebm/budyko_sellers.md). The [md2asm skill](skills/md2asm/SKILL.md) supplies numerical methods, assembly interfaces, verification and optimisation guidance. Published files are Markdown and assembly. Comparison tools, language controls, data and poster drafts stay local. [AGENTS.md](AGENTS.md) defines the writing and development rules.
 
-## Shallow water
+## CPU Solvers
 
-This model follows water depth and horizontal flow over a flat bottom. Gravity creates waves when the depth is uneven. Each grid has the stated number of cells in both horizontal directions.
+These tables compare optimised solvers on one Neoverse V2 processor. Values are median million complete cell updates per second across twelve quiet-node runs. Higher is faster. An update advances every field in one cell through a full time step. All seven variants, including vanilla Fortran, Julia and compiled Python controls, pass physical checks and produce identical output bytes. Detailed controls and timing variation remain in the local research records.
+
+### Shallow Water
+
+The model follows water depth and horizontal flow over a flat bottom with periodic boundaries. Gravity produces waves from uneven depth. Each grid has the stated number of cells in both directions.
 
 | Grid | Assembly | Fortran | Julia | Python |
 | --- | ---: | ---: | ---: | ---: |
@@ -14,9 +18,9 @@ This model follows water depth and horizontal flow over a flat bottom. Gravity c
 | 256² | 95.31 | 81.51 | 77.00 | 56.42 |
 | 1024² | 82.66 | 72.23 | 70.77 | 52.61 |
 
-## Budyko–Sellers energy balance
+### Budyko–Sellers Energy Balance
 
-This model gives one average temperature for each latitude band. The Sun’s radiation warms the surface, radiation cools it, and heat moves between neighbouring bands. The grid size is the number of bands from the South Pole to the North Pole.
+Each latitude band has one average temperature. The Sun’s radiation warms the surface, radiation cools it, and heat moves between neighbouring bands. The grid is the number of bands between the poles.
 
 | Grid | Assembly | Fortran | Julia | Python |
 | --- | ---: | ---: | ---: | ---: |
@@ -24,15 +28,11 @@ This model gives one average temperature for each latitude band. The Sun’s rad
 | 4096 | 599.68 | 498.27 | 509.81 | 493.75 |
 | 65536 | 590.51 | 488.69 | 489.47 | 514.88 |
 
-Start with the [short template](formulations/TEMPLATE.md), [shallow-water maths](formulations/sw/2d_periodic.md), or [energy-balance maths](formulations/ebm/budyko_sellers.md). The [md2asm skill](skills/md2asm/SKILL.md) supplies the numerical and implementation details and retains the measured assembly optimisations.
+## GPU Solvers
 
-The published tree contains Markdown and assembly. Build instructions and the local comparison protocol are in the [evaluation notes](skills/md2asm/SKILL.md). [AGENTS.md](AGENTS.md) defines the first-year-undergraduate writing convention. Local tools, language controls, data and the poster remain outside Git.
+The same models run on one NVIDIA GH200 GPU. The LLM emits PTX, NVIDIA’s virtual assembly language, and NVIDIA’s assembler creates machine code. The [GPU skill](skills/md2asm-gpu/SKILL.md) and [execution contract](skills/md2asm-gpu/references/gpu-contract.md) describe this route. Sources are [shallow water](src/sw/gpu/2d_rusanov_ssprk2.ptx) and [energy balance](src/ebm/gpu/budyko_sellers.ptx).
 
-## GPU solvers
-
-The same shallow-water and energy-balance models also run on one NVIDIA GH200 GPU. The LLM emits PTX, NVIDIA’s virtual assembly language, directly from the frozen numerical contracts. NVIDIA’s assembler then creates GPU machine code. The [md2asm-gpu skill](skills/md2asm-gpu/SKILL.md) and [GPU execution contract](skills/md2asm-gpu/references/gpu-contract.md) describe the direct route, complete stages and supported launches. Sources are [shallow water](src/sw/gpu/2d_rusanov_ssprk2.ptx) and [energy balance](src/ebm/gpu/budyko_sellers.ptx).
-
-These archived tables give million complete cell updates per second from twelve accepted repetitions on one fixed GPU in a completed quiet exclusive allocation. Each entry is the median rate followed by its minimum–maximum range. Higher is faster. A water update includes all three fields, both time stages and periodic boundaries. An energy-balance update includes both stages and pole boundaries.
+Rates are million complete cell updates per second, shown as the median [minimum–maximum] across twelve accepted repetitions on one quiet exclusive GPU. Water updates include all three fields, both stages and periodic boundaries. Energy-balance updates include both stages and pole boundaries.
 
 | Shallow-Water Implementation | 64² Cells | 256² Cells | 1024² Cells |
 | --- | ---: | ---: | ---: |
@@ -54,15 +54,68 @@ These archived tables give million complete cell updates per second from twelve 
 | Python tuned | 492.0 [490.9–495.4] | 1862.1 [1860.0–1870.2] | 25329.1 [25296.1–25396.6] |
 | Python vanilla | 15.5 [15.5–15.6] | 464.8 [464.4–466.4] | 6783.8 [6772.5–6810.3] |
 
-The timer measures replay of an already prepared sequence of GPU launches. It excludes compilation, startup, allocation, transfers, graph construction and verification. Julia uses separate sequential processes on the same GPU. All seven variants pass independent physics, complete trajectories, ordinary launches, replay, boundary and buffer checks with zero differing output bytes. The water check has 34 scientific cases and the energy-balance check has 28, including 1000-step trajectories. These GPU times describe steady computation and are separate from the CPU forecast’s complete-process times. These GPU checks and measurements belong to the archived study; this merge does not rerun them. Controls, tools, raw repeated samples and figures remain in the local research archive.
+The timer replays a prepared sequence of GPU launches. It excludes compilation, startup, allocation, transfers, graph construction and verification. Julia uses separate sequential processes on the same GPU. All seven variants pass physical, trajectory, boundary and buffer checks with zero differing output bytes. The water check has 34 scientific cases and energy balance has 28, including 1,000-step trajectories. These archived steady-computation rates are separate from complete-process forecast timings.
 
-## OpenIFS development
+## OpenIFS Forecasts
 
-The OpenIFS GPU extension has passed six complete 24-hour forecasts with combined CPU/GPU assembly. The expanded run includes complete GPU cloud microphysics, aerosol optics and shortwave transport. These ordinary runs use the original files and run without the OpenIFS harness or verification input writes. Each matches all ten saved files across 618,140 bytes and 59 final numerical views across 18,971,680 bytes. These views overlap. The latest run also matches both complete model-history buffers, which retain previous time levels, across 1,882,368 bytes. A correction to GPU call handling passes its check against saved CPU outputs.
+The OpenIFS 48.1.1 work has two distinct scopes. The coarse autonomous CPU forecast has completed. The operational 9 km CPU forecast remains unverified. Component checks do not establish a complete operational forecast.
 
-The latest complete GPU assembly run finishes all 25 forecast steps in **464.19 seconds**, including input, setup and output. All ten saved files match the CPU reference across 618,140 bytes. This is one complete-process measurement, about 33 times the accepted CPU assembly median of 14.13 seconds. Complete internal-state and counter checks remain pending for this GPU image, so no GPU speedup is accepted. Ordinary performance candidates retain the CPU time limit, with longer progress diagnostics permitted by the user.
+### Coarse CPU Forecast
 
-These GPU components pass their declared exact-output checks.
+The [autonomous forecast](skills/md2asm/references/openifs/input/standalone_weather_forecast.md) advances 24 hours from 15 October 2004 on 2,048 horizontal points and 19 atmospheric layers. Assembly owns loading, configuration, setup, storage, the time loop, weather calculations, state updates and output. It runs without original OpenIFS routines or its harness. Public file-format, transform, mathematical and runtime services remain explicit.
+
+| Check | Coverage | Differing bytes |
+| --- | --- | ---: |
+| Radiation-field preparation | 6,400 complete calls | 0 |
+| Plant photosynthesis | 6,450 complete C3/C4 calls | 0 |
+| Interpolation boundaries | 2,150 complete calls | 0 |
+| Fourier coefficient transfer | 352 complete field-count/latitude pairs | 0 |
+| Spectral forecast step | 25 complete calls and seven direct stages | 0 |
+| Complete final state | 685 buffers across 27,486,113 bytes | 0 |
+| Saved forecast files | 10 files across 618,140 bytes | 0 |
+
+The saved files match directly. The separate complete-state check matches incoming bytes in source-unused storage before comparing all 685 buffers. Production uses only the original input files. Physical checks cover humidity, finite spectral values, mean temperature and pressure, grid metadata and time schedules. Whole water and heat budgets remain unverified. See the [coverage record](src/openifs/README.md) for accepted domains and limits.
+
+The accepted complete-process CPU median is **14.13 seconds**, with runs of 14.13, 14.11 and 14.13 seconds. The timer includes loading, setup, calculations and output. Both matched variants have eight available CPUs, eight cloud workers and eight shortwave workers, with other threaded services set to one thread. All timed runs preserve the ten saved files and 59 observed final fields. Performance on other forecast inputs remains unmeasured.
+
+<details>
+
+<summary>Matched CPU Optimisation Results</summary>
+
+Each row is a separate matched batch of three runs per variant on a quiet exclusive Grace node. Times are median [minimum–maximum] seconds. Earlier rows use one pinned CPU. Worker comparisons give both variants the same four or eight available CPUs.
+
+| Matched Change | Before (s) | After (s) | Speedup |
+| --- | ---: | ---: | ---: |
+| Compact exact arithmetic | 76.98 [76.64–83.88] | 37.75 [37.23–44.64] | 2.04× |
+| Wider clears, status writes and grouped integer sequences | 37.47 [37.42–37.50] | 31.49 [31.19–31.64] | 1.19× |
+| Bounded exact integers for widely separated terms | 31.15 [30.91–31.68] | 26.65 [26.58–26.70] | 1.17× |
+| Four-cell reflection with eight-value exponentials | 22.48 [22.23–22.64] | 22.04 [21.63–22.43] | 1.020× |
+
+The runtime setting `EC_PMON=0` disables hardware energy monitoring, making energy and power diagnostic columns zero. Weather calculations and canonical output files remain. Its contrast uses a rotated nine-run batch, with three runs per variant. The other contrasts use three alternating matched pairs with monitoring disabled for both variants.
+
+| Matched Change | Before (s) | After (s) | Speedup |
+| --- | ---: | ---: | ---: |
+| Same solver, energy monitoring disabled | 22.11 [21.84–22.39] | 20.59 [20.58–20.61] | 1.074× |
+| Bounded integer rounding and grouped polynomial seeds, monitoring disabled for both | 19.72 [19.71–19.73] | 19.32 [19.30–19.33] | 1.021× |
+| Variable product remainders and zero identities, monitoring disabled for both | 19.31 [19.31–19.35] | 19.23 [19.23–19.23] | 1.004× |
+| Grouped exponential seeds and logarithm polynomial updates, monitoring disabled for both | 19.24 [19.23–19.38] | 18.88 [18.88–18.89] | 1.019× |
+| One to four cloud workers with private counters, monitoring disabled for both | 18.90 [18.87–18.99] | 17.92 [17.91–17.93] | 1.055× |
+| Four to eight cloud workers, monitoring disabled for both | 17.94 [17.93–17.98] | 17.77 [17.75–17.77] | 1.010× |
+| Carried pressure intervals and independent ordered sums, monitoring disabled for both | 17.77 [17.76–17.78] | 17.32 [17.32–17.37] | 1.026× |
+| Complete shortwave column team, monitoring disabled for both | 17.35 [17.34–17.61] | 14.24 [14.23–14.53] | 1.218× |
+| Reused shortwave workspace and required copies, monitoring disabled for both | 14.28 [14.23–14.60] | 14.13 [14.11–14.13] | 1.011× |
+
+</details>
+
+### Coarse GPU Forecast
+
+Six complete 24-hour runs use combined CPU/GPU assembly without the OpenIFS harness. Each matches all ten saved files across 618,140 bytes and 59 overlapping final views across 18,971,680 bytes. The latest also matches both complete model-history buffers across 1,882,368 bytes.
+
+The latest complete GPU run finishes 25 steps in **464.19 seconds**, including input, setup and output. This single measurement is about 33 times the CPU median. Complete internal-state and counter checks remain pending for that image, so no GPU speedup is accepted. The [mathematical support](skills/md2asm-gpu/references/openifs/mathematical_support.md) and [assembly launcher](skills/md2asm-gpu/references/openifs/cuda_runtime.md) state its numerical and storage rules.
+
+<details>
+
+<summary>Accepted GPU Component Checks</summary>
 
 | Component | Accepted scope |
 | --- | --- |
@@ -77,60 +130,21 @@ These GPU components pass their declared exact-output checks.
 | [Cloud microphysics columns](skills/md2asm-gpu/references/openifs/physics/cloud_microphysics_columns.md) | Complete parent across 32 blocks, checked arithmetic in each caller, protected owners and actual counters |
 | [Convective parcel ascent](skills/md2asm-gpu/references/openifs/physics/convective_energy_diagnostics.md) | Complete parent, three ordered parcel launches, exact counters and fatal-prefix checks |
 
-Separately, 257 distinct original routines have passed their component checks. The complete required-routine total and the number used on the GPU during a forecast remain under review, so these results do not give a completion percentage.
+These are component acceptance results, with the scope in each linked contract. They do not establish full operational GPU acceptance.
 
-Complete [Legendre analysis](skills/md2asm-gpu/references/openifs/dynamics/complete_legendre_analysis.md), [inverse-Legendre sums](skills/md2asm-gpu/references/openifs/dynamics/inverse_legendre_reconstruction.md), the [north–south derivative](skills/md2asm-gpu/references/openifs/dynamics/spectral_latitude_derivative.md), [spline-matrix construction](skills/md2asm-gpu/references/openifs/setup/complete_spline_operator_matrix.md), [hybrid-coordinate setup](skills/md2asm-gpu/references/openifs/setup/hybrid_coordinate_setup.md), [hybrid pressure](skills/md2asm-gpu/references/openifs/dynamics/private_hybrid_pressure.md), [vertical eta coordinates](skills/md2asm-gpu/references/openifs/setup/vertical_eta_coordinates.md) and [radiation field sums](skills/md2asm-gpu/references/openifs/radiation/ordered_radiation_field_reduction.md) also pass their component checks. The current forecast combines AArch64 control and PTX calculations. All saved files from the last completed run agree, while full internal acceptance remains pending. The [mathematical support](skills/md2asm-gpu/references/openifs/mathematical_support.md) and [assembly CUDA launcher](skills/md2asm-gpu/references/openifs/cuda_runtime.md) define the numerical and storage rules.
+</details>
 
-The openifs-md branch extends this workflow to OpenIFS 48.1.1. Assembly replaces 373 original routine bodies within their selected input and calculation scopes, and seven field-registry methods that store array addresses and dimensions. Their small checks cover independent physical relations within declared input ranges, with known source limits recorded below. The checked forecast-call cases pass exact byte comparisons in a coarse global forecast.
+### Operational 9 km Forecast
 
-| Check | Coverage | Differing bytes |
-| --- | --- | ---: |
-| Radiation-field preparation | 6,400 complete calls | 0 |
-| Plant photosynthesis | 6,450 complete C3/C4 calls | 0 |
-| Interpolation boundaries | 2,150 complete calls | 0 |
-| Fourier coefficient transfer | 352 complete field-count/latitude pairs | 0 |
-| Spectral forecast step | 25 complete calls and seven direct stages | 0 |
-| Complete final state | 685 buffers across 27,486,113 bytes | 0 |
-| Saved forecast files | 10 files across 618,140 bytes | 0 |
+The target has 6,599,680 horizontal points, 137 atmospheric layers and 192 steps of 450 seconds for a 24-hour forecast. A supplied Fortran reference completes that workload with 32 MPI processes and 32 OpenMP threads per process, using strict arithmetic and single-threaded OpenBLAS. Its effective block size is 24 points. MPI exchanges data between processes, while OpenMP shares work between threads.
 
-The [autonomous assembly forecast](skills/md2asm/references/openifs/input/standalone_weather_forecast.md) starts on 15 October 2004 and advances 24 hours on 2,048 grid points with 19 atmospheric layers. Assembly owns original-file loading, configuration, setup, storage, the time loop, calculations, state updates and output. The production executable runs without original OpenIFS routines or its harness. External file-format, transform, mathematical and runtime services remain explicit. All ten saved files match all 618,140 bytes. A separate verification with matched source-unused incoming storage also matches all 27,486,113 bytes across 685 internal buffers. Accepted component checks and saved-trajectory checks cover humidity bounds, finite spectral coefficients, mean temperature and pressure, grid metadata and time schedules. Whole water and heat budgets remain unverified. The [OpenIFS verification note](src/openifs/README.md) states the checks and limits. The separate full 24-hour optimisation phase is in progress.
+The standalone CPU executable starts without the OpenIFS harness. The matching 32-process assembly run has no confirmed completed model step or complete saved-output acceptance. The earlier **14.13-second result is for the coarse model**, and is not a 9 km timing. Complete raw-state comparison, independent physical acceptance and full output agreement remain required. Memory and supported runtime shapes remain limited by the linked contracts.
 
-Three matched complete-process runs per variant on a quiet exclusive Grace node give the results below. Earlier rows use one pinned CPU. Worker comparisons give both variants the same available CPUs, four for the one-to-four comparison and eight for the four-to-eight comparison. The main thread stays on CPU 0, and extra workers calculate independent cloud columns and, in the latest version, complete shortwave radiation columns. Other threaded services retain `OMP_NUM_THREADS=1`. The timer includes loading, setup, forecast calculations and output, with checks outside the timer. Every run reproduces all ten saved files and the 59 observed final numerical fields exactly. The larger complete-state comparison above separately accepts the changed implementation.
+<details>
 
-Selected earlier batches are shown below, with the full history in the local research records. Each row comes from a separate matched batch. Each time is the median followed by the minimum–maximum range, in seconds.
+<summary>Accepted Operational Component Checks</summary>
 
-| Matched Change | Before (s) | After (s) | Speedup |
-| --- | ---: | ---: | ---: |
-| Compact exact arithmetic | 76.98 [76.64–83.88] | 37.75 [37.23–44.64] | 2.04× |
-| Wider clears, status writes and grouped integer sequences | 37.47 [37.42–37.50] | 31.49 [31.19–31.64] | 1.19× |
-| Bounded exact integers for widely separated terms | 31.15 [30.91–31.68] | 26.65 [26.58–26.70] | 1.17× |
-| Four-cell reflection with eight-value exponentials | 22.48 [22.23–22.64] | 22.04 [21.63–22.43] | 1.020× |
-
-The runtime setting `EC_PMON=0` disables hardware energy monitoring. Energy and power diagnostic columns become zero. Weather calculations, memory and status reports, and all canonical forecast files remain in the timed process. The energy-monitoring contrast comes from one rotated nine-run batch, with three runs per variant. Each numerical contrast comes from a separate batch of three alternating matched pairs, with monitoring disabled for both variants.
-
-| Matched Change | Before (s) | After (s) | Speedup |
-| --- | ---: | ---: | ---: |
-| Same solver, energy monitoring disabled | 22.11 [21.84–22.39] | 20.59 [20.58–20.61] | 1.074× |
-| Bounded integer rounding and grouped polynomial seeds, monitoring disabled for both | 19.72 [19.71–19.73] | 19.32 [19.30–19.33] | 1.021× |
-| Variable product remainders and zero identities, monitoring disabled for both | 19.31 [19.31–19.35] | 19.23 [19.23–19.23] | 1.004× |
-| Grouped exponential seeds and logarithm polynomial updates, monitoring disabled for both | 19.24 [19.23–19.38] | 18.88 [18.88–18.89] | 1.019× |
-| One to four cloud workers with private counters, monitoring disabled for both | 18.90 [18.87–18.99] | 17.92 [17.91–17.93] | 1.055× |
-| Four to eight cloud workers, monitoring disabled for both | 17.94 [17.93–17.98] | 17.77 [17.75–17.77] | 1.010× |
-| Carried pressure intervals and independent ordered sums, monitoring disabled for both | 17.77 [17.76–17.78] | 17.32 [17.32–17.37] | 1.026× |
-| Complete shortwave column team, monitoring disabled for both | 17.35 [17.34–17.61] | 14.24 [14.23–14.53] | 1.218× |
-| Reused shortwave workspace and required copies, monitoring disabled for both | 14.28 [14.23–14.60] | 14.13 [14.11–14.13] | 1.011× |
-
-The latest median is **14.13 seconds**, with complete forecast times of 14.13, 14.11 and 14.13 seconds. Eight workers calculate independent shortwave columns with unchanged arithmetic and random streams. The latest change reuses one bounded private workspace, copies only required incoming owners and joins workers at the output dependency. The matched control takes 14.23, 14.60 and 14.28 seconds, retaining all observed variation. All three wall-time pairs improve, with nonoverlapping ranges. Median aggregate user-plus-system CPU time falls from 19.68 to 19.43 seconds. Both variants have the same eight available CPUs, eight cloud workers and eight shortwave workers. A live count of at least four daylight columns selects the shortwave team, while other supported work keeps the serial assembly path. The timer reports 0.01 seconds. Performance on other forecast inputs remains unmeasured.
-
-The [basic formulations](formulations/openifs/README.md) explain the physical balances. The [coverage tables](src/openifs/README.md) give accepted counts and verification limits. All **255 audited weather and forcing routines** in this T21 main phase have accepted assembly replacements. Other inventories describe separate, overlapping scopes and do not add unfinished routines to this tested route. The ordered original routine names and source paths remain in the local records.
-
-## Notes
-
-OpenIFS’s twelve-point radiation interpolation can overshoot and produce negative temperatures. The assembly preserves the original aerosol calculation for finite, nonzero temperatures. The observed case uses the even exponent `RCTRPT=30`. This source-compatible result does not make negative temperatures physically valid, and complete forecast acceptance remains pending.
-
-The original `CPG_DRV` flux-reset call selects a one-element time array with an index outside its declared bounds after step zero. The existing component control uses the documented quotient-index correction. Exact reset behavior against an unchanged operational executable at step 20 and later remains unverified. The reference executable and weather physics are unchanged.
-
-The existing 9 km case has 137 atmospheric layers and 6,599,680 horizontal points. The current target is a 24-hour forecast with 192 steps of 450 seconds, with process and thread counts selected at runtime. MPI lets processes exchange data, while OpenMP lets threads share work within a process. Earlier component checks used a one-hour, four-process configuration. The table below distinguishes component byte comparisons from checks of connected input loading and storage, with each result limited to its stated bounds. The standalone CPU executable starts without the OpenIFS harness, and all startup calls return successfully in the earlier 23-process case. The matching 32-process case is being prepared. The time loop has no confirmed completed step, and its partial output files have not passed saved-state acceptance. No complete operational assembly forecast is accepted.
+Each row retains its original tested extent. Earlier checks include serial and four-process cases. These complete component comparisons and connected input checks do not establish acceptance of the current 32-process forecast.
 
 | Accepted component | Checked extent or result |
 | --- | --- |
@@ -234,9 +248,13 @@ The existing 9 km case has 137 atmospheric layers and 6,599,680 horizontal point
 | [Uncoupled ocean layer](skills/md2asm/references/openifs/physics/uncoupled_ocean_field_layer.md) | Actual owned coupling settings, generic typed temperature views and exact complete identity at two grid shapes, preserving the source disabled-ocean route |
 | [Inactive chemistry and aerosol storage](skills/md2asm/references/openifs/setup/inactive_composition_owners.md) | Complete defaults, the 152-byte allocated buffer and release |
 
-All 28 distinct `CALLPAR` components now have qualified runtime providers. Their [mathematical helpers](skills/md2asm/references/openifs/support/parameterisation_mathematical_bindings.md) now link with explicit functions and separate counters. This count covers component bindings, while complete parent forwarding and weather-state execution remain pending. Complete physics initialisation, the remaining operational time-step calculations, output and full CPU/GPU forecast acceptance remain unfinished. Native physics and GPU kernels still need qualified operational shapes. The earlier 14.13-second CPU result is for T21 and is not a 9 km timing.
+</details>
 
-The selected four-process route requires one node per process for the full forecast. Complete simultaneous memory requirements, including public transform work storage, remain under review.
+## Notes
+
+OpenIFS’s twelve-point radiation interpolation can overshoot and produce negative temperatures. The assembly preserves the original aerosol calculation for finite, nonzero temperatures. The observed case uses the even exponent `RCTRPT=30`. This source-compatible result does not make negative temperatures physically valid, and complete forecast acceptance remains pending.
+
+The original `CPG_DRV` flux-reset call selects a one-element time array with an index outside its declared bounds after step zero. The existing component control uses the documented quotient-index correction. Exact reset behavior against an unchanged operational executable at step 20 and later remains unverified. The reference executable and weather physics are unchanged.
 
 The original aerosol-climatology routine fills a temporary latitude basis from column 1. The selected forecast also starts every block at column 1, and full and cropped-last comparisons agree exactly. For a first column above 1, the original can read an uninitialized tail. Separate partial-first Arm and GPU checks therefore claim agreement with each other, while retaining this original limitation.
 
@@ -256,6 +274,4 @@ The supplied 21 June 2026 climate input has two present top-soil temperature ent
 
 The operational turbulence component preserves original `VSURF` sea-derivative ordering for agreement with the unchanged OpenIFS reference. That source derivative includes an extra salinity factor of 0.98 and is about two percent below the derivative of its humidity equation. This physical-model limitation is explicit; the earlier corrected sea-derivative model remains separate. See the [runtime turbulence contract](skills/md2asm/references/openifs/surface/runtime_surface_turbulence.md).
 
-A supplied Fortran reference completes all 192 steps with 32 MPI processes and 32 OpenMP threads per process, using the strict build and single-threaded OpenBLAS. Its effective block size is 24 grid points. Assembly verification is being aligned to those inputs, that layout and the same public mathematical services. All 2,086,488,208 bytes of the initial upper-air output match this reference, while the initial surface files still differ. Complete operational assembly output agreement and comparative timing remain unverified.
-
-The complete-storage verification gives both separate runs the same 7,744 incoming bytes in unused table bands and array padding, which holds allocated cells outside the physical grid. It preserves earlier frozen input bytes and checks active physical values unchanged before the first forecast calculation. Every returned byte remains compared, and the production run uses only original files without this verification initializer. Unused call arguments and incoming process-status values remain distinct and visible. Both forecasts naturally return the same floating-point controls, exception flags and system error value. The [direct power routine](skills/md2asm/references/openifs/support/power_original_rounding.md) supplies the accepted mathematical helper without the original C implementation.
+All 2,086,488,208 bytes of the initial upper-air output match the supplied operational Fortran reference, while initial surface files still differ. Full operational output agreement and comparative timing remain unverified. The [basic formulations](formulations/openifs/README.md) explain the physical balances, and the [coverage record](src/openifs/README.md) retains detailed checks and limitations.

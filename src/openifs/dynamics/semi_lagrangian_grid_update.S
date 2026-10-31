@@ -1,10 +1,6 @@
 /* Source build for the qualified private forecast graph.
  * Contract: skills/md2asm/references/openifs/dynamics/private_forecast_graph_sources.md.
  * Preserve the original interface, ordered arithmetic, and caller-owned storage. */
-/* Direct parent from formulations/openifs/dynamics/semi_lagrangian_grid_update.md.
- * Frozen contract skills/md2asm/references/openifs/dynamics/semi_lagrangian_grid_update.md.
- * Selected complete hydrostatic route. Every numerical child is private assembly.
- * 36 ordinary addresses, 28 stack slots, 31424-byte aligned work frame. */
 .arch armv8.2-a+simd
 .text
 .p2align 4

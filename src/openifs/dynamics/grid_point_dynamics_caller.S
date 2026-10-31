@@ -2,8 +2,6 @@
  * Contract: skills/md2asm/references/openifs/dynamics/private_forecast_graph_sources.md.
  * Preserve the original interface, ordered arithmetic, and caller-owned storage. */
 /* Direct grid-point dynamics caller, frozen revision 1.
- * Physics formulations/openifs/dynamics/grid_point_dynamics_caller.md.
- * Contract skills/md2asm/references/openifs/dynamics/grid_point_dynamics_caller.md.
  * 46 addresses. The complete private LACDYN owns every selected calculation. */
 .arch armv8.2-a+simd
 .text

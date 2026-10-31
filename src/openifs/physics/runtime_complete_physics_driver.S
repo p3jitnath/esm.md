@@ -4296,9 +4296,9 @@ md2asm_prepare_thread_private_physics_records:
  mov x9,#0
 .Lthr_clear_error:
  madd x10,x9,x22,x21
- movz x10,#53744
- movk x10,#1,lsl #16
- add x10,x10,x10
+ movz x12,#53744
+ movk x12,#1,lsl #16
+ add x10,x10,x12
  str wzr,[x10]
  add x9,x9,#1
  cmp x9,x20
@@ -4314,9 +4314,9 @@ md2asm_prepare_thread_private_physics_records:
  mov w0,#0
 .Lthr_collect_error:
  madd x10,x9,x22,x21
- movz x10,#53744
- movk x10,#1,lsl #16
- add x10,x10,x10
+ movz x12,#53744
+ movk x12,#1,lsl #16
+ add x10,x10,x12
  ldr w11,[x10]
  orr w0,w0,w11
  add x9,x9,#1

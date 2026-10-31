@@ -1,7 +1,7 @@
 /* Contract: skills/md2asm/references/openifs/setup/photosynthesis_parameter_setup.md. */
 /* Complete SUCOTWO field stage. x0 TAGS2344 with31ownedarrays,x1 TCST128,x2 optimizationnamespace1368. */
 .arch armv8.2-a
-#include "photosynthesis_parameter_abi.inc.S"
+#include "land_parameter_abi.inc.S"
 #include "photosynthesis_parameter_layout.inc.S"
 .text
 .p2align 4

@@ -69,6 +69,8 @@ When a debugger reads a running solver, observe assembly arguments at the exact 
 
 For long FP64 capture checks, represent physical residuals and their existing rounding budgets with bounded exact integers when this preserves the accepted equations. Check carries, cancellation and threshold ties on a small exact-rational corpus, then stream the accepted inputs once. The [shortwave adding contract](references/openifs/physics/adding_ica_sw.md) demonstrates this method.
 
+Match each control guard to the complete set of values produced by setup, and carry the selected value into its consuming stage. A provider is the library that supplies a routine. Resolve the executable and its complete library dependency graph before a run, compare the loader’s selected providers with their frozen identities, and relink the dependent route when a provider path changes. Complete shared status agreement while communication is live, then preserve that result through cleanup. Derive each node’s memory admission from its observed process placement under the complete launch options.
+
 ## Locate the performance bound
 
 Profile complete steps, including waits in external services, and inspect their machine instructions before tuning. Count executed calls by calculation and caller, then target repeated work in complete loops. Map unnamed samples to linked assembly blocks. Compare numerical variants under matched monitoring settings and report any changed diagnostic output.

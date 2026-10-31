@@ -2,8 +2,6 @@
  * Contract: skills/md2asm/references/openifs/dynamics/private_forecast_graph_sources.md.
  * Preserve the original interface, ordered arithmetic, and caller-owned storage. */
 /* Complete selected CPG_DIA, source contract revision 1.
- * Physics formulations/openifs/dynamics/grid_point_diagnostic_caller.md.
- * Contract skills/md2asm/references/openifs/dynamics/grid_point_diagnostic_caller.md.
  * Original ordinary addresses and all caller fields stay unchanged. */
 .arch armv8.2-a+simd
 .text
