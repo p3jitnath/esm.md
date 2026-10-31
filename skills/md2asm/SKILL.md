@@ -65,7 +65,7 @@ Keep callbacks from external libraries on the same accepted arithmetic route and
 
 Keep source observations within the caller stage that uses them when numerical helpers are shared. Check that a capture tool records its first actual call before collecting a complete run. Retain only the capture tools needed by the final comparison. Match call records by their physical time step, caller and data view before comparing results. Qualify each newly observed supported input shape with one focused check and record it in the interface contract. Continue independent candidate groups through their normal acceptance gate while other candidates are developed.
 
-When a debugger reads a running solver, observe assembly arguments at the exact entry instruction, before the function changes its stack. Keep each observer’s state separate, and disable its return observation after the matching call.
+When a debugger reads a running solver, observe assembly arguments at the exact entry instruction, before the function changes its stack. Keep each observer’s state separate, and disable its return observation after the matching call. Keep an address table’s file path and content hash together, and check both before launch.
 
 For long FP64 capture checks, represent physical residuals and their existing rounding budgets with bounded exact integers when this preserves the accepted equations. Check carries, cancellation and threshold ties on a small exact-rational corpus, then stream the accepted inputs once. The [shortwave adding contract](references/openifs/physics/adding_ica_sw.md) demonstrates this method.
 
