@@ -219,7 +219,10 @@ md2asm_runtime_cormassdry:
  add x0,x22,#2400
  mov x1,#8
  mov x2,#1
- mov x3,x9
+ /* Empty local pressure retains its producer's one-element dummy view. */
+ mov x3,#1
+ cmp w12,#0
+ csel x3,x9,x3,ne
  bl .Lmc_desc1
  cbnz w0,.Lmc_bad
  mov x9,#9240
