@@ -234,6 +234,10 @@ MD2ASM_PROCESS_GROUP_ENTRY:
  cmn w10,#1
  csel w10,w16,w10,eq
  cbnz w11,.Lassignment_logical
+#ifdef MD2ASM_RUNTIME_PROCESS_CONFIGURATION
+ cmp x14,#5
+ b.eq .Lruntime_print_integer
+#endif
  mov x4,x2
  mov w9,#0
  mov x5,#0
@@ -274,6 +278,53 @@ MD2ASM_PROCESS_GROUP_ENTRY:
  cmp w9,w10
  b.ne .Lprocess_group_reject
  b .Lassignment_value_end
+#ifdef MD2ASM_RUNTIME_PROCESS_CONFIGURATION
+/* NPRNT_STATS limits printed rank statistics. Its signed 32-bit value does not
+ * control numerical work. Only this member admits a leading plus or minus. */
+.Lruntime_print_integer:
+ mov x4,x2
+ mov x5,#0
+ mov w9,#0
+ mov w12,#0
+ cmp x4,x1
+ b.hs .Lprocess_group_reject
+ ldrb w7,[x0,x4]
+ cmp w7,#45
+ b.eq .Lruntime_print_negative
+ cmp w7,#43
+ b.ne .Lruntime_print_digit
+ add x4,x4,#1
+ b .Lruntime_print_digit
+.Lruntime_print_negative:
+ mov w12,#1
+ add x4,x4,#1
+.Lruntime_print_digit:
+ cmp x4,x1
+ b.hs .Lprocess_group_reject
+ ldrb w7,[x0,x4]
+ sub w8,w7,#48
+ cmp w8,#9
+ b.hi .Lruntime_print_done
+ movz w13,#0xcccc
+ movk w13,#0x0ccc,lsl#16
+ cmp w9,w13
+ b.hi .Lprocess_group_reject
+ b.lo .Lruntime_print_accumulate
+ add w13,w12,#7
+ cmp w8,w13
+ b.hi .Lprocess_group_reject
+.Lruntime_print_accumulate:
+ mov w7,#10
+ madd w9,w9,w7,w8
+ add x4,x4,#1
+ add x5,x5,#1
+ b .Lruntime_print_digit
+.Lruntime_print_done:
+ cbz x5,.Lprocess_group_reject
+ cmp w12,#0
+ cneg w9,w9,ne
+ b .Lassignment_value_end
+#endif
 .Lassignment_logical:
  mov x13,#0
  cmp w3,#46
@@ -329,6 +380,10 @@ MD2ASM_PROCESS_GROUP_ENTRY:
  b.eq .Lprocess_group_empty_next
  b .Lprocess_group_reject
 .Lprocess_group_accept:
+#ifdef MD2ASM_RUNTIME_PROCESS_CONFIGURATION
+ /* An omitted NPRNT_STATS keeps the original setup default of two. */
+ orr x15,x15,#32
+#endif
  mov x9,#8191
  cmp x15,x9
  b.ne .Lprocess_group_reject

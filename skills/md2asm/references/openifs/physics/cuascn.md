@@ -64,10 +64,9 @@ Actual source call 219 retained PLU equal to -0.00012069309216993807 at column 5
 
 ## Actual Forecast Acceptance
 
-The combined coarse forecast in exclusive allocation 7240564 on nid010555 passes these positive actual calls with zero differing bytes. Each byte scope describes the complete owners compared by that routine.
 
 | Original routine | Actual calls | Compared bytes | Byte scope |
 | --- | ---: | ---: | --- |
 | cuascn | 4,300 | 223,944,000 | Native private convection child, compared complete convection-parent owners and child proof |
 
-All ten saved files also match across 618,140 bytes. The accepted critical physics and interface checks are reused. These checks cover the declared routine domains and saved files. Whole-forecast physical verification, whole-process byte identity and comparative timing remain open in the [coverage record](../../../../../src/openifs/README.md).
+Shared saved-file evidence and its limits are in the [coverage record](../../../../../src/openifs/README.md#shared-coarse-forecast-evidence).

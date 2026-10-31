@@ -118,28 +118,7 @@ The parent combined forecast also accepts all 2,150 complete paired returns, 972
 
 Use the own exclusive allocation and CPU32 route recorded in the compact [acceptance record](../../../../../src/openifs/README.md). Load `PrgEnv-gnu`, `gcc-native/12.3` and `libfabric/2.3.1`. The commands below run inside `srun --jobid=7207705 --overlap --exact -N1 -n1 -c33 --cpu-bind=map_cpu:32 --mem-bind=local bash -lc '<command>'`, from the repository root. A full forecast also uses `--mpi=cray_shasta` and one process and thread.
 
-```sh
-task_dir=.runtime/openifs/laiddi-7207705/public-reviewed
-gcc -fPIC -march=armv8-a+simd -c src/openifs/dynamics/laiddi.S \
-    -o "$task_dir/laiddi.o"
-gcc -fPIC -march=armv8-a+simd -DLAIDDI_ABI_PROBE \
-    -c src/openifs/dynamics/laiddi.S -o "$task_dir/laiddi-abi.o"
-gcc -fPIC -march=armv8-a+simd -c bench/openifs/dynamics/vertical_abi.S \
-    -o "$task_dir/vertical-abi.o"
-gcc -O2 -mcpu=neoverse-v2 -fopenmp -ffp-contract=off -fno-fast-math \
-    -Wall -Wextra -Werror .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/laiddi.c \
-    "$task_dir/laiddi-abi.o" "$task_dir/vertical-abi.o" -lm \
-    -o "$task_dir/verify"
-OMP_NUM_THREADS=1 OMP_DYNAMIC=FALSE "$task_dir/verify" \
-    .runtime/openifs/laiddi-7207705/preparation/critical-inputs.bin \
-    .runtime/openifs/laiddi-7207705/preparation/critical-fortran.bin \
-    .runtime/openifs/laiddi-7207705/preparation/critical-independent.bin \
-    "$task_dir/assembly.bin" "$task_dir/summary.json"
-gcc -O2 -mcpu=neoverse-v2 -fPIC -shared -fopenmp -ffp-contract=off \
-    -fno-fast-math -Wall -Wextra -Werror \
-    .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/laiddi_forecast.c "$task_dir/laiddi.o" \
-    -ldl -lm -o "$task_dir/libverify-laiddi.so"
-```
+The complete build and verification recipe remains in the local research records, with its supporting programs and frozen inputs.
 
 The verifier's `--actual INPUT SOURCE NATIVE SUMMARY` mode replays the complete actual source capture. Its `INPUT` and `SOURCE` files are `laiddi-inputs.bin` and `laiddi-fortran.bin` in `.runtime/openifs/runs/strict-laiddi-source-complete-7207705/t21/test_fc`. The full isolated launch is retained in `.runtime/openifs/laiddi-7207705/build/isolated-forecast-command.sh`, and exact preparation, emission, checks and publication commands are in `commands-release.json` beside the sealed `accepted.json`. The forecast comparator adds only `laiddi_` and `laiddi_assembly_`, with no SPCM scope relay or numerical dependency. A parent combined forecast can retain its existing sole SPCM relay and add this comparator.
 

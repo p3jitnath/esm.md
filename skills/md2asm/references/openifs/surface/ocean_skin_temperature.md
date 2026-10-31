@@ -38,10 +38,9 @@ The focused input-sharing correction passed two source, native and paired placem
 
 ## Actual Forecast Acceptance
 
-The combined coarse forecast in exclusive allocation 7240564 on nid010555 passes these positive actual calls with zero differing bytes. Each byte scope describes the complete owners compared by that routine.
 
 | Original routine | Actual calls | Compared bytes | Byte scope |
 | --- | ---: | ---: | --- |
 | voskin_mod::voskin | 2,150 | 73,065,600 | genuine_private_ocean_skin_execution_with_compared_complete_surface_postprocessing_parent_owners_and_unchanged_complete_child_exact_proof |
 
-All ten saved files also match across 618,140 bytes. The accepted critical physics and interface checks are reused. These checks cover the declared routine domains and saved files. Whole-forecast physical verification, whole-process byte identity and comparative timing remain open in the [coverage record](../../../../../src/openifs/README.md).
+Shared saved-file evidence and its limits are in the [coverage record](../../../../../src/openifs/README.md#shared-coarse-forecast-evidence).

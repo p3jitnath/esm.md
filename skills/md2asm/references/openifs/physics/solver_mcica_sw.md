@@ -30,7 +30,6 @@ Four paired calls pass 9,792 allocated returned-owner bytes and 744 independent 
 
 ## Actual Forecast Acceptance
 
-The combined coarse forecast in exclusive allocation 7240564 on nid010555 passes these positive actual calls with zero differing bytes. Each byte scope describes the complete owners compared by that routine.
 
 | Original routine | Actual calls | Compared bytes | Byte scope |
 | --- | ---: | ---: | --- |

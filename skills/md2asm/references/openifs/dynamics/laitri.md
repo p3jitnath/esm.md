@@ -145,28 +145,7 @@ The parent combined forecast also accepts all 4,300 complete paired returns, 1,9
 
 Use own exclusive job `7207705` on `nid011311` through `srun --jobid=7207705 --overlap --exact -N1 -n1 -c33 --cpu-bind=map_cpu:32 --mem-bind=local bash -lc '<command>'`. Load `PrgEnv-gnu`, `gcc-native/12.3` and `libfabric/2.3.1`, and run from the repository root. Full forecasts add `--mpi=cray_shasta` and use one process and thread.
 
-```sh
-task_dir=.runtime/openifs/laitri-7207705/public-reviewed
-gcc -fPIC -march=armv8-a+simd -c src/openifs/dynamics/laitri.S \
-    -o "$task_dir/laitri.o"
-gcc -fPIC -march=armv8-a+simd -DLAITRI_ABI_PROBE \
-    -c src/openifs/dynamics/laitri.S -o "$task_dir/laitri-abi.o"
-gcc -fPIC -march=armv8-a+simd -c bench/openifs/dynamics/vertical_abi.S \
-    -o "$task_dir/vertical-abi.o"
-gcc -O2 -mcpu=neoverse-v2 -fopenmp -ffp-contract=off -fno-fast-math \
-    -Wall -Wextra -Werror .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/laitri.c \
-    "$task_dir/laitri-abi.o" "$task_dir/vertical-abi.o" -lm \
-    -o "$task_dir/verify"
-OMP_NUM_THREADS=1 OMP_DYNAMIC=FALSE "$task_dir/verify" \
-    .runtime/openifs/laitri-7207705/preparation/critical-inputs.bin \
-    .runtime/openifs/laitri-7207705/preparation/critical-fortran.bin \
-    .runtime/openifs/laitri-7207705/preparation/critical-independent.bin \
-    "$task_dir/assembly.bin" "$task_dir/summary.json"
-gcc -O2 -mcpu=neoverse-v2 -fPIC -shared -fopenmp -ffp-contract=off \
-    -fno-fast-math -Wall -Wextra -Werror \
-    .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/laitri_forecast.c "$task_dir/laitri.o" \
-    -ldl -lm -o "$task_dir/libverify-laitri.so"
-```
+The complete build and verification recipe remains in the local research records, with its supporting programs and frozen inputs.
 
 The verifier's `--actual INPUT SOURCE NATIVE SUMMARY` mode replays `laitri-inputs.bin` and `laitri-fortran.bin` from `.runtime/openifs/runs/strict-laitri-source-complete-7207705/t21/test_fc`. The isolated forecast launch is retained in `.runtime/openifs/laitri-7207705/build/isolated-forecast-command.sh`, with all exact source, emission, verification and publication commands in `commands-release.json` beside sealed `accepted.json`. The comparator defines only `laitri_` and `laitri_assembly_`, with no SPCM scope relay or numerical dependency. A parent forecast can add it while retaining the existing sole SPCM relay.
 

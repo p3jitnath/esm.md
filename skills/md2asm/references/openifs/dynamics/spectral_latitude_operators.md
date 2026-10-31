@@ -46,7 +46,6 @@ Each original body passed 528 protected calls. SPNSDE covers 1,289,728 complete 
 
 ## Actual Forecast Acceptance
 
-The combined coarse forecast in exclusive allocation 7240564 on nid010555 passes these positive actual calls with zero differing bytes. Each byte scope describes the complete owners compared by that routine.
 
 | Original routine | Actual calls | Compared bytes | Byte scope |
 | --- | ---: | ---: | --- |
@@ -54,4 +53,4 @@ The combined coarse forecast in exclusive allocation 7240564 on nid010555 passes
 | uvtvd_mod::uvtvd | 1,100 | 33,440,000 | Input and returned owner unions |
 | vdtuv_mod::vdtuv | 1,100 | 32,806,400 | Input and returned owner unions |
 
-All ten saved files also match across 618,140 bytes. The accepted critical physics and interface checks are reused. These checks cover the declared routine domains and saved files. Whole-forecast physical verification, whole-process byte identity and comparative timing remain open in the [coverage record](../../../../../src/openifs/README.md).
+Shared saved-file evidence and its limits are in the [coverage record](../../../../../src/openifs/README.md#shared-coarse-forecast-evidence).

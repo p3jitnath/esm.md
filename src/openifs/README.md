@@ -267,3 +267,9 @@ These recent contracts describe complete device stages and their declared limits
 ## Local records
 
 The exact ordered routine list, original source paths, build commands, critical checks and raw comparison records remain under ignored `.agents/` and `.runtime/` directories. The source audit covers 5,238 built Fortran bodies, including setup, input/output, support and disabled features. This total is not the number of weather routines that remain.
+
+## Shared Coarse-Forecast Evidence
+
+The routine-level acceptance tables refer to the combined coarse forecast in exclusive allocation 7240564 on nid010555. Their actual calls have zero differing bytes, and each table states the complete compared owners. All ten saved files match across 618,140 bytes. The accepted critical physics and interface checks are reused.
+
+Those historical tables establish the declared routine domains and saved files. They did not establish whole-forecast physical verification, whole-process byte identity or comparative timing. The [current forecast status](../../README.md#openifs-forecasts) records subsequent evidence and its limits.

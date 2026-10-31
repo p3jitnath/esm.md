@@ -83,10 +83,9 @@ Original-only r40 evidence contains both modes and signed cumulative temporary s
 
 ## Actual Forecast Acceptance
 
-The combined coarse forecast in exclusive allocation 7240564 on nid010555 passes these positive actual calls with zero differing bytes. Each byte scope describes the complete owners compared by that routine.
 
 | Original routine | Actual calls | Compared bytes | Byte scope |
 | --- | ---: | ---: | --- |
 | cloud_supersatcheck | 116,100 | 111,456,000 | Complete returned routine owners |
 
-All ten saved files also match across 618,140 bytes. The accepted critical physics and interface checks are reused. These checks cover the declared routine domains and saved files. Whole-forecast physical verification, whole-process byte identity and comparative timing remain open in the [coverage record](../../../../../src/openifs/README.md).
+Shared saved-file evidence and its limits are in the [coverage record](../../../../../src/openifs/README.md#shared-coarse-forecast-evidence).

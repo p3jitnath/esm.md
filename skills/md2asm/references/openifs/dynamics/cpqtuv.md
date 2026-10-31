@@ -62,31 +62,8 @@ The fresh combined T21 forecast accepts all 2,150 CPQTUV calls, with 86 at each 
 
 The [compact record](../../../../../src/openifs/README.md) retains the frozen source, contract, corpus, actual call metadata and full command archives. The [direct ABI bridge](../../../../../src/openifs/README.md) forwards all 18 original arguments and checks preserved registers before restoring its own state. Its retained local source rebuilds to the identical accepted object. Whole-forecast physical validation and comparative timing remain unfinished.
 
-Run the following commands through srun in a quiet exclusive allocation. Use the frozen strict OpenIFS build and a new ignored output directory.
+Run the retained verifier through srun in a quiet exclusive allocation, using the strict OpenIFS build and a new ignored output directory.
 
-```bash
-module load PrgEnv-gnu gcc-native/12.3 libfabric/2.3.1
-check_dir="$PWD/.runtime/openifs/cpqtuv/reproduce"
-build_root="$PWD/.runtime/openifs/strict-build"
-mkdir -p "$check_dir"
-gcc -fPIC -Dcpqtuv_=cpqtuv_assembly_ -c src/openifs/dynamics/cpqtuv.S \
-  -o "$check_dir/assembly.o"
-gcc -c bench/openifs/dynamics/cpqtuv_abi.S -o "$check_dir/abi.o"
-gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math \
-  -Wall -Wextra -Werror .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/cpqtuv.c \
-  "$check_dir/assembly.o" "$check_dir/abi.o" -Wl,--wrap=cpqtuv_assembly_ \
-  -L "$build_root/lib" -larpifs.DP -lfiat -ldl -lm \
-  -Wl,-rpath,"$build_root/lib" -o "$check_dir/verify"
-"$check_dir/verify" --verify .runtime/openifs/cpqtuv/frozen/corpus.bin \
-  "$check_dir/result"
-cmp "$check_dir/result.assembly.bin" "$check_dir/result.fortran.bin"
-cmp "$check_dir/result.assembly.bin" \
-  .runtime/openifs/cpqtuv/frozen/reference.fortran.bin
-gcc -O2 -mcpu=neoverse-v2 -ffp-contract=off -fno-fast-math -fPIC \
-  -Wall -Wextra -Werror -c .runtime/assembly-markdown-cleanup-7207705/preserved-published-2aef826/bench/openifs/dynamics/cpqtuv_forecast.c \
-  -o "$check_dir/forecast.o"
-gcc -shared -Wl,-Bsymbolic "$check_dir/forecast.o" "$check_dir/assembly.o" \
-  -ldl -lm -o "$check_dir/libverify-cpqtuv.so"
-```
+The complete build and verification recipe remains in the local research records, with its supporting programs and frozen inputs.
 
 The forecast observer binds the unchanged EC_PHYS_DRV scientific image and checks the declared original worker ranges. Its exact whole-array capacity uses NDIM for the earlier tracer state and NDIM1 for new states and dynamics rates. Preload it alongside the accepted parent comparators, retain one forecast thread and compare all emitted streams and saved files before acceptance.
