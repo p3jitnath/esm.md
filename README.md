@@ -126,6 +126,8 @@ The [basic formulations](formulations/openifs/README.md) explain the physical ba
 
 ## Notes
 
+OpenIFS’s twelve-point radiation interpolation can overshoot and produce negative temperatures. The assembly preserves the original aerosol calculation for finite, nonzero temperatures. The observed case uses the even exponent `RCTRPT=30`. This source-compatible result does not make negative temperatures physically valid, and complete forecast acceptance remains pending.
+
 The original `CPG_DRV` flux-reset call selects a one-element time array with an index outside its declared bounds after step zero. The existing component control uses the documented quotient-index correction. Exact reset behavior against an unchanged operational executable at step 20 and later remains unverified. The reference executable and weather physics are unchanged.
 
 The existing 9 km case has 137 atmospheric layers and 6,599,680 horizontal points. The current target is a 24-hour forecast with 192 steps of 450 seconds, with process and thread counts selected at runtime. MPI lets processes exchange data, while OpenMP lets threads share work within a process. Earlier component checks used a one-hour, four-process configuration. The table below distinguishes component byte comparisons from checks of connected input loading and storage, with each result limited to its stated bounds. The standalone CPU executable starts without the OpenIFS harness, and all startup calls now return successfully. The time loop has no confirmed completed step, and its partial output files have not passed saved-state acceptance. No complete operational forecast is accepted.

@@ -545,8 +545,10 @@ ldr x8,[x19,#152]
 .Linput_temperature:
 madd w9,w24,w28,w10
 ldr d0,[x8,w9,uxtw #3]
+// Original interpolation can produce negative temperatures. Preserve its finite nonzero inputs.
+// The observed signed-temperature case uses the source exponent RCTRPT=30.
 fcmp d0,#0.0
-b.le .Lreject
+b.eq .Lreject
 b.vs .Lreject
 fmov x11,d0
 lsr x11,x11,#52
