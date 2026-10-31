@@ -27,7 +27,7 @@ Trace configuration from declaration defaults through setup, user overrides and 
 
 ## Make Interfaces Explicit
 
-Trace each argument from its caller to the actual selected child. Record its type, address origin, units, dimensions, alignment, mutation and lifetime. Distinguish a raw array, an array descriptor and a class object. A descriptor stores the data address, lower bounds, upper bounds and strides, which describe the spacing between elements. State the base of every byte offset, including nested records and array views. Follow inherited methods, conditional build definitions, hidden string lengths and optional-argument presence through the selected source route.
+Trace each argument from its caller to the actual selected child. Record its type, address origin, units, dimensions, alignment, mutation and lifetime. Distinguish a raw array, an array descriptor and a class object. A descriptor stores the data address, lower bounds, upper bounds and strides, which describe the spacing between elements. Derive each byte offset from the declaration and actual producer, and state the base for each nested record or array view. Follow inherited methods, conditional build definitions, hidden string lengths and optional-argument presence through the selected source route.
 
 Derive every array's span from its own allocation and lower bounds. Keep physical grid size, allocated extent, local process count, block size and active cell count distinct. Preserve physical strides, halo cells, aliases, padding and inactive fields. Validate an empty field against its producer's physical storage bounds, including any dummy allocation. Construct the consumer's view from the logical element count and check both views together, so a one-element dummy can supply a zero-element view. Use checked 64-bit calculations for complete byte sizes and offsets. Align workspace slices and include alignment gaps in the total budget.
 
@@ -35,7 +35,7 @@ Read resolution-dependent dimensions, strides and bounds from live metadata. Def
 
 Preserve source read/write order when owners overlap or a parent caches values across child calls. Keep source-unused bytes frozen for exact comparisons, with their incoming values recorded separately from active calculations. Decode files through declared record lengths, byte order, field labels and dates. Preserve message ownership until writing finishes, and derive file padding from the public format interface.
 
-Bind shared mutable values and numerical children to their intended owners. Record exact objects, relocations, symbols and provider paths. A provider is the library supplying a routine. Check the actual loader's complete selected library graph against frozen identities before model entry. Relink dependent images together when a selected provider changes. Use page-relative table addressing when linked code or data exceeds a short address instruction's range.
+Bind shared mutable values and numerical children to their intended owners. Record exact objects, relocations, symbols and provider paths. A provider is the library supplying a routine. Check the actual loader's complete selected library graph against frozen identities before model entry. Apply each setting for library loading to the program that needs it, and retain the supported environment for launch and scheduler tools. Relink dependent images together when a selected provider changes. Use page-relative table addressing when linked code or data exceeds a short address instruction's range.
 
 ## Establish Correctness Efficiently
 
