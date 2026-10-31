@@ -10,6 +10,8 @@ Allocate and initialise the new wind and tracer storage as the source requires. 
 
 Call CPG_DRV, CALL_SL_HEAP2 and the corrected-address TRMFIXERS in that order. Before RADDRV, save the active old tracer planes and copy the new tracer fields into their old-state positions. Restore the saved planes after radiation, preserving each bit. Run the CAPE-aware EC_PHYS_DRV and then CPGLAG on all 86 blocks. The selected numerical bodies use direct assembly and frozen arithmetic, with the retained C power helper declared as a mathematical dependency. The radiation call uses the qualified grid-driver binding. Keep the two-plane transported-physics capacity, actual partial-block bounds and all caller aliases.
 
+The separate [runtime complete physics driver](../physics/runtime_complete_physics_driver.md) records the live-grid argument and nested-record interface. Its owner-address check is accepted, while its complete parent numerical and forecast acceptance remain pending.
+
 ## Interface And Temporary Services
 
 The application binary interface, or ABI, defines arguments and preserved registers. GP_MODEL receives eleven ordinary addresses plus a GNU hidden character length of nine. The first eight addresses use x0 through x7; the other three addresses and final length occupy consecutive eight-byte incoming stack slots. Geometry, Fields and Model are the first three records. All following records, arrays and optional trajectory objects retain their original types and order. The frame has 4,096 bytes with 16-byte alignment. Required real arrays are eight-byte-aligned, little-endian FP64 with columns first. Every descriptor, view and field index must lie inside its complete allocated owner.
