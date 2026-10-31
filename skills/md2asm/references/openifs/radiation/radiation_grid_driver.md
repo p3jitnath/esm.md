@@ -54,3 +54,30 @@ The forecast exits successfully and all ten saved files match the corrected orig
 An older cold capture lacks some runtime setup. Both original and direct cold returns differ from its archived final flux bits. The original artifact and detailed investigation remain local. Acceptance uses the complete live source/direct pairs under one setup and the exact saved files.
 
 Detailed receipts, original sources, protected fixtures, failures, build commands and observations remain local under `.runtime/openifs/radiation_grid_driver_7358525/focused_qualification_r1/`. The run uses job 7358525 on `nid010681` and local memory. Focused qualification uses CPU 64, and the forecast comparison uses CPU 32. The direct primary object has no prohibited fused or approximate arithmetic instructions. No comparative timing is reported.
+
+
+## Runtime Fields After Grid Transfer
+
+The private [runtime stage](../../../../../src/openifs/radiation/runtime_radiation_posttransport_fields.inc.S) restores four coordinate fields from the destination grid after interpolation. Interpolation estimates a value between grid points. The destination grid retains its own longitude, latitude sine and longitude sine and cosine. Copy these stored FP64 values before the aerosol calculation, preserving every bit and the caller's latitude groups.
+
+The same stage recomputes the modified solar cosine, named `IAMU0` in the source, from the transferred solar cosine `IMU0`. Both are dimensionless. Let $`r`$ be the positive dimensionless curvature parameter and $`u`$ the transferred cosine. Define $`z=r(r+2)`$. For $`u>10^{-10}`$, calculate the following expression with separate multiply, add, square-root, subtract and divide operations.
+
+```math
+w = \frac{r}{\sqrt{u^2+z}-u}.
+```
+
+For the other branch, use $`w=r/\sqrt{z}`$. Preserve the original rounding points and store $`w`$ in `IAMU0`. The stage changes no other numerical field.
+
+| Register | Argument and bounds |
+| --- | --- |
+| `x0` | Mutable packed block with `x6` bytes available |
+| `x1` | First destination point, counted from zero |
+| `x2` | Read-only 1,376-byte destination-grid record |
+| `x3` | Active column count from one to eight, within the live destination-point count |
+| `x4` | Read-only table of fourteen eight-byte field offsets |
+| `x5` | Read-only eight-byte curvature parameter |
+| `x6` | Complete packed-block capacity in bytes |
+
+Ordinary addresses have eight-byte alignment. Each source coordinate has a contiguous FP64 array description with bounds from one to the live point count. Before writing, the stage checks these descriptions, all six consumed packed-field ranges and their separation from read-only storage. It writes only active cells in the four coordinate fields and `IAMU0`. It preserves `x18`, all Arm saved registers, the stack pointer and the floating-point control register. Return zero means success, while two means a metadata or bounds refusal before any write.
+
+The focused component comparison covers a full eight-column block and every smaller nonempty block, both solar branches and protected output bounds. All 3,256,832 compared packed bytes agree with the original calculation, and 218 independent numerical relations pass. Three invalid metadata or capacity cases preserve the complete output before refusing. These results qualify this stage on controlled inputs. The connected operational forecast and saved-output comparison remain pending.
