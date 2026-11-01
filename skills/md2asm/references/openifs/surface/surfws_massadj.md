@@ -1,6 +1,6 @@
 # Snow Warm-Start Mass Contract
 
-Revision 3 implements complete `SURFWS_MASSADJ_MOD::SURFWS_MASSADJ` from [Snow Mass At Warm Start](../../../../../formulations/openifs/surface/snow_mass_adjustment.md), SM-1, in [snow_mass_adjustment.S](../../../../../src/openifs/surface/snow_mass_adjustment.S). It retains the original calculations on their defined domain and adds an explicit, separately verified one-layer residual rule.
+Revision 4 implements complete `SURFWS_MASSADJ_MOD::SURFWS_MASSADJ` from [Snow Mass At Warm Start](../../../../../formulations/openifs/surface/snow_mass_adjustment.md), SM-1, in [snow_mass_adjustment.S](../../../../../src/openifs/surface/snow_mass_adjustment.S). It retains the original calculations on their defined domain, the separately verified one-layer residual rule, and a bounded extension for a signed fitted boundary parameter.
 
 ## Ordered Method
 
@@ -14,6 +14,8 @@ Form every active layer mass as `rho[k]*d[k]`. For two or more active layers, if
 
 For normal snow, form liquid capacity as `mass*(B+((C-B)*MAX(0,A-rho))/A)`. Below `RTT-0.5*AMP`, and at or above `RTT`, the original warm-start phase value is zero. Inside the transition, it is `1+SIN((RPI*(T-RTT))/AMP)`. Multiply capacity by that phase value. This is the original initialization rule, including its value at the upper endpoint. Glacier liquid water is zero in every layer.
 
+The supplied maximum density limits the trial profiles and selected corrected layers. The filling loop has no global clipping step at that nominal value. In the captured case, its nominal maximum is 500 kg/m³, while returned densities reach about 598.053 and 599.900 kg/m³. These values remain recorded and satisfy the declared physical test interval of 1–1,000 kg/m³. The remaining mass residual can change the accumulation layer’s depth implied by mass divided by density. The caller publishes temperature, mass, density and liquid; a later grid stage rebuilds geometry from that persistent state. The old scratch depth is therefore not a universal output-time constraint.
+
 All FP64 operations round separately with FPCR zero, round-to-nearest with ties to even and gradual underflow. Reuse the accepted strict EXP and uniquely named original-compatible SIN. No fused or approximate solver instruction is admitted.
 
 ## Domain And ABI
@@ -23,6 +25,8 @@ The 24 addresses contain first column, last column, column count, layer count, a
 Support 1–4,096 columns, 1–512 allocated layers, signed GNU rank-one and rank-two strides, partial and empty column ranges. A descriptor states the data address, dimensions and entry distances. Consumed arrays cover every declared column and layer. A triggered one-active-layer column follows the defined convergence-limited residual rule above. An unequal mass outside that limit still refuses before public output writes. Below-threshold columns remain untouched.
 
 The melting temperature and pi retain their original FP64 values. Positive temperature amplitude, liquid-capacity constants and density limits keep the complete diagnosis physical. Triggered columns have positive finite target mass, full layer depths and densities. Selected finite signed coefficients and nonnegative profile midpoints keep all rounded EXP arguments in `[-700,700]`. A negative coefficient is a growing exponential curve, which the original shallow-snow initialization tables use. Guard the magnitude of each consumed depth-times-coefficient product before writes. The branch bounds each rounded SIN argument in magnitude by two radians, within the accepted helper domain. Returned active mass and liquid are nonnegative, liquid does not exceed mass, and density is positive.
+
+The top-density argument supplies a fitted boundary parameter, in kg/m³. Actual layer densities retain their separate positive bounds. Admit finite values from −1,000 to 1,000. For newly admitted values below 1, require every active full midpoint to lie between zero and the supplied profile depth. Keep the earlier route for values at least 1 unchanged. The finite-arithmetic proof bounds each exponential together with its denominator, using the retained positive, finite, monotone EXP helper contract; it does not claim support for arbitrary signed values. Actual layer-density and all existing output guards remain in force.
 
 Four-byte integer arrays use GNU integer type 1. Real arrays use eight-byte FP64 and GNU type 3. Rank-one and rank-two descriptors occupy 64 and 88 bytes. TCST and TSOIL occupy 128 and 2,416 bytes. Real owners and descriptors are aligned to eight bytes. Separate the four complete returned owners from all input data, configurations and descriptor storage.
 
@@ -36,7 +40,9 @@ The complete controller supplies two selected negative density coefficients from
 
 The new boundary uses a separately named corrected Fortran component reference. Its only numerical change gives a one-layer residual to the sole valid layer; the original undefined layer-zero branch is not called. Eight corrected-reference/native pairs and four unchanged original controls passed 12 independent complete-state comparisons over 99,288 bytes with zero differences. The gate passed 1,136 scalar physical relations and four before-write refusals that preserved 30,176 bytes. It also retained exact native register duties, FPCR zero, paired FPSR values, errno, read-only owners and inactive storage. The inputs include both signs of the observed adjacent-value residual, exact equality, a larger converged residual, signed strides, cropped columns and glacier storage. The local corrected reference and all prior sources remain retained.
 
-The forecast observations below cover the earlier defined routes. They do not establish a complete forecast for the new one-layer boundary.
+The signed-boundary component reuses one saved genuine original/native comparison over 17,832 complete bytes with zero differences. An independent review checks those saved outputs at their actual calculation stage, with finite positive implied depths, the retained density and temperature bounds, conserved total mass and the liquid-water rule. Two additional edge pairs compare 35,664 complete bytes with zero differences and pass 208 physical relations; normal returns preserve 70,912 read-only or inactive bytes. Three before-write refusals preserve 53,496 complete owner bytes. They cover the exact lower fitted bound, the value immediately below the old positive bound with a midpoint at the total depth, and adjacent out-of-domain values. No genuine or earlier positive-route component was rerun. Nominal density exceedances remain reported. The old diagnostic receipt is unchanged; this stage-specific qualification is additive. No complete forecast or timing acceptance follows from these component checks.
+
+The forecast observations below cover the earlier defined routes. They do not establish a complete forecast for these extended boundary cases.
 
 ## Actual Forecast Acceptance
 

@@ -1282,7 +1282,9 @@ b.lt .Lmass_invalid
 VECTOR d0,15
 fcmp d0,d0
 b.vs .Lmass_invalid
-CONST d1,c3
+/* The fitted boundary may be signed; actual layer density remains positive. */
+CONST d1,c4
+fneg d1,d1
 fcmp d0,d1
 b.lt .Lmass_invalid
 CONST d1,c4
@@ -1336,6 +1338,15 @@ b.lt .Lmass_invalid
 CONST d1,c10
 fcmp d0,d1
 b.gt .Lmass_invalid
+/* A newly admitted fitted boundary uses heights within the total depth. */
+VECTOR d1,15
+CONST d2,c3
+fcmp d1,d2
+b.ge .Lmass_fitted_height_admitted
+ldr d1,[x28,#2064]
+fcmp d0,d1
+b.gt .Lmass_invalid
+.Lmass_fitted_height_admitted:
 fmul d0,d0,d13
 fabs d0,d0
 fcmp d0,d0
