@@ -146,13 +146,20 @@
  mov x4,#8
  b .Lsl_make1
 // Retain source addresses of declared inactive heat/moisture and Stokes fields.
-// Its source int32 selector is -99999 and its consumed numerical extent is zero.
+// Retain the selected and operational inactive codes; payload consumption is zero.
 .Lsl_inactive_surface_column2:
  sxtw x2,w2
  movn x9,#0x869e
  movk x9,#0xfffe,lsl #16
+ mov x15,#1
+ cmp x2,x9
+ b.eq .Lsl_inactive_surface_owner
+ movn x9,#0x423e
+ movk x9,#0xfff0,lsl #16
  cmp x2,x9
  b.ne .Lsl_column2
+ mov x15,#3
+.Lsl_inactive_surface_owner:
  ldr x9,[x1,#16]
  cmp x9,#8
  b.ne .Lsl_bad
@@ -166,7 +173,7 @@
  cmp x9,#1
  b.ne .Lsl_bad
  ldr x9,[x1,#80]
- cmp x9,#1
+ cmp x9,x15
  b.ne .Lsl_bad
  mov x13,x1
  sub x14,x2,#1
