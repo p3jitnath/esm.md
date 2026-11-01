@@ -76,6 +76,8 @@ The [autonomous forecast](skills/md2asm/references/openifs/input/standalone_weat
 
 The saved files match directly. The separate complete-state check matches incoming bytes in source-unused storage before comparing all 685 buffers. Production uses only the original input files. Physical checks cover humidity, finite spectral values, mean temperature and pressure, grid metadata and time schedules. Whole water and heat budgets remain unverified. See the [coverage record](src/openifs/README.md) for accepted domains and limits.
 
+The forecast results in this section describe the archived numerical method. The current conservative surface and cloud updates have passed their declared component checks; complete forecast state and file comparisons for the revised method remain pending.
+
 The accepted complete-process CPU median is **14.13 seconds**, with runs of 14.13, 14.11 and 14.13 seconds. The timer includes loading, setup, calculations and output. Both matched variants have eight available CPUs, eight cloud workers and eight shortwave workers, with other threaded services set to one thread. All timed runs preserve the ten saved files and 59 observed final fields. Performance on other forecast inputs remains unmeasured.
 
 <details>

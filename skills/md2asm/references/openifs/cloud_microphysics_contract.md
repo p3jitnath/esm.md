@@ -1,6 +1,44 @@
 # Complete Cloud Calculation Contract
 
-Revision 5 preserves the complete selected CLOUDSC route in the retained original call36 packet and the unchanged normal forecast configuration. The original CLOUDSC interface has 76 ordinary pointer arguments. The first eight use x0 through x7 and the remaining 68 use the incoming stack. The exact original record sizes and consumed member offsets are in the retained local original-type layout record. Fields use Fortran column order, where consecutive columns are adjacent and each floating-point value occupies eight bytes.
+Revision 6 corrects transport when the implicit cloud solve returns a tiny or negative phase amount. It retains the 76-pointer interface, the ordered solve, the selected physical processes and the unchanged column water and heat checks. The earlier corpus, forecast and timing records below remain archived Revision 5 evidence; they do not verify a complete forecast with this corrected numerical method.
+
+## Conservative Phase Cleanup
+
+The four condensed water phases are liquid, ice, rain and snow, in that order. Let $`x_i`$ be a phase amount after the implicit solve, measured in kilograms of water per kilogram of air. Let $`f_i`$ and $`c_i`$ be its nonnegative, dimensionless sedimentation and compensating-transport coefficients for this time step. These coefficients describe outgoing mass. Keep a separate transport amount $`t_i`$ before the existing cleanup removes amounts below $`10^{-14}`$ kg/kg from the local phase state and adds them to vapour. Use $`t_i=x_i`$ for a nonnegative solved value, including a negative zero tie. A positive tiny phase therefore still supplies the outgoing mass already included in the implicit solve.
+
+A negative algebraic solution cannot supply a physical negative rain or cloud flux. For each negative $`x_i`$, set its transport amount to positive zero and account for the signed difference in vapour. Let RN mean one rounding to nearest with ties to even in the 64-bit floating-point format, FP64. Visit phases 1 through 4 in the fixed source order and execute these separate operations before that phase's existing cleanup:
+
+```text
+if x_i < +0:
+    t_i = +0
+    a_i = RN(f_i + c_i)
+    d_i = RN(a_i * x_i)
+    q_v = RN(q_v + d_i)
+then perform the existing cleanup for x_i
+```
+
+The existing cleanup adds $`x_i`$ to vapour and sets the retained phase to positive zero when $`x_i<10^{-14}`$ kg/kg. Keep the ordinary post-cleanup history used by the process rates separate from the transport snapshot. Use the snapshot for incoming compensation, outgoing sedimentation, the three external transport diagnostics and the four phase-enthalpy transport terms. Preserve internal process diagnostics. Do not change the nonnegative branch or the negative zero tie.
+
+In exact arithmetic, define the signed remainder $`n_i=x_i-t_i\leq0`$ and add $`(f_i+c_i)n_i`$ to vapour. Vapour has no outgoing phase coefficient in this route. Let $`x_v`$ be the vapour amount before this cleanup, also in kilograms of water per kilogram of air. If $`q_i'`$ and $`q_v'`$ denote the retained phase and vapour amounts after cleanup, the mass ledger is
+
+```math
+q_v'+\sum_i q_i'+\sum_i(f_i+c_i)t_i
+=x_v+\sum_i\bigl(1+f_i+c_i\bigr)x_i.
+```
+
+Thus the retained mass plus outgoing mass equals the mass supplied to the implicit system. The implementation follows the rounded order above; it does not treat this real-arithmetic identity as an exact floating-point equality. Require finite solved values, finite nonnegative transport coefficients, finite debit operations and nonnegative vapour after each new debit and its cleanup. Keep the retained source-stage vapour rules outside this new branch. Reject an unsupported scientific state rather than silently clamp it.
+
+The phase-enthalpy ledger uses $`H=c_pT-L_v(q_l+q_r)-L_s(q_i+q_s)`$, in joules per kilogram of air. Here $`T`$ is temperature in kelvins, $`c_p`$ is the heat capacity of air in joules per kilogram per kelvin, and $`L_v`$ and $`L_s`$ are the latent heats for liquid and frozen water in joules per kilogram. Use the same nonnegative transport snapshot in the heat fluxes. The signed vapour correction needs no additional heat term because this ledger assigns vapour the zero latent-enthalpy reference. Retain the actual rounded latent-heat coefficients and the existing independent heat check.
+
+## Current Checks And Limits
+
+The accepted logical corpus contains five genuine input packets with 24 columns and 137 levels, active columns 1 through 24, and cloud calculation starting at level 15 (`NCLDTOP=15`). Three packets exercise the changed signed branch. Their fresh corrected reference and native calls agree across 5,406,540 controlled bytes, including the native physical constants, with zero differing bytes, exact floating-point status and error number, native application binary interface (ABI) register preservation and protected-buffer checks. Their diagnostic copies agree across another 5,405,904 controlled bytes. The 10,008 unchanged scientific relations include all 48 water and phase-enthalpy balances per packet. Another 73,051 checks verify actual retained words, ordered vapour accounting and nonnegative public phase fluxes. Two controls reuse their accepted bytes, status and science after their exact current-math traces and the unchanged nonnegative branch were independently reviewed; they were not called again.
+
+All new reference calls use the current matched exponential (EXP) and logarithm (LOG) profile and the original public power (POWER) profile. The signed algebraic values remain in the raw diagnostic record. Transport split words follow the qualified source branch; they are not presented as a separately observed fifth trace bank. Earlier failed checks, old output bytes and the intermediate signed-flux refusal remain archived. This component checkpoint does not accept unobserved inputs, all forecast routines, a complete current forecast trajectory or its final files. Complete raw-state and saved-file comparisons remain pending. No timing claim is made for the corrected method.
+
+## Retained Interface And Historical Evidence
+
+Archived Revision 5 preserves the complete selected CLOUDSC route in the retained original call36 packet and its normal forecast configuration. The original CLOUDSC interface has 76 ordinary pointer arguments. The first eight use x0 through x7 and the remaining 68 use the incoming stack. The exact original record sizes and consumed member offsets are in the retained local original-type layout record. Fields use Fortran column order, where consecutive columns are adjacent and each floating-point value occupies eight bytes.
 
 The numerical state contains five water species. All five input planes are retained, while the source writes only the first four cloud tendency planes. Initialise temperature, vapour, cloud fraction and condensate from the supplied state plus the supplied cumulative tendency times the physical time step. Compute saturation, remove tiny cloud amounts, then visit levels from NCLDTOP through KLEV. Within each level retain the original order of convective detrainment, compensating downward transport, turbulent erosion, sedimentation, precipitation coverage, all selected microphysical exchanges, explicit sink limiting, the five-species implicit solve and supersaturation adjustment.
 

@@ -366,6 +366,12 @@
 .equ N0S, 2712
 .equ N0I, 2720
 .equ FALLDIFF, 2728
+// Pre-cleanup phases retain the transport already used by the implicit solve.
+.equ TRANSPORT1, 2752
+.equ TRANSPORT2, 2760
+.equ TRANSPORT3, 2768
+.equ TRANSPORT4, 2776
+.equ TRANSPORT5, 2784
 .equ PI, 2736
 .equ PSURF, 2744
 .equ P_LAERICEAUTO, 1128
@@ -879,6 +885,11 @@ CLOUD_ENTRY:
  ZER PREV3
  ZER PREV4
  ZER PREV5
+ ZER TRANSPORT1
+ ZER TRANSPORT2
+ ZER TRANSPORT3
+ ZER TRANSPORT4
+ ZER TRANSPORT5
  mov x25, #0
  ldr x21, [sp, #960]
 .Linitial_level:
@@ -1379,8 +1390,8 @@ CLOUD_ENTRY:
  F_MUL MF, MF, DTGDP
  F_MAX MF, ZERO, MF
  F_MUL ACUST, MF, ANEWM1
- F_MUL LCUSTL, MF, PREV1
- F_MUL LCUSTI, MF, PREV2
+ F_MUL LCUSTL, MF, TRANSPORT1
+ F_MUL LCUSTI, MF, TRANSPORT2
  F_ADD CONVSRC1, CONVSRC1, LCUSTL
  F_ADD CONVSRC2, CONVSRC2, LCUSTI
  F_MUL DTDP, RDCP, HALF
@@ -2771,21 +2782,59 @@ CLOUD_ENTRY:
  ST d28, XN4
  ST d29, XN5
  ST d30, TMP0
+ // Snapshot transport before the local phase cleanup.
+ COPY TRANSPORT1, XN1
+ COPY TRANSPORT2, XN2
+ COPY TRANSPORT3, XN3
+ COPY TRANSPORT4, XN4
+ COPY TRANSPORT5, XN5
+ // Keep physical transport nonnegative and retain the signed water debit.
+ F_CMP XN1, ZERO
+ b.ge .Lnonnegative_transport_1_ready
+ ZER TRANSPORT1
+ F_ADD TMP1, FALLSINK1, CONVSINK1
+ F_MUL TMP1, TMP1, XN1
+ F_ADD XN5, XN5, TMP1
+.Lnonnegative_transport_1_ready:
  F_CMP XN1, SMALL
  b.ge .Lsolved_species_1_ready
  F_ADD XN5, XN5, XN1
  ZER XN1
 .Lsolved_species_1_ready:
+ // Keep physical transport nonnegative and retain the signed water debit.
+ F_CMP XN2, ZERO
+ b.ge .Lnonnegative_transport_2_ready
+ ZER TRANSPORT2
+ F_ADD TMP1, FALLSINK2, CONVSINK2
+ F_MUL TMP1, TMP1, XN2
+ F_ADD XN5, XN5, TMP1
+.Lnonnegative_transport_2_ready:
  F_CMP XN2, SMALL
  b.ge .Lsolved_species_2_ready
  F_ADD XN5, XN5, XN2
  ZER XN2
 .Lsolved_species_2_ready:
+ // Keep physical transport nonnegative and retain the signed water debit.
+ F_CMP XN3, ZERO
+ b.ge .Lnonnegative_transport_3_ready
+ ZER TRANSPORT3
+ F_ADD TMP1, FALLSINK3, CONVSINK3
+ F_MUL TMP1, TMP1, XN3
+ F_ADD XN5, XN5, TMP1
+.Lnonnegative_transport_3_ready:
  F_CMP XN3, SMALL
  b.ge .Lsolved_species_3_ready
  F_ADD XN5, XN5, XN3
  ZER XN3
 .Lsolved_species_3_ready:
+ // Keep physical transport nonnegative and retain the signed water debit.
+ F_CMP XN4, ZERO
+ b.ge .Lnonnegative_transport_4_ready
+ ZER TRANSPORT4
+ F_ADD TMP1, FALLSINK4, CONVSINK4
+ F_MUL TMP1, TMP1, XN4
+ F_ADD XN5, XN5, TMP1
+.Lnonnegative_transport_4_ready:
  F_CMP XN4, SMALL
  b.ge .Lsolved_species_4_ready
  F_ADD XN5, XN5, XN4
@@ -2793,30 +2842,30 @@ CLOUD_ENTRY:
 .Lsolved_species_4_ready:
  COPY PREV1, XN1
  SAVE XN1, 168
- F_MUL TMP0, FALLSINK1, XN1
+ F_MUL TMP0, FALLSINK1, TRANSPORT1
  F_MUL TMP0, TMP0, RDTGDP
  LD d0, TMP0
  str d0, [x21, #528]
  COPY PREV2, XN2
  SAVE XN2, 176
- F_MUL TMP0, FALLSINK2, XN2
+ F_MUL TMP0, FALLSINK2, TRANSPORT2
  F_MUL TMP0, TMP0, RDTGDP
  LD d0, TMP0
  str d0, [x21, #536]
  COPY PREV3, XN3
  SAVE XN3, 184
- F_MUL TMP0, FALLSINK3, XN3
+ F_MUL TMP0, FALLSINK3, TRANSPORT3
  F_MUL TMP0, TMP0, RDTGDP
  LD d0, TMP0
  str d0, [x21, #544]
  COPY PREV4, XN4
  SAVE XN4, 192
- F_MUL TMP0, FALLSINK4, XN4
+ F_MUL TMP0, FALLSINK4, TRANSPORT4
  F_MUL TMP0, TMP0, RDTGDP
  LD d0, TMP0
  str d0, [x21, #552]
  COPY PREV5, XN5
- F_MUL TMP0, FALLSINK5, XN5
+ F_MUL TMP0, FALLSINK5, TRANSPORT5
  F_MUL TMP0, TMP0, RDTGDP
  LD d0, TMP0
  str d0, [x21, #560]
@@ -2831,7 +2880,7 @@ CLOUD_ENTRY:
  // Source 6.1. Account for transport before each phase latent-heat increment.
  F_ADD FLUXQ, CONVSRC1, FALLSRC1
  F_ADD TMP0, FALLSINK1, CONVSINK1
- F_MUL TMP0, TMP0, XN1
+ F_MUL TMP0, TMP0, TRANSPORT1
  F_SUB FLUXQ, FLUXQ, TMP0
  F_SUB TMP0, XN1, QL
  F_SUB TMP0, TMP0, FLUXQ
@@ -2847,7 +2896,7 @@ CLOUD_ENTRY:
  PUT 21, TMP1, 0
  F_ADD FLUXQ, CONVSRC2, FALLSRC2
  F_ADD TMP0, FALLSINK2, CONVSINK2
- F_MUL TMP0, TMP0, XN2
+ F_MUL TMP0, TMP0, TRANSPORT2
  F_SUB FLUXQ, FLUXQ, TMP0
  F_SUB TMP0, XN2, QI
  F_SUB TMP0, TMP0, FLUXQ
@@ -2863,7 +2912,7 @@ CLOUD_ENTRY:
  PUT 21, TMP1, 1
  F_ADD FLUXQ, CONVSRC3, FALLSRC3
  F_ADD TMP0, FALLSINK3, CONVSINK3
- F_MUL TMP0, TMP0, XN3
+ F_MUL TMP0, TMP0, TRANSPORT3
  F_SUB FLUXQ, FLUXQ, TMP0
  F_SUB TMP0, XN3, QR
  F_SUB TMP0, TMP0, FLUXQ
@@ -2879,7 +2928,7 @@ CLOUD_ENTRY:
  PUT 21, TMP1, 2
  F_ADD FLUXQ, CONVSRC4, FALLSRC4
  F_ADD TMP0, FALLSINK4, CONVSINK4
- F_MUL TMP0, TMP0, XN4
+ F_MUL TMP0, TMP0, TRANSPORT4
  F_SUB FLUXQ, FLUXQ, TMP0
  F_SUB TMP0, XN4, QS
  F_SUB TMP0, TMP0, FLUXQ
