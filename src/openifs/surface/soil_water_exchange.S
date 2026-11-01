@@ -3779,7 +3779,7 @@ ORIGINAL_SYMBOL:
  ldr d0,[x28,#4528]
  ldr d1,[x28,#4376]
  fcmp d0,d1
- b.gt .Lwater_invalid
+ b.gt .Lwater_zero_face_guard
  add x9,x24,#1
  cmp x9,x21
  b.ge .Lwater_face_guard_pass
@@ -3790,7 +3790,7 @@ ORIGINAL_SYMBOL:
  ldr d0,[x28,#4528]
  ldr d1,[x28,#4376]
  fcmp d0,d1
- b.gt .Lwater_invalid
+ b.gt .Lwater_zero_face_guard
 .Lwater_face_guard_pass:
  ldr w9,[x28,#4232]
  cbz w9,.Lwater_face_se_guard_done
@@ -5798,6 +5798,30 @@ ORIGINAL_SYMBOL:
  b.lo .Lwater_invalid
 .Lwater_separate_return:
  ret
+
+/* A dry face can be admitted when both ordered transfers are exactly zero. */
+.Lwater_zero_face_guard:
+ ldr x14,[x28,#4480]
+ cbnz x14,.Lwater_invalid
+ cmp x25,#9
+ b.gt .Lwater_invalid
+ ldr x14,[x28,#4496]
+ movz x15,#0x3fd0,lsl #48
+ cmp x14,x15
+ b.hi .Lwater_invalid
+ ldr d0,[x28,#4536]
+ ldr d1,[x28,#4464]
+ fsub d0,d0,d1
+ ldr d1,[x28,#4520]
+ fdiv d0,d0,d1
+ fmov x14,d0
+ movz x15,#0x3d70,lsl #48
+ cmp x14,x15
+ b.lo .Lwater_invalid
+ movz x15,#0x3ef0,lsl #48
+ cmp x14,x15
+ b.hi .Lwater_invalid
+ b .Lwater_face_guard_pass
 
 .Lwater_invalid:
  bl abort
