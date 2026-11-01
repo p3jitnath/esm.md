@@ -678,7 +678,18 @@ md2asm_surface_ocean_layer_state_r2_7358525:
  b.ne .Llayer_reject
  ldr x9,[x0,#72]
  cmp x9,#1
+ b.eq .Lruntime_legacy_pressure_origin
+ cbnz x9,.Llayer_reject
+ cmp x23,#11
  b.ne .Llayer_reject
+ cmp x1,#2
+ b.ne .Llayer_reject
+ ldr x12,[x0,#80]
+ cmp x12,x21
+ b.ne .Llayer_reject
+ add x12,x12,#1
+ b .Lruntime_descriptor_second_count
+.Lruntime_legacy_pressure_origin:
  ldr x12,[x0,#80]
  cmp x12,#1
  b.lt .Llayer_reject
@@ -692,6 +703,7 @@ md2asm_surface_ocean_layer_state_r2_7358525:
  b.gt .Llayer_reject
 .Lruntime_descriptor_second_ok:
  add x14,x14,x20
+.Lruntime_descriptor_second_count:
  mul x13,x13,x12
  cmp x1,#2
  b.eq .Lruntime_descriptor_finish

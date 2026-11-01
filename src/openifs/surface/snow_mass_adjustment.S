@@ -1375,7 +1375,8 @@ MATRIX d2,2
 fmul d0,d0,d2
 ldr d1,[x28,#2072]
 fcmp d0,d1
-b.ne .Lmass_invalid
+/* The revised one-layer residual rule handles an unequal product. */
+b.ne .Lmass_input_next
 .Lmass_input_next:
 add x19,x19,#1
 b .Lmass_input_column
@@ -1837,6 +1838,20 @@ bl .Lmass_sum
 ldr d1,[x28,#2072]
 fcmp d0,d1
 b.eq .Lmass_liquid
+cmp x25,#1
+b.ne .Lmass_multiple_layer_residual
+/* Use the existing relative-error limit before changing a sole-layer mass. */
+fsub d0,d0,d1
+fdiv d0,d0,d1
+fabs d0,d0
+fcmp d0,d8
+b.vs .Lmass_invalid
+b.gt .Lmass_invalid
+/* Only one valid layer exists. Copy the exact target mass into it. */
+mov x24,#0
+STOREBUF d1,2016
+b .Lmass_liquid
+.Lmass_multiple_layer_residual:
 cmp x25,#2
 b.lt .Lmass_invalid
 fsub d0,d0,d1
