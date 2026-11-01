@@ -706,7 +706,7 @@ md2asm_flakeene_stock_signed_depth_r1_7388001:
     COMPARE SHAPE_P,RC_T_MIN
     b.lt .Lreject
     COMPARE SHAPE_P,RC_T_MAX
-    b.gt .Lreject
+    b.gt .Lpacked_shape_upper
 .Ldomain_next:
     add x20,x20,#1
     cmp x20,x24
@@ -1452,3 +1452,23 @@ md2asm_flakeene_calls_get:
     cmp x10,x12
     b.hi .Lreject
     b .Lsigned_ice_supported_r2
+
+// The finite shape is above the positive default upper calibration here.
+// Integer comparisons preserve floating-point status and every input bit.
+.text
+.Lpacked_shape_upper:
+    ldr x10,[sp,#S_RC_T_MAX]
+    adrp x9,.LC_PACKED_SHAPE_DEFAULT_MAX
+    ldr x11,[x9,:lo12:.LC_PACKED_SHAPE_DEFAULT_MAX]
+    cmp x10,x11
+    b.ne .Lreject
+    ldr x10,[sp,#S_SHAPE_P]
+    adrp x9,.LC_PACKED_SHAPE_INPUT_MAX
+    ldr x11,[x9,:lo12:.LC_PACKED_SHAPE_INPUT_MAX]
+    cmp x10,x11
+    b.hi .Lreject
+    b .Ldomain_next
+.section .rodata
+.p2align 3
+.LC_PACKED_SHAPE_DEFAULT_MAX: .quad 0x3fe999999999999a
+.LC_PACKED_SHAPE_INPUT_MAX: .quad 0x3fe999a000000000
