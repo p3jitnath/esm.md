@@ -27,6 +27,24 @@ Return zero for success, one for allocation failure or two for unsupported input
 
 After every reader finishes, call md2asm_release_runtime_forecast_events with the owner and its capacity. Release frees its allocation and clears the address, byte count, ready word and descriptor data addresses. Repeated release succeeds. Other metadata remains unchanged and unready.
 
-## Evidence And Limits
+## Named Control Association
+
+Revision 2 reads each dimensionless N1 override from the member written by the NAMCT1 constructor. Family order in an event table does not define the layout of that constructor record. The accepted byte offsets are:
+
+| Override | Byte Offset |
+| --- | ---: |
+| N1POS | 0 |
+| N1HIS | 4 |
+| N1GDI | 20 |
+| N1SDI | 8 |
+| N1RES | 12 |
+| N1SFXHIS | 16 |
+| N1MASSCON | 48 |
+
+Fullpos also uses N1POS. The corrected consumer changes four integer offsets for grid diagnostics, spectral diagnostics, restart and surface history. The complete assembled object changes exactly four bytes in its constant table; every instruction and every other object byte remains identical. Independent inspection joins the actual selected constructor key names, all eight relevant event rows and the original MONIO_T argument roles. All 56 single-active-control associations pass. The new shared library has its own loader name, and its active code reference reaches the corrected table.
+
+The retained current forecast uses equal values for the three active controls whose offsets changed. Surface history remains explicitly inactive, so its differing override is ignored by the accepted selector. These facts preserve the current case's event values and floating-point status without another numerical replay. The check establishes the corrected control association for other admitted overrides; complete forecast state and file comparisons remain pending.
+
+## Archived Evidence And Limits
 
 Three joined profiles compare35unchanged original MONIO_T calls with three native owner constructions over19,352complete event bytes, with zero differences. They cover the actual192-step controls, changed576-step controls without Fullpos, and explicit output hours and minutes. Independent periodic selections, complete owner metadata, unchanged inputs, guards, ABI registers, raw FPCR/FPSR and natural errno pass. Release and repeated release pass. A short budget and a rejected last-child request leave the complete output unchanged. The finite process has exited. This accepts the event owner and its source selector wiring. It does not accept original CNT4, connected weather, operational output calculations or a complete saved forecast.
