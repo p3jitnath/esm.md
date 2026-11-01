@@ -5806,9 +5806,29 @@ ORIGINAL_SYMBOL:
  cmp x25,#9
  b.gt .Lwater_invalid
  ldr x14,[x28,#4496]
+ movz x15,#0x3fc0,lsl #48
+ cmp x14,x15
+ b.ls .Lwater_zero_m_e7
+ movz x15,#0x3fc8,lsl #48
+ cmp x14,x15
+ b.ls .Lwater_zero_m_e11
  movz x15,#0x3fd0,lsl #48
  cmp x14,x15
+ b.ls .Lwater_zero_m_e14
+ movz x15,#0x3fd4,lsl #48
+ cmp x14,x15
  b.hi .Lwater_invalid
+ movz x16,#0x3ed0,lsl #48
+ b .Lwater_zero_m_bound_ready
+.Lwater_zero_m_e7:
+ movz x16,#0x3f80,lsl #48
+ b .Lwater_zero_m_bound_ready
+.Lwater_zero_m_e11:
+ movz x16,#0x3f40,lsl #48
+ b .Lwater_zero_m_bound_ready
+.Lwater_zero_m_e14:
+ movz x16,#0x3f10,lsl #48
+.Lwater_zero_m_bound_ready:
  ldr d0,[x28,#4536]
  ldr d1,[x28,#4464]
  fsub d0,d0,d1
@@ -5818,8 +5838,7 @@ ORIGINAL_SYMBOL:
  movz x15,#0x3d70,lsl #48
  cmp x14,x15
  b.lo .Lwater_invalid
- movz x15,#0x3ef0,lsl #48
- cmp x14,x15
+ cmp x14,x16
  b.hi .Lwater_invalid
  b .Lwater_face_guard_pass
 
