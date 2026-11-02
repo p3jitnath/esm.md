@@ -6959,7 +6959,8 @@ b.vs .Ldriver_invalid
 CONST d1,c55
 fcmp d0,d1
 b.lt .Ldriver_invalid
-CONST d1,c8
+/* Admit one rounding step above a sum of one. */
+CONST d1,c66
 fcmp d0,d1
 b.gt .Ldriver_invalid
 mov x24,#4
@@ -8825,4 +8826,5 @@ ret
 .Ldriver_c63: .quad 0x426d1a94a2000000
 .Ldriver_c64: .quad 0x4000000000000000
 .Ldriver_c65: .quad 0x3fc851eb851eb852
+.Ldriver_c66: .quad 0x3ff0000000000001
 .section .note.GNU-stack,"",%progbits
