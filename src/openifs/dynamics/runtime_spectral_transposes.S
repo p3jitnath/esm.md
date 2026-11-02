@@ -390,7 +390,11 @@ md2asm_runtime_trstom:
  ldr x9,[x19,#792]
  ldr w10,[x19,#396]
  cmp x9,x10
- b.ne .Lbad_fields
+ b.eq .Lgfl_column_capacity_ready
+ ldr w11,[x19,#372]
+ cmp w11,#1
+ b.ls .Lbad_fields
+.Lgfl_column_capacity_ready:
  ldr x9,[x19,#800]
  cmp x9,x23
  b.ne .Lbad_fields
@@ -689,6 +693,9 @@ md2asm_runtime_trstom:
  ldr w10,[x19,#396]
  cmp x9,x10
  b.eq .Lpair_return
+ ldr w11,[x19,#372]
+ cmp w11,#1
+ b.hi .Lpair_return
 .Lpair_bad:
  mov w0,#2
 .Lpair_return:
@@ -721,6 +728,9 @@ md2asm_runtime_trstom:
  ldr w10,[x19,#396]
  cmp x9,x10
  b.eq .Lpressure_pair_return
+ ldr w11,[x19,#372]
+ cmp w11,#1
+ b.hi .Lpressure_pair_return
 .Lpressure_pair_bad:
  mov w0,#2
 .Lpressure_pair_return:
