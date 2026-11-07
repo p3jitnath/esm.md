@@ -5,6 +5,8 @@ module forecast_vertical_coordinate_storage
   use vertical_configuration_port, only: native_vertical_configuration, &
     initialize_vertical_configuration,initialize_operational_vertical_configuration
   use forecast_empty_physics_configuration, only: require_empty_physics_group
+  use physics_configuration_text_port, only: find_physics_group,skip_physics_space,physics_space, &
+    physics_key_character,physics_fold_equal,parse_physics_boolean
   use forecast_vertical_coordinate_arrays, only: fill_hybrid_coordinate_arrays
   use forecast_hybrid_coordinate_defaults, only: initialize_default_hybrid_coefficients
   implicit none
@@ -63,6 +65,55 @@ module forecast_vertical_coordinate_storage
     end function
   end interface
 contains
+  !> Retain the first NAMVV0 and its source default false file-force control.
+  !! SUVV1 reads the complete group before selecting file coefficients. Only the
+  !! final false LLFORCE_READ route is supported; repeated assignments use the
+  !! final value. The unchanged provider still requires an empty NAMVV1.
+  integer(c_int32_t) function require_native_vertical_defaults_group(text) result(status)
+    character(*),intent(in) :: text
+    integer :: n,first,cursor
+    logical :: force_read,parsed,valid
+    status=require_empty_physics_group(text,'NAMVV0')
+    if(status==0)return
+    n=len(text)
+    cursor=find_physics_group(text,'NAMVV0',.false.)
+    if(cursor==0)return
+    force_read=.false.
+    do
+      call skip_physics_space(text,cursor)
+      if(cursor>n)return
+      if(text(cursor:cursor)=='/')then
+        if(.not.force_read)status=0
+        return
+      end if
+      if(text(cursor:cursor)==',')then
+        cursor=cursor+1
+        cycle
+      end if
+      first=cursor
+      do while(cursor<=n)
+        if(.not.physics_key_character(text(cursor:cursor),.false.))exit
+        cursor=cursor+1
+      end do
+      if(cursor==first)return
+      if(.not.physics_fold_equal(text(first:cursor-1),'LLFORCE_READ'))return
+      call skip_physics_space(text,cursor)
+      if(cursor>n)return
+      if(text(cursor:cursor)/='=')return
+      cursor=cursor+1
+      call skip_physics_space(text,cursor)
+      first=cursor
+      do while(cursor<=n)
+        if(physics_space(text(cursor:cursor)))exit
+        if(index(',/!',text(cursor:cursor))/=0)exit
+        cursor=cursor+1
+      end do
+      if(cursor==first)return
+      call parse_physics_boolean(text(first:cursor-1),parsed,valid)
+      if(.not.valid)return
+      force_read=parsed
+    end do
+  end function
   !> Establish every byte of the owned native C-compatible configuration.
   !! Its complete size comes from the type, including alignment padding.
   !! The pointer is private to this call; no compiler-specific field offset is used.
@@ -94,7 +145,7 @@ contains
     if(state%configuration%nvfe_intbc/=3.or.state%configuration%nvfe_derbc/=3)return
     if(state%configuration%lvertfe/=1.or.state%configuration%lvfe_ecmwf/=0)return
     if(ubound(a,1)<n.or.ubound(b,1)<n)return
-    if(require_empty_physics_group(text,'NAMVV0')/=0)return
+    if(require_native_vertical_defaults_group(text)/=0)return
     if(require_empty_physics_group(text,'NAMVV1')/=0)return
     if(allocated(state%valh))return
     if(allocated(state%vah))return
@@ -200,7 +251,7 @@ contains
 
   !> Construct all27owners and the selected SUVV1 state in original source order.
   !! state already contains its named controls, level counts and namespace
-  !! preimages. text admits empty NAMVV0/NAMVV1; file A/B use bounds0:n.
+  !! preimages. text admits first NAMVV0 final false LLFORCE_READ and empty NAMVV1; file A/B use bounds0:n.
   !! Only active dvalh/dvbh indices0:n change; all201-word tails remain exact.
   !! All nineteen main owners precede defaults, file override and conversions;
   !! the eight I/O owners follow those calculations. Main untouched payloads
@@ -346,7 +397,7 @@ contains
   !> Own a fresh native startup object and publish it only after complete SUVV1.
   !! geometry=[levels,ECMWF,nonhydrostatic,two_dimensional]. Admit19or137layers,
   !! the global hydrostatic ECMWF route and the complete own selected controls.
-  !! text supplies empty NAMVV0/NAMVV1 and operational NAMCVER at137layers.
+  !! text supplies first NAMVV0 final false LLFORCE_READ and empty NAMVV1 and operational NAMCVER at137layers.
   !! Startup zeroes both201-word namespaces and all own scalar state; raw
   !! coordinate owners still receive no artificial payload initialization.
   !! output must be unallocated. Return1or2leaves it unallocated.
@@ -366,7 +417,7 @@ contains
     if(n/=19.and.n/=137)return
     if(any(geometry(2:4)/=[1_c_int32_t,0_c_int32_t,0_c_int32_t]))return
     if(ubound(file_a,1)<n.or.ubound(file_b,1)<n)return
-    if(require_empty_physics_group(text,'NAMVV0')/=0)return
+    if(require_native_vertical_defaults_group(text)/=0)return
     if(require_empty_physics_group(text,'NAMVV1')/=0)return
     call zero_native_configuration(admitted_configuration)
     if(n==137)then
