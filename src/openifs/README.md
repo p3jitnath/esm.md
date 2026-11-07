@@ -1,4 +1,8 @@
-# OpenIFS Assembly
+# OpenIFS Forecast Sources
+
+The current CPU work ports the generated calculations to portable Fortran and uses the compiler to produce machine code. The [Fortran port record](../../skills/md2asm/references/openifs/portable_fortran_forecast_port.md) lists published component checks and remaining integration. Complete steps 0 and 1 of the new Fortran forecast are still unverified.
+
+The assembly results below retain their earlier scope. They do not establish acceptance of the new Fortran forecast. Existing assembly remains available while the port and its comparison continue.
 
 These direct assembly routines calculate atmospheric motion, heating, radiation and surface changes. They are grouped by physical theme. A routine body means one original function or subroutine. Each accepted body has independent critical checks and exact comparisons within its declared input range.
 

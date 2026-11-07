@@ -1,0 +1,38 @@
+# Portable Fortran Forecast Port
+
+The current CPU work ports the generated OpenIFS assembly calculations to structured Fortran. The compiler produces machine code for each target. Named types and arrays replace private Arm record offsets. Existing assembly and its earlier results remain available while the new forecast is assembled and checked.
+
+A component is one numerical routine or a small group of related routines. Component byte agreement means that every compared output byte matches the separate OpenIFS reference within the stated input range. It does not establish a complete forecast. The new Fortran forecast has not yet passed complete steps 0 and 1.
+
+## Published Component Checks
+
+| Component | Published source | Completed check and limit |
+| --- | --- | --- |
+| Spectral packing fit and logarithm | [Fit](../../../../src/openifs/output/spectral_packing_fit.f90) and [logarithm](../../../../src/openifs/support/positive_logarithm.f90) | The two fit outputs match the retained genuine T1279 temperature input. The complete 13,117,440-byte input remains unchanged. The logarithm evidence covers the arguments reached by this fit. |
+| GRIB template and field encoding | [Template](../../../../src/openifs/output/runtime_grib_template_port.f90), [packing](../../../../src/openifs/output/runtime_grib_packing_policy_port.f90) and [field](../../../../src/openifs/output/runtime_grib_field_encoding_port.f90) | The complete new Fortran chain produces 3,281,554 bytes identical to one retained initial temperature message at T1279. No assembly numerical companion supplies this calculation. Complete forecast files remain unchecked. |
+| GRIB time labels | [Time labels](../../../../src/openifs/output/runtime_grib_time_port.f90) | All 57 retained reference cases match complete messages, valid flags and setter records, including floating-point status at each setter. |
+| GRIB soil labels | [Soil labels](../../../../src/openifs/output/runtime_grib_soil_levels_port.f90) | Eight retained cases match 1,152 output bytes. The same 576 independent unit and rounding relations are retained. Applicable typed value refusals preserve the output. |
+| Output files and history | [File services](../../../../src/openifs/output/runtime_grib_file_services_port.f90) and [writer state](../../../../src/openifs/output/runtime_grib_writer_state_port.f90) | Record framing, all four padding lengths, append and replacement, error preservation, flushing and twelve history transitions pass. The record comparison contains 3,281,744 exact bytes. Distributed gathering remains separate. |
+| Soil and cloud calculations | [Soil temperature step](../../../../src/openifs/surface/soil_temperature_step_port.F90) and [cloud supersaturation](../../../../src/openifs/physics/cloud_supersaturation_port.F90) | Eight published routines pass their retained numerical, physical, status and buffer checks. These include the 334-call soil-water exchange corpus and the soil diffusion, increment, water correction, heat capacity, temperature and energy children. |
+| Spectral diffusion and pressure mass correction | [Diffusion](../../../../src/openifs/dynamics/spectral_horizontal_diffusion_port.F90) and [mass correction](../../../../src/openifs/dynamics/spectral_pressure_mass_correction_port.F90) | The retained diffusion packet and mass-correction cases match complete output owners and immediate status. The diffusion packet is a coarse component case. |
+| Vertical operators | [Vertical operators](../../../../src/openifs/dynamics/vertical_operators_port.F90) | The three new VERDISINT, VERINT and VERDER ports pass 156 calls in the retained combined critical check. The unchanged strict-matrix companion remains separate. All 57 defined dispatches pass. |
+| Physics state update | [State update](../../../../src/openifs/dynamics/physics_state_rate_update_port.F90) | CPQTUV passes 135 retained cases over 252,152 complete output and guard bytes, with the retained physical and water-mass checks. |
+| Model clocks | [Model clocks](../../../../src/openifs/setup/forecast_model_clock_port.f90) | Both initialisers pass nine complete clock cases over 3,240 bytes, independent calendar relations and applicable refusal checks. |
+| Periodic output selection | [Output schedule](../../../../src/openifs/support/forecast_periodic_output_schedule_port.f90) | All 18 retained cases match 5,588 output bytes and 1,226 independent selected entries, including time rounding, strided arrays and optional controls. |
+| Initial field decoding | [Initial reader](../../../../src/openifs/input/initial_grib_field_reader_port.f90) | The three coarse schemas and 23 retained success or error cases match 12,099,744 committed bytes, including partial metadata and cleanup. Full operational-file decoding remains unchecked for this port. |
+
+GRIB is the binary file format used for saved weather fields. T1279 identifies the spectral resolution, which describes the largest retained global wave number. FP64 means 64-bit floating-point values. Public ecCodes supplies file-format operations, and public Multio supplies its existing packing policy. Public transforms, communication, file services and mathematical libraries retain their declared roles.
+
+## Arithmetic And Interfaces
+
+Each port preserves the generated operation order, branches and output layout. The accepted builds use GNU Fortran 12.3 with contraction, fast mathematics and reassociation disabled. Separate multiplication and addition preserve their rounding points. Nearest rounding, gradual underflow, signed zeros and the declared floating-point status remain part of the numerical contract.
+
+Native Fortran interfaces describe array shapes, ownership and units in the source. C interfaces use ISO_C_BINDING. The compiler defines argument passing, array descriptions, saved registers and stack storage. The current checks use its Linux Arm ABI, which is the application binary interface. The old assembly probe also observes register x18, which is caller-saved for these new compiler interfaces. Its extra observation remains visible where it changes, while all required saved-register checks pass. A result bit is interpreted only through the definition of its own probe.
+
+Source portability does not establish byte identity on another architecture. Build and qualify each target with its own compiler, public libraries and strict floating-point options. Some soil routines use existing OpenIFS type and constant declarations in their comparison context. The new production forecast must supply its own configuration and storage, and must bind each numerical child to the ported implementation.
+
+## Remaining Integration
+
+The complete pressure parent, distributed copies, grid gathers and other forecast stages remain under construction or numerical qualification. The shared strict-matrix source is not yet a complete port. Component checks do not establish complete model initialisation, a standalone time loop, operational files or full step agreement. Keep the original OpenIFS executable as the separate reference, and require zero differing bytes from complete steps 0 and 1 before claiming the current forecast objective.
+
+Source generation and byte verification proceed in separate queues. Each verifier receives a fixed source, interface and retained reference input. It compares complete outputs and status, reuses independent physical evidence only for identical inputs and results, and returns a concrete defect to the source owner. Source counts, accepted component results and complete forecast agreement remain separate measures. Detailed commands, source identities and actual results remain locally under the ignored runtime directory.
