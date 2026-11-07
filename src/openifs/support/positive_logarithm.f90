@@ -1,6 +1,8 @@
 !> Ordered FP64 natural logarithm for positive normal inputs.
 !! The equations and constants are ported from our generated logarithm leaf.
 !! The Arm constants retain their MIT or Apache-2.0 WITH LLVM-exception licence.
+!! Copyright (c) 2018-2025, Arm Limited.
+!! SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 module forecast_positive_logarithm
   use, intrinsic :: iso_fortran_env, only: real64, int64
   use, intrinsic :: iso_c_binding, only: c_int64_t
