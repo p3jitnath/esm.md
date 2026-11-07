@@ -5,7 +5,7 @@ module runtime_grib_file_services_port
   use, intrinsic :: iso_fortran_env, only: int32,int64
   implicit none
   private
-  public :: open_grib_output,write_grib_record,write_padded_grib_message
+  public :: open_grib_output,open_grib_path,write_grib_record,write_padded_grib_message
   public :: write_grib_bytes,close_grib_output,flush_grib_output,grib_flush_count
   integer(int64), save :: flush_count=0_int64
 
@@ -41,21 +41,39 @@ module runtime_grib_file_services_port
 contains
 
   function open_grib_output(filename,replace,permissions) result(fd)
+    character(*), intent(in) :: filename
+    logical, intent(in) :: replace
+    integer(c_int), optional, intent(in) :: permissions
+    integer(c_int) :: fd
+    fd=open_file_path(filename,replace,permissions,256)
+  end function open_grib_output
+
+  function open_grib_path(filename,replace,permissions) result(fd)
+    !! Open the source backend path, with at most 4095 bytes.
+    character(*), intent(in) :: filename
+    logical, intent(in) :: replace
+    integer(c_int), optional, intent(in) :: permissions
+    integer(c_int) :: fd
+    fd=open_file_path(filename,replace,permissions,4095)
+  end function open_grib_path
+
+  function open_file_path(filename,replace,permissions,max_length) result(fd)
     !! Open a 1:256-character path, trimming only trailing spaces.
     !! replace selects truncation; false selects append. The default file
     !! permissions are octal 0666 before the operating-system umask.
     !! Return the descriptor or a negative Linux error, preserving errno.
+    integer, intent(in) :: max_length
     character(*), intent(in) :: filename
     logical, intent(in) :: replace
     integer(c_int), optional, intent(in) :: permissions
     integer(c_int) :: fd,flags,mode,saved_errno
     integer(c_int), pointer :: error_number
-    character(c_char) :: name(257)
+    character(c_char) :: name(4096)
     integer :: n,j
 
     fd=-22_c_int
     n=len(filename)
-    if(n<1.or.n>256) return
+    if(n<1.or.n>max_length) return
     n=len_trim(filename)
     if(n==0) return
     if(index(filename(:n),c_null_char)/=0) return
@@ -72,7 +90,7 @@ contains
     fd=file_open(name,flags,mode)
     if(fd<0) fd=-error_number
     error_number=saved_errno
-  end function open_grib_output
+  end function open_file_path
 
   function write_grib_bytes(fd,bytes) result(status)
     !! Write a complete byte span, retrying interruptions and short writes.

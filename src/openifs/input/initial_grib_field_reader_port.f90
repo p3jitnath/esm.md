@@ -15,6 +15,9 @@ module initial_grib_field_reader_port
     integer(c_int64_t) :: value_count=0
     integer :: metadata_words=3,gaussian_order=0
     integer(c_int64_t), allocatable :: labels(:,:)
+    logical :: runtime_grid=.false.
+    integer(c_long) :: maximum_longitudes=0
+    integer(c_long), allocatable :: north_rows(:)
   end type
 
   interface
@@ -168,7 +171,11 @@ contains
         if(get_long(handle,'dataTime'//c_null_char,time)/=0) exit
         status=4
         if(date/=schema%labels(3,record) .or. time/=schema%labels(4,record)) exit
+        if(schema%runtime_grid) then
+          status=validate_runtime_initial_grid(handle,schema)
+        else
         status=validate_initial_grid(handle,schema%gaussian_order)
+        end if
         if(status/=0) exit
       end if
       status=3
@@ -1185,4 +1192,70 @@ contains
       248,137,20260621,0 &
       ],[4,959])
   end function
+  function validate_runtime_initial_grid(handle,schema) result(status)
+    !! Check Gaussian grid metadata from the caller's actual northern rows.
+    type(c_ptr), intent(in) :: handle
+    type(initial_field_schema), intent(in) :: schema
+    integer(c_int) :: status,error,missing
+    integer(c_long) :: value,rows(2560)
+    integer(c_size_t) :: count
+    integer :: n,j,index
+    status=4
+    if(.not.allocated(schema%north_rows)) return
+    n=size(schema%north_rows)
+    if(n<1 .or. n>1280 .or. schema%gaussian_order/=n) return
+    status=3
+    if(get_long(handle,'gridDefinitionTemplateNumber'//c_null_char,value)/=0) return
+    status=4
+    if(value/=40) return
+    status=3
+    if(get_long(handle,'N'//c_null_char,value)/=0) return
+    status=4
+    if(value/=n) return
+    status=3
+    if(get_long(handle,'Nj'//c_null_char,value)/=0) return
+    status=4
+    if(value/=2*n) return
+    status=3
+    if(get_long(handle,'scanningMode'//c_null_char,value)/=0) return
+    status=4
+    if(value/=0) return
+    status=3
+    if(get_long(handle,'numberOfDataPoints'//c_null_char,value)/=0) return
+    status=4
+    if(value/=schema%value_count) return
+    error=0
+    missing=is_missing(handle,'Ni'//c_null_char,error)
+    status=3
+    if(error/=0) return
+    status=4
+    if(missing==0) then
+      if(n>256) return
+      status=3
+      if(get_long(handle,'Ni'//c_null_char,value)/=0) return
+      status=4
+      if(value/=schema%maximum_longitudes) return
+      if(value*int(2*n,c_long)/=schema%value_count) return
+      if(any(schema%north_rows/=value)) return
+    else if(missing==1) then
+      status=3
+      if(get_size(handle,'pl'//c_null_char,count)/=0) return
+      status=4
+      if(count/=2*n) return
+      status=3
+      if(get_longs(handle,'pl'//c_null_char,rows,count)/=0) return
+      status=4
+      if(count/=2*n) return
+      do j=1,2*n
+        index=min(j,2*n-j+1)
+        if(rows(j)/=schema%north_rows(index)) return
+      end do
+    else
+      return
+    end if
+    status=3
+    if(set_long(handle,'missingValue'//c_null_char,-9999_c_long)/=0) return
+    status=0
+  end function
+
 end module
