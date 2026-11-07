@@ -1,12 +1,12 @@
 # esm.md
 
-esm.md generates Arm assembly directly from physics and mathematics in Markdown. Assembly is the processor’s low-level instruction language. The models use ordered 64-bit floating-point calculations, with independent physical checks and exact output comparisons.
+esm.md develops CPU solvers from physics and mathematics in Markdown through portable Fortran source. An optimising compiler turns that source into machine code for each target architecture. The models retain ordered 64-bit floating-point calculations, independent physical checks and exact output comparisons. Earlier direct-assembly results remain part of the research record.
 
-Start with the [short template](formulations/TEMPLATE.md), [shallow-water formulation](formulations/sw/2d_periodic.md) or [energy-balance formulation](formulations/ebm/budyko_sellers.md). The [md2asm skill](skills/md2asm/SKILL.md) supplies numerical methods, assembly interfaces, verification and optimisation guidance. Published files are Markdown and assembly. Comparison tools, language controls, data and poster drafts stay local. [AGENTS.md](AGENTS.md) defines the writing and development rules.
+Start with the [short template](formulations/TEMPLATE.md), [shallow-water formulation](formulations/sw/2d_periodic.md) or [energy-balance formulation](formulations/ebm/budyko_sellers.md). The [md2asm skill](skills/md2asm/SKILL.md) supplies numerical methods, portable Fortran interfaces, compiler guidance, verification and optimisation. New CPU sources are Fortran; existing assembly remains until its corresponding port is complete. Comparison tools, controls, data and archives stay local. [AGENTS.md](AGENTS.md) defines the writing and development rules.
 
 ## CPU Solvers
 
-These tables compare optimised solvers on one Neoverse V2 processor. Values are median million complete cell updates per second across twelve quiet-node runs. Higher is faster. An update advances every field in one cell through a full time step. All seven variants, including vanilla Fortran, Julia and compiled Python controls, pass physical checks and produce identical output bytes. Detailed controls and timing variation remain in the local research records.
+These historical tables compare optimised solvers on one Neoverse V2 processor. Values are median million complete cell updates per second across twelve quiet-node runs. Higher is faster. An update advances every field in one cell through a full time step. All seven variants, including vanilla Fortran, Julia and compiled Python controls, pass physical checks and produce identical output bytes. Detailed controls and timing variation remain in the local research records.
 
 ### Shallow Water
 
@@ -118,6 +118,8 @@ The latest complete GPU run finishes 25 steps in **464.19 seconds**, including i
 Component acceptance and its limits are recorded in the [GPU contracts](skills/md2asm-gpu/SKILL.md). These checks do not establish a complete operational GPU forecast.
 
 ### Operational 9 km Forecast
+
+The current OpenIFS work ports the existing generated CPU assembly to structured Fortran, which the compiler can build for different architectures. Full step-0 and step-1 byte agreement for that port remains pending. The assembly results below describe earlier implementations and do not establish acceptance of the Fortran port.
 
 The target has 6,599,680 horizontal points, 137 atmospheric layers and 192 steps of 450 seconds for a 24-hour forecast. A supplied Fortran reference completes that workload with 32 MPI processes and 32 OpenMP threads per process, using strict arithmetic and single-threaded OpenBLAS. Its effective block size is 24 points. MPI exchanges data between processes, while OpenMP shares work between threads.
 
