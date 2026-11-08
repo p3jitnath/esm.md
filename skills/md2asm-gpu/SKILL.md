@@ -1,13 +1,19 @@
 ---
 name: md2asm-gpu
-description: Generate and optimise GPU assembly directly from physics and mathematics in Markdown, preserving ordered FP64 arithmetic, independently verified physics and exact outputs on quiet exclusive nodes.
+description: Generate and optimise GPU solvers from physics and mathematics in Markdown through direct PTX or requested CUDA Fortran variants, preserving ordered FP64 arithmetic, independently verified physics and exact outputs on quiet exclusive nodes.
 ---
 
-# Markdown to GPU Assembly
+# Markdown to GPU Solvers
 
 Use this skill to generate a complete GPU solver directly from a short Markdown physics formulation. A numerical contract fixes the method, arithmetic order, storage and output bytes. When changing model resolution, derive GPU field layouts and buffer sizes from the complete configuration and its exact requested-field lists. Retain each coefficient's full dependence on grid spacing and level count when extending a specialised route, and share its qualified calculation across callers. Read that contract before emitting or changing assembly, and write for a first-year undergraduate. Keep the formulation focused on basic physics and mathematics.
 
 For this project, read [AGENTS.md](../../AGENTS.md), the [writing convention](../../standards/ASD-STE100-CONV.md), and the [GPU execution contract](references/gpu-contract.md). Model inputs are the [shallow-water formulation](../../formulations/sw/2d_periodic.md) with its [Rusanov–SSPRK2 contract](../md2asm/references/2d_rusanov_ssprk2.md), or the [energy-balance formulation](../../formulations/ebm/budyko_sellers.md) with its [numerical contract](../md2asm/references/budyko_sellers.md). Resolve the repository from the installed skill’s real directory when it uses a symbolic link.
+
+## Compiled Fortran Variants
+
+When the user requests a GPU Fortran version, publish complete CUDA Fortran kernels and let the compiler generate PTX and native machine code for the declared target. Keep the accepted direct PTX as a separate comparison. Express its qualified reuse, exact arithmetic fast paths, boundary ownership and repeated-step schedule in Fortran, then apply the same numerical contract and independent checks. Keep compiler listings and binary code local, and identify them as compiler output.
+
+Use strict device arithmetic with contraction disabled, then inspect the compiler PTX and native instructions. For NVIDIA Fortran, record `-Kieee` and `-gpu=nofma` together with the target and optimisation options. Preserve gradual underflow, signed zeros, correctly rounded division and square root, and each required intermediate value. Apply the launch and buffer rules below to the compiled kernels as well as the direct PTX route.
 
 ## Freeze the Numerical Work
 
@@ -57,7 +63,7 @@ Reuse a bounded allocation split into aligned regions when complete-operation me
 
 ## Verify Changed Numerical Paths
 
-Use the unchanged, independently verified Fortran solver as the canonical discrete reference. [Compare complete raw states](../md2asm/SKILL.md#establish-correctness) after each changed stage and step, then compare canonical files directly with zero differing bytes. Freeze every incoming byte that the complete comparison observes, including inactive scratch cells. Identify numerical routines used to prepare verification inputs separately from the routines under comparison, and retain the resulting input bytes for reuse. Define source-unspecified fresh owned inputs at their exact allocation boundary, before their producer, while preserving metadata, other storage and machine state. Report a first mismatch by case, step, stage, field, cell and both bit patterns. Reuse accepted checks for unchanged paths and add only cases needed for changed launch, tile, boundary, arithmetic or buffer behaviour. Resolve routine and service entry addresses before checking immediate preserved-register state. Prepare dependency-ordered candidate groups before one coordinated acceptance batch when the project requests bulk development.
+Use the unchanged, independently verified Fortran solver as the canonical discrete reference. [Compare complete raw states](../md2asm/SKILL.md#establish-correctness-efficiently) after each changed stage and step, then compare canonical files directly with zero differing bytes. Freeze every incoming byte that the complete comparison observes, including inactive scratch cells. Identify numerical routines used to prepare verification inputs separately from the routines under comparison, and retain the resulting input bytes for reuse. Define source-unspecified fresh owned inputs at their exact allocation boundary, before their producer, while preserving metadata, other storage and machine state. Report a first mismatch by case, step, stage, field, cell and both bit patterns. Reuse accepted checks for unchanged paths and add only cases needed for changed launch, tile, boundary, arithmetic or buffer behaviour. Resolve routine and service entry addresses before checking immediate preserved-register state. Prepare dependency-ordered candidate groups before one coordinated acceptance batch when the project requests bulk development.
 
 Keep independent conservation, analytic or convergence checks, valid-state limits, unchanged inputs and buffer bounds. Include every boundary flow and added source when deriving a conservation check. When large terms nearly cancel, carry their separate magnitudes and each rounding stage into the physical error bound. Cover partial blocks, dispatch edges, tile boundaries, zero steps and odd/even repeated batches when supported. Verify ordinary launches and CUDA graph replay. A graph records an already compiled launch sequence and must retain the same buffer alternation and final stage. Check timed final states outside the timer without changing output bits. When distributing a total among cells, bound the new rounding against the stored input total and retain the earlier calculation's accepted error limit. Use original rounded quantities in derived identities.
 
