@@ -569,7 +569,7 @@ text(
 rect("motivation-image-slot", a, 370, cw, 132, "F3FBF9", TEAL)
 text(
     "physics-note-name",
-    "2d_periodic.md",
+    "dam_break.md",
     a + 7,
     377,
     cw - 14,
@@ -664,7 +664,7 @@ record = json.loads((OUT / "data/results-current.json").read_text())
 gains = record["ratios"]
 text(
     "results-summary",
-    "esm.md update rates on one CPU core and one GPU.",
+    "Language comparisons on one CPU core and one GPU.",
     b + 2 * scale,
     547,
     cw - 2 * scale,
@@ -676,7 +676,7 @@ text(
 )
 text(
     "energy-summary",
-    "esm.md update rates. Higher values are faster.",
+    "Language comparisons. Higher rates are faster.",
     c + 2 * scale,
     547,
     cw - 2 * scale,
@@ -693,7 +693,7 @@ text(
         "The contract fixes the grid, time stages, array storage and ordered 64-bit floating-point calculations.",
         "The LLM writes Fortran. An optimising compiler produces processor instructions.",
         "A central processing unit (CPU) or graphics processing unit (GPU) advances the model. We check physics and every output byte.",
-        "Twelve quiet runs use one Neoverse V2 core or one GH200 GPU. Setup and output are outside timing.",
+        "Current rates use twelve quiet runs on one Neoverse V2 core or one GH200 GPU. Setup and output are outside timing.",
     ],
     a + 2 * scale,
     546,
@@ -774,7 +774,7 @@ image(
 )
 text(
     "error-caption",
-    "Rates are million complete cell updates/s. One update advances every field by a full step. Points show 12-run medians and whiskers show observed ranges. Major ticks are tenfold on the logarithmic horizontal axis.",
+    "Each update advances every field in one cell by a full step. CPU axes are linear and GPU axes logarithmic with tenfold ticks. Medians and ranges use twelve runs. October controls and November esm.md use separate nodes and runs. CPU uses wall time and GPU uses device time.",
     b + 2 * scale,
     742,
     cw - 2 * scale,
@@ -787,8 +787,12 @@ heading("section-summary", "4  Summary", c, summary_top, cw - 72)
 text(
     "takeaways",
     [
-        record["summary"]["gpu"],
-        record["summary"]["cpu"],
+        record["summary"]["gpu"]
+        .replace("EBM reaches ", "EBM on 1 GPU · ")
+        .replace(" on one GPU.", " (65,536 bands)."),
+        record["summary"]["cpu"]
+        .replace("EBM reaches ", "EBM on 1 CPU core · ")
+        .replace(" on one CPU core.", " (128 bands)."),
         "All accepted output bytes agree exactly.",
     ],
     c + 2 * scale,
@@ -911,7 +915,7 @@ pasc_shape = image(
     "conference-logo", pasc_asset, W - a - pasc_width, 795, pasc_width, pasc_height
 )
 # Notes preserve sources without adding visible detail.
-slide.notes_slide.notes_text_frame.text = "The evidence map and copied accepted measurements are in data/ and evidence.json. Each CPU and GPU comparison uses twelve paired quiet runs on the same hardware and arrays within a workload. Visible performance panels show esm.md absolute rates on CPU and GPU separately. Assembly controls are retained in the source evidence but are omitted from visible graphs at the author’s request. Timings cover complete updates and exclude compilation, setup, transfers, verification and file writing. The physical plots retain the accepted canonical Fortran states. Earlier seven-language control results remain in data/historical with their original scope. The model arithmetic uses ordered binary64 values, correctly rounded operations and no contracted multiply-add. See README.md for build commands, scope and current CPU parity limits."
+slide.notes_slide.notes_text_frame.text = "The evidence map, copied accepted measurements and original timing identities are in data/ and evidence.json. The active panels compare seven implementations at three workloads on each platform. esm.md uses the accepted November 2026 results. Six vanilla and tuned Fortran, Julia and compiled-Python controls use October 2026 results. Each condition has twelve runs, and the graph shows median and observed min-max rate. Different dates, jobs and nodes are explicitly separate cohorts; these are absolute throughput comparisons rather than freshly paired speedups. CPU timing uses wall time for complete updates on one Neoverse V2 core. GPU timing uses CUDA event time for complete warmed graph replay on one GH200 device. Setup, compilation, transfers, verification and file output remain outside the recorded interval as applicable. Assembly controls remain in immutable source evidence and outside-chart comparisons, and are omitted from all chart text and series as requested. The physical plots retain the accepted Fortran states. The dam_break.md rename preserves the formulation bytes and physics revision 1.0, and source-header changes preserve executable text. Model calculations use ordered binary64 arithmetic without contracted multiply-add. README.md records build commands and current CPU performance limits."
 for a in original_shapes:
     if a.shape_id not in used:
         a._element.getparent().remove(a._element)

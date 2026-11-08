@@ -317,11 +317,11 @@ metadata["geography"] = {
     "data_sha256": hashlib.sha256(country_file.read_bytes()).hexdigest(),
 }
 metadata["physics_note_equation"] = {
-    "source": "formulations/sw/2d_periodic.md",
+    "source": "formulations/sw/dam_break.md",
     "equation_id": "P01",
     "meaning": "Conservation of water",
     "formulation_sha256": hashlib.sha256(
-        (ROOT / "formulations/sw/2d_periodic.md").read_bytes()
+        (ROOT / "formulations/sw/dam_break.md").read_bytes()
     ).hexdigest(),
 }
 metadata["continuous_colormaps"] = {

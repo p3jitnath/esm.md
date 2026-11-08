@@ -37,7 +37,8 @@ def check(output: Path) -> dict:
     Notes
     -----
     Visual inspection of the saved renders is still required. The function
-    reads the delivered files and does not modify either document.
+    reads the delivered files, leaves both documents unchanged and exports
+    the saved PDF as a 150 dpi PNG.
     """
     output.mkdir(parents=True, exist_ok=True)
     pptx = POSTER / "esm-md-a0-landscape.pptx"
@@ -69,6 +70,8 @@ def check(output: Path) -> dict:
                 if run.font.size:
                     sizes.append(run.font.size.pt)
     all_text = "\n".join(texts)
+    assert "dam_break.md" in all_text
+    assert "2d_periodic.md" not in all_text
     assert "Verified Fortran" in all_text
     assert "Verified Assembly" not in all_text
     assert "Assembly is" not in all_text
@@ -110,6 +113,10 @@ def check(output: Path) -> dict:
                     "decoded": values,
                 }
             )
+        poster_png = POSTER / "esm-md-a0-landscape.png"
+        printed = page.get_pixmap(dpi=150, alpha=False)
+        assert (printed.width, printed.height) == (7022, 4967)
+        printed.save(poster_png)
         page.get_pixmap(matrix=pymupdf.Matrix(0.85, 0.85)).save(
             output / "final-poster.png"
         )
@@ -132,6 +139,9 @@ def check(output: Path) -> dict:
         "qr_final_pdf_checks": decoded,
         "pptx_sha256": hashlib.sha256(pptx.read_bytes()).hexdigest(),
         "pdf_sha256": hashlib.sha256(pdf.read_bytes()).hexdigest(),
+        "png_sha256": hashlib.sha256(poster_png.read_bytes()).hexdigest(),
+        "png_pixels": [7022, 4967],
+        "png_dpi": 150,
         "visual_inspection_required": True,
         "desktop_powerpoint_inspected": False,
     }

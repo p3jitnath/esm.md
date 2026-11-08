@@ -73,6 +73,7 @@ def refresh() -> dict:
     for name in (
         "esm-md-a0-landscape.pptx",
         "esm-md-a0-landscape.pdf",
+        "esm-md-a0-landscape.png",
         "project-profile.json",
         "README.md",
         "requirements.txt",
@@ -96,17 +97,35 @@ def refresh() -> dict:
         "physics": physics,
         "performance_source": "data/results-current.json",
         "performance_source_sha256": digest(POSTER / "data/results-current.json"),
-        "performance_method": "Absolute esm.md complete-cell-update rates, median and observed min-max across twelve accepted runs per condition",
+        "performance_method": "Absolute complete-cell-update rates for esm.md and six language controls, with median and observed min-max across twelve runs per condition",
         "graph_policy": "Assembly series and assembly-ratio axes are omitted from every visible performance graph. Raw controls remain in source data for provenance.",
-        "historical_controls": "Six earlier tuned/vanilla language controls are shown separately, with their earlier cohort explicitly identified.",
+        "axis_scales": {"CPU": "linear", "GPU": "logarithmic"},
+        "independent_plotted_input_reviews": {
+            "CPU": {"status": "pass", "groups": 42, "per_run_observations": 504},
+            "GPU": {
+                "status": "pass",
+                "groups": 42,
+                "per_run_observations": 504,
+                "maximum_elapsed_derived_rate_difference": "one FP64 ULP",
+            },
+            "method": "Read-only comparison of all plotted groups and samples with accepted source records, including counts, grids, steps, labels, aggregation, ranges and cohorts",
+            "new_numerical_runs": False,
+        },
+        "historical_controls": "Six vanilla/tuned Fortran, Julia and compiled-Python controls from October 2026 appear alongside November 2026 esm.md. The visible date note separates these cohorts. CPU and GPU use separate timers.",
         "scope": [
-            "CPU timing uses one Neoverse V2 core, GPU timing uses one GH200 device, with separate platform workloads.",
+            "CPU timing uses wall time on one Neoverse V2 core. GPU timing uses device events on one GH200. These measure complete-update compute throughput, not end-to-end forecast time.",
             "The six CPU median rates remain below the paired assembly controls, so this snapshot does not establish CPU parity.",
             "Rates include complete numerical updates and exclude setup, verification and file output as recorded by each protocol.",
             "Exact acceptance covers the recorded inputs and tested configurations, and does not establish x86 performance.",
             "Physical figures are unchanged accepted canonical model states rather than observations.",
-            "The CPU and GPU rates apply to the recorded hardware, workloads and timing intervals.",
+            "The current esm.md and archived language controls use separate dates, nodes and jobs. Absolute rates preserve their recorded ranges, and are not freshly paired speedup estimates.",
         ],
+        "comparison_evidence": json.loads(
+            (POSTER / "data/performance-figure-evidence.json").read_text()
+        ),
+        "formulation_rename": json.loads(
+            (POSTER / "data/dam-break-rename.json").read_text()
+        ),
         "summary": data["summary"],
         "structural_and_qr_checks": checks,
         "visual_review": visual,

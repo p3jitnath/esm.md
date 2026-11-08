@@ -63,7 +63,7 @@
       "b. md2asm",
       "c. Run/Verify with a simulation symbol and verification tick"
     ],
-    "formulation": "../../../formulations/sw/2d_periodic.md",
+    "formulation": "../../../formulations/sw/dam_break.md",
     "formulation_label": "Writing Convention | ASD-STE100-CONV",
     "figures": "Retain jet for shallow-water depth and coolwarm for temperature, with unchanged limits, units and data. Use light meshes and visible bar-value gaps.",
     "qr": {
@@ -80,13 +80,14 @@
       "references": "Vancouver with no visible URLs. Retain full identifiers in evidence.json.",
       "acknowledgements": "Separate heading and full-height divider. Use the author-approved wording in README.md.",
       "conference": "Bottom right, clear of reference and acknowledgement text."
-    }
+    },
+    "performance": "Two CPU/GPU facets per model compare seven implementations at three grids through absolute complete-update rates, with visible cohort dates and observed twelve-run ranges. CPU axes are linear and GPU axes logarithmic."
   },
   "evidence": {
     "branding": "evidence.json",
     "asset_sources": "assets/asset-urls.json",
     "measurements": "data/results-current.json",
-    "scope": "Fresh matched Fortran and assembly CPU/GPU comparisons at three workloads per model, twelve paired repetitions. Historical language controls are archived separately.",
+    "scope": "Current esm.md measurements from November 2026 and six earlier language controls from October 2026, with separate CPU and GPU timer boundaries and twelve runs per condition.",
     "generation": "Access acknowledgements do not identify the generator. The archived generator model identifier was not recorded."
   },
   "delivery": "Inspect the actual final PDF and close-ups. Decode its QR at multiple render sizes. Display a PDF-rendered image in chat when requested.",

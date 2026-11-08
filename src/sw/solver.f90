@@ -1,5 +1,5 @@
 !> Advance the periodic shallow-water equations with ordered binary64 (64-bit floating-point) arithmetic.
-!! Physics input is formulations/sw/2d_periodic.md revision 1.0.
+!! Physics input is formulations/sw/dam_break.md revision 1.0.
 !! The frozen Rusanov and SSPRK2 contract is in
 !! skills/md2asm/references/2d_rusanov_ssprk2.md. The compiler creates the
 !! machine instructions from this portable Fortran source.

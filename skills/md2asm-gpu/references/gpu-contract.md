@@ -1,6 +1,6 @@
 # GPU Execution Contract
 
-Revision 1.5 carries the verified shallow-water and energy-balance methods to an NVIDIA GH200. The [water formulation](../../../formulations/sw/2d_periodic.md) and [Rusanov–SSPRK2 contract](../../md2asm/references/2d_rusanov_ssprk2.md), and the [energy-balance formulation](../../../formulations/ebm/budyko_sellers.md) and [numerical contract](../../md2asm/references/budyko_sellers.md), remain authoritative for equations, ordered arithmetic, stability, supported inputs and canonical bytes. This reference fixes GPU execution and does not change the physical models.
+Revision 1.5 carries the verified shallow-water and energy-balance methods to an NVIDIA GH200. The [water formulation](../../../formulations/sw/dam_break.md) and [Rusanov–SSPRK2 contract](../../md2asm/references/2d_rusanov_ssprk2.md), and the [energy-balance formulation](../../../formulations/ebm/budyko_sellers.md) and [numerical contract](../../md2asm/references/budyko_sellers.md), remain authoritative for equations, ordered arithmetic, stability, supported inputs and canonical bytes. This reference fixes GPU execution and does not change the physical models.
 
 ## Target and Direct Sources
 
