@@ -1,12 +1,12 @@
 # GPU Execution Contract
 
-Revision 1.4 carries the verified shallow-water and energy-balance methods to an NVIDIA GH200. The [water formulation](../../../formulations/sw/2d_periodic.md) and [Rusanov–SSPRK2 contract](../../md2asm/references/2d_rusanov_ssprk2.md), and the [energy-balance formulation](../../../formulations/ebm/budyko_sellers.md) and [numerical contract](../../md2asm/references/budyko_sellers.md), remain authoritative for equations, ordered arithmetic, stability, supported inputs and canonical bytes. This reference fixes GPU execution and does not change the physical models.
+Revision 1.5 carries the verified shallow-water and energy-balance methods to an NVIDIA GH200. The [water formulation](../../../formulations/sw/2d_periodic.md) and [Rusanov–SSPRK2 contract](../../md2asm/references/2d_rusanov_ssprk2.md), and the [energy-balance formulation](../../../formulations/ebm/budyko_sellers.md) and [numerical contract](../../md2asm/references/budyko_sellers.md), remain authoritative for equations, ordered arithmetic, stability, supported inputs and canonical bytes. This reference fixes GPU execution and does not change the physical models.
 
 ## Target and Direct Sources
 
-The qualified target is one NVIDIA GH200 with compute capability 9.0, little-endian AArch64 Linux, CUDA 12.6, PTX 8.5 and an `sm_90` cubin. PTX is NVIDIA’s virtual assembly language. The direct sources are [two-dimensional Rusanov–SSPRK2](../../../src/sw/gpu/2d_rusanov_ssprk2.ptx) and [Budyko–Sellers](../../../src/ebm/gpu/budyko_sellers.ptx). They are emitted from the frozen Markdown contracts and assembled with `ptxas -arch=sm_90 --fmad=false`. A cubin contains the resulting native GPU machine code.
+The qualified target is one NVIDIA GH200 with compute capability 9.0, little-endian Linux, CUDA 12.6, PTX 8.5 and an `sm_90` cubin. PTX is NVIDIA’s virtual assembly language. The direct sources are [two-dimensional Rusanov–SSPRK2](../../../src/sw/gpu/2d_rusanov_ssprk2.ptx) and [Budyko–Sellers](../../../src/ebm/gpu/budyko_sellers.ptx). They are emitted from the frozen Markdown contracts and assembled with `ptxas -arch=sm_90 --fmad=false`. A cubin contains the resulting native GPU machine code.
 
-Each required operation uses nearest-even FP64 rounding with gradual underflow, preserved signed zeros and the original operand order. Threshold ties, intermediate stages and canonical bytes stay unchanged. Correctly rounded division and square root may use internal machine-code refinement. Model multiply and add remain separately rounded. The canonical CPU Fortran reference uses FPCR zero and disabled contraction.
+Each required operation uses nearest-even FP64 rounding with gradual underflow, preserved signed zeros and the original operand order. Threshold ties, intermediate stages and canonical bytes stay unchanged. Correctly rounded division and square root may use internal machine-code refinement. Model multiply and add remain separately rounded. The canonical CPU Fortran reference uses verified round-to-nearest arithmetic, gradual underflow and disabled contraction.
 
 ## Arguments and Storage
 
@@ -55,7 +55,7 @@ Repeated steps alternate `q` and `out`. The last state is in `out` after an odd 
 
 The unchanged physically verified CPU vanilla Fortran implementation remains the discrete reference. Acceptance compares complete stages, trajectories and canonical files with zero differing bytes. Reports identify the first case, step, stage, component, cell and both raw 64-bit words if a mismatch occurs. Reuse inherited checks, adding only GPU partial blocks, changed dispatch or tile boundaries, graph replay and arithmetic edge cases as needed.
 
-All seven GPU variants pass 34 water scientific cases and 28 energy-balance cases, including 1000-step trajectories, independent convergence and conservation, boundaries, threshold ties, signed zero, gradual underflow, unchanged inputs and guarded device owners. Ordinary-versus-graph checks cover zero, odd and even counts, tile boundaries, partial tiles and repeated batches. The exact spacing route passes 96969 rounding-edge operands. Every timed required stage and final state is checked outside the timer.
+The archived seven-way GPU comparison passes 34 water scientific cases and 28 energy-balance cases, including 1000-step trajectories, independent convergence and conservation, boundaries, threshold ties, signed zero, gradual underflow, unchanged inputs and guarded device owners. Ordinary-versus-graph checks cover zero, odd and even counts, tile boundaries, partial tiles and repeated batches. The exact spacing route passes 96969 rounding-edge operands. Every timed required stage and final state is checked outside the timer.
 
 | Model | Workloads | Complete Steps per Timed Batch |
 | --- | --- | --- |
@@ -82,3 +82,28 @@ Compatible device probes measure ordinary rounded arithmetic, division, square r
 | Energy balance 65536 | Logical memory | 24.5% |
 
 The [main README](../../../README.md) gives the accepted GPU comparison. Original source versions, controls, host tools, detailed build commands, binary hashes, instruction audits, physical results, repeated samples, performance-guide counts and editable figures are retained in the ignored local GPU research archive. The source-branch archive manifest records their original paths and hashes before reorganisation. The direct PTX instructions retain their qualified numerical behaviour when the source files move into the current model folders. Rebuilding and remeasuring is required if numerical instructions, launch rules, target or controls change.
+
+
+## esm.md – Fortran GPU Variants
+
+The compiled variants publish [shallow-water CUDA Fortran](../../../src/sw/gpu/shallow_water_solver.cuf) and [energy-balance CUDA Fortran](../../../src/ebm/gpu/energy_balance_solver.cuf). NVIDIA Fortran generates their PTX and native machine code. The direct PTX sources and their accepted schedules above remain unchanged. Both routes use the same numerical contracts, state buffers, parameters, output bytes and inherited dimension bounds. Fortran dimensions and selectors use signed `C_INT` values within those nonnegative bounds, which have the same argument bits as the direct entries.
+
+The checked compiler is NVIDIA HPC SDK 24.11 with CUDA 12.6. Build each source with `-O3 -cuda -Kieee -gpu=cc90,nofma,noflushz,nordc,keep,cuda12.6`. Keep objects, module files, compiler PTX, cubins and reports in a local build directory. The options preserve gradual underflow and disable multiply-add contraction. Instruction checks and exact comparisons remain required because options alone do not establish numerical agreement.
+
+| Fortran entry | Arguments | Selected launch |
+| --- | --- | --- |
+| `sw_edges` | `nx,ny,q` | Once before a positive batch, covering all declared edges |
+| `sw_update_small_fused` | `nx,ny,q,base,out,work,par,final` | At most 4096 cells, 64 threads, `ceil(nx*ny/64)` blocks in x and three component planes in z |
+| `sw_update_medium` | Same eight update arguments | 4097 to 65536 cells, 128 threads, `ceil(nx/128)` blocks in x and `ny` in y |
+| `sw_update_xy` | Same eight update arguments | Above 65536 cells, 64 threads, `ceil(nx/64)` blocks in x and `ny` in y |
+| `eb_persistent` | `n,q,stage,out,work,coeff,par,steps` | At most 128 bands, one block of 128 threads, with a full-block branch for exactly 128 bands |
+| `eb_temporal_eight` | Same persistent arguments | Above 128 bands, 128 threads, `ceil(n/96)` blocks and one to eight complete steps per call |
+| `eb_publish` | `n,q,out,work,steps` | After each temporal call, 128 threads covering all bands |
+
+For medium and large water grids, `sw_prepare_clean(nx,ny,q,work,par)` precedes each update and covers all `S` values. It uses 128 threads on the medium route and 64 on the large route. Two preparation and two update launches complete a step. Small grids omit those preparation launches because the fused update calculates the required neighbouring primitives itself. Two fused launches complete a step, with the first stage retained. This repeats some correctly rounded arithmetic to reduce launch costs. Each output cell also publishes its periodic ghosts, including unique corner ownership. Read-only argument declarations let the compiler reuse input values while partially written arrays retain `INTENT(INOUT)`.
+
+The energy-balance tile owns local indices 16 through 111, or 96 bands, with 16 extra bands on each side. With zero-based thread index `t`, its one-based global band is `96*block+t-15`. At local complete step `k`, starting at zero, the first stage uses indices `2*k+1` through `126-2*k` and the second uses `2*k+2` through `125-2*k`. Both stages finish with a block barrier. These ranges retain all dependencies for at most eight steps. Two shared rows hold successive states. Only owned bands publish the final preceding state, last first stage and final state, and the existing publication entry restores the odd/even physical buffers. No tile reads another tile's newly written state. The four-step entry remains available as a compatibility route.
+
+Host code selects dimensions, entries, launch shapes and ordered streams, and performs allocation, transfer and publication launches. It supplies no numerical stage. Zero steps perform no numerical launch or buffer write. Ordinary launches and graph replay use the same selected schedule. The optional host interfaces and their exact versions remain local with the frozen build records.
+
+The selected water variant passes 34 scientific cases and nine graph schedules per implementation. The integrated energy-balance variant passes 40 scientific cases and 25 graph schedules, including eight-step and 96-band boundaries. These checks retain analytic solutions, conservation, valid states, complete stages and trajectories, pole or periodic boundaries, signed zeros, subnormal values, unchanged inputs, guarded storage and canonical files. Every compared output has zero differing bytes. Final repeated timing and its variation are recorded separately from this numerical acceptance.

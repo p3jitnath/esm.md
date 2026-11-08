@@ -12,11 +12,11 @@ contains
   !! Water and ice temperatures use K and reciprocal width uses K^-1.
   !! The owners must be separate. Every other thermal member is unchanged.
   !! There is no allocation, retained pointer or numerical calculation.
-  subroutine publish_convection_thermal_parameters(thermal,convection)
+  subroutine publish_convection_thermal_parameters(thermal, convection)
     type(thermal_parameter_record), intent(inout) :: thermal
     type(convection_thermal_parameter_record), intent(in) :: convection
-    thermal%rtwat=convection%rtwat
-    thermal%rticecu=convection%rticecu
-    thermal%rtwat_rticecu_r=convection%rtwat_rticecu_r
+    thermal%rtwat = convection%rtwat
+    thermal%rticecu = convection%rticecu
+    thermal%rtwat_rticecu_r = convection%rtwat_rticecu_r
   end subroutine
 end module

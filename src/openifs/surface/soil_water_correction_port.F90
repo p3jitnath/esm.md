@@ -24,7 +24,7 @@ contains
     if (value < 0.0_real64) then
       answer = value
     else if (value == 0.0_real64) then
-      answer = transfer(iand(transfer(value,0_int64),not(huge(0_int64))),0.0_real64)
+      answer = transfer(iand(transfer(value, 0_int64), not(huge(0_int64))), 0.0_real64)
     else
       answer = 0.0_real64
     end if
@@ -35,11 +35,11 @@ contains
   !! Diagnostics retain the current-layer write before the lower-layer write.
   !! The finite-input contract includes positive time, density and thickness.
   subroutine srfwng(kidia, kfdia, klevs, ptmst, ksoty, pwl, pwlmx, pwsa, ydsoil, &
-      pros, prod, pwfsd, ldland, pdhwls)
+                    pros, prod, pwfsd, ldland, pdhwls)
     integer(int32), intent(in) :: kidia, kfdia, klevs, ksoty(:)
     real(real64), intent(in) :: ptmst, pwlmx(:)
     type(tsoil), intent(in) :: ydsoil
-    real(real64), intent(inout) :: pwl(:), pwsa(:,:), pros(:), prod(:), pwfsd(:), pdhwls(:,:,:)
+    real(real64), intent(inout) :: pwl(:), pwsa(:, :), pros(:), prod(:), pwfsd(:), pdhwls(:, :, :)
     logical, intent(in) :: ldland(:)
     integer(int32) :: column, layer
     real(real64) :: thickness(klevs), inverse_thickness(klevs)
@@ -47,12 +47,12 @@ contains
     real(real64) :: water, initial_top, deficit, runoff, a, b, factor
     logical :: diagnostics
 
-    inverse_time = 1.0_real64 / ptmst
+    inverse_time = 1.0_real64/ptmst
     density = rhoh2o
-    inverse_density = 1.0_real64 / density
+    inverse_density = 1.0_real64/density
     do layer = 1, klevs
       thickness(layer) = ydsoil%rdaw(layer)
-      inverse_thickness(layer) = 1.0_real64 / thickness(layer)
+      inverse_thickness(layer) = 1.0_real64/thickness(layer)
     end do
     diagnostics = size(pdhwls) /= 0
     do column = kidia, kfdia
@@ -67,7 +67,7 @@ contains
         saturation = ydsoil%rwsat
       end if
       do layer = 1, klevs
-        water = pwsa(column,layer)
+        water = pwsa(column, layer)
         if (layer == 1) then
           initial_top = water
           a = pwl(column)
@@ -76,57 +76,57 @@ contains
           b = positive_zero_maximum(b)
           a = a - b
           pwl(column) = a
-          b = b * inverse_density
-          b = b * inverse_thickness(layer)
+          b = b*inverse_density
+          b = b*inverse_thickness(layer)
           water = initial_top + b
-          pwsa(column,layer) = water
+          pwsa(column, layer) = water
         end if
         deficit = negative_zero_minimum(water)
         water = water - deficit
-        pwsa(column,layer) = water
+        pwsa(column, layer) = water
         if (layer < klevs) then
-          a = pwsa(column,layer+1)
-          b = deficit * thickness(layer)
-          b = b * inverse_thickness(layer+1)
+          a = pwsa(column, layer + 1)
+          b = deficit*thickness(layer)
+          b = b*inverse_thickness(layer + 1)
           a = a + b
-          pwsa(column,layer+1) = a
+          pwsa(column, layer + 1) = a
         end if
         runoff = water - saturation
         runoff = positive_zero_maximum(runoff)
         if (layer == 1) then
           a = pros(column)
-          b = thickness(layer) * density
-          b = b * runoff
+          b = thickness(layer)*density
+          b = b*runoff
           a = a + b
           pros(column) = a
           a = pwfsd(column)
-          b = deficit * density
-          b = b * thickness(layer)
-          b = b * inverse_time
+          b = deficit*density
+          b = b*thickness(layer)
+          b = b*inverse_time
           a = a + b
           pwfsd(column) = a
         else
           a = prod(column)
-          b = thickness(layer) * density
-          b = b * runoff
+          b = thickness(layer)*density
+          b = b*runoff
           a = a + b
           prod(column) = a
         end if
         water = water - runoff
-        pwsa(column,layer) = water
+        pwsa(column, layer) = water
         if (diagnostics) then
-          a = pdhwls(column,layer,6)
-          factor = density * inverse_time
-          factor = factor * thickness(layer)
+          a = pdhwls(column, layer, 6)
+          factor = density*inverse_time
+          factor = factor*thickness(layer)
           b = deficit + runoff
-          b = factor * b
+          b = factor*b
           a = a - b
-          pdhwls(column,layer,6) = a
+          pdhwls(column, layer, 6) = a
           if (layer < klevs) then
-            a = pdhwls(column,layer+1,6)
-            b = factor * deficit
+            a = pdhwls(column, layer + 1, 6)
+            b = factor*deficit
             a = a + b
-            pdhwls(column,layer+1,6) = a
+            pdhwls(column, layer + 1, 6) = a
           end if
         end if
       end do

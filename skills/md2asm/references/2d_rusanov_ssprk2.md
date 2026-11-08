@@ -291,7 +291,7 @@ The first stage stores e. The final stage stores $`R(R(q^n/2)+R(e/2))`$, where e
 | Property | Required rule |
 | --- | --- |
 | Precision and rounding | Binary64, round to nearest with ties to even |
-| Floating-point environment | Arm FPCR is zero before invocation; retain gradual underflow and signed zeros |
+| Floating-point environment | Verify round-to-nearest, ties to even, gradual underflow and preserved signed zeros on the selected target |
 | Input and constant bytes | Shared binary files; parameters have identical bit patterns; 0, 1/2, and 1 are exact |
 | Operation order | D03 and D04, preserving every dependency and rounding point |
 | Intermediate rounding | R marks each arithmetic rounding; no extended-precision intermediate |
@@ -361,3 +361,19 @@ A direct byte comparison decides V02, including signed zeros and deterministic h
 | R02 | [Clawpack Riemann book: approximate solvers](https://www.clawpack.org/riemann_book/html/Approximate_solvers.html); Local dissipative approximate flux; D01 |
 
 The first study concerns this positive-depth, periodic component and this binary64 operation contract. It does not establish dry-state behaviour, physical fidelity of an entire Earth system model, formal correctness, cross-architecture reproducibility, or global machine optimality. All equations needed by the implementations and independent verifier are included above, while the references establish their scientific origin.
+
+## 13. Portable Fortran CPU implementation
+
+The [Fortran solver](../../../src/sw/shallow_water_solver.f90) implements the unchanged revision 1.0 physics through D03, D04 and T01. It uses runtime dimensions, so one compiled library handles the admitted grids without recompilation. The earlier [assembly source](../../../src/sw/solver.S) remains available with its historical evidence.
+
+The module `shallow_water` exports `sw_step` and `sw_run` through `ISO_C_BINDING`. Both entries receive `nx` and `ny` as C `int` values, followed by pointers to `q`, `stage`, `out`, `work` and the four parameters. `sw_run` receives a final C `int` value for the step count. Every floating-point element is C `double` in the binary64 format. The caller owns buffers that do not overlap, aligned to at least 8 bytes, with the shapes and units in Section 10. No pointer or allocation survives a call. Dimensions are from 1 to 4096, and a repeated entry accepts from 0 to 1000000 steps.
+
+The private scratch view has shape `(nx+2,5,3)`. Two rows retain the three momentum fluxes and two speed bounds from D03, while three fields in the last row retain north-face fluxes. This view occupies `15P` values, which fits the public `5P(ny+2)` workspace for every supported `ny`. Separate contiguous array arguments describe the disjoint current point row, next point row and north faces, so the compiler can schedule them independently. Each cell retains its ordered calculations when several cells run together in vector instructions.
+
+`sw_step` preserves the input interior and returns complete stage and output halos. `sw_run` may replace both state buffers and returns the final state in `out` after an odd count or `q` after an even count. A complete output already supplies the next input's periodic halo, so repeated steps reuse those copies. A zero-step call preserves every buffer, including scratch. Partial row interfaces use `INTENT(INOUT)` where other stored values must remain defined.
+
+Division by a positive power-of-two spacing may use multiplication by its exact reciprocal when both the spacing and reciprocal are normal finite binary64 values. The smallest positive normal value is $`2^{-1022}`$, while smaller nonzero values are subnormal. The admitted spacing is from `tiny(1.0_c_double)` to `1.0_c_double/tiny(1.0_c_double)`. Other spacings retain direct division. Each selected operation still has the single rounding required by D04, including gradual underflow and signed zero.
+
+A portable GNU Fortran profile uses `-O3 -fno-fast-math -ffp-contract=off -fprotect-parens -fopenmp-simd`. Keep the actual compiler version and processor tuning options in the target build record. Shared-library builds also use `-fPIC -shared`, and module files stay in a local build directory through `-J`. These target options are separate from the portable equations. Compiler reports and generated instructions confirm vector division and square root without fused multiply-add. The published [comparison](../../../README.md) states the measured hardware and limits.
+
+Acceptance reuses the 23-case verifier with the unchanged canonical Fortran reference. It compares complete first stages, final states, repeated entries and saved files byte for byte, while separately checking steady states, shear convergence, dam-break waves, conserved budgets, periodic halos and buffer guards. Four additional spacing cases exercise the normal and subnormal dispatch limits including nonzero subnormal momentum. Their eight-step trajectories agree exactly, and the selected target’s floating-point environment remains unchanged. Timing workloads receive complete-state comparisons outside the timer. These checks establish the recorded measured CPU result, while another architecture requires its own verification.

@@ -217,7 +217,7 @@ All arrays use contiguous binary64 storage, with P=N+2 and zero-based byte offse
 | Property | Required rule |
 | --- | --- |
 | Precision and rounding | Binary64, nearest with ties to even |
-| Floating-point environment | Arm FPCR=0; gradual underflow and preserved signed zeros |
+| Floating-point environment | Verify round-to-nearest, ties to even, gradual underflow and preserved signed zeros on the selected target |
 | Input and constant bytes | One shared input file; +0, 1/2, and 1 are exact |
 | Operation order | D01–D03 and T01; independent cells may be scheduled freely |
 | Intermediate rounding | Each R is a separate binary64 rounding point |
@@ -240,6 +240,16 @@ Independent work across cells and stages may be interleaved once each cell's sta
 The repeated-step entry alternates q and out, placing the final state in out for an odd count and q for an even count, with zero steps leaving all buffers unchanged. A positive normal power-of-two δ permits multiplication by its exact reciprocal in place of division because both instructions round the same real value once; all other δ retain division.
 
 </details>
+
+### Portable Fortran implementation
+
+The [Fortran solver](../../../src/ebm/energy_balance_solver.f90) owns both time stages, the repeated time loop and the pole copies. Its public `eb_step` and `eb_run` entries use `ISO_C_BINDING`, which makes their argument types and calling rules explicit for a C caller. The source describes array shapes, units, ownership and mutation beside each entry. The cell count is a runtime input, so the same compiled library handles every supported grid without recompilation.
+
+Each full group of 16 cells shares its rounded face fluxes through the existing work array. On the qualified 4096-cell grid, only work values 0 through 16 hold that face group, and the last face becomes the next group's first face. Other grids retain global face indices. This runtime choice changes scratch use while preserving every required state value. Cells outside a full group use the same ordered equations with bounded loads. The single-step entry processes bounded ranges with one neighbouring first-stage value ready before the final update. The repeated entry advances groups of eight time steps in ranges of 256 cells. Earlier time stages finish more cells before a later stage writes over their storage, so every neighbour remains available until its last use. Partial ranges and remaining time steps use the same equations. No extra numerical array is allocated, and both returned state buffers and the final first-stage buffer retain their required values.
+
+The power-of-two route checks the spacing bits before constructing its exact inverse. Stored exponents 1 through 2045 admit positive normal spacing with a normal inverse. Other positive spacing values keep division. The physical grid spacing is 2/N, so all admitted grid dimensions fit this rule or its general division route. This selection preserves D03 without changing the numerical method.
+
+A portable GNU build disables contraction and unsafe arithmetic with `-O3 -fno-fast-math -ffp-contract=off -fprotect-parens -fopenmp-simd`, with `-fPIC -shared` for the comparison library. Target options belong to the build rather than the physics. Compiler reports and emitted instructions establish which loops execute several cells together. The historical assembly remains unchanged for comparison.
 
 ## 11. Numerical acceptance criteria
 

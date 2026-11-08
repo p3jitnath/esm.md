@@ -57,8 +57,8 @@ contains
   !! and gradual underflow without changing valid-path status. Public libm helper equivalence
   !! remains subject to the independent complete-byte check on each target.
   subroutine nitro_decline(kidia, kfdia, kvt, klon, kstep, ptsphy, pcv, &
-      ptskm1m, ptsoil, plat, plai, ydcst, ydags, panfm, prespbstr, prespbstr2, &
-      pbiomass_last, pbiomasstr_last, pbiomasstr2_last, pbiomass, pbloss)
+                           ptskm1m, ptsoil, plat, plai, ydcst, ydags, panfm, prespbstr, prespbstr2, &
+                           pbiomass_last, pbiomasstr_last, pbiomasstr2_last, pbiomass, pbloss)
     integer(int32), intent(in) :: kidia, kfdia, klon, kstep
     integer(int32), intent(in) :: kvt(:)
     real(real64), intent(in) :: ptsphy, pcv(:), ptskm1m(:), ptsoil(:), plat(:), plai(:)
@@ -80,7 +80,7 @@ contains
     call ieee_get_rounding_mode(rounding)
     if (rounding /= ieee_nearest) call reject_input()
     underflow_input = tiny(0.0_real64)
-    underflow_result = underflow_input * 0.5_real64
+    underflow_result = underflow_input*0.5_real64
     if (transfer(underflow_result, 0_int64) /= int(z'0008000000000000', int64)) call reject_input()
     if (klon < 1_int32 .or. klon > 4096_int32) call reject_input()
     if (kidia < 1_int32 .or. kidia > klon + 1_int32) call reject_input()
@@ -106,9 +106,9 @@ contains
     if (nitrogen_exponent >= 1.0_real64) call reject_input()
 
     a = public_power(10.0_real64, nitrogen_exponent)
-    allometry_coefficient = nitrogen_coefficient / a
+    allometry_coefficient = nitrogen_coefficient/a
     allometry_exponent = nitrogen_exponent
-    a = 1.0_real64 / allometry_exponent
+    a = 1.0_real64/allometry_exponent
     limiting_total = public_power(allometry_coefficient, a)
     mortality_time = 0.0_real64
     active_loss = 0.0_real64
@@ -128,70 +128,70 @@ contains
       deep_biomass = pbiomasstr2_last(column)
 
       a = abs(plat(column))
-      a = a * pi_value
-      a = a / 180.0_real64
+      a = a*pi_value
+      a = a/180.0_real64
       if (iand(transfer(a, 0_int64), magnitude_mask) >= infinity_bits) call reject_input()
       a = public_arctangent(a)
-      a = latitude_scale * a
+      a = latitude_scale*a
       a = latitude_intercept - a
       latitude_correction = maximum_number(a, latitude_floor)
 
-      a = panfm(column) / ydags%rvanmax(vegetation_type)
+      a = panfm(column)/ydags%rvanmax(vegetation_type)
       a = minimum_number(1.0_real64, a)
-      a = ydags%rvsefold(vegetation_type) * a
-      b = ydags%rvgmes(vegetation_type) * 1000.0_real64
+      a = ydags%rvsefold(vegetation_type)*a
+      b = ydags%rvgmes(vegetation_type)*1000.0_real64
       b = public_power(b, conductance_power)
-      b = b * plai(column)
-      b = b / latitude_correction
+      b = b*plai(column)
+      b = b/latitude_correction
       b = maximum_number(b, 1.0_real64)
-      a = a * b
-      mortality_time = a / day_length
+      a = a*b
+      mortality_time = a/day_length
       mortality_time = maximum_number(mortality_floor, mortality_time)
-      a = mortality_limit / 100.0_real64
-      a = a * ydags%rvsefold(vegetation_type)
-      a = a / day_length
+      a = mortality_limit/100.0_real64
+      a = a*ydags%rvsefold(vegetation_type)
+      a = a/day_length
       mortality_time = maximum_number(a, mortality_time)
 
-      a = ydags%rvlaimin(vegetation_type) * ydags%rvbslai_nitro(vegetation_type)
+      a = ydags%rvlaimin(vegetation_type)*ydags%rvbslai_nitro(vegetation_type)
       a = pbiomass(column) - a
-      b = -1.0_real64 / mortality_time
+      b = -1.0_real64/mortality_time
       b = public_exponential(b)
       b = 1.0_real64 - b
-      b = pbiomass(column) * b
+      b = pbiomass(column)*b
       active_loss = minimum_number(a, b)
       active_loss = maximum_number(active_loss, 0.0_real64)
       assimilation = pbiomass(column) - pbiomass_last(column)
       pbiomass(column) = pbiomass(column) - active_loss
 
-      a = -1.0_real64 * day_length
-      a = a / ydags%rvsefold(vegetation_type)
+      a = -1.0_real64*day_length
+      a = a/ydags%rvsefold(vegetation_type)
       a = public_exponential(a)
       a = 1.0_real64 - a
-      deep_mortality = deep_biomass * a
+      deep_mortality = deep_biomass*a
 
       if (pbiomass(column) < pbiomass_last(column)) then
         storage = 0.0_real64
-        a = -1.0_real64 * day_length
-        a = a / ydags%rvsefold(vegetation_type)
+        a = -1.0_real64*day_length
+        a = a/ydags%rvsefold(vegetation_type)
         a = public_exponential(a)
         a = 1.0_real64 - a
-        structural_mortality = pbiomasstr_last(column) * a
+        structural_mortality = pbiomasstr_last(column)*a
         a = pbiomasstr_last(column) - structural_mortality
         structural_biomass = a - prespbstr(column)
         structural_biomass = maximum_number(structural_biomass, 0.0_real64)
         total_biomass = pbiomass(column) + structural_biomass
       else
-        a = pbiomass(column) / allometry_coefficient
+        a = pbiomass(column)/allometry_coefficient
         b = 1.0_real64 - allometry_exponent
-        b = 1.0_real64 / b
+        b = 1.0_real64/b
         a = public_power(a, b)
         total_biomass = maximum_number(pbiomass(column), a)
         structural_biomass = total_biomass - pbiomass(column)
-        a = -1.0_real64 * day_length
-        a = a / ydags%rvsefold(vegetation_type)
+        a = -1.0_real64*day_length
+        a = a/ydags%rvsefold(vegetation_type)
         a = public_exponential(a)
         a = 1.0_real64 - a
-        structural_mortality = structural_biomass * a
+        structural_mortality = structural_biomass*a
         a = structural_biomass - pbiomasstr_last(column)
         a = a + structural_mortality
         storage = a + prespbstr(column)
@@ -201,18 +201,18 @@ contains
       deep_biomass = deep_biomass - a
       storage = maximum_number(0.0_real64, storage)
       if (.not. (storage <= active_loss)) then
-        a = -1.0_real64 * day_length
-        a = a / ydags%rvsefold(vegetation_type)
+        a = -1.0_real64*day_length
+        a = a/ydags%rvsefold(vegetation_type)
         a = public_exponential(a)
         a = 1.0_real64 - a
-        structural_mortality = pbiomasstr_last(column) * a
+        structural_mortality = pbiomasstr_last(column)*a
         a = pbiomass_last(column) + pbiomasstr_last(column)
         a = a + assimilation
         a = a - structural_mortality
         total_biomass = a - prespbstr(column)
         a = 1.0_real64 - allometry_exponent
         a = public_power(total_biomass, a)
-        pbiomass(column) = allometry_coefficient * a
+        pbiomass(column) = allometry_coefficient*a
         structural_biomass = total_biomass - pbiomass(column)
         a = pbiomass_last(column) + assimilation
         active_loss = a - pbiomass(column)
@@ -240,22 +240,22 @@ contains
 
     do column = kidia, kfdia
       if (pcv(column) <= 0.0_real64) cycle
-      a = pbiomasstr_last(column) * respiration_factor
+      a = pbiomasstr_last(column)*respiration_factor
       b = ptskm1m(column) - freezing_temperature
       b = b - 25.0_real64
-      b = tenth_log_two * b
+      b = tenth_log_two*b
       b = public_exponential(b)
-      a = a * b
-      a = a * ptsphy
+      a = a*b
+      a = a*ptsphy
       prespbstr(column) = prespbstr(column) + a
 
-      a = pbiomasstr2_last(column) * respiration_factor
+      a = pbiomasstr2_last(column)*respiration_factor
       b = ptsoil(column) - freezing_temperature
       b = b - 25.0_real64
-      b = tenth_log_two * b
+      b = tenth_log_two*b
       b = public_exponential(b)
-      a = a * b
-      a = a * ptsphy
+      a = a*b
+      a = a*ptsphy
       prespbstr2(column) = prespbstr2(column) + a
     end do
 

@@ -7,6 +7,8 @@ description: Generate and optimise portable Fortran CPU solvers from physics and
 
 Turn the physics formulation into portable structured Fortran for every new CPU solver, then use an optimising compiler to produce machine code for the target processor. Publish the Fortran as the generated source and identify assembly listings and machine code as compiler output. Tune the source and compiler options against measured bottlenecks while preserving the numerical contract, independent physical checks and exact output bytes. Retain earlier direct assembly as a comparison and traceability record. Write for a first-year undergraduate. Define unfamiliar terms, explain choices, and follow the project [instructions](../../AGENTS.md), [formulation template](../../formulations/TEMPLATE.md) and [writing convention](../../standards/ASD-STE100-CONV.md).
 
+Keep the reusable workflow independent of a processor architecture. Express the solver through standard Fortran types, arrays and interfaces, with dimensions supplied at runtime. Keep instruction-set names, register assignments, processor tuning flags and measurements in target build records. Recompile for each new target and verify its floating-point environment, exact outputs and performance before claiming support.
+
 ## Define The Solver Contract
 
 Choose and explain a numerical method, which converts continuous equations into calculations at grid points and time steps. Record its grid, complete update, boundaries, constants, initial state, stability conditions, storage and acceptance limits under `references/`. Keep the physics formulation short. Preserve existing verified methods in the [shallow-water contract](references/2d_rusanov_ssprk2.md), [energy-balance contract](references/budyko_sellers.md) and [operational contracts](../../src/openifs/README.md).
@@ -105,6 +107,12 @@ Express optimisations in Fortran source and documented compiler options, then in
 Count additional array passes and reloaded values when splitting a loop to reduce the number of live temporary values. Retain the split when complete-update timings improve beyond measurement variation. Inspect each generated specialisation, because a vectorisation report for another branch does not describe the selected runtime path.
 
 Choose unrolling, tiling, prefetch distance and dispatch thresholds from measured cache behaviour and register pressure. Compact schedules often suit small workloads. For independent checks, preserve the first rejected value and the status raised before it. Keep model-specific settings and measurements in their contracts or local records; retain general positive lessons here.
+
+## Format The Project Sources
+
+Run `fprettify` on project Fortran sources before freezing the final source revision. Format project Python with its established formatter, such as Black or Ruff, and Julia with JuliaFormatter. Preserve downloaded dependencies, frozen reference snapshots and archives. Keep formatter versions and before/after source identities with the local build record.
+
+Treat formatting as a source-layout change. Check that parsed operations, identifiers, constants, arithmetic order and interfaces are unchanged. Rebuild selected solvers with their frozen options and compare executable instructions, consumed data and launch metadata with the accepted image. Reuse numerical acceptance when that comparison proves identical behaviour, recording any debug-only difference separately. Run focused numerical checks if formatting changes executable code or its equivalence remains unresolved.
 
 ## Compare And Record Results
 

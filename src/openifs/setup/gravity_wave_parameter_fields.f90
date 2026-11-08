@@ -27,7 +27,7 @@ contains
   !! The compiler owns an L-element midpoint workspace; compile this routine
   !! with stack arrays. No original numerical routine or global data is used.
   subroutine initialize_orographic_gravity_wave_fields( &
-      output, pressure, vah, vbh, rhour, lephys)
+    output, pressure, vah, vbh, rhour, lephys)
     type(tegwd), intent(inout) :: output
     real(real64), intent(in) :: pressure(:), vah(:), vbh(:), rhour
     logical, intent(in) :: lephys
@@ -42,10 +42,10 @@ contains
     do level = levels, 1_int32, -1_int32
       boundary_a_sum = vah(level) + vah(level + 1_int32)
       boundary_b_sum = vbh(level) + vbh(level + 1_int32)
-      reference_b_term = 80000.0_real64 * boundary_b_sum
+      reference_b_term = 80000.0_real64*boundary_b_sum
       boundary_pressure_sum = boundary_a_sum + reference_b_term
-      midpoint(level) = 0.5_real64 * boundary_pressure_sum
-      midpoint_ratio = midpoint(level) / 80000.0_real64
+      midpoint(level) = 0.5_real64*boundary_pressure_sum
+      midpoint_ratio = midpoint(level)/80000.0_real64
       if (midpoint_ratio >= 0.94_real64) output%nktopg = level
     end do
 
@@ -73,9 +73,9 @@ contains
     if (.not. lephys) output%ngwdlim = 0_int32
 
     ! Retain both rounded divisions, including the overwritten first value.
-    tendency = 20.0_real64 / rhour
+    tendency = 20.0_real64/rhour
     output%gtenlim = tendency
-    tendency = 80.0_real64 / rhour
+    tendency = 80.0_real64/rhour
     output%gtenlim = tendency
     output%lrdiff_strato = .false.
     output%ndiff_strato = 5_int32
@@ -91,7 +91,7 @@ contains
   !! flux has units Pa, GMSTAR_L(1) is a length in metres, and the frequency
   !! field is a time interval in seconds. Gaussian widths are in degrees.
   subroutine initialize_nonorographic_gravity_wave_fields( &
-      output, pressure, rhour, timestep)
+    output, pressure, rhour, timestep)
     type(tegwwms), intent(inout) :: output
     real(real64), intent(in) :: pressure(:), rhour, timestep
     real(real64) :: frequency, period_ratio, complete_periods
@@ -119,12 +119,12 @@ contains
     output%lgindl = .false.
 
     frequency = rhour
-    if (timestep >= rhour) frequency = 2.0_real64 * timestep
+    if (timestep >= rhour) frequency = 2.0_real64*timestep
     output%gtphygwwms = frequency
-    period_ratio = frequency / timestep
+    period_ratio = frequency/timestep
     period_count = int(period_ratio, kind=int32)
     complete_periods = real(period_count, kind=real64)
-    frequency = complete_periods * timestep
+    frequency = complete_periods*timestep
     output%gtphygwwms = frequency
     output%gfluxlaunl(1) = output%gfluxlaun
 

@@ -4,7 +4,7 @@ module physics_configuration_state_port
   !! used by the native cloud and surface ports. No original global or method
   !! supplies a value. Each state object and every array component belongs to
   !! its caller; this setup does not allocate or release those array owners.
-  use, intrinsic :: iso_fortran_env, only: int32,real64
+  use, intrinsic :: iso_fortran_env, only: int32, real64
   use yomphy, only: tphy
   use yommse, only: tmse
   use yomrcoef, only: trcoef
@@ -22,19 +22,19 @@ module physics_configuration_state_port
   use yoephli, only: tephli
   implicit none
   private
-  public :: physics_configuration_state,single_column_configuration,shared_output_configuration
+  public :: physics_configuration_state, single_column_configuration, shared_output_configuration
   type :: single_column_configuration
     !! Own the single-column request controls. Angles use radians and the
     !! radius uses metres, following the selected source. Time selections
     !! are integer model-step entries indexed from 0 through 240.
     logical :: lgscm
-    integer(int32) :: nfrscm,nscm_space_s,nscm_add_sampl
-    real(real64) :: gscm_lon1,gscm_lon2,gscm_lat1,gscm_lat2,gscm_radius
+    integer(int32) :: nfrscm, nscm_space_s, nscm_add_sampl
+    real(real64) :: gscm_lon1, gscm_lon2, gscm_lat1, gscm_lat2, gscm_radius
     integer(int32) :: nscmts(0:240)
   end type
   type :: shared_output_configuration
     !! Own output-selection flags and the global missing-value marker.
-    logical :: ltracefp,lfppacking
+    logical :: ltracefp, lfppacking
     real(real64) :: rwidom
     logical :: locedelay
   end type

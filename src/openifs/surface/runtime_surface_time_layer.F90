@@ -1,9 +1,10 @@
 module runtime_surface_time_layer_mod
-  use iso_fortran_env, only: int32,int64,real64
-  use ieee_arithmetic, only: ieee_round_type,ieee_get_rounding_mode,ieee_nearest,operator(/=)
+  use iso_fortran_env, only: int32, int64, real64
+  use ieee_arithmetic, only: ieee_round_type, ieee_get_rounding_mode, ieee_nearest, operator(/=)
   use surface_fields_mix, only: surface_field_map_type => tsurf
   use yos_surf, only: native_surface_type => tsurf
-  use yomphyder, only: dimension_type,state_type,aux_type,surf_and_more_type,surf_and_more_local_type,keys_local_type,flux_type,ddh_surf_type
+  use yomphyder, only: dimension_type, state_type, aux_type, surf_and_more_type, surf_and_more_local_type, keys_local_type, &
+                       flux_type, ddh_surf_type
   use yomrip, only: trip
   use yomphy2, only: tphy2
   use yoephy, only: tephy
@@ -13,7 +14,7 @@ module runtime_surface_time_layer_mod
   private
   public :: runtime_surface_time_layer
   interface
-    subroutine reject_contract() bind(c,name="abort")
+    subroutine reject_contract() bind(c, name="abort")
     end subroutine reject_contract
   end interface
 contains
@@ -27,7 +28,8 @@ contains
   !! The time step is in seconds; water density is in kilograms per cubic metre.
   !! Return zero after completion, or two for the selected shape and step refusals.
   !! Array mutations follow the 171-argument SURFTSTP interface.
-  function runtime_surface_time_layer(ydfields,ydephy,ydrip,ydphy2,kdim,state,paux,psurf,surfl,llkeys,flux,pddhs,native_surface,current_step) result(status)
+  function runtime_surface_time_layer(ydfields, ydephy, ydrip, ydphy2, kdim, state, paux, psurf, surfl, llkeys, flux, pddhs, &
+                                      native_surface, current_step) result(status)
     type(surface_field_map_type), intent(in) :: ydfields
     type(tephy), intent(in) :: ydephy
     type(trip), intent(in) :: ydrip
@@ -42,49 +44,49 @@ contains
     type(ddh_surf_type), intent(inout) :: pddhs
     type(native_surface_type), intent(inout) :: native_surface
     integer(int32), intent(in) :: current_step
-    integer(int32) :: status,allocation_status,p
-    integer(int32), allocatable :: iveg(:,:)
-    real(real64), allocatable :: zlaivt(:,:),zcvt(:,:),zrespbstr(:,:),zrespbstr2(:,:)
-    real(real64), allocatable :: zbiomass_last(:,:),zbiomasstr_last(:,:),zbiomasstr2_last(:,:)
-    real(real64), allocatable :: zblossvt(:,:),zbgainvt(:,:),zlaie1(:,:),zbstre1(:,:),zbstr2e1(:,:)
-    real(real64), allocatable :: zlai(:),zbiom(:),zbloss(:),zbgain(:),zbiomstr(:),zbiomstr2(:),zdhbios(:,:,:)
-    real(real64), volatile :: exact_half,half_subnormal,empty_inverse_step,empty_inverse_density
+    integer(int32) :: status, allocation_status, p
+    integer(int32), allocatable :: iveg(:, :)
+    real(real64), allocatable :: zlaivt(:, :), zcvt(:, :), zrespbstr(:, :), zrespbstr2(:, :)
+    real(real64), allocatable :: zbiomass_last(:, :), zbiomasstr_last(:, :), zbiomasstr2_last(:, :)
+    real(real64), allocatable :: zblossvt(:, :), zbgainvt(:, :), zlaie1(:, :), zbstre1(:, :), zbstr2e1(:, :)
+    real(real64), allocatable :: zlai(:), zbiom(:), zbloss(:), zbgain(:), zbiomstr(:), zbiomstr2(:), zdhbios(:, :, :)
+    real(real64), volatile :: exact_half, half_subnormal, empty_inverse_step, empty_inverse_density
     type(ieee_round_type) :: rounding
-    status=2_int32
-    p=kdim%klon
-    if (p<1 .or. p>128) return
-    if (kdim%klev<6 .or. kdim%klev>512) return
-    if (kdim%klevs/=4 .or. kdim%ktiles/=9 .or. kdim%klevsn/=5) return
-    if (kdim%kidia<1 .or. kdim%kidia>p+1) return
-    if (kdim%kfdia<kdim%kidia-1 .or. kdim%kfdia>p) return
-    if (current_step<0 .or. current_step>8) return
+    status = 2_int32
+    p = kdim%klon
+    if (p < 1 .or. p > 128) return
+    if (kdim%klev < 6 .or. kdim%klev > 512) return
+    if (kdim%klevs /= 4 .or. kdim%ktiles /= 9 .or. kdim%klevsn /= 5) return
+    if (kdim%kidia < 1 .or. kdim%kidia > p + 1) return
+    if (kdim%kfdia < kdim%kidia - 1 .or. kdim%kfdia > p) return
+    if (current_step < 0 .or. current_step > 8) return
     call ieee_get_rounding_mode(rounding)
-    if (rounding/=ieee_nearest) call reject_contract()
-    exact_half=0.5_real64
-    half_subnormal=tiny(0.0_real64)*exact_half
-    if (half_subnormal<=0.0_real64) call reject_contract()
-    allocate(iveg(p,2),zlaivt(p,2),zcvt(p,2),zrespbstr(p,2),zrespbstr2(p,2), &
-      zbiomass_last(p,2),zbiomasstr_last(p,2),zbiomasstr2_last(p,2),zblossvt(p,2),zbgainvt(p,2), &
-      zlaie1(p,2),zbstre1(p,4),zbstr2e1(p,2),zlai(p),zbiom(p),zbloss(p),zbgain(p), &
-      zbiomstr(p),zbiomstr2(p),zdhbios(p,2,5),stat=allocation_status)
-    if (allocation_status/=0) call reject_contract()
+    if (rounding /= ieee_nearest) call reject_contract()
+    exact_half = 0.5_real64
+    half_subnormal = tiny(0.0_real64)*exact_half
+    if (half_subnormal <= 0.0_real64) call reject_contract()
+    allocate (iveg(p, 2), zlaivt(p, 2), zcvt(p, 2), zrespbstr(p, 2), zrespbstr2(p, 2), &
+              zbiomass_last(p, 2), zbiomasstr_last(p, 2), zbiomasstr2_last(p, 2), zblossvt(p, 2), zbgainvt(p, 2), &
+              zlaie1(p, 2), zbstre1(p, 4), zbstr2e1(p, 2), zlai(p), zbiom(p), zbloss(p), zbgain(p), &
+              zbiomstr(p), zbiomstr2(p), zdhbios(p, 2, 5), stat=allocation_status)
+    if (allocation_status /= 0) call reject_contract()
     ! The source writes ten complete positive-zero owners before any active interval.
-    zrespbstr=0.0_real64
-    zrespbstr2=0.0_real64
-    zbiomass_last=0.0_real64
-    zbiomasstr_last=0.0_real64
-    zbiomasstr2_last=0.0_real64
-    zblossvt=0.0_real64
-    zbgainvt=0.0_real64
-    zlaie1=0.0_real64
-    zbstre1=0.0_real64
-    zbstr2e1=0.0_real64
+    zrespbstr = 0.0_real64
+    zrespbstr2 = 0.0_real64
+    zbiomass_last = 0.0_real64
+    zbiomasstr_last = 0.0_real64
+    zbiomasstr2_last = 0.0_real64
+    zblossvt = 0.0_real64
+    zbgainvt = 0.0_real64
+    zlaie1 = 0.0_real64
+    zbstre1 = 0.0_real64
+    zbstr2e1 = 0.0_real64
     ! Preserve the selected runtime empty-wrapper divisions as real operations.
-    if (kdim%kfdia<kdim%kidia) then
-      if (transfer(ydphy2%tsphy,0_int64)/=int(z'407C200000000000',int64)) call reject_contract()
-      if (transfer(rhoh2o,0_int64)/=int(z'408F400000000000',int64)) call reject_contract()
-      empty_inverse_step=1.0_real64/ydphy2%tsphy
-      empty_inverse_density=1.0_real64/rhoh2o
+    if (kdim%kfdia < kdim%kidia) then
+      if (transfer(ydphy2%tsphy, 0_int64) /= int(z'407C200000000000', int64)) call reject_contract()
+      if (transfer(rhoh2o, 0_int64) /= int(z'408F400000000000', int64)) call reject_contract()
+      empty_inverse_step = 1.0_real64/ydphy2%tsphy
+      empty_inverse_density = 1.0_real64/rhoh2o
     end if
     call surftstp( &
       ydsurf=native_surface, &
@@ -121,7 +123,7 @@ contains
       ptsphy=ydphy2%tsphy, &
       psdor=psurf%phstd, &
       pfrti=surfl%zfrti, &
-      psst=psurf%psd_vf(:,ydfields%ysd_vf%ysst%mp), &
+      psst=psurf%psd_vf(:, ydfields%ysd_vf%ysst%mp), &
       pustrti=psurf%pustrti, &
       pvstrti=psurf%pvstrti, &
       pahfsti=psurf%pahfsti, &
@@ -136,73 +138,73 @@ contains
       plaivt=zlaivt, &
       plail=psurf%plail, &
       plaih=psurf%plaih, &
-      plailc=psurf%psd_vf(:,ydfields%ysd_vf%ylail%mp), &
-      plaihc=psurf%psd_vf(:,ydfields%ysd_vf%ylaih%mp), &
+      plailc=psurf%psd_vf(:, ydfields%ysd_vf%ylail%mp), &
+      plaihc=psurf%psd_vf(:, ydfields%ysd_vf%ylaih%mp), &
       ldland=llkeys%llland, &
       ldsice=llkeys%llsice, &
       ldsi=ydephy%lesice, &
       ldnh=llkeys%llnh, &
       ldocn_kpp=llkeys%llocn_kpp, &
       psnm1m=surfl%zsnm1m, &
-      ptsnm1m=psurf%psp_sg(:,:,ydfields%ysp_sg%yt%mp9), &
-      pasnm1m=psurf%psp_sg(:,1,ydfields%ysp_sg%ya%mp9), &
-      prsnm1m=psurf%psp_sg(:,:,ydfields%ysp_sg%yr%mp9), &
-      pwsnm1m=psurf%psp_sg(:,:,ydfields%ysp_sg%yw%mp9), &
-      paprs=paux%paprs(:,kdim%klev), &
-      ptskm1m=psurf%psp_rr(:,ydfields%ysp_rr%yt%mp9), &
-      ptsam1m=psurf%psp_sb(:,:,ydfields%ysp_sb%yt%mp9), &
-      ptiam1m=psurf%psp_sb(:,:,ydfields%ysp_sb%ytl%mp9), &
+      ptsnm1m=psurf%psp_sg(:, :, ydfields%ysp_sg%yt%mp9), &
+      pasnm1m=psurf%psp_sg(:, 1, ydfields%ysp_sg%ya%mp9), &
+      prsnm1m=psurf%psp_sg(:, :, ydfields%ysp_sg%yr%mp9), &
+      pwsnm1m=psurf%psp_sg(:, :, ydfields%ysp_sg%yw%mp9), &
+      paprs=paux%paprs(:, kdim%klev), &
+      ptskm1m=psurf%psp_rr(:, ydfields%ysp_rr%yt%mp9), &
+      ptsam1m=psurf%psp_sb(:, :, ydfields%ysp_sb%yt%mp9), &
+      ptiam1m=psurf%psp_sb(:, :, ydfields%ysp_sb%ytl%mp9), &
       pwlm1m=surfl%zwlm1m, &
-      pwsam1m=psurf%psp_sb(:,:,ydfields%ysp_sb%yq%mp9), &
-      ptlicem1m=psurf%psp_sl(:,ydfields%ysp_sl%ylict%mp9), &
-      ptlmnwm1m=psurf%psp_sl(:,ydfields%ysp_sl%yltlt%mp9), &
-      ptlwmlm1m=psurf%psp_sl(:,ydfields%ysp_sl%ylmlt%mp9), &
-      ptlbotm1m=psurf%psp_sl(:,ydfields%ysp_sl%ylblt%mp9), &
-      ptlsfm1m=psurf%psp_sl(:,ydfields%ysp_sl%ylshf%mp9), &
-      phlicem1m=psurf%psp_sl(:,ydfields%ysp_sl%ylicd%mp9), &
-      phlmlm1m=psurf%psp_sl(:,ydfields%ysp_sl%ylmld%mp9), &
+      pwsam1m=psurf%psp_sb(:, :, ydfields%ysp_sb%yq%mp9), &
+      ptlicem1m=psurf%psp_sl(:, ydfields%ysp_sl%ylict%mp9), &
+      ptlmnwm1m=psurf%psp_sl(:, ydfields%ysp_sl%yltlt%mp9), &
+      ptlwmlm1m=psurf%psp_sl(:, ydfields%ysp_sl%ylmlt%mp9), &
+      ptlbotm1m=psurf%psp_sl(:, ydfields%ysp_sl%ylblt%mp9), &
+      ptlsfm1m=psurf%psp_sl(:, ydfields%ysp_sl%ylshf%mp9), &
+      phlicem1m=psurf%psp_sl(:, ydfields%ysp_sl%ylicd%mp9), &
+      phlmlm1m=psurf%psp_sl(:, ydfields%ysp_sl%ylmld%mp9), &
       pgemu=paux%pgemu, &
-      pldepth=psurf%psd_vf(:,ydfields%ysd_vf%ydl%mp), &
+      pldepth=psurf%psd_vf(:, ydfields%ysd_vf%ydl%mp), &
       ldlake=llkeys%lllake, &
-      pclake=psurf%psd_vf(:,ydfields%ysd_vf%yclk%mp), &
-      prsfc=flux%pfplcl(:,kdim%klev), &
-      prsfl=flux%pfplsl(:,kdim%klev), &
-      pslrfl=flux%pfrth(:,kdim%klev), &
-      pssfc=flux%pfplcn(:,kdim%klev), &
-      pssfl=flux%pfplsn(:,kdim%klev), &
+      pclake=psurf%psd_vf(:, ydfields%ysd_vf%yclk%mp), &
+      prsfc=flux%pfplcl(:, kdim%klev), &
+      prsfl=flux%pfplsl(:, kdim%klev), &
+      pslrfl=flux%pfrth(:, kdim%klev), &
+      pssfc=flux%pfplcn(:, kdim%klev), &
+      pssfl=flux%pfplsn(:, kdim%klev), &
       pcvl=psurf%pcvl, &
       pcvh=psurf%pcvh, &
       pcur=psurf%pcur, &
       pwlmx=surfl%zwlmx, &
       pevapsnw=surfl%zevapsnw, &
-      pusrf=state%u(:,kdim%klev), &
-      pvsrf=state%v(:,kdim%klev), &
-      ptsrf=state%t(:,kdim%klev), &
-      pzo=psurf%psd_v3(:,:,ydfields%ysd_v3%yzo%mp), &
-      pho=psurf%psd_v3(:,:,ydfields%ysd_v3%yho%mp), &
-      pho_inv=psurf%psd_v3(:,:,ydfields%ysd_v3%yho_inv%mp), &
-      pdo=psurf%psd_v3(:,:,ydfields%ysd_v3%ydo%mp), &
-      pocdepth=psurf%psd_v2(:,ydfields%ysd_v2%yocdep%mp), &
-      puo0=psurf%psp_om(:,:,ydfields%ysp_om%yuo%mp9), &
-      pvo0=psurf%psp_om(:,:,ydfields%ysp_om%yvo%mp9), &
-      puoc=psurf%psd_v3(:,:,ydfields%ysd_v3%yuoc%mp), &
-      pvoc=psurf%psd_v3(:,:,ydfields%ysd_v3%yvoc%mp), &
-      pto0=psurf%psp_om(:,:,ydfields%ysp_om%yto%mp9), &
-      pso0=psurf%psp_om(:,:,ydfields%ysp_om%yso%mp9), &
-      padvt=psurf%psd_v3(:,:,ydfields%ysd_v3%yadvt%mp), &
-      padvs=psurf%psd_v3(:,:,ydfields%ysd_v3%yadvs%mp), &
-      ptri0=psurf%psd_v3(:,:,ydfields%ysd_v3%ytri0%mp), &
-      ptri1=psurf%psd_v3(:,:,ydfields%ysd_v3%ytri1%mp), &
-      pswdk_save=psurf%psd_v3(:,:,ydfields%ysd_v3%yswdk%mp), &
-      pustrc=psurf%psd_v2(:,ydfields%ysd_v2%yustrc%mp), &
-      pvstrc=psurf%psd_v2(:,ydfields%ysd_v2%yvstrc%mp), &
-      pustokes=psurf%psd_ws(:,ydfields%ysd_ws%yustokes%mp), &
-      pvstokes=psurf%psd_ws(:,ydfields%ysd_ws%yvstokes%mp), &
-      ptauocx=psurf%psd_ws(:,ydfields%ysd_ws%ytauocx%mp), &
-      ptauocy=psurf%psd_ws(:,ydfields%ysd_ws%ytauocy%mp), &
-      pphioc=psurf%psd_ws(:,ydfields%ysd_ws%yphioc%mp), &
-      pwsemean=psurf%psd_ws(:,ydfields%ysd_ws%ywsemean%mp), &
-      pwsfmean=psurf%psd_ws(:,ydfields%ysd_ws%ywsfmean%mp), &
+      pusrf=state%u(:, kdim%klev), &
+      pvsrf=state%v(:, kdim%klev), &
+      ptsrf=state%t(:, kdim%klev), &
+      pzo=psurf%psd_v3(:, :, ydfields%ysd_v3%yzo%mp), &
+      pho=psurf%psd_v3(:, :, ydfields%ysd_v3%yho%mp), &
+      pho_inv=psurf%psd_v3(:, :, ydfields%ysd_v3%yho_inv%mp), &
+      pdo=psurf%psd_v3(:, :, ydfields%ysd_v3%ydo%mp), &
+      pocdepth=psurf%psd_v2(:, ydfields%ysd_v2%yocdep%mp), &
+      puo0=psurf%psp_om(:, :, ydfields%ysp_om%yuo%mp9), &
+      pvo0=psurf%psp_om(:, :, ydfields%ysp_om%yvo%mp9), &
+      puoc=psurf%psd_v3(:, :, ydfields%ysd_v3%yuoc%mp), &
+      pvoc=psurf%psd_v3(:, :, ydfields%ysd_v3%yvoc%mp), &
+      pto0=psurf%psp_om(:, :, ydfields%ysp_om%yto%mp9), &
+      pso0=psurf%psp_om(:, :, ydfields%ysp_om%yso%mp9), &
+      padvt=psurf%psd_v3(:, :, ydfields%ysd_v3%yadvt%mp), &
+      padvs=psurf%psd_v3(:, :, ydfields%ysd_v3%yadvs%mp), &
+      ptri0=psurf%psd_v3(:, :, ydfields%ysd_v3%ytri0%mp), &
+      ptri1=psurf%psd_v3(:, :, ydfields%ysd_v3%ytri1%mp), &
+      pswdk_save=psurf%psd_v3(:, :, ydfields%ysd_v3%yswdk%mp), &
+      pustrc=psurf%psd_v2(:, ydfields%ysd_v2%yustrc%mp), &
+      pvstrc=psurf%psd_v2(:, ydfields%ysd_v2%yvstrc%mp), &
+      pustokes=psurf%psd_ws(:, ydfields%ysd_ws%yustokes%mp), &
+      pvstokes=psurf%psd_ws(:, ydfields%ysd_ws%yvstokes%mp), &
+      ptauocx=psurf%psd_ws(:, ydfields%ysd_ws%ytauocx%mp), &
+      ptauocy=psurf%psd_ws(:, ydfields%ysd_ws%ytauocy%mp), &
+      pphioc=psurf%psd_ws(:, ydfields%ysd_ws%yphioc%mp), &
+      pwsemean=psurf%psd_ws(:, ydfields%ysd_ws%ywsemean%mp), &
+      pwsfmean=psurf%psd_ws(:, ydfields%ysd_ws%ywsfmean%mp), &
       ptsdfl=flux%pftg12, &
       profd=flux%pfwrod, &
       profs=flux%pfwro1, &
@@ -210,10 +212,10 @@ contains
       pmelt=flux%pfwmlt, &
       pfwev=flux%pfwev, &
       penes=flux%penes, &
-      pdifm=psurf%psd_v3(:,:,ydfields%ysd_v3%ydifm%mp), &
-      pdift=psurf%psd_v3(:,:,ydfields%ysd_v3%ydift%mp), &
-      pdifs=psurf%psd_v3(:,:,ydfields%ysd_v3%ydifs%mp), &
-      potke=psurf%psd_v3(:,:,ydfields%ysd_v3%yotke%mp), &
+      pdifm=psurf%psd_v3(:, :, ydfields%ysd_v3%ydifm%mp), &
+      pdift=psurf%psd_v3(:, :, ydfields%ysd_v3%ydift%mp), &
+      pdifs=psurf%psd_v3(:, :, ydfields%ysd_v3%ydifs%mp), &
+      potke=psurf%psd_v3(:, :, ydfields%ysd_v3%yotke%mp), &
       prespbstr=zrespbstr, &
       prespbstr2=zrespbstr2, &
       pbiomass_last=zbiomass_last, &
@@ -229,7 +231,7 @@ contains
       pbiomstr2=zbiomstr2, &
       psne1=psurf%psnse1, &
       ptsne1=psurf%ptsne1, &
-      pasne1=psurf%pasne1(:,1), &
+      pasne1=psurf%pasne1(:, 1), &
       prsne1=psurf%prsne1, &
       pwsne1=psurf%pwsne1, &
       ptsae1=psurf%ptsae1, &
@@ -258,6 +260,6 @@ contains
       pdhwls=pddhs%pdhwls, &
       pdhbios=zdhbios, &
       pdhvegs=surfl%zdhvegs)
-    status=0_int32
+    status = 0_int32
   end function runtime_surface_time_layer
 end module runtime_surface_time_layer_mod

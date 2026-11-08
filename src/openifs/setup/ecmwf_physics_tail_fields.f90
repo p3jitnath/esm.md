@@ -66,25 +66,25 @@ contains
     output%nlonw = 1_int32
     output%nlatw = 1_int32
     output%ngrib_handle_for_wam = -99_int32
-    hours = upstream%nsssss / 3600_int32
-    hour_remainder = upstream%nsssss - hours * 3600_int32
-    minute_ratio = real(hour_remainder, real64) / 60.0_real64
+    hours = upstream%nsssss/3600_int32
+    hour_remainder = upstream%nsssss - hours*3600_int32
+    minute_ratio = real(hour_remainder, real64)/60.0_real64
     minutes = int(minute_ratio, kind=int32)
-    seconds = hour_remainder - minutes * 60_int32
-    clock = hours * 10000_int32 + minutes * 100_int32
+    seconds = hour_remainder - minutes*60_int32
+    clock = hours*10000_int32 + minutes*100_int32
     clock = clock + seconds
 
     date_digits = upstream%nindat
     do position = 8_int32, 1_int32, -1_int32
-      quotient = date_digits / 10_int32
-      digit = date_digits - quotient * 10_int32
+      quotient = date_digits/10_int32
+      digit = date_digits - quotient*10_int32
       output%cbegdat(position:position) = achar(48_int32 + digit)
       date_digits = quotient
     end do
     time_digits = clock
     do position = 14_int32, 9_int32, -1_int32
-      quotient = time_digits / 10_int32
-      digit = time_digits - quotient * 10_int32
+      quotient = time_digits/10_int32
+      digit = time_digits - quotient*10_int32
       output%cbegdat(position:position) = achar(48_int32 + digit)
       time_digits = quotient
     end do
@@ -98,7 +98,7 @@ contains
   !! field outside the selected stores retain their incoming bits. RLPTRC is
   !! in kelvin, RLPMIXL is in metres and RLPP00 is in pascals.
   subroutine initialize_linearized_physics_fields( &
-      upstream, output, physics_controls, longwave_controls)
+    upstream, output, physics_controls, longwave_controls)
     type(physics_tail_upstream_record), intent(in) :: upstream
     type(tephli), intent(inout) :: output
     type(tphnc), intent(inout) :: physics_controls
@@ -111,7 +111,7 @@ contains
     output%lopptwins = .false.
     output%leppcfls = upstream%lemwave .or. upstream%lvdftraj
     temperature_difference = upstream%rtwat - upstream%rtice
-    scaled_difference = temperature_difference / 1.4142135623730951_real64
+    scaled_difference = temperature_difference/1.4142135623730951_real64
     output%rlptrc = upstream%rtice + scaled_difference
     output%rlpal1 = 0.15_real64
     output%rlpal2 = 20.0_real64
@@ -144,19 +144,19 @@ contains
     real(real64), volatile :: top_pressure, bottom_pressure
     real(real64) :: pressure_ratio
 
-    output%ralpha1 = transfer(int(z'3fe161de809d4f32',int64),0.0_real64)
-    output%ralpha2 = transfer(int(z'bff11ad7d41e07b1',int64),0.0_real64)
-    output%rqlim = transfer(int(z'3ed42cb2bb7e9bbc',int64),0.0_real64)
-    output%rpbotox = transfer(int(z'40c3880000000000',int64),0.0_real64)
-    output%rpbotph = transfer(int(z'4034000000000000',int64),0.0_real64)
-    output%rptopox = transfer(int(z'4049000000000000',int64),0.0_real64)
-    output%rptopph = transfer(int(z'3fb999999999999a',int64),0.0_real64)
-    alpha_reference = transfer(int(z'40126bb1bbb55516',int64),0.0_real64)
+    output%ralpha1 = transfer(int(z'3fe161de809d4f32', int64), 0.0_real64)
+    output%ralpha2 = transfer(int(z'bff11ad7d41e07b1', int64), 0.0_real64)
+    output%rqlim = transfer(int(z'3ed42cb2bb7e9bbc', int64), 0.0_real64)
+    output%rpbotox = transfer(int(z'40c3880000000000', int64), 0.0_real64)
+    output%rpbotph = transfer(int(z'4034000000000000', int64), 0.0_real64)
+    output%rptopox = transfer(int(z'4049000000000000', int64), 0.0_real64)
+    output%rptopph = transfer(int(z'3fb999999999999a', int64), 0.0_real64)
+    alpha_reference = transfer(int(z'40126bb1bbb55516', int64), 0.0_real64)
     alpha_sum = alpha_reference + output%ralpha2
-    output%ralpha3 = 0.5_real64 * alpha_sum
+    output%ralpha3 = 0.5_real64*alpha_sum
     top_pressure = output%rptopph
     bottom_pressure = output%rpbotph
-    pressure_ratio = top_pressure / bottom_pressure
+    pressure_ratio = top_pressure/bottom_pressure
     output%rlogpph = selected_public_log(pressure_ratio)
   end subroutine initialize_methane_oxidation_fields
 

@@ -1,9 +1,9 @@
 !> Own the four native records used by the selected radiation climate input.
 module native_radiation_climate_records
-  use yomsolarirradiance,only:tsolarirradiance
-  use yomghgtimeseries,only:tghgtimeseries
-  use yomclim,only:tghgclim
-  use yoeradghg,only:tradghg
+  use yomsolarirradiance, only: tsolarirradiance
+  use yomghgtimeseries, only: tghgtimeseries
+  use yomclim, only: tghgclim
+  use yoeradghg, only: tradghg
   implicit none
   private
   public :: radiation_climate_context
