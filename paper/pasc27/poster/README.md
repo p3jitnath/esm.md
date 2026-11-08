@@ -17,7 +17,7 @@ python3 -m venv .runtime/poster_environment
 .runtime/poster_environment/bin/python paper/pasc27/poster/scripts/refresh_evidence.py
 ```
 
-The final files are `esm-md-a0-landscape.pptx` and `esm-md-a0-landscape.pdf`. Temporary renders and check logs stay under the ignored `.runtime/poster_update_20261108/` folder. Local `.build/` and Python caches are excluded from publication. Text, headings, workflow blocks and positions remain native editable PowerPoint objects. Scientific artwork is embedded as SVG with PNG fallbacks, and its editable plotting sources and data are included here. Install the bundled Open Sans fonts when editing the PowerPoint on another computer.
+The final files are `esm-md-a0-landscape.pptx` and `esm-md-a0-landscape.pdf`. A 150 dpi PNG export of the saved PDF is available as `esm-md-a0-landscape.png`, with 7022 by 4967 pixels. Temporary renders and check logs stay under the ignored `.runtime/poster_update_20261108/` folder. Local `.build/` and Python caches are excluded from publication. Text, headings, workflow blocks and positions remain native editable PowerPoint objects. Scientific artwork is embedded as SVG with PNG fallbacks, and its editable plotting sources and data are included here. Install the bundled Open Sans fonts when editing the PowerPoint on another computer.
 
 ## Measurements and Meaning
 
