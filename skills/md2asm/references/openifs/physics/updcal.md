@@ -1,6 +1,6 @@
 # UPDCAL Contract
 
-The [physical note](../../../../../formulations/openifs/physics/calendar_days.md) describes Gregorian dates. The direct [assembly](../../../../../src/openifs/physics/updcal.S) contains the complete date calculation from arpifs/climate/updcal.F90, including both signs of the day update.
+The [physical note](../../../../../formulations/openifs/physics/calendar_days.md) describes Gregorian dates. The direct [assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/updcal.S) contains the complete date calculation from arpifs/climate/updcal.F90, including both signs of the day update.
 
 ## Inputs and outputs
 

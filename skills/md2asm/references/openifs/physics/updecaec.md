@@ -30,7 +30,7 @@ Canonical output contains complete radiation and physics object bytes, all five 
 
 ## Direct Build
 
-The parent is [updecaec.S](../../../../../src/openifs/physics/updecaec.S). Its leaves are [aerosol_calendar.S](../../../../../src/openifs/physics/aerosol_calendar.S) and [monthly_aerosol_interpolation.S](../../../../../src/openifs/physics/monthly_aerosol_interpolation.S). Assemble each, then link accepted complete `GPHPRE` under the private name `md2asm_updecaec_private_gphpre` and complete `SU_AERV`. Private aliases prevent replacement of unrelated global children. Original-compatible POWER remains a uniquely named dependency. Full commands and object identities remain local.
+The parent is [updecaec.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/updecaec.S). Its leaves are [aerosol_calendar.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/aerosol_calendar.S) and [monthly_aerosol_interpolation.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/monthly_aerosol_interpolation.S). Assemble each, then link accepted complete `GPHPRE` under the private name `md2asm_updecaec_private_gphpre` and complete `SU_AERV`. Private aliases prevent replacement of unrelated global children. Original-compatible POWER remains a uniquely named dependency. Full commands and object identities remain local.
 
 ## Focused Evidence
 

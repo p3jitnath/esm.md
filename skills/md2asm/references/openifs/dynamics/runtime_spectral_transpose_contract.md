@@ -1,6 +1,6 @@
 # Runtime Spectral Transposes
 
-TRMTOS collects spectral coefficients, which describe horizontal waves, into complete vertical columns. TRSTOM returns those columns to the original distribution of levels. [The direct assembly](../../../../../src/openifs/dynamics/runtime_spectral_transposes.S) copies all 64 bit floating-point values without changing their bits. The existing serial entries remain unchanged. Production uses public FIAT and MPICH services, with no original OpenIFS routine or global variable.
+TRMTOS collects spectral coefficients, which describe horizontal waves, into complete vertical columns. TRSTOM returns those columns to the original distribution of levels. [The direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/dynamics/runtime_spectral_transposes.S) copies all 64 bit floating-point values without changing their bits. The existing serial entries remain unchanged. Production uses public FIAT and MPICH services, with no original OpenIFS routine or global variable.
 
 The application binary interface keeps the original argument order. Each argument is an address. Optional absent arguments are null. The final argument borrows the complete 4096 byte phase 7 partition associated with the supplied 20400 byte Geometry record.
 

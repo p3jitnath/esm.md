@@ -2,7 +2,7 @@
 
 GRIB is the binary file format for saved weather fields. These entries create a message template and encode one complete field from live grid and forecast metadata. Direct assembly owns the OpenIFS record layout, setter order and handle lifetime. Public ecCodes supplies file-format operations, and public Multio supplies its normal packing policy. Original OpenIFS routines run only in the separate comparison process.
 
-The assembly sources are [runtime_grib_template_creation.S](../../../../../src/openifs/output/runtime_grib_template_creation.S) and [runtime_grib_field_encoding.S](../../../../../src/openifs/output/runtime_grib_field_encoding.S). They follow original `PRESET_GRIB_TEMPLATE` and `GRIB_CODE_MESSAGE`, with the level, parameter and edition rules in `GRIB_UTILS_MOD`. The qualified [packing policy](runtime_grib_packing_policy.md), [time helper](runtime_grib_time.md) and [soil labels](runtime_grib_soil_levels.md) retain their separate numerical contracts.
+The assembly sources are [runtime_grib_template_creation.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/output/runtime_grib_template_creation.S) and [runtime_grib_field_encoding.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/output/runtime_grib_field_encoding.S). They follow original `PRESET_GRIB_TEMPLATE` and `GRIB_CODE_MESSAGE`, with the level, parameter and edition rules in `GRIB_UTILS_MOD`. The qualified [packing policy](runtime_grib_packing_policy.md), [time helper](runtime_grib_time.md) and [soil labels](runtime_grib_soil_levels.md) retain their separate numerical contracts.
 
 ## Template Interface
 

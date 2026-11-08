@@ -1,6 +1,6 @@
 # Broadband Radiative Heating
 
-The physical input is [radiative_heating.md](../../../../../formulations/openifs/physics/radiative_heating.md), revision 1. The direct body is [radheatn.S](../../../../../src/openifs/physics/radheatn.S). The original queued name is `radheatn` in `arpifs/phys_radi/radheatn.F90`. The retained genuine coarse forecast prints `NLWOUT=1` at `NODE.001_01` line 2297 and `LSPP=F` at line 2984 in the batch09-r15 run. Support both settings of the approximate thermal update and the Manners solar-angle update within this broadband domain.
+The physical input is [radiative_heating.md](../../../../../formulations/openifs/physics/radiative_heating.md), revision 1. The direct body is [radheatn.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/radheatn.S). The original queued name is `radheatn` in `arpifs/phys_radi/radheatn.F90`. The retained genuine coarse forecast prints `NLWOUT=1` at `NODE.001_01` line 2297 and `LSPP=F` at line 2984 in the batch09-r15 run. Support both settings of the approximate thermal update and the Manners solar-angle update within this broadband domain.
 
 ## Complete Numerical Update
 

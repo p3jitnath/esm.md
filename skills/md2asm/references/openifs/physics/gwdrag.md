@@ -1,6 +1,6 @@
 # Mountain Wave Wind Drag Contract
 
-This contract implements complete `GWDRAG` from [mountain-wave wind drag](../../../../../formulations/openifs/physics/mountain_wave_drag.md). The direct entry is `md2asm_gwdrag` in [mountain_wave_drag.S](../../../../../src/openifs/physics/mountain_wave_drag.S). Complete private [GWSETUP](gwsetup.md) and [GWPROFIL](gwprofil.md) children supply all setup and stress-profile calculations.
+This contract implements complete `GWDRAG` from [mountain-wave wind drag](../../../../../formulations/openifs/physics/mountain_wave_drag.md). The direct entry is `md2asm_gwdrag` in [mountain_wave_drag.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/mountain_wave_drag.S). Complete private [GWSETUP](gwsetup.md) and [GWPROFIL](gwprofil.md) children supply all setup and stress-profile calculations.
 
 ## Domain
 

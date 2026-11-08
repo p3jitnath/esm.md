@@ -1,6 +1,6 @@
 # Shortwave Adding Solver Contract
 
-Revision 4 implements `radiation_adding_ica_sw::adding_ica_sw` from [the layer equations](../../../../../formulations/openifs/physics/shortwave_adding.md), revision 1. The original source is `ifs-source/radiation/module/radiation_adding_ica_sw.F90`, SHA-256 `80b74f71594c42bd41cfe15505e2bc732bb46a3e9fa984c52130e90d3e88559a`. The direct source is [adding_ica_sw.S](../../../../../src/openifs/physics/adding_ica_sw.S). Its arithmetic is written directly in AArch64 assembly, without compiler-generated numerical assembly or intermediate code.
+Revision 4 implements `radiation_adding_ica_sw::adding_ica_sw` from [the layer equations](../../../../../formulations/openifs/physics/shortwave_adding.md), revision 1. The original source is `ifs-source/radiation/module/radiation_adding_ica_sw.F90`, SHA-256 `80b74f71594c42bd41cfe15505e2bc732bb46a3e9fa984c52130e90d3e88559a`. The direct source is [adding_ica_sw.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/adding_ica_sw.S). Its arithmetic is written directly in AArch64 assembly, without compiler-generated numerical assembly or intermediate code.
 
 ## Inputs And Storage
 

@@ -1,6 +1,6 @@
 # Runtime Grid-Field Norms
 
-The [assembly](../../../../../src/openifs/dynamics/runtime_grid_field_norms.S) implements GPNORM_GFL from `arpifs/utility/gpnorm_gfl.F90`. A norm summarizes a field. For each selected constituent, this entry returns the area-weighted vertical sum, that sum divided by the layer count, and the minimum and maximum over all physical cells and layers. Each result retains the field's units. Layers are added in their source order.
+The [assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/dynamics/runtime_grid_field_norms.S) implements GPNORM_GFL from `arpifs/utility/gpnorm_gfl.F90`. A norm summarizes a field. For each selected constituent, this entry returns the area-weighted vertical sum, that sum divided by the layer count, and the minimum and maximum over all physical cells and layers. Each result retains the field's units. Layers are added in their source order.
 
 ## Interface
 

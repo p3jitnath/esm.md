@@ -24,7 +24,7 @@ Use FP64 with round-to-nearest, ties to even, gradual underflow and preserved si
 
 ## Seven-Address Interface
 
-The [assembly](../../../../../src/openifs/physics/planck_function_atmos.S) exports md2asm_planck_function_atmos and the original GNU module entry. Arguments x0 through x6 address model layers, first column, last column, configuration, thermodynamics, gas fractions and emitted flux. Integers use four-byte words. The two explicit-shape arrays use raw eight-byte aligned FP64 pointers.
+The [assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/planck_function_atmos.S) exports md2asm_planck_function_atmos and the original GNU module entry. Arguments x0 through x6 address model layers, first column, last column, configuration, thermodynamics, gas fractions and emitted flux. Integers use four-byte words. The two explicit-shape arrays use raw eight-byte aligned FP64 pointers.
 
 The genuine GNU configuration is 20040 bytes. Its solver code is at byte 624, spectral count at 20000 and band count at 20008. Its rank-one integer descriptors are at 10608 for ordinary bands, 10864 for reordered bands and 10736 for reordered samples. Consumed descriptors have lower label one, unit stride, sufficient upper labels and offset minus one. Their elements use four bytes.
 

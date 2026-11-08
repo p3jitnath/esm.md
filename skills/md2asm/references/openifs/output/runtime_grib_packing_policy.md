@@ -2,7 +2,7 @@
 
 GRIB is the binary format used for the saved weather fields. This component selects the source packing settings for one field. Packing controls how the field is stored. It does not calculate the field or write a forecast file.
 
-The direct entry is `md2asm_set_runtime_grib_packing` in [runtime_grib_packing_policy.S](../../../../../src/openifs/output/runtime_grib_packing_policy.S). It follows `GRIB_UTILS_MOD` routine `GRIB_SET_PACKING` from `arpifs/module/grib_utils_mod.F90`. Public ecCodes setters and the public Multio bit-count policy remain external services. The [runtime spectral fit](spectral_packing_fit.md#runtime-dimensions) supplies the accepted ordered spectral calculation.
+The direct entry is `md2asm_set_runtime_grib_packing` in [runtime_grib_packing_policy.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/output/runtime_grib_packing_policy.S). It follows `GRIB_UTILS_MOD` routine `GRIB_SET_PACKING` from `arpifs/module/grib_utils_mod.F90`. Public ecCodes setters and the public Multio bit-count policy remain external services. The [runtime spectral fit](spectral_packing_fit.md#runtime-dimensions) supplies the accepted ordered spectral calculation.
 
 ## Interface and Bounds
 

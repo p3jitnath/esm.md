@@ -1,6 +1,6 @@
 # CUBASMCN Contract
 
-[Physics input](../../../../../formulations/openifs/physics/midlevel_plume_base.md), revision 1. The canonical calculation is the original `cubasmcn` in `arpifs/phys_ec/cubasmcn.F90`. [Direct assembly](../../../../../src/openifs/physics/cubasmcn.S) replaces the complete numerical body.
+[Physics input](../../../../../formulations/openifs/physics/midlevel_plume_base.md), revision 1. The canonical calculation is the original `cubasmcn` in `arpifs/phys_ec/cubasmcn.F90`. [Direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/cubasmcn.S) replaces the complete numerical body.
 
 ## Domain and Interface
 

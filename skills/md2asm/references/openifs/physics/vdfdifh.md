@@ -1,6 +1,6 @@
 # VDFDIFH Solver Contract
 
-Revision 1. The [heat and water formulation](../../../../../formulations/openifs/physics/boundary_layer_heat_water.md) maps the complete original `arpifs/phys_ec/vdfdifh.F90` routine to [direct AArch64 assembly](../../../../../src/openifs/physics/vdfdifh.S).
+Revision 1. The [heat and water formulation](../../../../../formulations/openifs/physics/boundary_layer_heat_water.md) maps the complete original `arpifs/phys_ec/vdfdifh.F90` routine to [direct AArch64 assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/vdfdifh.S).
 
 ## Method and Domain
 

@@ -1,6 +1,6 @@
 # Saturation Humidity Contract
 
-Revision 1 implements `SATUR` from [the saturation formulation](../../../../../formulations/openifs/physics/saturation.md), revision 1. The original source is `ifs-source/arpifs/phys_ec/satur.F90`, SHA-256 `67f2c224d0a143735fccea3a01cdf52cac886202108a86506be25421d580f7ed`. The [direct assembly](../../../../../src/openifs/physics/satur.S) emits the complete phase weighting, vapour-pressure law and humidity conversion. It calls the unchanged accepted scalar `EXP` function for the two exponential values.
+Revision 1 implements `SATUR` from [the saturation formulation](../../../../../formulations/openifs/physics/saturation.md), revision 1. The original source is `ifs-source/arpifs/phys_ec/satur.F90`, SHA-256 `67f2c224d0a143735fccea3a01cdf52cac886202108a86506be25421d580f7ed`. The [direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/satur.S) emits the complete phase weighting, vapour-pressure law and humidity conversion. It calls the unchanged accepted scalar `EXP` function for the two exponential values.
 
 ## Domain And Ordered Mathematics
 

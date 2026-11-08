@@ -1,6 +1,6 @@
 # Slow-Physics Averaging
 
-Revision 1 freezes the complete SLTEND calculation. A tendency is a change per second. Wind tendencies have units m/s², temperature tendencies have units K/s, and water or cloud-fraction tendencies have units s⁻¹. The physical inputs are [state increments](../../../../../formulations/openifs/physics/physics_increment.md) and [cloud supersaturation](../../../../../formulations/openifs/physics/cloud_supersaturation.md). The [direct assembly](../../../../../src/openifs/physics/sltend.S) calculates every stage and uses the complete accepted [supersaturation child](cloud_supersatcheck.md).
+Revision 1 freezes the complete SLTEND calculation. A tendency is a change per second. Wind tendencies have units m/s², temperature tendencies have units K/s, and water or cloud-fraction tendencies have units s⁻¹. The physical inputs are [state increments](../../../../../formulations/openifs/physics/physics_increment.md) and [cloud supersaturation](../../../../../formulations/openifs/physics/cloud_supersaturation.md). The [direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/sltend.S) calculates every stage and uses the complete accepted [supersaturation child](cloud_supersatcheck.md).
 
 ## Save And Average Rates
 

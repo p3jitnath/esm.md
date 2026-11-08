@@ -1,6 +1,6 @@
 # Runtime Model Time And Forcing Contract
 
-Revision 1 records the runtime UPDTIM interface and its optional daily boundary update. UPDTIM advances the model clock and selects solar, gas, ozone, aerosol and surface updates. The original source is `arpifs/utility/updtim.F90`. The [assembly entry](../../../../../src/openifs/physics/runtime_model_time_and_forcing.S) preserves the existing ordered arithmetic. This record accepts the changed logical decisions only. It does not accept the complete runtime parent or forecast.
+Revision 1 records the runtime UPDTIM interface and its optional daily boundary update. UPDTIM advances the model clock and selects solar, gas, ozone, aerosol and surface updates. The original source is `arpifs/utility/updtim.F90`. The [assembly entry](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/runtime_model_time_and_forcing.S) preserves the existing ordered arithmetic. This record accepts the changed logical decisions only. It does not accept the complete runtime parent or forecast.
 
 ## Interface And Bounds
 

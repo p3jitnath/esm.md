@@ -1,6 +1,6 @@
 # Greenhouse-Gas Lookup Contract
 
-[The direct lookup](../../../../../src/openifs/physics/greenhouse_timeseries.S) implements [Greenhouse-Gas Time Series](../../../../../formulations/openifs/physics/greenhouse_timeseries.md), revision 1, equations G1–G2. It replaces the complete queued `yomghgtimeseries::get_ghg_concentrations` interior-date body. The immediate caller is UPDRGAS, which calls this lookup before converting its seven volume ratios into mass ratios.
+[The direct lookup](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/greenhouse_timeseries.S) implements [Greenhouse-Gas Time Series](../../../../../formulations/openifs/physics/greenhouse_timeseries.md), revision 1, equations G1–G2. It replaces the complete queued `yomghgtimeseries::get_ghg_concentrations` interior-date body. The immediate caller is UPDRGAS, which calls this lookup before converting its seven volume ratios into mass ratios.
 
 ## Inputs and Source Domain
 

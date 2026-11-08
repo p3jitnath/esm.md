@@ -1,6 +1,6 @@
 # SURFRAD_LAYER Contract
 
-The [physical note](../../../../../formulations/openifs/surface/surface_radiation_inputs.md) gives the wind, calendar and sea-ice inputs. The direct [assembly](../../../../../src/openifs/surface/surfrad_layer.S) contains the complete 156-line arpifs/phys_ec/surfrad_layer.F90 operation and its closed numerical children.
+The [physical note](../../../../../formulations/openifs/surface/surface_radiation_inputs.md) gives the wind, calendar and sea-ice inputs. The direct [assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/surfrad_layer.S) contains the complete 156-line arpifs/phys_ec/surfrad_layer.F90 operation and its closed numerical children.
 
 ## Complete operation
 

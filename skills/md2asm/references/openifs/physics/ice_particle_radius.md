@@ -1,6 +1,6 @@
 # Ice Particle Radius Contract
 
-The [physical input](../../../../../formulations/openifs/physics/ice_particle_radius.md) is revision 1.0. The complete direct entry is [ice_effective_radius.S](../../../../../src/openifs/physics/ice_effective_radius.S), which replaces the original queued name `ICE_EFFECTIVE_RADIUS`. The original source is `arpifs/phys_radi/ice_effective_radius.F90`. No driver supplies a numerical stage.
+The [physical input](../../../../../formulations/openifs/physics/ice_particle_radius.md) is revision 1.0. The complete direct entry is [ice_effective_radius.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/ice_effective_radius.S), which replaces the original queued name `ICE_EFFECTIVE_RADIUS`. The original source is `arpifs/phys_radi/ice_effective_radius.F90`. No driver supplies a numerical stage.
 
 ## Supported Calculation
 
@@ -19,7 +19,7 @@ The scalar power calls use the accepted private original-compatible POWER primit
 
 ## Complete Latitude Domain
 
-The latitude-dependent option accepts every finite FP64 sine of latitude from −1 to 1, including signed zero and the two poles. It calls the accepted original-rounding ASIN primitive, then passes that rounded result to the accepted original-rounding COS primitive. It then subtracts 20 from RMINICE, multiplies by the cosine and adds 20, with a separate rounding after each operation. This preserves the source calculation instead of using a square-root identity. The ASIN result is within the COS primitive's accepted range. These calls use [asin_original_rounding.S](../../../../../src/openifs/support/asin_original_rounding.S) and [sin_cos_original_rounding.S](../../../../../src/openifs/support/sin_cos_original_rounding.S).
+The latitude-dependent option accepts every finite FP64 sine of latitude from −1 to 1, including signed zero and the two poles. It calls the accepted original-rounding ASIN primitive, then passes that rounded result to the accepted original-rounding COS primitive. It then subtracts 20 from RMINICE, multiplies by the cosine and adds 20, with a separate rounding after each operation. This preserves the source calculation instead of using a square-root identity. The ASIN result is within the COS primitive's accepted range. These calls use [asin_original_rounding.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/support/asin_original_rounding.S) and [sin_cos_original_rounding.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/support/sin_cos_original_rounding.S).
 
 An integer check of the input bits rejects a non-finite sine or a magnitude greater than one. The routine computes and checks every selected minimum diameter before writing any output radius. The constant-minimum branch does not consume latitude, and the other options retain their existing input rules.
 

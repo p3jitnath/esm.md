@@ -1,6 +1,6 @@
 # SURFRAD Wrapper Contract
 
-The [surface-radiation note](../../../../../formulations/openifs/surface/surface_radiation.md) explains the physical fields. The direct [assembly](../../../../../src/openifs/surface/surfrad.S) implements the complete 36-address surf/external/surfrad.F90 wrapper and calls the accepted complete [SURFRAD_CTL calculation](surfrad_ctl.md). A wrapper maps a model's stored fields to a calculation's arguments without supplying an omitted physical stage.
+The [surface-radiation note](../../../../../formulations/openifs/surface/surface_radiation.md) explains the physical fields. The direct [assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/surfrad.S) implements the complete 36-address surf/external/surfrad.F90 wrapper and calls the accepted complete [SURFRAD_CTL calculation](surfrad_ctl.md). A wrapper maps a model's stored fields to a calculation's arguments without supplying an omitted physical stage.
 
 ## Inputs and complete calculation
 

@@ -1,6 +1,6 @@
 # OpenIFS Latitude Parity Contract
 
-Contract revision 1.0 covers complete PRFI2B from local OpenIFS 48.1.1 and ectrans. It implements [even and odd latitude components](../../../../../formulations/openifs/dynamics/latitude_parity.md), revision 1.0, in [direct assembly](../../../../../src/openifs/dynamics/latitude_parity.S).
+Contract revision 1.0 covers complete PRFI2B from local OpenIFS 48.1.1 and ectrans. It implements [even and odd latitude components](../../../../../formulations/openifs/dynamics/latitude_parity.md), revision 1.0, in [direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/dynamics/latitude_parity.S).
 
 ## Complete Packing
 

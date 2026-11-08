@@ -364,7 +364,7 @@ The first study concerns this positive-depth, periodic component and this binary
 
 ## 13. Portable Fortran CPU implementation
 
-The [Fortran solver](../../../src/sw/shallow_water_solver.f90) implements the unchanged revision 1.0 physics through D03, D04 and T01. It uses runtime dimensions, so one compiled library handles the admitted grids without recompilation. The earlier [assembly source](../../../src/sw/solver.S) remains available with its historical evidence.
+The [Fortran solver](../../../src/sw/solver.f90) implements the unchanged revision 1.0 physics through D03, D04 and T01. It uses runtime dimensions, so one compiled library handles the admitted grids without recompilation. The earlier [assembly source](../../../src/sw/solver.S) remains available with its historical evidence.
 
 The module `shallow_water` exports `sw_step` and `sw_run` through `ISO_C_BINDING`. Both entries receive `nx` and `ny` as C `int` values, followed by pointers to `q`, `stage`, `out`, `work` and the four parameters. `sw_run` receives a final C `int` value for the step count. Every floating-point element is C `double` in the binary64 format. The caller owns buffers that do not overlap, aligned to at least 8 bytes, with the shapes and units in Section 10. No pointer or allocation survives a call. Dimensions are from 1 to 4096, and a repeated entry accepts from 0 to 1000000 steps.
 

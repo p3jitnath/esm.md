@@ -1,6 +1,6 @@
 # Coupled Surface Flux Accumulation
 
-This direct assembly child implements the numerical update in the original OpenIFS `CUMCOE` routine. It adds the current surface fluxes to persistent totals. A flux is a quantity that crosses a unit area in one second, so multiplication by the time step gives the change in the total for that step. The [assembly source](../../../../../src/openifs/physics/coupled_surface_flux_accumulation.S) contains the complete calculation and calls no external routine.
+This direct assembly child implements the numerical update in the original OpenIFS `CUMCOE` routine. It adds the current surface fluxes to persistent totals. A flux is a quantity that crosses a unit area in one second, so multiplication by the time step gives the change in the total for that step. The [assembly source](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/coupled_surface_flux_accumulation.S) contains the complete calculation and calls no external routine.
 
 ## Physical Update
 

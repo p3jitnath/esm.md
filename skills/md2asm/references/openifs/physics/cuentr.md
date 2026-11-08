@@ -1,6 +1,6 @@
 # CUENTR Contract
 
-[Physics input](../../../../../formulations/openifs/physics/plume_air_exchange.md), revision 1. The canonical calculation is the complete original `cuentr` in `arpifs/phys_ec/cuentr.F90`. [Direct assembly](../../../../../src/openifs/physics/cuentr.S) includes the stochastic perturbation branch.
+[Physics input](../../../../../formulations/openifs/physics/plume_air_exchange.md), revision 1. The canonical calculation is the complete original `cuentr` in `arpifs/phys_ec/cuentr.F90`. [Direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/cuentr.S) includes the stochastic perturbation branch.
 
 ## Domain and Interface
 

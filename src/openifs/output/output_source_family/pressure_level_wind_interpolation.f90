@@ -1,0 +1,185 @@
+! (C) Copyright1989- ECMWF and Meteo-France. Apache Licence Version2.0.
+!> Own quadratic/top wind interpolation and the500/925hPa CAPE-shear path.
+!! Ordinary arrays use column,level order; half levels retain lower bound0.
+!! Pressure is Pa, wind is m/s, and CAPE is J/kg. Only active outputs change.
+!! Both wind extrapolation controls are authentic readonly caller inputs.
+!! Existing native PPINIT,PPFLEV and PPINTP supply their complete calculations.
+module forecast_pressure_level_wind_interpolation
+  use iso_fortran_env, only: JPIM => int32, JPRB => real64, int32, real64
+  use yomhook, only: lhook, dr_hook, jphook
+  use forecast_pressure_level_interpolation, only: ppinit, ppflev
+  use forecast_runtime_pressure_interpolation, only: ppintp
+  use forecast_pressure_level_interpolation, only: ppflev_two_targets => ppflev
+  use forecast_runtime_pressure_interpolation, only: ppintp_log_pressure => ppintp
+  implicit none
+  private
+  integer(int32), parameter :: JPNPPM = 4
+  public :: capeshear, ppuv, ppitpq, ppflev_two_targets, ppintp_log_pressure
+  public :: ppitpq_quadratic, ppitpq_selected_identity
+  interface ppitpq_quadratic
+    module procedure ppitpq
+  end interface
+  interface ppitpq_selected_identity
+    module procedure ppitpq
+  end interface
+contains
+  subroutine ppitpq(KPROMA, KSTART, KPROF, KFLEV, KLEVP, KLOLEV, KPPM, KSL, PRPRES, PRXP, PFLD, PZPP, status)
+    INTEGER(KIND=JPIM), INTENT(IN) :: KPROMA
+    INTEGER(KIND=JPIM), INTENT(IN) :: KFLEV
+    INTEGER(KIND=JPIM), INTENT(IN) :: KLEVP
+    INTEGER(KIND=JPIM), INTENT(IN) :: KSTART
+    INTEGER(KIND=JPIM), INTENT(IN) :: KPROF
+    INTEGER(KIND=JPIM), INTENT(IN) :: KLOLEV
+    INTEGER(KIND=JPIM), INTENT(IN) :: KSL
+    INTEGER(KIND=JPIM), INTENT(IN) :: KPPM
+    REAL(KIND=JPRB), INTENT(IN) :: PRPRES(KPROMA, KLEVP)
+    REAL(KIND=JPRB), INTENT(IN) :: PRXP(KPROMA, 0:KFLEV, KPPM)
+    REAL(KIND=JPRB), INTENT(IN) :: PFLD(KPROMA, 0:KFLEV)
+    REAL(KIND=JPRB), INTENT(INOUT) :: PZPP(KPROMA, KLEVP)
+    INTEGER(KIND=JPIM) :: I1, I2, I3, JL, JLEV
+    REAL(KIND=JPRB) :: ZDEN1, ZDEN2
+    REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
+    integer(int32), intent(out) :: status
+    status = 2
+    if (KPROMA < 1 .or. KPROMA > 24 .or. KFLEV < 3 .or. KFLEV > 256 .or. KPPM /= 4) return
+    if (KSTART < 1 .or. KPROF > KPROMA .or. KPROF < KSTART - 1) return
+    IF (LHOOK) CALL DR_HOOK('PPITPQ', 0, ZHOOK_HANDLE)
+    IF (KSL == 1 .OR. KSL == 3) THEN
+      I1 = 0
+      I2 = 1
+      I3 = 2
+    ELSE
+      I1 = 1
+      I2 = 2
+      I3 = 3
+    END IF
+    DO JLEV = KLOLEV, KLEVP
+    DO JL = KSTART, KPROF
+    IF (PRPRES(JL, JLEV) < PRXP(JL, I2, KSL)) THEN
+      ZDEN1 = (PRXP(JL, I2, KSL) - PRXP(JL, I1, KSL))*(PRXP(JL, I1, KSL) - PRXP(JL, I3, KSL))
+      ZDEN2 = (PRXP(JL, I2, KSL) - PRXP(JL, I3, KSL))*(PRXP(JL, I1, KSL) - PRXP(JL, I3, KSL))
+PZPP(JL,JLEV)=PFLD(JL,I2) +(PFLD(JL,I2)-PFLD(JL,I1)) *(PRPRES(JL,JLEV)-PRXP(JL,I2,KSL)) *(PRPRES(JL,JLEV)-PRXP(JL,I3,KSL)) /ZDEN1  -(PFLD(JL,I2)-PFLD(JL,I3)) *(PRPRES(JL,JLEV)-PRXP(JL,I1,KSL)) *(PRPRES(JL,JLEV)-PRXP(JL,I2,KSL)) /ZDEN2
+    END IF
+    END DO
+    END DO
+    IF (LHOOK) CALL DR_HOOK('PPITPQ', 1, ZHOOK_HANDLE)
+    status = 0
+  end subroutine
+subroutine ppuv(KPROMA,KSTART,KPROF,KFLEV,KLEVP,KLOLEV,KPPM,KLEVB, LDBELO,LDBLOW,PRPRES,PRXP,PRXPD, PUF,PVF,PUPP,PVPP,constant_top,quadratic_top,status)
+    INTEGER(KIND=JPIM), INTENT(IN) :: KPROMA
+    INTEGER(KIND=JPIM), INTENT(IN) :: KFLEV
+    INTEGER(KIND=JPIM), INTENT(IN) :: KLEVP
+    INTEGER(KIND=JPIM), INTENT(IN) :: KSTART
+    INTEGER(KIND=JPIM), INTENT(IN) :: KPROF
+    INTEGER(KIND=JPIM), INTENT(IN) :: KLOLEV
+    INTEGER(KIND=JPIM), INTENT(IN) :: KPPM
+    INTEGER(KIND=JPIM), INTENT(IN) :: KLEVB(KPROMA, KLEVP, KPPM)
+    LOGICAL, INTENT(IN) :: LDBELO(KPROMA, KLEVP)
+    LOGICAL, INTENT(IN) :: LDBLOW(KLEVP)
+    REAL(KIND=JPRB), INTENT(IN) :: PRPRES(KPROMA, KLEVP)
+    REAL(KIND=JPRB), INTENT(IN) :: PRXP(KPROMA, 0:KFLEV, KPPM)
+    REAL(KIND=JPRB), INTENT(IN) :: PRXPD(KPROMA, 0:KFLEV, KPPM)
+    REAL(KIND=JPRB), INTENT(IN) :: PUF(KPROMA, KFLEV)
+    REAL(KIND=JPRB), INTENT(IN) :: PVF(KPROMA, KFLEV)
+    REAL(KIND=JPRB), INTENT(INOUT) :: PUPP(KPROMA, KLEVP)
+    REAL(KIND=JPRB), INTENT(INOUT) :: PVPP(KPROMA, KLEVP)
+    INTEGER(KIND=JPIM) :: ISLCT, JL, JLEVP
+    REAL(KIND=JPRB) :: ZUF(KPROMA, 0:KFLEV), ZVF(KPROMA, 0:KFLEV)
+    REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
+    integer(int32), intent(out) :: status
+    logical, intent(in) :: constant_top, quadratic_top
+    status = 2
+    if (KPROMA < 1 .or. KPROMA > 24 .or. KFLEV < 3 .or. KFLEV > 256 .or. KPPM /= 4) return
+    if (KSTART < 1 .or. KPROF > KPROMA .or. KPROF < KSTART - 1) return
+    IF (LHOOK) CALL DR_HOOK('PPUV', 0, ZHOOK_HANDLE)
+    ISLCT = 4
+    ZUF(KSTART:KPROF, 1:KFLEV) = PUF(KSTART:KPROF, 1:KFLEV)
+    ZVF(KSTART:KPROF, 1:KFLEV) = PVF(KSTART:KPROF, 1:KFLEV)
+    IF (constant_top .OR. KFLEV == 1) THEN
+    DO JL = KSTART, KPROF
+      ZUF(JL, 0) = PUF(JL, 1)
+      ZVF(JL, 0) = PVF(JL, 1)
+    END DO
+    ELSE
+    DO JL = KSTART, KPROF
+      ZUF(JL, 0) = PUF(JL, 2) + PRXP(JL, 2, ISLCT)*PRXPD(JL, 1, ISLCT)*(PUF(JL, 1) - PUF(JL, 2))
+      ZVF(JL, 0) = PVF(JL, 2) + PRXP(JL, 2, ISLCT)*PRXPD(JL, 1, ISLCT)*(PVF(JL, 1) - PVF(JL, 2))
+    END DO
+    END IF
+CALL PPINTP(KPROMA, KSTART, KPROF, KFLEV, KLEVP, KLOLEV, KPPM, KLEVB, ISLCT, LDBELO, LDBLOW, PRPRES, PRXP, PRXPD, ZUF, PUPP, status)
+    if (status /= 0) return
+CALL PPINTP(KPROMA, KSTART, KPROF, KFLEV, KLEVP, KLOLEV, KPPM, KLEVB, ISLCT, LDBELO, LDBLOW, PRPRES, PRXP, PRXPD, ZVF, PVPP, status)
+    if (status /= 0) return
+    DO JLEVP = KLOLEV, KLEVP
+    IF (LDBLOW(JLEVP)) THEN
+    DO JL = KSTART, KPROF
+    IF (LDBELO(JL, JLEVP)) THEN
+      PUPP(JL, JLEVP) = ZUF(JL, KFLEV)
+      PVPP(JL, JLEVP) = ZVF(JL, KFLEV)
+    END IF
+    END DO
+    END IF
+    END DO
+    IF (quadratic_top) THEN
+      CALL PPITPQ(KPROMA, KSTART, KPROF, KFLEV, KLEVP, KLOLEV, KPPM, ISLCT, PRPRES, PRXP, ZUF, PUPP, status)
+      if (status /= 0) return
+      CALL PPITPQ(KPROMA, KSTART, KPROF, KFLEV, KLEVP, KLOLEV, KPPM, ISLCT, PRPRES, PRXP, ZVF, PVPP, status)
+      if (status /= 0) return
+    END IF
+    IF (LHOOK) CALL DR_HOOK('PPUV', 1, ZHOOK_HANDLE)
+    status = 0
+  end subroutine
+  integer(int32) function capeshear(KPROMA,KST,KND,KFLEVG, PRESH,PRESF,PU,PV,PCAPE, PCAPES,constant_top,quadratic_top)result(status)
+    INTEGER(KIND=JPIM), INTENT(IN) :: KPROMA
+    INTEGER(KIND=JPIM), INTENT(IN) :: KST
+    INTEGER(KIND=JPIM), INTENT(IN) :: KND
+    INTEGER(KIND=JPIM), INTENT(IN) :: KFLEVG
+    REAL(KIND=JPRB), INTENT(IN) :: PRESH(KPROMA, 0:KFLEVG)
+    REAL(KIND=JPRB), INTENT(IN) :: PRESF(KPROMA, KFLEVG)
+    REAL(KIND=JPRB), INTENT(IN) :: PU(KPROMA, KFLEVG)
+    REAL(KIND=JPRB), INTENT(IN) :: PV(KPROMA, KFLEVG)
+    REAL(KIND=JPRB), INTENT(IN) :: PCAPE(KPROMA)
+    REAL(KIND=JPRB), INTENT(INOUT) :: PCAPES(KPROMA)
+    INTEGER(KIND=JPIM), PARAMETER :: JPOPLEV = 2, JPLEV500 = 1, JPLEV925 = 2
+    REAL(KIND=JPRB) :: ZPRES(KPROMA, JPOPLEV), ZLNPRES(KPROMA, JPOPLEV)
+    REAL(KIND=JPRB) :: ZPXPD(KPROMA, 0:KFLEVG, JPNPPM)
+    REAL(KIND=JPRB) :: ZPXP(KPROMA, 0:KFLEVG, JPNPPM)
+    REAL(KIND=JPRB) :: ZUDIFF(KPROMA), ZVDIFF(KPROMA)
+    REAL(KIND=JPRB) :: ZPPU(KPROMA, JPOPLEV), ZPPV(KPROMA, JPOPLEV)
+    REAL(KIND=JPRB) :: ZPXLEV(JPOPLEV)
+    REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
+    INTEGER(KIND=JPIM) :: ILOLEV
+    INTEGER(KIND=JPIM) :: JLEV, JLEVP, JROF
+    INTEGER(KIND=JPIM) :: ILEVB(KPROMA, JPOPLEV, JPNPPM)
+    LOGICAL :: LLBELO(KPROMA, JPOPLEV), LLBLOW(JPOPLEV)
+    LOGICAL :: LLBELS(KPROMA, JPOPLEV), LLBLES(JPOPLEV)
+    integer(int32) :: status_dummy
+    logical, intent(in) :: constant_top, quadratic_top
+    status = 2
+    if (KPROMA < 1 .or. KPROMA > 24 .or. KFLEVG < 3 .or. KFLEVG > 256) return
+    if (KST < 1 .or. KND > KPROMA .or. KND < KST - 1) return
+    IF (LHOOK) CALL DR_HOOK('CAPESHEAR', 0, ZHOOK_HANDLE)
+    ILOLEV = 1
+    ZPXLEV(JPLEV500) = 50000._JPRB
+    ZPXLEV(JPLEV925) = 92500._JPRB
+    DO JLEVP = 1, JPOPLEV
+    DO JROF = KST, KND
+      ZPRES(JROF, JLEVP) = ZPXLEV(JLEVP)
+      ZLNPRES(JROF, JLEVP) = LOG(ZPXLEV(JLEVP))
+    END DO
+    END DO
+    CALL PPINIT(KPROMA, KST, KND, KFLEVG, JPNPPM, PRESH, PRESF, ZPXP, ZPXPD, status)
+    if (status /= 0) return
+    CALL PPFLEV(KPROMA, KST, KND, KFLEVG, JPOPLEV, JPNPPM, ZPRES, PRESH, PRESF, ILEVB, LLBELO, LLBELS, LLBLOW, LLBLES, status)
+    if (status /= 0) return
+CALL PPUV(KPROMA,KST,KND,KFLEVG,JPOPLEV,ILOLEV,JPNPPM,ILEVB,LLBELO,LLBLOW, ZLNPRES,ZPXP,ZPXPD,PU,PV,ZPPU,ZPPV,constant_top,quadratic_top,status)
+    if (status /= 0) return
+    DO JROF = KST, KND
+      ZUDIFF(JROF) = ZPPU(JROF, JPLEV500) - ZPPU(JROF, JPLEV925)
+      ZVDIFF(JROF) = ZPPV(JROF, JPLEV500) - ZPPV(JROF, JPLEV925)
+      PCAPES(JROF) = SQRT(PCAPE(JROF)*(ZUDIFF(JROF)*ZUDIFF(JROF) + ZVDIFF(JROF)*ZVDIFF(JROF)))
+    END DO
+    IF (LHOOK) CALL DR_HOOK('CAPESHEAR', 1, ZHOOK_HANDLE)
+    status = 0
+  end function
+end module

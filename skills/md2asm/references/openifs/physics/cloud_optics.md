@@ -48,7 +48,7 @@ Compare every declared output byte and preserve all input, descriptor, object an
 
 The small critical verifier covers clear, liquid-only, ice-only and mixed cells, homogeneous and fractional clouds, both shortwave scaling choices, both longwave scattering choices, the Fu compatibility switch, empty and cropped ranges, subnormal water paths, protected buffers and saved registers. Live forecast acceptance is recorded separately.
 
-The direct source is [cloud_optics.S](../../../../../src/openifs/physics/cloud_optics.S). Its fixed frame is 496 bytes, with twelve band arrays in aligned private storage. It preserves `x19` through `x29` and the link register, uses only caller-saved FP registers, and leaves FPCR unchanged.
+The direct source is [cloud_optics.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/cloud_optics.S). Its fixed frame is 496 bytes, with twelve band arrays in aligned private storage. It preserves `x19` through `x29` and the link register, uses only caller-saved FP registers, and leaves FPCR unchanged.
 
 The native critical check passed 1,056 protected placements and 82,432 independent optical relations. It compared 1,931,264 source and native output bytes with zero differences. Input bytes, buffer bounds, saved registers and FPCR passed. The live relay reuses this independent mixture proof and checks complete output bytes, clear-cell zeros and physical optical limits during the forecast. Its selected model codes are checked before every call.
 

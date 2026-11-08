@@ -1,6 +1,6 @@
 # Surface exchange coefficients
 
-Revision 1. The [physical input](../../../../../formulations/openifs/surface/surface_exchange.md) describes transfer between the surface and the lowest atmosphere layer. The [direct AArch64 source](../../../../../src/openifs/surface/surface_exchange.S) implements every calculation in the scalar standard-math branch of `VEXCS_MOD::VEXCS`.
+Revision 1. The [physical input](../../../../../formulations/openifs/surface/surface_exchange.md) describes transfer between the surface and the lowest atmosphere layer. The [direct AArch64 source](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/surface_exchange.S) implements every calculation in the scalar standard-math branch of `VEXCS_MOD::VEXCS`.
 
 ## Physical inputs and profiles
 

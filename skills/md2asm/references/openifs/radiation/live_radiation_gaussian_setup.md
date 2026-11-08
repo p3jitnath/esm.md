@@ -1,6 +1,6 @@
 # Live Radiation Transform and Gaussian Setup
 
-The [assembly entry](../../../../../src/openifs/radiation/live_radiation_gaussian_setup.S) joins radiation transform storage and Gaussian fields in one live call. It follows SUECRAD statements 1503 through 1560: SETUP_TRANS, nine original allocations, TRANS_INQ, ordinary Gaussian fields and four added polar rows. An owner is a buffer whose creator must later release it. The new parent contains integer checks and calls; both accepted child objects remain unchanged.
+The [assembly entry](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/radiation/live_radiation_gaussian_setup.S) joins radiation transform storage and Gaussian fields in one live call. It follows SUECRAD statements 1503 through 1560: SETUP_TRANS, nine original allocations, TRANS_INQ, ordinary Gaussian fields and four added polar rows. An owner is a buffer whose creator must later release it. The new parent contains integer checks and calls; both accepted child objects remain unchanged.
 
 The Gaussian sine and cosine values are dimensionless, and latitude angles are in radians. The [storage contract](radiation_transform_storage.md) defines the nine owners and their descriptor layouts. The [preallocated Gaussian contract](preallocated_radiation_gaussian_fields.md) defines the ordered floating-point operations. The verification driver supplies live inputs and observes outputs, without supplying a numerical stage.
 

@@ -1,6 +1,6 @@
 # LATTES Surface-Pressure Transport Contract
 
-The input is [surface-pressure transport](../../../../../formulations/openifs/dynamics/surface_pressure_transport.md). The original entry is `LATTES` in `arpifs/adiab/lattes.F90`. The direct entry is `md2asm_lattes_7240564` in [lattes.S](../../../../../src/openifs/dynamics/lattes.S). It prepares the continuity terms before interpolation.
+The input is [surface-pressure transport](../../../../../formulations/openifs/dynamics/surface_pressure_transport.md). The original entry is `LATTES` in `arpifs/adiab/lattes.F90`. The direct entry is `md2asm_lattes_7240564` in [lattes.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/dynamics/lattes.S). It prepares the continuity terms before interpolation.
 
 ## Accepted Domain
 

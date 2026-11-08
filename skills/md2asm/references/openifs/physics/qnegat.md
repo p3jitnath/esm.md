@@ -30,7 +30,7 @@ Independently perform the pressure-weighted water transfers at 100-digit precisi
 
 Use a compact corpus for no shortage, a top shortage, several transfers, bottom addition, a threshold tie, signed zeros, unequal pressure thicknesses, cropped and empty columns, one layer and a complete 137-layer column. Reuse the accepted ABI observer. Live forecast acceptance is separate from critical acceptance.
 
-The direct source is [qnegat.S](../../../../../src/openifs/physics/qnegat.S).
+The direct source is [qnegat.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/qnegat.S).
 
 ## Critical Results
 

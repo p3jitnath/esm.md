@@ -1,6 +1,6 @@
 # WENO Departure-Point Contract
 
-The physical input is [departure_point_weno.md](../../../../../formulations/openifs/dynamics/departure_point_weno.md), revision 1. The queued name is `laitri_weno` from `arpifs/interpol/laitri_weno.F90`. Emit the complete calculation directly in [laitri_weno.S](../../../../../src/openifs/dynamics/laitri_weno.S).
+The physical input is [departure_point_weno.md](../../../../../formulations/openifs/dynamics/departure_point_weno.md), revision 1. The queued name is `laitri_weno` from `arpifs/interpol/laitri_weno.F90`. Emit the complete calculation directly in [laitri_weno.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/dynamics/laitri_weno.S).
 
 ## Calculation and Scientific Domain
 

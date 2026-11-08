@@ -1,4 +1,0 @@
-/* Contract: skills/md2asm/references/openifs/surface/runtime_surface_turbulence.md. */
-#define MD2ASM_SURFACE_EXCHANGE_CONTROLLER_ENTRY md2asm_surface_exchange_controller_original_sea_7358525
-#define MD2ASM_SURFACE_SATURATION_ENTRY md2asm_vsurf_original_sea_derivative_7358525
-#include "surface_exchange_controller.S"

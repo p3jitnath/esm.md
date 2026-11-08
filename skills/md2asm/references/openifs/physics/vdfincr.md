@@ -1,6 +1,6 @@
 # Vertical Diffusion Increment Contract
 
-Revision 1 implements `VDFINCR` from [the physics note](../../../../../formulations/openifs/physics/vertical_diffusion_increments.md), revision 1. The original is `ifs-source/arpifs/phys_ec/vdfincr.F90`, SHA-256 `aa5eee6852c260ac0618bdd1be550397d5b5662ea2f568a3ff6ff6645cb81d6f`. The [direct assembly](../../../../../src/openifs/physics/vdfincr.S) supplies every tendency update, six momentum fluxes, two column dissipation integrals and two bottom flux copies.
+Revision 1 implements `VDFINCR` from [the physics note](../../../../../formulations/openifs/physics/vertical_diffusion_increments.md), revision 1. The original is `ifs-source/arpifs/phys_ec/vdfincr.F90`, SHA-256 `aa5eee6852c260ac0618bdd1be550397d5b5662ea2f568a3ff6ff6645cb81d6f`. The [direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/vdfincr.S) supplies every tendency update, six momentum fluxes, two column dissipation integrals and two bottom flux copies.
 
 ## Domain And Ordered Arithmetic
 

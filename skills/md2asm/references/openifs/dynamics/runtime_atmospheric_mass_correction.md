@@ -1,6 +1,6 @@
 # Runtime Atmospheric Mass Correction
 
-The [assembly](../../../../../src/openifs/dynamics/runtime_atmospheric_mass_correction.S) implements the selected CORMASSDRY route from `arpifs/climate/cormassdry.F90`. It converts surface log pressure to grid-point pressure, applies the source map scaling and obtains a global weighted mean. It then updates the reference mean and logarithmic correction used by the model. Pressure is in pascals and the logarithmic ratio has no units.
+The [assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/dynamics/runtime_atmospheric_mass_correction.S) implements the selected CORMASSDRY route from `arpifs/climate/cormassdry.F90`. It converts surface log pressure to grid-point pressure, applies the source map scaling and obtains a global weighted mean. It then updates the reference mean and logarithmic correction used by the model. Pressure is in pascals and the logarithmic ratio has no units.
 
 ## Interface And Calculation
 

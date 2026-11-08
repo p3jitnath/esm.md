@@ -1,6 +1,6 @@
 # Complete Multilayer Snow Driver
 
-Revision 2 retains the complete coupled-forecast body of `SRFSN_DRIVER_MOD::SRFSN_DRIVER` from `surf/module/srfsn_driver_mod.F90`. The [physical input](../../../../../formulations/openifs/surface/snow_surface_update.md) gives the water and heat balances. The direct body is [multilayer_snow_driver.S](../../../../../src/openifs/surface/multilayer_snow_driver.S).
+Revision 2 retains the complete coupled-forecast body of `SRFSN_DRIVER_MOD::SRFSN_DRIVER` from `surf/module/srfsn_driver_mod.F90`. The [physical input](../../../../../formulations/openifs/surface/snow_surface_update.md) gives the water and heat balances. The direct body is [multilayer_snow_driver.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/multilayer_snow_driver.S).
 
 ## Complete Update
 

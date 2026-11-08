@@ -1,6 +1,6 @@
 # Weather State Increment Contract
 
-Revision 1 implements `STATE_INCREMENT` from [the state increment formulation](../../../../../formulations/openifs/physics/state_increments.md), revision 1. The original source is `ifs-source/arpifs/phys_ec/state_increment.F90`, SHA-256 `84f4deb7838b5dd46b2d8f5cbb7f42c70fdf19f270dda56dd3f07afb65573e49`. The [direct assembly](../../../../../src/openifs/physics/state_increment.S) must supply every enabled field addition, optional input and cloud component update.
+Revision 1 implements `STATE_INCREMENT` from [the state increment formulation](../../../../../formulations/openifs/physics/state_increments.md), revision 1. The original source is `ifs-source/arpifs/phys_ec/state_increment.F90`, SHA-256 `84f4deb7838b5dd46b2d8f5cbb7f42c70fdf19f270dda56dd3f07afb65573e49`. The [direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/state_increment.S) must supply every enabled field addition, optional input and cloud component update.
 
 ## Ordered Update And Domain
 

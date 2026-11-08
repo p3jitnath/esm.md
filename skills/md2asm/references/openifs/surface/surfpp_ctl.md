@@ -1,6 +1,6 @@
 # SURFPP_CTL Solver Contract
 
-Revision 2. This contract maps the [surface weather formulation](../../../../../formulations/openifs/surface/surface_weather_elements.md) to [direct AArch64 assembly](../../../../../src/openifs/surface/surfpp_ctl.S). The original complete routine is `surfpp_ctl_mod::surfpp_ctl` in `surf/module/surfpp_ctl_mod.F90`.
+Revision 2. This contract maps the [surface weather formulation](../../../../../formulations/openifs/surface/surface_weather_elements.md) to [direct AArch64 assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/surfpp_ctl.S). The original complete routine is `surfpp_ctl_mod::surfpp_ctl` in `surf/module/surfpp_ctl_mod.F90`.
 
 ## Method and Domain
 
@@ -17,8 +17,8 @@ The caller supplies finite physical inputs, positive pressure, skin temperatures
 | Flux means and zero-fraction tiles | Ordered parent sums preserve the old tile fluxes before any replacement |
 | Optional tile diagnostics | The complete contained `COMPUTE_DDH` stage writes sensible, latent, ground and water fields 8–11 |
 | Snow heat and evaporation | The parent retains forest-snow splitting and the optional lake contribution |
-| Wind, temperature and dewpoint | Complete private [SPPCFL](../../../../../src/openifs/surface/sppcfl.S) retains stable, unstable and neutral profile branches |
-| Gust speed | Complete private [SPPGUST](../../../../../src/openifs/surface/sppgust.S) uses stress-derived friction velocity |
+| Wind, temperature and dewpoint | Complete private [SPPCFL](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/sppcfl.S) retains stable, unstable and neutral profile branches |
+| Gust speed | Complete private [SPPGUST](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/sppgust.S) uses stress-derived friction velocity |
 | Ocean skin | The unchanged complete [VOSKIN](ocean_skin_temperature.md) body retains every configured mode |
 | Final skin state and rate | Ordered tile means update the returned temperature and existing rate |
 

@@ -2,7 +2,7 @@
 
 LAVABO prepares work values at the two extra layers just outside the model column. An extra layer stores a boundary value for interpolation, which estimates values between stored points. This operation changes work buffers and performs no time update.
 
-Revision 1 follows the [physical formulation](../../../../../formulations/openifs/dynamics/interpolation_boundary_values.md) and [direct assembly](../../../../../src/openifs/dynamics/interpolation_boundary_values.S). A buffer is a bounded region of memory that stores an array. FP64 stores a floating-point number in 64 bits. Positive zero is the zero representation with all bits clear. An alias is another view of the same memory.
+Revision 1 follows the [physical formulation](../../../../../formulations/openifs/dynamics/interpolation_boundary_values.md) and [direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/dynamics/interpolation_boundary_values.S). A buffer is a bounded region of memory that stores an array. FP64 stores a floating-point number in 64 bits. Positive zero is the zero representation with all bits clear. An alias is another view of the same memory.
 
 For each selected work field $`X`$, let $`L`$ be the number of physical levels, with no physical unit. The reference boundary rule is
 

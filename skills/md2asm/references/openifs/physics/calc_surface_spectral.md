@@ -50,7 +50,7 @@ Canonical output consists of every byte in the seven band and canopy arrays, inc
 
 Independently sum the radiation energy through the band and canopy mappings with 100-digit arithmetic. The absolute comparison bound is `(32+8*sample_count+8*band_count)*2^-52*max(1,sum(abs(sample_flux)))`. Weights that sum to one preserve the total energy apart from this rounding bound. The one critical verifier covers full, nearest and weighted canopy routes, enabled and disabled solvers, clear sky, empty and cropped columns, different column lower bounds, and subnormal inputs. Reuse the accepted child verification instead of repeating its internal tests.
 
-The direct source is [calc_surface_spectral.S](../../../../../src/openifs/physics/calc_surface_spectral.S). It saves `x19` through `x29` and the link register, uses an aligned private stack frame, and calls only the complete direct indexed-sum child. Record a live paired forecast separately before claiming forecast acceptance.
+The direct source is [calc_surface_spectral.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/calc_surface_spectral.S). It saves `x19` through `x29` and the link register, uses an aligned private stack frame, and calls only the complete direct indexed-sum child. Record a live paired forecast separately before claiming forecast acceptance.
 
 ## Accepted Forecast Calls
 

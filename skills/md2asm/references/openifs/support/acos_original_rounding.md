@@ -2,7 +2,7 @@
 
 This contract defines `md2asm_acos_original_rounding`. It converts a finite FP64 cosine $`x\in[-1,1]`$ into an angle in radians. It supports both signed zeros, subnormal inputs and the exact endpoints. The Arm floating-point control register, FPCR, must be zero, which selects nearest-even rounding and gradual underflow. The complete output is the 64-bit word returned in `d0`. The floating-point status register, FPSR, and the error indicator, `errno`, follow the original valid-input route.
 
-The [physical input](../../../../../formulations/openifs/support/inverse_cosine_angle.md) gives the geometry. [Direct assembly](../../../../../src/openifs/support/acos_original_rounding.S) implements the complete declared domain. The method and literal tables come from GNU libc 2.38 at commit `36f2487f13e3540be9ee0fb51876b1da72176d3f`. Its IBM Accurate Mathematical Library source defines short polynomials, centred interpolation tables and a root correction near the endpoints. This derived component uses LGPL-2.1-or-later.
+The [physical input](../../../../../formulations/openifs/support/inverse_cosine_angle.md) gives the geometry. [Direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/support/acos_original_rounding.S) implements the complete declared domain. The method and literal tables come from GNU libc 2.38 at commit `36f2487f13e3540be9ee0fb51876b1da72176d3f`. Its IBM Accurate Mathematical Library source defines short polynomials, centred interpolation tables and a root correction near the endpoints. This derived component uses LGPL-2.1-or-later.
 
 ## Rounding And Constants
 

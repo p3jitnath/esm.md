@@ -2,7 +2,7 @@
 
 Revision 2 reads the first spectral and grid messages from real initial-condition files. GRIB is the weather-file format, and ecCodes is the public C library that decodes it. A regular Gaussian grid has the same number of points in every latitude row. A reduced Gaussian grid can have different row lengths. This component reads their metadata and changes no physical field.
 
-The direct [assembly reader](../../../../../src/openifs/input/initial_model_file_headers.S) follows the selected header reads in `INQUIRE_GRIB` and the metadata assignments in `SUARG`. Production uses only ecCodes and libc. It has no original OpenIFS provider, constructor, module data or model-state packet. Geometry construction, field loading and the forecast remain separate stages.
+The direct [assembly reader](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/input/initial_model_file_headers.S) follows the selected header reads in `INQUIRE_GRIB` and the metadata assignments in `SUARG`. Production uses only ecCodes and libc. It has no original OpenIFS provider, constructor, module data or model-state packet. Geometry construction, field loading and the forecast remain separate stages.
 
 ## Interface and bounds
 

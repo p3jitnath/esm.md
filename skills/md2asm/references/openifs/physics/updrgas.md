@@ -1,6 +1,6 @@
 # Radiation Forcing Update Contract
 
-[UPDRGAS](../../../../../src/openifs/physics/updrgas.S) implements [Radiation Gas and Solar Forcing](../../../../../formulations/openifs/physics/radiation_gas_forcing.md), revision 1, equation U1. It includes the complete numerical GET_YEAR stage and privately binds the complete direct [greenhouse lookup](greenhouse_timeseries.md) and [solar lookup](solar_irradiance.md). GET_YEAR is contained in the original source and appears separately in the audited queue. Its direct two-address stage remains identifiable in this assembly file, with a separate actual-execution counter in the paired build.
+[UPDRGAS](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/updrgas.S) implements [Radiation Gas and Solar Forcing](../../../../../formulations/openifs/physics/radiation_gas_forcing.md), revision 1, equation U1. It includes the complete numerical GET_YEAR stage and privately binds the complete direct [greenhouse lookup](greenhouse_timeseries.md) and [solar lookup](solar_irradiance.md). GET_YEAR is contained in the original source and appears separately in the audited queue. Its direct two-address stage remains identifiable in this assembly file, with a separate actual-execution counter in the paired build.
 
 ## Domain and Numerical Stages
 

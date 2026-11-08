@@ -1,6 +1,6 @@
 # CUDTDQN Numerical Contract
 
-[CUDTDQN assembly](../../../../../src/openifs/physics/cudtdqn.S) implements [Convective Heat and Moisture](../../../../../formulations/openifs/physics/convective_heat_moisture.md), revision 1, equations H1–H3. This entry replaces the original exported routine `cudtdqn_`. It retains every admitted calculation and output bit.
+[CUDTDQN assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/cudtdqn.S) implements [Convective Heat and Moisture](../../../../../formulations/openifs/physics/convective_heat_moisture.md), revision 1, equations H1–H3. This entry replaces the original exported routine `cudtdqn_`. It retains every admitted calculation and output bit.
 
 ## Supported Inputs
 

@@ -1,6 +1,6 @@
 # Longwave Atmospheric Preparation Contract
 
-Revision 1 implements RRTM_SETCOEF_140GP from OpenIFS 48.1.1. Its [physics note](../../../../../formulations/openifs/physics/longwave_atmospheric_inputs.md), revision 1.0, supplies LAI-1 through LAI-3. The [direct body](../../../../../src/openifs/physics/rrtm_setcoef_140gp.S) must calculate every gas amount, ratio, continuum factor and table index. A driver supplies no missing numerical stage.
+Revision 1 implements RRTM_SETCOEF_140GP from OpenIFS 48.1.1. Its [physics note](../../../../../formulations/openifs/physics/longwave_atmospheric_inputs.md), revision 1.0, supplies LAI-1 through LAI-3. The [direct body](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/rrtm_setcoef_140gp.S) must calculate every gas amount, ratio, continuum factor and table index. A driver supplies no missing numerical stage.
 
 ## Method And Ordered Arithmetic
 

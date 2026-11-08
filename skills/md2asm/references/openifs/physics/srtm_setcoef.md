@@ -1,6 +1,6 @@
 # Shortwave Atmospheric Preparation Contract
 
-Revision 1 implements SRTM_SETCOEF from OpenIFS 48.1.1. Its [physics note](../../../../../formulations/openifs/physics/shortwave_atmospheric_inputs.md), revision 1.0, supplies SAI-1 through SAI-3. The [direct assembly](../../../../../src/openifs/physics/srtm_setcoef.S) must calculate every gas amount, index and interpolation factor. A local driver supplies no missing numerical stage.
+Revision 1 implements SRTM_SETCOEF from OpenIFS 48.1.1. Its [physics note](../../../../../formulations/openifs/physics/shortwave_atmospheric_inputs.md), revision 1.0, supplies SAI-1 through SAI-3. The [direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/srtm_setcoef.S) must calculate every gas amount, index and interpolation factor. A local driver supplies no missing numerical stage.
 
 ## Ordered Arithmetic
 

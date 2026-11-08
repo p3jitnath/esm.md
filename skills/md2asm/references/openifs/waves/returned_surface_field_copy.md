@@ -10,4 +10,4 @@ Return 0 after copying or 2 before mutation on invalid capacities, maps, shape o
 
 Four original/native comparisons pass for the actual 1,649,920-point three-field shape, a remapped final block, an empty array and block width 1. Every copied word is checked independently, and all 39,599,568 complete target-owner bytes agree. Status, guards and atomic refusal checks pass. Full wave coupling and complete forecast acceptance remain separate.
 
-The [canonical assembly source](../../../../../src/openifs/waves/returned_surface_field_copy.S) is shared by the [runtime wave-return wrapper](runtime_wave_surface_return.md). Its original profiling boundaries and selected disabled-hook checks are qualified separately, while this complete bit-copy object stays unchanged.
+The [canonical assembly source](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/waves/returned_surface_field_copy.S) is shared by the [runtime wave-return wrapper](runtime_wave_surface_return.md). Its original profiling boundaries and selected disabled-hook checks are qualified separately, while this complete bit-copy object stays unchanged.

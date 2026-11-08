@@ -1,6 +1,6 @@
 # Runtime Coupled-Field Accumulators
 
-CNT4 calls SUCPL0 when its positive coupling frequency is no greater than the forecast stop index. The [assembly](../../../../../src/openifs/setup/runtime_coupled_field_accumulators.S) creates the same sixteen surface-exchange arrays and sets fourteen fields to FP64 positive zero. Values retain their source units. FCCHLL and FCCHLN are allocated but remain unwritten until a later genuine producer. Their payloads must remain unread until then. This setup remains active under the current forecast controls even though external ocean coupling is inactive.
+CNT4 calls SUCPL0 when its positive coupling frequency is no greater than the forecast stop index. The [assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/setup/runtime_coupled_field_accumulators.S) creates the same sixteen surface-exchange arrays and sets fourteen fields to FP64 positive zero. Values retain their source units. FCCHLL and FCCHLN are allocated but remain unwritten until a later genuine producer. Their payloads must remain unread until then. This setup remains active under the current forecast controls even though external ocean coupling is inactive.
 
 ## Interface And Bounds
 

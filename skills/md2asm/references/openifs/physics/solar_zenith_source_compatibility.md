@@ -2,7 +2,7 @@
 
 A solar averaging window covers part of a model day. The original OpenIFS calculation clips this window to one daylight interval. When the window also intersects daylight from a neighbouring day, that clipping can omit an illuminated segment. This separate assembly entry preserves the original calculation and records its physical limitation.
 
-The entry is `md2asm_cos_sza_openifs_source_compatibility` in [source_matching_solar_zenith_angle.S](../../../../../src/openifs/physics/source_matching_solar_zenith_angle.S). It shares one source body with the [strict solar entry](cos_sza.md). The default strict binary remains exactly unchanged. The separate entry omits the 14-instruction scientific-domain test, while retaining the original ordered arithmetic, elementary functions, other guards and output writes. Removing the complete test also removes its extra floating-point operations.
+The entry is `md2asm_cos_sza_openifs_source_compatibility` in [source_matching_solar_zenith_angle.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/source_matching_solar_zenith_angle.S). It shares one source body with the [strict solar entry](cos_sza.md). The default strict binary remains exactly unchanged. The separate entry omits the 14-instruction scientific-domain test, while retaining the original ordered arithmetic, elementary functions, other guards and output writes. Removing the complete test also removes its extra floating-point operations.
 
 ## Interface And Bounds
 

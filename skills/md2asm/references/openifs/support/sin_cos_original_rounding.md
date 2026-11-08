@@ -1,6 +1,6 @@
 # Sine and cosine matching the original library
 
-Revision 1. The [physical input](../../../../../formulations/openifs/support/periodic_angle_projections.md) defines direction projections. The [direct AArch64 source](../../../../../src/openifs/support/sin_cos_original_rounding.S) supplies private SIN and COS primitives that match the installed GNU libc 2.38 scalar functions.
+Revision 1. The [physical input](../../../../../formulations/openifs/support/periodic_angle_projections.md) defines direction projections. The [direct AArch64 source](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/support/sin_cos_original_rounding.S) supplies private SIN and COS primitives that match the installed GNU libc 2.38 scalar functions.
 
 ## Supported angles
 

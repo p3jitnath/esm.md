@@ -1,6 +1,6 @@
 # CUDLFSN Numerical Contract
 
-[CUDLFSN](../../../../../src/openifs/physics/cudlfsn.S) implements revision 1, equations D1–D2, of [Convective Downdraft Initial State](../../../../../formulations/openifs/physics/convective_downdraft_start.md). Its complete normal-physics calculation privately calls the complete [CUADJTQ](cuadjtq.md) mode-2 body and reuses the unchanged child physics and arithmetic proofs.
+[CUDLFSN](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/cudlfsn.S) implements revision 1, equations D1–D2, of [Convective Downdraft Initial State](../../../../../formulations/openifs/physics/convective_downdraft_start.md). Its complete normal-physics calculation privately calls the complete [CUADJTQ](cuadjtq.md) mode-2 body and reuses the unchanged child physics and arithmetic proofs.
 
 ## Supported Domain and Interface
 

@@ -1,6 +1,6 @@
 # Gravity-Wave Launch Caller Contract
 
-[GWDRAGWMS_LAYER](../../../../../src/openifs/physics/gwdragwms_layer.S) completes the launch-level combination for [Non-Orographic Gravity-Wave Drag](../../../../../formulations/openifs/physics/nonorographic_gravity_wave_drag.md), revision 1. Its complete direct child obeys the [GWDRAG_WMS contract](gwdrag_wms.md). The caller supports zero through three configured launches in the same physical and coarse-grid domain.
+[GWDRAGWMS_LAYER](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/gwdragwms_layer.S) completes the launch-level combination for [Non-Orographic Gravity-Wave Drag](../../../../../formulations/openifs/physics/nonorographic_gravity_wave_drag.md), revision 1. Its complete direct child obeys the [GWDRAG_WMS contract](gwdrag_wms.md). The caller supports zero through three configured launches in the same physical and coarse-grid domain.
 
 The caller forms total surface precipitation by three left-to-right additions of PFPLCL, PFPLCN, PFPLSL and PFPLSN, then takes the source numeric maximum with positive zero. It clears selected wind-tendency cells. For each launch, in source order, the complete native child calculates both tendencies and both flux matrices. The caller adds each tendency and subtracts each flux from the accumulated stress with one FP64 rounding per operation. It does not alter pressure, temperature or wind inputs. No driver supplies a numerical stage.
 

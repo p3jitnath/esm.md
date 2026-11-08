@@ -2,7 +2,7 @@
 
 This entry connects the live configuration and model records to the accepted disabled `SURAND1` setup. It uses the model clock produced by `SURIP` and the dynamics controls produced by `SUDYN`. It does not replace the setup stages between those source calls. The supported input has a present, empty `NAMSTOPH` group; an absent group and active stochastic schemes are outside this entry.
 
-The implementation is [live_disabled_stochastic_physics_forwarding.S](../../../../../src/openifs/setup/live_disabled_stochastic_physics_forwarding.S). Its unchanged child and equations are defined in [disabled_stochastic_physics_setup.md](disabled_stochastic_physics_setup.md). The early clock producer is [operational_time_integration.S](../../../../../src/openifs/setup/operational_time_integration.S).
+The implementation is [live_disabled_stochastic_physics_forwarding.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/setup/live_disabled_stochastic_physics_forwarding.S). Its unchanged child and equations are defined in [disabled_stochastic_physics_setup.md](disabled_stochastic_physics_setup.md). The early clock producer is [operational_time_integration.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/setup/operational_time_integration.S).
 
 ## Interface and bounds
 

@@ -1,6 +1,6 @@
 # Runtime shortwave aerosol extinction
 
-This [direct AArch64 calculation](../../../../../src/openifs/radiation/runtime_shortwave_aerosol_extinction.S) extends the column count of the original `aerosol_sw_extinction` routine. Shortwave radiation includes visible sunlight. Aerosols are small airborne particles, and extinction describes their effect on a light beam. The component preserves the source's ordered weighted sum. Its conversion to a physical inverse-length value remains unresolved, as described below.
+This [direct AArch64 calculation](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/radiation/runtime_shortwave_aerosol_extinction.S) extends the column count of the original `aerosol_sw_extinction` routine. Shortwave radiation includes visible sunlight. Aerosols are small airborne particles, and extinction describes their effect on a light beam. The component preserves the source's ordered weighted sum. Its conversion to a physical inverse-length value remains unresolved, as described below.
 
 Let $`P`$ be the allocated column count. The entry `md2asm_runtime_shortwave_aerosol_extinction` admits $`1 \le P \le 128`$ and radiation band 10. First and last are one-based active column indices. First is from 1 through $`P+1`$, last is from 0 through $`P`$, and last is at least first minus one. First equal to last plus one gives an empty interval. The earlier 24-column entry remains available. All checked shapes use the same assembled and original reference entries.
 

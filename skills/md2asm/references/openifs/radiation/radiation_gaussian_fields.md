@@ -2,7 +2,7 @@
 
 This SUECRAD component turns each radiation-grid latitude sine into three fields. RMU holds the sine, RSQM2 holds the nonnegative cosine magnitude, and RLATIG holds the latitude angle in radians. It then extends two rows across each pole for later interpolation. The sine and cosine fields have no physical units.
 
-The direct [assembly](../../../../../src/openifs/radiation/runtime_radiation_gaussian_fields.S) reads the live even latitude-row count N, from 2 through 8192. It uses the physical record's RPI value for pi. For each ordinary row, the ordered calculations are
+The direct [assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/radiation/runtime_radiation_gaussian_fields.S) reads the live even latitude-row count N, from 2 through 8192. It uses the physical record's RPI value for pi. For each ordinary row, the ordered calculations are
 
 ```math
 r=\mu,\qquad c=\sqrt{1-\mu\mu},\qquad \phi=\arcsin(\mu).

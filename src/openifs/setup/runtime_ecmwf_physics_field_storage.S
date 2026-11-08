@@ -1,5 +1,0 @@
-/* Runtime contract: skills/md2asm/references/openifs/setup/runtime_ecmwf_physics_field_storage.md. */
-#define ECMWF_PHYSICS_RUNTIME_SHAPE 1
-#define md2asm_initialize_ecmwf_physics_fields md2asm_initialize_runtime_ecmwf_physics_fields
-#define md2asm_release_ecmwf_physics_fields md2asm_release_runtime_ecmwf_physics_fields
-#include "ecmwf_physics_field_storage_body.S"

@@ -1,6 +1,6 @@
 # Solar Irradiance Numerical Contract
 
-[The direct lookup](../../../../../src/openifs/physics/solar_irradiance.S) implements [Sun's Irradiance](../../../../../formulations/openifs/physics/solar_irradiance.md), revision 1, equation SI1, for queued `yomsolarirradiance::get_solar_irradiance`.
+[The direct lookup](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/solar_irradiance.S) implements [Sun's Irradiance](../../../../../formulations/openifs/physics/solar_irradiance.md), revision 1, equation SI1, for queued `yomsolarirradiance::get_solar_irradiance`.
 
 ## Supported Table and Date
 

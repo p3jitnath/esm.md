@@ -30,7 +30,7 @@ Each latitude band has one average temperature. The Sun’s radiation warms the 
 
 ### esm.md – Fortran CPU
 
-The new [shallow-water](src/sw/shallow_water_solver.f90) and [energy-balance](src/ebm/energy_balance_solver.f90) sources use standard Fortran with interfaces callable from C. Their dimensions come from runtime arguments, so the same executable handles the admitted grids. Recompile these sources for x86 or another supported CPU, select that processor’s compiler options, then verify exact outputs and performance there. Current acceptance and timings cover one Neoverse V2 core; they do not establish x86 performance. CUDA Fortran is a separate GPU route and still requires a supported NVIDIA GPU even with an x86 host.
+The new [shallow-water](src/sw/solver.f90) and [energy-balance](src/ebm/solver.f90) sources use standard Fortran with interfaces callable from C. Their dimensions come from runtime arguments, so the same executable handles the admitted grids. Recompile these sources for x86 or another supported CPU, select that processor’s compiler options, then verify exact outputs and performance there. Current acceptance and timings cover one Neoverse V2 core; they do not establish x86 performance. CUDA Fortran is a separate GPU route and still requires a supported NVIDIA GPU even with an x86 host.
 
 This twelve-pair checkpoint uses CPU 1 and memory domain 0 in exclusive job 8199657 on `nid010573`. Both implementations use the same arrays and ordered arithmetic. Rates are median [minimum–maximum] million complete cell updates per second. The CPU performance target remains open, and these values replace earlier exploratory estimates.
 
@@ -49,7 +49,7 @@ The source tree was formatted with a pinned `fprettify` revision. All 224 Fortra
 
 ## GPU Solvers
 
-The same models run on one NVIDIA GH200 GPU. The LLM emits PTX, NVIDIA’s virtual assembly language, and NVIDIA’s assembler creates machine code. The [GPU skill](skills/md2asm-gpu/SKILL.md) and [execution contract](skills/md2asm-gpu/references/gpu-contract.md) describe this route. Sources are [shallow water](src/sw/gpu/2d_rusanov_ssprk2.ptx) and [energy balance](src/ebm/gpu/budyko_sellers.ptx).
+The same models run on one NVIDIA GH200 GPU. The LLM emits PTX, NVIDIA’s virtual assembly language, and NVIDIA’s assembler creates machine code. The [GPU skill](skills/md2asm-gpu/SKILL.md) and [execution contract](skills/md2asm-gpu/references/gpu-contract.md) describe this route. Sources are [shallow water](src/sw/gpu/solver.ptx) and [energy balance](src/ebm/gpu/solver.ptx).
 
 Rates are million complete cell updates per second, shown as the median [minimum–maximum] across twelve accepted repetitions on one quiet exclusive GPU. Water updates include all three fields, both stages and periodic boundaries. Energy-balance updates include both stages and pole boundaries.
 
@@ -77,7 +77,7 @@ The timer replays a prepared sequence of GPU launches. It excludes compilation, 
 
 ### esm.md – Fortran GPU
 
-The new [shallow-water](src/sw/gpu/shallow_water_solver.cuf) and [energy-balance](src/ebm/gpu/energy_balance_solver.cuf) variants are labelled **esm.md – Fortran**. NVIDIA Fortran compiles these sources into GPU instructions. The assembly sources and earlier control results above remain unchanged. The [GPU execution contract](skills/md2asm-gpu/references/gpu-contract.md) records the interfaces, complete launch sequence and strict build options.
+The new [shallow-water](src/sw/gpu/solver.cuf) and [energy-balance](src/ebm/gpu/solver.cuf) variants are labelled **esm.md – Fortran**. NVIDIA Fortran compiles these sources into GPU instructions. The assembly sources and earlier control results above remain unchanged. The [GPU execution contract](skills/md2asm-gpu/references/gpu-contract.md) records the interfaces, complete launch sequence and strict build options.
 
 This fresh comparison uses twelve rotated pairs per workload on one GH200 in exclusive job 8199657 on `nid010573`. Both variants use GPU 0, host CPU 7 and memory domain 0. Rates are million complete cell updates per second, shown as median [minimum–maximum]. A complete update includes both time stages, every field and the boundaries. The ratio is Fortran speed divided by assembly speed.
 
@@ -97,6 +97,8 @@ Water combines preparation and update on small grids, uses row-based work on lar
 Simple hardware probes give conditional performance guides. At 1024², water reaches about 90% of the streaming-copy guide under an assumed 328 logical array bytes per update. Actual solver memory traffic is unmeasured. The energy-balance guide includes repeated halo calculations, which add about 16% to the useful stage work on large grids. These guides and the recorded variation limit conclusions to the declared workloads and hardware. Detailed records remain under the ignored local research folders.
 
 ## OpenIFS Forecasts
+
+Current verification targets step 0 only. The reference completed that step, and the corrected native physics setup passes on all 32 processes; numerical byte agreement remains pending. See the [operational handoff](OPERATIONAL_FORECAST_HANDOFF.md).
 
 The OpenIFS 48.1.1 work has two distinct scopes. The coarse autonomous CPU forecast has completed. The operational 9 km CPU forecast remains unverified. Component checks do not establish a complete operational forecast.
 
@@ -159,7 +161,7 @@ Component acceptance and its limits are recorded in the [GPU contracts](skills/m
 
 ### Operational 9 km Forecast
 
-The current OpenIFS work ports the existing generated CPU assembly to structured Fortran, which the compiler can build for different architectures. Full step-0 and step-1 byte agreement for that port remains pending. The assembly results below describe earlier implementations and do not establish acceptance of the Fortran port.
+The CPU port now has compiled Fortran counterparts for all 1,203 archived assembly source files. The current target is **step 0 only, with byte verification pending**. The original reference completed step 0 and closed its three +000000 output files. Raw reference state after step 0 was not captured, so full-state verification still needs that checkpoint. See the [operational forecast handoff](OPERATIONAL_FORECAST_HANDOFF.md) and [ordered Fortran source catalog](src/openifs/source_catalog.json) for the current sources, compiled corrections and remaining checks. The assembly results below describe earlier implementations and do not establish acceptance of the Fortran port.
 
 The target has 6,599,680 horizontal points, 137 atmospheric layers and 192 steps of 450 seconds for a 24-hour forecast. A supplied Fortran reference completes that workload with 32 MPI processes and 32 OpenMP threads per process, using strict arithmetic and single-threaded OpenBLAS. Its effective block size is 24 points. MPI exchanges data between processes, while OpenMP shares work between threads.
 

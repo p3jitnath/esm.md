@@ -44,7 +44,7 @@ Require zero differing bytes for the complete U and V tendency owners. Preserve 
 
 Independently derive plume fluxes and their pressure-weighted momentum budget. For the implicit branch, check the supplied lower-bidiagonal equations and reconstructed wind tendency with high precision. Reuse unchanged CUBIDIAG scientific and byte evidence. Use a compact corpus for both solver branches, convection types, cloud masks, cloud top and base boundaries, explicit linear and squared continuation, one complete 137-layer column, cropped and empty columns, and finite small values. Scientific residual bounds account for FP64 rounding and complement exact output bytes. Live forecast acceptance is separate.
 
-The direct source is [cududv.S](../../../../../src/openifs/physics/cududv.S).
+The direct source is [cududv.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/cududv.S).
 
 ## Critical Results
 

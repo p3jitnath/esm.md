@@ -1,6 +1,6 @@
 # Snow Warm-Start Mass Contract
 
-Revision 4 implements complete `SURFWS_MASSADJ_MOD::SURFWS_MASSADJ` from [Snow Mass At Warm Start](../../../../../formulations/openifs/surface/snow_mass_adjustment.md), SM-1, in [snow_mass_adjustment.S](../../../../../src/openifs/surface/snow_mass_adjustment.S). It retains the original calculations on their defined domain, the separately verified one-layer residual rule, and a bounded extension for a signed fitted boundary parameter.
+Revision 4 implements complete `SURFWS_MASSADJ_MOD::SURFWS_MASSADJ` from [Snow Mass At Warm Start](../../../../../formulations/openifs/surface/snow_mass_adjustment.md), SM-1, in [snow_mass_adjustment.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/snow_mass_adjustment.S). It retains the original calculations on their defined domain, the separately verified one-layer residual rule, and a bounded extension for a signed fitted boundary parameter.
 
 ## Ordered Method
 

@@ -2,7 +2,7 @@
 
 Revision 1 defines the private function `md2asm_log10_original_rounding`. It takes a finite FP64 ratio $`x`$ in $`[2^{-40},32]`$ and returns its base-ten logarithm. FP64 is the 64-bit floating-point format. The Arm floating-point control register, FPCR, must be zero, which selects nearest-even rounding and gradual underflow. The complete output is the 64-bit word in `d0`. The floating-point status register, FPSR, and the error indicator, `errno`, follow the original valid-input route.
 
-The [physical input](../../../../../formulations/openifs/support/base_ten_logarithm.md) gives the basic equation. The [direct assembly](../../../../../src/openifs/support/log10_original_rounding.S) implements the complete admitted range. The base-ten split comes from Sun Microsystems' 1993 logarithm, and its normalized natural logarithm and literal data come from GNU libc 2.38 at commit `36f2487f13e3540be9ee0fb51876b1da72176d3f`. The Sun notice permits redistribution with attribution. The GNU-derived component uses LGPL-2.1-or-later.
+The [physical input](../../../../../formulations/openifs/support/base_ten_logarithm.md) gives the basic equation. The [direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/support/log10_original_rounding.S) implements the complete admitted range. The base-ten split comes from Sun Microsystems' 1993 logarithm, and its normalized natural logarithm and literal data come from GNU libc 2.38 at commit `36f2487f13e3540be9ee0fb51876b1da72176d3f`. The Sun notice permits redistribution with attribution. The GNU-derived component uses LGPL-2.1-or-later.
 
 ## Ordered Calculation
 

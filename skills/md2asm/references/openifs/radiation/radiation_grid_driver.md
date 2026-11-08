@@ -20,10 +20,10 @@ For P03 and P04, preserve the original ordered six-band sums and all separately 
 
 | Child entry | Accepted assembly and purpose |
 | --- | --- |
-| `md2asm_radact` | [Aerosol and ozone preparation](../../../../../src/openifs/radiation/aerosol_and_ozone_preparation.S), aerosol climatology |
-| `md2asm_grid_ozone_layers` | [RADOZC](../../../../../src/openifs/physics/radozc.S), the original eleven-address ozone interface, assembled with `RADOZC_SYMBOL=md2asm_grid_ozone_layers` |
-| `md2asm_grid_greenhouse_profiles` | [RADGHG](../../../../../src/openifs/physics/radghg.S), greenhouse profiles, with its accepted entry renamed locally |
-| `md2asm_grid_gas_layer` | [Gas layer interpolation](../../../../../src/openifs/physics/interp_gas.S), called by the greenhouse child with its accepted entry renamed locally |
+| `md2asm_radact` | [Aerosol and ozone preparation](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/radiation/aerosol_and_ozone_preparation.S), aerosol climatology |
+| `md2asm_grid_ozone_layers` | [RADOZC](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/radozc.S), the original eleven-address ozone interface, assembled with `RADOZC_SYMBOL=md2asm_grid_ozone_layers` |
+| `md2asm_grid_greenhouse_profiles` | [RADGHG](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/radghg.S), greenhouse profiles, with its accepted entry renamed locally |
+| `md2asm_grid_gas_layer` | [Gas layer interpolation](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/interp_gas.S), called by the greenhouse child with its accepted entry renamed locally |
 | `md2asm_radiation_field_preparation` | [Radiation field preparation](radiation_field_preparation.md), complete accepted atmospheric transport |
 | `md2asm_pow_original_rounding_candidate` | Frozen original-rounding C mathematical helper, used for the fourth root |
 
@@ -58,7 +58,7 @@ Detailed receipts, original sources, protected fixtures, failures, build command
 
 ## Runtime Fields After Grid Transfer
 
-The private [runtime stage](../../../../../src/openifs/radiation/runtime_radiation_posttransport_fields.inc.S) restores four coordinate fields from the destination grid after interpolation. Interpolation estimates a value between grid points. The destination grid retains its own longitude, latitude sine and longitude sine and cosine. Copy these stored FP64 values before the aerosol calculation, preserving every bit and the caller's latitude groups.
+The private [runtime stage](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/radiation/runtime_radiation_posttransport_fields.inc.S) restores four coordinate fields from the destination grid after interpolation. Interpolation estimates a value between grid points. The destination grid retains its own longitude, latitude sine and longitude sine and cosine. Copy these stored FP64 values before the aerosol calculation, preserving every bit and the caller's latitude groups.
 
 The same stage recomputes the modified solar cosine, named `IAMU0` in the source, from the transferred solar cosine `IMU0`. Both are dimensionless. Let $`r`$ be the positive dimensionless curvature parameter and $`u`$ the transferred cosine. Define $`z=r(r+2)`$. For $`u>10^{-10}`$, calculate the following expression with separate multiply, add, square-root, subtract and divide operations.
 

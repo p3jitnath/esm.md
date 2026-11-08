@@ -1,6 +1,6 @@
 # Lake Radiation Contract
 
-Revision 1 freezes `FLAKERAD_MOD::FLAKERAD` from `surf/module/flakerad_mod.F90` for [Sunlight in a lake](../../../../../formulations/openifs/surface/lake_radiation.md). Its complete direct source is [lake_radiation.S](../../../../../src/openifs/surface/lake_radiation.S). All numerical stages use ordinary FP64 arithmetic and the already qualified scalar EXP route.
+Revision 1 freezes `FLAKERAD_MOD::FLAKERAD` from `surf/module/flakerad_mod.F90` for [Sunlight in a lake](../../../../../formulations/openifs/surface/lake_radiation.md). Its complete direct source is [lake_radiation.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/lake_radiation.S). All numerical stages use ordinary FP64 arithmetic and the already qualified scalar EXP route.
 
 ## Physical Inputs and Complete Calculation
 

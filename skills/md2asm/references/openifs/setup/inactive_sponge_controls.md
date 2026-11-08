@@ -1,6 +1,6 @@
 # Inactive sponge controls
 
-A sponge can damp motion near a model boundary. The inactive `SUSPNG` source branch disables this damping and leaves its coefficient array unallocated. This [assembly entry](../../../../../src/openifs/setup/inactive_sponge_controls.S) reproduces that setup branch without a weather calculation.
+A sponge can damp motion near a model boundary. The inactive `SUSPNG` source branch disables this damping and leaves its coefficient array unallocated. This [assembly entry](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/setup/inactive_sponge_controls.S) reproduces that setup branch without a weather calculation.
 
 ## Interface and bounds
 

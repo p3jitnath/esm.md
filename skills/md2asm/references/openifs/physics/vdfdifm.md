@@ -1,6 +1,6 @@
 # Implicit Momentum Diffusion Contract
 
-Revision 1 implements `VDFDIFM` from [the physical momentum balance](../../../../../formulations/openifs/physics/implicit_momentum_diffusion.md), revision 1. Its original is `ifs-source/arpifs/phys_ec/vdfdifm.F90`, SHA-256 `c5cab410930d0ec08498ae54ad1f53f76ce5777f5bb7e9d886256b8d4dc3d82f`. The [direct assembly](../../../../../src/openifs/physics/vdfdifm.S) supplies coefficient formation, both complete wind solves, all six returned drag tendencies and the positive-zero diagnostic prefix.
+Revision 1 implements `VDFDIFM` from [the physical momentum balance](../../../../../formulations/openifs/physics/implicit_momentum_diffusion.md), revision 1. Its original is `ifs-source/arpifs/phys_ec/vdfdifm.F90`, SHA-256 `c5cab410930d0ec08498ae54ad1f53f76ce5777f5bb7e9d886256b8d4dc3d82f`. The [direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/vdfdifm.S) supplies coefficient formation, both complete wind solves, all six returned drag tendencies and the positive-zero diagnostic prefix.
 
 ## Domain And Method
 

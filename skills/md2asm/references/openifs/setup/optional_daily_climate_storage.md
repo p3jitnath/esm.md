@@ -1,6 +1,6 @@
 # Optional Daily Climate Storage Contract
 
-Revision 1 records the optional daily `CLIMR` owner from `arpifs/setup/sumcclag.F90`. CLIMR stores local daily climate fields. SUMCCLAG lines 163 to 461 place its allocation inside `IF (LMCCEC)`. The [assembly source](../../../../../src/openifs/setup/optional_daily_climate_storage.S) therefore accepts both logical values and leaves this owner unallocated when the flag is false.
+Revision 1 records the optional daily `CLIMR` owner from `arpifs/setup/sumcclag.F90`. CLIMR stores local daily climate fields. SUMCCLAG lines 163 to 461 place its allocation inside `IF (LMCCEC)`. The [assembly source](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/setup/optional_daily_climate_storage.S) therefore accepts both logical values and leaves this owner unallocated when the flag is false.
 
 ## Interface And Bounds
 

@@ -1,6 +1,6 @@
 # CUDDRAFN Numerical Contract
 
-[CUDDRAFN](../../../../../src/openifs/physics/cuddrafn.S) implements revision 1, equations P1–P2, of [Convective Downdraft Descent](../../../../../formulations/openifs/physics/convective_downdraft_descent.md). It includes the complete normal-physics parent and privately binds complete [CUADJTQ](cuadjtq.md) mode 2. Unchanged child physical and arithmetic proofs are reused.
+[CUDDRAFN](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/cuddrafn.S) implements revision 1, equations P1–P2, of [Convective Downdraft Descent](../../../../../formulations/openifs/physics/convective_downdraft_descent.md). It includes the complete normal-physics parent and privately binds complete [CUADJTQ](cuadjtq.md) mode 2. Unchanged child physical and arithmetic proofs are reused.
 
 ## Domain, ABI and Bounds
 

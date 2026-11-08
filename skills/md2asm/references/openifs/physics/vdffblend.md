@@ -1,6 +1,6 @@
 # VDFFBLEND Solver Contract
 
-Revision 1. The [wind formulation](../../../../../formulations/openifs/physics/wind_at_blending_height.md) maps to [direct AArch64 assembly](../../../../../src/openifs/physics/vdffblend.S). The complete original routine is `VDFFBLEND` in `arpifs/phys_ec/vdffblend.F90`. Its calculations interpolate in geopotential, although the old source comment says pressure.
+Revision 1. The [wind formulation](../../../../../formulations/openifs/physics/wind_at_blending_height.md) maps to [direct AArch64 assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/vdffblend.S). The complete original routine is `VDFFBLEND` in `arpifs/phys_ec/vdffblend.F90`. Its calculations interpolate in geopotential, although the old source comment says pressure.
 
 ## Method and Domain
 

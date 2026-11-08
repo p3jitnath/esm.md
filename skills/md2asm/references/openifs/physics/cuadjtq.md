@@ -1,6 +1,6 @@
 # CUADJTQ Numerical Contract
 
-[CUADJTQ](../../../../../src/openifs/physics/cuadjtq.S) implements [Convective Saturation Adjustment](../../../../../formulations/openifs/physics/convective_saturation_adjustment.md), revision 1, equations A1–A2. It provides the complete queued `cuadjtq_` entry for normal physics. Mode 3 tail-calls the unchanged accepted [environment body](../../../../../src/openifs/physics/cuinin_environment.S) and reuses its [CUININ proof](cuinin.md).
+[CUADJTQ](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/cuadjtq.S) implements [Convective Saturation Adjustment](../../../../../formulations/openifs/physics/convective_saturation_adjustment.md), revision 1, equations A1–A2. It provides the complete queued `cuadjtq_` entry for normal physics. Mode 3 tail-calls the unchanged accepted [environment body](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/cuinin_environment.S) and reuses its [CUININ proof](cuinin.md).
 
 ## Modes and Supported Inputs
 

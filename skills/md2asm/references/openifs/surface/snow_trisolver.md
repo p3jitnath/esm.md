@@ -1,6 +1,6 @@
 # Snow Temperature Column Solver
 
-Revision 1.0 freezes the complete OpenIFS 48.1.1 `SRFSN_WEBAL_MOD::TRISOLVER` child from `surf/module/srfsn_webal_mod.F90`. The [physical input](../../../../../formulations/openifs/surface/snow_heat_column.md) defines its heat balance. [Direct assembly](../../../../../src/openifs/surface/snow_trisolver.S) supplies every numerical stage.
+Revision 1.0 freezes the complete OpenIFS 48.1.1 `SRFSN_WEBAL_MOD::TRISOLVER` child from `surf/module/srfsn_webal_mod.F90`. The [physical input](../../../../../formulations/openifs/surface/snow_heat_column.md) defines its heat balance. [Direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/snow_trisolver.S) supplies every numerical stage.
 
 ## Ordered Arithmetic
 

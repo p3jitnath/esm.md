@@ -1,6 +1,6 @@
 # Solar Zenith Angle
 
-This contract defines complete `COS_SZA` calculations for the declared coarse-forecast domain. The [physical input](../../../../../formulations/openifs/physics/solar_zenith_angle.md) describes sunlight geometry. The direct entry is `md2asm_cos_sza` in [solar_zenith_angle.S](../../../../../src/openifs/physics/solar_zenith_angle.S). The original `arpifs/phys_ec/cos_sza.F90` selects separate model and radiation solar states and provides midpoint and time-averaged methods. A solar state gives the sine and cosine of declination and the solar phase at the interval's centre.
+This contract defines complete `COS_SZA` calculations for the declared coarse-forecast domain. The [physical input](../../../../../formulations/openifs/physics/solar_zenith_angle.md) describes sunlight geometry. The direct entry is `md2asm_cos_sza` in [solar_zenith_angle.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/solar_zenith_angle.S). The original `arpifs/phys_ec/cos_sza.F90` selects separate model and radiation solar states and provides midpoint and time-averaged methods. A solar state gives the sine and cosine of declination and the solar phase at the interval's centre.
 
 ## Domain And Original Scientific Limit
 

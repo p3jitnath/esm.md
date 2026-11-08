@@ -1,6 +1,6 @@
 # Soil Temperature Step Contract
 
-Revision 1 implements complete `SRFT_MOD::SRFT` from [Heat Flow In Soil](../../../../../formulations/openifs/surface/soil_temperature_step.md), ST-1. The direct entry `md2asm_srft` is in [soil_temperature_step.S](../../../../../src/openifs/surface/soil_temperature_step.S). Its private complete [soil column diffusion](soil_column_diffusion.md) child performs the tridiagonal solve.
+Revision 1 implements complete `SRFT_MOD::SRFT` from [Heat Flow In Soil](../../../../../formulations/openifs/surface/soil_temperature_step.md), ST-1. The direct entry `md2asm_srft` is in [soil_temperature_step.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/soil_temperature_step.S). Its private complete [soil column diffusion](soil_column_diffusion.md) child performs the tridiagonal solve.
 
 ## Physical And Numerical Method
 

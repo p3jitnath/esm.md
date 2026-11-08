@@ -42,4 +42,4 @@ The accepted private DNT body is linked with a unique hidden name. Its text byte
 
 The complete parent passes 2,150 genuine native calls and 422,500,800 returned bytes with zero differences. Each call owns three complete direct DNT stages. Independent checks pass 14,592,000 physical relations. All ten saved files agree across 618,140 bytes. The complete forecast still contains other Fortran stages.
 
-Compile the unchanged [DNT source](../../../../../src/openifs/dynamics/lattex_dnt.S) with ORIGINAL_SYMBOL set to md2asm_lattex_dnt_body_7259755, then link that object with this parent. This changes the private name and preserves every accepted child instruction.
+Compile the unchanged [DNT source](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/dynamics/lattex_dnt.S) with ORIGINAL_SYMBOL set to md2asm_lattex_dnt_body_7259755, then link that object with this parent. This changes the private name and preserves every accepted child instruction.

@@ -1,6 +1,6 @@
 # Aerosol Vertical-Profile Setup
 
-The physical input is [aerosol_vertical_profiles.md](../../../../../formulations/openifs/physics/aerosol_vertical_profiles.md), revision 1. The complete direct body is [su_aerv.S](../../../../../src/openifs/physics/su_aerv.S). The queued original name is `su_aerv`, from `arpifs/phys_ec/su_aerv.F90`. It updates five cumulative optical-depth profiles.
+The physical input is [aerosol_vertical_profiles.md](../../../../../formulations/openifs/physics/aerosol_vertical_profiles.md), revision 1. The complete direct body is [su_aerv.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/su_aerv.S). The queued original name is `su_aerv`, from `arpifs/phys_ec/su_aerv.F90`. It updates five cumulative optical-depth profiles.
 
 The numerical method is a direct evaluation at the supplied pressure levels. For each type, divide 8434 by its height scale, separately round that division to FP64, then take the maximum with one. Write positive zero to all five first profile elements. If the first pressure coordinate compares unequal to zero, overwrite those words with the five power evaluations. For levels 2 through `KLEV+1`, evaluate all five powers in sea-salt, dust, organic-matter, black-carbon and sulphate order. Later signed-zero inputs therefore pass through the genuine power operation. Do not replace them with an unconditional zero store.
 

@@ -2,7 +2,7 @@
 
 WVRG2XF returns local wave-model values to the atmosphere's blocked surface fields. This wrapper restores the original two profiling calls around the accepted [bit-copy calculation](returned_surface_field_copy.md). Profiling records where a program spends time. The public FIAT library provides these calls, while assembly owns their arguments and order. No wave equation is calculated here, and this component does not select a permitted WAM library boundary.
 
-The source is [runtime_wave_surface_return.S](../../../../../src/openifs/waves/runtime_wave_surface_return.S), from `arpifs/phys_ec/wvrg2xf.F90` and the [wave formulation](../../../../../formulations/openifs/waves/ocean_waves.md). The entry `md2asm_runtime_return_wave_surface_fields` returns an integer status. Its six address arguments use registers x0 through x5. The first five retain the original source order.
+The source is [runtime_wave_surface_return.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/waves/runtime_wave_surface_return.S), from `arpifs/phys_ec/wvrg2xf.F90` and the [wave formulation](../../../../../formulations/openifs/waves/ocean_waves.md). The entry `md2asm_runtime_return_wave_surface_fields` returns an integer status. Its six address arguments use registers x0 through x5. The first five retain the original source order.
 
 | Register | Argument |
 | --- | --- |

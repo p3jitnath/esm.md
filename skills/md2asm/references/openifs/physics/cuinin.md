@@ -1,6 +1,6 @@
 # CUININ Numerical Contract
 
-[CUININ](../../../../../src/openifs/physics/cuinin.S) implements [Convective Initial State](../../../../../formulations/openifs/physics/convective_initial_state.md), revision 1, equations I1–I3. Its private [environment adjustment](../../../../../src/openifs/physics/cuinin_environment.S) implements the complete normal-physics CUADJTQ body for ICALL=3. That private body is separate from the queued full CUADJTQ routine and its other modes.
+[CUININ](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/cuinin.S) implements [Convective Initial State](../../../../../formulations/openifs/physics/convective_initial_state.md), revision 1, equations I1–I3. Its private [environment adjustment](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/cuinin_environment.S) implements the complete normal-physics CUADJTQ body for ICALL=3. That private body is separate from the queued full CUADJTQ routine and its other modes.
 
 ## Supported State and ABI
 

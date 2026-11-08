@@ -1,6 +1,6 @@
 # CUFLXN Numerical Contract
 
-CUFLXN completes convective transport and falling precipitation. Its physical input is [Convective Final Fluxes](../../../../../formulations/openifs/physics/convective_final_fluxes.md). The direct body is [cuflxn.S](../../../../../src/openifs/physics/cuflxn.S). The source calculation and normal-physics model remain unchanged.
+CUFLXN completes convective transport and falling precipitation. Its physical input is [Convective Final Fluxes](../../../../../formulations/openifs/physics/convective_final_fluxes.md). The direct body is [cuflxn.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/cuflxn.S). The source calculation and normal-physics model remain unchanged.
 
 ## Domain and Arithmetic
 

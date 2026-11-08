@@ -1,6 +1,6 @@
 # Snow Albedo Update
 
-Revision 1.0 freezes the complete OpenIFS 48.1.1 `SRFSN_ASN_MOD::SRFSN_ASN` child from `surf/module/srfsn_asn_mod.F90`. The [physical input](../../../../../formulations/openifs/surface/snow_albedo.md) defines ageing and fresh snow. [Direct assembly](../../../../../src/openifs/surface/snow_albedo.S) implements every numerical stage.
+Revision 1.0 freezes the complete OpenIFS 48.1.1 `SRFSN_ASN_MOD::SRFSN_ASN` child from `surf/module/srfsn_asn_mod.F90`. The [physical input](../../../../../formulations/openifs/surface/snow_albedo.md) defines ageing and fresh snow. [Direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/snow_albedo.S) implements every numerical stage.
 
 ## Ordered Arithmetic
 

@@ -1,6 +1,6 @@
 # Mountain Wave Setup Contract
 
-This contract implements complete `GWSETUP` from the [mountain-wave formulation](../../../../../formulations/openifs/physics/mountain_wave_setup.md). The direct entry is `md2asm_gwsetup` in [mountain_wave_setup.S](../../../../../src/openifs/physics/mountain_wave_setup.S). It prepares density, stability, projected wind and layer indices for mountain-wave drag. It does not yet apply a wind tendency.
+This contract implements complete `GWSETUP` from the [mountain-wave formulation](../../../../../formulations/openifs/physics/mountain_wave_setup.md). The direct entry is `md2asm_gwsetup` in [mountain_wave_setup.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/mountain_wave_setup.S). It prepares density, stability, projected wind and layer indices for mountain-wave drag. It does not yet apply a wind tendency.
 
 ## Domain
 

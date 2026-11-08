@@ -58,7 +58,7 @@ The complete direct stage passes 6,400 genuine native calls and 147,865,600 comp
 
 ## Runtime Columns and Layers
 
-The separate entry [`md2asm_runtime_radiation_aerosol_and_ozone_preparation`](../../../../../src/openifs/radiation/runtime_aerosol_and_ozone_preparation.S) extends this calculation to live column and layer counts. It retains Tegen aerosol and ozone calculations and both MACC branches. The three-dimensional branch uses CAMS, the Copernicus Atmosphere Monitoring Service. Aerosols are small airborne particles. The earlier selected entry remains unchanged.
+The separate entry [`md2asm_runtime_radiation_aerosol_and_ozone_preparation`](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/radiation/runtime_aerosol_and_ozone_preparation.S) extends this calculation to live column and layer counts. It retains Tegen aerosol and ozone calculations and both MACC branches. The three-dimensional branch uses CAMS, the Copernicus Atmosphere Monitoring Service. Aerosols are small airborne particles. The earlier selected entry remains unchanged.
 
 The first 27 argument addresses keep the interface above. Argument 28 is a borrowed 16-byte context at incoming stack offset 152. Its words contain the private memory budget in bytes and the address of the complete 520-byte assembly-owned physical-constant record. This record supplies pi and gravitational acceleration. The entry imports no original OpenIFS calculation or module global. Its mathematical services use the accepted direct provider graph.
 

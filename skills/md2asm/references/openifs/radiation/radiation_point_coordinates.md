@@ -2,7 +2,7 @@
 
 This SUECRAD component builds the coordinates of the local radiation-grid points. A process owns part of the grid, described by source-produced row and longitude maps. The five new fields hold longitude, latitude, longitude sine, longitude cosine and latitude sine. Angles use radians and sine and cosine values have no units.
 
-The direct [assembly](../../../../../src/openifs/radiation/runtime_radiation_point_coordinates.S) retains the original row and longitude order. For longitude index j on a row with m points and latitude sine mu, it writes
+The direct [assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/radiation/runtime_radiation_point_coordinates.S) retains the original row and longitude order. For longitude index j on a row with m points and latitude sine mu, it writes
 
 ```math
 \lambda=\frac{((j-1)\,2)\,\pi}{m},\qquad

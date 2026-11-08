@@ -1,6 +1,6 @@
 # Fourier Metric Contract
 
-Revision 1.0 derives from [Fourier Wind And Gradients](../../../../../formulations/openifs/spectral_transforms/fourier_metric.md). The original queued entry is `fsc_mod::fsc`. Direct [fsc.S](../../../../../src/openifs/spectral_transforms/fsc.S) supplies its complete Gaussian-grid numerical body.
+Revision 1.0 derives from [Fourier Wind And Gradients](../../../../../formulations/openifs/spectral_transforms/fourier_metric.md). The original queued entry is `fsc_mod::fsc`. Direct [fsc.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/spectral_transforms/fsc.S) supplies its complete Gaussian-grid numerical body.
 
 ## Supported Inputs
 

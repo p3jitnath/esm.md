@@ -10,4 +10,4 @@ A preparation pass checks every consumed input and output descriptor and the sel
 
 The new source and native cases compare 833,888 complete output bytes with zero differences. They cover 17 columns with 137 layers, 8 columns with 5 layers, mixed masks, shifted and empty intervals and zero layers. Independent copy and unchanged-cell checks cover 104,236 words, including signed zero, subnormal values and arbitrary bit patterns. All input fields and complete state records remain exact. The main cases and a separate nonempty refusal suffix pass 36 new ABI and raw-state observations and 18 atomic refusals. The same unchanged original STATE_COPY binary supplies nine separate verification calls. No original main executable is rebuilt. Complete state construction, parent forwarding and the forecast remain separate qualifications.
 
-The direct [assembly source](../../../../../src/openifs/physics/runtime_physics_state_copy.S) follows this interface.
+The direct [assembly source](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/runtime_physics_state_copy.S) follows this interface.

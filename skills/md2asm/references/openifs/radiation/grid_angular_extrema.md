@@ -2,7 +2,7 @@
 
 This SUECRAD component converts complete latitude and longitude fields from radians to degrees and finds their limits. Radiation setup uses these limits to choose its surrounding interpolation region, called a halo. This component returns four angular limits. The later source calculation must still turn them into integer halo widths.
 
-The direct [assembly](../../../../../src/openifs/radiation/runtime_grid_angular_extrema.S) retains the source FP64 operations for every point
+The direct [assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/radiation/runtime_grid_angular_extrema.S) retains the source FP64 operations for every point
 
 ```math
 \phi_d=((\phi/\pi)\,2)\,90,\qquad

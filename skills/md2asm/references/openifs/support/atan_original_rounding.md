@@ -1,6 +1,6 @@
 # Original-compatible inverse tangent
 
-Revision 1. This support primitive returns the angle whose tangent is the dimensionless input $`x`$. The result is in radians. Its [direct AArch64 source](../../../../../src/openifs/support/atan_original_rounding.S) implements the complete finite-input route of the matched GNU libc 2.38 scalar `atan`.
+Revision 1. This support primitive returns the angle whose tangent is the dimensionless input $`x`$. The result is in radians. Its [direct AArch64 source](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/support/atan_original_rounding.S) implements the complete finite-input route of the matched GNU libc 2.38 scalar `atan`.
 
 ```math
 \operatorname{atan}(x)=\int_0^x\frac{1}{1+t^2}\,\mathrm{d}t,\qquad

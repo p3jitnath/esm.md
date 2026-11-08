@@ -1,6 +1,6 @@
 # Inactive chemistry scalar initialization
 
-Chemistry setup still assigns control values when no chemical fields are active. This [assembly entry](../../../../../src/openifs/setup/inactive_chemistry_scalar_initialization.S) applies the 13 composition defaults and 28 inactive chemistry assignments from `SUGFL1`. It copies source constants without a time update, numerical calculation or unit conversion.
+Chemistry setup still assigns control values when no chemical fields are active. This [assembly entry](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/setup/inactive_chemistry_scalar_initialization.S) applies the 13 composition defaults and 28 inactive chemistry assignments from `SUGFL1`. It copies source constants without a time update, numerical calculation or unit conversion.
 
 ## Interface and bounds
 

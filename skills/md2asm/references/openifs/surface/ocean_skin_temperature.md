@@ -24,7 +24,7 @@ Positive stability uses the complete rational profile correction `1+(5*z+4*z*z)/
 
 ## Interface And Output
 
-The [assembly](../../../../../src/openifs/surface/ocean_skin_temperature.S) exports `md2asm_ocean_skin_temperature` and `__voskin_mod_MOD_voskin`. Its twenty arguments are addresses. The first eight use `x0` through `x7`, and the remaining twelve use the incoming stack. Metadata uses the unchanged GNU `TCST` and `TEXC` layouts. Assumed-shape entry indices start at one and ignore the caller's actual lower-bound bias. Validate shape, switches and FPCR before writes.
+The [assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/ocean_skin_temperature.S) exports `md2asm_ocean_skin_temperature` and `__voskin_mod_MOD_voskin`. Its twenty arguments are addresses. The first eight use `x0` through `x7`, and the remaining twelve use the incoming stack. Metadata uses the unchanged GNU `TCST` and `TEXC` layouts. Assumed-shape entry indices start at one and ignore the caller's actual lower-bound bias. Validate shape, switches and FPCR before writes.
 
 The fixed aligned frame is 768 bytes. It preserves general registers `x19` through `x29` and the low halves of `v8` through `v15`, and leaves `x18` untouched. Scalar columns need no dynamic workspace. The canonical output is the complete native-endian FP64 skin-temperature owner, including untouched inactive columns. All input arrays, descriptors and metadata remain byte-identical.
 

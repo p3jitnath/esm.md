@@ -1,6 +1,6 @@
 # Conservative Snow Regridding
 
-Revision 1.0 freezes the complete OpenIFS 48.1.1 `SRFSN_REGRID_MOD::SRFSN_REGRID` child from `surf/module/srfsn_regrid_mod.F90`. The [physical input](../../../../../formulations/openifs/surface/snow_remap.md) states depth, mass and heat conservation. The [direct body](../../../../../src/openifs/surface/snow_regrid.S) returns every layer's mass, density, liquid water and temperature.
+Revision 1.0 freezes the complete OpenIFS 48.1.1 `SRFSN_REGRID_MOD::SRFSN_REGRID` child from `surf/module/srfsn_regrid_mod.F90`. The [physical input](../../../../../formulations/openifs/surface/snow_remap.md) states depth, mass and heat conservation. The [direct body](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/snow_regrid.S) returns every layer's mass, density, liquid water and temperature.
 
 ## Frozen Numerical Method
 

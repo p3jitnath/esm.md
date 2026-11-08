@@ -1,6 +1,6 @@
 # Runtime Distributed Spectral Norms
 
-A spectral field represents an atmospheric pattern as a set of waves. A norm measures the field's overall size. The [assembly parent](../../../../../src/openifs/dynamics/runtime_distributed_spectral_norms.S) collects the distributed wave values in the original order, then uses [direct arithmetic](../../../../../src/openifs/dynamics/runtime_spectral_norm_arithmetic.S) to calculate the same norms as SPNORM. Field units and the source kinetic-energy weighting remain unchanged.
+A spectral field represents an atmospheric pattern as a set of waves. A norm measures the field's overall size. The [assembly parent](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/dynamics/runtime_distributed_spectral_norms.S) collects the distributed wave values in the original order, then uses [direct arithmetic](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/dynamics/runtime_spectral_norm_arithmetic.S) to calculate the same norms as SPNORM. Field units and the source kinetic-energy weighting remain unchanged.
 
 ## Interface And Bounds
 

@@ -1,6 +1,6 @@
 # Soil Water Exchange Contract
 
-Revision 2. [Physics input](../../../../../formulations/openifs/surface/soil_water_transfer.md), equations WT-1 and WT-2. [Direct source](../../../../../src/openifs/surface/soil_water_exchange.S). The original numerical reference is `SRFWEXC_VG_MOD::SRFWEXC_VG`.
+Revision 2. [Physics input](../../../../../formulations/openifs/surface/soil_water_transfer.md), equations WT-1 and WT-2. [Direct source](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/soil_water_exchange.S). The original numerical reference is `SRFWEXC_VG_MOD::SRFWEXC_VG`.
 
 ## Complete Update
 

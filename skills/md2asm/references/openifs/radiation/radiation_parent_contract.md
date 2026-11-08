@@ -1,6 +1,6 @@
 # Complete Radiation Parent Contract
 
-This direct assembly replaces the original `RADPAR` routine from `arpifs/phys_radi/radpar.F90`. The scientific input is [Radiation Preparation](../../../../../formulations/openifs/radiation/radiation_preparation.md). The direct body is [radiation_parent.S](../../../../../src/openifs/radiation/radiation_parent.S), which is handwritten AArch64 assembly. The assembler and linker build the numerical body. A comparison driver supplies no numerical stage.
+This direct assembly replaces the original `RADPAR` routine from `arpifs/phys_radi/radpar.F90`. The scientific input is [Radiation Preparation](../../../../../formulations/openifs/radiation/radiation_preparation.md). The direct body is [radiation_parent.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/radiation/radiation_parent.S), which is handwritten AArch64 assembly. The assembler and linker build the numerical body. A comparison driver supplies no numerical stage.
 
 The retained local type probe gives the exact member offsets in the complete 4,275,088-byte `MODEL` object. The interface has 68 arguments in original order. The first eight addresses use registers x0 through x7. The other 60 addresses use the incoming stack. The stack stays aligned to 16 bytes. The body preserves x18, x19 through x29 and the low 64 bits of v8 through v15.
 

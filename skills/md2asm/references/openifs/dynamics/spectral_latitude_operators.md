@@ -1,6 +1,6 @@
 # OpenIFS Spectral Latitude Contract
 
-Contract revision 1.0 covers complete SPNSDE, UVTVD and VDTUV from local OpenIFS 48.1.1 and its ectrans transform library. It implements the [latitude and wind formulation](../../../../../formulations/openifs/dynamics/spectral_latitude_operators.md), revision 1.0. Every original arithmetic and boundary stage is inside [the direct assembly](../../../../../src/openifs/dynamics/spectral_latitude_operators.S).
+Contract revision 1.0 covers complete SPNSDE, UVTVD and VDTUV from local OpenIFS 48.1.1 and its ectrans transform library. It implements the [latitude and wind formulation](../../../../../formulations/openifs/dynamics/spectral_latitude_operators.md), revision 1.0. Every original arithmetic and boundary stage is inside [the direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/dynamics/spectral_latitude_operators.S).
 
 ## Coefficients And Packing
 

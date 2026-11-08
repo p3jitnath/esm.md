@@ -1,6 +1,6 @@
 # Cloud Decorrelation Length Contract
 
-The [physical input](../../../../../formulations/openifs/physics/cloud_decorrelation_length.md) is revision 1.0. The complete direct entry is [cloud_overlap_decorr_len.S](../../../../../src/openifs/physics/cloud_overlap_decorr_len.S), replacing the original queued name `CLOUD_OVERLAP_DECORR_LEN` from `arpifs/phys_radi/cloud_overlap_decorr_len.F90`.
+The [physical input](../../../../../formulations/openifs/physics/cloud_decorrelation_length.md) is revision 1.0. The complete direct entry is [cloud_overlap_decorr_len.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/cloud_overlap_decorr_len.S), replacing the original queued name `CLOUD_OVERLAP_DECORR_LEN` from `arpifs/phys_radi/cloud_overlap_decorr_len.F90`.
 
 ## Complete Calculation
 

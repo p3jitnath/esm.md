@@ -1,6 +1,6 @@
 # Vertical Snow Grid
 
-Revision 1.0 freezes the complete OpenIFS 48.1.1 `SRFSN_VGRID_MOD::SRFSN_VGRID` child from `surf/module/srfsn_vgrid_mod.F90`. The [physical input](../../../../../formulations/openifs/surface/snow_layers.md) states volume conservation. [Direct assembly](../../../../../src/openifs/surface/snow_grid.S) produces every layer depth and the active-layer count.
+Revision 1.0 freezes the complete OpenIFS 48.1.1 `SRFSN_VGRID_MOD::SRFSN_VGRID` child from `surf/module/srfsn_vgrid_mod.F90`. The [physical input](../../../../../formulations/openifs/surface/snow_layers.md) states volume conservation. [Direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/snow_grid.S) produces every layer depth and the active-layer count.
 
 ## Ordered Arithmetic
 

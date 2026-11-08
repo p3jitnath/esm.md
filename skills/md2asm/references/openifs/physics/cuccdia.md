@@ -1,6 +1,6 @@
 # CUCCDIA Solver Contract
 
-Revision 1.0 uses [convective cloud diagnostics](../../../../../formulations/openifs/physics/convective_cloud_diagnostics.md), equations CCD-1 and CCD-2. The original routine is CUCCDIA in `arpifs/phys_ec/cuccdia.F90`. [Direct assembly](../../../../../src/openifs/physics/cuccdia.S) supplies the complete calculation. There is no numerical child or external mathematical function.
+Revision 1.0 uses [convective cloud diagnostics](../../../../../formulations/openifs/physics/convective_cloud_diagnostics.md), equations CCD-1 and CCD-2. The original routine is CUCCDIA in `arpifs/phys_ec/cuccdia.F90`. [Direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/cuccdia.S) supplies the complete calculation. There is no numerical child or external mathematical function.
 
 ## Inputs And Branches
 

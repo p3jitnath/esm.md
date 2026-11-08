@@ -1,6 +1,6 @@
 # Soil Heat Capacity Contract
 
-This contract implements complete `SRFRCG_MOD::SRFRCG` from [soil heat capacity](../../../../../formulations/openifs/surface/soil_heat_capacity.md). The direct entry `md2asm_srfrcg` is in [soil_heat_capacity.S](../../../../../src/openifs/surface/soil_heat_capacity.S).
+This contract implements complete `SRFRCG_MOD::SRFRCG` from [soil heat capacity](../../../../../formulations/openifs/surface/soil_heat_capacity.md). The direct entry `md2asm_srfrcg` is in [soil_heat_capacity.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/soil_heat_capacity.S).
 
 ## Inputs And Domain
 

@@ -1,6 +1,6 @@
 # GWPROFIL Contract
 
-[Physics input](../../../../../formulations/openifs/physics/gravity_wave_stress_profile.md), revision 1. The canonical numerical body is the original `gwprofil` in `arpifs/phys_ec/gwprofil.F90`. [Direct assembly](../../../../../src/openifs/physics/gwprofil.S) replaces the complete body.
+[Physics input](../../../../../formulations/openifs/physics/gravity_wave_stress_profile.md), revision 1. The canonical numerical body is the original `gwprofil` in `arpifs/phys_ec/gwprofil.F90`. [Direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/gwprofil.S) replaces the complete body.
 
 ## Domain and Interface
 

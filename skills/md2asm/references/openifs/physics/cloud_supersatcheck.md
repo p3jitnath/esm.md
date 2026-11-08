@@ -1,6 +1,6 @@
 # Cloud Supersaturation Contract
 
-Revision 1 implements the complete original `CLOUD_SUPERSATCHECK` from `arpifs/phys_ec/cloud_supersatcheck.F90`. The [physical input](../../../../../formulations/openifs/physics/cloud_supersaturation.md) defines water and heat changes. The [direct assembly](../../../../../src/openifs/physics/cloud_supersatcheck.S) returns all five adjustment arrays in both original modes. It calls the previously qualified scalar EXP route, while the numerical driver supplies no stage.
+Revision 1 implements the complete original `CLOUD_SUPERSATCHECK` from `arpifs/phys_ec/cloud_supersatcheck.F90`. The [physical input](../../../../../formulations/openifs/physics/cloud_supersaturation.md) defines water and heat changes. The [direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/cloud_supersatcheck.S) returns all five adjustment arrays in both original modes. It calls the previously qualified scalar EXP route, while the numerical driver supplies no stage.
 
 ## Inputs And Activity
 

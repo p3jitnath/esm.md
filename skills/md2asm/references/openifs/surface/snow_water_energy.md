@@ -1,6 +1,6 @@
 # Snow Water and Energy Contract
 
-Revision 1 freezes the complete numerical body of `SRFSN_WEBAL_MOD::SRFSN_WEBAL` for the [snow water and heat formulation](../../../../../formulations/openifs/surface/snow_water_energy.md). The original route is `surf/module/srfsn_webal_mod.F90`, with the two used material formulas in `surf/function/fcsurf.h`. The assembly is [snow_water_energy.S](../../../../../src/openifs/surface/snow_water_energy.S). A column contains $`N`$ snow layers, numbered from the surface downwards.
+Revision 1 freezes the complete numerical body of `SRFSN_WEBAL_MOD::SRFSN_WEBAL` for the [snow water and heat formulation](../../../../../formulations/openifs/surface/snow_water_energy.md). The original route is `surf/module/srfsn_webal_mod.F90`, with the two used material formulas in `surf/function/fcsurf.h`. The assembly is [snow_water_energy.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/snow_water_energy.S). A column contains $`N`$ snow layers, numbered from the surface downwards.
 
 ## Inputs and Material Properties
 

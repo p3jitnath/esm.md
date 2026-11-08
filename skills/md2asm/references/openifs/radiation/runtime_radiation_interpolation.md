@@ -4,7 +4,7 @@ Radiation uses its own grid. These two assembly entries prepare interpolation we
 
 ## Coordinate Weights
 
-[`md2asm_runtime_radiation_coordinate_weights`](../../../../../src/openifs/radiation/runtime_radiation_coordinate_weights.S) retains the original 19 by-address arguments. Registers x0 to x7 carry `YDSL`, `KPROMB`, `KSTART`, `KPROF`, `KSTABUF`, `KWIS`, `KFRSTLOFF` and `P4JP`. Successive incoming stack slots carry `PIS2`, `PLSDEPI`, `PLATI`, `PIPI`, `PLON`, `PLAT`, `PDLAT`, `PCLA`, `PDLO`, `PCLO` and `KL0`.
+[`md2asm_runtime_radiation_coordinate_weights`](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/radiation/runtime_radiation_coordinate_weights.S) retains the original 19 by-address arguments. Registers x0 to x7 carry `YDSL`, `KPROMB`, `KSTART`, `KPROF`, `KSTABUF`, `KWIS`, `KFRSTLOFF` and `P4JP`. Successive incoming stack slots carry `PIS2`, `PLSDEPI`, `PLATI`, `PIPI`, `PLON`, `PLAT`, `PDLAT`, `PCLA`, `PDLO`, `PCLO` and `KL0`.
 
 The grid record `YDSL` supplies the source interpolation rows and index tables. `KPROMB` is the complete output pitch, from 1 to 32,769 points. The selected points run from `KSTART` to `KPROF`, with both endpoints included. The interpolation selector `KWIS` must be 203. `KFRSTLOFF` is the source latitude offset. `P4JP` estimates inverse latitude spacing and `PIS2` is half of pi. Coordinates are in radians.
 
@@ -26,7 +26,7 @@ Metadata refusals return two before output writes. Invalid coordinate-derived in
 
 ## Twelve-Point Field Interpolation
 
-[`md2asm_runtime_radiation_twelve_point_interpolation`](../../../../../src/openifs/radiation/runtime_radiation_twelve_point_interpolation.S) takes eight addresses in x0 to x7, in the order `KPROMA`, `KFIELDS`, `PCLA`, `PDLO`, `PCLO`, `KL0`, `PRE` and `POST`. `KPROMA` is the source point count from 1 to 268,435,456. `KFIELDS` is the field count from 0 to 16,384. `PRE` has shape `(KPROMA, KFIELDS)` and `POST` has one value per field. Counts and indices are signed 32-bit integers. Values and weights are FP64.
+[`md2asm_runtime_radiation_twelve_point_interpolation`](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/radiation/runtime_radiation_twelve_point_interpolation.S) takes eight addresses in x0 to x7, in the order `KPROMA`, `KFIELDS`, `PCLA`, `PDLO`, `PCLO`, `KL0`, `PRE` and `POST`. `KPROMA` is the source point count from 1 to 268,435,456. `KFIELDS` is the field count from 0 to 16,384. `PRE` has shape `(KPROMA, KFIELDS)` and `POST` has one value per field. Counts and indices are signed 32-bit integers. Values and weights are FP64.
 
 The sixteen-word `KL0` table describes a four-by-four neighbourhood. Only twelve entries are consumed because the four outer corners are unused. Each consumed index is from 1 to `KPROMA`. The unused corners remain opaque and may be zero. The caller provides complete nonoverlapping mapped arrays within its memory budget.
 

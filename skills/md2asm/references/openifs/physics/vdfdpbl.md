@@ -1,6 +1,6 @@
 # Diagnostic Boundary-Layer Height Contract
 
-Revision 1 implements `VDFDPBL` from [the boundary-layer height formulation](../../../../../formulations/openifs/physics/boundary_layer_height.md), revision 1. The source is `ifs-source/arpifs/phys_ec/vdfdpbl.F90`. The [direct assembly](../../../../../src/openifs/physics/vdfdpbl.S) supplies the complete stability scan and height interpolation.
+Revision 1 implements `VDFDPBL` from [the boundary-layer height formulation](../../../../../formulations/openifs/physics/boundary_layer_height.md), revision 1. The source is `ifs-source/arpifs/phys_ec/vdfdpbl.F90`. The [direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/vdfdpbl.S) supplies the complete stability scan and height interpolation.
 
 ## Ordered Scan And Domain
 

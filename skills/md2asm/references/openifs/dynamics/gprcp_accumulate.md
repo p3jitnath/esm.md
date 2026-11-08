@@ -1,6 +1,6 @@
 # OpenIFS GPRCP Accumulate Contract
 
-This contract identifies the complete ACCUMULATE child already written inside the accepted [GPRCP assembly](../../../../../src/openifs/dynamics/gprcp.S). It uses the same [moist-air formulation](../../../../../formulations/openifs/dynamics/thermodynamics.md) and [parent contract](gprcp.md). No arithmetic or assembly binary changes are required.
+This contract identifies the complete ACCUMULATE child already written inside the accepted [GPRCP assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/dynamics/gprcp.S). It uses the same [moist-air formulation](../../../../../formulations/openifs/dynamics/thermodynamics.md) and [parent contract](gprcp.md). No arithmetic or assembly binary changes are required.
 
 ## Update And Host Arguments
 

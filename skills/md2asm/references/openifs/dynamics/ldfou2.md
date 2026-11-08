@@ -1,6 +1,6 @@
 # LDFOU2 Fourier Wind Scaling
 
-Revision 1 freezes the complete $`\texttt{LDFOU2\_MOD::LDFOU2}`$ body from the original source. The physical input is [fourier_wind_scaling.md](../../../../../formulations/openifs/dynamics/fourier_wind_scaling.md). The assembly is [ldfou2.S](../../../../../src/openifs/dynamics/ldfou2.S). There is no numerical child call.
+Revision 1 freezes the complete $`\texttt{LDFOU2\_MOD::LDFOU2}`$ body from the original source. The physical input is [fourier_wind_scaling.md](../../../../../formulations/openifs/dynamics/fourier_wind_scaling.md). The assembly is [ldfou2.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/dynamics/ldfou2.S). There is no numerical child call.
 
 ## Selected Update
 

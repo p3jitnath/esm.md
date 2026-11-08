@@ -1,6 +1,6 @@
 # GWDRAG_WMS Numerical Contract
 
-[Direct assembly](../../../../../src/openifs/physics/gwdrag_wms.S) implements [Non-Orographic Gravity-Wave Drag](../../../../../formulations/openifs/physics/nonorographic_gravity_wave_drag.md), revision 1, equations G1–G2. The complete source calculation uses four directions and twenty phase speeds. It includes every declared spectral slope, both saturation laws, critical-level filtering, the finite-step momentum correction and the final pressure-weighted wind tendencies.
+[Direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/gwdrag_wms.S) implements [Non-Orographic Gravity-Wave Drag](../../../../../formulations/openifs/physics/nonorographic_gravity_wave_drag.md), revision 1, equations G1–G2. The complete source calculation uses four directions and twenty phase speeds. It includes every declared spectral slope, both saturation laws, critical-level filtering, the finite-step momentum correction and the final pressure-weighted wind tendencies.
 
 ## Declared Physical Domain
 

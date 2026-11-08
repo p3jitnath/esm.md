@@ -1,6 +1,6 @@
 # Runtime Periodic Output Schedule
 
-MONIO_T selects the model steps at which fields are written or diagnosed. Each active schedule entry contains the source-selected integer, usually one. The [assembly](../../../../../src/openifs/support/runtime_periodic_output_schedule.S) uses live forecast dimensions and has no original OpenIFS imports.
+MONIO_T selects the model steps at which fields are written or diagnosed. Each active schedule entry contains the source-selected integer, usually one. The [assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/support/runtime_periodic_output_schedule.S) uses live forecast dimensions and has no original OpenIFS imports.
 
 ## Interface And Storage
 

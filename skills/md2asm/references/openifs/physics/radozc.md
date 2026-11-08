@@ -26,7 +26,7 @@ Canonical output is the full output owner's little-endian FP64 bytes, including 
 
 Independently evaluate P01 and the pressure-linear profile at 100-digit precision, then P02. Check nonnegative ozone, manufactured constant and linear profiles, latitude ties, pressure ties, final-profile continuation, both global modes, cropped and spaced columns, destination shifts, zero levels and empty ranges. Compare values with the conservative bound `1024*2^-52*max(2^-1022,abs(expected))` plus 16 minimum subnormal units. Critical and live forecast acceptance are recorded separately.
 
-The direct source is [radozc.S](../../../../../src/openifs/physics/radozc.S). Its fixed frame is 1120 bytes and contains the latitude-interpolated profile and its slopes. It restores x19 through x29 and the link register, uses only caller-saved FP registers, leaves x18 and FPCR unchanged, and writes only selected destination cells.
+The direct source is [radozc.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/radozc.S). Its fixed frame is 1120 bytes and contains the latitude-interpolated profile and its slopes. It restores x19 through x29 and the link register, uses only caller-saved FP registers, leaves x18 and FPCR unchanged, and writes only selected destination cells.
 
 ## Critical Results
 

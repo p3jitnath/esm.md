@@ -1,6 +1,6 @@
 # SURFSEB_CTL Solver Contract
 
-Revision 1. The [surface formulation](../../../../../formulations/openifs/surface/surface_skin_energy.md) maps to the complete original `surf/module/surfseb_ctl_mod.F90` caller and [direct AArch64 assembly](../../../../../src/openifs/surface/surfseb_ctl.S).
+Revision 1. The [surface formulation](../../../../../formulations/openifs/surface/surface_skin_energy.md) maps to the complete original `surf/module/surfseb_ctl_mod.F90` caller and [direct AArch64 assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/surfseb_ctl.S).
 
 ## Method and Domain
 

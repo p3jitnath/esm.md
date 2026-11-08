@@ -1,6 +1,6 @@
 # LASSIE Linear-Term Contract
 
-Revision 1 implements the complete OpenIFS 48.1.1 LASSIE body from [Linear Forecast Terms](../../../../../formulations/openifs/dynamics/linear_forecast_terms.md), revision 1.0 and LF-1. [Direct assembly](../../../../../src/openifs/dynamics/lassie.S) performs every parent calculation and binds complete accepted [SITNU](sitnu.md), [SIGAM](sigam.md) and [GPRCP](gprcp.md) children. Their unchanged scientific and arithmetic proofs are reused.
+Revision 1 implements the complete OpenIFS 48.1.1 LASSIE body from [Linear Forecast Terms](../../../../../formulations/openifs/dynamics/linear_forecast_terms.md), revision 1.0 and LF-1. [Direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/dynamics/lassie.S) performs every parent calculation and binds complete accepted [SITNU](sitnu.md), [SIGAM](sigam.md) and [GPRCP](gprcp.md) children. Their unchanged scientific and arithmetic proofs are reused.
 
 ## Ordered Method
 

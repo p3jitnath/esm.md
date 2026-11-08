@@ -28,7 +28,7 @@ Compare all existing output bytes, including inactive columns. For a fresh alloc
 
 Independently derive the height from 100-digit hydrostatic logarithms and check the exponential probability within `64*2^-52` in absolute value. Reuse the accepted LOG and EXP accuracy checks. Protect selected ranges, both pressure orders, both allocation branches, optional bounds, and saved registers with one small critical verifier. Record live forecast calls separately from these cases. No timings or complete-forecast acceptance are implied by the critical result.
 
-The direct source is [set_overlap_param.S](../../../../../src/openifs/physics/set_overlap_param.S). It uses a 192-byte aligned stack frame, preserves `x19` through `x29` and the link register, and uses no saved FP registers. The allocator and accepted scalar math functions preserve the same ABI obligations.
+The direct source is [set_overlap_param.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/set_overlap_param.S). It uses a 192-byte aligned stack frame, preserves `x19` through `x29` and the link register, and uses no saved FP registers. The allocator and accepted scalar math functions preserve the same ABI obligations.
 
 ## Accepted Forecast Calls
 

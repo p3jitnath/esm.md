@@ -1,6 +1,6 @@
 # ICESTATENEMO Contract
 
-The [physical note](../../../../../formulations/openifs/surface/coupled_sea_ice.md) describes the column mapping. The direct [assembly](../../../../../src/openifs/surface/icestatenemo.S) implements every optional field in the complete arpifs/climate/icestatenemo.F90 source.
+The [physical note](../../../../../formulations/openifs/surface/coupled_sea_ice.md) describes the column mapping. The direct [assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/surface/icestatenemo.S) implements every optional field in the complete arpifs/climate/icestatenemo.F90 source.
 
 ## Inputs and outputs
 

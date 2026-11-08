@@ -1,6 +1,6 @@
 # Cloud Cover Diagnostic Contract
 
-The physical input is [cloud_cover_diagnostics.md](../../../../../formulations/openifs/physics/cloud_cover_diagnostics.md), revision 1. The queued name is `cldpp` from `arpifs/phys_ec/cldpp.F90`. The direct body is [cldpp.S](../../../../../src/openifs/physics/cldpp.S). The immediate `CLDPRG_LAYER` caller supplies `STATE%A`, cloud liquid and ice mass fractions, pressure, temperature and the configured Gaussian latitude.
+The physical input is [cloud_cover_diagnostics.md](../../../../../formulations/openifs/physics/cloud_cover_diagnostics.md), revision 1. The queued name is `cldpp` from `arpifs/phys_ec/cldpp.F90`. The direct body is [cldpp.S](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/cldpp.S). The immediate `CLDPRG_LAYER` caller supplies `STATE%A`, cloud liquid and ice mass fractions, pressure, temperature and the configured Gaussian latitude.
 
 ## Complete Declared Calculation
 

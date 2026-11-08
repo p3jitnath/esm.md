@@ -4,7 +4,7 @@ Revision 1.5 carries the verified shallow-water and energy-balance methods to an
 
 ## Target and Direct Sources
 
-The qualified target is one NVIDIA GH200 with compute capability 9.0, little-endian Linux, CUDA 12.6, PTX 8.5 and an `sm_90` cubin. PTX is NVIDIA’s virtual assembly language. The direct sources are [two-dimensional Rusanov–SSPRK2](../../../src/sw/gpu/2d_rusanov_ssprk2.ptx) and [Budyko–Sellers](../../../src/ebm/gpu/budyko_sellers.ptx). They are emitted from the frozen Markdown contracts and assembled with `ptxas -arch=sm_90 --fmad=false`. A cubin contains the resulting native GPU machine code.
+The qualified target is one NVIDIA GH200 with compute capability 9.0, little-endian Linux, CUDA 12.6, PTX 8.5 and an `sm_90` cubin. PTX is NVIDIA’s virtual assembly language. The direct sources are [two-dimensional Rusanov–SSPRK2](../../../src/sw/gpu/solver.ptx) and [Budyko–Sellers](../../../src/ebm/gpu/solver.ptx). They are emitted from the frozen Markdown contracts and assembled with `ptxas -arch=sm_90 --fmad=false`. A cubin contains the resulting native GPU machine code.
 
 Each required operation uses nearest-even FP64 rounding with gradual underflow, preserved signed zeros and the original operand order. Threshold ties, intermediate stages and canonical bytes stay unchanged. Correctly rounded division and square root may use internal machine-code refinement. Model multiply and add remain separately rounded. The canonical CPU Fortran reference uses verified round-to-nearest arithmetic, gradual underflow and disabled contraction.
 
@@ -86,7 +86,7 @@ The [main README](../../../README.md) gives the accepted GPU comparison. Origina
 
 ## esm.md – Fortran GPU Variants
 
-The compiled variants publish [shallow-water CUDA Fortran](../../../src/sw/gpu/shallow_water_solver.cuf) and [energy-balance CUDA Fortran](../../../src/ebm/gpu/energy_balance_solver.cuf). NVIDIA Fortran generates their PTX and native machine code. The direct PTX sources and their accepted schedules above remain unchanged. Both routes use the same numerical contracts, state buffers, parameters, output bytes and inherited dimension bounds. Fortran dimensions and selectors use signed `C_INT` values within those nonnegative bounds, which have the same argument bits as the direct entries.
+The compiled variants publish [shallow-water CUDA Fortran](../../../src/sw/gpu/solver.cuf) and [energy-balance CUDA Fortran](../../../src/ebm/gpu/solver.cuf). NVIDIA Fortran generates their PTX and native machine code. The direct PTX sources and their accepted schedules above remain unchanged. Both routes use the same numerical contracts, state buffers, parameters, output bytes and inherited dimension bounds. Fortran dimensions and selectors use signed `C_INT` values within those nonnegative bounds, which have the same argument bits as the direct entries.
 
 The checked compiler is NVIDIA HPC SDK 24.11 with CUDA 12.6. Build each source with `-O3 -cuda -Kieee -gpu=cc90,nofma,noflushz,nordc,keep,cuda12.6`. Keep objects, module files, compiler PTX, cubins and reports in a local build directory. The options preserve gradual underflow and disable multiply-add contraction. Instruction checks and exact comparisons remain required because options alone do not establish numerical agreement.
 

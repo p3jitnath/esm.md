@@ -1,6 +1,6 @@
 # Longwave Transport With Scattering In Cloudy Layers
 
-Revision 1 implements `radiation_adding_ica_lw::fast_adding_ica_lw` from [the thermal layer equations](../../../../../formulations/openifs/physics/longwave_adding.md), revision 1. The source is `ifs-source/radiation/module/radiation_adding_ica_lw.F90`, SHA-256 `3737f5c8d9d2a594b53e45f744c42d7ba174b226c7b9168de6785dbb4119bb5c`. The [direct assembly](../../../../../src/openifs/physics/fast_adding_ica_lw.S) follows the complete ordered calculation below.
+Revision 1 implements `radiation_adding_ica_lw::fast_adding_ica_lw` from [the thermal layer equations](../../../../../formulations/openifs/physics/longwave_adding.md), revision 1. The source is `ifs-source/radiation/module/radiation_adding_ica_lw.F90`, SHA-256 `3737f5c8d9d2a594b53e45f744c42d7ba174b226c7b9168de6785dbb4119bb5c`. The [direct assembly](https://github.com/p3jitnath/esm.md/blob/28940eb213fb69ab2b64cc0bf154ca733f7c1c21/src/openifs/physics/fast_adding_ica_lw.S) follows the complete ordered calculation below.
 
 Let $`G`$ count wavelength intervals, $`N`$ count layers and $`H`$ denote the first boundary where scattering must be considered. Supported dimensions are $`1\leq G\leq4096`$, $`0\leq N\leq1024`$ and $`1\leq H\leq N+1`$. Fortran stores neighbouring intervals together, giving zero-based FP64 byte offset $`8(g+Gj)`$. FP64 is the 64-bit floating-point format.
 

@@ -1,2 +1,0 @@
-#define MD2ASM_ANGULAR_ENTRY md2asm_calculate_runtime_grid_angular_extrema
-#include "shared_grid_angular_extrema_body.inc.S"
