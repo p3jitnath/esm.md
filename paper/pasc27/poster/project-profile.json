@@ -1,0 +1,94 @@
+{
+  "project": "esm.md",
+  "scope": "Local Cambridge poster and supporting project writing. Do not apply these preferences to other projects.",
+  "writing": {
+    "audience": "First-year undergraduates across all outputs, including reports and conversation",
+    "convention": "../../../standards/ASD-STE100-CONV.md",
+    "language": "British English",
+    "opening": "Begin with wider Earth system model development needs, then introduce portable Fortran and compiler generation. Define unfamiliar terms, symbols and units.",
+    "mathematics": "GitHub dollar-and-backtick inline expressions and fenced math blocks. Keep one prose paragraph or list item on each source line.",
+    "physical_notes": "../../../formulations/",
+    "numerical_contracts": "../../../skills/md2asm/references/",
+    "title_casing": "Title case for the poster title and section headings",
+    "subtitle_casing": "Sentence case",
+    "punctuation": "Avoid semicolons and colons in authored prose",
+    "punctuation_exceptions": [
+      "Titles",
+      "The exact requested Sponsors: label",
+      "Required literal syntax, quotations, official names and bibliography metadata"
+    ]
+  },
+  "identity": {
+    "author": "Pritthijit Nath",
+    "department": "Department of Applied Mathematics and Theoretical Physics",
+    "university": "University of Cambridge",
+    "title": "ESM.md: From Physics Formulations to Verified Fortran",
+    "subtitle": "A framework for ESM development directly from physics formulations"
+  },
+  "poster": {
+    "canvas_mm": [
+      1189,
+      841
+    ],
+    "template": "assets/templates/template-a3-landscape.pptx",
+    "font": "Open Sans Regular and Bold",
+    "colours": {
+      "Cambridge blue": "#8EE8D8",
+      "Light blue": "#D1F9F1",
+      "Warm blue": "#00BDB6",
+      "Dark blue": "#133844",
+      "Ink": "#232830",
+      "White": "#FFFFFF"
+    },
+    "university_logo": "assets/cambridge-logo.svg",
+    "sponsor_logo": "assets/epsrc-horizontal.png",
+    "sponsor_label": "Sponsors:",
+    "conference_logo": "assets/pasc27.png",
+    "conference_logo_height_mm": 40,
+    "logo_alignment": "Align visible Cambridge and sponsor edges to the top-row margins and the conference mark to the right margin. Preserve proportions and official clear space.",
+    "banner": {
+      "source": "assets/paisley-source.jpg",
+      "outlines": "assets/paisley-outlines.svg",
+      "artwork": "assets/paisley-banner.svg",
+      "stroke": "#303030",
+      "outline_opacity": 0.3,
+      "repeat_source_pixels": 750,
+      "crop_left_source_pixels": 205,
+      "fade_mm": 150,
+      "background": "Cambridge blue gradually fading to white",
+      "text_side_padding_mm": 24
+    },
+    "workflow": [
+      "a. Physics",
+      "b. md2asm",
+      "c. Run/Verify with a simulation symbol and verification tick"
+    ],
+    "formulation": "../../../formulations/sw/2d_periodic.md",
+    "formulation_label": "Writing Convention | ASD-STE100-CONV",
+    "figures": "Retain jet for shallow-water depth and coolwarm for temperature, with unchanged limits, units and data. Use light meshes and visible bar-value gaps.",
+    "qr": {
+      "url": "https://github.com/p3jitnath/esm.md",
+      "size_mm": 71,
+      "logo": "assets/github-invertocat.svg",
+      "error_correction": "H",
+      "quiet_zone_modules": 4,
+      "logo_modules": 10,
+      "white_patch_modules": 11,
+      "alignment": "Visible black pattern aligned with the Summary top. Preserve the quiet zone."
+    },
+    "footer": {
+      "references": "Vancouver with no visible URLs. Retain full identifiers in evidence.json.",
+      "acknowledgements": "Separate heading and full-height divider. Use the author-approved wording in README.md.",
+      "conference": "Bottom right, clear of reference and acknowledgement text."
+    }
+  },
+  "evidence": {
+    "branding": "evidence.json",
+    "asset_sources": "assets/asset-urls.json",
+    "measurements": "data/results-current.json",
+    "scope": "Fresh matched Fortran and assembly CPU/GPU comparisons at three workloads per model, twelve paired repetitions. Historical language controls are archived separately.",
+    "generation": "Access acknowledgements do not identify the generator. The archived generator model identifier was not recorded."
+  },
+  "delivery": "Inspect the actual final PDF and close-ups. Decode its QR at multiple render sizes. Display a PDF-rendered image in chat when requested.",
+  "version_control": "Publish the complete requested poster project under paper/pasc27/poster. Keep temporary previews and build caches in local .runtime/poster_update_20261108."
+}

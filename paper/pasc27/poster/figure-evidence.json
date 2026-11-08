@@ -1,0 +1,101 @@
+{
+  "dam_time_seconds": 0.03125,
+  "ebm_time_years": 58.26616354942408,
+  "ebm_temperature_range_degC": [
+    -15.028030959403171,
+    28.220454284597636
+  ],
+  "source_sha256": {
+    "dam-x-256x8-370-fortran_vanilla-p2.bin": "589bc55baa43353a26d5367024070f3a44823e6ea2759a88bf13560e5b2e0ee8",
+    "dam-x-256x8-370-input.bin": "b2593dc3e7dbf206437bc536c238ad7f8b34dd4e1afe4dbdb498e39a6df2cfa7",
+    "timed-128-reference-p2.bin": "64c137dfef716463526596571e7d7fdb055df6b04763d0046fe62051c4fc23b8",
+    "timed-128-input.bin": "5d586acc41539d3efa332e879d963d4ac1d8a3f60a055d2300d877d4ec9536ff"
+  },
+  "figure_audits": {
+    "shallow-water": {
+      "findings": [],
+      "inches": [
+        13.8,
+        8.1
+      ],
+      "minimum_font_pt": 24,
+      "exports": [
+        "paper/pasc27/poster/figures/shallow-water.pdf",
+        "paper/pasc27/poster/figures/shallow-water.png"
+      ]
+    },
+    "energy-balance": {
+      "findings": [],
+      "inches": [
+        13.8,
+        8.1
+      ],
+      "minimum_font_pt": 24,
+      "exports": [
+        "paper/pasc27/poster/figures/energy-balance.pdf",
+        "paper/pasc27/poster/figures/energy-balance.png"
+      ]
+    },
+    "physics-note-mass": {
+      "findings": [],
+      "inches": [
+        12.0,
+        1.2
+      ],
+      "minimum_font_pt": 40,
+      "exports": [
+        "paper/pasc27/poster/figures/physics-note-mass.pdf",
+        "paper/pasc27/poster/figures/physics-note-mass.png"
+      ]
+    }
+  },
+  "font": "Open Sans",
+  "graph_style": "scripts/style/mpl_style.py",
+  "bar_value_padding_pt": 8,
+  "surface_tick_padding_pt": {
+    "x": 2,
+    "y": 32,
+    "depth": 14
+  },
+  "surface_axis_label_padding_pt": {
+    "x": 48,
+    "y": 44,
+    "depth": 30
+  },
+  "geography": {
+    "source": "assets/natural-earth/provenance.json",
+    "country_rings": 289,
+    "projection": "Orthographic, centred on 20 degrees east and the equator",
+    "geographic_context_only": true,
+    "data_sha256": "08e341606e8391e458c3f08deb312de664b56bfae376064c5aa0aee6681a5f55"
+  },
+  "physics_note_equation": {
+    "source": "formulations/sw/2d_periodic.md",
+    "equation_id": "P01",
+    "meaning": "Conservation of water",
+    "formulation_sha256": "e409dc5368196646179cfe2eaf011d6df3a14d417ab62048ea6a9d76e4ed9e57"
+  },
+  "continuous_colormaps": {
+    "shallow_water": {
+      "name": "jet",
+      "limits_m": [
+        1,
+        2
+      ]
+    },
+    "energy_balance": {
+      "name": "coolwarm",
+      "limits_degC": [
+        -15.028030959403171,
+        28.220454284597636
+      ]
+    }
+  },
+  "surface_mesh": {
+    "edge_colour": "#5F7882",
+    "line_width_pt": 0.35,
+    "row_stride": 1,
+    "column_stride": 3,
+    "requested_by_author": true
+  }
+}

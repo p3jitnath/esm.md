@@ -249,7 +249,7 @@ Each full group of 16 cells shares its rounded face fluxes through the existing 
 
 The power-of-two route checks the spacing bits before constructing its exact inverse. Stored exponents 1 through 2045 admit positive normal spacing with a normal inverse. Other positive spacing values keep division. The physical grid spacing is 2/N, so all admitted grid dimensions fit this rule or its general division route. This selection preserves D03 without changing the numerical method.
 
-A portable GNU build disables contraction and unsafe arithmetic with `-O3 -fno-fast-math -ffp-contract=off -fprotect-parens -fopenmp-simd`, with `-fPIC -shared` for the comparison library. Target options belong to the build rather than the physics. Compiler reports and emitted instructions establish which loops execute several cells together. The historical assembly remains unchanged for comparison.
+A portable GNU build disables contraction and unsafe arithmetic with `-O3 -fno-fast-math -ffp-contract=off -fprotect-parens -fopenmp-simd`, with `-fPIC -shared` for the comparison library. Target options belong to the build rather than the physics. Compiler reports and emitted instructions establish which loops execute several cells together. The historical [assembly](https://github.com/p3jitnath/esm.md/blob/8be04b8/src/ebm/solver.S) is archived locally with its comparison evidence and remains available in Git history.
 
 ## 11. Numerical acceptance criteria
 

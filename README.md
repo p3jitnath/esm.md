@@ -2,7 +2,7 @@
 
 esm.md develops CPU solvers from physics and mathematics in Markdown through portable Fortran source. An optimising compiler turns that source into machine code for each target architecture. The models retain ordered 64-bit floating-point calculations, independent physical checks and exact output comparisons. Earlier direct-assembly results remain part of the research record.
 
-Start with the [short template](formulations/TEMPLATE.md), [shallow-water formulation](formulations/sw/2d_periodic.md) or [energy-balance formulation](formulations/ebm/budyko_sellers.md). The [md2asm skill](skills/md2asm/SKILL.md) supplies numerical methods, portable Fortran interfaces, compiler guidance, verification and optimisation. New CPU sources are Fortran; existing assembly remains until its corresponding port is complete. Comparison tools, controls, data and archives stay local. [AGENTS.md](AGENTS.md) defines the writing and development rules.
+Start with the [short template](formulations/TEMPLATE.md), [shallow-water formulation](formulations/sw/2d_periodic.md) or [energy-balance formulation](formulations/ebm/budyko_sellers.md). The [md2asm skill](skills/md2asm/SKILL.md) supplies numerical methods, portable Fortran interfaces, compiler guidance, verification and optimisation. New CPU sources are Fortran. The verified shallow-water and energy-balance replacements are active; their earlier CPU assembly, direct GPU PTX and older source snapshots are archived locally with hashes and retained in Git history. Comparison tools, controls, data and archives stay local. [AGENTS.md](AGENTS.md) defines the writing and development rules.
 
 ## CPU Solvers
 
@@ -28,13 +28,15 @@ Each latitude band has one average temperature. The Sun’s radiation warms the 
 | 4096 | 599.68 | 498.27 | 509.81 | 493.75 |
 | 65536 | 590.51 | 488.69 | 489.47 | 514.88 |
 
-### esm.md – Fortran CPU
+### esm.md CPU
+
+The requested **super-optimised Fortran** variants use the label **esm.md** in the poster charts. The [editable poster project](paper/pasc27/poster/README.md) contains the PowerPoint, PDF, plotting scripts, data and assets.
 
 The new [shallow-water](src/sw/solver.f90) and [energy-balance](src/ebm/solver.f90) sources use standard Fortran with interfaces callable from C. Their dimensions come from runtime arguments, so the same executable handles the admitted grids. Recompile these sources for x86 or another supported CPU, select that processor’s compiler options, then verify exact outputs and performance there. Current acceptance and timings cover one Neoverse V2 core; they do not establish x86 performance. CUDA Fortran is a separate GPU route and still requires a supported NVIDIA GPU even with an x86 host.
 
 This twelve-pair checkpoint uses CPU 1 and memory domain 0 in exclusive job 8199657 on `nid010573`. Both implementations use the same arrays and ordered arithmetic. Rates are median [minimum–maximum] million complete cell updates per second. The CPU performance target remains open, and these values replace earlier exploratory estimates.
 
-| Model | Grid | Assembly | esm.md – Fortran | Ratio |
+| Model | Grid | Assembly | esm.md | Ratio |
 | --- | --- | ---: | ---: | ---: |
 | Shallow water | 64² | 89.857 [89.791–89.890] | 84.371 [84.350–84.385] | 0.939× |
 | Shallow water | 256² | 95.259 [95.199–95.292] | 87.491 [87.429–87.533] | 0.918× |
@@ -45,11 +47,11 @@ This twelve-pair checkpoint uses CPU 1 and memory domain 0 in exclusive job 8199
 
 All timed current, preceding and first-stage state buffers match the canonical Fortran bytes exactly. Independent acceptance retains 23 water scientific cases and four spacing-edge trajectories, and 19 energy-balance scientific cases with focused boundary, threshold and repeated-buffer checks. The timer includes complete repeated updates and excludes compilation, setup, input restoration, verification and file writing. Hardware calibration completed several arithmetic and first-level-cache groups but stopped before its final raw-sample record, so no complete new CPU roofline result is claimed.
 
-The source tree was formatted with a pinned `fprettify` revision. All 224 Fortran files preserve executable tokens and compiler directives, and a second formatting pass makes no change. Both selected CPU libraries rebuild byte for byte. The formatted GPU sources preserve executable instructions, constants, data, relocations and launch metadata, with debug-only differences recorded separately. Active Python tools were formatted with Black and retain identical syntax trees. No active Julia files were present; the reusable skills require JuliaFormatter when Julia sources are used.
+The formatting checkpoint used a pinned `fprettify` revision on 224 project Fortran files. All selected files preserve executable tokens and compiler directives, and a second formatting pass makes no change. Both selected CPU libraries rebuild byte for byte. The formatted GPU sources preserve executable instructions, constants, data, relocations and launch metadata, with debug-only differences recorded separately. Active Python tools were formatted with Black and retain identical syntax trees. No active Julia files were present; the reusable skills require JuliaFormatter when Julia sources are used.
 
 ## GPU Solvers
 
-The same models run on one NVIDIA GH200 GPU. The LLM emits PTX, NVIDIA’s virtual assembly language, and NVIDIA’s assembler creates machine code. The [GPU skill](skills/md2asm-gpu/SKILL.md) and [execution contract](skills/md2asm-gpu/references/gpu-contract.md) describe this route. Sources are [shallow water](src/sw/gpu/solver.ptx) and [energy balance](src/ebm/gpu/solver.ptx).
+The historical comparison runs the same models on one NVIDIA GH200 GPU. For that earlier route, the LLM emitted PTX, NVIDIA’s virtual assembly language, and NVIDIA’s assembler created machine code. The [GPU skill](skills/md2asm-gpu/SKILL.md) and [execution contract](skills/md2asm-gpu/references/gpu-contract.md) describe this route. Sources are [shallow water](https://github.com/p3jitnath/esm.md/blob/8be04b8/src/sw/gpu/2d_rusanov_ssprk2.ptx) and [energy balance](https://github.com/p3jitnath/esm.md/blob/8be04b8/src/ebm/gpu/budyko_sellers.ptx).
 
 Rates are million complete cell updates per second, shown as the median [minimum–maximum] across twelve accepted repetitions on one quiet exclusive GPU. Water updates include all three fields, both stages and periodic boundaries. Energy-balance updates include both stages and pole boundaries.
 
@@ -75,13 +77,13 @@ Rates are million complete cell updates per second, shown as the median [minimum
 
 The timer replays a prepared sequence of GPU launches. It excludes compilation, startup, allocation, transfers, graph construction and verification. Julia uses separate sequential processes on the same GPU. All seven variants pass physical, trajectory, boundary and buffer checks with zero differing output bytes. The water check has 34 scientific cases and energy balance has 28, including 1,000-step trajectories. These archived steady-computation rates are separate from complete-process forecast timings.
 
-### esm.md – Fortran GPU
+### esm.md GPU
 
-The new [shallow-water](src/sw/gpu/solver.cuf) and [energy-balance](src/ebm/gpu/solver.cuf) variants are labelled **esm.md – Fortran**. NVIDIA Fortran compiles these sources into GPU instructions. The assembly sources and earlier control results above remain unchanged. The [GPU execution contract](skills/md2asm-gpu/references/gpu-contract.md) records the interfaces, complete launch sequence and strict build options.
+The new [shallow-water](src/sw/gpu/solver.cuf) and [energy-balance](src/ebm/gpu/solver.cuf) variants are labelled **esm.md**. NVIDIA Fortran compiles these sources into GPU instructions. The earlier assembly sources are archived, and their comparison results above remain historical records. The [GPU execution contract](skills/md2asm-gpu/references/gpu-contract.md) records the interfaces, complete launch sequence and strict build options.
 
 This fresh comparison uses twelve rotated pairs per workload on one GH200 in exclusive job 8199657 on `nid010573`. Both variants use GPU 0, host CPU 7 and memory domain 0. Rates are million complete cell updates per second, shown as median [minimum–maximum]. A complete update includes both time stages, every field and the boundaries. The ratio is Fortran speed divided by assembly speed.
 
-| Model | Grid | Assembly | esm.md – Fortran | Ratio |
+| Model | Grid | Assembly | esm.md | Ratio |
 | --- | --- | ---: | ---: | ---: |
 | Shallow water | 64² | 675.22 [674.57–675.92] | 707.93 [704.40–708.67] | 1.048× |
 | Shallow water | 256² | 5813.54 [5802.34–5821.02] | 6743.69 [6733.21–6750.20] | 1.160× |

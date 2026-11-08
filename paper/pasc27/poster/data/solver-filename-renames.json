@@ -1,0 +1,85 @@
+{
+  "reason": "User-requested uniform solver filenames",
+  "records": [
+    {
+      "old_path": "src/ebm/energy_balance_solver.f90",
+      "current_path": "src/ebm/solver.f90",
+      "sha256": "7966d83b915def32dcc911c8266fb06a62e6b45248312fb7d3cf85c06eb87754",
+      "content_unchanged": true
+    },
+    {
+      "old_path": "src/ebm/gpu/energy_balance_solver.cuf",
+      "current_path": "src/ebm/gpu/solver.cuf",
+      "sha256": "595964ba76a5b1eddb102f74d41eba1a3c75aa3cf6bdd10ff0b533d047726a12",
+      "content_unchanged": true
+    },
+    {
+      "old_path": "src/ebm/gpu/budyko_sellers.ptx",
+      "current_path": "src/ebm/gpu/solver.ptx",
+      "sha256": "2197932899e82780e36ddee0f223c9fdefc2150c311a27d2e7d47eff29dbc7ce",
+      "content_unchanged": true
+    },
+    {
+      "old_path": "src/sw/shallow_water_solver.f90",
+      "current_path": "src/sw/solver.f90",
+      "sha256": "1c9a322e193f3099be82cfda62f281d19e1043cf8278e6332db925044cf51877",
+      "content_unchanged": true
+    },
+    {
+      "old_path": "src/sw/gpu/shallow_water_solver.cuf",
+      "current_path": "src/sw/gpu/solver.cuf",
+      "sha256": "3429c8374f1a768611cd278d258da0b8d38e63e0404d854aa15f1af7d2179e74",
+      "content_unchanged": true
+    },
+    {
+      "old_path": "src/sw/gpu/2d_rusanov_ssprk2.ptx",
+      "current_path": "src/sw/gpu/solver.ptx",
+      "sha256": "a7031180aa244e5c0279cb6744effeccd7538cffd9669c13f99267acea8911c4",
+      "content_unchanged": true
+    }
+  ],
+  "updated_markdown": [
+    "README.md",
+    "skills/md2asm-gpu/references/gpu-contract.md",
+    "skills/md2asm/references/2d_rusanov_ssprk2.md",
+    "skills/md2asm/references/budyko_sellers.md"
+  ],
+  "acceptance": "Source contents and public interfaces unchanged. Original accepted records remain immutable; this record maps their paths.",
+  "poster_copy_check": {
+    "checked_utc": "2026-11-08T17:27:28.525381+00:00",
+    "source_record_sha256": "9b4b35599aa41c7109cdd53078c31a4b5071155b426aade810605f48810e6197",
+    "scope": "This check confirms the renamed file identities at this time. Raw benchmark source identities remain unchanged in their historical records.",
+    "records": [
+      {
+        "current_path": "src/ebm/solver.f90",
+        "sha256": "7966d83b915def32dcc911c8266fb06a62e6b45248312fb7d3cf85c06eb87754",
+        "matches_rename_record": true
+      },
+      {
+        "current_path": "src/ebm/gpu/solver.cuf",
+        "sha256": "595964ba76a5b1eddb102f74d41eba1a3c75aa3cf6bdd10ff0b533d047726a12",
+        "matches_rename_record": true
+      },
+      {
+        "current_path": "src/ebm/gpu/solver.ptx",
+        "sha256": "2197932899e82780e36ddee0f223c9fdefc2150c311a27d2e7d47eff29dbc7ce",
+        "matches_rename_record": true
+      },
+      {
+        "current_path": "src/sw/solver.f90",
+        "sha256": "1c9a322e193f3099be82cfda62f281d19e1043cf8278e6332db925044cf51877",
+        "matches_rename_record": true
+      },
+      {
+        "current_path": "src/sw/gpu/solver.cuf",
+        "sha256": "3429c8374f1a768611cd278d258da0b8d38e63e0404d854aa15f1af7d2179e74",
+        "matches_rename_record": true
+      },
+      {
+        "current_path": "src/sw/gpu/solver.ptx",
+        "sha256": "a7031180aa244e5c0279cb6744effeccd7538cffd9669c13f99267acea8911c4",
+        "matches_rename_record": true
+      }
+    ]
+  }
+}

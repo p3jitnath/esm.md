@@ -4,7 +4,7 @@ Revision 1.5 carries the verified shallow-water and energy-balance methods to an
 
 ## Target and Direct Sources
 
-The qualified target is one NVIDIA GH200 with compute capability 9.0, little-endian Linux, CUDA 12.6, PTX 8.5 and an `sm_90` cubin. PTX is NVIDIA’s virtual assembly language. The direct sources are [two-dimensional Rusanov–SSPRK2](../../../src/sw/gpu/solver.ptx) and [Budyko–Sellers](../../../src/ebm/gpu/solver.ptx). They are emitted from the frozen Markdown contracts and assembled with `ptxas -arch=sm_90 --fmad=false`. A cubin contains the resulting native GPU machine code.
+The qualified target is one NVIDIA GH200 with compute capability 9.0, little-endian Linux, CUDA 12.6, PTX 8.5 and an `sm_90` cubin. PTX is NVIDIA’s virtual assembly language. The archived direct sources are [two-dimensional Rusanov–SSPRK2](https://github.com/p3jitnath/esm.md/blob/8be04b8/src/sw/gpu/2d_rusanov_ssprk2.ptx) and [Budyko–Sellers](https://github.com/p3jitnath/esm.md/blob/8be04b8/src/ebm/gpu/budyko_sellers.ptx). They are emitted from the frozen Markdown contracts and assembled with `ptxas -arch=sm_90 --fmad=false`. A cubin contains the resulting native GPU machine code.
 
 Each required operation uses nearest-even FP64 rounding with gradual underflow, preserved signed zeros and the original operand order. Threshold ties, intermediate stages and canonical bytes stay unchanged. Correctly rounded division and square root may use internal machine-code refinement. Model multiply and add remain separately rounded. The canonical CPU Fortran reference uses verified round-to-nearest arithmetic, gradual underflow and disabled contraction.
 
@@ -84,7 +84,7 @@ Compatible device probes measure ordinary rounded arithmetic, division, square r
 The [main README](../../../README.md) gives the accepted GPU comparison. Original source versions, controls, host tools, detailed build commands, binary hashes, instruction audits, physical results, repeated samples, performance-guide counts and editable figures are retained in the ignored local GPU research archive. The source-branch archive manifest records their original paths and hashes before reorganisation. The direct PTX instructions retain their qualified numerical behaviour when the source files move into the current model folders. Rebuilding and remeasuring is required if numerical instructions, launch rules, target or controls change.
 
 
-## esm.md – Fortran GPU Variants
+## esm.md GPU Variants
 
 The compiled variants publish [shallow-water CUDA Fortran](../../../src/sw/gpu/solver.cuf) and [energy-balance CUDA Fortran](../../../src/ebm/gpu/solver.cuf). NVIDIA Fortran generates their PTX and native machine code. The direct PTX sources and their accepted schedules above remain unchanged. Both routes use the same numerical contracts, state buffers, parameters, output bytes and inherited dimension bounds. Fortran dimensions and selectors use signed `C_INT` values within those nonnegative bounds, which have the same argument bits as the direct entries.
 
