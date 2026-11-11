@@ -72,7 +72,11 @@ def check(output: Path) -> dict:
     all_text = "\n".join(texts)
     assert "dam_break.md" in all_text
     assert "2d_periodic.md" not in all_text
-    assert "Verified Fortran" in all_text
+    title = next(shape for shape in slide.shapes if shape.name == "poster-title")
+    assert title.text == profile["identity"]["title"]
+    title_runs = list(title.text_frame.paragraphs[0].runs)
+    underlined = [run.text for run in title_runs if run.font.underline]
+    assert underlined == ["M", "d", "E", "S", "M"], underlined
     assert "Verified Assembly" not in all_text
     assert "Assembly is" not in all_text
     assert "relative to assembly" not in all_text
@@ -92,6 +96,35 @@ def check(output: Path) -> dict:
         page = document[0]
         assert abs(page.rect.width * 25.4 / 72 - width) < 0.1
         assert abs(page.rect.height * 25.4 / 72 - height) < 0.1
+        assert document.metadata["title"] == title.text
+        title_bounds = pymupdf.Rect(
+            *[
+                value / 12700
+                for value in (
+                    title.left,
+                    title.top,
+                    title.left + title.width,
+                    title.top + title.height,
+                )
+            ]
+        )
+        title_lines = [
+            line
+            for block in page.get_text("dict", clip=title_bounds)["blocks"]
+            if "lines" in block
+            for line in block["lines"]
+        ]
+        assert len(title_lines) == 1, title_lines
+        assert "".join(span["text"] for span in title_lines[0]["spans"]) == title.text
+        title_underlines = [
+            path
+            for path in page.get_drawings()
+            if path["type"] == "s"
+            and abs(path["width"] - title_runs[0].font.size.pt * 0.05) < 1e-5
+            and title_bounds.x0 <= path["rect"].x0 <= path["rect"].x1 <= title_bounds.x1
+            and title_bounds.y0 <= path["rect"].y0 <= path["rect"].y1 <= title_bounds.y1
+        ]
+        assert len(title_underlines) == 5, len(title_underlines)
         x, y, w, h = qr_mm
         clip = pymupdf.Rect(
             x * 72 / 25.4, y * 72 / 25.4, (x + w) * 72 / 25.4, (y + h) * 72 / 25.4
@@ -136,6 +169,10 @@ def check(output: Path) -> dict:
         "native_objects": len(slide.shapes),
         "native_text_frames": len(texts),
         "minimum_native_font_pt": min(sizes),
+        "title": title.text,
+        "native_title_underlined_letters": underlined,
+        "exported_title_lines": len(title_lines),
+        "exported_title_underlines": len(title_underlines),
         "qr_final_pdf_checks": decoded,
         "pptx_sha256": hashlib.sha256(pptx.read_bytes()).hexdigest(),
         "pdf_sha256": hashlib.sha256(pdf.read_bytes()).hexdigest(),

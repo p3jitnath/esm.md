@@ -1,7 +1,7 @@
 {
-  "date_utc": "2026-11-10",
+  "date_utc": "2026-11-11",
   "format": "A0 landscape, 1189 by 841 mm, one native PowerPoint slide and vector PDF",
-  "title": "ESM.md: From Physics Formulations to Verified Fortran",
+  "title": "ESM.md: From Markdown Physics to Verified, Optimised Earth System Model Solvers",
   "author": "Pritthijit Nath",
   "affiliation": "Department of Applied Mathematics and Theoretical Physics, University of Cambridge",
   "implementation_label": "esm.md",
@@ -2670,6 +2670,16 @@
     "native_objects": 65,
     "native_text_frames": 48,
     "minimum_native_font_pt": 22.0,
+    "title": "ESM.md: From Markdown Physics to Verified, Optimised Earth System Model Solvers",
+    "native_title_underlined_letters": [
+      "M",
+      "d",
+      "E",
+      "S",
+      "M"
+    ],
+    "exported_title_lines": 1,
+    "exported_title_underlines": 5,
     "qr_final_pdf_checks": [
       {
         "pdf_scale": 1.5,
@@ -2692,9 +2702,9 @@
         ]
       }
     ],
-    "pptx_sha256": "e59126aa6ec5151068a9469f1cc7ccb2937a0f9061cb7bb081b422fb287f4959",
-    "pdf_sha256": "680421e9cc7e4010a33b2e9cdb3a54e1547af78a90fc1ce192bb5c8cfcda2ee4",
-    "png_sha256": "d4e04501d8285f499eeb3ada7292fcb3122821e872766b2510314c1b414af089",
+    "pptx_sha256": "9cfdd3144e365ddcc977ca94a7d4dcc9338924022dc855d8fa439249aedd7304",
+    "pdf_sha256": "71383238cf5b387374d59c7f46f49a255cf2322447521f96dfd850af539ef31b",
+    "png_sha256": "f98b918cca856cf037de3e0dd271ba2d4fae07d9b610c4f64483049dcf7fbf89",
     "png_pixels": [
       7022,
       4967
@@ -2705,17 +2715,15 @@
   },
   "visual_review": {
     "status": "pass",
-    "date_utc": "2026-11-10T23:55:02.779319+00:00",
-    "pdf_sha256": "680421e9cc7e4010a33b2e9cdb3a54e1547af78a90fc1ce192bb5c8cfcda2ee4",
-    "pptx_sha256": "e59126aa6ec5151068a9469f1cc7ccb2937a0f9061cb7bb081b422fb287f4959",
+    "date_utc": "2026-11-11T00:49:31.439919+00:00",
+    "pdf_sha256": "71383238cf5b387374d59c7f46f49a255cf2322447521f96dfd850af539ef31b",
+    "pptx_sha256": "9cfdd3144e365ddcc977ca94a7d4dcc9338924022dc855d8fa439249aedd7304",
     "reviewed": [
       "full saved poster PDF",
-      "physical unit labels and colour bar",
-      "CPU and GPU performance labels",
-      "branding and footer",
-      "paper physical and performance exports"
+      "title and five underlined letters at close range",
+      "unchanged branding, scientific panels and footer"
     ],
-    "finding": "No clipping or label overlap. The two updated SVG containers remain centred in their unchanged chart slots.",
+    "finding": "The new title fits one line with clear side padding. All five requested letters are underlined, with no clipping or overlap. Every other native object is byte-identical, and the saved PDF outside the title frame is pixel-identical to the accepted artwork.",
     "desktop_powerpoint_inspection": false
   },
   "desktop_powerpoint_inspection": false,
@@ -2731,12 +2739,12 @@
   },
   "files": {
     "scripts/build_poster.py": {
-      "sha256": "4958572774d32be26ce4d17204ccdc3ebf3d6080333e680a15c99c0b4d488912",
-      "bytes": 37597
+      "sha256": "5cc4e8a621df01a38f28aa19269c44ecaafba3c3736b2c34f5c0f3610dcd8903",
+      "bytes": 39114
     },
     "scripts/check_poster.py": {
-      "sha256": "4c9bb261e0066306df18cd01b58fea07dde65187d192a731601f0484726bf804",
-      "bytes": 5722
+      "sha256": "fcf6e9acf4447aadaef68c098dcde07b83e45ac6a44d7c45cd16ee720269b6cc",
+      "bytes": 7361
     },
     "scripts/plot_historical_controls.py": {
       "sha256": "9fc61806105fe6301520340254ed8037843b2960a45f43048d8504777d3b1e36",
@@ -2841,6 +2849,10 @@
     "data/timed-128-reference-p2.bin": {
       "sha256": "64c137dfef716463526596571e7d7fdb055df6b04763d0046fe62051c4fc23b8",
       "bytes": 1112
+    },
+    "data/title-update.json": {
+      "sha256": "6ac24b75a54529f419b113a06af2159f6c50ad01a201d41c2eb354b2e29bacd9",
+      "bytes": 2205
     },
     "data/unit-label-update.json": {
       "sha256": "6180f089b8b6735914d387dfaac6c5781261e63a357e9dc15ebb3966d99754ee",
@@ -3087,24 +3099,24 @@
       "bytes": 24424
     },
     "esm-md-a0-landscape.pptx": {
-      "sha256": "e59126aa6ec5151068a9469f1cc7ccb2937a0f9061cb7bb081b422fb287f4959",
-      "bytes": 6343334
+      "sha256": "9cfdd3144e365ddcc977ca94a7d4dcc9338924022dc855d8fa439249aedd7304",
+      "bytes": 6343434
     },
     "esm-md-a0-landscape.pdf": {
-      "sha256": "680421e9cc7e4010a33b2e9cdb3a54e1547af78a90fc1ce192bb5c8cfcda2ee4",
-      "bytes": 33496432
+      "sha256": "71383238cf5b387374d59c7f46f49a255cf2322447521f96dfd850af539ef31b",
+      "bytes": 33496656
     },
     "esm-md-a0-landscape.png": {
-      "sha256": "d4e04501d8285f499eeb3ada7292fcb3122821e872766b2510314c1b414af089",
-      "bytes": 4418651
+      "sha256": "f98b918cca856cf037de3e0dd271ba2d4fae07d9b610c4f64483049dcf7fbf89",
+      "bytes": 4395725
     },
     "project-profile.json": {
-      "sha256": "f1e5796d68259a9ad63d6213d9678cbdf448ee559d1e48a658e50fad5c0bf22d",
-      "bytes": 5015
+      "sha256": "b930545b84e113301e9d6d52bcbdd97ee4e4eafe5e386c6687af67425a652e8a",
+      "bytes": 5195
     },
     "README.md": {
-      "sha256": "59fadce3013ed41d85ebe76bfa83da757c69760d9b2d90123641ba2200ee23f3",
-      "bytes": 8000
+      "sha256": "5f664c1cae27c867eac77b6335f2bcac2a99436de9113b3a1adb8d2b3f660e78",
+      "bytes": 8264
     },
     "requirements.txt": {
       "sha256": "28c83b526504033be02d598655ee5d710d89df98b9facaf618f8a72c128d0289",

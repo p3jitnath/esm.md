@@ -1,6 +1,6 @@
 # esm.md Poster Project
 
-This directory contains the editable A0 landscape PowerPoint and PDF, all plotting and build scripts, figure data, approved artwork and provenance. It preserves the approved University of Cambridge layout, Open Sans type, paisley banner, sponsor marks and footer. The generated implementation is labelled `esm.md` in the performance graphs.
+This directory contains the editable A0 landscape PowerPoint and PDF, all plotting and build scripts, figure data, approved artwork and provenance. It preserves the approved University of Cambridge layout, Open Sans type, paisley banner, sponsor marks and footer. The title matches the manuscript as “ESM.md: From Markdown Physics to Verified, Optimised Earth System Model Solvers”. Native text underlines M and d in Markdown, E in Earth, S in System and M in Model. The 72 pt title fits on one line in the existing banner. The generated implementation is labelled `esm.md` in the performance graphs.
 
 ## Rebuild
 

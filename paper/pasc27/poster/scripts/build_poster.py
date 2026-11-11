@@ -26,7 +26,20 @@ OUT = POSTER
 BUILD = ROOT / ".runtime/poster_update_20261108"
 BUILD.mkdir(parents=True, exist_ok=True)
 FONT = "Open Sans"
-POSTER_TITLE = "ESM.md: From Physics Formulations to Verified Fortran"
+TITLE_RUNS = [
+    ("ESM.md: From ", False),
+    ("M", True),
+    ("ark", False),
+    ("d", True),
+    ("own Physics to Verified, Optimised ", False),
+    ("E", True),
+    ("arth ", False),
+    ("S", True),
+    ("ystem ", False),
+    ("M", True),
+    ("odel Solvers", False),
+]
+POSTER_TITLE = "".join(value for value, _ in TITLE_RUNS)
 REPO_URL = "https://github.com/p3jitnath/esm.md"
 W, H = 1189, 841
 INK = "232830"
@@ -468,17 +481,27 @@ graphic.top = Mm(79)
 graphic.width = Mm(674)
 graphic.height = Mm(111)
 inset = 24
-text(
+poster_title = text(
     "poster-title",
     POSTER_TITLE,
     a + inset,
     96,
     band_width - 2 * inset,
     36,
-    82,
+    72,
     bold=True,
     c=DARK,
 )
+title_paragraph = poster_title.text_frame.paragraphs[0]
+title_paragraph.clear()
+for value, underlined in TITLE_RUNS:
+    run = title_paragraph.add_run()
+    run.text = value
+    run.font.name = FONT
+    run.font.size = Pt(72)
+    run.font.bold = True
+    run.font.color.rgb = colour(DARK)
+    run.font.underline = underlined
 text(
     "poster-subtitle",
     "A framework for ESM development directly from physics formulations",
@@ -1066,6 +1089,23 @@ for sh in saved.slides[0].shapes:
                     else x + indent
                 )
                 pdf.drawString(line_x, baseline, tline)
+                # Preserve native title underlines in the saved-slide export.
+                if sh.name == "poster-title":
+                    prefix = ""
+                    for title_run in p.runs:
+                        if title_run.font.underline:
+                            start = line_x + pdfmetrics.stringWidth(
+                                prefix, family, size
+                            )
+                            end = start + pdfmetrics.stringWidth(
+                                title_run.text, family, size
+                            )
+                            pdf.setStrokeColorRGB(*[v / 255 for v in font.color.rgb])
+                            pdf.setLineWidth(size * 0.05)
+                            pdf.line(
+                                start, baseline - size * 0.1, end, baseline - size * 0.1
+                            )
+                        prefix += title_run.text
                 # Keep each native reference URL clickable in the PDF export.
                 for linked_run in p.runs:
                     address = linked_run.hyperlink.address
