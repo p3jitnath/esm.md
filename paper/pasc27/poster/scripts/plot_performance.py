@@ -42,7 +42,7 @@ GPU_NAMES = (
     "gpu_python_vanilla",
 )
 LABELS = (
-    "esm.md",
+    "ESM.md",
     "Fortran Tuned",
     "Fortran Vanilla",
     "Julia Tuned",
@@ -339,7 +339,7 @@ def plot_model(data, model, output_name):
         figure.text(
             0.56,
             0.012,
-            "esm.md Nov 2026 · Oct 2026 controls · Python uses Numba",
+            "ESM.md Nov 2026 · Oct 2026 controls · Python uses Numba",
             ha="center",
             va="bottom",
             fontsize=24,

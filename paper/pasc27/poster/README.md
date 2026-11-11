@@ -1,6 +1,6 @@
 # esm.md Poster Project
 
-This directory contains the editable A0 landscape PowerPoint and PDF, all plotting and build scripts, figure data, approved artwork and provenance. It preserves the approved University of Cambridge layout, Open Sans type, paisley banner, sponsor marks and footer. The title matches the manuscript as “ESM.md: From Markdown Physics to Verified, Optimised Earth System Model Solvers”. Native text underlines M and d in Markdown, E in Earth, S in System and M in Model. The 72 pt title fits on one line in the existing banner. The generated implementation is labelled `esm.md` in the performance graphs.
+This directory contains the editable A0 landscape PowerPoint and PDF, all plotting and build scripts, figure data, approved artwork and provenance. It preserves the approved University of Cambridge layout, Open Sans type, paisley banner, sponsor marks and footer. The title matches the manuscript as “ESM.md: From Markdown Physics to Verified, Optimised Earth System Model Solvers”. Native text underlines M and d in Markdown, E in Earth, S in System and M in Model. The 72 pt title fits on one line in the existing banner. The generated implementation is labelled `ESM.md` in the performance graphs.
 
 ## Rebuild
 
@@ -30,7 +30,7 @@ The final files are `esm-md-a0-landscape.pptx` and `esm-md-a0-landscape.pdf`. A 
 
 ## Measurements and Meaning
 
-The active performance panels compare seven implementations at three workloads on each platform. The generated solver is labelled `esm.md`. The six controls are vanilla and tuned Fortran, Julia and compiled Python. Vanilla means the unchanged control source compiled with the recorded strict, target-aware optimisation settings. Tuned means the retained measured source optimisation. Vanilla Python is also compiled, and the timers exclude compilation. CPU means central processing unit and GPU means graphics processing unit. CPU measurements use one Neoverse V2 core, and GPU measurements use one NVIDIA GH200 device.
+The active performance panels compare seven implementations at three workloads on each platform. The generated solver is labelled `ESM.md`. The six controls are vanilla and tuned Fortran, Julia and compiled Python. Vanilla means the unchanged control source compiled with the recorded strict, target-aware optimisation settings. Tuned means the retained measured source optimisation. Vanilla Python is also compiled, and the timers exclude compilation. CPU means central processing unit and GPU means graphics processing unit. CPU measurements use one Neoverse V2 core, and GPU measurements use one NVIDIA GH200 device.
 
 Current `esm.md` measurements come from November 2026. The CPU controls were measured on 5 October 2026 and GPU controls on 8 October 2026. These are separate groups of runs on the same hardware types and model workloads, with their original dates, jobs and nodes preserved. They show absolute update rates and do not form a freshly paired speedup experiment. The graphs label the October and November groups visibly.
 
@@ -49,6 +49,8 @@ Earlier CPU and GPU control data remain under `data/historical/`, with standalon
 `data/results-current.json` retains each accepted current run record’s original node, allocation and source identities. `data/dam-break-rename.json` maps the formulation rename and comment-only source-header changes without rewriting those original records. `data/solver-filename-renames.json` records the filename rename checkpoint. The active CPU and GPU Fortran sources use `solver.f90` and `gpu/solver.cuf` for each model. The replaced handwritten CPU assembly and GPU PTX were then moved to `.archive/sw_ebm_assembly/`, with their paths and hashes recorded in its manifest. Raw benchmark identities remain unchanged.
 
 `project-profile.json` records the approved design and institution assets. `evidence.json` maps claims to their measurement files and scientific sources. `assets/asset-urls.json` and the other provenance files retain official artwork sources. The bundled plotting-style helper and its formatting check are recorded in `scripts/style/provenance.json`. The Python sources use Black 25.1.0. The unit-label update retains the previous plotting calculations and checks that formatting preserves each syntax tree. Its evidence is recorded in `data/unit-label-update.json`.
+
+`data/figure-label-update.json` records the `ESM.md` display labels in the paper and active poster performance graphs. Measurements, ranges, units and other artwork are unchanged.
 
 The build uses the bundled native template and vector artwork. `check_poster.py` checks actual saved PowerPoint geometry and fonts, then decodes the actual exported PDF QR at two render sizes. Final-size visual inspection remains a separate recorded check. Desktop Microsoft PowerPoint inspection is not claimed. The QR opens the repository, and full reference identifiers remain in metadata while visible URLs stay out of the printed footer.
 

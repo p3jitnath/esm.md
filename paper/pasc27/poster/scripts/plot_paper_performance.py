@@ -189,7 +189,7 @@ def draw_model(data, model, filename):
         figure.text(
             0.57,
             0.025,
-            "esm.md and language controls · separate measurement campaigns",
+            "ESM.md and language controls · separate measurement campaigns",
             fontsize=7.5,
             ha="center",
             va="bottom",

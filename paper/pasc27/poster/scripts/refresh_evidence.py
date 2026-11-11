@@ -90,7 +90,7 @@ def refresh() -> dict:
         "affiliation": profile["identity"]["department"]
         + ", "
         + profile["identity"]["university"],
-        "implementation_label": "esm.md",
+        "implementation_label": "ESM.md",
         "generation_route": "Physics in Markdown to structured Fortran, then compiler-generated CPU or GPU instructions",
         "branding": old.get("branding", {}),
         "references": old.get("references", []),
