@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import hashlib
 import importlib.metadata
 import json
@@ -82,7 +83,7 @@ def refresh() -> dict:
         if path.exists():
             files[name] = {"sha256": digest(path), "bytes": path.stat().st_size}
     report = {
-        "date_utc": "2026-11-08",
+        "date_utc": datetime.now(timezone.utc).date().isoformat(),
         "format": "A0 landscape, 1189 by 841 mm, one native PowerPoint slide and vector PDF",
         "title": profile["identity"]["title"],
         "author": profile["identity"]["author"],
@@ -100,6 +101,7 @@ def refresh() -> dict:
         "performance_method": "Absolute complete-cell-update rates for esm.md and six language controls, with median and observed min-max across twelve runs per condition",
         "graph_policy": "Assembly series and assembly-ratio axes are omitted from every visible performance graph. Raw controls remain in source data for provenance.",
         "axis_scales": {"CPU": "linear", "GPU": "logarithmic"},
+        "figure_unit_labels": profile["poster"].get("figure_unit_labels"),
         "independent_plotted_input_reviews": {
             "CPU": {"status": "pass", "groups": 42, "per_run_observations": 504},
             "GPU": {

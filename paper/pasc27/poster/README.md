@@ -17,6 +17,15 @@ python3 -m venv .runtime/poster_environment
 .runtime/poster_environment/bin/python paper/pasc27/poster/scripts/refresh_evidence.py
 ```
 
+The paper figure sources are also included under `scripts/`. With the separate paper repository at `paper/pasc27/submission/`, regenerate its four final PDFs with the following commands. These scripts use the same accepted data and the bundled plotting helper. They preserve the paper’s Helvetica Neue profile, which requires a locally licensed collection under `~/fonts/helvetica/` or `$GRAPH_PLOTTING_FONT_DIR/helvetica/`. Diagnostic exports stay under the paper’s ignored `.scratch/` directory.
+
+```bash
+.runtime/poster_environment/bin/python paper/pasc27/poster/scripts/plot_paper_physics.py
+.runtime/poster_environment/bin/python paper/pasc27/poster/scripts/plot_paper_performance.py
+```
+
+All axis and colour-bar unit labels use square brackets, such as `Depth [m]`, `Temperature [°C]` and `Rate [million updates/s]`. This changes the label notation while preserving values, scales, colour limits and timing definitions.
+
 The final files are `esm-md-a0-landscape.pptx` and `esm-md-a0-landscape.pdf`. A 150 dpi PNG export of the saved PDF is available as `esm-md-a0-landscape.png`, with 7022 by 4967 pixels. Temporary renders and check logs stay under the ignored `.runtime/poster_update_20261108/` folder. Local `.build/` and Python caches are excluded from publication. Text, headings, workflow blocks and positions remain native editable PowerPoint objects. Scientific artwork is embedded as SVG with PNG fallbacks, and its editable plotting sources and data are included here. Install the bundled Open Sans fonts when editing the PowerPoint on another computer.
 
 ## Measurements and Meaning
@@ -39,7 +48,7 @@ Earlier CPU and GPU control data remain under `data/historical/`, with standalon
 
 `data/results-current.json` retains each accepted current run record’s original node, allocation and source identities. `data/dam-break-rename.json` maps the formulation rename and comment-only source-header changes without rewriting those original records. `data/solver-filename-renames.json` records the filename rename checkpoint. The active CPU and GPU Fortran sources use `solver.f90` and `gpu/solver.cuf` for each model. The replaced handwritten CPU assembly and GPU PTX were then moved to `.archive/sw_ebm_assembly/`, with their paths and hashes recorded in its manifest. Raw benchmark identities remain unchanged.
 
-`project-profile.json` records the approved design and institution assets. `evidence.json` maps claims to their measurement files and scientific sources. `assets/asset-urls.json` and the other provenance files retain official artwork sources. The bundled plotting-style helper and its formatting check are recorded in `scripts/style/provenance.json`. Black 25.1.0 leaves all nine poster Python files unchanged after formatting, and its syntax-tree check confirms that formatting preserved behaviour.
+`project-profile.json` records the approved design and institution assets. `evidence.json` maps claims to their measurement files and scientific sources. `assets/asset-urls.json` and the other provenance files retain official artwork sources. The bundled plotting-style helper and its formatting check are recorded in `scripts/style/provenance.json`. The Python sources use Black 25.1.0. The unit-label update retains the previous plotting calculations and checks that formatting preserves each syntax tree. Its evidence is recorded in `data/unit-label-update.json`.
 
 The build uses the bundled native template and vector artwork. `check_poster.py` checks actual saved PowerPoint geometry and fonts, then decodes the actual exported PDF QR at two render sizes. Final-size visual inspection remains a separate recorded check. Desktop Microsoft PowerPoint inspection is not claimed. The QR opens the repository, and full reference identifiers remain in metadata while visible URLs stay out of the printed footer.
 

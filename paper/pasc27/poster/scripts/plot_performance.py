@@ -288,7 +288,7 @@ def plot_model(data, model, output_name):
             if platform == "cpu":
                 axis.set_xlim(0, 110 if model == "sw" else 800)
                 axis.set_xticks([0, 50, 100] if model == "sw" else [0, 400, 800])
-                axis.set_xlabel("Million updates/s", labelpad=10)
+                axis.set_xlabel("Rate [million updates/s]", labelpad=10)
             else:
                 values = [
                     point[bound]
@@ -303,7 +303,7 @@ def plot_model(data, model, output_name):
                 )
                 axis.xaxis.set_major_formatter(LogFormatterMathtext(base=10))
                 axis.tick_params(axis="x", which="minor", bottom=False)
-                axis.set_xlabel("Million updates/s · log scale", labelpad=10)
+                axis.set_xlabel("Rate [million updates/s] · log scale", labelpad=10)
             style.finish_axis(axis)
             axis.spines["left"].set_visible(False)
             axis.grid(axis="x", color="#D5DFDF", linewidth=0.9, zorder=0)

@@ -592,7 +592,7 @@ text(
 )
 text(
     "physics-note-symbols",
-    "Depth h (m), velocities u and v (m/s), positions x and y (m), and time t (s).",
+    "Depth h [m], velocities u and v [m/s], positions x and y [m], and time t [s].",
     a + 7,
     407,
     cw - 14,

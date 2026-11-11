@@ -139,7 +139,7 @@ def main():
                     fontsize=26,
                     fontweight="bold",
                 )
-                axis.set_xlabel("Million updates/s", labelpad=10)
+                axis.set_xlabel("Rate [million updates/s]", labelpad=10)
                 style.finish_axis(axis)
                 axis.spines["left"].set_visible(False)
                 axis.grid(axis="x", color="#D5DFDF", zorder=0)

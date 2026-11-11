@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-11-08",
+  "date_utc": "2026-11-10",
   "format": "A0 landscape, 1189 by 841 mm, one native PowerPoint slide and vector PDF",
   "title": "ESM.md: From Physics Formulations to Verified Fortran",
   "author": "Pritthijit Nath",
@@ -326,6 +326,7 @@
     "CPU": "linear",
     "GPU": "logarithmic"
   },
+  "figure_unit_labels": "Put units in square brackets on axes, colour bars and variable-label declarations. Keep plotted values, scales and ordinary value-unit expressions unchanged.",
   "independent_plotted_input_reviews": {
     "CPU": {
       "status": "pass",
@@ -2691,9 +2692,9 @@
         ]
       }
     ],
-    "pptx_sha256": "f58cb110faf638b66c11073d162f311293849ef76de2defcaf488f1f82a47add",
-    "pdf_sha256": "43862b680c306327a671d0507b34d86e576f1b3478dbc9076673349ba609746c",
-    "png_sha256": "0e69232307e28ead0171ab219c7cd065dff6fe980e2af346461903bc410d4888",
+    "pptx_sha256": "e59126aa6ec5151068a9469f1cc7ccb2937a0f9061cb7bb081b422fb287f4959",
+    "pdf_sha256": "680421e9cc7e4010a33b2e9cdb3a54e1547af78a90fc1ce192bb5c8cfcda2ee4",
+    "png_sha256": "d4e04501d8285f499eeb3ada7292fcb3122821e872766b2510314c1b414af089",
     "png_pixels": [
       7022,
       4967
@@ -2703,32 +2704,19 @@
     "desktop_powerpoint_inspected": false
   },
   "visual_review": {
-    "reviewed_utc": "2026-11-08T18:29:13.220063+00:00",
-    "pdf_sha256": "43862b680c306327a671d0507b34d86e576f1b3478dbc9076673349ba609746c",
-    "reviewer": "Poster editor and independent root review of the actual final saved PDF",
-    "inspected": [
-      "final-poster.png",
-      "performance.png",
-      "banner.png",
-      "footer.png"
+    "status": "pass",
+    "date_utc": "2026-11-10T23:55:02.779319+00:00",
+    "pdf_sha256": "680421e9cc7e4010a33b2e9cdb3a54e1547af78a90fc1ce192bb5c8cfcda2ee4",
+    "pptx_sha256": "e59126aa6ec5151068a9469f1cc7ccb2937a0f9061cb7bb081b422fb287f4959",
+    "reviewed": [
+      "full saved poster PDF",
+      "physical unit labels and colour bar",
+      "CPU and GPU performance labels",
+      "branding and footer",
+      "paper physical and performance exports"
     ],
-    "passed": true,
-    "observations": [
-      "The approved A0 native layout, institution artwork, Open Sans font, physical plots, units and QR are preserved.",
-      "The visible physical source filename is dam_break.md, with unchanged formulation bytes and mathematics.",
-      "Both models show esm.md and all six Vanilla/Tuned Fortran, Julia and compiled-Python controls on CPU and GPU at three grids.",
-      "All84points and1008per-run observations passed separate read-only CPU/GPU source reviews.",
-      "Legends, seven implementation rows, marker colours, whiskers, axis units and cohort notes are readable without overlap.",
-      "The caption defines a complete cell update, explains CPU linear and GPU logarithmic scales, and separates October/November nodes, runs and timers.",
-      "The Summary names65536bands for the GPU peak and128bands for the CPU peak, with one-line rates clear of the QR and footer.",
-      "No Assembly word or series appears in visible chart text."
-    ],
-    "minimum_effective_performance_font_pt": {
-      "shallow_water": 26.5977,
-      "energy_balance": 24.3265
-    },
-    "root_visual_review_passed": true,
-    "desktop_powerpoint_inspected": false
+    "finding": "No clipping or label overlap. The two updated SVG containers remain centred in their unchanged chart slots.",
+    "desktop_powerpoint_inspection": false
   },
   "desktop_powerpoint_inspection": false,
   "tools": {
@@ -2743,7 +2731,7 @@
   },
   "files": {
     "scripts/build_poster.py": {
-      "sha256": "35a4f27afeda9150b5838f81d4fc1608c5cd31ac7184f10ebee98e8302bc2049",
+      "sha256": "4958572774d32be26ce4d17204ccdc3ebf3d6080333e680a15c99c0b4d488912",
       "bytes": 37597
     },
     "scripts/check_poster.py": {
@@ -2751,15 +2739,23 @@
       "bytes": 5722
     },
     "scripts/plot_historical_controls.py": {
-      "sha256": "d2472f829fc092d26c7244938298d1443ba609a5a8ac5601b09a7f5bef5ff3d5",
-      "bytes": 6180
+      "sha256": "9fc61806105fe6301520340254ed8037843b2960a45f43048d8504777d3b1e36",
+      "bytes": 6187
+    },
+    "scripts/plot_paper_performance.py": {
+      "sha256": "67b97d845f6b73b9707851cba412685db2917cf3914ccd66c46dc04a911b6279",
+      "bytes": 10004
+    },
+    "scripts/plot_paper_physics.py": {
+      "sha256": "87501e9c324a27887074a447cab78580120cd36ba6f35df5df2ca443de4ef85d",
+      "bytes": 14364
     },
     "scripts/plot_performance.py": {
-      "sha256": "167d986131e9e2a44d095fc22d356a90f698fa8ab7bcf61848b8042ea56ea171",
-      "bytes": 14876
+      "sha256": "c5810881e8426a23d2ae44998956092b3003e0b778ed3f72506adcc3d0efdfb8",
+      "bytes": 14890
     },
     "scripts/plot_physics.py": {
-      "sha256": "2fafacf513842748d4fed3602eb39a254c8556d206e1588ebb5e9d8b929a0ab9",
+      "sha256": "a93cd48bee1d9384fe2b68e4cb89dda0bb8f54c2e6f56a7d50498bceef082556",
       "bytes": 12110
     },
     "scripts/prepare_results.py": {
@@ -2767,8 +2763,8 @@
       "bytes": 11930
     },
     "scripts/refresh_evidence.py": {
-      "sha256": "dcaf9289a3124e50e7f5fe3d1fb41f8cbd973e4f43333d7e088af8d2be0aed80",
-      "bytes": 6678
+      "sha256": "0afff163a16c369d1766fd3c22fd8a224b4733eb6178a0a11756bba51134951f",
+      "bytes": 6826
     },
     "scripts/style/README.md": {
       "sha256": "c356c14e96852b35712b2085be5fb150b7a1eaa76733bf9d84386cfe5de5b179",
@@ -2846,65 +2842,69 @@
       "sha256": "64c137dfef716463526596571e7d7fdb055df6b04763d0046fe62051c4fc23b8",
       "bytes": 1112
     },
+    "data/unit-label-update.json": {
+      "sha256": "6180f089b8b6735914d387dfaac6c5781261e63a357e9dc15ebb3966d99754ee",
+      "bytes": 2521
+    },
     "figures/energy-balance.pdf": {
-      "sha256": "4d998bed2a6a507c36e4be699a865f1e7495b058edb01d91708dc8edea6f879c",
-      "bytes": 97246
+      "sha256": "a6b4f4412e73b1bffaaf0bd21830bb604cbc448bd7b1d04db9042bdf6b8cecfd",
+      "bytes": 97205
     },
     "figures/energy-balance.png": {
-      "sha256": "0760d8b6e8a4631a275d3db9552f95406cd707ef29869e2e172dc3d4fe93ae17",
-      "bytes": 898659
+      "sha256": "2dfee5a561c7a0e4180fce7b2cc7114b1d68623fd7ff3cfb385ffe3fd884da68",
+      "bytes": 890686
     },
     "figures/energy-balance.svg": {
-      "sha256": "877a03366663b9d4fd94f4a59fce3952ab5024dd7bef01d5b8ebdbfa8e9f0bc7",
-      "bytes": 292242
+      "sha256": "cb611696988b0bed27759c93c29836b655ff26814363f463009264166a829ec6",
+      "bytes": 291898
     },
     "figures/historical/language-controls-budyko_sellers.pdf": {
-      "sha256": "d59fa97d198f03362c85b730bb35fbe7954fab6f9475661b268fbead2947929e",
-      "bytes": 25350
+      "sha256": "ef0e6c6fa7782fcfe44d791f9aeec1cedf05d4f0aeb2a530026fc3ad1922bada",
+      "bytes": 25630
     },
     "figures/historical/language-controls-budyko_sellers.png": {
-      "sha256": "f42a0cac51412e6bd6ecbdf42a94aba329b6f71f82d29066bd37f59c204e07fa",
-      "bytes": 404106
+      "sha256": "b64d055c4d4c1718fdfea37518d016dc4770c8702ea09ad01087a1be507efe36",
+      "bytes": 409126
     },
     "figures/historical/language-controls-budyko_sellers.svg": {
-      "sha256": "80f031ccde5453dbce81688fe1bf58a399ad058cbc34d65c241010db61bfe6ee",
-      "bytes": 83316
+      "sha256": "8a9476dec14c2a6ae3cfd50b5357b8e8cc8bc6b79d87c6150e7154461600dac5",
+      "bytes": 86214
     },
     "figures/historical/language-controls-shallow_water.pdf": {
-      "sha256": "828cc543043f538684a2228b288434c24943dc5220ec7b400416df71da030a33",
-      "bytes": 24091
+      "sha256": "c3f2f3246d914dad52a2ee07f2dcf265ee6ce3d446d697a2744adf23ef5d0076",
+      "bytes": 24377
     },
     "figures/historical/language-controls-shallow_water.png": {
-      "sha256": "a5bdcc8219ae2b186b0d5f46713954763a61d2899237f16d05cd2bcddee20ac7",
-      "bytes": 348566
+      "sha256": "f9c000c14e149e1ca1487a02151ef1d914d44bced015929bcec6ec155197f2a9",
+      "bytes": 353874
     },
     "figures/historical/language-controls-shallow_water.svg": {
-      "sha256": "5786b86fd790f5dfc476f9e966e9e80b9b9f9311991b228541802df5b05ecf0a",
-      "bytes": 77619
+      "sha256": "b00bea13822b206950f7b150ec98d895a7dc6eb6b61891d8ebf89e321e40ddfa",
+      "bytes": 80517
     },
     "figures/performance-budyko_sellers.pdf": {
-      "sha256": "b4d8aa2c1ca7899ce761055a03c760db9752dcbfaf0e6ee44f58ef3b39270981",
-      "bytes": 25279
+      "sha256": "c083ac1078a2ae22f52582b11e327fc0a8af9d19f7b2abfaa2db64da7b965f98",
+      "bytes": 25452
     },
     "figures/performance-budyko_sellers.png": {
-      "sha256": "3a133b9f9da6e5778d0779544eb76faed0e953f0c0837566a2b2bcedc11a271c",
-      "bytes": 276540
+      "sha256": "ed7041d9b79485154ae41d78edd3eb5891163c68539ffbc061a44be869d124c1",
+      "bytes": 279646
     },
     "figures/performance-budyko_sellers.svg": {
-      "sha256": "53b0604c75c08c0c7e7b84e70b00c804b9bdd181545cc92a8152a64eff64b8b3",
-      "bytes": 92789
+      "sha256": "b04fa5a48c3328fdbfb88fe12950514171e916b820c7b8c0f6d6740ae8d93680",
+      "bytes": 94437
     },
     "figures/performance-shallow_water.pdf": {
-      "sha256": "79f282e1ef530ba2ab68d3d0ac526a16c94ebe541a1923d6efe9f865b0d6c4c1",
-      "bytes": 24471
+      "sha256": "a393c2fb3ca4dfd3117720e3ea97337713d7c2878f12bdeef77b0a96514585c2",
+      "bytes": 24640
     },
     "figures/performance-shallow_water.png": {
-      "sha256": "189e32e65d89a9d358014fad0d8ce4e76df1e03156cb2d775b669e83d5b51abc",
-      "bytes": 254787
+      "sha256": "6382c68e38f65dd48928263b04254563bb030684812547bef11c60567b773cb8",
+      "bytes": 257908
     },
     "figures/performance-shallow_water.svg": {
-      "sha256": "ec6d1107fd1532499e30ff4941369ef475160b88dd7a8707340b909b7f1fbdf2",
-      "bytes": 88706
+      "sha256": "c888c077c29ad6f213a807bbaf0f9afec5ae8b0d015e50b3540c07f27d1ea72e",
+      "bytes": 90358
     },
     "figures/physics-note-mass.pdf": {
       "sha256": "c52117cd8d77f829c159835cead6078b0a9c87f49af7a7354dbabff3e89d722c",
@@ -2919,16 +2919,16 @@
       "bytes": 7890
     },
     "figures/shallow-water.pdf": {
-      "sha256": "e5facfd9676bb489ae2cf3e3cae4d6b13724b58a749af8385cfc83f88e715fbc",
-      "bytes": 46900
+      "sha256": "f12ecd6769b4094d13485bf5104b21f024b4b43cdae9a7db7ce8ad9b24033d03",
+      "bytes": 46856
     },
     "figures/shallow-water.png": {
-      "sha256": "a5045a49b04905e08ec5ff847450d3837535af7280def506c19c6e5e4e90294b",
-      "bytes": 882326
+      "sha256": "5d15f7d1d84bcfa41fd8815439f29ec4937890ac46c10256279872aa9f89d578",
+      "bytes": 876985
     },
     "figures/shallow-water.svg": {
-      "sha256": "f81dac0024fc63dcfaac83432d2a5c861b1bd03b8e8b9c5872c81c1fdd41a1f8",
-      "bytes": 213875
+      "sha256": "9c153dcf2544cd2180febd44447aea3a477a7d96dc6305322b68830b901abc37",
+      "bytes": 213538
     },
     "assets/OpenSans-Bold.ttf": {
       "sha256": "7f974614948161be361ee769b28b0139621ea65de6664c44d1697ed6ac6708e2",
@@ -3087,24 +3087,24 @@
       "bytes": 24424
     },
     "esm-md-a0-landscape.pptx": {
-      "sha256": "f58cb110faf638b66c11073d162f311293849ef76de2defcaf488f1f82a47add",
-      "bytes": 6351637
+      "sha256": "e59126aa6ec5151068a9469f1cc7ccb2937a0f9061cb7bb081b422fb287f4959",
+      "bytes": 6343334
     },
     "esm-md-a0-landscape.pdf": {
-      "sha256": "43862b680c306327a671d0507b34d86e576f1b3478dbc9076673349ba609746c",
-      "bytes": 33495118
+      "sha256": "680421e9cc7e4010a33b2e9cdb3a54e1547af78a90fc1ce192bb5c8cfcda2ee4",
+      "bytes": 33496432
     },
     "esm-md-a0-landscape.png": {
-      "sha256": "0e69232307e28ead0171ab219c7cd065dff6fe980e2af346461903bc410d4888",
-      "bytes": 4421157
+      "sha256": "d4e04501d8285f499eeb3ada7292fcb3122821e872766b2510314c1b414af089",
+      "bytes": 4418651
     },
     "project-profile.json": {
-      "sha256": "82cdd083a89c5bbfd44c331bc74c34753bb63939038bce0acbbfec19b0d2e152",
-      "bytes": 4828
+      "sha256": "f1e5796d68259a9ad63d6213d9678cbdf448ee559d1e48a658e50fad5c0bf22d",
+      "bytes": 5015
     },
     "README.md": {
-      "sha256": "428ebd770ca407189e178f43fc86a7e386e20b9188cd0509a5b29a9515fbfb21",
-      "bytes": 7001
+      "sha256": "59fadce3013ed41d85ebe76bfa83da757c69760d9b2d90123641ba2200ee23f3",
+      "bytes": 8000
     },
     "requirements.txt": {
       "sha256": "28c83b526504033be02d598655ee5d710d89df98b9facaf618f8a72c128d0289",
