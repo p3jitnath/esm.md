@@ -52,6 +52,8 @@ Small-grid water reuses neighbouring values in shared memory, while the larger g
 
 ESM.md reaches 90.5% of the baseline rate on the smallest water grid and 99.2–103.2% on the other five workloads. Post-sample telemetry for the largest water grid reports software power limiting under the unchanged 900 W device policy for both routes, with no recorded thermal event. These measurements describe the stated workloads and hardware. Older controls and timing records remain archived locally and in Git history.
 
+The [poster’s language comparisons](paper/pasc27/poster/README.md) also show the original tuned and vanilla Fortran, Julia and compiled Python controls. These figures retain October control records and the 8 November Fortran ESM.md records from one CPU core or one GPU, with their original step counts. They provide separate recorded-rate comparisons. The 12 November matched CPU and GPU measurements above retain their own 1,000-step protocol, selected CPU teams and complete-state checks.
+
 ## OpenIFS Forecasts
 
 Current verification targets step 0 only. The reference completed that step, and the corrected native physics setup passes on all 32 processes; numerical byte agreement remains pending. See the [operational handoff](OPERATIONAL_FORECAST_HANDOFF.md).

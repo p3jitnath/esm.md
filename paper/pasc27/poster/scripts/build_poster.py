@@ -3,6 +3,7 @@
 from pathlib import Path
 from io import BytesIO
 import json, math
+import re
 from pptx import Presentation
 from pptx.util import Mm, Pt
 from pptx.dml.color import RGBColor
@@ -134,6 +135,12 @@ for model in ("sw", "ebm"):
             row["qualification"].get(flag) is True for flag in flags
         ):
             raise ValueError("A record lacks complete accepted paired evidence.")
+from poster_comparison_input import load_display_comparison
+
+DISPLAY_UPDATE = load_display_comparison(OUT, PERFORMANCE_UPDATE)
+DISPLAY_PICTURE_KEY = (
+    "png" if DISPLAY_UPDATE.get("native_picture_format") == "png" else "svg"
+)
 W, H = 1189, 841
 INK = "232830"
 DARK = "133844"
@@ -318,7 +325,7 @@ def wrapped(t, width, size, bold=False):
     """
     out = []
     for raw in str(t).split("\n"):
-        words = raw.split()
+        words = re.split(r"[^\S\u00a0]+", raw.strip())
         current = ""
         for word in words:
             candidate = (current + " " + word).strip()
@@ -778,7 +785,7 @@ heading("results-comparison", "3.2  Shallow-Water Speed", b, 514)
 heading("results-diagnostics", "3.3  Energy-Balance Speed", c, 514)
 text(
     "results-summary",
-    PERFORMANCE_UPDATE["poster_text"]["sw_intro"],
+    DISPLAY_UPDATE["poster_text"]["sw_intro"],
     b + 2 * scale,
     547,
     cw - 2 * scale,
@@ -790,7 +797,7 @@ text(
 )
 text(
     "energy-summary",
-    PERFORMANCE_UPDATE["poster_text"]["ebm_intro"],
+    DISPLAY_UPDATE["poster_text"]["ebm_intro"],
     c + 2 * scale,
     547,
     cw - 2 * scale,
@@ -883,7 +890,7 @@ for i, (title, detail, symbol, paths) in enumerate(workflow):
         arrow._element.spPr.get_or_add_ln().append(end)
 image(
     "result-error",
-    OUT / PERFORMANCE_UPDATE["figures"]["sw"]["svg"],
+    OUT / DISPLAY_UPDATE["figures"]["sw"][DISPLAY_PICTURE_KEY],
     b,
     573,
     cw,
@@ -891,7 +898,7 @@ image(
 )
 image(
     "result-calibration",
-    OUT / PERFORMANCE_UPDATE["figures"]["ebm"]["svg"],
+    OUT / DISPLAY_UPDATE["figures"]["ebm"][DISPLAY_PICTURE_KEY],
     c,
     573,
     cw,
@@ -899,9 +906,9 @@ image(
 )
 text(
     "error-caption",
-    PERFORMANCE_UPDATE["poster_text"]["caption"]
+    DISPLAY_UPDATE["poster_text"]["caption"]
     + " "
-    + PERFORMANCE_UPDATE["cpu_worker_disclosure"],
+    + DISPLAY_UPDATE["cpu_worker_disclosure"],
     b + 2 * scale,
     742,
     cw - 2 * scale,
@@ -914,7 +921,7 @@ summary_top = 723
 heading("section-summary", "4  Summary", c, summary_top, cw - 72)
 text(
     "takeaways",
-    PERFORMANCE_UPDATE["poster_text"]["takeaways"],
+    DISPLAY_UPDATE["poster_text"]["takeaways"],
     c + 2 * scale,
     753,
     cw - 82,
@@ -1036,30 +1043,52 @@ pasc_shape = image(
     "conference-logo", pasc_asset, W - a - pasc_width, 795, pasc_width, pasc_height
 )
 # Notes preserve sources without adding visible detail.
-slide.notes_slide.notes_text_frame.text = (
-    "The evidence map and accepted raw paired measurements are in data/ and "
-    "evidence.json. Each model has three matched workloads on each processor. "
-    "The charts show only ESM.md and the hand-tuned baseline. Each bar divides "
-    "useful updates by median elapsed seconds. Whiskers show observed minimum "
-    "and maximum rates across twelve paired runs. A useful update advances each interior "
-    "cell once through a complete step. Required neighbouring cells and "
-    "coordination remain inside the recorded work. The CPU comparison uses a "
-    "configured 248-core ceiling, with actual team and nonempty owner counts "
-    "reported separately. Actual team numbers are inside the CPU bars. "
-    "The row label CPU budget 248 [cores] describes the ceiling. "
-    + PERFORMANCE_UPDATE["cpu_worker_disclosure"]
-    + " GPU records use one device. Exact accepted identities, timer scopes, "
-    "placement, step counts and transfer exclusions are retained in the input "
-    "and render receipts. The supplied Markdown, frozen numerical contract and "
-    "prior verified source guided LLM source candidates through md2fort and "
-    "md2fort-gpu. Scientists selected scope and reviewed evidence. Independent "
-    "physical checks and complete byte agreement preceded instruction inspection "
-    "and comparative timing. Fortran and CUDA Fortran were compiled, while the "
-    "direct PTX comparison followed its separate assembly route. The physical "
-    "plots retain the accepted Fortran states. The dam_break.md rename preserves "
-    "the formulation bytes and physics revision 1.0. Model calculations retain "
-    "ordered binary64 arithmetic without contracted multiply-add."
-)
+if DISPLAY_UPDATE.get("comparison_class") == "archived_language_controls":
+    slide.notes_slide.notes_text_frame.text = (
+        "The displayed language comparisons use their original recorded points "
+        "and observed ranges from data/performance-figure-evidence.json. ESM.md "
+        "is the accepted 8 November Fortran implementation. The six vanilla and "
+        "tuned Fortran, Julia and compiled-Python controls are separate October "
+        "cohorts on different nodes. Each point is the originally reported median "
+        "of twelve individual useful-update rates, not useful updates divided by "
+        "median elapsed seconds. CPU records use one Neoverse V2 core and "
+        "complete-run wall time. GPU records use one GH200 and complete-graph "
+        "device events, excluding transfers and graph construction. Original "
+        "grid-dependent batch lengths and qualification scope are preserved. "
+        + DISPLAY_UPDATE["historical_qualification_scope"]
+        + " The separate 12 November Summary retains the current matched "
+        "Fortran versus native-baseline results, with a configured 248-core "
+        "CPU ceiling and one GPU. Its stronger complete-state checks are not "
+        "attributed to the archived controls. Current graph files, accepted "
+        "input and strict schema remain separate and unchanged. The title, "
+        "branding, physical illustrations, md2fort and md2fort-gpu workflow "
+        "remain unchanged. No new simulation or timing is performed."
+    )
+else:
+    slide.notes_slide.notes_text_frame.text = (
+        "The evidence map and accepted raw paired measurements are in data/ and "
+        "evidence.json. Each model has three matched workloads on each processor. "
+        "The charts show only ESM.md and the hand-tuned baseline. Each bar divides "
+        "useful updates by median elapsed seconds. Whiskers show observed minimum "
+        "and maximum rates across twelve paired runs. A useful update advances each interior "
+        "cell once through a complete step. Required neighbouring cells and "
+        "coordination remain inside the recorded work. The CPU comparison uses a "
+        "configured 248-core ceiling, with actual team and nonempty owner counts "
+        "reported separately. Actual team numbers are inside the CPU bars. "
+        "The row label CPU budget 248 [cores] describes the ceiling. "
+        + DISPLAY_UPDATE["cpu_worker_disclosure"]
+        + " GPU records use one device. Exact accepted identities, timer scopes, "
+        "placement, step counts and transfer exclusions are retained in the input "
+        "and render receipts. The supplied Markdown, frozen numerical contract and "
+        "prior verified source guided LLM source candidates through md2fort and "
+        "md2fort-gpu. Scientists selected scope and reviewed evidence. Independent "
+        "physical checks and complete byte agreement preceded instruction inspection "
+        "and comparative timing. Fortran and CUDA Fortran were compiled, while the "
+        "direct PTX comparison followed its separate assembly route. The physical "
+        "plots retain the accepted Fortran states. The dam_break.md rename preserves "
+        "the formulation bytes and physics revision 1.0. Model calculations retain "
+        "ordered binary64 arithmetic without contracted multiply-add."
+    )
 for a in original_shapes:
     if a.shape_id not in used:
         a._element.getparent().remove(a._element)
@@ -1071,8 +1100,8 @@ prs.save(path)
             "canvas_mm": [W, H],
             "native_text": text_records,
             "rectangles": rectangles,
-            "performance_presentation": PERFORMANCE_UPDATE["presentation"],
-            "performance_sources": PERFORMANCE_UPDATE["figures"],
+            "performance_presentation": DISPLAY_UPDATE["presentation"],
+            "performance_sources": DISPLAY_UPDATE["figures"],
         },
         indent=2,
     )

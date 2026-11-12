@@ -13,6 +13,8 @@ import statistics
 POSTER = Path(__file__).resolve().parents[1]
 ROOT = POSTER.parents[2]
 
+from poster_comparison_input import load_display_comparison
+
 
 def digest(path: Path) -> str:
     """Return the SHA256 identifier of a retained file.
@@ -330,6 +332,9 @@ def refresh() -> dict:
     must review the actual final PDF before this function writes evidence.
     """
     data = load_performance()
+    display = load_display_comparison(POSTER, data)
+    archived = display.get("comparison_class") == "archived_language_controls"
+    display_hash = display.get("display_comparison_input_sha256")
     input_path = POSTER / "data/accepted-performance-update.json"
     input_hash = digest(input_path)
     reviews, source_records = review_rates(data)
@@ -348,12 +353,14 @@ def refresh() -> dict:
         checks.get("passed") is not True
         or checks.get("accepted_performance_input_sha256") != input_hash
         or checks.get("artifact_sha256") != artifacts
+        or checks.get("display_comparison_input_sha256") != display_hash
     ):
         raise ValueError("The saved-artwork checks are missing or stale.")
     if (
         visual.get("status") != "passed"
         or visual.get("pdf_sha256") != artifacts["esm-md-a0-landscape.pdf"]
         or visual.get("accepted_performance_input_sha256") != input_hash
+        or visual.get("display_comparison_input_sha256") != display_hash
     ):
         raise ValueError("The final PDF needs a fresh human visual review.")
     old = json.loads((POSTER / "data/historical/poster_evidence.json").read_text())
@@ -374,7 +381,53 @@ def refresh() -> dict:
             for model in ("sw", "ebm")
         },
     }
-    comparison_path = POSTER / "data/performance-figure-evidence-20261112.json"
+    current_comparison = comparison
+    display_reviews = reviews
+    if archived:
+        original_payload = (POSTER / display["source_evidence"]["path"]).read_bytes()
+        if (
+            hashlib.sha256(original_payload).hexdigest()
+            != display["source_evidence"]["sha256"]
+        ):
+            raise ValueError("The original recorded comparison evidence changed.")
+        original = json.loads(original_payload)
+        display_reviews = {}
+        for platform in ("cpu", "gpu"):
+            measurements = [
+                item
+                for model in ("sw", "ebm")
+                for series in original["plotted_data"][model][platform]
+                for item in series["measurements"]
+            ]
+            display_reviews[platform] = {
+                "status": "exact_original_evidence_preserved",
+                "conditions": len(measurements),
+                "individual_rates": sum(item["count"] for item in measurements),
+                "method": "Exact original point/range/raw-rate subtree comparison, without recomputing the historical statistic",
+            }
+        comparison = {
+            "status": "recorded_comparison",
+            "comparison_class": "archived_language_controls",
+            "presentation": "language_comparisons",
+            "source_evidence": display["source_evidence"],
+            "source_records": original["source_records"],
+            "cohorts": original["cohorts"],
+            "series": original["series"],
+            "point_definition": original["aggregation"],
+            "scope": original["scope"],
+            "historical_qualification_scope": display["historical_qualification_scope"],
+            "plotted_data": original["plotted_data"],
+            "independent_recorded_value_review": display_reviews,
+            "render_metadata": display["render_metadata"],
+            "display_input_sha256": display_hash,
+            "current_matched_source": display["current_matched_source"],
+            "new_numerical_runs": False,
+        }
+    comparison_path = POSTER / (
+        "data/archived-language-figure-evidence-20261112.json"
+        if archived
+        else "data/performance-figure-evidence-20261112.json"
+    )
     comparison_path.write_text(json.dumps(comparison, indent=2) + "\n")
     files = {}
     for directory in ("scripts", "data", "figures", "assets"):
@@ -413,30 +466,66 @@ def refresh() -> dict:
         "references": old.get("references", []),
         "acknowledgement": old.get("acknowledgement", {}),
         "physics": physics,
-        "performance_source": "data/accepted-performance-update.json",
-        "performance_source_sha256": input_hash,
-        "performance_method": "Two matched routes at three grids per model and platform, using useful updates divided by median elapsed seconds and observed twelve-run rate ranges",
-        "graph_policy": "Show ESM.md and the hand-tuned baseline through absolute rates, without historical controls or normalized panels",
+        "performance_source": (
+            "data/archived-language-comparison-update.json"
+            if archived
+            else "data/accepted-performance-update.json"
+        ),
+        "performance_source_sha256": display_hash if archived else input_hash,
+        "current_matched_source": {
+            "path": "data/accepted-performance-update.json",
+            "sha256": input_hash,
+        },
+        "current_matched_evidence": current_comparison,
+        "performance_method": (
+            original["aggregation"]
+            if archived
+            else "Two matched routes at three grids per model and platform, using useful updates divided by median elapsed seconds and observed twelve-run rate ranges"
+        ),
+        "graph_policy": (
+            "Show the true 8 November Fortran ESM.md and six separate October controls with originally reported absolute rates. Retain current 12 November matched outcomes only in the separately dated Summary."
+            if archived
+            else "Show ESM.md and the hand-tuned baseline through absolute rates, without historical controls or normalized panels"
+        ),
         "axis_scales": {
-            "CPU": "Independent zero-based linear rate axes per grid",
-            "GPU": "Independent zero-based linear rate axes per grid",
+            "CPU": (
+                "Per-grid scales and limits recorded in the archived-language render receipts"
+                if archived
+                else "Independent zero-based linear rate axes per grid"
+            ),
+            "GPU": (
+                "Per-grid scales and limits recorded in the archived-language render receipts"
+                if archived
+                else "Independent zero-based linear rate axes per grid"
+            ),
         },
         "figure_unit_labels": profile["poster"].get("figure_unit_labels"),
-        "independent_plotted_input_reviews": {**reviews, "new_numerical_runs": False},
-        "scope": [
-            "Main CPU conditions have a configured 248-core ceiling and the same actual team for both routes within each paired workload. Teams can differ across grids, with nonempty spatial owners recorded separately.",
-            data["cpu_worker_disclosure"],
-            "CPU timing includes the complete coordinator and required neighbouring-cell work. GPU records use one device and retain their declared event scope and transfer exclusions.",
-            "Original elapsed-time words, source identities and accepted power and quiet policies remain in the copied source records.",
-            "Independent physical verification and exact complete-output agreement apply to the recorded inputs and configurations, without establishing performance on another architecture.",
-            "The unchanged physical figures show accepted model states rather than observations.",
-        ],
+        "independent_plotted_input_reviews": {
+            **display_reviews,
+            "new_numerical_runs": False,
+        },
+        "scope": (
+            original["scope"]
+            + [
+                display["historical_qualification_scope"],
+                "The separately dated 12 November Summary uses the unchanged current matched input and its own stronger acceptance.",
+            ]
+            if archived
+            else [
+                "Main CPU conditions have a configured 248-core ceiling and the same actual team for both routes within each paired workload. Teams can differ across grids, with nonempty spatial owners recorded separately.",
+                data["cpu_worker_disclosure"],
+                "CPU timing includes the complete coordinator and required neighbouring-cell work. GPU records use one device and retain their declared event scope and transfer exclusions.",
+                "Original elapsed-time words, source identities and accepted power and quiet policies remain in the copied source records.",
+                "Independent physical verification and exact complete-output agreement apply to the recorded inputs and configurations, without establishing performance on another architecture.",
+                "The unchanged physical figures show accepted model states rather than observations.",
+            ]
+        ),
         "comparison_evidence": comparison,
         "comparison_evidence_source": str(comparison_path.relative_to(POSTER)),
         "formulation_rename": json.loads(
             (POSTER / "data/dam-break-rename.json").read_text()
         ),
-        "summary": data["poster_text"],
+        "summary": display["poster_text"],
         "structural_and_qr_checks": checks,
         "visual_review": visual,
         "desktop_powerpoint_inspection": False,

@@ -14,8 +14,73 @@ import pymupdf
 from pptx import Presentation
 import zxingcpp
 
+from poster_comparison_input import load_display_comparison
+
 POSTER = Path(__file__).resolve().parents[1]
 ROOT = POSTER.parents[2]
+
+
+def _chart_identity(manifest: dict, model: str, resources: list) -> dict:
+    """Check actual chart bytes and labels for the displayed comparison.
+
+    Parameters
+    ----------
+    manifest : dict
+        Validated comparison input with figure paths and render receipts.
+    model : str
+        Model identifier, either sw or ebm.
+    resources : list
+        Validated CPU resource records associated with this chart.
+
+    Returns
+    -------
+    dict
+        SVG and PNG identities, chart labels and supplied CPU resources.
+
+    Raises
+    ------
+    AssertionError
+        If artwork differs from its receipt or required labels are missing.
+    """
+    metadata = manifest["render_metadata"][model]
+    chart = manifest["figures"][model]
+    identities = {}
+    for suffix in ("svg", "png"):
+        path = POSTER / chart[suffix]
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        assert any(
+            Path(recorded_path).suffix == "." + suffix and recorded_hash == digest
+            for recorded_path, recorded_hash in metadata["outputs"].items()
+        ), (model, suffix, "Chart bytes differ from the render receipt.")
+        identities[suffix] = {"path": chart[suffix], "sha256": digest}
+    svg_path = POSTER / chart["svg"]
+    parser = ET.XMLParser(target=ET.TreeBuilder(insert_comments=True))
+    svg = ET.fromstring(svg_path.read_bytes(), parser=parser)
+    labels = []
+    for element in svg.iter():
+        if element.tag == "{http://www.w3.org/2000/svg}text":
+            labels.append("".join(element.itertext()))
+        elif element.tag == "{http://www.w3.org/2000/svg}g" and element.get(
+            "id", ""
+        ).startswith("text_"):
+            # Matplotlib path-font exports store each drawable label here.
+            labels.extend(
+                child.text or "" for child in element if child.tag is ET.Comment
+            )
+    visible = " ".join(labels)
+    assert "ESM.md" in visible, (model, "Missing implementation label.")
+    assert not re.search(r"\bassembly\b", visible, re.IGNORECASE), model
+    rate_labels = [
+        value
+        for value in labels
+        if re.search(r"updates\s*/\s*s|updates per second", value)
+    ]
+    assert rate_labels and all("[" in value and "]" in value for value in rate_labels)
+    return {
+        **identities,
+        "visible_chart_text": labels,
+        "cpu_resources": resources,
+    }
 
 
 def _accepted_performance() -> tuple[dict, str, dict]:
@@ -114,46 +179,7 @@ def _accepted_performance() -> tuple[dict, str, dict]:
                     "nonempty_spatial_owners_by_route": owners,
                 }
             )
-        chart = manifest["figures"][model]
-        identities = {}
-        for suffix in ("svg", "png"):
-            path = POSTER / chart[suffix]
-            digest = hashlib.sha256(path.read_bytes()).hexdigest()
-            assert any(
-                Path(recorded_path).suffix == "." + suffix and recorded_hash == digest
-                for recorded_path, recorded_hash in metadata["outputs"].items()
-            ), (model, suffix, "Chart bytes differ from the render receipt.")
-            identities[suffix] = {"path": chart[suffix], "sha256": digest}
-        svg_path = POSTER / chart["svg"]
-        parser = ET.XMLParser(target=ET.TreeBuilder(insert_comments=True))
-        svg = ET.fromstring(svg_path.read_bytes(), parser=parser)
-        labels = []
-        for element in svg.iter():
-            if element.tag == "{http://www.w3.org/2000/svg}text":
-                labels.append("".join(element.itertext()))
-            elif element.tag == "{http://www.w3.org/2000/svg}g" and element.get(
-                "id", ""
-            ).startswith("text_"):
-                # Matplotlib path-font exports store each drawable label here.
-                labels.extend(
-                    child.text or "" for child in element if child.tag is ET.Comment
-                )
-        visible = " ".join(labels)
-        assert "ESM.md" in visible, (model, "Missing implementation label.")
-        assert not re.search(r"\bassembly\b", visible, re.IGNORECASE), model
-        rate_labels = [
-            value
-            for value in labels
-            if re.search(r"updates\s*/\s*s|updates per second", value)
-        ]
-        assert rate_labels and all(
-            "[" in value and "]" in value for value in rate_labels
-        )
-        charts[model] = {
-            **identities,
-            "visible_chart_text": labels,
-            "cpu_resources": resources,
-        }
+        charts[model] = _chart_identity(manifest, model, resources)
     return manifest, hashlib.sha256(payload).hexdigest(), charts
 
 
@@ -181,7 +207,21 @@ def check(output: Path) -> dict:
     reads the delivered files, leaves both documents unchanged and exports
     the saved PDF as a 150 dpi PNG.
     """
-    performance, input_sha256, chart_checks = _accepted_performance()
+    performance, input_sha256, matched_chart_checks = _accepted_performance()
+    display = load_display_comparison(POSTER, performance)
+    display_input_sha256 = None
+    if display is performance:
+        chart_checks = matched_chart_checks
+    else:
+        display_input_sha256 = display["display_comparison_input_sha256"]
+        display_path = POSTER / "data/archived-language-comparison-update.json"
+        assert (
+            display_input_sha256
+            == hashlib.sha256(display_path.read_bytes()).hexdigest()
+        )
+        chart_checks = {
+            model: _chart_identity(display, model, []) for model in ("sw", "ebm")
+        }
     output.mkdir(parents=True, exist_ok=True)
     pptx = POSTER / "esm-md-a0-landscape.pptx"
     pdf = POSTER / "esm-md-a0-landscape.pdf"
@@ -234,12 +274,12 @@ def check(output: Path) -> dict:
         *[f"method-detail-{index}" for index in (1, 2, 3)],
     }
     expected_text = {
-        "results-summary": performance["poster_text"]["sw_intro"],
-        "energy-summary": performance["poster_text"]["ebm_intro"],
-        "error-caption": performance["poster_text"]["caption"]
+        "results-summary": display["poster_text"]["sw_intro"],
+        "energy-summary": display["poster_text"]["ebm_intro"],
+        "error-caption": display["poster_text"]["caption"]
         + " "
-        + performance["cpu_worker_disclosure"],
-        "takeaways": " ".join(performance["poster_text"]["takeaways"]),
+        + display["cpu_worker_disclosure"],
+        "takeaways": " ".join(display["poster_text"]["takeaways"]),
     }
     for name, expected in expected_text.items():
         assert " ".join(by_name[name].text.split()) == " ".join(expected.split()), name
@@ -264,14 +304,22 @@ def check(output: Path) -> dict:
             if node.tag
             == "{http://schemas.microsoft.com/office/drawing/2016/SVG/main}svgBlip"
         ]
-        assert len(svg_nodes) == 1, name
-        relation = svg_nodes[0].get(
-            "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
+        archived_png = (
+            display.get("comparison_class") == "archived_language_controls"
+            and display.get("native_picture_format") == "png"
         )
-        svg_blob = picture.part.related_part(relation).blob
-        assert (
-            hashlib.sha256(svg_blob).hexdigest() == chart_checks[model]["svg"]["sha256"]
-        )
+        if archived_png:
+            assert not svg_nodes, name
+        else:
+            assert len(svg_nodes) == 1, name
+            relation = svg_nodes[0].get(
+                "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
+            )
+            svg_blob = picture.part.related_part(relation).blob
+            assert (
+                hashlib.sha256(svg_blob).hexdigest()
+                == chart_checks[model]["svg"]["sha256"]
+            )
     title = next(shape for shape in slide.shapes if shape.name == "poster-title")
     assert title.text == profile["identity"]["title"]
     title_runs = list(title.text_frame.paragraphs[0].runs)
@@ -372,7 +420,9 @@ def check(output: Path) -> dict:
         },
         "performance_presentation": performance["presentation"],
         "cpu_resource_interpretation": performance["cpu_resource_interpretation"],
-        "matched_chart_checks": chart_checks,
+        "matched_chart_checks": matched_chart_checks,
+        "display_presentation": display["presentation"],
+        "display_chart_checks": chart_checks,
         "blue_text_frames": sorted(blue_shapes),
         "changed_prose_colour": "0000FF",
         "canvas_mm": [width, height],
@@ -393,6 +443,8 @@ def check(output: Path) -> dict:
         "visual_inspection_required": True,
         "desktop_powerpoint_inspected": False,
     }
+    if display_input_sha256 is not None:
+        report["display_comparison_input_sha256"] = display_input_sha256
     (output / "structural-check.json").write_text(json.dumps(report, indent=2) + "\n")
     return report
 

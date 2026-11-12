@@ -1,6 +1,6 @@
 # ESM.md Poster Project
 
-This directory contains the editable A0 landscape PowerPoint and PDF, plotting and build sources, accepted data, approved artwork and provenance. It preserves the University of Cambridge layout, Open Sans type, paisley banner, sponsor marks and footer. The title matches the paper as “ESM.md: From Markdown Physics to Verified, Optimised Earth System Model Solvers”. Its native editable 72 pt text has no underlines and fits on one line. Performance graphs label the generated route ESM.md and the comparison route Hand-tuned baseline.
+This directory contains the editable A0 landscape PowerPoint and PDF, plotting and build sources, accepted data, approved artwork and provenance. It preserves the University of Cambridge layout, Open Sans type, paisley banner, sponsor marks and footer. The title matches the paper as “ESM.md: From Markdown Physics to Verified, Optimised Earth System Model Solvers”. Its native editable 72 pt text has no underlines and fits on one line. The restored language graphs show the true 8 November Fortran ESM.md and six October controls. Current 12 November matched results remain separately dated in the Summary and retain their own graph files.
 
 ## Rebuild
 
@@ -32,11 +32,28 @@ After replotting, replace each render_metadata entry in data/accepted-performanc
 
 The final files are esm-md-a0-landscape.pptx, esm-md-a0-landscape.pdf and the saved-PDF PNG esm-md-a0-landscape.png. The PNG is 7,022 by 4,967 pixels at 150 dpi. The checker also exports local review crops and decodes the actual PDF QR at two sizes. Temporary builds and review records stay under .runtime/poster_update_20261108/ outside Git. Text, headings, workflow blocks and positions remain native editable PowerPoint objects. Scientific artwork is embedded as SVG with PNG fallbacks. Install the bundled Open Sans fonts when editing the PowerPoint elsewhere.
 
+## Restored recorded language comparisons
+
+The active poster language charts restore the originally reported 8 November Fortran ESM.md points and all six October vanilla and tuned Fortran, Julia and compiled-Python controls. Each model uses six horizontal-rate facets, three CPU grids and three GPU grids, with seven implementation rows. These original cohorts use different dates and nodes. CPU measurements use one Neoverse V2 core and complete-run wall time, while GPU measurements use one GH200 and complete-graph device events. This comparison does not establish a newly paired cross-cohort speedup.
+
+The authoritative source is data/performance-figure-evidence.json.plotted_data, bound to the original results-current.json and historical source records. Each old point remains the reported median of twelve individual useful-update rates, with the observed minimum and maximum. It is not replaced with the newer useful-updates-divided-by-median-seconds statistic. Original grid-dependent batch lengths and original qualification remain explicit. In particular, the archived GPU checks cover final and last first-stage states, without claiming the newer complete current, preceding and stage-buffer gate. Python controls are compiled with Numba rather than interpreted.
+
+The separate data/archived-language-comparison-update.json selects these images and their captions. The small poster_comparison_input.py loader checks their original evidence and source hashes, exact plotted subtrees and current matched-source binding. The builder and checker still run all existing strict 12 November acceptance gates. The strict accepted-input schema and data/accepted-performance-update.json are unchanged. Existing matched chart files remain available, and the clearly dated 12 November Summary retains those outcomes without inserting them into the old bars.
+
+Rebuild the recorded comparison images with the portable renderer below, then copy the resulting two JSON receipts into render_metadata in archived-language-comparison-update.json before the native build. The archived manifest must use recorded_comparison status and its explicit archived_language_controls class. Run through the owned publication allocation as described above.
+
+```bash
+python3 paper/pasc27/poster/scripts/render_language_comparisons.py --input paper/pasc27/poster/data/language-comparison-input.json --model sw --profile poster --output paper/pasc27/poster/figures/poster/language_water_rates
+python3 paper/pasc27/poster/scripts/render_language_comparisons.py --input paper/pasc27/poster/data/language-comparison-input.json --model ebm --profile poster --output paper/pasc27/poster/figures/poster/language_energy_rates
+```
+
+A new saved-PDF visual review must bind both accepted_performance_input_sha256 for the current matched source and display_comparison_input_sha256 for the archived display. The evidence refresher preserves their different point definitions and qualifications. It writes the archived figure proof separately and leaves the original and current matched evidence files intact.
+
 ## Methods and skills
 
 [md2fort](../../../skills/md2fort/SKILL.md) guides portable Fortran development for central processing units (CPUs). [md2fort-gpu](../../../skills/md2fort-gpu/SKILL.md) guides generation, verification and optimisation for graphics processing units (GPUs) through CUDA Fortran and a separate comparison path written in PTX, NVIDIA’s virtual GPU instruction code. The supplied inputs are Markdown physics, a frozen numerical contract and prior verified source. The LLM proposes source candidates, while people choose scope and review source and evidence. Independent physical checks and complete byte agreement precede instruction inspection and timing. Compilers translate Fortran and CUDA Fortran, while direct PTX uses a GPU assembler. Revised native Methods, workflow and performance prose are blue for review.
 
-## Measurements and meaning
+## Current matched measurements and meaning
 
 Each model figure compares two implementations at three matched grids. The main CPU comparison declares a configured ceiling of 248 cores. Both routes use the same actual team within each paired workload, and that team can differ between grids. Actual worker counts appear inside the CPU bars. The CPU budget 248 cores row label describes the configured ceiling. An actual team is a group of CPU workers started together. A nonempty spatial owner has at least one interior grid cell to update. Their counts are retained separately for each route. A small number of latitude bands can limit useful ownership. The allocated node size, configured ceiling, actual team and nonempty owners describe different quantities. The GPU comparison uses one device.
 
