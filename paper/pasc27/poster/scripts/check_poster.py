@@ -138,7 +138,36 @@ def _chart_identity(poster: Path, manifest: dict, model: str) -> dict:
             )
     labels = [" ".join(value.split()) for value in labels if value.strip()]
     visible = " ".join(labels)
-    assert all(label in labels for label in GROUPS), (model, labels)
+    assert metadata["group_label_encoding"] == "poster_language_logos_with_esm_text"
+    assert metadata["text_group_labels"] == ["ESM.md"]
+    assert "ESM.md" in labels
+    logo_records = metadata["language_logos"]
+    assert {item["label"] for item in logo_records} == {
+        "Assembly",
+        "Fortran",
+        "Julia",
+        "Python",
+    }
+    for item in logo_records:
+        group = next(
+            element
+            for element in svg.iter()
+            if element.get("id") == item["svg_group_id"]
+        )
+        if "svg" in item["vector_formats"]:
+            assert any(
+                element.tag == "{http://www.w3.org/2000/svg}path"
+                for element in group.iter()
+            )
+            assert not any(
+                element.tag == "{http://www.w3.org/2000/svg}image"
+                for element in group.iter()
+            )
+        else:
+            assert any(
+                element.tag == "{http://www.w3.org/2000/svg}image"
+                for element in group.iter()
+            )
     assert "Tuned" in labels and "Vanilla" in labels
     assert "Configurations" not in visible
     assert not re.search(r"layout only|\bpending\b", visible, re.IGNORECASE)
@@ -301,7 +330,13 @@ def check(output: Path, poster: Path = POSTER) -> dict:
     width, height = presentation.slide_width / 36000, presentation.slide_height / 36000
     assert abs(width - 1189) < 0.1 and abs(height - 841) < 0.1
     slide = presentation.slides[0]
-    assert len(slide.shapes) == 63, len(slide.shapes)
+    vector_logo_count = sum(
+        "svg" in item["vector_formats"]
+        for model in ("sw", "ebm")
+        for item in manifest["loaded_render_metadata"][model]["language_logos"]
+    )
+    expected_shapes = 63 + 2 * vector_logo_count
+    assert len(slide.shapes) == expected_shapes, len(slide.shapes)
     names = set()
     texts, sizes = [], []
     native_runs = 0

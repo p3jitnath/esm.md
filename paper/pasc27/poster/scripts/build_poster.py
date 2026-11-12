@@ -744,7 +744,7 @@ workflow = [
         "a.  Inputs",
         "Markdown, contract\nand verified context",
         "physics",
-        '<circle cx="54" cy="8" r="4" stroke="#00BDB6"/><path d="M54 1v1M54 14v2M47 8h1M60 8h1M49 3l1 1M58 12l1 1M49 13l1-1M58 4l1-1" stroke="#00BDB6"/><path d="M7 26c7-8 12-8 19 0s12 8 19 0 12-8 19 0M7 33c7-8 12-8 19 0s12 8 19 0 12-8 19 0M7 40c7-8 12-8 19 0s12 8 19 0 12-8 19 0"/>',
+        '<path d="M7 9v31h58V9"/><path d="M10 18h20c8 0 9 12 18 12h14M10 27h19M10 34h51" stroke="#00BDB6"/><path d="M43 13h18m-5-4 5 4-5 4" stroke="#00BDB6"/>',
     ),
     (
         "b.  LLM + skills",
@@ -756,7 +756,7 @@ workflow = [
         "c.  Verify/time",
         "Physics and bytes\ninspect, time, select",
         "verify",
-        '<path d="M3 38V10M3 38h40"/><path d="M6 31C12 31 11 15 17 15S25 31 37 27M9 27C15 27 14 11 20 11S28 27 40 23M12 23C18 23 17 7 23 7S31 23 43 19" stroke="#00BDB6"/><path d="M6 31l6-8M11.5 23l6-8M17 15l6-8M24.25 22.5l6-8M37 27l6-8"/><circle cx="60" cy="26" r="11"/><path d="M53 26l5 5 9-12" stroke="#00BDB6" stroke-width="3"/>',
+        '<path d="M3 10v32h40"/><path d="M7 35c7 0 7-18 14-18s10 17 19 5M7 29c7 0 7-18 14-18s10 17 19 5" stroke="#00BDB6"/><circle cx="60" cy="26" r="11"/><path d="M54 27l4 4 8-10" stroke="#00BDB6" stroke-width="3"/>',
     ),
 ]
 for i, (title, detail, symbol, paths) in enumerate(workflow):
@@ -831,6 +831,48 @@ text(
     c="000000",
     paragraph_gap_pt=3,
 )
+# Keep brand artwork as SVG above the raster plots that preserve marker hatches.
+from render_language_scatter import vector_logo_svg
+import xml.etree.ElementTree as ET
+import cairosvg
+
+logo_directory = BUILD / "vector_language_logos"
+logo_directory.mkdir(exist_ok=True)
+for model, picture_name in (("sw", "result-error"), ("ebm", "result-calibration")):
+    picture = next(shape for shape in slide.shapes if shape.name == picture_name)
+    px, py, pw, ph = [
+        value / 36000
+        for value in (picture.left, picture.top, picture.width, picture.height)
+    ]
+    for record in DISPLAY_UPDATE["loaded_render_metadata"][model]["language_logos"]:
+        if "svg" not in record["vector_formats"]:
+            continue
+        rx, ry, rw, rh = record["relative_figure_box"]
+        lx, ly, lw, lh = px + rx * pw, py + ry * ph, rw * pw, rh * ph
+        key = model + "-" + record["label"].lower()
+        rect(
+            "language-logo-mask-" + key,
+            lx - 0.2,
+            ly - 0.2,
+            lw + 0.4,
+            lh + 0.4,
+            "FFFFFF",
+        )
+        asset = logo_directory / (key + ".svg")
+        wrapper = vector_logo_svg(
+            OUT, record, lw * 72 / 25.4, lh * 72 / 25.4, standalone=True
+        )
+        payload = ET.tostring(wrapper, encoding="utf-8", xml_declaration=True)
+        asset.write_bytes(payload)
+        cairosvg.svg2png(
+            bytestring=payload,
+            write_to=str(asset.with_suffix(".png")),
+            output_width=round(lw * 400 / 25.4),
+            output_height=round(lh * 400 / 25.4),
+        )
+        logo = image("language-logo-" + key, asset, lx, ly, lw, lh)
+        logo.left, logo.top, logo.width, logo.height = Mm(lx), Mm(ly), Mm(lw), Mm(lh)
+
 summary_top = 723
 heading("section-summary", "4  Summary", c, summary_top, cw - 72)
 text(
@@ -930,6 +972,7 @@ text(
     ack_width,
     27,
     22,
+    paragraph_gap_pt=0,
 )
 reference_rows = [
     (
@@ -1014,6 +1057,7 @@ pdf.setTitle(POSTER_TITLE)
 pdf.setAuthor(IDENTITY["author"])
 from pptx.enum.dml import MSO_FILL_TYPE
 
+vector_logo_overlays = []
 for sh in saved.slides[0].shapes:
     x, y, w, h = [v / 12700 for v in (sh.left, sh.top, sh.width, sh.height)]
     if sh.shape_type == MSO_SHAPE_TYPE.PICTURE:
@@ -1024,6 +1068,9 @@ for sh in saved.slides[0].shapes:
                 "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
             )
             svg = sh.part.related_part(rid).blob
+            if sh.name.startswith("language-logo-"):
+                vector_logo_overlays.append((svg, (x, y, w, h)))
+                continue
             drawing = svg2rlg(BytesIO(svg))
             pdf.saveState()
             clip = pdf.beginPath()
@@ -1178,6 +1225,19 @@ for sh in saved.slides[0].shapes:
             ypos -= p.space_after.pt if p.space_after else 0
 pdf.showPage()
 pdf.save()
+# CairoSVG preserves the original gradient and clipping geometry of brand marks.
+if vector_logo_overlays:
+    vector_export = BUILD / "vector-logo-poster.pdf"
+    with pymupdf.open(pdfpath) as vector_document:
+        for payload, (x, y, w, h) in vector_logo_overlays:
+            with pymupdf.open(
+                stream=cairosvg.svg2pdf(bytestring=payload), filetype="pdf"
+            ) as logo_document:
+                vector_document[0].show_pdf_page(
+                    pymupdf.Rect(x, y, x + w, y + h), logo_document, 0
+                )
+        vector_document.save(vector_export, garbage=4, deflate=True)
+    vector_export.replace(pdfpath)
 doc = pymupdf.open(pdfpath)
 page = doc[0]
 assert (

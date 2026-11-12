@@ -6,6 +6,9 @@ import hashlib
 import importlib.util
 import json
 import math
+import re
+import xml.etree.ElementTree as ET
+from io import BytesIO
 from pathlib import Path
 
 from poster_comparison_input import validate_fresh_input
@@ -152,7 +155,367 @@ def portable_path(path, poster_root, accepted):
         return str(path)
 
 
-def render(data, model, profile, output, poster_root, layout_draft, font_file=None):
+def svg_source_view_box(payload):
+    """Return the original SVG coordinate box without changing its scale.
+
+    Parameters
+    ----------
+    payload : bytes
+        Original SVG document with a viewBox or explicit dimensions.
+
+    Returns
+    -------
+    list of float
+        Left, top, width and height in SVG coordinate units.
+
+    Raises
+    ------
+    ValueError
+        If a source dimension has no supported explicit unit.
+    """
+    root = ET.fromstring(payload)
+    if "viewBox" in root.attrib:
+        return [float(value) for value in root.attrib["viewBox"].split()]
+    factors = {
+        "": 1,
+        "px": 1,
+        "pt": 96 / 72,
+        "mm": 96 / 25.4,
+        "cm": 96 / 2.54,
+        "in": 96,
+    }
+    dimensions = []
+    for key in ("width", "height"):
+        match = re.fullmatch(r"([0-9.]+)(px|pt|mm|cm|in)?", root.attrib[key])
+        if match is None:
+            raise ValueError("An SVG source needs an explicit width and height.")
+        dimensions.append(float(match[1]) * factors[match[2] or ""])
+    return [0, 0, *dimensions]
+
+
+def vector_logo_svg(poster_root, record, width, height, standalone=False):
+    """Fit original SVG geometry within its recorded transparent-border crop.
+
+    Parameters
+    ----------
+    poster_root : pathlib.Path
+        Publication directory containing the unchanged original SVG.
+    record : dict
+        Logo receipt with a source path and source crop viewBox.
+    width, height : float
+        Reserved box dimensions in points.
+    standalone : bool
+        Use physical point units for a standalone SVG-to-PDF conversion.
+
+    Returns
+    -------
+    xml.etree.ElementTree.Element
+        Original SVG paths and styles in a cropped, uniformly scaled viewport.
+
+    Notes
+    -----
+    Each internal identifier receives a unique prefix. Gradient and clipping
+    references receive the same prefix, so imported artwork cannot collide.
+    """
+    root = ET.fromstring((poster_root / record["source_asset"]["path"]).read_bytes())
+    identifiers = {
+        element.attrib["id"]: record["svg_group_id"] + "--" + element.attrib["id"]
+        for element in root.iter()
+        if "id" in element.attrib
+    }
+    for element in root.iter():
+        for key, value in list(element.attrib.items()):
+            if key == "id":
+                value = identifiers[value]
+            elif value.startswith("#") and value[1:] in identifiers:
+                value = "#" + identifiers[value[1:]]
+            else:
+                value = re.sub(
+                    r"url\(#([^)]*)\)",
+                    lambda match: "url(#" + identifiers.get(match[1], match[1]) + ")",
+                    value,
+                )
+            element.set(key, value)
+    unit = "pt" if standalone else ""
+    root.set("width", f"{width:.14g}{unit}")
+    root.set("height", f"{height:.14g}{unit}")
+    root.set(
+        "viewBox", " ".join(f"{value:.14g}" for value in record["source_crop_view_box"])
+    )
+    root.set("preserveAspectRatio", "xMidYMid meet")
+    root.set("overflow", "hidden")
+    return root
+
+
+def compose_poster_language_exports(output, poster_root, logo_records, canvas_inches):
+    """Save original logo paths in SVG and PDF, then rasterise the final PDF.
+
+    Parameters
+    ----------
+    output : pathlib.Path
+        Prefix of the saved Matplotlib SVG and PDF.
+    poster_root : pathlib.Path
+        Publication directory containing original logo sources.
+    logo_records : list of dict
+        Recorded source identities and fixed figure boxes in inches.
+    canvas_inches : tuple of float
+        Unchanged source canvas width and height in inches.
+
+    Returns
+    -------
+    dict
+        Vector export scope and final-placement PNG resolution.
+
+    Raises
+    ------
+    RuntimeError
+        If an original SVG becomes an image in the PDF conversion.
+    """
+    import cairosvg
+    import pymupdf
+
+    ET.register_namespace("", "http://www.w3.org/2000/svg")
+    ET.register_namespace("xlink", "http://www.w3.org/1999/xlink")
+    parser = ET.XMLParser(target=ET.TreeBuilder(insert_comments=True))
+    svg = ET.fromstring(output.with_suffix(".svg").read_bytes(), parser=parser)
+    with pymupdf.open(output.with_suffix(".pdf")) as document:
+        page = document[0]
+        for record in logo_records:
+            x0, y0, x1, y1 = record["bounds_inches"]
+            left, top = x0 * 72, (canvas_inches[1] - y1) * 72
+            width, height = (x1 - x0) * 72, (y1 - y0) * 72
+            group = next(
+                element
+                for element in svg.iter()
+                if element.get("id") == record["svg_group_id"]
+            )
+            for child in list(group):
+                group.remove(child)
+            artwork = vector_logo_svg(poster_root, record, width, height)
+            artwork.set("x", f"{left:.14g}")
+            artwork.set("y", f"{top:.14g}")
+            group.append(artwork)
+            pdf = cairosvg.svg2pdf(
+                bytestring=ET.tostring(
+                    vector_logo_svg(poster_root, record, width, height, True)
+                )
+            )
+            with pymupdf.open(stream=pdf, filetype="pdf") as logo_document:
+                if logo_document[0].get_images():
+                    raise RuntimeError("An SVG language logo became a raster image.")
+                page.show_pdf_page(
+                    pymupdf.Rect(left, top, left + width, top + height),
+                    logo_document,
+                    keep_proportion=True,
+                    overlay=True,
+                )
+        payload = document.tobytes(garbage=3, deflate=True)
+    output.with_suffix(".pdf").write_bytes(payload)
+    output.with_suffix(".svg").write_bytes(
+        ET.tostring(svg, encoding="utf-8", xml_declaration=True)
+    )
+    scale = 364.249 / (canvas_inches[0] * 25.4)
+    with pymupdf.open(stream=payload, filetype="pdf") as document:
+        pixels = document[0].get_pixmap(
+            matrix=pymupdf.Matrix(400 * scale / 72, 400 * scale / 72), alpha=False
+        )
+        pixels.set_dpi(400, 400)
+        pixels.save(output.with_suffix(".png"))
+    return {
+        "svg_and_pdf": {
+            "vector_labels": [
+                record["label"]
+                for record in logo_records
+                if record["source_format"] == "SVG"
+            ],
+            "raster_fallback_labels": [
+                record["label"]
+                for record in logo_records
+                if record["source_format"] != "SVG"
+            ],
+        },
+        "png": {
+            "method": "Rasterise the final vector-composited PDF at the poster placement size.",
+            "target_dpi": 400,
+            "pixels": [pixels.width, pixels.height],
+            "effective_dpi": [
+                pixels.width / (364.249 / 25.4),
+                pixels.height / (canvas_inches[1] * scale),
+            ],
+        },
+    }
+
+
+def poster_language_logos(axis, figure, poster_root):
+    """Replace four poster row labels with source-bound language artwork.
+
+    Parameters
+    ----------
+    axis : matplotlib.axes.Axes
+        CPU axis that owns the five group positions and label column.
+    figure : matplotlib.figure.Figure
+        Fixed-size figure containing the CPU axis.
+    poster_root : pathlib.Path
+        Publication directory containing original SVGs and their provenance.
+
+    Returns
+    -------
+    tuple of list of dict and list of matplotlib.offsetbox.AnnotationBbox
+        Source identities, final-size raster dimensions and attached artists.
+
+    Raises
+    ------
+    ValueError
+        If an artwork source differs from its recorded SHA256 identity.
+    RuntimeError
+        If an artwork source has no visible pixels.
+
+    Notes
+    -----
+    Original artwork remains unchanged. Transparent borders are removed only
+    from the in-memory layout raster. Original SVG geometry is used in exports.
+    """
+    import cairosvg
+    import numpy as np
+    from matplotlib.image import BboxImage
+    from matplotlib.offsetbox import AnnotationBbox, DrawingArea
+    from PIL import Image
+
+    provenance_path = poster_root / "assets/language-logos/provenance.json"
+    provenance_bytes = provenance_path.read_bytes()
+    provenance = json.loads(provenance_bytes)
+    manifest = {
+        "path": "assets/language-logos/provenance.json",
+        "sha256": hashlib.sha256(provenance_bytes).hexdigest(),
+    }
+    figure.canvas.draw()
+    renderer = figure.canvas.get_renderer()
+    ticks = axis.get_yticklabels()
+    esm_box = ticks[1].get_window_extent(renderer)
+    column_offset_pt = ((esm_box.x0 + esm_box.x1) / 2 - axis.bbox.x0) * 72 / figure.dpi
+    for index, tick in enumerate(ticks):
+        if index != 1:
+            tick.set_visible(False)
+    placement_scale = 364.249 / (figure.get_figwidth() * 25.4)
+    dpi = 400
+    records, artists = [], []
+    for name, label, position, max_width_mm, max_height_mm in (
+        ("assembly", "Assembly", 0, 13, 11),
+        ("fortran", "Fortran", 2.5, 35, 15),
+        ("julia", "Julia", 4.5, 35, 15),
+        ("python", "Python", 6.5, 35, 15),
+    ):
+        entry = provenance["assets"][name]
+        if entry["format"] != "SVG":
+            raise ValueError(
+                "Poster language identifiers require original SVG sources."
+            )
+        relative = "assets/language-logos/" + entry["file"]
+        payload = (poster_root / relative).read_bytes()
+        source = {
+            "path": relative,
+            "sha256": hashlib.sha256(payload).hexdigest(),
+        }
+        image = Image.open(
+            BytesIO(cairosvg.svg2png(bytestring=payload, output_width=1600))
+        ).convert("RGBA")
+        if source["sha256"] != entry["sha256"]:
+            raise ValueError(f"The {label} artwork differs from its source identity.")
+        bounds = image.getchannel("A").getbbox()
+        if bounds is None:
+            raise RuntimeError(f"The {label} artwork has no visible pixels.")
+        source_view_box = svg_source_view_box(payload)
+        source_units_per_pixel = source_view_box[2] / image.width
+        vector_view_box = [
+            source_view_box[0] + bounds[0] * source_units_per_pixel,
+            source_view_box[1] + bounds[1] * source_units_per_pixel,
+            (bounds[2] - bounds[0]) * source_units_per_pixel,
+            (bounds[3] - bounds[1]) * source_units_per_pixel,
+        ]
+        image = image.crop(bounds)
+        # Keep the accepted Assembly frame and fit its square artwork inside it.
+        frame_pixels = [199, 173] if name == "assembly" else None
+        limit = frame_pixels or [
+            max_width_mm / 25.4 * dpi,
+            max_height_mm / 25.4 * dpi,
+        ]
+        fit = min(limit[0] / image.width, limit[1] / image.height)
+        pixels = [max(1, math.floor(value * fit)) for value in image.size]
+        image = image.resize(pixels, resample=Image.Resampling.LANCZOS)
+        if frame_pixels is not None:
+            frame = Image.new("RGBA", frame_pixels)
+            frame.alpha_composite(
+                image,
+                (
+                    (frame_pixels[0] - pixels[0]) // 2,
+                    (frame_pixels[1] - pixels[1]) // 2,
+                ),
+            )
+            image, pixels = frame, frame_pixels
+        box = DrawingArea(
+            pixels[0] * 72 / (dpi * placement_scale),
+            pixels[1] * 72 / (dpi * placement_scale),
+        )
+        source_image = BboxImage(
+            box.get_window_extent, interpolation="none", resample=False
+        )
+        source_image.set_data(np.asarray(image))
+        box.add_artist(source_image)
+        artist = AnnotationBbox(
+            box,
+            (0, position),
+            xycoords=axis.get_yaxis_transform(),
+            xybox=(column_offset_pt, 0),
+            boxcoords="offset points",
+            box_alignment=(0.5, 0.5),
+            frameon=False,
+            pad=0,
+            annotation_clip=False,
+        )
+        artist.set_clip_on(False)
+        artist.set_gid("language-logo-" + name)
+        axis.add_artist(artist)
+        artists.append(artist)
+        records.append(
+            {
+                "label": label,
+                "group_position": position,
+                "svg_group_id": artist.get_gid(),
+                "provenance": {**manifest, "asset": name},
+                "source_asset": source,
+                "source_format": "SVG",
+                "vector_formats": ["svg", "pdf"],
+                "source_crop_view_box": vector_view_box,
+                "export_representation": {
+                    "svg": "original SVG vectors",
+                    "pdf": "vector PDF form",
+                    "png": "raster",
+                },
+                "raster": {
+                    "purpose": "layout bounds only",
+                    "encoding": "RGBA8 layout preview",
+                    "pixel_sha256": hashlib.sha256(image.tobytes()).hexdigest(),
+                    "pixels": pixels,
+                    "effective_dpi": [dpi, dpi],
+                },
+                "rendered_size_mm": [value / dpi * 25.4 for value in pixels],
+                "effective_dpi": None,
+                "transparent_border_removed": True,
+                "label_column_offset_pt": column_offset_pt,
+            }
+        )
+    return records, artists
+
+
+def render(
+    data,
+    model,
+    profile,
+    output,
+    poster_root,
+    layout_draft,
+    font_file=None,
+):
     """Draw the reference scatter style without changing supplied rates.
 
     Parameters
@@ -222,6 +585,8 @@ def render(data, model, profile, output, poster_root, layout_draft, font_file=No
             }
         )
     displayed, axis_records = [], []
+    logo_records, logo_artists = [], []
+    logo_exports = None
     with style.publication_style(settings, font_family=font, project_root=poster_root):
         figure, axes = plt.subplots(1, 2, figsize=(width, height), sharey=True)
         figure.subplots_adjust(
@@ -469,6 +834,10 @@ def render(data, model, profile, output, poster_root, layout_draft, font_file=No
                 ha="left",
                 va="center",
             )
+        if poster:
+            logo_records, logo_artists = poster_language_logos(
+                axes[0], figure, poster_root
+            )
         figure.canvas.draw()
         renderer = figure.canvas.get_renderer()
         original_bounds = figure.get_tightbbox(renderer)
@@ -513,6 +882,29 @@ def render(data, model, profile, output, poster_root, layout_draft, font_file=No
         if issues:
             raise RuntimeError("Figure style audit failed. " + ". ".join(issues))
         renderer = figure.canvas.get_renderer()
+        if poster:
+            label_boxes = [
+                axes[0].yaxis.get_major_ticks()[1].label1.get_window_extent(renderer)
+            ]
+            for record, artist in zip(logo_records, logo_artists):
+                bounds = artist.get_window_extent(renderer)
+                if bounds.x0 < 0 or bounds.x1 >= axes[0].bbox.x0:
+                    raise RuntimeError("A language logo exceeds its left label column.")
+                if bounds.y0 < 0 or bounds.y1 > figure.bbox.y1:
+                    raise RuntimeError("A language logo exceeds the fixed canvas.")
+                if any(bounds.overlaps(other) for other in label_boxes):
+                    raise RuntimeError("Language group labels overlap.")
+                label_boxes.append(bounds)
+                record["bounds_inches"] = list(
+                    bounds.transformed(figure.dpi_scale_trans.inverted()).extents
+                )
+                x0, y0, x1, y1 = record["bounds_inches"]
+                record["relative_figure_box"] = [
+                    x0 / width,
+                    (height - y1) / height,
+                    (x1 - x0) / width,
+                    (y1 - y0) / height,
+                ]
         legend_box = legend.get_window_extent(renderer)
         if legend_box.x0 < 0 or legend_box.x1 > figure.bbox.x1:
             raise RuntimeError(
@@ -528,13 +920,33 @@ def render(data, model, profile, output, poster_root, layout_draft, font_file=No
                 raise RuntimeError("Implementation row labels overlap.")
         output.parent.mkdir(parents=True, exist_ok=True)
         files = [output.with_suffix(suffix) for suffix in (".pdf", ".png", ".svg")]
-        for file in files:
+        if poster:
             figure.savefig(
-                file,
+                output.with_suffix(".svg"),
                 bbox_inches=figure.bbox_inches,
                 pad_inches=0,
-                dpi=400 if poster else 300,
+                dpi=400,
             )
+            for record, artist in zip(logo_records, logo_artists):
+                if record["source_format"] == "SVG":
+                    artist.set_visible(False)
+            figure.savefig(
+                output.with_suffix(".pdf"),
+                bbox_inches=figure.bbox_inches,
+                pad_inches=0,
+                dpi=400,
+            )
+            logo_exports = compose_poster_language_exports(
+                output, poster_root, logo_records, (width, height)
+            )
+        else:
+            for file in files:
+                figure.savefig(
+                    file,
+                    bbox_inches=figure.bbox_inches,
+                    pad_inches=0,
+                    dpi=300,
+                )
         plt.close(figure)
     with pymupdf.open(output.with_suffix(".pdf")) as document:
         page = document[0]
@@ -563,6 +975,12 @@ def render(data, model, profile, output, poster_root, layout_draft, font_file=No
         "row_order": list(LABELS),
         "row_routes": list(ROUTES),
         "visible_group_labels": list(GROUP_LABELS),
+        "group_label_encoding": (
+            "poster_language_logos_with_esm_text" if poster else "text"
+        ),
+        "text_group_labels": ["ESM.md"] if poster else list(GROUP_LABELS),
+        "language_logos": logo_records,
+        "language_logo_exports": logo_exports,
         "group_positions": list(GROUP_POSITIONS),
         "vanilla_marker_hatch_rows": [3, 5, 7],
         "hatched_background_bands": False,
