@@ -5,7 +5,7 @@
   "author": "Pritthijit Nath",
   "affiliation": "Department of Applied Mathematics and Theoretical Physics, University of Cambridge",
   "implementation_label": "ESM.md",
-  "generation_route": "Physics in Markdown to structured Fortran, then compiler-generated CPU or GPU instructions",
+  "generation_route": "Markdown physics and fixed contracts guide Fortran and CUDA Fortran candidates, which compilers translate to machine code",
   "branding": {
     "cambridge_colour_guide": "https://www.cam.ac.uk/brand-resources/guidelines/colour",
     "cambridge_typography_guide": "https://www.cam.ac.uk/brand-resources/guidelines/typography",
@@ -318,2260 +318,1023 @@
       "requested_by_author": true
     }
   },
-  "performance_source": "data/results-current.json",
-  "performance_source_sha256": "c3e2990819a034f7d53cd06432fd185474949198392bfe318635239e2b6ae1d3",
-  "performance_method": "Absolute complete-cell-update rates for esm.md and six language controls, with median and observed min-max across twelve runs per condition",
-  "graph_policy": "Assembly series and assembly-ratio axes are omitted from every visible performance graph. Raw controls remain in source data for provenance.",
+  "performance_source": "data/accepted-performance-update.json",
+  "performance_source_sha256": "55ace931e250e7f3d35913e705dba5746fc9fdb4b9091da88605a757db0d48bb",
+  "performance_method": "Two matched routes at three grids per model and platform, using useful updates divided by median elapsed seconds and observed twelve-run rate ranges",
+  "graph_policy": "Show ESM.md and the hand-tuned baseline through absolute rates, without historical controls or normalized panels",
   "axis_scales": {
-    "CPU": "linear",
-    "GPU": "logarithmic"
+    "CPU": "Independent zero-based linear rate axes per grid",
+    "GPU": "Independent zero-based linear rate axes per grid"
   },
   "figure_unit_labels": "Put units in square brackets on axes, colour bars and variable-label declarations. Keep plotted values, scales and ordinary value-unit expressions unchanged.",
   "independent_plotted_input_reviews": {
-    "CPU": {
-      "status": "pass",
-      "groups": 42,
-      "per_run_observations": 504
+    "cpu": {
+      "status": "passed",
+      "conditions": 6,
+      "series": 12,
+      "pairs": 72,
+      "elapsed_observations": 144,
+      "maximum_rate_difference_in_ULPs": 1.0
     },
-    "GPU": {
-      "status": "pass",
-      "groups": 42,
-      "per_run_observations": 504,
-      "maximum_elapsed_derived_rate_difference": "one FP64 ULP"
+    "gpu": {
+      "status": "passed",
+      "conditions": 6,
+      "series": 12,
+      "pairs": 72,
+      "elapsed_observations": 144,
+      "maximum_rate_difference_in_ULPs": 1.0
     },
-    "method": "Read-only comparison of all plotted groups and samples with accepted source records, including counts, grids, steps, labels, aggregation, ranges and cohorts",
     "new_numerical_runs": false
   },
-  "historical_controls": "Six vanilla/tuned Fortran, Julia and compiled-Python controls from October 2026 appear alongside November 2026 esm.md. The visible date note separates these cohorts. CPU and GPU use separate timers.",
   "scope": [
-    "CPU timing uses wall time on one Neoverse V2 core. GPU timing uses device events on one GH200. These measure complete-update compute throughput, not end-to-end forecast time.",
-    "The six CPU median rates remain below the paired assembly controls, so this snapshot does not establish CPU parity.",
-    "Rates include complete numerical updates and exclude setup, verification and file output as recorded by each protocol.",
-    "Exact acceptance covers the recorded inputs and tested configurations, and does not establish x86 performance.",
-    "Physical figures are unchanged accepted canonical model states rather than observations.",
-    "The current esm.md and archived language controls use separate dates, nodes and jobs. Absolute rates preserve their recorded ranges, and are not freshly paired speedup estimates."
+    "Main CPU conditions have a configured 248-core ceiling and the same actual team for both routes within each paired workload. Teams can differ across grids, with nonempty spatial owners recorded separately.",
+    "The 248-core CPU budget is a ceiling, with the same actual team in each pair.",
+    "CPU timing includes the complete coordinator and required neighbouring-cell work. GPU records use one device and retain their declared event scope and transfer exclusions.",
+    "Original elapsed-time words, source identities and accepted power and quiet policies remain in the copied source records.",
+    "Independent physical verification and exact complete-output agreement apply to the recorded inputs and configurations, without establishing performance on another architecture.",
+    "The unchanged physical figures show accepted model states rather than observations."
   ],
   "comparison_evidence": {
-    "data_sha256": "c3e2990819a034f7d53cd06432fd185474949198392bfe318635239e2b6ae1d3",
+    "status": "accepted",
+    "presentation": "matched_absolute_rates",
     "source_records": {
-      "current": {
-        "path": "data/results-current.json",
-        "sha256": "c3e2990819a034f7d53cd06432fd185474949198392bfe318635239e2b6ae1d3"
+      "cpu": {
+        "path": "data/cpu-results-20261112.json",
+        "sha256": "8c9a79697c4e655bdcde2ec152aa04c8e272b1f250580ea2cf5ead5a89ab1e13",
+        "measurement_protocol": null,
+        "power_policy": null,
+        "quiet_policy": null
       },
-      "historical_cpu": {
-        "path": "data/historical/benchmark.json",
-        "sha256": "48a2ed2e828956697e9aaee329a0ea2de7e74439f60c08dc2b00ad35628500c8"
-      },
-      "historical_gpu": {
-        "path": "data/historical/gpu-benchmark.json",
-        "sha256": "e99dd51d99aef41eb3b455a9fe3129a411c2dc075c9e4728d03dff3b1a465bf6"
+      "gpu": {
+        "path": "data/gpu-results-20261112.json",
+        "sha256": "4111d1c33d4df095d531395f219c2b4a8e3f1b73dac21ae1069ef6eb9863df4a",
+        "measurement_protocol": {
+          "condition_count": 6,
+          "paired_repetitions": 12,
+          "complete_steps": 1000,
+          "elapsed_time_unit": "s",
+          "rate_unit": "million complete interior-cell updates per second",
+          "rate_point_definition": "useful_updates / median_seconds",
+          "rate_range_definition": "observed minimum and maximum of useful_updates / each raw seconds value",
+          "rate_scale_divisor": 1000000,
+          "range_interpretation": "Observed extrema of twelve individual rates; these ranges are not confidence intervals.",
+          "pairing": "The repeat index and original within-pair implementation order are retained.",
+          "timer_scope": "One complete ordered device graph replay, including every required numerical stage and state publication",
+          "excluded_costs": [
+            "compilation",
+            "warm-up",
+            "allocation",
+            "initial-state restoration",
+            "host-device input/output transfer",
+            "verification",
+            "canonical file encoding"
+          ],
+          "physical_update": "A shallow-water update includes all three fields, both time stages and periodic boundaries. An energy-balance update includes both time stages and pole copies.",
+          "precision": "Ordered binary64 arithmetic with contraction and fast-math disabled; canonical output agreement is checked outside the timer."
+        },
+        "power_policy": {
+          "queried_utc_ns": 1794456749002620370,
+          "uuid": "GPU-aa730fd6-e313-5013-ccc3-688fb21d2aec",
+          "configured_power_limit_mw": 900000,
+          "default_power_limit_mw": 900000,
+          "enforced_power_limit_mw": 900000,
+          "power_limit_constraints_mw": [
+            100000,
+            900000
+          ],
+          "max_sm_clock_mhz": 1980,
+          "current_sm_clock_mhz": 345,
+          "current_temperature_c": 35,
+          "benchmark_policy": "The native benchmark did not set power limits or clocks. Recorded samples include automatic clock and power management.",
+          "software_power_cap_reason_mask": 4
+        },
+        "quiet_policy": {
+          "allocation": "One owned exclusive node; only the current numerical step and the declared idle batch step are allowed.",
+          "placement": "The host driver is pinned to CPU1 and NUMA node0; the selected GPU UUID is fixed.",
+          "pre_sample_observation": {
+            "one_minute_load_maximum": 2.0,
+            "foreign_busy_cpu_cores_maximum": 1.0,
+            "gpu_utilisation_percent": 0,
+            "foreign_gpu_processes_allowed": 0,
+            "consecutive_settled_observations": 2,
+            "observation_interval_seconds": 0.2
+          },
+          "post_sample_observation": "GPU process ownership and host load are checked after each timed graph; the full observations remain in the hashed timing evidence.",
+          "clock_and_power_management": "The native benchmark did not set power limits or clocks. Recorded samples include automatic clock and power management.",
+          "acceptance": "All six retained conditions have accepted exclusive-node and quiet-sample flags; automatic clock or software power-cap events are disclosed separately."
+        }
       }
     },
+    "input_sha256": "55ace931e250e7f3d35913e705dba5746fc9fdb4b9091da88605a757db0d48bb",
     "series": [
       "ESM.md",
-      "Fortran Tuned",
-      "Fortran Vanilla",
-      "Julia Tuned",
-      "Julia Vanilla",
-      "Python Tuned",
-      "Python Vanilla"
+      "Hand-tuned baseline"
     ],
-    "aggregation": "Median of twelve individual rates, with observed minimum and maximum. No confidence interval or cross-cohort paired ratio is inferred.",
-    "cohorts": {
-      "current": {
-        "date": "2026-11-08",
-        "job": "8199657",
-        "node": "nid010573"
+    "point_definition": "Useful updates divided by median elapsed seconds",
+    "range_definition": "Observed minimum and maximum of twelve individual rates",
+    "independent_recorded_rate_review": {
+      "cpu": {
+        "status": "passed",
+        "conditions": 6,
+        "series": 12,
+        "pairs": 72,
+        "elapsed_observations": 144,
+        "maximum_rate_difference_in_ULPs": 1.0
       },
-      "historical_cpu": {
-        "date": "2026-10-05",
-        "job": "7072889",
-        "node": "nid011277"
-      },
-      "historical_gpu": {
-        "date": "2026-10-08",
-        "job": "7143612",
-        "node": "nid010353"
+      "gpu": {
+        "status": "passed",
+        "conditions": 6,
+        "series": 12,
+        "pairs": 72,
+        "elapsed_observations": 144,
+        "maximum_rate_difference_in_ULPs": 1.0
       }
     },
-    "scope": [
-      "The cohorts use separate runs and nodes. Comparisons show recorded absolute rates and do not establish a freshly paired speedup.",
-      "CPU rates use complete-run wall time on one Neoverse V2 core. GPU rates use complete-graph CUDA event time on one GH200 device.",
-      "Compilation, setup and verification are excluded. GPU transfers and graph construction are also excluded.",
-      "The workload grids, batch lengths and retained input generators agree. Each cohort passed its own recorded physical and exact-output checks.",
-      "Python is compiled with Numba. These records do not describe interpreted Python."
-    ],
+    "new_numerical_runs": false,
     "plotted_data": {
-      "sw": {
-        "cpu": [
-          {
-            "label": "ESM.md",
-            "cohort": "November 2026",
-            "measurements": [
-              {
-                "size": 64,
-                "steps": 8192,
-                "source_variant": "fortran",
-                "median": 84.37079019067309,
-                "minimum": 84.34976817825276,
-                "maximum": 84.38492952746995,
-                "count": 12,
-                "million_updates_per_second": [
-                  84.38492952746995,
-                  84.37431004666304,
-                  84.3830213165808,
-                  84.35624162158393,
-                  84.37258582950666,
-                  84.37108549756103,
-                  84.37853315942,
-                  84.35471472653111,
-                  84.37049488378516,
-                  84.34976817825276,
-                  84.36980245057805,
-                  84.36473195412677
-                ]
-              },
-              {
-                "size": 256,
-                "steps": 512,
-                "source_variant": "fortran",
-                "median": 87.49069471627172,
-                "minimum": 87.42929125943493,
-                "maximum": 87.53286777215858,
-                "count": 12,
-                "million_updates_per_second": [
-                  87.50963795907974,
-                  87.48673457161875,
-                  87.42929125943493,
-                  87.44818245877094,
-                  87.52553940916707,
-                  87.46508320046067,
-                  87.52949204274712,
-                  87.47235013599045,
-                  87.53286777215858,
-                  87.4814282622169,
-                  87.49465486092468,
-                  87.5005612791198
-                ]
-              },
-              {
-                "size": 1024,
-                "steps": 32,
-                "source_variant": "fortran",
-                "median": 78.04814176858707,
-                "minimum": 78.03811622403735,
-                "maximum": 78.08928367146592,
-                "count": 12,
-                "million_updates_per_second": [
-                  78.08928367146592,
-                  78.06620354124344,
-                  78.07655610024774,
-                  78.0498815688429,
-                  78.03868267273693,
-                  78.07143469898573,
-                  78.05217623804687,
-                  78.04619865176218,
-                  78.04640196833125,
-                  78.045890592872,
-                  78.04431929437902,
-                  78.03811622403735
-                ]
-              }
-            ]
+      "sw": [
+        {
+          "model": "sw",
+          "platform": "cpu",
+          "shape": [
+            64,
+            64
+          ],
+          "cpu_cores": 248,
+          "gpu_devices": 0,
+          "batch_steps": 1000,
+          "active_workers": {
+            "baseline": 16,
+            "esm_md": 16
           },
-          {
-            "label": "Fortran Tuned",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 64,
-                "steps": 8192,
-                "source_variant": "fortran",
-                "median": 84.93838229273106,
-                "minimum": 84.84737273343684,
-                "maximum": 84.95493155104162,
-                "count": 12,
-                "million_updates_per_second": [
-                  84.93658717663995,
-                  84.9506372111994,
-                  84.84737273343684,
-                  84.94284673610187,
-                  84.95221952361337,
-                  84.94739512814657,
-                  84.93443142009232,
-                  84.91629403228272,
-                  84.93357146995503,
-                  84.92468554998783,
-                  84.95493155104162,
-                  84.9401774088222
-                ]
-              },
-              {
-                "size": 256,
-                "steps": 512,
-                "source_variant": "fortran",
-                "median": 81.50868644839257,
-                "minimum": 81.12668912288855,
-                "maximum": 81.61560170161061,
-                "count": 12,
-                "million_updates_per_second": [
-                  81.5356040177781,
-                  81.12668912288855,
-                  81.30215010622184,
-                  81.51080560680334,
-                  81.31155630425759,
-                  81.50656728998179,
-                  81.5508502012657,
-                  81.60691078329047,
-                  81.48412755576847,
-                  81.61288767507543,
-                  81.61560170161061,
-                  81.3808731730758
-                ]
-              },
-              {
-                "size": 1024,
-                "steps": 32,
-                "source_variant": "fortran",
-                "median": 72.22928645063105,
-                "minimum": 71.20289972059895,
-                "maximum": 72.35907681909798,
-                "count": 12,
-                "million_updates_per_second": [
-                  72.24925578454064,
-                  71.20289972059895,
-                  72.31641207902501,
-                  72.20975052317232,
-                  72.25916192394585,
-                  72.28837259469887,
-                  72.0810518630089,
-                  72.13592949796676,
-                  72.35907681909798,
-                  72.18965788312812,
-                  72.24882237808978,
-                  72.17285924475652
-                ]
-              }
-            ]
+          "series_kind": "primary",
+          "run_id": "primary_sw_n64_budget248_team16",
+          "nonempty_spatial_owners_by_route": {
+            "baseline": 16,
+            "esm_md": 16
           },
-          {
-            "label": "Fortran Vanilla",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 64,
-                "steps": 8192,
-                "source_variant": "fortran_vanilla",
-                "median": 40.94800749460889,
-                "minimum": 40.91050862206155,
-                "maximum": 40.98171590709799,
-                "count": 12,
-                "million_updates_per_second": [
-                  40.94396867695182,
-                  40.98076321984552,
-                  40.944842461231296,
-                  40.9406364083501,
-                  40.91050862206155,
-                  40.98171590709799,
-                  40.96093217121395,
-                  40.95966610272188,
-                  40.95932051127228,
-                  40.930977778285666,
-                  40.94915802059669,
-                  40.94685696862108
-                ]
-              },
-              {
-                "size": 256,
-                "steps": 512,
-                "source_variant": "fortran_vanilla",
-                "median": 41.255515581814066,
-                "minimum": 40.938061606616834,
-                "maximum": 41.3750596790313,
-                "count": 12,
-                "million_updates_per_second": [
-                  40.938061606616834,
-                  41.16520204990547,
-                  41.25136277637487,
-                  41.25966838725327,
-                  41.27543009163427,
-                  41.29219230996462,
-                  41.31294253999206,
-                  41.22568403370627,
-                  41.30317147404003,
-                  41.3750596790313,
-                  41.22329097551183,
-                  41.24953365909022
-                ]
-              },
-              {
-                "size": 1024,
-                "steps": 32,
-                "source_variant": "fortran_vanilla",
-                "median": 37.37774091432304,
-                "minimum": 37.33482724127512,
-                "maximum": 37.43676678849711,
-                "count": 12,
-                "million_updates_per_second": [
-                  37.43676678849711,
-                  37.377041834281904,
-                  37.36772080387862,
-                  37.41812227326848,
-                  37.357423128683784,
-                  37.41777511030661,
-                  37.37104975066595,
-                  37.41093439344378,
-                  37.427099298167825,
-                  37.375379667131824,
-                  37.378439994364186,
-                  37.33482724127512
-                ]
-              }
-            ]
+          "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+          "throughput_unit": "million complete cell updates per second",
+          "time_unit": "s",
+          "baseline": {
+            "median": 393.6571933216926,
+            "minimum": 392.8922944670195,
+            "maximum": 395.8337339829156,
+            "count": 12,
+            "point": 393.65717947418034
           },
-          {
-            "label": "Julia Tuned",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 64,
-                "steps": 8192,
-                "source_variant": "julia",
-                "median": 78.38658365951966,
-                "minimum": 78.25237864322177,
-                "maximum": 78.54114039008303,
-                "count": 12,
-                "million_updates_per_second": [
-                  78.41600200920365,
-                  78.47381714714835,
-                  78.35716530983565,
-                  78.41971404629012,
-                  78.47785733219818,
-                  78.54114039008303,
-                  78.31869127524628,
-                  78.31296962495746,
-                  78.3337493772881,
-                  78.46392244240674,
-                  78.25249525615223,
-                  78.25237864322177
-                ]
-              },
-              {
-                "size": 256,
-                "steps": 512,
-                "source_variant": "julia",
-                "median": 76.99518118116771,
-                "minimum": 76.30560792538036,
-                "maximum": 77.71526420237085,
-                "count": 12,
-                "million_updates_per_second": [
-                  77.04250538083448,
-                  77.42092274676429,
-                  76.79323313534495,
-                  76.46949416953709,
-                  77.13656269147901,
-                  76.94785698150092,
-                  76.78790791981028,
-                  77.15096100006132,
-                  76.81858082244082,
-                  77.71526420237085,
-                  77.67796840628097,
-                  76.30560792538036
-                ]
-              },
-              {
-                "size": 1024,
-                "steps": 32,
-                "source_variant": "julia",
-                "median": 70.76881979865684,
-                "minimum": 70.3328257846537,
-                "maximum": 71.25204002099584,
-                "count": 12,
-                "million_updates_per_second": [
-                  70.93591821838716,
-                  70.7564331296527,
-                  70.84271636064341,
-                  70.3810690861278,
-                  70.89369939122547,
-                  70.49472019432409,
-                  71.25204002099584,
-                  71.17249187085238,
-                  70.3328257846537,
-                  70.72752612467787,
-                  70.78120646766097,
-                  70.5830796420638
-                ]
-              }
-            ]
+          "esm_md": {
+            "median": 375.12336405373435,
+            "minimum": 373.60638706387886,
+            "maximum": 377.11983747018877,
+            "count": 12,
+            "point": 375.1233506501237
           },
-          {
-            "label": "Julia Vanilla",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 64,
-                "steps": 8192,
-                "source_variant": "julia_vanilla",
-                "median": 30.62443454359901,
-                "minimum": 30.567671316054625,
-                "maximum": 30.691568188436143,
-                "count": 12,
-                "million_updates_per_second": [
-                  30.605189788037585,
-                  30.65829679077514,
-                  30.584733471990482,
-                  30.620866486632757,
-                  30.64843081657175,
-                  30.62140011024018,
-                  30.626198164752218,
-                  30.626459392493313,
-                  30.631756665830935,
-                  30.622670922445796,
-                  30.691568188436143,
-                  30.567671316054625
-                ]
-              },
-              {
-                "size": 256,
-                "steps": 512,
-                "source_variant": "julia_vanilla",
-                "median": 30.917790722927545,
-                "minimum": 30.727873154774862,
-                "maximum": 31.116412449619645,
-                "count": 12,
-                "million_updates_per_second": [
-                  30.97881582952386,
-                  30.892907436996165,
-                  30.89425174464142,
-                  30.93023801365306,
-                  30.8605805394969,
-                  30.981980041697547,
-                  30.95777771735068,
-                  30.849938854119525,
-                  30.96030303872606,
-                  30.727873154774862,
-                  30.90534343220203,
-                  31.116412449619645
-                ]
-              },
-              {
-                "size": 1024,
-                "steps": 32,
-                "source_variant": "julia_vanilla",
-                "median": 30.6503561383505,
-                "minimum": 30.485623368086404,
-                "maximum": 30.687116939269377,
-                "count": 12,
-                "million_updates_per_second": [
-                  30.653486070006178,
-                  30.485623368086404,
-                  30.64645609963649,
-                  30.687116939269377,
-                  30.4981412029452,
-                  30.651714541011103,
-                  30.669796637214805,
-                  30.599446008147748,
-                  30.686988094214655,
-                  30.66723313583228,
-                  30.648997735689896,
-                  30.623186722210537
-                ]
-              }
-            ]
+          "ratio": {
+            "point": 0.9529188598851092,
+            "minimum": 0.9458455306564517,
+            "maximum": 0.9584766752393296,
+            "paired_median": 0.9518322975775498,
+            "count": 12
           },
-          {
-            "label": "Python Tuned",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 64,
-                "steps": 8192,
-                "source_variant": "python",
-                "median": 56.40102519423358,
-                "minimum": 56.374819531369795,
-                "maximum": 56.42910406601138,
-                "count": 12,
-                "million_updates_per_second": [
-                  56.419449576152026,
-                  56.40107501344228,
-                  56.41864816471797,
-                  56.409509719328035,
-                  56.398116916769666,
-                  56.42910406601138,
-                  56.384083268926325,
-                  56.400975375024885,
-                  56.394623702205266,
-                  56.374819531369795,
-                  56.39614688884351,
-                  56.40776002897863
-                ]
-              },
-              {
-                "size": 256,
-                "steps": 512,
-                "source_variant": "python",
-                "median": 56.422420665870945,
-                "minimum": 56.338870994374055,
-                "maximum": 56.470632205984174,
-                "count": 12,
-                "million_updates_per_second": [
-                  56.46891084261612,
-                  56.470632205984174,
-                  56.43348204392014,
-                  56.45960125745829,
-                  56.41135928782175,
-                  56.43791661344458,
-                  56.46689196432016,
-                  56.354206399636915,
-                  56.34396859149485,
-                  56.389399427504564,
-                  56.37572095191261,
-                  56.338870994374055
-                ]
-              },
-              {
-                "size": 1024,
-                "steps": 32,
-                "source_variant": "python",
-                "median": 52.614580720473484,
-                "minimum": 52.48544680465968,
-                "maximum": 52.711356011803005,
-                "count": 12,
-                "million_updates_per_second": [
-                  52.58933057499675,
-                  52.505769520183875,
-                  52.661309968924904,
-                  52.65536277992732,
-                  52.61134781304817,
-                  52.711356011803005,
-                  52.66895926208125,
-                  52.48544680465968,
-                  52.52245360769121,
-                  52.59079435560305,
-                  52.63104226337333,
-                  52.6178136278988
-                ]
-              }
-            ]
+          "throughput_ratio": {
+            "point": 0.9529188598851092,
+            "minimum": 0.9458455306564517,
+            "maximum": 0.9584766752393296,
+            "paired_median": 0.9518322975775498,
+            "count": 12
           },
-          {
-            "label": "Python Vanilla",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 64,
-                "steps": 8192,
-                "source_variant": "python_vanilla",
-                "median": 30.04885749376477,
-                "minimum": 30.037090450408417,
-                "maximum": 30.05334731863916,
-                "count": 12,
-                "million_updates_per_second": [
-                  30.049148737848206,
-                  30.04341747988925,
-                  30.037090450408417,
-                  30.048731099724463,
-                  30.04274333265949,
-                  30.052150611246507,
-                  30.05315905835205,
-                  30.05052533053959,
-                  30.048983887805083,
-                  30.04291787853086,
-                  30.05334731863916,
-                  30.04522277898889
-                ]
-              },
-              {
-                "size": 256,
-                "steps": 512,
-                "source_variant": "python_vanilla",
-                "median": 30.39571468773567,
-                "minimum": 30.35263497647473,
-                "maximum": 30.418799348351296,
-                "count": 12,
-                "million_updates_per_second": [
-                  30.39737093394593,
-                  30.394058441525413,
-                  30.407068165297947,
-                  30.412630262013277,
-                  30.404830512006658,
-                  30.364730805525838,
-                  30.35263497647473,
-                  30.387809201849187,
-                  30.418799348351296,
-                  30.397994777890318,
-                  30.382673869184256,
-                  30.389115551231324
-                ]
-              },
-              {
-                "size": 1024,
-                "steps": 32,
-                "source_variant": "python_vanilla",
-                "median": 29.317200557402373,
-                "minimum": 29.29256597446808,
-                "maximum": 29.321075677130956,
-                "count": 12,
-                "million_updates_per_second": [
-                  29.29256597446808,
-                  29.317047609975283,
-                  29.294409960645844,
-                  29.318068086966445,
-                  29.321075677130956,
-                  29.306679982678276,
-                  29.31488408946737,
-                  29.31874537883905,
-                  29.32062107630004,
-                  29.31735350482946,
-                  29.311580694474777,
-                  29.320231411364215
-                ]
-              }
-            ]
+          "median_rate_ratio": {
+            "point": 0.9529188604136275,
+            "minimum": 0.9458455306564517,
+            "maximum": 0.9584766752393296,
+            "paired_median": 0.9518322975775498,
+            "count": 12
+          },
+          "time_ratio": {
+            "point": 1.0494072917399988,
+            "minimum": 1.043322206823971,
+            "maximum": 1.0572550882658007,
+            "paired_median": 1.0506056178898504,
+            "count": 12
+          },
+          "baseline_seconds": {
+            "median": 0.0104049925,
+            "minimum": 0.010347779,
+            "maximum": 0.010425249,
+            "count": 12
+          },
+          "esm_md_seconds": {
+            "median": 0.010919075,
+            "minimum": 0.010861269,
+            "maximum": 0.01096341,
+            "count": 12
           }
-        ],
-        "gpu": [
-          {
-            "label": "ESM.md",
-            "cohort": "November 2026",
-            "measurements": [
-              {
-                "size": 64,
-                "steps": 256,
-                "source_variant": "fortran",
-                "median": 707.9309501224818,
-                "minimum": 704.4003512841676,
-                "maximum": 708.6658477033902,
-                "count": 12,
-                "million_updates_per_second": [
-                  707.3044268625526,
-                  707.7627396314379,
-                  707.6404913952921,
-                  708.038023896755,
-                  707.9615472295744,
-                  704.4003512841676,
-                  708.6658477033902,
-                  707.9156805534496,
-                  707.7321593767646,
-                  707.9462196915139,
-                  708.2369861991064,
-                  708.282894521559
-                ]
-              },
-              {
-                "size": 256,
-                "steps": 128,
-                "source_variant": "fortran",
-                "median": 6743.687957538925,
-                "minimum": 6733.208080000015,
-                "maximum": 6750.199519358799,
-                "count": 12,
-                "million_updates_per_second": [
-                  6749.678305728955,
-                  6750.199519358799,
-                  6745.336262754756,
-                  6738.227418866588,
-                  6746.20409502606,
-                  6748.635472683267,
-                  6742.907261347082,
-                  6736.842404442164,
-                  6744.468653730768,
-                  6733.208080000015,
-                  6742.560311650781,
-                  6740.826744313589
-                ]
-              },
-              {
-                "size": 1024,
-                "steps": 32,
-                "source_variant": "fortran",
-                "median": 8887.02786871434,
-                "minimum": 8831.601026108534,
-                "maximum": 8900.79530255073,
-                "count": 12,
-                "million_updates_per_second": [
-                  8891.134807735287,
-                  8887.593014187312,
-                  8893.095573816348,
-                  8886.990269558832,
-                  8900.79530255073,
-                  8883.075542730192,
-                  8884.957030568863,
-                  8886.086866953066,
-                  8831.601026108534,
-                  8887.06546786985,
-                  8872.101983419074,
-                  8891.7381147061
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Fortran Tuned",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 64,
-                "steps": 256,
-                "source_variant": "gpu_fortran",
-                "median": 538.8365995751576,
-                "minimum": 536.6612459455995,
-                "maximum": 539.657440307653,
-                "count": 12,
-                "million_updates_per_second": [
-                  537.0130644450987,
-                  538.6018740163777,
-                  538.8941992174476,
-                  539.1335684514337,
-                  539.1868088574779,
-                  536.9250829693694,
-                  539.6041069234229,
-                  538.7789999328677,
-                  539.657440307653,
-                  538.7789999328677,
-                  539.3643197724539,
-                  536.6612459455995
-                ]
-              },
-              {
-                "size": 256,
-                "steps": 128,
-                "source_variant": "gpu_fortran",
-                "median": 5495.335786446747,
-                "minimum": 5472.735010035263,
-                "maximum": 5510.699866491301,
-                "count": 12,
-                "million_updates_per_second": [
-                  5472.735010035263,
-                  5482.463802406515,
-                  5500.524554583148,
-                  5507.458225310169,
-                  5510.699866491301,
-                  5483.495970502519,
-                  5509.310186170876,
-                  5495.796478493183,
-                  5483.1515864578,
-                  5494.875094400312,
-                  5510.699866491301,
-                  5483.839970453911
-                ]
-              },
-              {
-                "size": 1024,
-                "steps": 32,
-                "source_variant": "gpu_fortran",
-                "median": 7951.107296612687,
-                "minimum": 7890.199492926388,
-                "maximum": 7974.811089555656,
-                "count": 12,
-                "million_updates_per_second": [
-                  7944.419476634839,
-                  7945.26265310615,
-                  7958.287310004967,
-                  7974.811089555656,
-                  7974.446884290943,
-                  7953.519082758086,
-                  7905.546988644435,
-                  7964.6349159509455,
-                  7961.369323128299,
-                  7890.199492926388,
-                  7908.766938366262,
-                  7948.695510467287
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Fortran Vanilla",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 64,
-                "steps": 256,
-                "source_variant": "gpu_fortran_vanilla",
-                "median": 319.5397255326409,
-                "minimum": 318.0618156584414,
-                "maximum": 320.3660402698331,
-                "count": 12,
-                "million_updates_per_second": [
-                  318.57821676055744,
-                  319.92500762916325,
-                  320.3660402698331,
-                  319.2890826506405,
-                  319.4260408420876,
-                  318.0618156584414,
-                  319.49454079857827,
-                  320.26271686257127,
-                  319.5568706473916,
-                  320.1469451006207,
-                  319.72836252131134,
-                  319.52258041789014
-                ]
-              },
-              {
-                "size": 256,
-                "steps": 128,
-                "source_variant": "gpu_fortran_vanilla",
-                "median": 4000.2166218796015,
-                "minimum": 3990.561768934354,
-                "maximum": 4008.808265918449,
-                "count": 12,
-                "million_updates_per_second": [
-                  3990.561768934354,
-                  3993.1759098675825,
-                  3996.8288443888678,
-                  4008.0118481191,
-                  4005.1945048492917,
-                  3992.202679847998,
-                  4008.440614018616,
-                  4008.808265918449,
-                  3995.366505914066,
-                  4003.604399370335,
-                  4003.7875457888526,
-                  3992.993279807089
-                ]
-              },
-              {
-                "size": 1024,
-                "steps": 32,
-                "source_variant": "gpu_fortran_vanilla",
-                "median": 5809.124424907764,
-                "minimum": 5804.751003963833,
-                "maximum": 5818.246234829171,
-                "count": 12,
-                "million_updates_per_second": [
-                  5804.751003963833,
-                  5807.740962839782,
-                  5810.31562687084,
-                  5808.73814057001,
-                  5812.473407080788,
-                  5815.858243067377,
-                  5818.246234829171,
-                  5811.925651422113,
-                  5808.60963883737,
-                  5808.4485402196215,
-                  5807.740962839782,
-                  5809.510709245517
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Julia Tuned",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 64,
-                "steps": 256,
-                "source_variant": "julia",
-                "median": 515.4835419554029,
-                "minimum": 514.0884834297638,
-                "maximum": 516.6498596031189,
-                "count": 12,
-                "million_updates_per_second": [
-                  515.9340173477752,
-                  515.4308268327778,
-                  516.2591155633457,
-                  514.3628290947579,
-                  514.201420914074,
-                  515.536257078028,
-                  516.6498596031189,
-                  514.2337064708344,
-                  514.0884834297638,
-                  515.8446387036789,
-                  516.2103368329551,
-                  514.2094768931461
-                ]
-              },
-              {
-                "size": 256,
-                "steps": 128,
-                "source_variant": "julia",
-                "median": 4917.535758550655,
-                "minimum": 4900.895547401846,
-                "maximum": 4928.445163549558,
-                "count": 12,
-                "million_updates_per_second": [
-                  4917.443488758441,
-                  4916.797881041273,
-                  4923.909247707704,
-                  4912.835868186198,
-                  4900.895547401846,
-                  4925.2043714690835,
-                  4928.445163549558,
-                  4917.6280283428705,
-                  4906.766576106653,
-                  4924.001586293216,
-                  4926.314970668686,
-                  4912.00733789399
-                ]
-              },
-              {
-                "size": 1024,
-                "steps": 32,
-                "source_variant": "julia",
-                "median": 5782.13637542699,
-                "minimum": 5757.79989841348,
-                "maximum": 5796.151884265988,
-                "count": 12,
-                "million_updates_per_second": [
-                  5792.94969532871,
-                  5780.749847996015,
-                  5796.151884265988,
-                  5779.22064768866,
-                  5781.6104679222935,
-                  5792.94969532871,
-                  5792.629718709919,
-                  5757.79989841348,
-                  5782.311692102389,
-                  5777.97879768798,
-                  5791.15809079335,
-                  5781.96105875159
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Julia Vanilla",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 64,
-                "steps": 256,
-                "source_variant": "julia_vanilla",
-                "median": 276.10614004182366,
-                "minimum": 275.69496342999525,
-                "maximum": 277.2109664143998,
-                "count": 12,
-                "million_updates_per_second": [
-                  276.0549535054434,
-                  275.9712706217947,
-                  276.15732657820394,
-                  277.14063901250756,
-                  275.7483237622257,
-                  277.2109664143998,
-                  276.0433273667264,
-                  277.11250756594836,
-                  276.00613376692235,
-                  277.075025308753,
-                  276.9930431334321,
-                  275.69496342999525
-                ]
-              },
-              {
-                "size": 256,
-                "steps": 128,
-                "source_variant": "julia_vanilla",
-                "median": 3303.70454770827,
-                "minimum": 3300.6887890559083,
-                "maximum": 3317.648478270405,
-                "count": 12,
-                "million_updates_per_second": [
-                  3303.3507558111282,
-                  3304.0583396054126,
-                  3300.6887890559083,
-                  3313.5388981028814,
-                  3301.3955425656327,
-                  3306.4755911147868,
-                  3302.2271861004588,
-                  3317.648478270405,
-                  3301.894354465271,
-                  3316.976964282822,
-                  3316.976964282822,
-                  3301.437052837259
-                ]
-              },
-              {
-                "size": 1024,
-                "steps": 32,
-                "source_variant": "julia_vanilla",
-                "median": 5179.0611152852125,
-                "minimum": 5168.275971154086,
-                "maximum": 5193.772747806797,
-                "count": 12,
-                "million_updates_per_second": [
-                  5177.897406315249,
-                  5188.350296181713,
-                  5175.4951616798535,
-                  5175.7250835297655,
-                  5179.687971976041,
-                  5178.511273060332,
-                  5193.772747806797,
-                  5186.272014884136,
-                  5168.275971154086,
-                  5174.933005054493,
-                  5179.610957510092,
-                  5188.427570755356
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Python Tuned",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 64,
-                "steps": 256,
-                "source_variant": "gpu_python",
-                "median": 473.3071585188587,
-                "minimum": 471.09562327059234,
-                "maximum": 473.65604331053,
-                "count": 12,
-                "million_updates_per_second": [
-                  471.24468259938305,
-                  472.6313057117394,
-                  473.58759604546697,
-                  473.1089676441208,
-                  473.25930398302995,
-                  471.09562327059234,
-                  473.6013145155438,
-                  473.65604331053,
-                  473.53283208119785,
-                  473.35501305468756,
-                  473.5670963186309,
-                  471.71959506593817
-                ]
-              },
-              {
-                "size": 256,
-                "steps": 128,
-                "source_variant": "gpu_python",
-                "median": 4179.39200812939,
-                "minimum": 4160.81750126914,
-                "maximum": 4188.607247917713,
-                "count": 12,
-                "million_updates_per_second": [
-                  4160.81750126914,
-                  4178.925592398009,
-                  4166.107831336937,
-                  4179.858423860771,
-                  4185.7982839683855,
-                  4167.763510923621,
-                  4186.667429267975,
-                  4188.607247917713,
-                  4169.421001106928,
-                  4186.467170102582,
-                  4183.593918018645,
-                  4173.13785463937
-                ]
-              },
-              {
-                "size": 1024,
-                "steps": 32,
-                "source_variant": "gpu_python",
-                "median": 5181.711230146282,
-                "minimum": 5157.802033301217,
-                "maximum": 5202.276132730567,
-                "count": 12,
-                "million_updates_per_second": [
-                  5202.276132730567,
-                  5195.49720789012,
-                  5196.887733011239,
-                  5185.323098308613,
-                  5196.758778847271,
-                  5163.389613914648,
-                  5164.279732505351,
-                  5184.195015971982,
-                  5178.638942092261,
-                  5179.2274443205815,
-                  5157.802033301217,
-                  5165.424567575266
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Python Vanilla",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 64,
-                "steps": 256,
-                "source_variant": "gpu_python_vanilla",
-                "median": 269.59452068629423,
-                "minimum": 268.3833813680805,
-                "maximum": 269.87761450249775,
-                "count": 12,
-                "million_updates_per_second": [
-                  268.6077787760446,
-                  269.5801019320745,
-                  269.6777116306266,
-                  269.4426591040544,
-                  269.731001129571,
-                  268.3833813680805,
-                  269.87761450249775,
-                  269.6444287840606,
-                  269.4470996087238,
-                  269.608939440514,
-                  269.84650087729864,
-                  268.52192582914273
-                ]
-              },
-              {
-                "size": 256,
-                "steps": 128,
-                "source_variant": "gpu_python_vanilla",
-                "median": 3060.767266101854,
-                "minimum": 3042.9492987108683,
-                "maximum": 3067.6979019860655,
-                "count": 12,
-                "million_updates_per_second": [
-                  3042.9492987108683,
-                  3060.6422556263415,
-                  3046.379396707583,
-                  3067.410933327498,
-                  3067.6979019860655,
-                  3050.491771183631,
-                  3065.3304795236454,
-                  3066.908533177595,
-                  3049.497921462218,
-                  3060.8922765773664,
-                  3065.1155133009743,
-                  3050.2786166349047
-                ]
-              },
-              {
-                "size": 1024,
-                "steps": 32,
-                "source_variant": "gpu_python_vanilla",
-                "median": 4423.009008369803,
-                "minimum": 4387.7145402902515,
-                "maximum": 4445.774680912774,
-                "count": 12,
-                "million_updates_per_second": [
-                  4421.852660364236,
-                  4406.5036933174,
-                  4422.9157369964305,
-                  4436.144955761257,
-                  4387.7145402902515,
-                  4423.102279743175,
-                  4445.774680912774,
-                  4420.510440032635,
-                  4419.709163103305,
-                  4429.585993928143,
-                  4425.883937985196,
-                  4425.2301467416655
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      "ebm": {
-        "cpu": [
-          {
-            "label": "ESM.md",
-            "cohort": "November 2026",
-            "measurements": [
-              {
-                "size": 128,
-                "steps": 1000000,
-                "source_variant": "fortran",
-                "median": 642.0734466358504,
-                "minimum": 641.903542488626,
-                "maximum": 642.2583924531348,
-                "count": 12,
-                "million_updates_per_second": [
-                  642.1558037241355,
-                  641.9187883365623,
-                  642.1291042603506,
-                  642.0979748706429,
-                  642.2583924531348,
-                  641.9554605283153,
-                  641.9617452187441,
-                  641.903542488626,
-                  642.090656809933,
-                  642.1955961015557,
-                  641.9491791804587,
-                  642.0562364617678
-                ]
-              },
-              {
-                "size": 4096,
-                "steps": 40000,
-                "source_variant": "fortran",
-                "median": 603.7397703195386,
-                "minimum": 603.606959044461,
-                "maximum": 603.96745053377,
-                "count": 12,
-                "million_updates_per_second": [
-                  603.7305877898746,
-                  603.8931529013822,
-                  603.6944256520727,
-                  603.6715062251818,
-                  603.8660162840963,
-                  603.7017573889333,
-                  603.606959044461,
-                  603.7646872973743,
-                  603.7451085876886,
-                  603.7344320513885,
-                  603.96745053377,
-                  603.8338970885418
-                ]
-              },
-              {
-                "size": 65536,
-                "steps": 2048,
-                "source_variant": "fortran",
-                "median": 561.5610419924166,
-                "minimum": 561.3138348570684,
-                "maximum": 561.8806419054545,
-                "count": 12,
-                "million_updates_per_second": [
-                  561.3138348570684,
-                  561.7097579391728,
-                  561.6738048893374,
-                  561.575740755815,
-                  561.5463432290181,
-                  561.640110282342,
-                  561.6898239373489,
-                  561.5440901408409,
-                  561.5431127901738,
-                  561.4216494235733,
-                  561.8806419054545,
-                  561.4728276435983
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Fortran Tuned",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 128,
-                "steps": 1000000,
-                "source_variant": "fortran",
-                "median": 510.73950667931007,
-                "minimum": 509.7656827391154,
-                "maximum": 513.4419215397045,
-                "count": 12,
-                "million_updates_per_second": [
-                  510.95895383293845,
-                  510.471672315727,
-                  510.00531616791443,
-                  510.32120449869984,
-                  509.7656827391154,
-                  509.85073442604164,
-                  512.1365212567445,
-                  511.88709613452824,
-                  513.4419215397045,
-                  510.5200595256817,
-                  511.1700989868517,
-                  512.5165900719298
-                ]
-              },
-              {
-                "size": 4096,
-                "steps": 40000,
-                "source_variant": "fortran",
-                "median": 498.26955013373686,
-                "minimum": 488.6699614586622,
-                "maximum": 499.28159400232136,
-                "count": 12,
-                "million_updates_per_second": [
-                  497.32156187199735,
-                  496.0556235793561,
-                  498.6858908454261,
-                  498.60911368718104,
-                  499.01687523149656,
-                  488.6699614586622,
-                  499.0006327568021,
-                  499.28159400232136,
-                  494.1946918778592,
-                  498.5945015397635,
-                  497.9445987277102,
-                  496.0426505124694
-                ]
-              },
-              {
-                "size": 65536,
-                "steps": 2048,
-                "source_variant": "fortran",
-                "median": 488.69102299727615,
-                "minimum": 484.6537088104718,
-                "maximum": 492.62072348277815,
-                "count": 12,
-                "million_updates_per_second": [
-                  492.62072348277815,
-                  487.7830501097631,
-                  487.9944941421872,
-                  490.52742326787035,
-                  490.59127992537304,
-                  486.50676632102335,
-                  484.6537088104718,
-                  488.1881528049401,
-                  489.19389318961214,
-                  491.39907815604346,
-                  487.62452174512663,
-                  489.47630557059176
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Fortran Vanilla",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 128,
-                "steps": 1000000,
-                "source_variant": "fortran_vanilla",
-                "median": 504.7887065956876,
-                "minimum": 502.6269266205486,
-                "maximum": 506.8146957303725,
-                "count": 12,
-                "million_updates_per_second": [
-                  503.9695516086043,
-                  502.6269266205486,
-                  504.8518610620385,
-                  506.01507632387484,
-                  505.21767102058254,
-                  505.8334791523478,
-                  503.158225910952,
-                  505.0507481699466,
-                  504.7255521293366,
-                  504.5918469097981,
-                  506.8146957303725,
-                  503.7165069646599
-                ]
-              },
-              {
-                "size": 4096,
-                "steps": 40000,
-                "source_variant": "fortran_vanilla",
-                "median": 457.33807834835676,
-                "minimum": 457.189095237542,
-                "maximum": 457.53161603785924,
-                "count": 12,
-                "million_updates_per_second": [
-                  457.2835534933338,
-                  457.1907422602761,
-                  457.2333061577566,
-                  457.39603554777915,
-                  457.213993210629,
-                  457.2575593850975,
-                  457.39260320337974,
-                  457.4530087511397,
-                  457.189095237542,
-                  457.53161603785924,
-                  457.3968591648689,
-                  457.40967094254256
-                ]
-              },
-              {
-                "size": 65536,
-                "steps": 2048,
-                "source_variant": "fortran_vanilla",
-                "median": 385.839248086967,
-                "minimum": 383.46305934138724,
-                "maximum": 388.1832114866091,
-                "count": 12,
-                "million_updates_per_second": [
-                  385.2150591456046,
-                  385.51714247421245,
-                  384.39591265726335,
-                  383.46305934138724,
-                  386.41682761546423,
-                  386.77279097898486,
-                  388.1112362056716,
-                  385.65795006520233,
-                  388.1832114866091,
-                  387.2577922913009,
-                  385.2699885856882,
-                  386.0205461087317
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Julia Tuned",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 128,
-                "steps": 1000000,
-                "source_variant": "julia",
-                "median": 531.4555245777492,
-                "minimum": 529.4052807076581,
-                "maximum": 533.4388764376985,
-                "count": 12,
-                "million_updates_per_second": [
-                  529.4052807076581,
-                  531.0550562492479,
-                  533.4388764376985,
-                  531.6783670037282,
-                  530.8496625005074,
-                  533.333544444528,
-                  533.0599846153891,
-                  531.2326821517701,
-                  530.7731050301284,
-                  533.2161079937247,
-                  532.1950457422681,
-                  530.7126059348487
-                ]
-              },
-              {
-                "size": 4096,
-                "steps": 40000,
-                "source_variant": "julia",
-                "median": 509.81216955151575,
-                "minimum": 500.4957608461164,
-                "maximum": 519.6869940206465,
-                "count": 12,
-                "million_updates_per_second": [
-                  502.2225970772232,
-                  510.6382156448186,
-                  511.1711503563858,
-                  506.6716242802794,
-                  511.23541069825563,
-                  500.4957608461164,
-                  519.6869940206465,
-                  501.3377370109035,
-                  510.6189751328029,
-                  502.8082611679648,
-                  513.235590626515,
-                  509.0053639702286
-                ]
-              },
-              {
-                "size": 65536,
-                "steps": 2048,
-                "source_variant": "julia",
-                "median": 489.47688921911856,
-                "minimum": 462.1943151581864,
-                "maximum": 504.4240242836887,
-                "count": 12,
-                "million_updates_per_second": [
-                  487.8360375604197,
-                  485.26825974668054,
-                  462.1943151581864,
-                  495.0951733851392,
-                  486.11822133119244,
-                  491.1177408778174,
-                  469.14378896885444,
-                  478.54733019283975,
-                  504.4240242836887,
-                  504.37386007821243,
-                  493.0100880857397,
-                  499.5111261920555
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Julia Vanilla",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 128,
-                "steps": 1000000,
-                "source_variant": "julia_vanilla",
-                "median": 283.74928575154223,
-                "minimum": 282.9052862894966,
-                "maximum": 284.23619342842323,
-                "count": 12,
-                "million_updates_per_second": [
-                  283.6732289710753,
-                  284.23619342842323,
-                  283.2943060752672,
-                  283.8253425320092,
-                  284.2297587598146,
-                  283.1609970892443,
-                  283.6607848797739,
-                  283.1404386374955,
-                  284.13929462753083,
-                  284.18568327544233,
-                  282.9052862894966,
-                  283.8839408373891
-                ]
-              },
-              {
-                "size": 4096,
-                "steps": 40000,
-                "source_variant": "julia_vanilla",
-                "median": 283.0373363443111,
-                "minimum": 276.67227497106467,
-                "maximum": 287.76036255599706,
-                "count": 12,
-                "million_updates_per_second": [
-                  285.07356517875957,
-                  283.5095780096114,
-                  283.80096123995304,
-                  284.1159861409318,
-                  287.76036255599706,
-                  282.56509467901077,
-                  282.3907445178721,
-                  281.29690447539133,
-                  276.8830851320562,
-                  277.0264813441568,
-                  276.67227497106467,
-                  285.52722067153366
-                ]
-              },
-              {
-                "size": 65536,
-                "steps": 2048,
-                "source_variant": "julia_vanilla",
-                "median": 266.4001750932881,
-                "minimum": 253.23979023164046,
-                "maximum": 272.4251407106165,
-                "count": 12,
-                "million_updates_per_second": [
-                  253.23979023164046,
-                  266.3353432248962,
-                  272.4251407106165,
-                  270.6084630658791,
-                  261.14778851398336,
-                  261.4462423620227,
-                  268.33203010231733,
-                  267.0014021491132,
-                  262.33577308624615,
-                  267.20951477876594,
-                  266.46500696168,
-                  262.67759104805134
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Python Tuned",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 128,
-                "steps": 1000000,
-                "source_variant": "python",
-                "median": 548.9328490770899,
-                "minimum": 546.497758441245,
-                "maximum": 549.359913082678,
-                "count": 12,
-                "million_updates_per_second": [
-                  546.497758441245,
-                  549.3340635585263,
-                  546.7354386380899,
-                  549.359913082678,
-                  549.0420862720812,
-                  548.8552596600144,
-                  549.0104384941654,
-                  546.5137978765514,
-                  546.5891449530927,
-                  546.5622625710047,
-                  549.3013095476255,
-                  549.0550535185838
-                ]
-              },
-              {
-                "size": 4096,
-                "steps": 40000,
-                "source_variant": "python",
-                "median": 493.74532501010947,
-                "minimum": 491.9925317671731,
-                "maximum": 494.548017115551,
-                "count": 12,
-                "million_updates_per_second": [
-                  493.6669957769928,
-                  494.38438302497667,
-                  491.9925317671731,
-                  494.548017115551,
-                  493.6846437532409,
-                  493.9040397326024,
-                  493.95173525962133,
-                  493.8060062669781,
-                  493.13812030629373,
-                  493.42321277280195,
-                  494.32169972275085,
-                  493.0205158282515
-                ]
-              },
-              {
-                "size": 65536,
-                "steps": 2048,
-                "source_variant": "python",
-                "median": 514.8760964011129,
-                "minimum": 512.4580793928906,
-                "maximum": 518.3692718038237,
-                "count": 12,
-                "million_updates_per_second": [
-                  516.1074052995422,
-                  516.5913200481466,
-                  513.097329211323,
-                  518.3692718038237,
-                  512.4580793928906,
-                  516.3670604022533,
-                  512.6402762532372,
-                  514.3730416932659,
-                  514.4638268963282,
-                  512.6185765140157,
-                  515.437932708819,
-                  515.2883659058976
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Python Vanilla",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 128,
-                "steps": 1000000,
-                "source_variant": "python_vanilla",
-                "median": 324.63553165508625,
-                "minimum": 324.28323758334494,
-                "maximum": 325.0311845202619,
-                "count": 12,
-                "million_updates_per_second": [
-                  324.4365316852701,
-                  324.7936637871696,
-                  324.717992507523,
-                  324.7583471236172,
-                  324.28323758334494,
-                  324.5627222227711,
-                  324.61526788654345,
-                  324.53407941622237,
-                  324.65579542362906,
-                  324.59085645866304,
-                  325.0311845202619,
-                  324.66913171704925
-                ]
-              },
-              {
-                "size": 4096,
-                "steps": 40000,
-                "source_variant": "python_vanilla",
-                "median": 383.1203796409066,
-                "minimum": 382.27936892283947,
-                "maximum": 383.3804679463744,
-                "count": 12,
-                "million_updates_per_second": [
-                  382.27936892283947,
-                  383.01865652924005,
-                  383.1382538206559,
-                  382.7158352862805,
-                  383.3804679463744,
-                  383.1025054611573,
-                  383.18433257492507,
-                  383.37538954024785,
-                  383.0845070393555,
-                  383.1909590490179,
-                  382.978170557505,
-                  383.1403844375055
-                ]
-              },
-              {
-                "size": 65536,
-                "steps": 2048,
-                "source_variant": "python_vanilla",
-                "median": 347.02608123867697,
-                "minimum": 345.8083376708469,
-                "maximum": 348.0487067843649,
-                "count": 12,
-                "million_updates_per_second": [
-                  348.0487067843649,
-                  346.6109212938146,
-                  347.4729121873089,
-                  346.78874119485783,
-                  346.7317212727222,
-                  347.38070887005483,
-                  346.4638184332414,
-                  347.68648380626416,
-                  347.82519457925235,
-                  347.26342128249604,
-                  346.29104709741165,
-                  345.8083376708469
-                ]
-              }
-            ]
-          }
-        ],
-        "gpu": [
-          {
-            "label": "ESM.md",
-            "cohort": "November 2026",
-            "measurements": [
-              {
-                "size": 128,
-                "steps": 512,
-                "source_variant": "fortran",
-                "median": 929.8536354393576,
-                "minimum": 913.470085386949,
-                "maximum": 937.7288951885827,
-                "count": 12,
-                "million_updates_per_second": [
-                  913.470085386949,
-                  914.6940385174044,
-                  933.8805567304673,
-                  933.0296340069794,
-                  927.1163184773193,
-                  937.7288951885827,
-                  915.9212759835507,
-                  920.863335025613,
-                  930.9090959533187,
-                  928.7981749253966,
-                  933.4549014468398,
-                  931.3324321027615
-                ]
-              },
-              {
-                "size": 4096,
-                "steps": 256,
-                "source_variant": "fortran",
-                "median": 7505.299958400001,
-                "minimum": 7454.049227650959,
-                "maximum": 7558.938556308706,
-                "count": 12,
-                "million_updates_per_second": [
-                  7546.752648238263,
-                  7465.937358178504,
-                  7484.696535467533,
-                  7454.049227650959,
-                  7525.952988281678,
-                  7455.744875015138,
-                  7489.828539540817,
-                  7459.1392758266575,
-                  7541.542366462269,
-                  7520.771377259184,
-                  7541.542366462269,
-                  7558.938556308706
-                ]
-              },
-              {
-                "size": 65536,
-                "steps": 128,
-                "source_variant": "fortran",
-                "median": 88592.45778208636,
-                "minimum": 86316.75782935177,
-                "maximum": 90644.53971808523,
-                "count": 12,
-                "million_updates_per_second": [
-                  88922.6565409,
-                  86316.75782935177,
-                  88412.81641548107,
-                  87468.80204109612,
-                  88086.01925113687,
-                  88204.57468670483,
-                  89346.96692794042,
-                  88922.6565409,
-                  87614.9742822228,
-                  89134.30677092433,
-                  88772.09914869166,
-                  90644.53971808523
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Fortran Tuned",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 128,
-                "steps": 512,
-                "source_variant": "gpu_fortran",
-                "median": 518.9408552608375,
-                "minimum": 513.9272473567148,
-                "maximum": 524.3215646486541,
-                "count": 12,
-                "million_updates_per_second": [
-                  518.2186464955511,
-                  520.1930479032645,
-                  519.4014724372922,
-                  523.11624965346,
-                  519.0066180437269,
-                  517.9565207426556,
-                  515.2200956560775,
-                  516.2591155633457,
-                  513.9272473567148,
-                  524.0532301741845,
-                  524.3215646486541,
-                  518.875092477948
-                ]
-              },
-              {
-                "size": 4096,
-                "steps": 256,
-                "source_variant": "gpu_fortran",
-                "median": 2057.9681887213446,
-                "minimum": 2052.104142065882,
-                "maximum": 2065.5572723961245,
-                "count": 12,
-                "million_updates_per_second": [
-                  2057.7745254624683,
-                  2057.2576321224424,
-                  2065.5572723961245,
-                  2063.08624498421,
-                  2057.9035486547737,
-                  2058.0328287879156,
-                  2057.2576321224424,
-                  2052.104142065882,
-                  2053.6475958867713,
-                  2063.08624498421,
-                  2065.5572723961245,
-                  2063.6060717630426
-                ]
-              },
-              {
-                "size": 65536,
-                "steps": 128,
-                "source_variant": "gpu_fortran",
-                "median": 29312.7593518656,
-                "minimum": 29227.785864399677,
-                "maximum": 29378.46106539799,
-                "count": 12,
-                "million_updates_per_second": [
-                  29240.82680574584,
-                  29227.785864399677,
-                  29316.037872257577,
-                  29378.46106539799,
-                  29329.157703267156,
-                  29257.14207571382,
-                  29263.67571661635,
-                  29309.480831473622,
-                  29244.086580857267,
-                  29365.297097402865,
-                  29358.71800521703,
-                  29339.004520969873
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Fortran Vanilla",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 128,
-                "steps": 512,
-                "source_variant": "gpu_fortran_vanilla",
-                "median": 15.736536819629912,
-                "minimum": 15.720471044899991,
-                "maximum": 15.79284300594879,
-                "count": 12,
-                "million_updates_per_second": [
-                  15.738108897000256,
-                  15.72831840657555,
-                  15.79284300594879,
-                  15.785174074905266,
-                  15.724453114824621,
-                  15.720471044899991,
-                  15.72167768324948,
-                  15.734964742259567,
-                  15.72312553405151,
-                  15.769129361885803,
-                  15.771436530386064,
-                  15.779579442073269
-                ]
-              },
-              {
-                "size": 4096,
-                "steps": 256,
-                "source_variant": "gpu_fortran_vanilla",
-                "median": 473.4680394822334,
-                "minimum": 471.6313232275756,
-                "maximum": 475.76733288216326,
-                "count": 12,
-                "million_updates_per_second": [
-                  472.1205471714074,
-                  473.8752382123434,
-                  471.6313232275756,
-                  475.76733288216326,
-                  471.9505733155873,
-                  473.8272991131939,
-                  472.80177034375276,
-                  473.7588023469664,
-                  473.88897335205445,
-                  472.6926689779424,
-                  474.4172820582632,
-                  473.17727661750035
-                ]
-              },
-              {
-                "size": 65536,
-                "steps": 128,
-                "source_variant": "gpu_fortran_vanilla",
-                "median": 7075.984450350745,
-                "minimum": 7063.781775304891,
-                "maximum": 7096.673114430527,
-                "count": 12,
-                "million_updates_per_second": [
-                  7072.5483516521335,
-                  7076.175496473816,
-                  7080.763111762034,
-                  7093.792168610463,
-                  7072.5483516521335,
-                  7069.878022350336,
-                  7075.793404227674,
-                  7063.781775304891,
-                  7071.7849915557135,
-                  7089.954782234555,
-                  7096.673114430527,
-                  7092.6410170268755
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Julia Tuned",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 128,
-                "steps": 512,
-                "source_variant": "julia",
-                "median": 532.432312604951,
-                "minimum": 530.2951741604533,
-                "maximum": 536.2660416112686,
-                "count": 12,
-                "million_updates_per_second": [
-                  531.5338694385096,
-                  532.7783651029258,
-                  535.985345392348,
-                  531.2581039835542,
-                  531.9480548304679,
-                  532.0862601069762,
-                  530.2951741604533,
-                  530.8449918966729,
-                  532.7783651029258,
-                  536.2660416112686,
-                  532.9170022177376,
-                  535.424833576796
-                ]
-              },
-              {
-                "size": 4096,
-                "steps": 256,
-                "source_variant": "julia",
-                "median": 2101.051558695968,
-                "minimum": 2097.2862585946164,
-                "maximum": 2107.4023575075894,
-                "count": 12,
-                "million_updates_per_second": [
-                  2099.301701310904,
-                  2100.916871701461,
-                  2107.4023575075894,
-                  2097.2862585946164,
-                  2101.1862456904755,
-                  2101.1862456904755,
-                  2100.1089132774737,
-                  2098.6294150861254,
-                  2100.378205489365,
-                  2106.99586544952,
-                  2104.019540721263,
-                  2107.4023575075894
-                ]
-              },
-              {
-                "size": 65536,
-                "steps": 128,
-                "source_variant": "julia",
-                "median": 29549.006370337003,
-                "minimum": 29378.46106539799,
-                "maximum": 29667.722191274217,
-                "count": 12,
-                "million_updates_per_second": [
-                  29554.002189254406,
-                  29507.43021324772,
-                  29667.722191274217,
-                  29544.010551419597,
-                  29484.196135483493,
-                  29557.335271793727,
-                  29378.46106539799,
-                  29470.937262330157,
-                  29487.513490365003,
-                  29604.065037410244,
-                  29597.381646021073,
-                  29574.005753381087
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Julia Vanilla",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 128,
-                "steps": 512,
-                "source_variant": "julia_vanilla",
-                "median": 16.166294484403267,
-                "minimum": 16.12573020077532,
-                "maximum": 16.202916367015355,
-                "count": 12,
-                "million_updates_per_second": [
-                  16.131699885185178,
-                  16.12573020077532,
-                  16.202916367015355,
-                  16.18703534757695,
-                  16.14085415551474,
-                  16.12738022325045,
-                  16.143271387912588,
-                  16.147726679316442,
-                  16.196380424573718,
-                  16.184862289490088,
-                  16.187420459081284,
-                  16.193435914378203
-                ]
-              },
-              {
-                "size": 4096,
-                "steps": 256,
-                "source_variant": "julia_vanilla",
-                "median": 482.8945261623587,
-                "minimum": 482.12341999960097,
-                "maximum": 484.3611281622732,
-                "count": 12,
-                "million_updates_per_second": [
-                  482.27240131657436,
-                  482.3221174818094,
-                  484.12498648570255,
-                  484.1822279593455,
-                  482.5423140154238,
-                  482.12341999960097,
-                  482.56359815978215,
-                  482.30794204119155,
-                  484.3611281622732,
-                  483.22545416493523,
-                  483.48925947378285,
-                  484.24662746974997
-                ]
-              },
-              {
-                "size": 65536,
-                "steps": 128,
-                "source_variant": "julia_vanilla",
-                "median": 7082.305074372129,
-                "minimum": 7067.781117816499,
-                "maximum": 7101.671488764182,
-                "count": 12,
-                "million_updates_per_second": [
-                  7068.162345203678,
-                  7070.4498630309745,
-                  7099.74836937592,
-                  7098.979126758938,
-                  7067.971371409189,
-                  7067.781117816499,
-                  7070.831378377922,
-                  7073.12062440617,
-                  7098.59456795641,
-                  7092.064866557954,
-                  7091.489524338089,
-                  7101.671488764182
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Python Tuned",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 128,
-                "steps": 512,
-                "source_variant": "gpu_python",
-                "median": 491.9529420447979,
-                "minimum": 490.8916465930047,
-                "maximum": 495.40398946979155,
-                "count": 12,
-                "million_updates_per_second": [
-                  491.48070138449026,
-                  491.9529420447979,
-                  491.8347693203023,
-                  494.32776811394825,
-                  491.1270880194734,
-                  493.4939836116398,
-                  491.48070138449026,
-                  491.9529420447979,
-                  490.8916465930047,
-                  494.32776811394825,
-                  494.2085073874288,
-                  495.40398946979155
-                ]
-              },
-              {
-                "size": 4096,
-                "steps": 256,
-                "source_variant": "gpu_python",
-                "median": 1862.13558517006,
-                "minimum": 1860.0215418937614,
-                "maximum": 1870.2129369289264,
-                "count": 12,
-                "million_updates_per_second": [
-                  1860.6551997016552,
-                  1862.0298370842734,
-                  1861.8181919066374,
-                  1870.2129369289264,
-                  1862.2413332558465,
-                  1862.0298370842734,
-                  1863.0883905378305,
-                  1861.6065948362761,
-                  1860.0215418937614,
-                  1868.4000564609403,
-                  1869.0394367629751,
-                  1868.9328099005647
-                ]
-              },
-              {
-                "size": 65536,
-                "steps": 128,
-                "source_variant": "gpu_python",
-                "median": 25329.146411785874,
-                "minimum": 25296.148677168454,
-                "maximum": 25396.628806294375,
-                "count": 12,
-                "million_updates_per_second": [
-                  25327.922428178023,
-                  25357.322445860995,
-                  25310.80444893399,
-                  25296.148677168454,
-                  25298.590506015535,
-                  25330.370395393726,
-                  25347.51485916569,
-                  25298.590506015535,
-                  25310.80444893399,
-                  25396.628806294375,
-                  25391.70770316286,
-                  25386.79079647075
-                ]
-              }
-            ]
-          },
-          {
-            "label": "Python Vanilla",
-            "cohort": "October 2026",
-            "measurements": [
-              {
-                "size": 128,
-                "steps": 512,
-                "source_variant": "gpu_python_vanilla",
-                "median": 15.505577867039992,
-                "minimum": 15.488985085314598,
-                "maximum": 15.563019324833396,
-                "count": 12,
-                "million_updates_per_second": [
-                  15.505988079568077,
-                  15.503640740548137,
-                  15.563019324833396,
-                  15.559590660098923,
-                  15.500942703595223,
-                  15.50328922562827,
-                  15.502820563862993,
-                  15.505167654511908,
-                  15.488985085314598,
-                  15.547069322538988,
-                  15.56278318128629,
-                  15.553800951930647
-                ]
-              },
-              {
-                "size": 4096,
-                "steps": 256,
-                "source_variant": "gpu_python_vanilla",
-                "median": 464.7514645916847,
-                "minimum": 464.37275614711945,
-                "maximum": 466.4085480503364,
-                "count": 12,
-                "million_updates_per_second": [
-                  464.4978197036666,
-                  464.73498773970636,
-                  464.418850169377,
-                  466.4085480503364,
-                  464.57686517283224,
-                  464.8008998213526,
-                  464.425421764574,
-                  464.767941443663,
-                  464.37275614711945,
-                  465.95092831148503,
-                  466.1962047391661,
-                  465.7390013852359
-                ]
-              },
-              {
-                "size": 65536,
-                "steps": 128,
-                "source_variant": "gpu_python_vanilla",
-                "median": 6783.825897807745,
-                "minimum": 6772.521893447283,
-                "maximum": 6810.349920771676,
-                "count": 12,
-                "million_updates_per_second": [
-                  6781.632096076732,
-                  6780.054104358235,
-                  6784.440319255602,
-                  6810.349920771676,
-                  6783.211476359888,
-                  6786.723918209886,
-                  6779.176888775682,
-                  6778.125574281231,
-                  6772.521893447283,
-                  6804.340174893518,
-                  6804.516509796474,
-                  6806.106568456321
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    },
-    "figures": {
-      "shallow_water": {
-        "files": [
-          "figures/performance-shallow_water.pdf",
-          "figures/performance-shallow_water.png",
-          "figures/performance-shallow_water.svg"
-        ],
-        "displayed_series": [
-          "ESM.md",
-          "Fortran Tuned",
-          "Fortran Vanilla",
-          "Julia Tuned",
-          "Julia Vanilla",
-          "Python Tuned",
-          "Python Vanilla"
-        ],
-        "canvas_inches": [
-          14.2,
-          5.65
-        ],
-        "minimum_text_points": 24,
-        "whiskers": "Observed minimum and maximum of twelve retained runs per condition",
-        "axes": {
-          "cpu": "Linear absolute throughput",
-          "gpu": "Logarithmic absolute throughput"
         },
-        "findings": []
-      },
-      "budyko_sellers": {
-        "files": [
-          "figures/performance-budyko_sellers.pdf",
-          "figures/performance-budyko_sellers.png",
-          "figures/performance-budyko_sellers.svg"
-        ],
-        "displayed_series": [
-          "ESM.md",
-          "Fortran Tuned",
-          "Fortran Vanilla",
-          "Julia Tuned",
-          "Julia Vanilla",
-          "Python Tuned",
-          "Python Vanilla"
-        ],
-        "canvas_inches": [
-          14.2,
-          5.65
-        ],
-        "minimum_text_points": 24,
-        "whiskers": "Observed minimum and maximum of twelve retained runs per condition",
-        "axes": {
-          "cpu": "Linear absolute throughput",
-          "gpu": "Logarithmic absolute throughput"
+        {
+          "model": "sw",
+          "platform": "cpu",
+          "shape": [
+            256,
+            256
+          ],
+          "cpu_cores": 248,
+          "gpu_devices": 0,
+          "batch_steps": 1000,
+          "active_workers": {
+            "baseline": 72,
+            "esm_md": 72
+          },
+          "series_kind": "primary",
+          "run_id": "primary_sw_n256_budget248_team72",
+          "nonempty_spatial_owners_by_route": {
+            "baseline": 72,
+            "esm_md": 72
+          },
+          "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+          "throughput_unit": "million complete cell updates per second",
+          "time_unit": "s",
+          "baseline": {
+            "median": 2694.7918461171425,
+            "minimum": 2661.386236398396,
+            "maximum": 2715.2614048146665,
+            "count": 12,
+            "point": 2694.791635463147
+          },
+          "esm_md": {
+            "median": 2483.8174925829335,
+            "minimum": 2465.8890552355615,
+            "maximum": 2500.2276627895767,
+            "count": 12,
+            "point": 2483.81743820549
+          },
+          "ratio": {
+            "point": 0.9217103858861438,
+            "minimum": 0.9148971801528418,
+            "maximum": 0.9322676467390267,
+            "paired_median": 0.9219519091052366,
+            "count": 12
+          },
+          "throughput_ratio": {
+            "point": 0.9217103858861438,
+            "minimum": 0.9148971801528418,
+            "maximum": 0.9322676467390267,
+            "paired_median": 0.9219519091052366,
+            "count": 12
+          },
+          "median_rate_ratio": {
+            "point": 0.9217103340140365,
+            "minimum": 0.9148971801528418,
+            "maximum": 0.9322676467390267,
+            "paired_median": 0.9219519091052366,
+            "count": 12
+          },
+          "time_ratio": {
+            "point": 1.084939494349505,
+            "minimum": 1.0726533345846485,
+            "maximum": 1.0930189989578294,
+            "paired_median": 1.0846562295059474,
+            "count": 12
+          },
+          "baseline_seconds": {
+            "median": 0.024319505499999998,
+            "minimum": 0.024136166,
+            "maximum": 0.024624761,
+            "count": 12
+          },
+          "esm_md_seconds": {
+            "median": 0.026385192000000002,
+            "minimum": 0.026212013,
+            "maximum": 0.026577027,
+            "count": 12
+          }
         },
-        "findings": []
-      }
+        {
+          "model": "sw",
+          "platform": "cpu",
+          "shape": [
+            1024,
+            1024
+          ],
+          "cpu_cores": 248,
+          "gpu_devices": 0,
+          "batch_steps": 1000,
+          "active_workers": {
+            "baseline": 248,
+            "esm_md": 248
+          },
+          "series_kind": "primary",
+          "run_id": "primary_sw_n1024_budget248_team248",
+          "nonempty_spatial_owners_by_route": {
+            "baseline": 248,
+            "esm_md": 248
+          },
+          "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+          "throughput_unit": "million complete cell updates per second",
+          "time_unit": "s",
+          "baseline": {
+            "median": 7137.068043330947,
+            "minimum": 6993.534120964071,
+            "maximum": 7444.5696294195,
+            "count": 12,
+            "point": 7137.063627544756
+          },
+          "esm_md": {
+            "median": 6488.708075213958,
+            "minimum": 6279.367313692249,
+            "maximum": 6619.709048353188,
+            "count": 12,
+            "point": 6488.708032863132
+          },
+          "ratio": {
+            "point": 0.9091565343232526,
+            "minimum": 0.8840811632630168,
+            "maximum": 0.9322819703533274,
+            "paired_median": 0.8999247549568162,
+            "count": 12
+          },
+          "throughput_ratio": {
+            "point": 0.9091565343232526,
+            "minimum": 0.8840811632630168,
+            "maximum": 0.9322819703533274,
+            "paired_median": 0.8999247549568162,
+            "count": 12
+          },
+          "median_rate_ratio": {
+            "point": 0.9091559777515597,
+            "minimum": 0.8840811632630168,
+            "maximum": 0.9322819703533274,
+            "paired_median": 0.8999247549568162,
+            "count": 12
+          },
+          "time_ratio": {
+            "point": 1.0999205992006298,
+            "minimum": 1.072636854299572,
+            "maximum": 1.131117867401612,
+            "paired_median": 1.1112486531246768,
+            "count": 12
+          },
+          "baseline_seconds": {
+            "median": 0.1469198055,
+            "minimum": 0.140851124,
+            "maximum": 0.149935066,
+            "count": 12
+          },
+          "esm_md_seconds": {
+            "median": 0.1616001205,
+            "minimum": 0.158402128,
+            "maximum": 0.166987524,
+            "count": 12
+          }
+        },
+        {
+          "model": "sw",
+          "platform": "gpu",
+          "shape": [
+            64,
+            64
+          ],
+          "cpu_cores": 1,
+          "gpu_devices": 1,
+          "batch_steps": 1000,
+          "active_workers": null,
+          "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+          "throughput_unit": "million complete cell updates per second",
+          "time_unit": "s",
+          "baseline": {
+            "median": 1162.5002827176477,
+            "minimum": 1161.8618568195216,
+            "maximum": 1162.8118292841161,
+            "count": 12,
+            "point": 1162.5002826933955
+          },
+          "esm_md": {
+            "median": 1051.8055323258377,
+            "minimum": 1051.5506226016673,
+            "maximum": 1052.1989063050162,
+            "count": 12,
+            "point": 1051.8055321657653
+          },
+          "ratio": {
+            "point": 0.9047787323791769,
+            "minimum": 0.9044211189503478,
+            "maximum": 0.90519778173422,
+            "paired_median": 0.9049298079863124,
+            "count": 12
+          },
+          "throughput_ratio": {
+            "point": 0.9047787323791769,
+            "minimum": 0.9044211189503478,
+            "maximum": 0.90519778173422,
+            "paired_median": 0.9049298079863124,
+            "count": 12
+          },
+          "median_rate_ratio": {
+            "point": 0.9047787324979981,
+            "minimum": 0.9044211189503478,
+            "maximum": 0.90519778173422,
+            "paired_median": 0.9049298079863124,
+            "count": 12
+          },
+          "time_ratio": {
+            "point": 1.1052426015479304,
+            "minimum": 1.1047309440862234,
+            "maximum": 1.1056796209718973,
+            "paired_median": 1.1050580843967084,
+            "count": 12
+          },
+          "baseline_seconds": {
+            "median": 0.0035234400033950803,
+            "minimum": 0.003522495985031128,
+            "maximum": 0.0035253760814666748,
+            "count": 12
+          },
+          "esm_md_seconds": {
+            "median": 0.0038942559957504275,
+            "minimum": 0.0038928000926971434,
+            "maximum": 0.00389520001411438,
+            "count": 12
+          }
+        },
+        {
+          "model": "sw",
+          "platform": "gpu",
+          "shape": [
+            256,
+            256
+          ],
+          "cpu_cores": 1,
+          "gpu_devices": 1,
+          "batch_steps": 1000,
+          "active_workers": null,
+          "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+          "throughput_unit": "million complete cell updates per second",
+          "time_unit": "s",
+          "baseline": {
+            "median": 6843.524826296696,
+            "minimum": 6838.702688221749,
+            "maximum": 6847.070895622025,
+            "count": 12,
+            "point": 6843.524804206928
+          },
+          "esm_md": {
+            "median": 6785.512468654759,
+            "minimum": 6774.726954440304,
+            "maximum": 6788.7629248529,
+            "count": 12,
+            "point": 6785.512458797348
+          },
+          "ratio": {
+            "point": 0.9915230313224088,
+            "minimum": 0.9894343227513568,
+            "maximum": 0.9926213369336899,
+            "paired_median": 0.9916375767236024,
+            "count": 12
+          },
+          "throughput_ratio": {
+            "point": 0.9915230313224088,
+            "minimum": 0.9894343227513568,
+            "maximum": 0.9926213369336899,
+            "paired_median": 0.9916375767236024,
+            "count": 12
+          },
+          "median_rate_ratio": {
+            "point": 0.991523029562336,
+            "minimum": 0.9894343227513568,
+            "maximum": 0.9926213369336899,
+            "paired_median": 0.9916375767236024,
+            "count": 12
+          },
+          "time_ratio": {
+            "point": 1.0085494420298895,
+            "minimum": 1.0074335124500784,
+            "maximum": 1.0106785028633967,
+            "paired_median": 1.008432946706765,
+            "count": 12
+          },
+          "baseline_seconds": {
+            "median": 0.009576351642608642,
+            "minimum": 0.009571392059326172,
+            "maximum": 0.009583104133605956,
+            "count": 12
+          },
+          "esm_md_seconds": {
+            "median": 0.00965822410583496,
+            "minimum": 0.009653599739074707,
+            "maximum": 0.009673600196838378,
+            "count": 12
+          }
+        },
+        {
+          "model": "sw",
+          "platform": "gpu",
+          "shape": [
+            1024,
+            1024
+          ],
+          "cpu_cores": 1,
+          "gpu_devices": 1,
+          "batch_steps": 1000,
+          "active_workers": null,
+          "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+          "throughput_unit": "million complete cell updates per second",
+          "time_unit": "s",
+          "baseline": {
+            "median": 8325.774421184364,
+            "minimum": 8304.566336098824,
+            "maximum": 8361.499980318933,
+            "count": 12,
+            "point": 8325.774421165268
+          },
+          "esm_md": {
+            "median": 8521.209830281347,
+            "minimum": 8483.740955293542,
+            "maximum": 8544.234153585643,
+            "count": 12,
+            "point": 8521.203892838474
+          },
+          "ratio": {
+            "point": 1.0234728280862855,
+            "minimum": 1.0190858283208868,
+            "maximum": 1.0271844737450855,
+            "paired_median": 1.02174243050958,
+            "count": 12
+          },
+          "throughput_ratio": {
+            "point": 1.0234728280862855,
+            "minimum": 1.0190858283208868,
+            "maximum": 1.0271844737450855,
+            "paired_median": 1.02174243050958,
+            "count": 12
+          },
+          "median_rate_ratio": {
+            "point": 1.0234735412239504,
+            "minimum": 1.0190858283208868,
+            "maximum": 1.0271844737450855,
+            "paired_median": 1.02174243050958,
+            "count": 12
+          },
+          "time_ratio": {
+            "point": 0.9770655092718236,
+            "minimum": 0.9735349643224535,
+            "maximum": 0.9812716183559004,
+            "paired_median": 0.9787202618397928,
+            "count": 12
+          },
+          "baseline_seconds": {
+            "median": 0.125943359375,
+            "minimum": 0.1254052505493164,
+            "maximum": 0.1262649917602539,
+            "count": 12
+          },
+          "esm_md_seconds": {
+            "median": 0.12305491256713867,
+            "minimum": 0.12272322845458984,
+            "maximum": 0.12359830474853516,
+            "count": 12
+          }
+        }
+      ],
+      "ebm": [
+        {
+          "model": "ebm",
+          "platform": "cpu",
+          "shape": [
+            128
+          ],
+          "cpu_cores": 248,
+          "gpu_devices": 0,
+          "batch_steps": 1000,
+          "active_workers": {
+            "baseline": 1,
+            "esm_md": 1
+          },
+          "series_kind": "primary",
+          "run_id": "primary_ebm_n128_budget248_team1",
+          "nonempty_spatial_owners_by_route": {
+            "baseline": 1,
+            "esm_md": 1
+          },
+          "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+          "throughput_unit": "million complete cell updates per second",
+          "time_unit": "s",
+          "baseline": {
+            "median": 631.0314814988658,
+            "minimum": 622.3925157299983,
+            "maximum": 635.5448307365368,
+            "count": 12,
+            "point": 631.0314652994318
+          },
+          "esm_md": {
+            "median": 597.8801478681858,
+            "minimum": 490.26930339626404,
+            "maximum": 600.4371933313944,
+            "count": 12,
+            "point": 597.8793965154841
+          },
+          "ratio": {
+            "point": 0.9474636834975945,
+            "minimum": 0.7768087298577837,
+            "maximum": 0.9579657353667286,
+            "paired_median": 0.9494515306554765,
+            "count": 12
+          },
+          "throughput_ratio": {
+            "point": 0.9474636834975945,
+            "minimum": 0.7768087298577837,
+            "maximum": 0.9579657353667286,
+            "paired_median": 0.9494515306554765,
+            "count": 12
+          },
+          "median_rate_ratio": {
+            "point": 0.9474648498487953,
+            "minimum": 0.7768087298577837,
+            "maximum": 0.9579657353667286,
+            "paired_median": 0.9494515306554765,
+            "count": 12
+          },
+          "time_ratio": {
+            "point": 1.0554494250465263,
+            "minimum": 1.0438786723589648,
+            "maximum": 1.287318179576944,
+            "paired_median": 1.053241006252783,
+            "count": 12
+          },
+          "baseline_seconds": {
+            "median": 0.00020284250000000001,
+            "minimum": 0.000201402,
+            "maximum": 0.000205658,
+            "count": 12
+          },
+          "esm_md_seconds": {
+            "median": 0.00021409,
+            "minimum": 0.000213178,
+            "maximum": 0.000261081,
+            "count": 12
+          }
+        },
+        {
+          "model": "ebm",
+          "platform": "cpu",
+          "shape": [
+            4096
+          ],
+          "cpu_cores": 248,
+          "gpu_devices": 0,
+          "batch_steps": 1000,
+          "active_workers": {
+            "baseline": 32,
+            "esm_md": 32
+          },
+          "series_kind": "primary",
+          "run_id": "primary_ebm_n4096_budget248_team32",
+          "nonempty_spatial_owners_by_route": {
+            "baseline": 32,
+            "esm_md": 32
+          },
+          "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+          "throughput_unit": "million complete cell updates per second",
+          "time_unit": "s",
+          "baseline": {
+            "median": 7874.956015005478,
+            "minimum": 7551.8312637702,
+            "maximum": 7926.892990815178,
+            "count": 12,
+            "point": 7874.9543383384935
+          },
+          "esm_md": {
+            "median": 7665.8038894222755,
+            "minimum": 7629.705932208125,
+            "maximum": 7693.434660275507,
+            "count": 12,
+            "point": 7665.8038894222755
+          },
+          "ratio": {
+            "point": 0.973441058839162,
+            "minimum": 0.966025560741811,
+            "maximum": 1.0118802202168962,
+            "paired_median": 0.9744554276079582,
+            "count": 12
+          },
+          "throughput_ratio": {
+            "point": 0.973441058839162,
+            "minimum": 0.966025560741811,
+            "maximum": 1.0118802202168962,
+            "paired_median": 0.9744554276079582,
+            "count": 12
+          },
+          "median_rate_ratio": {
+            "point": 0.9734408515825778,
+            "minimum": 0.966025560741811,
+            "maximum": 1.0118802202168962,
+            "paired_median": 0.9744554276079582,
+            "count": 12
+          },
+          "time_ratio": {
+            "point": 1.0272835637244537,
+            "minimum": 0.9882592623321071,
+            "maximum": 1.035169296381868,
+            "paired_median": 1.0262143595277098,
+            "count": 12
+          },
+          "baseline_seconds": {
+            "median": 0.0005201299999999999,
+            "minimum": 0.000516722,
+            "maximum": 0.000542385,
+            "count": 12
+          },
+          "esm_md_seconds": {
+            "median": 0.000534321,
+            "minimum": 0.000532402,
+            "maximum": 0.000536849,
+            "count": 12
+          }
+        },
+        {
+          "model": "ebm",
+          "platform": "cpu",
+          "shape": [
+            65536
+          ],
+          "cpu_cores": 248,
+          "gpu_devices": 0,
+          "batch_steps": 1000,
+          "active_workers": {
+            "baseline": 72,
+            "esm_md": 72
+          },
+          "series_kind": "primary",
+          "run_id": "primary_ebm_n65536_budget248_team72",
+          "nonempty_spatial_owners_by_route": {
+            "baseline": 72,
+            "esm_md": 72
+          },
+          "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+          "throughput_unit": "million complete cell updates per second",
+          "time_unit": "s",
+          "baseline": {
+            "median": 33673.499806695705,
+            "minimum": 32450.118637823874,
+            "maximum": 33827.02259642632,
+            "count": 12,
+            "point": 33673.49717580601
+          },
+          "esm_md": {
+            "median": 31544.010874226664,
+            "minimum": 30656.301952599115,
+            "maximum": 32619.645850671146,
+            "count": 12,
+            "point": 31543.497210054295
+          },
+          "ratio": {
+            "point": 0.9367455077614542,
+            "minimum": 0.9106529900840411,
+            "maximum": 0.9960337682756767,
+            "paired_median": 0.9501551093045615,
+            "count": 12
+          },
+          "throughput_ratio": {
+            "point": 0.9367455077614542,
+            "minimum": 0.9106529900840411,
+            "maximum": 0.9960337682756767,
+            "paired_median": 0.9501551093045615,
+            "count": 12
+          },
+          "median_rate_ratio": {
+            "point": 0.9367606888296889,
+            "minimum": 0.9106529900840411,
+            "maximum": 0.9960337682756767,
+            "paired_median": 0.9501551093045615,
+            "count": 12
+          },
+          "time_ratio": {
+            "point": 1.0675258025946721,
+            "minimum": 1.0039820253596317,
+            "maximum": 1.0981131241964226,
+            "paired_median": 1.052463769970558,
+            "count": 12
+          },
+          "baseline_seconds": {
+            "median": 0.001946219,
+            "minimum": 0.001937386,
+            "maximum": 0.002019592,
+            "count": 12
+          },
+          "esm_md_seconds": {
+            "median": 0.002077639,
+            "minimum": 0.002009096,
+            "maximum": 0.002137766,
+            "count": 12
+          }
+        },
+        {
+          "model": "ebm",
+          "platform": "gpu",
+          "shape": [
+            128
+          ],
+          "cpu_cores": 1,
+          "gpu_devices": 1,
+          "batch_steps": 1000,
+          "active_workers": null,
+          "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+          "throughput_unit": "million complete cell updates per second",
+          "time_unit": "s",
+          "baseline": {
+            "median": 968.9924753549906,
+            "minimum": 940.2915355055802,
+            "maximum": 971.1095086363268,
+            "count": 12,
+            "point": 968.9922479465866
+          },
+          "esm_md": {
+            "median": 971.6999546554629,
+            "minimum": 968.054258332937,
+            "maximum": 973.7098152623771,
+            "count": 12,
+            "point": 971.6992521535208
+          },
+          "ratio": {
+            "point": 1.0027936283418888,
+            "minimum": 0.9997578696588026,
+            "maximum": 1.0310226783580825,
+            "paired_median": 1.0027994086963266,
+            "count": 12
+          },
+          "throughput_ratio": {
+            "point": 1.0027936283418888,
+            "minimum": 0.9997578696588026,
+            "maximum": 1.0310226783580825,
+            "paired_median": 1.0027994086963266,
+            "count": 12
+          },
+          "median_rate_ratio": {
+            "point": 1.0027941179826814,
+            "minimum": 0.9997578696588026,
+            "maximum": 1.0310226783580825,
+            "paired_median": 1.0027994086963266,
+            "count": 12
+          },
+          "time_ratio": {
+            "point": 0.9972141542756826,
+            "minimum": 0.9699107701418493,
+            "maximum": 1.0002421889824984,
+            "paired_median": 0.9972084208134464,
+            "count": 12
+          },
+          "baseline_seconds": {
+            "median": 0.00013209600001573563,
+            "minimum": 0.00013180799782276154,
+            "maximum": 0.00013612799346446992,
+            "count": 12
+          },
+          "esm_md_seconds": {
+            "median": 0.00013172800093889237,
+            "minimum": 0.00013145600259304046,
+            "maximum": 0.00013222399353981018,
+            "count": 12
+          }
+        },
+        {
+          "model": "ebm",
+          "platform": "gpu",
+          "shape": [
+            4096
+          ],
+          "cpu_cores": 1,
+          "gpu_devices": 1,
+          "batch_steps": 1000,
+          "active_workers": null,
+          "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+          "throughput_unit": "million complete cell updates per second",
+          "time_unit": "s",
+          "baseline": {
+            "median": 15576.514871842988,
+            "minimum": 15468.277238117169,
+            "maximum": 15609.75602097202,
+            "count": 12,
+            "point": 15576.513430000101
+          },
+          "esm_md": {
+            "median": 15769.37361836219,
+            "minimum": 15753.846731693808,
+            "maximum": 15792.72142031699,
+            "count": 12,
+            "point": 15769.37361836219
+          },
+          "ratio": {
+            "point": 1.0123814735068146,
+            "minimum": 1.0103498897066714,
+            "maximum": 1.0203453220159837,
+            "paired_median": 1.012016977461069,
+            "count": 12
+          },
+          "throughput_ratio": {
+            "point": 1.0123814735068146,
+            "minimum": 1.0103498897066714,
+            "maximum": 1.0203453220159837,
+            "paired_median": 1.012016977461069,
+            "count": 12
+          },
+          "median_rate_ratio": {
+            "point": 1.0123813797955423,
+            "minimum": 1.0103498897066714,
+            "maximum": 1.0203453220159837,
+            "paired_median": 1.012016977461069,
+            "count": 12
+          },
+          "time_ratio": {
+            "point": 0.9877699525022656,
+            "minimum": 0.9800603564528666,
+            "maximum": 0.9897561331850333,
+            "paired_median": 0.9881257178688498,
+            "count": 12
+          },
+          "baseline_seconds": {
+            "median": 0.0002629600018262863,
+            "minimum": 0.00026240000128746035,
+            "maximum": 0.0002648000121116638,
+            "count": 12
+          },
+          "esm_md_seconds": {
+            "median": 0.00025974398851394653,
+            "minimum": 0.00025935998558998107,
+            "maximum": 0.00025999999046325684,
+            "count": 12
+          }
+        },
+        {
+          "model": "ebm",
+          "platform": "gpu",
+          "shape": [
+            65536
+          ],
+          "cpu_cores": 1,
+          "gpu_devices": 1,
+          "batch_steps": 1000,
+          "active_workers": null,
+          "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+          "throughput_unit": "million complete cell updates per second",
+          "time_unit": "s",
+          "baseline": {
+            "median": 148266.13125556777,
+            "minimum": 147944.81034415946,
+            "maximum": 148610.40639968167,
+            "count": 12,
+            "point": 148266.12426282375
+          },
+          "esm_md": {
+            "median": 152972.81274862704,
+            "minimum": 152380.95359061583,
+            "maximum": 153270.47118789563,
+            "count": 12,
+            "point": 152972.81189555206
+          },
+          "ratio": {
+            "point": 1.0317448618565426,
+            "minimum": 1.027976195838291,
+            "maximum": 1.0357650876178413,
+            "paired_median": 1.0308141222138394,
+            "count": 12
+          },
+          "throughput_ratio": {
+            "point": 1.0317448618565426,
+            "minimum": 1.027976195838291,
+            "maximum": 1.0357650876178413,
+            "paired_median": 1.0308141222138394,
+            "count": 12
+          },
+          "median_rate_ratio": {
+            "point": 1.031744818949557,
+            "minimum": 1.027976195838291,
+            "maximum": 1.0357650876178413,
+            "paired_median": 1.0308141222138394,
+            "count": 12
+          },
+          "time_ratio": {
+            "point": 0.9692318682358931,
+            "minimum": 0.9654698849716034,
+            "maximum": 0.9727851715326182,
+            "paired_median": 0.9701070516099988,
+            "count": 12
+          },
+          "baseline_seconds": {
+            "median": 0.00044201600551605223,
+            "minimum": 0.00044099199771881106,
+            "maximum": 0.0004429759979248047,
+            "count": 12
+          },
+          "esm_md_seconds": {
+            "median": 0.00042841599881649015,
+            "minimum": 0.0004275839924812317,
+            "maximum": 0.00043007999658584595,
+            "count": 12
+          }
+        }
+      ]
     }
   },
+  "comparison_evidence_source": "data/performance-figure-evidence-20261112.json",
   "formulation_rename": {
     "old_path": "formulations/sw/2d_periodic.md",
     "new_path": "formulations/sw/dam_break.md",
@@ -2657,11 +1420,262 @@
     }
   },
   "summary": {
-    "cpu": "EBM reaches 642 million updates/s on one CPU core.",
-    "gpu": "EBM reaches 88.6 billion updates/s on one GPU."
+    "sw_intro": "Matched grids, two verified solver routes.",
+    "ebm_intro": "Useful update rates. Higher bars are faster.",
+    "caption": "Point rates equal useful updates divided by median seconds. Whiskers span twelve rates. CPU workers appear inside bars. Neoverse V2 CPU timing includes coordination, while GH200 GPU timing excludes transfers.",
+    "takeaways": [
+      "ESM.md CPU point rates are 90.9\u201397.3% of baseline.",
+      "ESM.md GPU point rates are 90.5\u2013103.2% of baseline.",
+      "Accepted runs passed physical and exact output checks."
+    ]
   },
   "structural_and_qr_checks": {
     "passed": true,
+    "accepted_performance_input_sha256": "55ace931e250e7f3d35913e705dba5746fc9fdb4b9091da88605a757db0d48bb",
+    "artifact_sha256": {
+      "esm-md-a0-landscape.pptx": "45e74b5de0c30496ecc8b66f69d458bb6423b4b155f70faa8be3a5daa163d246",
+      "esm-md-a0-landscape.pdf": "5d72b6225c9ebae937ebe03430cc838e52a2d2c482770363d8a1e50509f01a2d",
+      "esm-md-a0-landscape.png": "99c3a2094b3b1be2d1ab332c7427ac0784696bc202947f440c0d7bfc476a4f59"
+    },
+    "performance_presentation": "matched_absolute_rates",
+    "cpu_resource_interpretation": "configured_ceiling",
+    "matched_chart_checks": {
+      "sw": {
+        "svg": {
+          "path": "figures/poster/water_rates.svg",
+          "sha256": "a87d002dec8f92f4bf812f5519daaa4df939d2ac799aeb4b8c867f6dcb0fb4e1"
+        },
+        "png": {
+          "path": "figures/poster/water_rates.png",
+          "sha256": "507405420c37116a24501bd9592e039cd502289be2ac83f4d66f1dd0e55f2bd7"
+        },
+        "visible_chart_text": [
+          " 0 ",
+          " 0.400 ",
+          " 0.800 ",
+          " 0.394 ",
+          " 0.375 ",
+          " 16 ",
+          " 16 ",
+          " 0 ",
+          " 2.50 ",
+          " 5.00 ",
+          " 2.69 ",
+          " 2.48 ",
+          " 72 ",
+          " 72 ",
+          " 0 ",
+          " 8.00 ",
+          " 16.0 ",
+          " 7.14 ",
+          " 6.49 ",
+          " 248 ",
+          " 248 ",
+          " 0 ",
+          " 1.00 ",
+          " 2.00 ",
+          " 1.16 ",
+          " 1.05 ",
+          " 0 ",
+          " 6.00 ",
+          " 12.0 ",
+          " 6.84 ",
+          " 6.79 ",
+          " 0 ",
+          " 8.00 ",
+          " 16.0 ",
+          " 8.33 ",
+          " 8.52 ",
+          " CPU ",
+          " budget ",
+          " 248 ",
+          " [cores] ",
+          " GPU ",
+          " 1 ",
+          " [device] ",
+          " 64\u00b2 [cells] ",
+          " 256\u00b2 [cells] ",
+          " 1,024\u00b2 [cells] ",
+          " Rate [billion useful updates/s] ",
+          " Hand-tuned baseline ",
+          " ESM.md ",
+          " CPU workers inside bars "
+        ],
+        "cpu_resources": [
+          {
+            "shape": [
+              1024,
+              1024
+            ],
+            "run_id": "primary_sw_n1024_budget248_team248",
+            "configured_ceiling": 248,
+            "active_workers": {
+              "baseline": 248,
+              "esm_md": 248
+            },
+            "nonempty_spatial_owners_by_route": {
+              "baseline": 248,
+              "esm_md": 248
+            }
+          },
+          {
+            "shape": [
+              256,
+              256
+            ],
+            "run_id": "primary_sw_n256_budget248_team72",
+            "configured_ceiling": 248,
+            "active_workers": {
+              "baseline": 72,
+              "esm_md": 72
+            },
+            "nonempty_spatial_owners_by_route": {
+              "baseline": 72,
+              "esm_md": 72
+            }
+          },
+          {
+            "shape": [
+              64,
+              64
+            ],
+            "run_id": "primary_sw_n64_budget248_team16",
+            "configured_ceiling": 248,
+            "active_workers": {
+              "baseline": 16,
+              "esm_md": 16
+            },
+            "nonempty_spatial_owners_by_route": {
+              "baseline": 16,
+              "esm_md": 16
+            }
+          }
+        ]
+      },
+      "ebm": {
+        "svg": {
+          "path": "figures/poster/energy_rates.svg",
+          "sha256": "0ed5c214869b89e37897f8c5a0b45b72a46f68f331caff277996db22b183f82d"
+        },
+        "png": {
+          "path": "figures/poster/energy_rates.png",
+          "sha256": "ea2d39a5d1f16bb04015c9286de26f326d690fef6909de28c10b77214451a9a1"
+        },
+        "visible_chart_text": [
+          " 0 ",
+          " 0.600 ",
+          " 1.20 ",
+          " 0.631 ",
+          " 0.598 ",
+          " 1 ",
+          " 1 ",
+          " 0 ",
+          " 8.00 ",
+          " 16.0 ",
+          " 7.87 ",
+          " 7.67 ",
+          " 32 ",
+          " 32 ",
+          " 0 ",
+          " 30.0 ",
+          " 60.0 ",
+          " 33.7 ",
+          " 31.5 ",
+          " 72 ",
+          " 72 ",
+          " 0 ",
+          " 1.00 ",
+          " 2.00 ",
+          " 0.969 ",
+          " 0.972 ",
+          " 0 ",
+          " 15.0 ",
+          " 30.0 ",
+          " 15.6 ",
+          " 15.8 ",
+          " 0 ",
+          " 150 ",
+          " 300 ",
+          " 148 ",
+          " 153 ",
+          " CPU ",
+          " budget ",
+          " 248 ",
+          " [cores] ",
+          " GPU ",
+          " 1 ",
+          " [device] ",
+          " 128 [bands] ",
+          " 4,096 [bands] ",
+          " 65,536 [bands] ",
+          " Rate [billion useful updates/s] ",
+          " Hand-tuned baseline ",
+          " ESM.md ",
+          " CPU workers inside bars "
+        ],
+        "cpu_resources": [
+          {
+            "shape": [
+              128
+            ],
+            "run_id": "primary_ebm_n128_budget248_team1",
+            "configured_ceiling": 248,
+            "active_workers": {
+              "baseline": 1,
+              "esm_md": 1
+            },
+            "nonempty_spatial_owners_by_route": {
+              "baseline": 1,
+              "esm_md": 1
+            }
+          },
+          {
+            "shape": [
+              4096
+            ],
+            "run_id": "primary_ebm_n4096_budget248_team32",
+            "configured_ceiling": 248,
+            "active_workers": {
+              "baseline": 32,
+              "esm_md": 32
+            },
+            "nonempty_spatial_owners_by_route": {
+              "baseline": 32,
+              "esm_md": 32
+            }
+          },
+          {
+            "shape": [
+              65536
+            ],
+            "run_id": "primary_ebm_n65536_budget248_team72",
+            "configured_ceiling": 248,
+            "active_workers": {
+              "baseline": 72,
+              "esm_md": 72
+            },
+            "nonempty_spatial_owners_by_route": {
+              "baseline": 72,
+              "esm_md": 72
+            }
+          }
+        ]
+      }
+    },
+    "blue_text_frames": [
+      "energy-summary",
+      "error-caption",
+      "method-detail-1",
+      "method-detail-2",
+      "method-detail-3",
+      "method-details",
+      "method-step-1",
+      "method-step-2",
+      "method-step-3",
+      "results-summary",
+      "takeaways"
+    ],
+    "changed_prose_colour": "0000FF",
     "canvas_mm": [
       1189.0,
       841.0
@@ -2696,9 +1710,9 @@
         ]
       }
     ],
-    "pptx_sha256": "ba07009d8e066236b88a7dbb1e102c5edf936b5d1cab985a3e07ab48cc7d43fd",
-    "pdf_sha256": "4674bf6d664b0e844d457c03c419a1b7597b22f5a4cd026b259d83417948b70b",
-    "png_sha256": "1e7c9bc0d72e5668ff9b34ecdb847200e65619f13f3f79930169aada4838988f",
+    "pptx_sha256": "45e74b5de0c30496ecc8b66f69d458bb6423b4b155f70faa8be3a5daa163d246",
+    "pdf_sha256": "5d72b6225c9ebae937ebe03430cc838e52a2d2c482770363d8a1e50509f01a2d",
+    "png_sha256": "99c3a2094b3b1be2d1ab332c7427ac0784696bc202947f440c0d7bfc476a4f59",
     "png_pixels": [
       7022,
       4967
@@ -2709,49 +1723,33 @@
   },
   "visual_review": {
     "status": "passed",
-    "date_utc": "2026-11-12T02:15:10.634409+00:00",
-    "source": "Saved PDF exported from the actual current PowerPoint through the existing poster renderer",
-    "reviewed_PDF_sha256": "4674bf6d664b0e844d457c03c419a1b7597b22f5a4cd026b259d83417948b70b",
-    "reviewed_views": [
-      "Full saved poster",
-      "Final Methods and workflow close-up"
+    "reviewed_utc": "2026-11-12T07:27:13.427274+00:00",
+    "reviewer": "Root agent through direct inspection of saved-PDF renders",
+    "pdf_sha256": "5d72b6225c9ebae937ebe03430cc838e52a2d2c482770363d8a1e50509f01a2d",
+    "accepted_performance_input_sha256": "55ace931e250e7f3d35913e705dba5746fc9fdb4b9091da88605a757db0d48bb",
+    "reviewed_regions": [
+      "full corrected poster",
+      "corrected hardware caption",
+      "Methods",
+      "performance",
+      "Summary",
+      "banner and branding",
+      "footer and QR"
     ],
+    "scope": "The saved native PowerPoint was exported to PDF. Root inspected the current full poster and corrected caption and the prior unchanged Methods, performance and Summary close-ups. Native structure, geometry, fonts, chart bindings and two actual PDF QR sizes passed separately.",
     "findings": [
-      "Both current skill names are visible and all changed prose isblue0000FF",
-      "The first paragraph introduces the skills without using undefined CPU/GPU abbreviations",
-      "Fortran and CUDA Fortran compilation is distinct from direct PTX assembly",
-      "The original11 Methods lines and all native frames are preserved",
-      "No clipping, overlap or unwanted wrapping is visible"
+      "Neoverse V2 and GH200 are explicit in the blue four-line caption.",
+      "Current title, author, branding, physical figures and QR remain correct.",
+      "Chart rates and actual worker counts match the accepted records.",
+      "No clipping or overlap was seen.",
+      "The caption correction changed no pixels outside its region."
     ],
-    "skill_rename": {
-      "native_properties": {
-        "time_utc": "2026-11-12T02:04:45.545264+00:00",
-        "native_objects": 65,
-        "changed_native_objects": [
-          "method-details",
-          "method-step-2"
-        ],
-        "all_other_native_objects_and_package_members_byte_identical": true,
-        "all_native_frames_unchanged": true,
-        "new_first_bullet": "md2fort and md2fort-gpu guide solver generation from Markdown physics and fixed numerical contracts.",
-        "new_third_bullet": "Compilers translate Fortran and CUDA Fortran. An assembler translates PTX, NVIDIA\u2019s virtual instruction code.",
-        "changed_text_colour": "0000FF",
-        "body_lines_preserved": 11,
-        "historical_data_and_plot_assets_unchanged": true
-      },
-      "PDF_comparison": {
-        "time_utc": "2026-11-12T02:13:54.792220+00:00",
-        "PDF_text_matches_only_expected_rename_and_route_definition_edits": true,
-        "PDF_links_and_canvas_unchanged": true,
-        "all_visible_changes_within_two_named_text_frames": true,
-        "changed_preview_pixels": 35077,
-        "changed_pixels_outside_named_text_frames": 0,
-        "all_performance_and_physics_figures_identical": true,
-        "comparison_scale": 0.85,
-        "native_unchanged_objects_and_package_members_verified_after_final_correction": true
-      }
-    },
-    "desktop_powerpoint_inspected": false
+    "desktop_powerpoint_inspection": false,
+    "preservation_receipts": [
+      ".runtime/goal_20261112/poster/final_build/native-preservation-review.json",
+      ".runtime/goal_20261112/poster/final_build/hardware-caption-preservation-review.json",
+      ".runtime/goal_20261112/poster/final_build/hardware-caption-pixel-review.json"
+    ]
   },
   "desktop_powerpoint_inspection": false,
   "tools": {
@@ -2766,12 +1764,16 @@
   },
   "files": {
     "scripts/build_poster.py": {
-      "sha256": "f1350694a90524e7d9e062fc9a4da4cf9a95dbb8f3f660872870b2a0222a955a",
-      "bytes": 39345
+      "sha256": "aaccde1f274fac671a612282d32e42144e4be6e11649d5ff693bfb1534d29c5b",
+      "bytes": 44065
     },
     "scripts/check_poster.py": {
-      "sha256": "0cff1d0fd7d1051fa599c1ceab3d9eaedd491d3a63d4054332d3d66d595e38d2",
-      "bytes": 7948
+      "sha256": "44c780d8468437137c8daceaa94eb81051b4c7024a78ecb429964a5f36c91c66",
+      "bytes": 16729
+    },
+    "scripts/direct_rate_layout.py": {
+      "sha256": "e4e7ad0e35bd828e70a6fa61e6ad3172573a6cdfad066190bfd595332d58b3a6",
+      "bytes": 19733
     },
     "scripts/plot_historical_controls.py": {
       "sha256": "9fc61806105fe6301520340254ed8037843b2960a45f43048d8504777d3b1e36",
@@ -2797,9 +1799,29 @@
       "sha256": "c06d34e8e46f3995aeff0407fdfa6a4eb82664098a7a3b31c541155f94fd4abf",
       "bytes": 11930
     },
+    "scripts/publication_plot_style.py": {
+      "sha256": "1aa566e2b8afae664a2e059df126f91add44cb88977c31c7a4cfdcdd6e6b0e2a",
+      "bytes": 17835
+    },
+    "scripts/publication_plot_style_provenance.json": {
+      "sha256": "15b5fc28a247b476e564814b8196dba36521c687da02b7edee8e4d7e7bc7019e",
+      "bytes": 2069
+    },
     "scripts/refresh_evidence.py": {
-      "sha256": "cc2455000f2d29a7b180f12a8c71b48722980e209c20b3e0be2dadcbd1a95b59",
-      "bytes": 6826
+      "sha256": "cb00f889537f8b404cc87a52372f92feb51515a48444289b86645991786f62d2",
+      "bytes": 18959
+    },
+    "scripts/render_performance_bars.py": {
+      "sha256": "27e02c5a88e987df78feb7a7e06f3d24408a47f0bcbd07de98713e6ac6d6640a",
+      "bytes": 31827
+    },
+    "scripts/render_scaling_bars.py": {
+      "sha256": "ee26148f2b91be20b4d2eb3b730c5ecf7074f707301b03b5dac2698178b57c80",
+      "bytes": 29613
+    },
+    "scripts/snapshot_provenance.json": {
+      "sha256": "ae4a8e6dced1a000240b8b1c34e22c4d3af5baae4652455d5e3198d5ea8338fb",
+      "bytes": 2094
     },
     "scripts/style/README.md": {
       "sha256": "c356c14e96852b35712b2085be5fb150b7a1eaa76733bf9d84386cfe5de5b179",
@@ -2821,6 +1843,18 @@
       "sha256": "936dcb10d875e287be767e570a3efe5e3725eb4e4b3b7db3cee70fe8c300bde2",
       "bytes": 2835
     },
+    "data/accepted-main-input.json": {
+      "sha256": "aa8bd6545acb4e14abbb4da87b6310bcd85cf484278eb617bdb10ee882fa6563",
+      "bytes": 140777
+    },
+    "data/accepted-performance-update.json": {
+      "sha256": "55ace931e250e7f3d35913e705dba5746fc9fdb4b9091da88605a757db0d48bb",
+      "bytes": 384860
+    },
+    "data/cpu-results-20261112.json": {
+      "sha256": "8c9a79697c4e655bdcde2ec152aa04c8e272b1f250580ea2cf5ead5a89ab1e13",
+      "bytes": 90017
+    },
     "data/dam-break-rename.json": {
       "sha256": "e9ad935625cc5f3aab7b001963ecb184fdfd62ef5f21ad8887fea5da5d6d3173",
       "bytes": 3197
@@ -2836,6 +1870,10 @@
     "data/figure-label-update.json": {
       "sha256": "7cc19aafe73af1c0c5f2d16b5d1a5df5dc36d3d14ec11a97d82deb89e62fc3e5",
       "bytes": 3633
+    },
+    "data/gpu-results-20261112.json": {
+      "sha256": "4111d1c33d4df095d531395f219c2b4a8e3f1b73dac21ae1069ef6eb9863df4a",
+      "bytes": 69179
     },
     "data/historical/benchmark.json": {
       "sha256": "48a2ed2e828956697e9aaee329a0ea2de7e74439f60c08dc2b00ad35628500c8",
@@ -2853,6 +1891,18 @@
       "sha256": "aaca3d788f9b65f4df4ff57c5c45bdc8dbd6f1c377ed04b30e58b67866c29b22",
       "bytes": 22765
     },
+    "data/main_workload_contract.json": {
+      "sha256": "01b8ea198aab7210c602d823de86368efe443923f0fd6e032e715260e0efbad0",
+      "bytes": 4402
+    },
+    "data/main_workload_contract_provenance.json": {
+      "sha256": "7cd97bf63508fcdfac885143afb32bb3f26d428771041981a335deb019395a86",
+      "bytes": 846
+    },
+    "data/performance-figure-evidence-20261112.json": {
+      "sha256": "4ad4aa282988e00db79330538dbeeb1015e9060aae24f42edc61118d9ea69b68",
+      "bytes": 31343
+    },
     "data/performance-figure-evidence.json": {
       "sha256": "6047270dfc7faddede361130fba1d7b4a6c697132de24c2c8ad857cbff6da749",
       "bytes": 72159
@@ -2864,6 +1914,18 @@
     "data/results-current.json": {
       "sha256": "c3e2990819a034f7d53cd06432fd185474949198392bfe318635239e2b6ae1d3",
       "bytes": 69736
+    },
+    "data/schemas/accepted-input.schema.json": {
+      "sha256": "43ce3d8f055399beb6cbf8b25cc743ab470d5673425c009391155b3b601c2454",
+      "bytes": 6849
+    },
+    "data/schemas/poster-update.schema.json": {
+      "sha256": "85a7af499ae5b677e7cfef881d95313cee6df83e5811f234e2dfd167159a93b4",
+      "bytes": 12779
+    },
+    "data/schemas/scaling-input.schema.json": {
+      "sha256": "0431515fc711cfea230f8ac9c8c63daf12077046138abd26fa613a06b630e46c",
+      "bytes": 1839
     },
     "data/solver-filename-renames.json": {
       "sha256": "fe9e1485e7610a7fbc7ac3f2e861e4c964079b0169f69f583f8fabe760d7fcdb",
@@ -2925,6 +1987,38 @@
       "sha256": "b00bea13822b206950f7b150ec98d895a7dc6eb6b61891d8ebf89e321e40ddfa",
       "bytes": 80517
     },
+    "figures/paper/energy_rates.json": {
+      "sha256": "5acc03b30b2d658748e78cf808030094b027713c21abd78247e8bc96549750b6",
+      "bytes": 171001
+    },
+    "figures/paper/energy_rates.pdf": {
+      "sha256": "ddb06e006b7e7a0cca175198f1c1a0c1625cbe859c4ad066b49ea6ab0f4c4d5f",
+      "bytes": 14081
+    },
+    "figures/paper/energy_rates.png": {
+      "sha256": "bf37c8d808253c251648b6b62c6cb5ef9f746019fb4471d4d0e0a3a80c9d6491",
+      "bytes": 110606
+    },
+    "figures/paper/energy_rates.svg": {
+      "sha256": "c26772f7a6b92971451d8c2f5824fe02b97047cb75f5910b1368d8bd7ce3f12e",
+      "bytes": 69704
+    },
+    "figures/paper/water_rates.json": {
+      "sha256": "057ec6e6a59ab786beae49dd01732cba9b6493e38e4715c2dd7c5b060877f255",
+      "bytes": 171182
+    },
+    "figures/paper/water_rates.pdf": {
+      "sha256": "5043ae9615676d0bcaa7d716c304603c1f4dbc04e36aa533ec86427b192a063e",
+      "bytes": 14293
+    },
+    "figures/paper/water_rates.png": {
+      "sha256": "c1b5f93f14a2ebb3872697ca1934c41ccd1978bba647995e19324a02afcd8495",
+      "bytes": 109555
+    },
+    "figures/paper/water_rates.svg": {
+      "sha256": "0085c47c043a5ba602691ca5ea595612256ccec80bbff897f2f18bd40490b931",
+      "bytes": 70492
+    },
     "figures/performance-budyko_sellers.pdf": {
       "sha256": "cbcc2bddcfdad5a3da1503777cf135d919b4aba9f375bb938fa4513f32f0d401",
       "bytes": 25819
@@ -2961,6 +2055,38 @@
       "sha256": "5c180f5fa82d72eeca1572e527ca9468b1a65ef362e009933e2402dd56aed850",
       "bytes": 7890
     },
+    "figures/poster/energy_rates.json": {
+      "sha256": "ca9198f91c80ac346dd3ff44f445c25cbf4e30c8987604a7ffa61446bbcd5294",
+      "bytes": 171080
+    },
+    "figures/poster/energy_rates.pdf": {
+      "sha256": "47754d0223356dc38944c7468283ce08f90dc06de4cc7db4ec46c0fbacdbe8fc",
+      "bytes": 15943
+    },
+    "figures/poster/energy_rates.png": {
+      "sha256": "ea2d39a5d1f16bb04015c9286de26f326d690fef6909de28c10b77214451a9a1",
+      "bytes": 364660
+    },
+    "figures/poster/energy_rates.svg": {
+      "sha256": "0ed5c214869b89e37897f8c5a0b45b72a46f68f331caff277996db22b183f82d",
+      "bytes": 70891
+    },
+    "figures/poster/water_rates.json": {
+      "sha256": "51257ef5c8ae7de589cc48ffe5ead828a94e5b75606243d3a1e653af522bd5f8",
+      "bytes": 171246
+    },
+    "figures/poster/water_rates.pdf": {
+      "sha256": "fdf142759c45fc2e7ef14fcd1682037ee4ba2c0ba0dde952cae9c9381d793926",
+      "bytes": 15982
+    },
+    "figures/poster/water_rates.png": {
+      "sha256": "507405420c37116a24501bd9592e039cd502289be2ac83f4d66f1dd0e55f2bd7",
+      "bytes": 369064
+    },
+    "figures/poster/water_rates.svg": {
+      "sha256": "a87d002dec8f92f4bf812f5519daaa4df939d2ac799aeb4b8c867f6dcb0fb4e1",
+      "bytes": 71870
+    },
     "figures/shallow-water.pdf": {
       "sha256": "f12ecd6769b4094d13485bf5104b21f024b4b43cdae9a7db7ce8ad9b24033d03",
       "bytes": 46856
@@ -2972,6 +2098,10 @@
     "figures/shallow-water.svg": {
       "sha256": "9c153dcf2544cd2180febd44447aea3a477a7d96dc6305322b68830b901abc37",
       "bytes": 213538
+    },
+    "assets/OPEN_SANS_OFL.txt": {
+      "sha256": "fbbbcfef55318de350562559b671360de6d597112ecc5c73881b05092db89602",
+      "bytes": 4389
     },
     "assets/OpenSans-Bold.ttf": {
       "sha256": "7f974614948161be361ee769b28b0139621ea65de6664c44d1697ed6ac6708e2",
@@ -3097,6 +2227,10 @@
       "sha256": "ad215d9a9fc34d2687b13e86c716733fce3c4366053ae1b6545d1853b11ad215",
       "bytes": 846
     },
+    "assets/open_sans_provenance.json": {
+      "sha256": "f8b82417071e31174ab26354a9e7beaa136ebac95885b898ffef61781f38e7ad",
+      "bytes": 1229
+    },
     "assets/paisley-banner.png": {
       "sha256": "b7798dfdbf93c83579f305d28ff1d65fb554c53cf9677bd0c74504a489e330ca",
       "bytes": 3320933
@@ -3125,33 +2259,45 @@
       "sha256": "7edb14ef97033046787f23bd577f88e02030c3c00dc286dd54ee18ff955afa55",
       "bytes": 9008
     },
+    "assets/publication_font_profile.json": {
+      "sha256": "6535a2a206b1419f00ef7e4276767aa8e1195b786501e1a7923d639c02101c49",
+      "bytes": 802
+    },
     "assets/templates/template-a3-landscape.pptx": {
       "sha256": "0604cce44b39579ef9ee7b819b1787fc7e58023372872dae057c686d0ce83393",
       "bytes": 24424
     },
     "esm-md-a0-landscape.pptx": {
-      "sha256": "ba07009d8e066236b88a7dbb1e102c5edf936b5d1cab985a3e07ab48cc7d43fd",
-      "bytes": 6353371
+      "sha256": "45e74b5de0c30496ecc8b66f69d458bb6423b4b155f70faa8be3a5daa163d246",
+      "bytes": 6512300
     },
     "esm-md-a0-landscape.pdf": {
-      "sha256": "4674bf6d664b0e844d457c03c419a1b7597b22f5a4cd026b259d83417948b70b",
-      "bytes": 33498286
+      "sha256": "5d72b6225c9ebae937ebe03430cc838e52a2d2c482770363d8a1e50509f01a2d",
+      "bytes": 33484385
     },
     "esm-md-a0-landscape.png": {
-      "sha256": "1e7c9bc0d72e5668ff9b34ecdb847200e65619f13f3f79930169aada4838988f",
-      "bytes": 4400992
+      "sha256": "99c3a2094b3b1be2d1ab332c7427ac0784696bc202947f440c0d7bfc476a4f59",
+      "bytes": 4430822
     },
     "project-profile.json": {
-      "sha256": "ff95c08622526d6d318c96b735f70d6f0c3ad33b13cec25c395c3191ecc0b3f4",
-      "bytes": 5564
+      "sha256": "7521b238949806dc54e61bf29e1fc90de606c7a2dfe6721966d191034c2bfde3",
+      "bytes": 6605
     },
     "README.md": {
-      "sha256": "5653944169a665bd4dc3321660f62a11d81541df3ea9190228a46eccc4de19f0",
-      "bytes": 8857
+      "sha256": "b3f06024eccdda98ee40871652a9a109823a022de33995d636e57819d95dc7f8",
+      "bytes": 9961
     },
     "requirements.txt": {
       "sha256": "28c83b526504033be02d598655ee5d710d89df98b9facaf618f8a72c128d0289",
       "bytes": 185
+    },
+    "requirements_plotting.txt": {
+      "sha256": "c25166ac74b847627c037826c922cbd668603f39c2e497f4bf03ed0ff7e5fc2c",
+      "bytes": 48
+    },
+    "PLOT_PROFILE.md": {
+      "sha256": "bd5244be814fb68bce984f57d83ddcdcf083a83576a1bf82dc5a6f37486b8d81",
+      "bytes": 8016
     }
   }
 }

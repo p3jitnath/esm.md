@@ -1,0 +1,288 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Accepted matched complete-update observations",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "status",
+    "paired_records"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "status": {
+      "const": "accepted"
+    },
+    "disclosure": {
+      "type": "string"
+    },
+    "paired_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/condition"
+      }
+    }
+  },
+  "$defs": {
+    "condition": {
+      "type": "object",
+      "required": [
+        "model",
+        "platform",
+        "shape",
+        "batch_steps",
+        "cpu_cores",
+        "gpu_devices",
+        "campaign_id",
+        "job_id",
+        "node",
+        "timer_scope",
+        "affinity",
+        "memory_policy",
+        "source_revisions",
+        "input_identity",
+        "acceptance_record",
+        "qualification",
+        "paired_samples"
+      ],
+      "properties": {
+        "model": {
+          "enum": [
+            "sw",
+            "ebm"
+          ]
+        },
+        "platform": {
+          "enum": [
+            "cpu",
+            "gpu"
+          ]
+        },
+        "shape": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "batch_steps": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cpu_cores": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "gpu_devices": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "campaign_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "job_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "node": {
+          "type": "string",
+          "minLength": 1
+        },
+        "timer_scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "affinity": {},
+        "memory_policy": {},
+        "source_revisions": {
+          "type": "object",
+          "required": [
+            "baseline",
+            "esm_md"
+          ]
+        },
+        "input_identity": {},
+        "acceptance_record": {},
+        "qualification": {
+          "type": "object",
+          "required": [
+            "independent_physics_passed",
+            "exact_outputs_equal",
+            "timed_final_state_checked",
+            "exclusive_node",
+            "quiet_samples"
+          ],
+          "properties": {
+            "independent_physics_passed": {
+              "const": true
+            },
+            "exact_outputs_equal": {
+              "const": true
+            },
+            "timed_final_state_checked": {
+              "const": true
+            },
+            "exclusive_node": {
+              "const": true
+            },
+            "quiet_samples": {
+              "const": true
+            }
+          }
+        },
+        "paired_samples": {
+          "type": "array",
+          "minItems": 12,
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "required": [
+              "repeat",
+              "baseline_seconds",
+              "esm_md_seconds"
+            ],
+            "properties": {
+              "repeat": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 11
+              },
+              "baseline_seconds": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "esm_md_seconds": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "model": {
+                "const": "sw"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "shape": {
+                "minItems": 2,
+                "maxItems": 2
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "shape": {
+                "minItems": 1,
+                "maxItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "platform": {
+                "const": "gpu"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "gpu_devices": {
+                "const": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "gpu_devices": {
+                "const": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "platform": {
+                "const": "cpu"
+              }
+            },
+            "required": [
+              "platform"
+            ]
+          },
+          "then": {
+            "required": [
+              "series_kind",
+              "run_id",
+              "active_workers",
+              "nonempty_spatial_owners_by_route"
+            ],
+            "properties": {
+              "series_kind": {
+                "enum": [
+                  "primary",
+                  "fixed_scaling"
+                ]
+              },
+              "run_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "active_workers": {
+                "type": "object",
+                "required": [
+                  "baseline",
+                  "esm_md"
+                ],
+                "properties": {
+                  "baseline": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "esm_md": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "description": "Actual worker team sizes for baseline and esm_md, distinct from the configured ceiling and nonempty owners."
+              },
+              "nonempty_spatial_owners_by_route": {
+                "type": "object",
+                "required": [
+                  "baseline",
+                  "esm_md"
+                ],
+                "properties": {
+                  "baseline": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "esm_md": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "description": "Actual workers with nonempty spatial ownership per route. Each count cannot exceed that route team. The Python guard checks these relationships."
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

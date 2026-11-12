@@ -5,6 +5,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import numpy as np
@@ -14,6 +16,145 @@ import zxingcpp
 
 POSTER = Path(__file__).resolve().parents[1]
 ROOT = POSTER.parents[2]
+
+
+def _accepted_performance() -> tuple[dict, str, dict]:
+    """Validate the accepted input and actual chart files before writing outputs.
+
+    Returns
+    -------
+    manifest : dict
+        Accepted campaign, chart and caption records for both models.
+    input_sha256 : str
+        SHA256 identifier of the supplied performance input.
+    charts : dict
+        Actual SVG/PNG identities, visible labels and CPU resource records.
+
+    Raises
+    ------
+    AssertionError
+        If acceptance, metric, resource or actual chart checks fail.
+    """
+    manifest_path = POSTER / "data/accepted-performance-update.json"
+    payload = manifest_path.read_bytes()
+    manifest = json.loads(payload)
+    assert manifest.get("status") == "accepted", "Performance results are pending."
+    assert manifest.get("presentation") == "matched_absolute_rates"
+    assert manifest.get("cpu_resource_interpretation") == "configured_ceiling"
+    assert manifest.get("selected_cpu_cores") == 248
+    assert (
+        isinstance(manifest.get("cpu_worker_disclosure"), str)
+        and manifest["cpu_worker_disclosure"].strip()
+    )
+    campaigns = manifest["accepted_campaign_ids"]
+    assert campaigns and all(isinstance(value, str) and value for value in campaigns)
+    for platform in ("cpu", "gpu"):
+        source_path = POSTER / manifest["measurement_sources"][platform]
+        assert source_path.is_file(), source_path
+    charts = {}
+    for model in ("sw", "ebm"):
+        metadata = manifest["render_metadata"][model]
+        assert metadata.get("status") == "accepted"
+        assert metadata.get("presentation") == "matched_absolute_rates"
+        assert metadata.get("mode") == "matched_rates"
+        assert metadata.get("profile") == "poster" and metadata.get("model") == model
+        assert metadata.get("point_definition") == "useful_updates / median_seconds"
+        assert metadata.get("observed_range_definition") == (
+            "minimum and maximum of twelve individual useful-update rates"
+        )
+        coverage = metadata["comparison_coverage"]
+        assert coverage["selected_cpu_core_counts"] == [248]
+        assert coverage["matched_conditions"] == 6
+        assert coverage["historical_language_conditions"] == 0
+        assert len(metadata["paired_summaries"]) == 6
+        paired = metadata["paired_input"]
+        assert paired.get("status") == "accepted"
+        rows = [row for row in paired["paired_records"] if row["model"] == model]
+        assert len(rows) == 6
+        assert all(
+            sum(row["platform"] == platform for row in rows) == 3
+            for platform in ("cpu", "gpu")
+        )
+        for platform in ("cpu", "gpu"):
+            shapes = {
+                tuple(row["shape"]) for row in rows if row["platform"] == platform
+            }
+            assert len(shapes) == 3, (model, platform, "Workloads are duplicated.")
+        resources = []
+        for row in rows:
+            assert row["campaign_id"] in campaigns
+            assert len(row["paired_samples"]) == 12
+            assert all(
+                row["qualification"].get(flag) is True
+                for flag in (
+                    "independent_physics_passed",
+                    "exact_outputs_equal",
+                    "timed_final_state_checked",
+                    "exclusive_node",
+                    "quiet_samples",
+                )
+            )
+            if row["platform"] != "cpu":
+                continue
+            assert row["cpu_cores"] == 248 and row.get("series_kind") == "primary"
+            assert isinstance(row.get("run_id"), str) and row["run_id"]
+            teams = row["active_workers"]
+            owners = row["nonempty_spatial_owners_by_route"]
+            for route in ("baseline", "esm_md"):
+                team, owner = teams[route], owners[route]
+                assert type(team) is int and type(owner) is int
+                assert 1 <= owner <= team <= 248
+            assert teams["baseline"] == teams["esm_md"], "Paired CPU teams differ."
+            resources.append(
+                {
+                    "shape": row["shape"],
+                    "run_id": row["run_id"],
+                    "configured_ceiling": 248,
+                    "active_workers": teams,
+                    "nonempty_spatial_owners_by_route": owners,
+                }
+            )
+        chart = manifest["figures"][model]
+        identities = {}
+        for suffix in ("svg", "png"):
+            path = POSTER / chart[suffix]
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            assert any(
+                Path(recorded_path).suffix == "." + suffix and recorded_hash == digest
+                for recorded_path, recorded_hash in metadata["outputs"].items()
+            ), (model, suffix, "Chart bytes differ from the render receipt.")
+            identities[suffix] = {"path": chart[suffix], "sha256": digest}
+        svg_path = POSTER / chart["svg"]
+        parser = ET.XMLParser(target=ET.TreeBuilder(insert_comments=True))
+        svg = ET.fromstring(svg_path.read_bytes(), parser=parser)
+        labels = []
+        for element in svg.iter():
+            if element.tag == "{http://www.w3.org/2000/svg}text":
+                labels.append("".join(element.itertext()))
+            elif element.tag == "{http://www.w3.org/2000/svg}g" and element.get(
+                "id", ""
+            ).startswith("text_"):
+                # Matplotlib path-font exports store each drawable label here.
+                labels.extend(
+                    child.text or "" for child in element if child.tag is ET.Comment
+                )
+        visible = " ".join(labels)
+        assert "ESM.md" in visible, (model, "Missing implementation label.")
+        assert not re.search(r"\bassembly\b", visible, re.IGNORECASE), model
+        rate_labels = [
+            value
+            for value in labels
+            if re.search(r"updates\s*/\s*s|updates per second", value)
+        ]
+        assert rate_labels and all(
+            "[" in value and "]" in value for value in rate_labels
+        )
+        charts[model] = {
+            **identities,
+            "visible_chart_text": labels,
+            "cpu_resources": resources,
+        }
+    return manifest, hashlib.sha256(payload).hexdigest(), charts
 
 
 def check(output: Path) -> dict:
@@ -40,6 +181,7 @@ def check(output: Path) -> dict:
     reads the delivered files, leaves both documents unchanged and exports
     the saved PDF as a 150 dpi PNG.
     """
+    performance, input_sha256, chart_checks = _accepted_performance()
     output.mkdir(parents=True, exist_ok=True)
     pptx = POSTER / "esm-md-a0-landscape.pptx"
     pdf = POSTER / "esm-md-a0-landscape.pdf"
@@ -49,6 +191,7 @@ def check(output: Path) -> dict:
     width, height = presentation.slide_width / 36000, presentation.slide_height / 36000
     assert abs(width - 1189) < 0.1 and abs(height - 841) < 0.1
     slide = presentation.slides[0]
+    assert len(slide.shapes) == 65, len(slide.shapes)
     texts = []
     sizes = []
     names = set()
@@ -72,20 +215,63 @@ def check(output: Path) -> dict:
     all_text = "\n".join(texts)
     assert "dam_break.md" in all_text
     assert "2d_periodic.md" not in all_text
-    assert "md2fort" in all_text and "md2fort-gpu" in all_text
+    skills = set(re.findall(r"\bmd2fort(?:-gpu)?\b", all_text))
+    assert skills == {"md2fort", "md2fort-gpu"}, skills
     assert "md2asm" not in all_text
-    methods = next(shape for shape in slide.shapes if shape.name == "method-details")
-    for index in (0, 2):
-        assert all(
-            str(run.font.color.rgb) == "0000FF"
-            for run in methods.text_frame.paragraphs[index].runs
+    by_name = {shape.name: shape for shape in slide.shapes}
+    methods = by_name["method-details"]
+    assert len(methods.text_frame.paragraphs) == 5
+    expected_steps = ("a. Inputs", "b. LLM + skills", "c. Verify/time")
+    for index, expected in enumerate(expected_steps, 1):
+        assert " ".join(by_name[f"method-step-{index}"].text.split()) == expected
+    blue_shapes = {
+        "method-details",
+        "results-summary",
+        "energy-summary",
+        "error-caption",
+        "takeaways",
+        *[f"method-step-{index}" for index in (1, 2, 3)],
+        *[f"method-detail-{index}" for index in (1, 2, 3)],
+    }
+    expected_text = {
+        "results-summary": performance["poster_text"]["sw_intro"],
+        "energy-summary": performance["poster_text"]["ebm_intro"],
+        "error-caption": performance["poster_text"]["caption"]
+        + " "
+        + performance["cpu_worker_disclosure"],
+        "takeaways": " ".join(performance["poster_text"]["takeaways"]),
+    }
+    for name, expected in expected_text.items():
+        assert " ".join(by_name[name].text.split()) == " ".join(expected.split()), name
+    for name in blue_shapes:
+        shape = by_name[name]
+        runs = [
+            run
+            for paragraph in shape.text_frame.paragraphs
+            for run in paragraph.runs
+            if run.text
+        ]
+        assert runs and all(str(run.font.color.rgb) == "0000FF" for run in runs), name
+    for model, name in (("sw", "result-error"), ("ebm", "result-calibration")):
+        picture = by_name[name]
+        assert (
+            hashlib.sha256(picture.image.blob).hexdigest()
+            == chart_checks[model]["png"]["sha256"]
         )
-    skill_step = next(shape for shape in slide.shapes if shape.name == "method-step-2")
-    assert skill_step.text == "b. md2fort"
-    assert all(
-        str(run.font.color.rgb) == "0000FF"
-        for run in skill_step.text_frame.paragraphs[0].runs
-    )
+        svg_nodes = [
+            node
+            for node in picture._element.iter()
+            if node.tag
+            == "{http://schemas.microsoft.com/office/drawing/2016/SVG/main}svgBlip"
+        ]
+        assert len(svg_nodes) == 1, name
+        relation = svg_nodes[0].get(
+            "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
+        )
+        svg_blob = picture.part.related_part(relation).blob
+        assert (
+            hashlib.sha256(svg_blob).hexdigest() == chart_checks[model]["svg"]["sha256"]
+        )
     title = next(shape for shape in slide.shapes if shape.name == "poster-title")
     assert title.text == profile["identity"]["title"]
     title_runs = list(title.text_frame.paragraphs[0].runs)
@@ -169,6 +355,7 @@ def check(output: Path) -> dict:
         )
         for name, bounds in {
             "performance": (408, 510, 1165, 790),
+            "methods": (25, 510, 397, 790),
             "footer": (25, 791, 1165, 839),
             "banner": (25, 76, 1165, 193),
         }.items():
@@ -178,6 +365,16 @@ def check(output: Path) -> dict:
             )
     report = {
         "passed": True,
+        "accepted_performance_input_sha256": input_sha256,
+        "artifact_sha256": {
+            path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in (pptx, pdf, poster_png)
+        },
+        "performance_presentation": performance["presentation"],
+        "cpu_resource_interpretation": performance["cpu_resource_interpretation"],
+        "matched_chart_checks": chart_checks,
+        "blue_text_frames": sorted(blue_shapes),
+        "changed_prose_colour": "0000FF",
         "canvas_mm": [width, height],
         "slides": 1,
         "native_objects": len(slide.shapes),

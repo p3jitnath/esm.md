@@ -1,4 +1,4 @@
-"""Record the sources and checks for the current published poster files."""
+"""Record accepted poster measurements and checks bound to the saved artwork."""
 
 from __future__ import annotations
 
@@ -6,19 +6,21 @@ from datetime import datetime, timezone
 import hashlib
 import importlib.metadata
 import json
+import math
 from pathlib import Path
+import statistics
 
 POSTER = Path(__file__).resolve().parents[1]
 ROOT = POSTER.parents[2]
 
 
 def digest(path: Path) -> str:
-    """Return a SHA256 identifier for one retained file.
+    """Return the SHA256 identifier of a retained file.
 
     Parameters
     ----------
     path : pathlib.Path
-        File whose bytes identify the recorded artifact.
+        File whose bytes identify the artifact.
 
     Returns
     -------
@@ -28,37 +30,352 @@ def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def refresh() -> dict:
-    """Join poster claims to copied measurements and actual exported files.
+def load_performance() -> dict:
+    """Read only an accepted manifest for the new matched-rate poster.
 
     Returns
     -------
     dict
-        Evidence map written to the poster project.
+        Accepted relative source paths, renderer receipts and native prose.
+
+    Raises
+    ------
+    ValueError
+        If the new data are missing, pending or outside the declared scope.
+    """
+    path = POSTER / "data/accepted-performance-update.json"
+    if not path.is_file():
+        raise ValueError("Accepted poster performance input is required.")
+    data = json.loads(path.read_text())
+    if (
+        data.get("status") != "accepted"
+        or data.get("presentation") != "matched_absolute_rates"
+        or data.get("selected_cpu_cores") != 248
+        or data.get("cpu_resource_interpretation") != "configured_ceiling"
+    ):
+        raise ValueError("The new poster measurements are not accepted.")
+    return data
+
+
+def condition_key(row: dict) -> tuple:
+    """Identify one complete workload and its selected resource configuration.
+
+    Parameters
+    ----------
+    row : dict
+        One accepted timing condition or renderer summary.
+
+    Returns
+    -------
+    tuple
+        Model-independent platform, shape, steps and resource identifiers.
+    """
+    return (
+        row["platform"],
+        tuple(row["shape"]),
+        row["batch_steps"],
+        row["cpu_cores"],
+        row["gpu_devices"],
+    )
+
+
+def review_rates(data: dict) -> tuple[dict, dict]:
+    """Compare each plotted rate with original accepted elapsed-time words.
+
+    Parameters
+    ----------
+    data : dict
+        Accepted poster manifest with two complete render receipts.
+
+    Returns
+    -------
+    reviews : dict
+        Actual condition, series and observation counts by platform.
+    sources : dict
+        Retained source paths, hashes and measurement-policy metadata.
+
+    Raises
+    ------
+    ValueError
+        If source times, resources, qualification or plotted rates disagree.
 
     Notes
     -----
-    This records existing numerical evidence. It performs no model simulation
-    and does not invent missing verification or desktop inspection.
+    This independently checks recorded observations. It does not run a solver
+    or replace physical verification. A unit in the last place (ULP) is the
+    spacing between neighbouring 64-bit floating-point values. One ULP is
+    allowed when equivalent rate expressions round differently.
     """
+    sources = {}
+    raw_sources = {}
+    for platform in ("cpu", "gpu"):
+        relative = data["measurement_sources"][platform]
+        if (
+            not isinstance(relative, str)
+            or not relative
+            or Path(relative).is_absolute()
+        ):
+            raise ValueError("Accepted measurement sources need relative poster paths.")
+        path = POSTER / relative
+        if not path.resolve().is_relative_to(POSTER.resolve()):
+            raise ValueError("Measurement source paths must stay inside the poster.")
+        source = json.loads(path.read_text())
+        if source.get("status") != "accepted":
+            raise ValueError("An original measurement source is not accepted.")
+        raw_sources[platform] = source["paired_records"]
+        sources[platform] = {
+            "path": relative,
+            "sha256": digest(path),
+            "measurement_protocol": source.get("measurement_protocol"),
+            "power_policy": source.get("power_policy"),
+            "quiet_policy": source.get("quiet_policy"),
+        }
+    reviews = {
+        platform: {
+            "status": "passed",
+            "conditions": 0,
+            "series": 0,
+            "pairs": 0,
+            "elapsed_observations": 0,
+            "maximum_rate_difference_in_ULPs": 0.0,
+        }
+        for platform in ("cpu", "gpu")
+    }
+    for model in ("sw", "ebm"):
+        receipt = data["render_metadata"][model]
+        coverage = receipt["comparison_coverage"]
+        if (
+            receipt.get("status") != "accepted"
+            or receipt.get("presentation") != "matched_absolute_rates"
+            or receipt.get("mode") != "matched_rates"
+            or receipt.get("model") != model
+            or receipt.get("profile") != "poster"
+            or coverage["selected_cpu_core_counts"] != [248]
+            or coverage["matched_conditions"] != 6
+            or coverage["historical_language_conditions"] != 0
+            or receipt.get("point_definition") != "useful_updates / median_seconds"
+            or receipt.get("observed_range_definition")
+            != "minimum and maximum of twelve individual useful-update rates"
+        ):
+            raise ValueError("A render receipt has the wrong accepted scope.")
+        rows = [
+            r for r in receipt["paired_input"]["paired_records"] if r["model"] == model
+        ]
+        summaries = receipt["paired_summaries"]
+        if (
+            len(rows) != 6
+            or len(summaries) != 6
+            or any(
+                sum(r["platform"] == platform for r in rows) != 3
+                for platform in ("cpu", "gpu")
+            )
+        ):
+            raise ValueError("Each model requires three CPU and three GPU conditions.")
+        keys = [condition_key(row) for row in rows]
+        if len(set(keys)) != 6 or {condition_key(row) for row in summaries} != set(
+            keys
+        ):
+            raise ValueError("A matched workload is missing or duplicated.")
+        for summary in summaries:
+            row = rows[keys.index(condition_key(summary))]
+            platform = row["platform"]
+            originals = [
+                r
+                for r in raw_sources[platform]
+                if r["model"] == model
+                and condition_key(r) == condition_key(row)
+                and (
+                    platform != "cpu"
+                    or (
+                        r.get("series_kind") == "primary"
+                        and r.get("run_id") == row.get("run_id")
+                    )
+                )
+            ]
+            copied_words = sorted(
+                (
+                    pair["repeat"],
+                    float(pair["baseline_seconds"]).hex(),
+                    float(pair["esm_md_seconds"]).hex(),
+                )
+                for pair in row["paired_samples"]
+            )
+            original_words = (
+                sorted(
+                    (
+                        pair["repeat"],
+                        float(pair["baseline_seconds"]).hex(),
+                        float(pair["esm_md_seconds"]).hex(),
+                    )
+                    for pair in originals[0]["paired_samples"]
+                )
+                if len(originals) == 1
+                else []
+            )
+            if len(originals) != 1 or original_words != copied_words:
+                raise ValueError(
+                    "Copied elapsed-time words differ from their accepted source."
+                )
+            original = originals[0]
+            identity_fields = (
+                "campaign_id",
+                "job_id",
+                "node",
+                "timer_scope",
+                "source_revisions",
+                "input_identity",
+                "acceptance_record",
+            )
+            if platform == "cpu":
+                identity_fields += (
+                    "active_workers",
+                    "nonempty_spatial_owners_by_route",
+                )
+            if any(row[key] != original[key] for key in identity_fields):
+                raise ValueError(
+                    "A copied timing or resource identity differs from its source."
+                )
+            if (
+                row["campaign_id"] not in data["accepted_campaign_ids"]
+                or row["batch_steps"] != 1000
+            ):
+                raise ValueError("A condition has the wrong campaign or step count.")
+            flags = (
+                "independent_physics_passed",
+                "exact_outputs_equal",
+                "timed_final_state_checked",
+                "exclusive_node",
+                "quiet_samples",
+            )
+            if not all(row["qualification"].get(flag) is True for flag in flags):
+                raise ValueError(
+                    "A condition lacks its scientific and timing acceptance."
+                )
+            pairs = row["paired_samples"]
+            if len(pairs) != 12 or {r["repeat"] for r in pairs} != set(range(12)):
+                raise ValueError("Twelve distinct paired observations are required.")
+            if platform == "cpu":
+                teams = row["active_workers"]
+                owners = row["nonempty_spatial_owners_by_route"]
+                if (
+                    row["cpu_cores"] != 248
+                    or row.get("series_kind") != "primary"
+                    or not isinstance(row.get("run_id"), str)
+                    or not row["run_id"].strip()
+                    or teams["baseline"] != teams["esm_md"]
+                    or any(
+                        type(teams[r]) is not int
+                        or type(owners[r]) is not int
+                        or not 1 <= owners[r] <= teams[r] <= 248
+                        for r in ("baseline", "esm_md")
+                    )
+                ):
+                    raise ValueError(
+                        "CPU ceiling, common team or owner metadata disagree."
+                    )
+            elif row["gpu_devices"] != 1:
+                raise ValueError("The GPU comparison requires one device.")
+            updates = math.prod(row["shape"]) * row["batch_steps"]
+            for route in ("baseline", "esm_md"):
+                seconds = [pair[route + "_seconds"] for pair in pairs]
+                if any(not math.isfinite(t) or t <= 0 for t in seconds):
+                    raise ValueError("Every elapsed time must be positive and finite.")
+                rates = [updates / (t * 1_000_000) for t in seconds]
+                expected = {
+                    "point": updates / (statistics.median(seconds) * 1_000_000),
+                    "minimum": min(rates),
+                    "maximum": max(rates),
+                }
+                for statistic, value in expected.items():
+                    if not math.isfinite(value) or value <= 0:
+                        raise ValueError(
+                            "A derived accepted rate is not positive and finite."
+                        )
+                    actual = summary[route][statistic]
+                    if not math.isfinite(actual) or actual <= 0:
+                        raise ValueError("A plotted rate is not positive and finite.")
+                    difference = abs(actual - value) / max(
+                        math.ulp(actual), math.ulp(value)
+                    )
+                    if difference > 1:
+                        raise ValueError(
+                            "A plotted rate differs from accepted elapsed times."
+                        )
+                    reviews[platform]["maximum_rate_difference_in_ULPs"] = max(
+                        reviews[platform]["maximum_rate_difference_in_ULPs"], difference
+                    )
+            reviews[platform]["conditions"] += 1
+            reviews[platform]["series"] += 2
+            reviews[platform]["pairs"] += len(pairs)
+            reviews[platform]["elapsed_observations"] += 2 * len(pairs)
+    return reviews, sources
+
+
+def refresh() -> dict:
+    """Write current evidence only after accepted data and saved-artwork reviews.
+
+    Returns
+    -------
+    dict
+        Evidence map bound to the current input, PPTX, PDF and PNG.
+
+    Raises
+    ------
+    ValueError
+        If measurements or the current structural and visual reviews are pending.
+
+    Notes
+    -----
+    No model simulation or comparative timing is performed. A separate human
+    must review the actual final PDF before this function writes evidence.
+    """
+    data = load_performance()
+    input_path = POSTER / "data/accepted-performance-update.json"
+    input_hash = digest(input_path)
+    reviews, source_records = review_rates(data)
+    review_dir = ROOT / ".runtime/poster_update_20261108/final_review"
+    checks = json.loads((review_dir / "structural-check.json").read_text())
+    visual = json.loads((review_dir / "visual-review.json").read_text())
+    artifacts = {
+        name: digest(POSTER / name)
+        for name in (
+            "esm-md-a0-landscape.pptx",
+            "esm-md-a0-landscape.pdf",
+            "esm-md-a0-landscape.png",
+        )
+    }
+    if (
+        checks.get("passed") is not True
+        or checks.get("accepted_performance_input_sha256") != input_hash
+        or checks.get("artifact_sha256") != artifacts
+    ):
+        raise ValueError("The saved-artwork checks are missing or stale.")
+    if (
+        visual.get("status") != "passed"
+        or visual.get("pdf_sha256") != artifacts["esm-md-a0-landscape.pdf"]
+        or visual.get("accepted_performance_input_sha256") != input_hash
+    ):
+        raise ValueError("The final PDF needs a fresh human visual review.")
     old = json.loads((POSTER / "data/historical/poster_evidence.json").read_text())
-    data = json.loads((POSTER / "data/results-current.json").read_text())
     profile = json.loads((POSTER / "project-profile.json").read_text())
     physics = json.loads((POSTER / "figure-evidence.json").read_text())
-    checks_path = (
-        ROOT / ".runtime/poster_update_20261108/final_review/structural-check.json"
-    )
-    checks = (
-        json.loads(checks_path.read_text())
-        if checks_path.exists()
-        else {"status": "pending"}
-    )
-    visual_path = checks_path.parent / "visual-review.json"
-    visual = (
-        json.loads(visual_path.read_text())
-        if visual_path.exists()
-        else {"status": "pending"}
-    )
+    comparison = {
+        "status": "accepted",
+        "presentation": "matched_absolute_rates",
+        "source_records": source_records,
+        "input_sha256": input_hash,
+        "series": ["ESM.md", "Hand-tuned baseline"],
+        "point_definition": "Useful updates divided by median elapsed seconds",
+        "range_definition": "Observed minimum and maximum of twelve individual rates",
+        "independent_recorded_rate_review": reviews,
+        "new_numerical_runs": False,
+        "plotted_data": {
+            model: data["render_metadata"][model]["paired_summaries"]
+            for model in ("sw", "ebm")
+        },
+    }
+    comparison_path = POSTER / "data/performance-figure-evidence-20261112.json"
+    comparison_path.write_text(json.dumps(comparison, indent=2) + "\n")
     files = {}
     for directory in ("scripts", "data", "figures", "assets"):
         for path in sorted((POSTER / directory).rglob("*")):
@@ -72,12 +389,12 @@ def refresh() -> dict:
                     "bytes": path.stat().st_size,
                 }
     for name in (
-        "esm-md-a0-landscape.pptx",
-        "esm-md-a0-landscape.pdf",
-        "esm-md-a0-landscape.png",
+        *artifacts,
         "project-profile.json",
         "README.md",
         "requirements.txt",
+        "requirements_plotting.txt",
+        "PLOT_PROFILE.md",
     ):
         path = POSTER / name
         if path.exists():
@@ -91,44 +408,35 @@ def refresh() -> dict:
         + ", "
         + profile["identity"]["university"],
         "implementation_label": "ESM.md",
-        "generation_route": "Physics in Markdown to structured Fortran, then compiler-generated CPU or GPU instructions",
+        "generation_route": "Markdown physics and fixed contracts guide Fortran and CUDA Fortran candidates, which compilers translate to machine code",
         "branding": old.get("branding", {}),
         "references": old.get("references", []),
         "acknowledgement": old.get("acknowledgement", {}),
         "physics": physics,
-        "performance_source": "data/results-current.json",
-        "performance_source_sha256": digest(POSTER / "data/results-current.json"),
-        "performance_method": "Absolute complete-cell-update rates for esm.md and six language controls, with median and observed min-max across twelve runs per condition",
-        "graph_policy": "Assembly series and assembly-ratio axes are omitted from every visible performance graph. Raw controls remain in source data for provenance.",
-        "axis_scales": {"CPU": "linear", "GPU": "logarithmic"},
-        "figure_unit_labels": profile["poster"].get("figure_unit_labels"),
-        "independent_plotted_input_reviews": {
-            "CPU": {"status": "pass", "groups": 42, "per_run_observations": 504},
-            "GPU": {
-                "status": "pass",
-                "groups": 42,
-                "per_run_observations": 504,
-                "maximum_elapsed_derived_rate_difference": "one FP64 ULP",
-            },
-            "method": "Read-only comparison of all plotted groups and samples with accepted source records, including counts, grids, steps, labels, aggregation, ranges and cohorts",
-            "new_numerical_runs": False,
+        "performance_source": "data/accepted-performance-update.json",
+        "performance_source_sha256": input_hash,
+        "performance_method": "Two matched routes at three grids per model and platform, using useful updates divided by median elapsed seconds and observed twelve-run rate ranges",
+        "graph_policy": "Show ESM.md and the hand-tuned baseline through absolute rates, without historical controls or normalized panels",
+        "axis_scales": {
+            "CPU": "Independent zero-based linear rate axes per grid",
+            "GPU": "Independent zero-based linear rate axes per grid",
         },
-        "historical_controls": "Six vanilla/tuned Fortran, Julia and compiled-Python controls from October 2026 appear alongside November 2026 esm.md. The visible date note separates these cohorts. CPU and GPU use separate timers.",
+        "figure_unit_labels": profile["poster"].get("figure_unit_labels"),
+        "independent_plotted_input_reviews": {**reviews, "new_numerical_runs": False},
         "scope": [
-            "CPU timing uses wall time on one Neoverse V2 core. GPU timing uses device events on one GH200. These measure complete-update compute throughput, not end-to-end forecast time.",
-            "The six CPU median rates remain below the paired assembly controls, so this snapshot does not establish CPU parity.",
-            "Rates include complete numerical updates and exclude setup, verification and file output as recorded by each protocol.",
-            "Exact acceptance covers the recorded inputs and tested configurations, and does not establish x86 performance.",
-            "Physical figures are unchanged accepted canonical model states rather than observations.",
-            "The current esm.md and archived language controls use separate dates, nodes and jobs. Absolute rates preserve their recorded ranges, and are not freshly paired speedup estimates.",
+            "Main CPU conditions have a configured 248-core ceiling and the same actual team for both routes within each paired workload. Teams can differ across grids, with nonempty spatial owners recorded separately.",
+            data["cpu_worker_disclosure"],
+            "CPU timing includes the complete coordinator and required neighbouring-cell work. GPU records use one device and retain their declared event scope and transfer exclusions.",
+            "Original elapsed-time words, source identities and accepted power and quiet policies remain in the copied source records.",
+            "Independent physical verification and exact complete-output agreement apply to the recorded inputs and configurations, without establishing performance on another architecture.",
+            "The unchanged physical figures show accepted model states rather than observations.",
         ],
-        "comparison_evidence": json.loads(
-            (POSTER / "data/performance-figure-evidence.json").read_text()
-        ),
+        "comparison_evidence": comparison,
+        "comparison_evidence_source": str(comparison_path.relative_to(POSTER)),
         "formulation_rename": json.loads(
             (POSTER / "data/dam-break-rename.json").read_text()
         ),
-        "summary": data["summary"],
+        "summary": data["poster_text"],
         "structural_and_qr_checks": checks,
         "visual_review": visual,
         "desktop_powerpoint_inspection": False,
@@ -158,7 +466,7 @@ if __name__ == "__main__":
             {
                 "title": result["title"],
                 "files": len(result["files"]),
-                "checks": result["structural_and_qr_checks"].get("passed"),
+                "checks": result["structural_and_qr_checks"]["passed"],
             },
             indent=2,
         )

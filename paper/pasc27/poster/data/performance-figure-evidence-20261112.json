@@ -1,0 +1,980 @@
+{
+  "status": "accepted",
+  "presentation": "matched_absolute_rates",
+  "source_records": {
+    "cpu": {
+      "path": "data/cpu-results-20261112.json",
+      "sha256": "8c9a79697c4e655bdcde2ec152aa04c8e272b1f250580ea2cf5ead5a89ab1e13",
+      "measurement_protocol": null,
+      "power_policy": null,
+      "quiet_policy": null
+    },
+    "gpu": {
+      "path": "data/gpu-results-20261112.json",
+      "sha256": "4111d1c33d4df095d531395f219c2b4a8e3f1b73dac21ae1069ef6eb9863df4a",
+      "measurement_protocol": {
+        "condition_count": 6,
+        "paired_repetitions": 12,
+        "complete_steps": 1000,
+        "elapsed_time_unit": "s",
+        "rate_unit": "million complete interior-cell updates per second",
+        "rate_point_definition": "useful_updates / median_seconds",
+        "rate_range_definition": "observed minimum and maximum of useful_updates / each raw seconds value",
+        "rate_scale_divisor": 1000000,
+        "range_interpretation": "Observed extrema of twelve individual rates; these ranges are not confidence intervals.",
+        "pairing": "The repeat index and original within-pair implementation order are retained.",
+        "timer_scope": "One complete ordered device graph replay, including every required numerical stage and state publication",
+        "excluded_costs": [
+          "compilation",
+          "warm-up",
+          "allocation",
+          "initial-state restoration",
+          "host-device input/output transfer",
+          "verification",
+          "canonical file encoding"
+        ],
+        "physical_update": "A shallow-water update includes all three fields, both time stages and periodic boundaries. An energy-balance update includes both time stages and pole copies.",
+        "precision": "Ordered binary64 arithmetic with contraction and fast-math disabled; canonical output agreement is checked outside the timer."
+      },
+      "power_policy": {
+        "queried_utc_ns": 1794456749002620370,
+        "uuid": "GPU-aa730fd6-e313-5013-ccc3-688fb21d2aec",
+        "configured_power_limit_mw": 900000,
+        "default_power_limit_mw": 900000,
+        "enforced_power_limit_mw": 900000,
+        "power_limit_constraints_mw": [
+          100000,
+          900000
+        ],
+        "max_sm_clock_mhz": 1980,
+        "current_sm_clock_mhz": 345,
+        "current_temperature_c": 35,
+        "benchmark_policy": "The native benchmark did not set power limits or clocks. Recorded samples include automatic clock and power management.",
+        "software_power_cap_reason_mask": 4
+      },
+      "quiet_policy": {
+        "allocation": "One owned exclusive node; only the current numerical step and the declared idle batch step are allowed.",
+        "placement": "The host driver is pinned to CPU1 and NUMA node0; the selected GPU UUID is fixed.",
+        "pre_sample_observation": {
+          "one_minute_load_maximum": 2.0,
+          "foreign_busy_cpu_cores_maximum": 1.0,
+          "gpu_utilisation_percent": 0,
+          "foreign_gpu_processes_allowed": 0,
+          "consecutive_settled_observations": 2,
+          "observation_interval_seconds": 0.2
+        },
+        "post_sample_observation": "GPU process ownership and host load are checked after each timed graph; the full observations remain in the hashed timing evidence.",
+        "clock_and_power_management": "The native benchmark did not set power limits or clocks. Recorded samples include automatic clock and power management.",
+        "acceptance": "All six retained conditions have accepted exclusive-node and quiet-sample flags; automatic clock or software power-cap events are disclosed separately."
+      }
+    }
+  },
+  "input_sha256": "55ace931e250e7f3d35913e705dba5746fc9fdb4b9091da88605a757db0d48bb",
+  "series": [
+    "ESM.md",
+    "Hand-tuned baseline"
+  ],
+  "point_definition": "Useful updates divided by median elapsed seconds",
+  "range_definition": "Observed minimum and maximum of twelve individual rates",
+  "independent_recorded_rate_review": {
+    "cpu": {
+      "status": "passed",
+      "conditions": 6,
+      "series": 12,
+      "pairs": 72,
+      "elapsed_observations": 144,
+      "maximum_rate_difference_in_ULPs": 1.0
+    },
+    "gpu": {
+      "status": "passed",
+      "conditions": 6,
+      "series": 12,
+      "pairs": 72,
+      "elapsed_observations": 144,
+      "maximum_rate_difference_in_ULPs": 1.0
+    }
+  },
+  "new_numerical_runs": false,
+  "plotted_data": {
+    "sw": [
+      {
+        "model": "sw",
+        "platform": "cpu",
+        "shape": [
+          64,
+          64
+        ],
+        "cpu_cores": 248,
+        "gpu_devices": 0,
+        "batch_steps": 1000,
+        "active_workers": {
+          "baseline": 16,
+          "esm_md": 16
+        },
+        "series_kind": "primary",
+        "run_id": "primary_sw_n64_budget248_team16",
+        "nonempty_spatial_owners_by_route": {
+          "baseline": 16,
+          "esm_md": 16
+        },
+        "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+        "throughput_unit": "million complete cell updates per second",
+        "time_unit": "s",
+        "baseline": {
+          "median": 393.6571933216926,
+          "minimum": 392.8922944670195,
+          "maximum": 395.8337339829156,
+          "count": 12,
+          "point": 393.65717947418034
+        },
+        "esm_md": {
+          "median": 375.12336405373435,
+          "minimum": 373.60638706387886,
+          "maximum": 377.11983747018877,
+          "count": 12,
+          "point": 375.1233506501237
+        },
+        "ratio": {
+          "point": 0.9529188598851092,
+          "minimum": 0.9458455306564517,
+          "maximum": 0.9584766752393296,
+          "paired_median": 0.9518322975775498,
+          "count": 12
+        },
+        "throughput_ratio": {
+          "point": 0.9529188598851092,
+          "minimum": 0.9458455306564517,
+          "maximum": 0.9584766752393296,
+          "paired_median": 0.9518322975775498,
+          "count": 12
+        },
+        "median_rate_ratio": {
+          "point": 0.9529188604136275,
+          "minimum": 0.9458455306564517,
+          "maximum": 0.9584766752393296,
+          "paired_median": 0.9518322975775498,
+          "count": 12
+        },
+        "time_ratio": {
+          "point": 1.0494072917399988,
+          "minimum": 1.043322206823971,
+          "maximum": 1.0572550882658007,
+          "paired_median": 1.0506056178898504,
+          "count": 12
+        },
+        "baseline_seconds": {
+          "median": 0.0104049925,
+          "minimum": 0.010347779,
+          "maximum": 0.010425249,
+          "count": 12
+        },
+        "esm_md_seconds": {
+          "median": 0.010919075,
+          "minimum": 0.010861269,
+          "maximum": 0.01096341,
+          "count": 12
+        }
+      },
+      {
+        "model": "sw",
+        "platform": "cpu",
+        "shape": [
+          256,
+          256
+        ],
+        "cpu_cores": 248,
+        "gpu_devices": 0,
+        "batch_steps": 1000,
+        "active_workers": {
+          "baseline": 72,
+          "esm_md": 72
+        },
+        "series_kind": "primary",
+        "run_id": "primary_sw_n256_budget248_team72",
+        "nonempty_spatial_owners_by_route": {
+          "baseline": 72,
+          "esm_md": 72
+        },
+        "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+        "throughput_unit": "million complete cell updates per second",
+        "time_unit": "s",
+        "baseline": {
+          "median": 2694.7918461171425,
+          "minimum": 2661.386236398396,
+          "maximum": 2715.2614048146665,
+          "count": 12,
+          "point": 2694.791635463147
+        },
+        "esm_md": {
+          "median": 2483.8174925829335,
+          "minimum": 2465.8890552355615,
+          "maximum": 2500.2276627895767,
+          "count": 12,
+          "point": 2483.81743820549
+        },
+        "ratio": {
+          "point": 0.9217103858861438,
+          "minimum": 0.9148971801528418,
+          "maximum": 0.9322676467390267,
+          "paired_median": 0.9219519091052366,
+          "count": 12
+        },
+        "throughput_ratio": {
+          "point": 0.9217103858861438,
+          "minimum": 0.9148971801528418,
+          "maximum": 0.9322676467390267,
+          "paired_median": 0.9219519091052366,
+          "count": 12
+        },
+        "median_rate_ratio": {
+          "point": 0.9217103340140365,
+          "minimum": 0.9148971801528418,
+          "maximum": 0.9322676467390267,
+          "paired_median": 0.9219519091052366,
+          "count": 12
+        },
+        "time_ratio": {
+          "point": 1.084939494349505,
+          "minimum": 1.0726533345846485,
+          "maximum": 1.0930189989578294,
+          "paired_median": 1.0846562295059474,
+          "count": 12
+        },
+        "baseline_seconds": {
+          "median": 0.024319505499999998,
+          "minimum": 0.024136166,
+          "maximum": 0.024624761,
+          "count": 12
+        },
+        "esm_md_seconds": {
+          "median": 0.026385192000000002,
+          "minimum": 0.026212013,
+          "maximum": 0.026577027,
+          "count": 12
+        }
+      },
+      {
+        "model": "sw",
+        "platform": "cpu",
+        "shape": [
+          1024,
+          1024
+        ],
+        "cpu_cores": 248,
+        "gpu_devices": 0,
+        "batch_steps": 1000,
+        "active_workers": {
+          "baseline": 248,
+          "esm_md": 248
+        },
+        "series_kind": "primary",
+        "run_id": "primary_sw_n1024_budget248_team248",
+        "nonempty_spatial_owners_by_route": {
+          "baseline": 248,
+          "esm_md": 248
+        },
+        "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+        "throughput_unit": "million complete cell updates per second",
+        "time_unit": "s",
+        "baseline": {
+          "median": 7137.068043330947,
+          "minimum": 6993.534120964071,
+          "maximum": 7444.5696294195,
+          "count": 12,
+          "point": 7137.063627544756
+        },
+        "esm_md": {
+          "median": 6488.708075213958,
+          "minimum": 6279.367313692249,
+          "maximum": 6619.709048353188,
+          "count": 12,
+          "point": 6488.708032863132
+        },
+        "ratio": {
+          "point": 0.9091565343232526,
+          "minimum": 0.8840811632630168,
+          "maximum": 0.9322819703533274,
+          "paired_median": 0.8999247549568162,
+          "count": 12
+        },
+        "throughput_ratio": {
+          "point": 0.9091565343232526,
+          "minimum": 0.8840811632630168,
+          "maximum": 0.9322819703533274,
+          "paired_median": 0.8999247549568162,
+          "count": 12
+        },
+        "median_rate_ratio": {
+          "point": 0.9091559777515597,
+          "minimum": 0.8840811632630168,
+          "maximum": 0.9322819703533274,
+          "paired_median": 0.8999247549568162,
+          "count": 12
+        },
+        "time_ratio": {
+          "point": 1.0999205992006298,
+          "minimum": 1.072636854299572,
+          "maximum": 1.131117867401612,
+          "paired_median": 1.1112486531246768,
+          "count": 12
+        },
+        "baseline_seconds": {
+          "median": 0.1469198055,
+          "minimum": 0.140851124,
+          "maximum": 0.149935066,
+          "count": 12
+        },
+        "esm_md_seconds": {
+          "median": 0.1616001205,
+          "minimum": 0.158402128,
+          "maximum": 0.166987524,
+          "count": 12
+        }
+      },
+      {
+        "model": "sw",
+        "platform": "gpu",
+        "shape": [
+          64,
+          64
+        ],
+        "cpu_cores": 1,
+        "gpu_devices": 1,
+        "batch_steps": 1000,
+        "active_workers": null,
+        "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+        "throughput_unit": "million complete cell updates per second",
+        "time_unit": "s",
+        "baseline": {
+          "median": 1162.5002827176477,
+          "minimum": 1161.8618568195216,
+          "maximum": 1162.8118292841161,
+          "count": 12,
+          "point": 1162.5002826933955
+        },
+        "esm_md": {
+          "median": 1051.8055323258377,
+          "minimum": 1051.5506226016673,
+          "maximum": 1052.1989063050162,
+          "count": 12,
+          "point": 1051.8055321657653
+        },
+        "ratio": {
+          "point": 0.9047787323791769,
+          "minimum": 0.9044211189503478,
+          "maximum": 0.90519778173422,
+          "paired_median": 0.9049298079863124,
+          "count": 12
+        },
+        "throughput_ratio": {
+          "point": 0.9047787323791769,
+          "minimum": 0.9044211189503478,
+          "maximum": 0.90519778173422,
+          "paired_median": 0.9049298079863124,
+          "count": 12
+        },
+        "median_rate_ratio": {
+          "point": 0.9047787324979981,
+          "minimum": 0.9044211189503478,
+          "maximum": 0.90519778173422,
+          "paired_median": 0.9049298079863124,
+          "count": 12
+        },
+        "time_ratio": {
+          "point": 1.1052426015479304,
+          "minimum": 1.1047309440862234,
+          "maximum": 1.1056796209718973,
+          "paired_median": 1.1050580843967084,
+          "count": 12
+        },
+        "baseline_seconds": {
+          "median": 0.0035234400033950803,
+          "minimum": 0.003522495985031128,
+          "maximum": 0.0035253760814666748,
+          "count": 12
+        },
+        "esm_md_seconds": {
+          "median": 0.0038942559957504275,
+          "minimum": 0.0038928000926971434,
+          "maximum": 0.00389520001411438,
+          "count": 12
+        }
+      },
+      {
+        "model": "sw",
+        "platform": "gpu",
+        "shape": [
+          256,
+          256
+        ],
+        "cpu_cores": 1,
+        "gpu_devices": 1,
+        "batch_steps": 1000,
+        "active_workers": null,
+        "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+        "throughput_unit": "million complete cell updates per second",
+        "time_unit": "s",
+        "baseline": {
+          "median": 6843.524826296696,
+          "minimum": 6838.702688221749,
+          "maximum": 6847.070895622025,
+          "count": 12,
+          "point": 6843.524804206928
+        },
+        "esm_md": {
+          "median": 6785.512468654759,
+          "minimum": 6774.726954440304,
+          "maximum": 6788.7629248529,
+          "count": 12,
+          "point": 6785.512458797348
+        },
+        "ratio": {
+          "point": 0.9915230313224088,
+          "minimum": 0.9894343227513568,
+          "maximum": 0.9926213369336899,
+          "paired_median": 0.9916375767236024,
+          "count": 12
+        },
+        "throughput_ratio": {
+          "point": 0.9915230313224088,
+          "minimum": 0.9894343227513568,
+          "maximum": 0.9926213369336899,
+          "paired_median": 0.9916375767236024,
+          "count": 12
+        },
+        "median_rate_ratio": {
+          "point": 0.991523029562336,
+          "minimum": 0.9894343227513568,
+          "maximum": 0.9926213369336899,
+          "paired_median": 0.9916375767236024,
+          "count": 12
+        },
+        "time_ratio": {
+          "point": 1.0085494420298895,
+          "minimum": 1.0074335124500784,
+          "maximum": 1.0106785028633967,
+          "paired_median": 1.008432946706765,
+          "count": 12
+        },
+        "baseline_seconds": {
+          "median": 0.009576351642608642,
+          "minimum": 0.009571392059326172,
+          "maximum": 0.009583104133605956,
+          "count": 12
+        },
+        "esm_md_seconds": {
+          "median": 0.00965822410583496,
+          "minimum": 0.009653599739074707,
+          "maximum": 0.009673600196838378,
+          "count": 12
+        }
+      },
+      {
+        "model": "sw",
+        "platform": "gpu",
+        "shape": [
+          1024,
+          1024
+        ],
+        "cpu_cores": 1,
+        "gpu_devices": 1,
+        "batch_steps": 1000,
+        "active_workers": null,
+        "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+        "throughput_unit": "million complete cell updates per second",
+        "time_unit": "s",
+        "baseline": {
+          "median": 8325.774421184364,
+          "minimum": 8304.566336098824,
+          "maximum": 8361.499980318933,
+          "count": 12,
+          "point": 8325.774421165268
+        },
+        "esm_md": {
+          "median": 8521.209830281347,
+          "minimum": 8483.740955293542,
+          "maximum": 8544.234153585643,
+          "count": 12,
+          "point": 8521.203892838474
+        },
+        "ratio": {
+          "point": 1.0234728280862855,
+          "minimum": 1.0190858283208868,
+          "maximum": 1.0271844737450855,
+          "paired_median": 1.02174243050958,
+          "count": 12
+        },
+        "throughput_ratio": {
+          "point": 1.0234728280862855,
+          "minimum": 1.0190858283208868,
+          "maximum": 1.0271844737450855,
+          "paired_median": 1.02174243050958,
+          "count": 12
+        },
+        "median_rate_ratio": {
+          "point": 1.0234735412239504,
+          "minimum": 1.0190858283208868,
+          "maximum": 1.0271844737450855,
+          "paired_median": 1.02174243050958,
+          "count": 12
+        },
+        "time_ratio": {
+          "point": 0.9770655092718236,
+          "minimum": 0.9735349643224535,
+          "maximum": 0.9812716183559004,
+          "paired_median": 0.9787202618397928,
+          "count": 12
+        },
+        "baseline_seconds": {
+          "median": 0.125943359375,
+          "minimum": 0.1254052505493164,
+          "maximum": 0.1262649917602539,
+          "count": 12
+        },
+        "esm_md_seconds": {
+          "median": 0.12305491256713867,
+          "minimum": 0.12272322845458984,
+          "maximum": 0.12359830474853516,
+          "count": 12
+        }
+      }
+    ],
+    "ebm": [
+      {
+        "model": "ebm",
+        "platform": "cpu",
+        "shape": [
+          128
+        ],
+        "cpu_cores": 248,
+        "gpu_devices": 0,
+        "batch_steps": 1000,
+        "active_workers": {
+          "baseline": 1,
+          "esm_md": 1
+        },
+        "series_kind": "primary",
+        "run_id": "primary_ebm_n128_budget248_team1",
+        "nonempty_spatial_owners_by_route": {
+          "baseline": 1,
+          "esm_md": 1
+        },
+        "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+        "throughput_unit": "million complete cell updates per second",
+        "time_unit": "s",
+        "baseline": {
+          "median": 631.0314814988658,
+          "minimum": 622.3925157299983,
+          "maximum": 635.5448307365368,
+          "count": 12,
+          "point": 631.0314652994318
+        },
+        "esm_md": {
+          "median": 597.8801478681858,
+          "minimum": 490.26930339626404,
+          "maximum": 600.4371933313944,
+          "count": 12,
+          "point": 597.8793965154841
+        },
+        "ratio": {
+          "point": 0.9474636834975945,
+          "minimum": 0.7768087298577837,
+          "maximum": 0.9579657353667286,
+          "paired_median": 0.9494515306554765,
+          "count": 12
+        },
+        "throughput_ratio": {
+          "point": 0.9474636834975945,
+          "minimum": 0.7768087298577837,
+          "maximum": 0.9579657353667286,
+          "paired_median": 0.9494515306554765,
+          "count": 12
+        },
+        "median_rate_ratio": {
+          "point": 0.9474648498487953,
+          "minimum": 0.7768087298577837,
+          "maximum": 0.9579657353667286,
+          "paired_median": 0.9494515306554765,
+          "count": 12
+        },
+        "time_ratio": {
+          "point": 1.0554494250465263,
+          "minimum": 1.0438786723589648,
+          "maximum": 1.287318179576944,
+          "paired_median": 1.053241006252783,
+          "count": 12
+        },
+        "baseline_seconds": {
+          "median": 0.00020284250000000001,
+          "minimum": 0.000201402,
+          "maximum": 0.000205658,
+          "count": 12
+        },
+        "esm_md_seconds": {
+          "median": 0.00021409,
+          "minimum": 0.000213178,
+          "maximum": 0.000261081,
+          "count": 12
+        }
+      },
+      {
+        "model": "ebm",
+        "platform": "cpu",
+        "shape": [
+          4096
+        ],
+        "cpu_cores": 248,
+        "gpu_devices": 0,
+        "batch_steps": 1000,
+        "active_workers": {
+          "baseline": 32,
+          "esm_md": 32
+        },
+        "series_kind": "primary",
+        "run_id": "primary_ebm_n4096_budget248_team32",
+        "nonempty_spatial_owners_by_route": {
+          "baseline": 32,
+          "esm_md": 32
+        },
+        "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+        "throughput_unit": "million complete cell updates per second",
+        "time_unit": "s",
+        "baseline": {
+          "median": 7874.956015005478,
+          "minimum": 7551.8312637702,
+          "maximum": 7926.892990815178,
+          "count": 12,
+          "point": 7874.9543383384935
+        },
+        "esm_md": {
+          "median": 7665.8038894222755,
+          "minimum": 7629.705932208125,
+          "maximum": 7693.434660275507,
+          "count": 12,
+          "point": 7665.8038894222755
+        },
+        "ratio": {
+          "point": 0.973441058839162,
+          "minimum": 0.966025560741811,
+          "maximum": 1.0118802202168962,
+          "paired_median": 0.9744554276079582,
+          "count": 12
+        },
+        "throughput_ratio": {
+          "point": 0.973441058839162,
+          "minimum": 0.966025560741811,
+          "maximum": 1.0118802202168962,
+          "paired_median": 0.9744554276079582,
+          "count": 12
+        },
+        "median_rate_ratio": {
+          "point": 0.9734408515825778,
+          "minimum": 0.966025560741811,
+          "maximum": 1.0118802202168962,
+          "paired_median": 0.9744554276079582,
+          "count": 12
+        },
+        "time_ratio": {
+          "point": 1.0272835637244537,
+          "minimum": 0.9882592623321071,
+          "maximum": 1.035169296381868,
+          "paired_median": 1.0262143595277098,
+          "count": 12
+        },
+        "baseline_seconds": {
+          "median": 0.0005201299999999999,
+          "minimum": 0.000516722,
+          "maximum": 0.000542385,
+          "count": 12
+        },
+        "esm_md_seconds": {
+          "median": 0.000534321,
+          "minimum": 0.000532402,
+          "maximum": 0.000536849,
+          "count": 12
+        }
+      },
+      {
+        "model": "ebm",
+        "platform": "cpu",
+        "shape": [
+          65536
+        ],
+        "cpu_cores": 248,
+        "gpu_devices": 0,
+        "batch_steps": 1000,
+        "active_workers": {
+          "baseline": 72,
+          "esm_md": 72
+        },
+        "series_kind": "primary",
+        "run_id": "primary_ebm_n65536_budget248_team72",
+        "nonempty_spatial_owners_by_route": {
+          "baseline": 72,
+          "esm_md": 72
+        },
+        "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+        "throughput_unit": "million complete cell updates per second",
+        "time_unit": "s",
+        "baseline": {
+          "median": 33673.499806695705,
+          "minimum": 32450.118637823874,
+          "maximum": 33827.02259642632,
+          "count": 12,
+          "point": 33673.49717580601
+        },
+        "esm_md": {
+          "median": 31544.010874226664,
+          "minimum": 30656.301952599115,
+          "maximum": 32619.645850671146,
+          "count": 12,
+          "point": 31543.497210054295
+        },
+        "ratio": {
+          "point": 0.9367455077614542,
+          "minimum": 0.9106529900840411,
+          "maximum": 0.9960337682756767,
+          "paired_median": 0.9501551093045615,
+          "count": 12
+        },
+        "throughput_ratio": {
+          "point": 0.9367455077614542,
+          "minimum": 0.9106529900840411,
+          "maximum": 0.9960337682756767,
+          "paired_median": 0.9501551093045615,
+          "count": 12
+        },
+        "median_rate_ratio": {
+          "point": 0.9367606888296889,
+          "minimum": 0.9106529900840411,
+          "maximum": 0.9960337682756767,
+          "paired_median": 0.9501551093045615,
+          "count": 12
+        },
+        "time_ratio": {
+          "point": 1.0675258025946721,
+          "minimum": 1.0039820253596317,
+          "maximum": 1.0981131241964226,
+          "paired_median": 1.052463769970558,
+          "count": 12
+        },
+        "baseline_seconds": {
+          "median": 0.001946219,
+          "minimum": 0.001937386,
+          "maximum": 0.002019592,
+          "count": 12
+        },
+        "esm_md_seconds": {
+          "median": 0.002077639,
+          "minimum": 0.002009096,
+          "maximum": 0.002137766,
+          "count": 12
+        }
+      },
+      {
+        "model": "ebm",
+        "platform": "gpu",
+        "shape": [
+          128
+        ],
+        "cpu_cores": 1,
+        "gpu_devices": 1,
+        "batch_steps": 1000,
+        "active_workers": null,
+        "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+        "throughput_unit": "million complete cell updates per second",
+        "time_unit": "s",
+        "baseline": {
+          "median": 968.9924753549906,
+          "minimum": 940.2915355055802,
+          "maximum": 971.1095086363268,
+          "count": 12,
+          "point": 968.9922479465866
+        },
+        "esm_md": {
+          "median": 971.6999546554629,
+          "minimum": 968.054258332937,
+          "maximum": 973.7098152623771,
+          "count": 12,
+          "point": 971.6992521535208
+        },
+        "ratio": {
+          "point": 1.0027936283418888,
+          "minimum": 0.9997578696588026,
+          "maximum": 1.0310226783580825,
+          "paired_median": 1.0027994086963266,
+          "count": 12
+        },
+        "throughput_ratio": {
+          "point": 1.0027936283418888,
+          "minimum": 0.9997578696588026,
+          "maximum": 1.0310226783580825,
+          "paired_median": 1.0027994086963266,
+          "count": 12
+        },
+        "median_rate_ratio": {
+          "point": 1.0027941179826814,
+          "minimum": 0.9997578696588026,
+          "maximum": 1.0310226783580825,
+          "paired_median": 1.0027994086963266,
+          "count": 12
+        },
+        "time_ratio": {
+          "point": 0.9972141542756826,
+          "minimum": 0.9699107701418493,
+          "maximum": 1.0002421889824984,
+          "paired_median": 0.9972084208134464,
+          "count": 12
+        },
+        "baseline_seconds": {
+          "median": 0.00013209600001573563,
+          "minimum": 0.00013180799782276154,
+          "maximum": 0.00013612799346446992,
+          "count": 12
+        },
+        "esm_md_seconds": {
+          "median": 0.00013172800093889237,
+          "minimum": 0.00013145600259304046,
+          "maximum": 0.00013222399353981018,
+          "count": 12
+        }
+      },
+      {
+        "model": "ebm",
+        "platform": "gpu",
+        "shape": [
+          4096
+        ],
+        "cpu_cores": 1,
+        "gpu_devices": 1,
+        "batch_steps": 1000,
+        "active_workers": null,
+        "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+        "throughput_unit": "million complete cell updates per second",
+        "time_unit": "s",
+        "baseline": {
+          "median": 15576.514871842988,
+          "minimum": 15468.277238117169,
+          "maximum": 15609.75602097202,
+          "count": 12,
+          "point": 15576.513430000101
+        },
+        "esm_md": {
+          "median": 15769.37361836219,
+          "minimum": 15753.846731693808,
+          "maximum": 15792.72142031699,
+          "count": 12,
+          "point": 15769.37361836219
+        },
+        "ratio": {
+          "point": 1.0123814735068146,
+          "minimum": 1.0103498897066714,
+          "maximum": 1.0203453220159837,
+          "paired_median": 1.012016977461069,
+          "count": 12
+        },
+        "throughput_ratio": {
+          "point": 1.0123814735068146,
+          "minimum": 1.0103498897066714,
+          "maximum": 1.0203453220159837,
+          "paired_median": 1.012016977461069,
+          "count": 12
+        },
+        "median_rate_ratio": {
+          "point": 1.0123813797955423,
+          "minimum": 1.0103498897066714,
+          "maximum": 1.0203453220159837,
+          "paired_median": 1.012016977461069,
+          "count": 12
+        },
+        "time_ratio": {
+          "point": 0.9877699525022656,
+          "minimum": 0.9800603564528666,
+          "maximum": 0.9897561331850333,
+          "paired_median": 0.9881257178688498,
+          "count": 12
+        },
+        "baseline_seconds": {
+          "median": 0.0002629600018262863,
+          "minimum": 0.00026240000128746035,
+          "maximum": 0.0002648000121116638,
+          "count": 12
+        },
+        "esm_md_seconds": {
+          "median": 0.00025974398851394653,
+          "minimum": 0.00025935998558998107,
+          "maximum": 0.00025999999046325684,
+          "count": 12
+        }
+      },
+      {
+        "model": "ebm",
+        "platform": "gpu",
+        "shape": [
+          65536
+        ],
+        "cpu_cores": 1,
+        "gpu_devices": 1,
+        "batch_steps": 1000,
+        "active_workers": null,
+        "rate_point_definition": "useful interior-cell updates divided by median elapsed seconds",
+        "throughput_unit": "million complete cell updates per second",
+        "time_unit": "s",
+        "baseline": {
+          "median": 148266.13125556777,
+          "minimum": 147944.81034415946,
+          "maximum": 148610.40639968167,
+          "count": 12,
+          "point": 148266.12426282375
+        },
+        "esm_md": {
+          "median": 152972.81274862704,
+          "minimum": 152380.95359061583,
+          "maximum": 153270.47118789563,
+          "count": 12,
+          "point": 152972.81189555206
+        },
+        "ratio": {
+          "point": 1.0317448618565426,
+          "minimum": 1.027976195838291,
+          "maximum": 1.0357650876178413,
+          "paired_median": 1.0308141222138394,
+          "count": 12
+        },
+        "throughput_ratio": {
+          "point": 1.0317448618565426,
+          "minimum": 1.027976195838291,
+          "maximum": 1.0357650876178413,
+          "paired_median": 1.0308141222138394,
+          "count": 12
+        },
+        "median_rate_ratio": {
+          "point": 1.031744818949557,
+          "minimum": 1.027976195838291,
+          "maximum": 1.0357650876178413,
+          "paired_median": 1.0308141222138394,
+          "count": 12
+        },
+        "time_ratio": {
+          "point": 0.9692318682358931,
+          "minimum": 0.9654698849716034,
+          "maximum": 0.9727851715326182,
+          "paired_median": 0.9701070516099988,
+          "count": 12
+        },
+        "baseline_seconds": {
+          "median": 0.00044201600551605223,
+          "minimum": 0.00044099199771881106,
+          "maximum": 0.0004429759979248047,
+          "count": 12
+        },
+        "esm_md_seconds": {
+          "median": 0.00042841599881649015,
+          "minimum": 0.0004275839924812317,
+          "maximum": 0.00043007999658584595,
+          "count": 12
+        }
+      }
+    ]
+  }
+}

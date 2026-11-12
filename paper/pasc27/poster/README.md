@@ -1,61 +1,59 @@
-# esm.md Poster Project
+# ESM.md Poster Project
 
-This directory contains the editable A0 landscape PowerPoint and PDF, all plotting and build scripts, figure data, approved artwork and provenance. It preserves the approved University of Cambridge layout, Open Sans type, paisley banner, sponsor marks and footer. The title matches the manuscript as “ESM.md: From Markdown Physics to Verified, Optimised Earth System Model Solvers”. The title uses plain native editable text with no underlines. The 72 pt title fits on one line in the existing banner. The generated implementation is labelled `ESM.md` in the performance graphs.
+This directory contains the editable A0 landscape PowerPoint and PDF, plotting and build sources, accepted data, approved artwork and provenance. It preserves the University of Cambridge layout, Open Sans type, paisley banner, sponsor marks and footer. The title matches the paper as “ESM.md: From Markdown Physics to Verified, Optimised Earth System Model Solvers”. Its native editable 72 pt text has no underlines and fits on one line. Performance graphs label the generated route ESM.md and the comparison route Hand-tuned baseline.
 
 ## Rebuild
 
-Run these commands from the repository root. Rebuilding uses copied measurements and accepted reference model states, so no model simulation is needed. The tested Python environment is pinned in `requirements.txt`.
+Run commands through an owned Slurm allocation, following AGENTS.md. The tested export environment is pinned in requirements.txt, with the portable plot dependencies in requirements_plotting.txt. For a fresh local environment, install both files into a Git-ignored environment under .runtime/.
+
+The rebuild uses accepted copied measurements and saved physical states. It does not run a model or collect timings. Before plotting, audit data/accepted-main-input.json with the portable renderer’s audit-only option. The main input must contain only the accepted primary comparisons. The current protocol uses 1,000 complete steps, and fixed-budget scaling has a separate input and export.
 
 ```bash
-python3 -m venv .runtime/poster_environment
-.runtime/poster_environment/bin/python -m pip install -r paper/pasc27/poster/requirements.txt
-.runtime/poster_environment/bin/python paper/pasc27/poster/scripts/plot_physics.py
-.runtime/poster_environment/bin/python paper/pasc27/poster/scripts/plot_performance.py
-.runtime/poster_environment/bin/python paper/pasc27/poster/scripts/plot_historical_controls.py
-.runtime/poster_environment/bin/python paper/pasc27/poster/scripts/build_poster.py
-.runtime/poster_environment/bin/python paper/pasc27/poster/scripts/check_poster.py
-.runtime/poster_environment/bin/python paper/pasc27/poster/scripts/refresh_evidence.py
+python3 paper/pasc27/poster/scripts/render_performance_bars.py --input paper/pasc27/poster/data/accepted-main-input.json --model sw --cpu-cores 248 --audit-only --expected-steps 1000
+python3 paper/pasc27/poster/scripts/render_performance_bars.py --input paper/pasc27/poster/data/accepted-main-input.json --model ebm --cpu-cores 248 --audit-only --expected-steps 1000
+python3 paper/pasc27/poster/scripts/render_performance_bars.py --input paper/pasc27/poster/data/accepted-main-input.json --model sw --profile poster --mode matched_rates --cpu-cores 248 --output paper/pasc27/poster/figures/poster/water_rates
+python3 paper/pasc27/poster/scripts/render_performance_bars.py --input paper/pasc27/poster/data/accepted-main-input.json --model ebm --profile poster --mode matched_rates --cpu-cores 248 --output paper/pasc27/poster/figures/poster/energy_rates
+python3 - <<'PYCODE'
+from pathlib import Path
+import json
+poster = Path("paper/pasc27/poster")
+path = poster / "data/accepted-performance-update.json"
+manifest = json.loads(path.read_text())
+for model, stem in (("sw", "water_rates"), ("ebm", "energy_rates")):
+    receipt = poster / "figures/poster" / (stem + ".json")
+    manifest["render_metadata"][model] = json.loads(receipt.read_text())
+path.write_text(json.dumps(manifest, indent=2) + "\n")
+PYCODE
+python3 paper/pasc27/poster/scripts/build_poster.py
+python3 paper/pasc27/poster/scripts/check_poster.py
 ```
 
-The paper figure sources are also included under `scripts/`. With the separate paper repository at `paper/pasc27/submission/`, regenerate its four final PDFs with the following commands. These scripts use the same accepted data and the bundled plotting helper. They preserve the paper’s Helvetica Neue profile, which requires a locally licensed collection under `~/fonts/helvetica/` or `$GRAPH_PLOTTING_FONT_DIR/helvetica/`. Diagnostic exports stay under the paper’s ignored `.scratch/` directory.
+After replotting, replace each render_metadata entry in data/accepted-performance-update.json with the new matching JSON render receipt before building. The source manifest and final review hashes then identify the new artwork, while the accepted measurement words remain unchanged. Run the commands above from the repository root. Prefix each command with srun and the allocation options required by AGENTS.md. The build requires data/accepted-performance-update.json with status accepted, two matching accepted render receipts and final native prose. Missing or pending measurements stop the build and checker. A fresh human review of the exported PDF is required before scripts/refresh_evidence.py writes evidence.json. The exact source schema is data/schemas/poster-update.schema.json.
 
-```bash
-.runtime/poster_environment/bin/python paper/pasc27/poster/scripts/plot_paper_physics.py
-.runtime/poster_environment/bin/python paper/pasc27/poster/scripts/plot_paper_performance.py
-```
+The final files are esm-md-a0-landscape.pptx, esm-md-a0-landscape.pdf and the saved-PDF PNG esm-md-a0-landscape.png. The PNG is 7,022 by 4,967 pixels at 150 dpi. The checker also exports local review crops and decodes the actual PDF QR at two sizes. Temporary builds and review records stay under .runtime/poster_update_20261108/ outside Git. Text, headings, workflow blocks and positions remain native editable PowerPoint objects. Scientific artwork is embedded as SVG with PNG fallbacks. Install the bundled Open Sans fonts when editing the PowerPoint elsewhere.
 
-All axis and colour-bar unit labels use square brackets, such as `Depth [m]`, `Temperature [°C]` and `Rate [million updates/s]`. This changes the label notation while preserving values, scales, colour limits and timing definitions.
+## Methods and skills
 
-The final files are `esm-md-a0-landscape.pptx` and `esm-md-a0-landscape.pdf`. A 150 dpi PNG export of the saved PDF is available as `esm-md-a0-landscape.png`, with 7022 by 4967 pixels. Temporary renders and check logs stay under the ignored `.runtime/poster_update_20261108/` folder. Local `.build/` and Python caches are excluded from publication. Text, headings, workflow blocks and positions remain native editable PowerPoint objects. Scientific artwork is embedded as SVG with PNG fallbacks, and its editable plotting sources and data are included here. Install the bundled Open Sans fonts when editing the PowerPoint on another computer.
+[md2fort](../../../skills/md2fort/SKILL.md) guides portable Fortran development for central processing units (CPUs). [md2fort-gpu](../../../skills/md2fort-gpu/SKILL.md) guides generation, verification and optimisation for graphics processing units (GPUs) through CUDA Fortran and a separate comparison path written in PTX, NVIDIA’s virtual GPU instruction code. The supplied inputs are Markdown physics, a frozen numerical contract and prior verified source. The LLM proposes source candidates, while people choose scope and review source and evidence. Independent physical checks and complete byte agreement precede instruction inspection and timing. Compilers translate Fortran and CUDA Fortran, while direct PTX uses a GPU assembler. Revised native Methods, workflow and performance prose are blue for review.
 
-## Solver Development Skills
+## Measurements and meaning
 
-`md2fort` guides portable Fortran CPU development. `md2fort-gpu` guides GPU generation, verification and optimisation through CUDA Fortran and direct PTX comparison paths. Fortran sources use compilers, while direct PTX uses a GPU assembler. The updated native Methods paragraphs and workflow label are blue for review. This skill-name update preserves the numerical contract and existing measurements.
+Each model figure compares two implementations at three matched grids. The main CPU comparison declares a configured ceiling of 248 cores. Both routes use the same actual team within each paired workload, and that team can differ between grids. Actual worker counts appear inside the CPU bars beneath the rates. The CPU budget 248 cores row label describes the configured ceiling. An actual team is a group of CPU workers started together. A nonempty spatial owner has at least one interior grid cell to update. Their counts are retained separately for each route. A small number of latitude bands can limit useful ownership. The allocated node size, configured ceiling, actual team and nonempty owners describe different quantities. The GPU comparison uses one device.
 
-## Measurements and Meaning
+A useful cell update advances each interior cell once through the complete time step. Required neighbouring-cell and boundary calculations remain part of that work. Each plotted point divides the useful update count by the median elapsed seconds over twelve observations. This can differ from the median of twelve individually computed rates, which the JSON receipt retains separately. Whiskers show the observed minimum and maximum individual rates. Higher bars are faster. Each grid has its own zero-based linear axis, and the receipt declares the visible unit and divisor from millions. Axis and colour-bar units appear in square brackets, with commas between each group of three integer digits.
 
-The active performance panels compare seven implementations at three workloads on each platform. The generated solver is labelled `ESM.md`. The six controls are vanilla and tuned Fortran, Julia and compiled Python. Vanilla means the unchanged control source compiled with the recorded strict, target-aware optimisation settings. Tuned means the retained measured source optimisation. Vanilla Python is also compiled, and the timers exclude compilation. CPU means central processing unit and GPU means graphics processing unit. CPU measurements use one Neoverse V2 core, and GPU measurements use one NVIDIA GH200 device.
+CPU timings include complete numerical updates and their coordinator, including collection of partial states, buffer copies and worker synchronisation. GPU timings use the declared warmed device-event interval. Compilation, setup, verification and file output remain outside their stated timers, with GPU transfers and graph construction excluded where recorded. The accepted source files retain exact timer scopes, node and job identities, affinity, memory placement, quiet policy and GPU power-management observations. These measurements describe complete-update computation on the recorded hardware and inputs. They do not establish performance on another architecture or end-to-end forecast time.
 
-Current `esm.md` measurements come from November 2026. The CPU controls were measured on 5 October 2026 and GPU controls on 8 October 2026. These are separate groups of runs on the same hardware types and model workloads, with their original dates, jobs and nodes preserved. They show absolute update rates and do not form a freshly paired speedup experiment. The graphs label the October and November groups visibly.
+Physical figures use unchanged accepted Fortran states. formulations/sw/dam_break.md preserves the formulation bytes and physics revision 1.0 from its earlier filename. The water example shows a periodic dam release at 0.03125 s. The energy-balance globe shows latitude-band temperatures after the time recorded in figure-evidence.json. Country outlines provide context without adding longitude-dependent temperature variation. These examples are model calculations rather than observations.
 
-Points show medians and whiskers show observed minimum–maximum ranges across twelve runs per condition. Colours and marker shapes identify the three grids. Higher update rates are faster. CPU horizontal axes are linear, so equal distances show equal rate changes. GPU horizontal axes are logarithmic, where successive major ticks differ by a factor of ten. One complete cell update advances every model field through both time stages and the boundaries. CPU and GPU facets have separate scales and timing boundaries.
+## Sources and checks
 
-CPU rates use wall-clock time for repeated complete updates. GPU device timers measure a launch graph after warm-up. This graph stores the sequence of GPU kernel launches for complete time steps. Compilation, setup, input restoration, transfers, verification and file writing remain outside the recorded intervals as applicable. These rates measure numerical computation rather than end-to-end forecast time. Raw Assembly control data remain in immutable source evidence and outside-chart comparisons. No chart contains an Assembly series or label.
+The active manifest data/accepted-performance-update.json names the actual CPU and GPU source records, accepted campaigns, final figure files, render receipts and native Summary text. data/gpu-results-20261112.json retains the accepted GPU source observations. CPU source paths are recorded in the manifest. The comparison evidence is generated as data/performance-figure-evidence-20261112.json after independent recorded-rate, structural, QR and visual checks. Original elapsed-time words remain unchanged in their accepted source records. Older data/*.json and data/historical/ files remain immutable evidence and do not supply the new active figures.
 
-The six current CPU median rates remain below the paired Assembly controls, so this snapshot does not establish CPU parity. The restored language comparisons use the earlier controls described above and do not alter that limit.
+project-profile.json records the design, current workflow and measurement scope. evidence.json maps claims to source identities, actual input reviews and final artwork hashes. The structural and manual visual receipts must name the same accepted input and final PDF, so an earlier review cannot verify later exports. Desktop Microsoft PowerPoint inspection is not claimed. The QR opens the project repository, and reference identifiers remain in metadata without visible footer URLs.
 
-The physical figures use unchanged accepted reference Fortran output. `formulations/sw/dam_break.md` has the same bytes and physics revision 1.0 as its earlier filename. Water shows a periodic dam release at 0.03125 seconds. The energy-balance globe shows a latitude-band temperature field after the simulated time recorded in `figure-evidence.json`. Country outlines provide geographic context and do not add longitude-dependent temperature information. These are model demonstrations rather than observed weather.
+The portable plotting source and its helper, schema, style provenance and permitted font notices live under this directory. PLOT_PROFILE.md records typography and export rules. Open Sans is bundled for the poster. The paper’s Helvetica Neue profile requires a locally licensed installation and is not redistributed. Python sources use Black 25.1.0.
 
-Earlier CPU and GPU control data remain under `data/historical/`, with standalone historical plots under `figures/historical/`. The active panels now show these language controls alongside `esm.md`, retaining the date distinction. The original pre-update poster is preserved locally under `.runtime/poster_original_20261108/`.
+The unchanged physical figures can be rebuilt with scripts/plot_physics.py when needed. Earlier performance scripts and figures retain their original evidence and are outside the active rebuild sequence. data/figure-label-update.json records the earlier display-label checkpoint. data/unit-label-update.json records the earlier unit-notation checkpoint. data/dam-break-rename.json and data/solver-filename-renames.json preserve the source renames. The active solver entry points are solver.f90 and gpu/solver.cuf for each model, with replaced comparison sources retained in the project’s local archive.
 
-## Sources and Checks
-
-`data/results-current.json` retains each accepted current run record’s original node, allocation and source identities. `data/dam-break-rename.json` maps the formulation rename and comment-only source-header changes without rewriting those original records. `data/solver-filename-renames.json` records the filename rename checkpoint. The active CPU and GPU Fortran sources use `solver.f90` and `gpu/solver.cuf` for each model. The replaced handwritten CPU assembly and GPU PTX were then moved to `.archive/sw_ebm_assembly/`, with their paths and hashes recorded in its manifest. Raw benchmark identities remain unchanged.
-
-`project-profile.json` records the approved design and institution assets. `evidence.json` maps claims to their measurement files and scientific sources. `assets/asset-urls.json` and the other provenance files retain official artwork sources. The bundled plotting-style helper and its formatting check are recorded in `scripts/style/provenance.json`. The Python sources use Black 25.1.0. The unit-label update retains the previous plotting calculations and checks that formatting preserves each syntax tree. Its evidence is recorded in `data/unit-label-update.json`.
-
-`data/figure-label-update.json` records the `ESM.md` display labels in the paper and active poster performance graphs. Measurements, ranges, units and other artwork are unchanged.
-
-The build uses the bundled native template and vector artwork. `check_poster.py` checks actual saved PowerPoint geometry and fonts, then decodes the actual exported PDF QR at two render sizes. Final-size visual inspection remains a separate recorded check. Desktop Microsoft PowerPoint inspection is not claimed. The QR opens the repository, and full reference identifiers remain in metadata while visible URLs stay out of the printed footer.
-
-The approved paisley SVG is used directly. `scripts/trace_banner.py` preserves the historical tracing procedure for provenance and is not needed for ordinary poster rebuilds. Recreating that historical step also needs `vtracer==0.6.15`; it does not download or redraw institution logos.
+Approved assets and their provenance remain under assets/. The paisley source and official institution marks preserve their proportions and clear space. scripts/trace_banner.py records the historical tracing procedure and is not part of an ordinary rebuild.

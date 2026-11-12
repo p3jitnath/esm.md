@@ -6,48 +6,30 @@ Start with the [short template](formulations/TEMPLATE.md), [shallow-water formul
 
 ## CPU Solvers
 
-These historical tables compare optimised solvers on one Neoverse V2 processor. Values are median million complete cell updates per second across twelve quiet-node runs. Higher is faster. An update advances every field in one cell through a full time step. All seven variants, including vanilla Fortran, Julia and compiled Python controls, pass physical checks and produce identical output bytes. Detailed controls and timing variation remain in the local research records.
+The **super-optimised Fortran** variants are labelled **ESM.md**. The active [shallow-water](src/sw/solver.f90) and [energy-balance](src/ebm/solver.f90) solvers use portable Fortran with interfaces callable from C. The shallow-water model follows water depth and horizontal flow on a periodic square. The energy-balance model follows temperature in latitude bands, balancing sunlight, heat loss and transport between neighbouring bands. An update advances every field in one cell through a complete time step.
 
-### Shallow Water
+Both CPU routes use the same Fortran/OpenMP coordinator to advance one coupled domain. OpenMP runs concurrent workers, each of which gathers a tile with enough neighbouring cells for its local steps and publishes its owned state. The coordinator selects either the ESM.md Fortran calculations or the handwritten assembly baseline. All gathering, overlap calculations, state publication, boundaries and synchronisation remain inside the solver timer. The [CPU execution contract](skills/md2fort/references/multicore_cpu_solvers.md) defines the interfaces and buffer requirements.
 
-The model follows water depth and horizontal flow over a flat bottom with periodic boundaries. Gravity produces waves from uneven depth. Each grid has the stated number of cells in both directions.
+The matched campaign reserves 288 physical Neoverse V2 cores in exclusive job 8331485 on `nid011103` and gives each workload a configured ceiling of 248. The paired routes use the same selected actual team, shown below, with placement recorded in the accepted data. Each workload advances 1,000 complete steps from its shared frozen input bank and uses twelve rotated timing pairs. Rates divide useful updates by median elapsed time, with the observed minimum–maximum per-run rate [million updates/s]. The ratio is ESM.md rate divided by baseline rate.
 
-| Grid | Assembly | Fortran | Julia | Python |
-| --- | ---: | ---: | ---: | ---: |
-| 64² | 89.80 | 84.94 | 78.39 | 56.40 |
-| 256² | 95.31 | 81.51 | 77.00 | 56.42 |
-| 1024² | 82.66 | 72.23 | 70.77 | 52.61 |
+| Model | Grid | Actual workers | Hand-tuned baseline | ESM.md | Ratio |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Shallow water | 64² | 16 | 393.66 [392.89–395.83] | 375.12 [373.61–377.12] | 0.953× |
+| Shallow water | 256² | 72 | 2,694.79 [2,661.39–2,715.26] | 2,483.82 [2,465.89–2,500.23] | 0.922× |
+| Shallow water | 1,024² | 248 | 7,137.06 [6,993.53–7,444.57] | 6,488.71 [6,279.37–6,619.71] | 0.909× |
+| Energy balance | 128 | 1 | 631.03 [622.39–635.54] | 597.88 [490.27–600.44] | 0.947× |
+| Energy balance | 4,096 | 32 | 7,874.95 [7,551.83–7,926.89] | 7,665.80 [7,629.71–7,693.43] | 0.973× |
+| Energy balance | 65,536 | 72 | 33,673.50 [32,450.12–33,827.02] | 31,543.50 [30,656.30–32,619.65] | 0.937× |
 
-### Budyko–Sellers Energy Balance
+ESM.md reaches 90.9–97.3% of the baseline rate across these six workloads. The largest water case uses all 248 workers, while the other selected teams follow the preliminary baseline screens within that ceiling.
 
-Each latitude band has one average temperature. The Sun’s radiation warms the surface, radiation cools it, and heat moves between neighbouring bands. The grid is the number of bands between the poles.
+Separate scaling measurements vary the configured CPU budget through 1, 2, 4, 8, 16, 32, 64, 72, 128, 144 and 248 while keeping each grid, input and 1,000 complete steps fixed. Their records distinguish requested budgets, actual teams and workers with at least one owned cell. The 128-band model caps its team at 128, so its 144- and 248-core budget entries do not represent larger teams. The [complete scaling data](paper/pasc27/poster/data/cpu-scaling-results-20261112.json) contain all 66 model/grid/budget conditions, with twelve pairs at each point. The largest observed Fortran points use 64, 72 and 144 cores for the three water grids, and 1, 32 and 72 cores for the three energy-balance grids. Local step groups also change at declared dispatch points, so these measurements describe complete schedules. At one core, Fortran exceeds the baseline point by 2.64% for 4,096 bands and 4.80% for 65,536 bands. These specific advantages do not extend to every grid or budget.
 
-| Grid | Assembly | Fortran | Julia | Python |
-| --- | ---: | ---: | ---: | ---: |
-| 128 | 650.56 | 510.74 | 531.46 | 548.93 |
-| 4096 | 599.68 | 498.27 | 509.81 | 493.75 |
-| 65536 | 590.51 | 488.69 | 489.47 | 514.88 |
+Every accepted timed run matches the canonical current, preceding and first-stage state buffers with zero differing bytes. The [accepted CPU data](paper/pasc27/poster/data/cpu-results-20261112.json) retain every elapsed-time value, actual team, source/input identity and independently checked pair order. Floating-point exception flags record events such as division by zero or rounding. The canonical reference’s immediate flags were not recorded, so acceptance compares the five observed standard IEEE flags across implementations. Compilation, allocation, initial writes that place memory pages near their owners, input restoration, verification and file output stay outside the timer. Strict compiler options preserve the declared arithmetic, including separate multiplication and addition, gradual underflow and ordered rounding.
 
-### esm.md CPU
+The same source can be recompiled for x86 or another supported CPU by selecting that processor's compiler options, then repeating scientific, exact-output and performance checks. These measurements establish performance only on the stated Neoverse V2 hardware. CUDA Fortran is a separate route that requires a supported NVIDIA GPU, including when its host uses x86.
 
-The requested **super-optimised Fortran** variants use the label **esm.md** in the poster charts. The [editable poster project](paper/pasc27/poster/README.md) contains the PowerPoint, PDF, plotting scripts, data and assets.
-
-The new [shallow-water](src/sw/solver.f90) and [energy-balance](src/ebm/solver.f90) sources use standard Fortran with interfaces callable from C. Their dimensions come from runtime arguments, so the same executable handles the admitted grids. Recompile these sources for x86 or another supported CPU, select that processor’s compiler options, then verify exact outputs and performance there. Current acceptance and timings cover one Neoverse V2 core; they do not establish x86 performance. CUDA Fortran is a separate GPU route and still requires a supported NVIDIA GPU even with an x86 host.
-
-This twelve-pair checkpoint uses CPU 1 and memory domain 0 in exclusive job 8199657 on `nid010573`. Both implementations use the same arrays and ordered arithmetic. Rates are median [minimum–maximum] million complete cell updates per second. The CPU performance target remains open, and these values replace earlier exploratory estimates.
-
-| Model | Grid | Assembly | esm.md | Ratio |
-| --- | --- | ---: | ---: | ---: |
-| Shallow water | 64² | 89.857 [89.791–89.890] | 84.371 [84.350–84.385] | 0.939× |
-| Shallow water | 256² | 95.259 [95.199–95.292] | 87.491 [87.429–87.533] | 0.918× |
-| Shallow water | 1024² | 82.573 [82.520–82.618] | 78.048 [78.038–78.089] | 0.945× |
-| Energy balance | 128 | 654.423 [652.569–655.570] | 642.073 [641.904–642.258] | 0.981× |
-| Energy balance | 4096 | 630.581 [628.924–632.546] | 603.740 [603.607–603.967] | 0.957× |
-| Energy balance | 65536 | 615.444 [612.960–619.474] | 561.561 [561.314–561.881] | 0.912× |
-
-All timed current, preceding and first-stage state buffers match the canonical Fortran bytes exactly. Independent acceptance retains 23 water scientific cases and four spacing-edge trajectories, and 19 energy-balance scientific cases with focused boundary, threshold and repeated-buffer checks. The timer includes complete repeated updates and excludes compilation, setup, input restoration, verification and file writing. Hardware calibration completed several arithmetic and first-level-cache groups but stopped before its final raw-sample record, so no complete new CPU roofline result is claimed.
-
-The formatting checkpoint used a pinned `fprettify` revision on 224 project Fortran files. All selected files preserve executable tokens and compiler directives, and a second formatting pass makes no change. Both selected CPU libraries rebuild byte for byte. The formatted GPU sources preserve executable instructions, constants, data, relocations and launch metadata, with debug-only differences recorded separately. Active Python tools were formatted with Black and retain identical syntax trees. No active Julia files were present; the reusable skills require JuliaFormatter when Julia sources are used.
+The earlier formatting checkpoint used a pinned `fprettify` revision on 224 project Fortran files. The two final accepted CPU sources produce byte-identical output on a read-only repeated formatting pass, including quoted literals and OpenMP directives. Their numerical qualification used the exact formatted sources, so these later checks require no rebuild or repeated simulation. Active Python tools use Black. No active Julia files were present; the reusable skills require JuliaFormatter when Julia sources are used. The [editable poster project](paper/pasc27/poster/README.md) contains the PowerPoint, PDF, plotting sources, data and licensed assets.
 
 ## GPU Solvers
 
