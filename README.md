@@ -51,52 +51,24 @@ The formatting checkpoint used a pinned `fprettify` revision on 224 project Fort
 
 ## GPU Solvers
 
-The historical comparison runs the same models on one NVIDIA GH200 GPU. For that earlier route, the LLM emitted PTX, NVIDIA’s virtual assembly language, and NVIDIA’s assembler created machine code. The [GPU skill](skills/md2fort-gpu/SKILL.md) and [execution contract](skills/md2fort-gpu/references/gpu-contract.md) describe this route. Sources are [shallow water](https://github.com/p3jitnath/esm.md/blob/8be04b8/src/sw/gpu/2d_rusanov_ssprk2.ptx) and [energy balance](https://github.com/p3jitnath/esm.md/blob/8be04b8/src/ebm/gpu/budyko_sellers.ptx).
+The active [shallow-water](src/sw/gpu/solver.cuf) and [energy-balance](src/ebm/gpu/solver.cuf) solvers use CUDA Fortran and are labelled **ESM.md**. NVIDIA Fortran compiles their numerical calculations and state publication into GPU machine code. The comparison baseline is written in PTX, NVIDIA’s virtual instruction language, and assembled separately. Its selected source, build commands and verification evidence are archived locally. The [md2fort-gpu skill](skills/md2fort-gpu/SKILL.md) and [execution contract](skills/md2fort-gpu/references/gpu-contract.md) describe both routes.
 
-Rates are million complete cell updates per second, shown as the median [minimum–maximum] across twelve accepted repetitions on one quiet exclusive GPU. Water updates include all three fields, both stages and periodic boundaries. Energy-balance updates include both stages and pole boundaries.
+This comparison uses one GH200 GPU in exclusive job 8331485 on `nid011103`, with host CPU 1 and memory domain 0. Each workload advances 1,000 complete time steps from the same frozen input bank and has twelve rotated timing pairs. A complete update advances every field in one cell through both stages and the required boundaries. Rates are useful updates divided by median elapsed time, shown with the minimum–maximum observed per-run rate [million updates/s]. The ratio is ESM.md rate divided by baseline rate.
 
-| Shallow-Water Implementation | 64² Cells | 256² Cells | 1024² Cells |
-| --- | ---: | ---: | ---: |
-| Direct PTX assembly | 672.9 [669.9–673.9] | 5820.4 [5803.9–5843.5] | 8706.4 [8661.6–8724.8] |
-| Fortran tuned | 538.8 [536.7–539.7] | 5495.3 [5472.7–5510.7] | 7951.1 [7890.2–7974.8] |
-| Fortran vanilla | 319.5 [318.1–320.4] | 4000.2 [3990.6–4008.8] | 5809.1 [5804.8–5818.2] |
-| Julia tuned | 515.5 [514.1–516.6] | 4917.5 [4900.9–4928.4] | 5782.1 [5757.8–5796.2] |
-| Julia vanilla | 276.1 [275.7–277.2] | 3303.7 [3300.7–3317.6] | 5179.1 [5168.3–5193.8] |
-| Python tuned | 473.3 [471.1–473.7] | 4179.4 [4160.8–4188.6] | 5181.7 [5157.8–5202.3] |
-| Python vanilla | 269.6 [268.4–269.9] | 3060.8 [3042.9–3067.7] | 4423.0 [4387.7–4445.8] |
-
-| Energy-Balance Implementation | 128 Bands | 4096 Bands | 65536 Bands |
-| --- | ---: | ---: | ---: |
-| Direct PTX assembly | 749.9 [740.2–753.5] | 5023.8 [4980.7–5048.2] | 62023.9 [61291.6–62281.8] |
-| Fortran tuned | 518.9 [513.9–524.3] | 2058.0 [2052.1–2065.6] | 29312.8 [29227.8–29378.5] |
-| Fortran vanilla | 15.7 [15.7–15.8] | 473.5 [471.6–475.8] | 7076.0 [7063.8–7096.7] |
-| Julia tuned | 532.4 [530.3–536.3] | 2101.1 [2097.3–2107.4] | 29549.0 [29378.5–29667.7] |
-| Julia vanilla | 16.2 [16.1–16.2] | 482.9 [482.1–484.4] | 7082.3 [7067.8–7101.7] |
-| Python tuned | 492.0 [490.9–495.4] | 1862.1 [1860.0–1870.2] | 25329.1 [25296.1–25396.6] |
-| Python vanilla | 15.5 [15.5–15.6] | 464.8 [464.4–466.4] | 6783.8 [6772.5–6810.3] |
-
-The timer replays a prepared sequence of GPU launches. It excludes compilation, startup, allocation, transfers, graph construction and verification. Julia uses separate sequential processes on the same GPU. All seven variants pass physical, trajectory, boundary and buffer checks with zero differing output bytes. The water check has 34 scientific cases and energy balance has 28, including 1,000-step trajectories. These archived steady-computation rates are separate from complete-process forecast timings.
-
-### esm.md GPU
-
-The new [shallow-water](src/sw/gpu/solver.cuf) and [energy-balance](src/ebm/gpu/solver.cuf) variants are labelled **esm.md**. NVIDIA Fortran compiles these sources into GPU instructions. The earlier assembly sources are archived, and their comparison results above remain historical records. The [GPU execution contract](skills/md2fort-gpu/references/gpu-contract.md) records the interfaces, complete launch sequence and strict build options.
-
-This fresh comparison uses twelve rotated pairs per workload on one GH200 in exclusive job 8199657 on `nid010573`. Both variants use GPU 0, host CPU 7 and memory domain 0. Rates are million complete cell updates per second, shown as median [minimum–maximum]. A complete update includes both time stages, every field and the boundaries. The ratio is Fortran speed divided by assembly speed.
-
-| Model | Grid | Assembly | esm.md | Ratio |
+| Model | Grid | Hand-tuned baseline | ESM.md | Ratio |
 | --- | --- | ---: | ---: | ---: |
-| Shallow water | 64² | 675.22 [674.57–675.92] | 707.93 [704.40–708.67] | 1.048× |
-| Shallow water | 256² | 5813.54 [5802.34–5821.02] | 6743.69 [6733.21–6750.20] | 1.160× |
-| Shallow water | 1024² | 8696.90 [8648.62–8712.14] | 8887.03 [8831.60–8900.80] | 1.022× |
-| Energy balance | 128 | 740.29 [719.10–752.39] | 929.85 [913.47–937.73] | 1.256× |
-| Energy balance | 4096 | 5033.10 [4964.10–5042.78] | 7505.30 [7454.05–7558.94] | 1.491× |
-| Energy balance | 65536 | 60639.37 [59768.36–61248.60] | 88592.46 [86316.76–90644.54] | 1.461× |
+| Shallow water | 64² | 1,162.50 [1,161.86–1,162.81] | 1,051.81 [1,051.55–1,052.20] | 0.905× |
+| Shallow water | 256² | 6,843.52 [6,838.70–6,847.07] | 6,785.51 [6,774.73–6,788.76] | 0.992× |
+| Shallow water | 1,024² | 8,325.77 [8,304.57–8,361.50] | 8,521.20 [8,483.74–8,544.23] | 1.023× |
+| Energy balance | 128 | 968.99 [940.29–971.11] | 971.70 [968.05–973.71] | 1.003× |
+| Energy balance | 4,096 | 15,576.51 [15,468.28–15,609.76] | 15,769.37 [15,753.85–15,792.72] | 1.012× |
+| Energy balance | 65,536 | 148,266.12 [147,944.81–148,610.41] | 152,972.81 [152,380.95–153,270.47] | 1.032× |
 
-Fortran is faster in every paired run. All 144 timed runs match the complete state buffers and both saved phase files, with zero differing bytes. Independent acceptance covers 34 scientific cases and nine graph schedules for water, and 40 scientific cases and 25 graph schedules for the integrated energy-balance source. These checks include conservation, analytic solutions, complete trajectories, boundaries, buffer guards, threshold ties and subnormal values.
+Every timed run matches the canonical complete current, preceding and first-stage state buffers, with zero differing bytes. Independent physical, trajectory, boundary and buffer checks also pass. The [accepted data](paper/pasc27/poster/data/gpu-results-20261112.json) preserve all 144 elapsed-time values, source and input identities, acceptance records and observation limits.
 
-Water combines preparation and update on small grids, uses row-based work on larger grids and declares read-only inputs precisely. Energy balance retains four active thread groups on its small grid and advances eight steps inside each larger tile. All model arithmetic runs on the GPU. NVIDIA HPC SDK 24.11 uses CUDA 12.6 with contraction and underflow flushing disabled. GPU events time warmed graph replay, while compilation, allocation, transfers, verification and file writing stay outside the timer.
+Small-grid water reuses neighbouring values in shared memory, while the larger grids use compiled face calculations. Energy balance advances several complete steps in overlapping tiles and publishes the required states. NVIDIA HPC SDK 24.11 uses CUDA 12.6 with contraction and underflow flushing disabled. CUDA events time warmed replay of the full prepared launch sequence. Compilation, setup, allocation, transfers, input restoration, verification and file writing stay outside the timer.
 
-Simple hardware probes give conditional performance guides. At 1024², water reaches about 90% of the streaming-copy guide under an assumed 328 logical array bytes per update. Actual solver memory traffic is unmeasured. The energy-balance guide includes repeated halo calculations, which add about 16% to the useful stage work on large grids. These guides and the recorded variation limit conclusions to the declared workloads and hardware. Detailed records remain under the ignored local research folders.
+ESM.md reaches 90.5% of the baseline rate on the smallest water grid and 99.2–103.2% on the other five workloads. Post-sample telemetry for the largest water grid reports software power limiting under the unchanged 900 W device policy for both routes, with no recorded thermal event. These measurements describe the stated workloads and hardware. Older controls and timing records remain archived locally and in Git history.
 
 ## OpenIFS Forecasts
 
