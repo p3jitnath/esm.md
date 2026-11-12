@@ -281,19 +281,10 @@ with publication_style(over, font_family="Open Sans", project_root=ROOT):
     finish_axis(ax2)
     place_legend(ax2, loc="best", frameon=False, fontsize=24)
     export(fig, "energy-balance", 24)
-    # This is the water-conservation equation from P01 in the actual formulation.
-    fig = plt.figure(figsize=(12, 1.2))
-    fig.patch.set_alpha(0)
-    fig.text(
-        0.5,
-        0.52,
-        r"$\frac{\partial h}{\partial t}+\frac{\partial(hu)}{\partial x}+\frac{\partial(hv)}{\partial y}=0$",
-        ha="center",
-        va="center",
-        fontsize=40,
-        color="#133844",
-    )
-    export(fig, "physics-note-mass", 40)
+    from render_formulation_equation import render_mass_equation
+
+    equation_record = render_mass_equation()
+    audits["physics-note-mass"] = equation_record
 metadata = {
     "dam_time_seconds": head[-1],
     "ebm_time_years": years,
@@ -316,14 +307,7 @@ metadata["geography"] = {
     "geographic_context_only": True,
     "data_sha256": hashlib.sha256(country_file.read_bytes()).hexdigest(),
 }
-metadata["physics_note_equation"] = {
-    "source": "formulations/sw/dam_break.md",
-    "equation_id": "P01",
-    "meaning": "Conservation of water",
-    "formulation_sha256": hashlib.sha256(
-        (ROOT / "formulations/sw/dam_break.md").read_bytes()
-    ).hexdigest(),
-}
+metadata["physics_note_equation"] = equation_record
 metadata["continuous_colormaps"] = {
     "shallow_water": {"name": "jet", "limits_m": [1, 2]},
     "energy_balance": {

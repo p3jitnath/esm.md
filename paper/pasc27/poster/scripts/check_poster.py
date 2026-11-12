@@ -108,10 +108,13 @@ def _chart_identity(poster: Path, manifest: dict, model: str) -> dict:
         limits = np.asarray(axis["limits"], dtype=float)
         assert limits.shape == (2,) and np.isfinite(limits).all()
         assert 0 < limits[0] < limits[1]
-    assert axes["CPU"]["header"] == (
-        "CPU · 248 cores · log" if model == "sw" else "CPU · ≤248 cores · log"
-    )
+    assert axes["CPU"]["header"] == "CPU · 248 cores · log"
     assert axes["GPU"]["header"] == "GPU · 1 GH200 · log"
+    alignment = metadata["horizontal_alignment"]
+    assert abs(alignment["centre_error_inches"]) < 1e-8
+    assert (
+        abs(alignment["left_margin_inches"] - alignment["right_margin_inches"]) < 1e-8
+    )
     identities = {}
     for suffix in ("svg", "png", "pdf"):
         path = poster / chart[suffix]
@@ -374,7 +377,36 @@ def check(output: Path, poster: Path = POSTER) -> dict:
         by_name["result-clusters"], (412.375389, 240.710528, 364.249194, 196.578917)
     )
     _require_box(by_name["result-spatial"], (805.162417, 232, 346.806889, 214))
-    _require_box(by_name["physics-note-equation"], (150.395889, 424, 120.076417, 24))
+    equation = by_name["physics-note-equation"]
+    equation_x, equation_y, equation_w, equation_h = _box(equation)
+    assert abs(equation_x + equation_w / 2 - (28.309524 + 364.249194 / 2)) < 0.1
+    assert abs(equation_y - 424) < 0.1 and abs(equation_h - 24) < 0.1
+    assert equation_w < 350
+    equation_record = json.loads((poster / "figure-evidence.json").read_text())[
+        "physics_note_equation"
+    ]
+    assert equation_record["backend"] == "pdfLaTeX"
+    assert equation_record["font"] == "Computer Modern"
+    assert equation_record["source_equation_matches_formulation"]
+    assert equation_record["nominal_math_font_pt"] >= 22
+    for extension, digest in equation_record["outputs"].items():
+        assert _digest(poster / f"figures/physics-note-mass.{extension}") == digest
+    assert (
+        _digest(poster.parents[2] / equation_record["source"])
+        == equation_record["formulation_sha256"]
+    )
+    assert (
+        equation.image.blob == (poster / "figures/physics-note-mass.png").read_bytes()
+    )
+    equation_vector = equation._element.xpath('.//*[local-name()="svgBlip"]')
+    assert len(equation_vector) == 1
+    relation = equation_vector[0].get(
+        "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
+    )
+    assert (
+        equation.part.related_part(relation).blob
+        == (poster / "figures/physics-note-mass.svg").read_bytes()
+    )
     physical_checks = {}
     for model, name, stem in (
         ("sw", "result-clusters", "shallow-water"),

@@ -33,3 +33,5 @@ python scripts/refresh_evidence.py --checks "$POSTER_CHECKS" --visual-review "$P
 The final files are esm-md-a0-landscape.pptx, esm-md-a0-landscape.pdf and esm-md-a0-landscape.png. The checker decodes the actual PDF QR and records native geometry, black fonts, chart identities and current text. Desktop PowerPoint inspection is a separate check and is claimed only if it occurs.
 
 The physical illustrations retain figure-evidence.json and their unchanged artwork as a separate scope. The SW picture is a periodic dam-break test at 0.03125 s. The performance banks use SW MIXED and EBM CLIMATE states. These illustrations supply no benchmark timing observation. The formulation card retains dam_break.md, its equation, symbol definitions and units.
+
+The formulation card shows equation P01 from dam_break.md. Run `python scripts/render_formulation_equation.py` to compile its editable TeX with pdfLaTeX and Computer Modern. The vector PDF and SVG preserve the equation, while the transparent PNG provides 400 DPI at its 24 mm poster height. This command updates only the equation artwork and its evidence.

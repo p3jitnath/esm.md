@@ -10,7 +10,7 @@
   "physics": {
     "source": {
       "path": "figure-evidence.json",
-      "sha256": "ba2eb10d875b7920f797b6d21e49ee1ab14bc8a3c3a8de386ec93007f2729dba"
+      "sha256": "782661b51d66016ee84bce0d728d4a25ae28a2371d0bd4f15cfe2696a323e4c6"
     },
     "scope": "The unchanged physical illustrations retain their own accepted states and checks. They are separate from the frozen benchmark input banks.",
     "record": {
@@ -52,16 +52,26 @@
           ]
         },
         "physics-note-mass": {
-          "findings": [],
-          "inches": [
-            12.0,
-            1.2
+          "source": "formulations/sw/dam_break.md",
+          "equation_id": "P01",
+          "meaning": "Conservation of water",
+          "formulation_sha256": "39370c94cf08380c9a2a05eeecc944bb1049a44dac833cc049f092afe8ce9c15",
+          "source_equation_matches_formulation": true,
+          "backend": "pdfLaTeX",
+          "font": "Computer Modern",
+          "pdf_fonts": [
+            "CMMI10",
+            "CMR10"
           ],
-          "minimum_font_pt": 40,
-          "exports": [
-            "paper/pasc27/poster/figures/physics-note-mass.pdf",
-            "paper/pasc27/poster/figures/physics-note-mass.png"
-          ]
+          "poster_height_mm": 24,
+          "nominal_math_font_pt": 25.11475599003328,
+          "fallback_dpi": 400,
+          "outputs": {
+            "tex": "00dbbe108d13cbb5d67de5a2d4afa3b3bee30b33802bfdce02557fe6b4cb1ec5",
+            "pdf": "156e59a256b7dd44d7b7018b517d6e974c7022d3c6e37194f6df01c8501dba9e",
+            "svg": "db837ace353f4f6ed95c07399526b572c82d89099cc3a565f2a4e3d67af663d7",
+            "png": "4fc65a24e15063e57b923e5f778e1f455db5a6787eb327c01f099c04e483f137"
+          }
         }
       },
       "font": "Open Sans",
@@ -88,7 +98,23 @@
         "source": "formulations/sw/dam_break.md",
         "equation_id": "P01",
         "meaning": "Conservation of water",
-        "formulation_sha256": "e409dc5368196646179cfe2eaf011d6df3a14d417ab62048ea6a9d76e4ed9e57"
+        "formulation_sha256": "39370c94cf08380c9a2a05eeecc944bb1049a44dac833cc049f092afe8ce9c15",
+        "source_equation_matches_formulation": true,
+        "backend": "pdfLaTeX",
+        "font": "Computer Modern",
+        "pdf_fonts": [
+          "CMMI10",
+          "CMR10"
+        ],
+        "poster_height_mm": 24,
+        "nominal_math_font_pt": 25.11475599003328,
+        "fallback_dpi": 400,
+        "outputs": {
+          "tex": "00dbbe108d13cbb5d67de5a2d4afa3b3bee30b33802bfdce02557fe6b4cb1ec5",
+          "pdf": "156e59a256b7dd44d7b7018b517d6e974c7022d3c6e37194f6df01c8501dba9e",
+          "svg": "db837ace353f4f6ed95c07399526b572c82d89099cc3a565f2a4e3d67af663d7",
+          "png": "4fc65a24e15063e57b923e5f778e1f455db5a6787eb327c01f099c04e483f137"
+        }
       },
       "continuous_colormaps": {
         "shallow_water": {
@@ -119,7 +145,7 @@
   "performance_source_sha256": "ad5fcc2e4e65ebd5e380d582b83008b7e10556fab608d6b681a573e8be96bb30",
   "performance_manifest": {
     "path": "data/fresh-language-poster-manifest.json",
-    "sha256": "f9ab9c50f85b4fd52acf2e9d7b7aaf4b3b042a89bf641421b5500e506028268b"
+    "sha256": "4737295692988c9af4605a2a34572f737d79e67ce2ca535bb5c4167ae41c7096"
   },
   "comparison_evidence_source": "data/fresh-language-figure-evidence.json",
   "comparison_evidence": {
@@ -136,7 +162,7 @@
     },
     "manifest": {
       "path": "data/fresh-language-poster-manifest.json",
-      "sha256": "f9ab9c50f85b4fd52acf2e9d7b7aaf4b3b042a89bf641421b5500e506028268b"
+      "sha256": "4737295692988c9af4605a2a34572f737d79e67ce2ca535bb5c4167ae41c7096"
     },
     "conditions": 96,
     "elapsed_observations": 1152,
@@ -387,23 +413,23 @@
     "render_metadata": {
       "sw": {
         "path": "figures/poster/language_water_rates.json",
-        "sha256": "8bd1a4015d70f04b1efb871a97d05f250a4a6e7fd64ff3825f5a51ae07a773f6"
+        "sha256": "eea7510dd35f6acaabe463a41b65f6cd3f20972297870f4cd267cbfd3399077c"
       },
       "ebm": {
         "path": "figures/poster/language_energy_rates.json",
-        "sha256": "49f6adbf741a86aee89b7406ba5e22600d6d209b5c94b65ad19187f46423eb78"
+        "sha256": "2f574b65043a09986e27dbb29472d3a095996b38f6a7f1ea2ddc95dda9e4a490"
       }
     },
     "chart_output_sha256": {
       "sw": {
-        "figures/poster/language_water_rates.pdf": "2f454a82f90f11b5231a8616bc566d57f5b79012f043929c00cac237d9577a0b",
-        "figures/poster/language_water_rates.png": "54c9515b9ade5e4a84ed1f8c46a317a64197b06651c6e2d4d375cd2dedfe2fee",
-        "figures/poster/language_water_rates.svg": "8f58a3aa7f27a50736798f5af7e9dd85196b28ac5402109e3bd394fc9a84bfa8"
+        "figures/poster/language_water_rates.pdf": "08964994bc0733c24ebc7d0cdc9f685639d6a5a377e8c7eafed71e937d46b747",
+        "figures/poster/language_water_rates.png": "ddbf861a1919c202ae1783e226672c0c0bec268b38e61841e3942f8cbbd16438",
+        "figures/poster/language_water_rates.svg": "1774104c609039fff1fe5b3062279b61160dc82153e94960498942ef7f32dc2d"
       },
       "ebm": {
-        "figures/poster/language_energy_rates.pdf": "a060d7057017f9dd15eed6e2ad390c50961d0deb06d7dc0104a0ba9d97f09041",
-        "figures/poster/language_energy_rates.png": "6ce44dbd8c86c3f28d938cdf515f3d821f52ff87f7d94215373de74af87e7178",
-        "figures/poster/language_energy_rates.svg": "12e95a67c48ecd11f5572e0aef7e96ec57a6b60aeea10f9e33612ecbbf2a769c"
+        "figures/poster/language_energy_rates.pdf": "7cca0846b624bdc2e226644f075d2467e454a6644b2632c130a9a5aeb0044aab",
+        "figures/poster/language_energy_rates.png": "0cb3d9041f2c813fb8e0b53c44868927e85260d2d05efcb2af05800102babce7",
+        "figures/poster/language_energy_rates.svg": "2a54838f8e656ee1dd12f8d19246c7fc31ddd9a9ae15afe6aa32f724b0c6a220"
       }
     },
     "encoding_audit": {
@@ -465,7 +491,7 @@
             4.733333333333333,
             4.223999999999999
           ],
-          "header": "CPU \u00b7 \u2264248 cores \u00b7 log"
+          "header": "CPU \u00b7 248 cores \u00b7 log"
         },
         {
           "device": "GPU",
@@ -502,11 +528,11 @@
     },
     "checks": {
       "id": "fresh_language_poster_structural_checks",
-      "sha256": "f2c2ec82e0f0afc36c6f0428b6f11b162c920aabd037c0ded535aa98d321f5f8"
+      "sha256": "268e55722a7a3a9d6a69ef22fca68ac841ee3be898af2e1581f17179a64b30d2"
     },
     "visual_review": {
-      "id": "poster_paper_authors_visual_review",
-      "sha256": "d7e76a05177a3152a98c72b57e8a1fab7de338559873266b53c58321a7c7b23b"
+      "id": "centred_scatter_and_latex_equation_visual_review",
+      "sha256": "c259689591ea9ed00dc9ff2e37e15f480aeaa96ca98ab2bcb0a737c1e9baef4c"
     },
     "evidence_binding_runs_models": false,
     "scope": "Only the newly accepted eight-route cohort supplies the performance plots, notes and Summary. Metadata binding does not strengthen the original numerical, quiet-node or timer limits."
@@ -525,16 +551,16 @@
   },
   "structural_and_qr_checks": {
     "id": "fresh_language_poster_structural_checks",
-    "sha256": "f2c2ec82e0f0afc36c6f0428b6f11b162c920aabd037c0ded535aa98d321f5f8",
+    "sha256": "268e55722a7a3a9d6a69ef22fca68ac841ee3be898af2e1581f17179a64b30d2",
     "passed": true,
     "cohort": "fresh_languages_job8353767",
     "input_sha256": "ad5fcc2e4e65ebd5e380d582b83008b7e10556fab608d6b681a573e8be96bb30",
-    "manifest_sha256": "f9ab9c50f85b4fd52acf2e9d7b7aaf4b3b042a89bf641421b5500e506028268b",
-    "profile_sha256": "eb6ab4c459c9f0211845a2546a9291cef5666cf206fadbe4a91f4ec709623ecc",
+    "manifest_sha256": "4737295692988c9af4605a2a34572f737d79e67ce2ca535bb5c4167ae41c7096",
+    "profile_sha256": "da80d8f684485e1ea4cbe9af3445dc3ef86a8e1faf3001f66ae3e3b77359d4a9",
     "artifact_sha256": {
-      "esm-md-a0-landscape.pptx": "88f9a89f5549ec54e6890fa95e396e3b81137c3125d3616317f1b96b4271fc98",
-      "esm-md-a0-landscape.pdf": "7d17b41801df0dca6834f4c205c1b4e1d0e6dba4fd1cd125dde286ff5e3131b2",
-      "esm-md-a0-landscape.png": "dbaa83fdec9f0cc014787902558515482db5e95786ee4ce85d7c24adfd1e47a4"
+      "esm-md-a0-landscape.pptx": "5c241dcd81a33f8a1a746b7315d6dc0cbc6dcc9a2348bc0c78795eb0ec0ad126",
+      "esm-md-a0-landscape.pdf": "a80995a276aae5e3c144c17c2d7994aad283958e3f2d040b57aa9a17da86e449",
+      "esm-md-a0-landscape.png": "3bb11a0f0193b761292d975a7e461711806a4462fb1694f9ed16fd1cd9395223"
     },
     "qualified_observations": 1152,
     "qr_url": "https://github.com/p3jitnath/esm.md",
@@ -565,27 +591,27 @@
     "desktop_powerpoint_inspected": false
   },
   "visual_review": {
-    "id": "poster_paper_authors_visual_review",
-    "sha256": "d7e76a05177a3152a98c72b57e8a1fab7de338559873266b53c58321a7c7b23b",
+    "id": "centred_scatter_and_latex_equation_visual_review",
+    "sha256": "c259689591ea9ed00dc9ff2e37e15f480aeaa96ca98ab2bcb0a737c1e9baef4c",
     "status": "approved",
     "cohort": "fresh_languages_job8353767",
     "input_sha256": "ad5fcc2e4e65ebd5e380d582b83008b7e10556fab608d6b681a573e8be96bb30",
     "artifacts": {
-      "esm-md-a0-landscape.pptx": "88f9a89f5549ec54e6890fa95e396e3b81137c3125d3616317f1b96b4271fc98",
-      "esm-md-a0-landscape.pdf": "7d17b41801df0dca6834f4c205c1b4e1d0e6dba4fd1cd125dde286ff5e3131b2",
-      "esm-md-a0-landscape.png": "dbaa83fdec9f0cc014787902558515482db5e95786ee4ce85d7c24adfd1e47a4"
+      "esm-md-a0-landscape.pptx": "5c241dcd81a33f8a1a746b7315d6dc0cbc6dcc9a2348bc0c78795eb0ec0ad126",
+      "esm-md-a0-landscape.pdf": "a80995a276aae5e3c144c17c2d7994aad283958e3f2d040b57aa9a17da86e449",
+      "esm-md-a0-landscape.png": "3bb11a0f0193b761292d975a7e461711806a4462fb1694f9ed16fd1cd9395223"
     },
-    "review_scope": "Inspected the actual final PDF at full-page scale and the banner close-up. All three paper authors and numbered Cambridge and Met Office affiliations fit without clipping. Both native author frames retain their existing size, type and position. All other native objects and rendered PDF pixels outside the author strip are unchanged. The existing final-PDF QR check passed at two scales. No desktop PowerPoint inspection was performed."
+    "review_scope": "Inspected the actual final PDF at full-page scale and equation and graph close-ups. Both comparison plots are visibly centred, retain clear labels and hatched markers, and keep their original native frames. EBM CPU header reads 248 cores. The continuity equation matches the formulation and uses black Computer Modern vector paths without clipping. Authors, all native text and unrelated artwork retain the accepted layout. The final PDF QR decoded at two scales. No desktop PowerPoint inspection was performed."
   },
   "desktop_powerpoint_inspection": false,
   "profile": {
     "path": "project-profile.json",
-    "sha256": "eb6ab4c459c9f0211845a2546a9291cef5666cf206fadbe4a91f4ec709623ecc"
+    "sha256": "da80d8f684485e1ea4cbe9af3445dc3ef86a8e1faf3001f66ae3e3b77359d4a9"
   },
   "artifacts": {
-    "esm-md-a0-landscape.pptx": "88f9a89f5549ec54e6890fa95e396e3b81137c3125d3616317f1b96b4271fc98",
-    "esm-md-a0-landscape.pdf": "7d17b41801df0dca6834f4c205c1b4e1d0e6dba4fd1cd125dde286ff5e3131b2",
-    "esm-md-a0-landscape.png": "dbaa83fdec9f0cc014787902558515482db5e95786ee4ce85d7c24adfd1e47a4"
+    "esm-md-a0-landscape.pptx": "5c241dcd81a33f8a1a746b7315d6dc0cbc6dcc9a2348bc0c78795eb0ec0ad126",
+    "esm-md-a0-landscape.pdf": "a80995a276aae5e3c144c17c2d7994aad283958e3f2d040b57aa9a17da86e449",
+    "esm-md-a0-landscape.png": "3bb11a0f0193b761292d975a7e461711806a4462fb1694f9ed16fd1cd9395223"
   },
   "branding": {
     "cambridge_colour_guide": "https://www.cam.ac.uk/brand-resources/guidelines/colour",
@@ -882,5 +908,5 @@
       "passed": true
     }
   },
-  "comparison_evidence_sha256": "40bfcf2e4d213df66b65b45397b824130e4795f12bc76ba54fa78f977f3c091d"
+  "comparison_evidence_sha256": "f8a88740da3c79397571d477de1b9ad2f1ec9c48a4f18f6b3377d3b4e02cf8f5"
 }

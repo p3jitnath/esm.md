@@ -356,7 +356,7 @@ def render(data, model, profile, output, poster_root, layout_draft, font_file=No
                     raise ValueError(
                         "A processor axis needs one declared configured CPU budget."
                     )
-                core_label = f"{'≤' if model == 'ebm' else ''}{budgets[0]}"
+                core_label = str(budgets[0])
                 title = (
                     f"CPU · {core_label} cores · log"
                     if status == "accepted"
@@ -470,6 +470,43 @@ def render(data, model, profile, output, poster_root, layout_draft, font_file=No
                 va="center",
             )
         figure.canvas.draw()
+        renderer = figure.canvas.get_renderer()
+        original_bounds = figure.get_tightbbox(renderer)
+        shift_inches = width / 2 - (original_bounds.x0 + original_bounds.x1) / 2
+        shift_fraction = shift_inches / width
+        for axis in axes:
+            axis.set_position(axis.get_position().translated(shift_fraction, 0))
+        for annotation in figure.texts:
+            x, y = annotation.get_position()
+            annotation.set_position((x + shift_fraction, y))
+        anchor = legend.get_bbox_to_anchor().transformed(figure.transFigure.inverted())
+        legend.set_bbox_to_anchor(
+            anchor.translated(shift_fraction, 0), transform=figure.transFigure
+        )
+        figure.canvas.draw()
+        renderer = figure.canvas.get_renderer()
+        centred_bounds = figure.get_tightbbox(renderer)
+        centre_error = (centred_bounds.x0 + centred_bounds.x1 - width) / 2
+        if (
+            abs(centre_error) > 1e-8
+            or abs(centred_bounds.width - original_bounds.width) > 1e-8
+        ):
+            raise RuntimeError(
+                "Horizontal centring changed the artwork width or missed the canvas centre."
+            )
+        if centred_bounds.x0 < 0 or centred_bounds.x1 > width:
+            raise RuntimeError("The centred artwork exceeds the fixed canvas.")
+        alignment = {
+            "method": "One horizontal translation of all axes, figure text and legend from their combined tight bounds.",
+            "shift_inches": shift_inches,
+            "shift_canvas_fraction": shift_fraction,
+            "original_bounds_inches": list(original_bounds.extents),
+            "centred_bounds_inches": list(centred_bounds.extents),
+            "left_margin_inches": centred_bounds.x0,
+            "right_margin_inches": width - centred_bounds.x1,
+            "centre_error_inches": centre_error,
+            "canvas_inches": [width, height],
+        }
         issues = style.audit_figure(
             figure, expected_font=font, min_font_size=size, project_root=poster_root
         )
@@ -539,6 +576,7 @@ def render(data, model, profile, output, poster_root, layout_draft, font_file=No
             for grid, colour, marker in zip(SIZES[model], COLOURS, MARKERS)
         ],
         "axes": axis_records,
+        "horizontal_alignment": alignment,
         "final_width_mm": final_width,
         "final_height_mm": final_height,
         "minimum_effective_font_pt": minimum,
