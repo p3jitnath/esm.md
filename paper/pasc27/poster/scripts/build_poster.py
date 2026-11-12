@@ -24,6 +24,7 @@ import pymupdf
 POSTER = Path(__file__).resolve().parents[1]
 ROOT = POSTER.parents[2]
 OUT = POSTER
+IDENTITY = json.loads((POSTER / "project-profile.json").read_text())["identity"]
 BUILD = ROOT / ".runtime/poster_update_20261108"
 FONT = "Open Sans"
 TITLE_RUNS = [
@@ -65,7 +66,7 @@ prs = Presentation(TEMPLATE)
 prs.slide_width = Mm(W)
 prs.slide_height = Mm(H)
 prs.core_properties.title = POSTER_TITLE
-prs.core_properties.author = "Pritthijit Nath"
+prs.core_properties.author = IDENTITY["author"]
 slide = prs.slides[0]
 original_shapes = list(slide.shapes)
 used = set()
@@ -538,7 +539,7 @@ text(
 )
 text(
     "poster-authors",
-    "Pritthijit Nath",
+    IDENTITY["author_line"],
     a + inset,
     152,
     band_width - 2 * inset,
@@ -549,7 +550,7 @@ text(
 )
 text(
     "poster-affiliations",
-    "Department of Applied Mathematics and Theoretical Physics, University of Cambridge",
+    IDENTITY["affiliation"],
     a + inset,
     169,
     band_width - 2 * inset,
@@ -1005,7 +1006,7 @@ page_h = saved.slide_height / 12700
 pdfpath = OUT / "esm-md-a0-landscape.pdf"
 pdf = canvas.Canvas(str(pdfpath), pagesize=(page_w, page_h), pageCompression=1)
 pdf.setTitle(POSTER_TITLE)
-pdf.setAuthor("Pritthijit Nath")
+pdf.setAuthor(IDENTITY["author"])
 from pptx.enum.dml import MSO_FILL_TYPE
 
 for sh in saved.slides[0].shapes:

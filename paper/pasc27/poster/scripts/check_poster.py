@@ -430,6 +430,9 @@ def check(output: Path, poster: Path = POSTER) -> dict:
         chart_checks[model]["native_effective_dpi"] = effective_dpi
     title = by_name["poster-title"]
     assert title.text == profile["identity"]["title"]
+    assert by_name["poster-authors"].text == profile["identity"]["author_line"]
+    assert by_name["poster-affiliations"].text == profile["identity"]["affiliation"]
+    assert presentation.core_properties.author == profile["identity"]["author"]
     title_runs = list(title.text_frame.paragraphs[0].runs)
     assert not any(run.font.underline for run in title_runs)
     assert "Verified Assembly" not in all_text
@@ -446,6 +449,7 @@ def check(output: Path, poster: Path = POSTER) -> dict:
         assert abs(page.rect.width * 25.4 / 72 - width) < 0.1
         assert abs(page.rect.height * 25.4 / 72 - height) < 0.1
         assert document.metadata["title"] == title.text
+        assert document.metadata["author"] == profile["identity"]["author"]
         title_bounds = pymupdf.Rect(
             title.left / 12700,
             title.top / 12700,

@@ -1,6 +1,6 @@
 # ESM.md research poster
 
-This project retains the editable A0 PowerPoint, saved PDF, final PNG, source artwork and accepted plotting input. Its model sections are **3.2 Shallow-Water Model** and **3.3 Energy-Balance Model**. Poster text is black, while paper review colours follow their separate instructions.
+This project retains the editable A0 PowerPoint, saved PDF, final PNG, source artwork and accepted plotting input. Its model sections are **3.2 Shallow-Water Model** and **3.3 Energy-Balance Model**. The author line and numbered affiliations follow the paper in ../submission/main.tex and are stored in project-profile.json. Poster text is black, while paper review colours follow their separate instructions.
 
 Run file work through an owned Slurm allocation, following the repository AGENTS.md. The tested export packages are listed in requirements.txt and requirements_plotting.txt. Use an ignored local environment and keep Helvetica Neue outside the published assets. Poster artwork uses the supplied Open Sans files.
 

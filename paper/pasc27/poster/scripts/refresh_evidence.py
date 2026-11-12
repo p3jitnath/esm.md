@@ -332,7 +332,7 @@ def refresh(
         "scatter_artwork": "The PowerPoint uses PNG scatterplots to preserve marker hatches. Editable plotting source, SVG and PDF exports remain separate.",
         "title": identity["title"],
         "author": identity["author"],
-        "affiliation": identity["department"] + ", " + identity["university"],
+        "affiliation": identity["affiliation"],
         "implementation_label": "ESM.md",
         "generation_route": "Markdown physics and frozen contracts guide Fortran and CUDA Fortran candidates. Compilers build these solvers, while the separate PTX baseline is assembled.",
         "physics": physics,
