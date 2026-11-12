@@ -25,7 +25,6 @@ POSTER = Path(__file__).resolve().parents[1]
 ROOT = POSTER.parents[2]
 OUT = POSTER
 BUILD = ROOT / ".runtime/poster_update_20261108"
-BUILD.mkdir(parents=True, exist_ok=True)
 FONT = "Open Sans"
 TITLE_RUNS = [
     ("ESM.md: From ", False),
@@ -42,105 +41,12 @@ TITLE_RUNS = [
 ]
 POSTER_TITLE = "".join(value for value, _ in TITLE_RUNS)
 REPO_URL = "https://github.com/p3jitnath/esm.md"
-# This input is supplied only after the new paired campaigns are accepted.
-PERFORMANCE_UPDATE = json.loads(
-    (OUT / "data/accepted-performance-update.json").read_text()
-)
-if PERFORMANCE_UPDATE.get("status") != "accepted":
-    raise ValueError("The new poster measurements are not accepted.")
-if PERFORMANCE_UPDATE.get("presentation") != "matched_absolute_rates":
-    raise ValueError("The poster requires matched absolute update-rate figures.")
-if (
-    PERFORMANCE_UPDATE["selected_cpu_cores"] != 248
-    or PERFORMANCE_UPDATE.get("cpu_resource_interpretation") != "configured_ceiling"
-):
-    raise ValueError("The requested 248-core ceiling comparison is missing.")
-for platform in ("cpu", "gpu"):
-    relative = PERFORMANCE_UPDATE["measurement_sources"].get(platform)
-    if not isinstance(relative, str) or not relative or Path(relative).is_absolute():
-        raise ValueError(
-            "Accepted measurement sources must have relative poster paths."
-        )
-    source_path = (OUT / relative).resolve()
-    if not source_path.is_relative_to(OUT.resolve()) or not source_path.is_file():
-        raise ValueError("An accepted measurement source is missing from the poster.")
-    if json.loads(source_path.read_text()).get("status") != "accepted":
-        raise ValueError("An original measurement source is not accepted.")
-for model in ("sw", "ebm"):
-    chart = PERFORMANCE_UPDATE["figures"][model]
-    if Path(chart["svg"]).with_suffix(".png").as_posix() != chart["png"]:
-        raise ValueError("The native vector and fallback PNG must share a stem.")
-    metadata = PERFORMANCE_UPDATE["render_metadata"][model]
-    if (
-        metadata.get("status") != "accepted"
-        or metadata.get("presentation") != "matched_absolute_rates"
-        or metadata.get("mode") != "matched_rates"
-        or metadata.get("profile") != "poster"
-        or metadata.get("model") != model
-    ):
-        raise ValueError("A figure is not the requested matched-rate poster export.")
-    if (
-        metadata.get("point_definition") != "useful_updates / median_seconds"
-        or metadata.get("observed_range_definition")
-        != "minimum and maximum of twelve individual useful-update rates"
-    ):
-        raise ValueError("The displayed rate and range definitions are missing.")
-    coverage = metadata["comparison_coverage"]
-    if (
-        coverage.get("matched_conditions") != 6
-        or coverage.get("historical_language_conditions") != 0
-    ):
-        raise ValueError("Only the six new matched conditions may be displayed.")
-    if metadata["comparison_coverage"]["selected_cpu_core_counts"] != [248]:
-        raise ValueError("The plot lacks accepted records for the 248-core ceiling.")
-    if len(metadata["paired_summaries"]) != 6:
-        raise ValueError("Both processors and all three workloads are required.")
-    for row in metadata["paired_input"]["paired_records"]:
-        if row["model"] != model:
-            continue
-        if row["platform"] == "cpu":
-            if (
-                row["cpu_cores"] != 248
-                or row.get("series_kind") != "primary"
-                or not isinstance(row.get("run_id"), str)
-                or not row["run_id"].strip()
-            ):
-                raise ValueError(
-                    "A main CPU record lacks its ceiling or primary identity."
-                )
-            teams = row.get("active_workers", {})
-            owners = row.get("nonempty_spatial_owners_by_route", {})
-            for route in ("baseline", "esm_md"):
-                team, owner = teams.get(route), owners.get(route)
-                if (
-                    type(team) is not int
-                    or type(owner) is not int
-                    or not 1 <= owner <= team <= 248
-                ):
-                    raise ValueError(
-                        "Actual CPU teams and nonempty owners are required."
-                    )
-            if teams["baseline"] != teams["esm_md"]:
-                raise ValueError("Paired CPU routes must use the same actual team.")
-        if row["campaign_id"] not in PERFORMANCE_UPDATE["accepted_campaign_ids"]:
-            raise ValueError("A record belongs to a different campaign.")
-        flags = (
-            "independent_physics_passed",
-            "exact_outputs_equal",
-            "timed_final_state_checked",
-            "exclusive_node",
-            "quiet_samples",
-        )
-        if len(row["paired_samples"]) != 12 or not all(
-            row["qualification"].get(flag) is True for flag in flags
-        ):
-            raise ValueError("A record lacks complete accepted paired evidence.")
-from poster_comparison_input import load_display_comparison
+# Performance artwork and prose use one accepted fresh cohort.
+from poster_comparison_input import load_fresh_comparison
 
-DISPLAY_UPDATE = load_display_comparison(OUT, PERFORMANCE_UPDATE)
-DISPLAY_PICTURE_KEY = (
-    "png" if DISPLAY_UPDATE.get("native_picture_format") == "png" else "svg"
-)
+DISPLAY_UPDATE = load_fresh_comparison(OUT)
+DISPLAY_PICTURE_KEY = "png"
+BUILD.mkdir(parents=True, exist_ok=True)
 W, H = 1189, 841
 INK = "232830"
 DARK = "133844"
@@ -345,7 +251,19 @@ def wrapped(t, width, size, bold=False):
 
 
 def text(
-    name, t, x, y, w, h, size=28, bold=False, c=INK, bullets=False, align=PP_ALIGN.LEFT
+    name,
+    t,
+    x,
+    y,
+    w,
+    h,
+    size=28,
+    bold=False,
+    c=INK,
+    bullets=False,
+    align=PP_ALIGN.LEFT,
+    bullet_indent=0.7,
+    paragraph_gap_pt=None,
 ):
     """Add an editable text frame with checked line height.
 
@@ -365,6 +283,10 @@ def text(
         Hexadecimal RGB text colour.
     align : PP_ALIGN
         Native paragraph alignment.
+    bullet_indent : float
+        Font-size multiple reserved for wrapping a native bullet paragraph.
+    paragraph_gap_pt : float or None
+        Space after each paragraph in points. None retains the original spacing.
 
     Returns
     -------
@@ -390,15 +312,16 @@ def text(
     tf.word_wrap = False
     items = t if isinstance(t, list) else [t]
     line_count = 0
+    paragraph_gap = 5 if paragraph_gap_pt is None else paragraph_gap_pt
     for i, item in enumerate(items):
         p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
         value = wrapped(
-            item, (w * 72 / 25.4) - (size * 0.7 if bullets else 0), size, bold
+            item, (w * 72 / 25.4) - (size * bullet_indent if bullets else 0), size, bold
         )
         p.text = value
         p.alignment = align
         p.space_before = Pt(0)
-        p.space_after = Pt(5 if bullets else 0)
+        p.space_after = Pt(paragraph_gap if bullets else 0)
         p.line_spacing = 1.12
         if bullets:
             pp = p._p.get_or_add_pPr()
@@ -413,7 +336,8 @@ def text(
             run.font.bold = bold
             run.font.color.rgb = colour(c)
         line_count += len(value.split("\n"))
-    required = (line_count * size * 1.12 + len(items) * 5) * 25.4 / 72
+    gaps = len(items) if paragraph_gap_pt is None else max(0, len(items) - 1)
+    required = (line_count * size * 1.12 + gaps * paragraph_gap) * 25.4 / 72
     if required > h + 2:
         raise ValueError((name, "text exceeds frame", required, h))
     text_records.append(
@@ -635,7 +559,7 @@ text(
 )
 
 
-def heading(name, title, x, y, w=cw):
+def heading(name, title, x, y, w=cw, c=DARK):
     # Centre the visible letters with 4 mm above and below and 10 mm at each side.
     """Add an editable section heading with measured padding.
 
@@ -645,6 +569,8 @@ def heading(name, title, x, y, w=cw):
         Stable object name and displayed heading.
     x, y, w : float
         Left, top and width in millimetres.
+    c : str
+        Hexadecimal RGB colour for the heading text.
 
     Returns
     -------
@@ -667,27 +593,30 @@ def heading(name, title, x, y, w=cw):
         height - offset,
         size,
         bold=True,
-        c=DARK,
+        c=c,
     )
 
 
 heading("section-motivation", "1  Motivation", a, 199)
 heading("section-results", "3.1  Shallow-Water Behaviour", b, 199)
 heading("physical-energy", "Energy Balance [1,2]", c, 199)
-text(
+motivation_details = text(
     "motivation-context",
     [
-        "Earth system models (ESMs) link the atmosphere, ocean and land to study climate and environmental change.",
+        "ESMs link the atmosphere, ocean and land to study climate and environmental change.",
         "Developing ESMs requires clear physical assumptions, reliable numerical methods and efficient code for large computers.",
-        "We test whether a large language model (LLM) can turn readable physics formulations into fast, verified Fortran.",
-        "We compare shallow-water (SW) and energy-balance (EBM) models on different processors.",
+        "We test whether an LLM can turn readable physics formulations into fast, verified Fortran.",
+        "We compare SW and EBM models with tuned and vanilla Fortran, Julia and compiled Python on CPUs and GPUs.",
     ],
-    a + 2 * scale,
+    a + 5.662,
     237,
-    cw - 2 * scale,
+    cw - 5.662,
     130,
     34,
     bullets=True,
+    c="000000",
+    bullet_indent=0.65,
+    paragraph_gap_pt=6,
 )
 rect("motivation-image-slot", a, 370, cw, 132, "F3FBF9", TEAL)
 text(
@@ -760,7 +689,7 @@ text(
 image("result-clusters", OUT / "figures/shallow-water.svg", b, 232, cw, 214)
 text(
     "cluster-caption",
-    "At 0.03125 s, a periodic dam release develops moving waves while preserving mass. The surface and depth profile are verified. The dashed curve shows the initial state.",
+    "A separate periodic dam-break test develops moving waves at 0.03125 s while preserving mass. The surface and depth profile are verified. The dashed curve shows the initial state.",
     b + 2 * scale,
     455,
     cw - 2 * scale,
@@ -781,51 +710,29 @@ text(
     bullets=True,
 )
 heading("section-methods", "2  Methods & Skill Creation", a, 514)
-heading("results-comparison", "3.2  Shallow-Water Speed", b, 514)
-heading("results-diagnostics", "3.3  Energy-Balance Speed", c, 514)
+heading("results-comparison", "3.2 Shallow-Water Model", b, 514, c="000000")
+heading("results-diagnostics", "3.3 Energy-Balance Model", c, 514, c="000000")
+
+
 text(
-    "results-summary",
-    DISPLAY_UPDATE["poster_text"]["sw_intro"],
-    b + 2 * scale,
-    547,
-    cw - 2 * scale,
-    25,
-    30,
-    bold=True,
-    c="0000FF",
-    bullets=True,
-)
-text(
-    "energy-summary",
-    DISPLAY_UPDATE["poster_text"]["ebm_intro"],
-    c + 2 * scale,
-    547,
-    cw - 2 * scale,
-    25,
-    30,
-    bold=True,
-    c="0000FF",
-    bullets=True,
-)
-method_details = text(
     "method-details",
     [
-        "Inputs were Markdown physics, a frozen contract and prior verified source. md2fort and md2fort-gpu guided the LLM.",
-        "It proposed Fortran for central processing units (CPUs) and CUDA Fortran for graphics processing units (GPUs).",
-        "Scientists chose scope and reviewed source and evidence.",
-        "Independent physical checks tested the calculations. Complete outputs had to match the fixed reference byte for byte. Both gates preceded instruction inspection and timing.",
-        "Fortran and CUDA Fortran were compiled. Direct PTX, NVIDIA’s virtual instruction code, was assembled. People accepted only verified, measured candidates.",
+        "We developed md2fort and md2fort-gpu from two verified physics models and their numerical contracts.",
+        "A contract records the grid, time update, data layout and calculation order. Every version follows these rules.",
+        "The LLM uses the skills to write Fortran and CUDA Fortran. Compilers build these solvers. The PTX baseline is assembled.",
+        "We check independent physics and every output byte before timing complete updates on quiet, exclusive nodes.",
+        "Only measured gains enter the skills. We reuse storage, avoid repeated work and update several cells together.",
     ],
-    a + 2 * scale,
+    a + 5.662,
     546,
-    cw - 2 * scale,
-    170,
+    cw - 5.662,
+    154,
     34,
     bullets=True,
+    c="000000",
+    bullet_indent=0.65,
+    paragraph_gap_pt=12,
 )
-for paragraph_index in range(5):
-    for run in method_details.text_frame.paragraphs[paragraph_index].runs:
-        run.font.color.rgb = colour("0000FF")
 workflow = [
     (
         "a.  Inputs",
@@ -859,7 +766,7 @@ for i, (title, detail, symbol, paths) in enumerate(workflow):
         16,
         31,
         bold=True,
-        c="0000FF",
+        c="000000",
     )
     method_icon(symbol, paths, x + (node_width - 45) / 2, 731)
     text(
@@ -870,7 +777,7 @@ for i, (title, detail, symbol, paths) in enumerate(workflow):
         node_width - 12,
         23,
         26,
-        c="0000FF",
+        c="000000",
         bullets=True,
     )
     if i < 2:
@@ -888,34 +795,35 @@ for i, (title, detail, symbol, paths) in enumerate(workflow):
         end.set("w", "med")
         end.set("len", "med")
         arrow._element.spPr.get_or_add_ln().append(end)
-image(
+shallow_water_comparison = image(
     "result-error",
     OUT / DISPLAY_UPDATE["figures"]["sw"][DISPLAY_PICTURE_KEY],
     b,
-    573,
+    546,
     cw,
-    145,
+    170,
 )
-image(
+shallow_water_comparison.top = Mm(546)
+energy_balance_comparison = image(
     "result-calibration",
     OUT / DISPLAY_UPDATE["figures"]["ebm"][DISPLAY_PICTURE_KEY],
     c,
-    573,
+    546,
     cw,
-    145,
+    170,
 )
+energy_balance_comparison.top = Mm(546)
 text(
     "error-caption",
-    DISPLAY_UPDATE["poster_text"]["caption"]
-    + " "
-    + DISPLAY_UPDATE["cpu_worker_disclosure"],
+    DISPLAY_UPDATE["poster_text"]["chart_notes"],
     b + 2 * scale,
-    742,
+    724,
     cw - 2 * scale,
-    46,
+    64,
     26,
     bullets=True,
-    c="0000FF",
+    c="000000",
+    paragraph_gap_pt=3,
 )
 summary_top = 723
 heading("section-summary", "4  Summary", c, summary_top, cw - 72)
@@ -928,7 +836,8 @@ text(
     37,
     26,
     bullets=True,
-    c="0000FF",
+    c="000000",
+    paragraph_gap_pt=3,
 )
 # High error correction protects the central logo and the four-module white border.
 import qrcode
@@ -1042,57 +951,38 @@ pasc_width = pasc_height * pasc_size[0] / pasc_size[1]
 pasc_shape = image(
     "conference-logo", pasc_asset, W - a - pasc_width, 795, pasc_width, pasc_height
 )
-# Notes preserve sources without adding visible detail.
-if DISPLAY_UPDATE.get("comparison_class") == "archived_language_controls":
-    slide.notes_slide.notes_text_frame.text = (
-        "The displayed language comparisons use their original recorded points "
-        "and observed ranges from data/performance-figure-evidence.json. ESM.md "
-        "is the accepted 8 November Fortran implementation. The six vanilla and "
-        "tuned Fortran, Julia and compiled-Python controls are separate October "
-        "cohorts on different nodes. Each point is the originally reported median "
-        "of twelve individual useful-update rates, not useful updates divided by "
-        "median elapsed seconds. CPU records use one Neoverse V2 core and "
-        "complete-run wall time. GPU records use one GH200 and complete-graph "
-        "device events, excluding transfers and graph construction. Original "
-        "grid-dependent batch lengths and qualification scope are preserved. "
-        + DISPLAY_UPDATE["historical_qualification_scope"]
-        + " The separate 12 November Summary retains the current matched "
-        "Fortran versus native-baseline results, with a configured 248-core "
-        "CPU ceiling and one GPU. Its stronger complete-state checks are not "
-        "attributed to the archived controls. Current graph files, accepted "
-        "input and strict schema remain separate and unchanged. The title, "
-        "branding, physical illustrations, md2fort and md2fort-gpu workflow "
-        "remain unchanged. No new simulation or timing is performed."
-    )
-else:
-    slide.notes_slide.notes_text_frame.text = (
-        "The evidence map and accepted raw paired measurements are in data/ and "
-        "evidence.json. Each model has three matched workloads on each processor. "
-        "The charts show only ESM.md and the hand-tuned baseline. Each bar divides "
-        "useful updates by median elapsed seconds. Whiskers show observed minimum "
-        "and maximum rates across twelve paired runs. A useful update advances each interior "
-        "cell once through a complete step. Required neighbouring cells and "
-        "coordination remain inside the recorded work. The CPU comparison uses a "
-        "configured 248-core ceiling, with actual team and nonempty owner counts "
-        "reported separately. Actual team numbers are inside the CPU bars. "
-        "The row label CPU budget 248 [cores] describes the ceiling. "
-        + DISPLAY_UPDATE["cpu_worker_disclosure"]
-        + " GPU records use one device. Exact accepted identities, timer scopes, "
-        "placement, step counts and transfer exclusions are retained in the input "
-        "and render receipts. The supplied Markdown, frozen numerical contract and "
-        "prior verified source guided LLM source candidates through md2fort and "
-        "md2fort-gpu. Scientists selected scope and reviewed evidence. Independent "
-        "physical checks and complete byte agreement preceded instruction inspection "
-        "and comparative timing. Fortran and CUDA Fortran were compiled, while the "
-        "direct PTX comparison followed its separate assembly route. The physical "
-        "plots retain the accepted Fortran states. The dam_break.md rename preserves "
-        "the formulation bytes and physics revision 1.0. Model calculations retain "
-        "ordered binary64 arithmetic without contracted multiply-add."
-    )
+# Notes bind the benchmark scope separately from the physical illustrations.
+slide.notes_slide.notes_text_frame.text = (
+    "The performance figures and Summary use only accepted fresh cohort "
+    + DISPLAY_UPDATE["cohort"]
+    + ". Compact input SHA256 "
+    + DISPLAY_UPDATE["input_sha256"]
+    + ". The cohort has 96 route and workload conditions, 1,152 accepted elapsed "
+    "times, 1,000 complete steps and eight routes. Points divide useful updates "
+    "by median elapsed time. Lines show the observed minimum and maximum of "
+    "twelve individual rates. CPU uses a 248-core budget, capped at 128 workers "
+    "for the 128-band EBM. GPU uses one GH200 device. The independent encoding "
+    "audit and source acceptance limits are retained with the compact input. "
+    "Frozen benchmark banks use SW MIXED and EBM CLIMATE states. The separate "
+    "periodic dam-break and climate illustration inputs remain bound by "
+    "figure-evidence.json and do not supply benchmark timing observations. "
+    "md2fort and md2fort-gpu guide Fortran and CUDA Fortran candidates, which "
+    "are compiled. Independent physics and complete byte checks precede "
+    "comparative timing. The PTX "
+    "baseline uses its separate assembly route. The accepted current points "
+    "supply both figures and the Summary."
+)
 for a in original_shapes:
     if a.shape_id not in used:
         a._element.getparent().remove(a._element)
 path = OUT / "esm-md-a0-landscape.pptx"
+# Apply black to native text without changing artwork colours.
+for shape in slide.shapes:
+    if shape.has_text_frame:
+        for paragraph in shape.text_frame.paragraphs:
+            paragraph.font.color.rgb = colour("000000")
+            for run in paragraph.runs:
+                run.font.color.rgb = colour("000000")
 prs.save(path)
 (BUILD / "layout.json").write_text(
     json.dumps(

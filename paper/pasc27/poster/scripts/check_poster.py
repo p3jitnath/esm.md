@@ -1,4 +1,4 @@
-"""Check the actual A0 PowerPoint and PDF, including the printed QR code."""
+"""Check the saved fresh-cohort poster, including its text, artwork and QR."""
 
 from __future__ import annotations
 
@@ -14,48 +14,115 @@ import pymupdf
 from pptx import Presentation
 import zxingcpp
 
-from poster_comparison_input import load_display_comparison
+from poster_comparison_input import load_fresh_comparison
 
 POSTER = Path(__file__).resolve().parents[1]
 ROOT = POSTER.parents[2]
+ROUTES = (
+    "assembly",
+    "esm",
+    "fortran_tuned",
+    "fortran_vanilla",
+    "julia_tuned",
+    "julia_vanilla",
+    "python_tuned",
+    "python_vanilla",
+)
+GROUPS = ("Assembly", "ESM.md", "Fortran", "Julia", "Python")
+COLOURS = ("#681FB1", "#00A6A2", "#29347A")
+MARKERS = ("o", "s", "D")
+TITLES = {"sw": "3.2 Shallow-Water Model", "ebm": "3.3 Energy-Balance Model"}
 
 
-def _chart_identity(manifest: dict, model: str, resources: list) -> dict:
-    """Check actual chart bytes and labels for the displayed comparison.
+def _digest(path: Path) -> str:
+    """Return the SHA256 identity of an actual saved file.
 
     Parameters
     ----------
+    path : pathlib.Path
+        File to identify without mutation.
+
+    Returns
+    -------
+    str
+        Hexadecimal SHA256 identity.
+    """
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _chart_identity(poster: Path, manifest: dict, model: str) -> dict:
+    """Check source-bound artwork and the approved scatter encoding.
+
+    Parameters
+    ----------
+    poster : pathlib.Path
+        Poster root containing the bound input and figure files.
     manifest : dict
-        Validated comparison input with figure paths and render receipts.
-    model : str
-        Model identifier, either sw or ebm.
-    resources : list
-        Validated CPU resource records associated with this chart.
+        Fresh comparison already checked by the common input loader.
+    model : {'sw', 'ebm'}
+        Model whose CPU and GPU artwork is checked.
 
     Returns
     -------
     dict
-        SVG and PNG identities, chart labels and supplied CPU resources.
+        Actual artwork identities, visible text and rendering limits.
 
-    Raises
-    ------
-    AssertionError
-        If artwork differs from its receipt or required labels are missing.
+    Notes
+    -----
+    The independent encoding receipt checks the recorded rates. This function
+    checks their figure binding and visual encoding without repeating that audit.
     """
-    metadata = manifest["render_metadata"][model]
+    metadata = manifest["loaded_render_metadata"][model]
     chart = manifest["figures"][model]
+    assert metadata["status"] == "accepted"
+    assert metadata["presentation"] == "reference_language_scatter"
+    assert metadata["profile"] == "poster" and metadata["model"] == model
+    assert metadata["fresh_measurement"] is True
+    assert tuple(metadata["row_routes"]) == ROUTES
+    assert tuple(metadata["visible_group_labels"]) == GROUPS
+    assert metadata["esm_highlight_row_index"] == 1
+    assert metadata["vanilla_marker_hatch_rows"] == [3, 5, 7]
+    assert metadata["hatched_background_bands"] is False
+    assert metadata["group_separator_alpha"] == 0.15
+    assert metadata["group_separator_positions"] == [0.5, 1.5, 3.5, 5.5]
+    assert metadata["source_input"] is None
+    assert metadata["minimum_effective_font_pt"] >= 24.5
+    assert abs(metadata["final_width_mm"] - 364.249) < 0.01
+    assert abs(metadata["final_height_mm"] - 169.2988312921818) < 0.01
+    expected_sizes = (64, 256, 1024) if model == "sw" else (128, 4096, 65536)
+    key = metadata["grid_colour_shape_key"]
+    assert [(item["size"], item["colour"], item["marker"]) for item in key] == list(
+        zip(expected_sizes, COLOURS, MARKERS)
+    )
+    points = metadata["displayed_measurements"]
+    assert len(points) == 48
+    assert all(
+        item["marker_fill"]
+        == ("hatched" if item["route"].endswith("vanilla") else "solid")
+        for item in points
+    )
+    axes = {axis["device"]: axis for axis in metadata["axes"]}
+    assert set(axes) == {"CPU", "GPU"}
+    for axis in axes.values():
+        assert axis["scale"] == "logarithmic absolute rates"
+        limits = np.asarray(axis["limits"], dtype=float)
+        assert limits.shape == (2,) and np.isfinite(limits).all()
+        assert 0 < limits[0] < limits[1]
+    assert axes["CPU"]["header"] == (
+        "CPU · 248 cores · log" if model == "sw" else "CPU · ≤248 cores · log"
+    )
+    assert axes["GPU"]["header"] == "GPU · 1 GH200 · log"
     identities = {}
-    for suffix in ("svg", "png"):
-        path = POSTER / chart[suffix]
-        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    for suffix in ("svg", "png", "pdf"):
+        path = poster / chart[suffix]
+        digest = _digest(path)
         assert any(
-            Path(recorded_path).suffix == "." + suffix and recorded_hash == digest
-            for recorded_path, recorded_hash in metadata["outputs"].items()
-        ), (model, suffix, "Chart bytes differ from the render receipt.")
+            Path(name).suffix == "." + suffix and expected == digest
+            for name, expected in metadata["outputs"].items()
+        ), (model, suffix)
         identities[suffix] = {"path": chart[suffix], "sha256": digest}
-    svg_path = POSTER / chart["svg"]
     parser = ET.XMLParser(target=ET.TreeBuilder(insert_comments=True))
-    svg = ET.fromstring(svg_path.read_bytes(), parser=parser)
+    svg = ET.fromstring((poster / chart["svg"]).read_bytes(), parser=parser)
     labels = []
     for element in svg.iter():
         if element.tag == "{http://www.w3.org/2000/svg}text":
@@ -63,184 +130,181 @@ def _chart_identity(manifest: dict, model: str, resources: list) -> dict:
         elif element.tag == "{http://www.w3.org/2000/svg}g" and element.get(
             "id", ""
         ).startswith("text_"):
-            # Matplotlib path-font exports store each drawable label here.
             labels.extend(
                 child.text or "" for child in element if child.tag is ET.Comment
             )
+    labels = [" ".join(value.split()) for value in labels if value.strip()]
     visible = " ".join(labels)
-    assert "ESM.md" in visible, (model, "Missing implementation label.")
-    assert not re.search(r"\bassembly\b", visible, re.IGNORECASE), model
-    rate_labels = [
-        value
-        for value in labels
-        if re.search(r"updates\s*/\s*s|updates per second", value)
-    ]
-    assert rate_labels and all("[" in value and "]" in value for value in rate_labels)
+    assert all(label in labels for label in GROUPS), (model, labels)
+    assert "Tuned" in labels and "Vanilla" in labels
+    assert "Configurations" not in visible
+    assert not re.search(r"layout only|\bpending\b", visible, re.IGNORECASE)
+    assert "Cell updates [million/s]" in labels
+    assert "Cell updates [billion/s]" in labels
+    assert axes["CPU"]["header"] in labels and axes["GPU"]["header"] in labels
+    assert any(
+        element.tag == "{http://www.w3.org/2000/svg}pattern" for element in svg.iter()
+    ), (model, "Marker hatching is absent from SVG.")
+    with pymupdf.open(poster / chart["pdf"]) as document:
+        assert len(document) == 1
+        fonts = [
+            span["size"]
+            for block in document[0].get_text("dict")["blocks"]
+            for line in block.get("lines", [])
+            for span in line["spans"]
+            if span["text"].strip()
+        ]
+        scale = 364.249 / (document[0].rect.width / 72 * 25.4)
+        assert min(fonts) * scale >= 24.5
     return {
         **identities,
         "visible_chart_text": labels,
-        "cpu_resources": resources,
+        "native_picture_format": "png",
+        "hatched_marker_pattern_in_svg": True,
+        "axes": metadata["axes"],
+        "minimum_effective_font_pt": metadata["minimum_effective_font_pt"],
     }
 
 
-def _accepted_performance() -> tuple[dict, str, dict]:
-    """Validate the accepted input and actual chart files before writing outputs.
+def _accepted_performance(poster: Path) -> tuple[dict, dict]:
+    """Load the one accepted fresh cohort before any check outputs are written.
+
+    Parameters
+    ----------
+    poster : pathlib.Path
+        Root containing the fresh input, manifest and encoding receipt.
 
     Returns
     -------
-    manifest : dict
-        Accepted campaign, chart and caption records for both models.
-    input_sha256 : str
-        SHA256 identifier of the supplied performance input.
-    charts : dict
-        Actual SVG/PNG identities, visible labels and CPU resource records.
+    tuple of dict and dict
+        Validated manifest and actual figure checks for both models.
+    """
+    manifest = load_fresh_comparison(poster)
+    assert manifest["cohort"] == manifest["validated_input"]["cohort"]
+    assert manifest["native_picture_format"] == "png"
+    charts = {
+        model: _chart_identity(poster, manifest, model) for model in ("sw", "ebm")
+    }
+    return manifest, charts
+
+
+def _box(shape) -> tuple[float, float, float, float]:
+    """Return a native frame in millimetres without changing it.
+
+    Parameters
+    ----------
+    shape : pptx.shapes.base.BaseShape
+        Saved PowerPoint object whose frame is read.
+
+    Returns
+    -------
+    tuple of float
+        Left, top, width and height in millimetres.
+    """
+    return tuple(
+        value / 36000 for value in (shape.left, shape.top, shape.width, shape.height)
+    )
+
+
+def _require_box(shape, expected: tuple[float, float, float, float]) -> None:
+    """Require the approved frame within one tenth of a millimetre.
+
+    Parameters
+    ----------
+    shape : pptx.shapes.base.BaseShape
+        Saved PowerPoint object whose frame is checked.
+    expected : tuple of float
+        Required left, top, width and height in millimetres.
 
     Raises
     ------
     AssertionError
-        If acceptance, metric, resource or actual chart checks fail.
+        If an actual frame coordinate differs by at least 0.1 mm.
     """
-    manifest_path = POSTER / "data/accepted-performance-update.json"
-    payload = manifest_path.read_bytes()
-    manifest = json.loads(payload)
-    assert manifest.get("status") == "accepted", "Performance results are pending."
-    assert manifest.get("presentation") == "matched_absolute_rates"
-    assert manifest.get("cpu_resource_interpretation") == "configured_ceiling"
-    assert manifest.get("selected_cpu_cores") == 248
-    assert (
-        isinstance(manifest.get("cpu_worker_disclosure"), str)
-        and manifest["cpu_worker_disclosure"].strip()
-    )
-    campaigns = manifest["accepted_campaign_ids"]
-    assert campaigns and all(isinstance(value, str) and value for value in campaigns)
-    for platform in ("cpu", "gpu"):
-        source_path = POSTER / manifest["measurement_sources"][platform]
-        assert source_path.is_file(), source_path
-    charts = {}
-    for model in ("sw", "ebm"):
-        metadata = manifest["render_metadata"][model]
-        assert metadata.get("status") == "accepted"
-        assert metadata.get("presentation") == "matched_absolute_rates"
-        assert metadata.get("mode") == "matched_rates"
-        assert metadata.get("profile") == "poster" and metadata.get("model") == model
-        assert metadata.get("point_definition") == "useful_updates / median_seconds"
-        assert metadata.get("observed_range_definition") == (
-            "minimum and maximum of twelve individual useful-update rates"
-        )
-        coverage = metadata["comparison_coverage"]
-        assert coverage["selected_cpu_core_counts"] == [248]
-        assert coverage["matched_conditions"] == 6
-        assert coverage["historical_language_conditions"] == 0
-        assert len(metadata["paired_summaries"]) == 6
-        paired = metadata["paired_input"]
-        assert paired.get("status") == "accepted"
-        rows = [row for row in paired["paired_records"] if row["model"] == model]
-        assert len(rows) == 6
-        assert all(
-            sum(row["platform"] == platform for row in rows) == 3
-            for platform in ("cpu", "gpu")
-        )
-        for platform in ("cpu", "gpu"):
-            shapes = {
-                tuple(row["shape"]) for row in rows if row["platform"] == platform
-            }
-            assert len(shapes) == 3, (model, platform, "Workloads are duplicated.")
-        resources = []
-        for row in rows:
-            assert row["campaign_id"] in campaigns
-            assert len(row["paired_samples"]) == 12
-            assert all(
-                row["qualification"].get(flag) is True
-                for flag in (
-                    "independent_physics_passed",
-                    "exact_outputs_equal",
-                    "timed_final_state_checked",
-                    "exclusive_node",
-                    "quiet_samples",
-                )
-            )
-            if row["platform"] != "cpu":
-                continue
-            assert row["cpu_cores"] == 248 and row.get("series_kind") == "primary"
-            assert isinstance(row.get("run_id"), str) and row["run_id"]
-            teams = row["active_workers"]
-            owners = row["nonempty_spatial_owners_by_route"]
-            for route in ("baseline", "esm_md"):
-                team, owner = teams[route], owners[route]
-                assert type(team) is int and type(owner) is int
-                assert 1 <= owner <= team <= 248
-            assert teams["baseline"] == teams["esm_md"], "Paired CPU teams differ."
-            resources.append(
-                {
-                    "shape": row["shape"],
-                    "run_id": row["run_id"],
-                    "configured_ceiling": 248,
-                    "active_workers": teams,
-                    "nonempty_spatial_owners_by_route": owners,
-                }
-            )
-        charts[model] = _chart_identity(manifest, model, resources)
-    return manifest, hashlib.sha256(payload).hexdigest(), charts
+    assert all(
+        abs(actual - wanted) < 0.1 for actual, wanted in zip(_box(shape), expected)
+    ), (shape.name, _box(shape), expected)
 
 
-def check(output: Path) -> dict:
-    """Inspect the saved poster files and retain a focused review record.
+def _text_height(shape) -> float:
+    """Return the declared native line and paragraph height in millimetres.
+
+    Parameters
+    ----------
+    shape : pptx.shapes.autoshape.Shape
+        Native text box with saved lines, font sizes and paragraph gaps.
+
+    Returns
+    -------
+    float
+        Required text height under the builder's 1.12 line-spacing contract.
+    """
+    paragraphs = shape.text_frame.paragraphs
+    height = 0.0
+    for index, paragraph in enumerate(paragraphs):
+        runs = [run for run in paragraph.runs if run.text]
+        if not runs:
+            continue
+        size = runs[0].font.size.pt
+        height += len(paragraph.text.splitlines()) * size * 1.12 * 25.4 / 72
+        if index < len(paragraphs) - 1 and paragraph.space_after:
+            height += paragraph.space_after.pt * 25.4 / 72
+    return height
+
+
+def check(output: Path, poster: Path = POSTER) -> dict:
+    """Inspect the actual fresh poster and retain a focused review record.
 
     Parameters
     ----------
     output : pathlib.Path
-        Directory for temporary PDF renders and the JSON check record.
+        Private directory for PDF review crops and the JSON check receipt.
+    poster : pathlib.Path
+        Root of the self-contained poster project.
 
     Returns
     -------
     dict
-        Canvas, native-object, type-size and decoded-QR findings.
+        Accepted cohort, artifact, native-text, geometry and QR checks.
 
     Raises
     ------
     AssertionError
-        If geometry, required text, fonts or the final PDF QR is invalid.
+        If the saved artwork, native text, fonts or final QR differ.
+    ValueError
+        If the common loader refuses missing or unaccepted fresh measurements.
 
     Notes
     -----
-    Visual inspection of the saved renders is still required. The function
-    reads the delivered files, leaves both documents unchanged and exports
-    the saved PDF as a 150 dpi PNG.
+    This checker reuses the independent encoding audit and does not rerun a
+    solver, timing or source audit. Human review of the final PDF is still needed.
     """
-    performance, input_sha256, matched_chart_checks = _accepted_performance()
-    display = load_display_comparison(POSTER, performance)
-    display_input_sha256 = None
-    if display is performance:
-        chart_checks = matched_chart_checks
-    else:
-        display_input_sha256 = display["display_comparison_input_sha256"]
-        display_path = POSTER / "data/archived-language-comparison-update.json"
-        assert (
-            display_input_sha256
-            == hashlib.sha256(display_path.read_bytes()).hexdigest()
-        )
-        chart_checks = {
-            model: _chart_identity(display, model, []) for model in ("sw", "ebm")
-        }
-    output.mkdir(parents=True, exist_ok=True)
-    pptx = POSTER / "esm-md-a0-landscape.pptx"
-    pdf = POSTER / "esm-md-a0-landscape.pdf"
-    profile = json.loads((POSTER / "project-profile.json").read_text())
+    poster = Path(poster).resolve()
+    manifest, chart_checks = _accepted_performance(poster)
+    input_sha256 = manifest["input_sha256"]
+    pptx = poster / "esm-md-a0-landscape.pptx"
+    pdf = poster / "esm-md-a0-landscape.pdf"
+    profile_payload = (poster / "project-profile.json").read_bytes()
+    profile = json.loads(profile_payload)
+    profile_sha256 = hashlib.sha256(profile_payload).hexdigest()
+    assert profile["poster"]["performance_section_titles"] == TITLES
+    assert profile["poster"]["text_colour"] == "#000000"
+    assert (
+        profile["evidence"]["measurements"]
+        == "data/fresh-language-poster-manifest.json"
+    )
     presentation = Presentation(pptx)
     assert len(presentation.slides) == 1
     width, height = presentation.slide_width / 36000, presentation.slide_height / 36000
     assert abs(width - 1189) < 0.1 and abs(height - 841) < 0.1
     slide = presentation.slides[0]
-    assert len(slide.shapes) == 65, len(slide.shapes)
-    texts = []
-    sizes = []
+    assert len(slide.shapes) == 63, len(slide.shapes)
     names = set()
+    texts, sizes = [], []
+    native_runs = 0
     for shape in slide.shapes:
         names.add(shape.name)
-        x, y, w, h = [
-            value / 36000
-            for value in (shape.left, shape.top, shape.width, shape.height)
-        ]
+        x, y, w, h = _box(shape)
         assert (
             x >= -0.1 and y >= -0.1 and x + w <= width + 0.1 and y + h <= height + 0.1
         ), shape.name
@@ -249,95 +313,132 @@ def check(output: Path) -> dict:
         texts.append(shape.text)
         for paragraph in shape.text_frame.paragraphs:
             for run in paragraph.runs:
+                if not run.text:
+                    continue
+                native_runs += 1
                 assert run.font.name == "Open Sans", (shape.name, run.font.name)
+                assert str(run.font.color.rgb) == "000000", shape.name
                 if run.font.size:
                     sizes.append(run.font.size.pt)
     all_text = "\n".join(texts)
-    assert "dam_break.md" in all_text
-    assert "2d_periodic.md" not in all_text
-    skills = set(re.findall(r"\bmd2fort(?:-gpu)?\b", all_text))
-    assert skills == {"md2fort", "md2fort-gpu"}, skills
+    assert "dam_break.md" in all_text and "2d_periodic.md" not in all_text
+    assert set(re.findall(r"\bmd2fort(?:-gpu)?\b", all_text)) == {
+        "md2fort",
+        "md2fort-gpu",
+    }
     assert "md2asm" not in all_text
+    assert not re.search(r"layout only|\bpending\b", all_text, re.IGNORECASE)
     by_name = {shape.name: shape for shape in slide.shapes}
-    methods = by_name["method-details"]
-    assert len(methods.text_frame.paragraphs) == 5
-    expected_steps = ("a. Inputs", "b. LLM + skills", "c. Verify/time")
-    for index, expected in enumerate(expected_steps, 1):
+    assert "results-summary" not in names and "energy-summary" not in names
+    assert len(by_name["motivation-context"].text_frame.paragraphs) == 4
+    assert len(by_name["method-details"].text_frame.paragraphs) == 5
+    assert len(by_name["error-caption"].text_frame.paragraphs) == 3
+    assert len(by_name["takeaways"].text_frame.paragraphs) == 3
+    for index, expected in enumerate(
+        ("a. Inputs", "b. LLM + skills", "c. Verify/time"), 1
+    ):
         assert " ".join(by_name[f"method-step-{index}"].text.split()) == expected
-    blue_shapes = {
-        "method-details",
-        "results-summary",
-        "energy-summary",
-        "error-caption",
-        "takeaways",
-        *[f"method-step-{index}" for index in (1, 2, 3)],
-        *[f"method-detail-{index}" for index in (1, 2, 3)],
-    }
-    expected_text = {
-        "results-summary": display["poster_text"]["sw_intro"],
-        "energy-summary": display["poster_text"]["ebm_intro"],
-        "error-caption": display["poster_text"]["caption"]
-        + " "
-        + display["cpu_worker_disclosure"],
-        "takeaways": " ".join(display["poster_text"]["takeaways"]),
-    }
-    for name, expected in expected_text.items():
+    for name, title in (
+        ("results-comparison", TITLES["sw"]),
+        ("results-diagnostics", TITLES["ebm"]),
+    ):
+        assert " ".join(by_name[name].text.split()) == title
+    scope_text = " ".join(manifest["poster_text"]["chart_notes"])
+    assert "frozen input banks" in scope_text.lower() and re.search(
+        r"\b1,?000\b", scope_text
+    )
+    assert all(
+        word in scope_text.lower()
+        for word in ("median", "12", "fields", "cell", "overlap", "248", "128")
+    )
+    for name, key in (("error-caption", "chart_notes"), ("takeaways", "takeaways")):
+        expected = " ".join(manifest["poster_text"][key])
         assert " ".join(by_name[name].text.split()) == " ".join(expected.split()), name
-    for name in blue_shapes:
-        shape = by_name[name]
-        runs = [
-            run
-            for paragraph in shape.text_frame.paragraphs
+        assert all(
+            run.font.size.pt == 26
+            for paragraph in by_name[name].text_frame.paragraphs
             for run in paragraph.runs
             if run.text
-        ]
-        assert runs and all(str(run.font.color.rgb) == "0000FF" for run in runs), name
-    for model, name in (("sw", "result-error"), ("ebm", "result-calibration")):
+        )
+        assert _text_height(by_name[name]) <= by_name[name].height / 36000 + 0.1, name
+    assert all(
+        run.font.size.pt == 34
+        for paragraph in by_name["method-details"].text_frame.paragraphs
+        for run in paragraph.runs
+        if run.text
+    )
+    _require_box(by_name["error-caption"], (418.037389, 724, 358.587194, 64))
+    _require_box(by_name["takeaways"], (802.10325, 753, 282.249194, 37))
+    _require_box(by_name["method-details"], (33.9715, 546, 358.587194, 154))
+    _require_box(
+        by_name["result-clusters"], (412.375389, 240.710528, 364.249194, 196.578917)
+    )
+    _require_box(by_name["result-spatial"], (805.162417, 232, 346.806889, 214))
+    _require_box(by_name["physics-note-equation"], (150.395889, 424, 120.076417, 24))
+    physical_checks = {}
+    for model, name, stem in (
+        ("sw", "result-clusters", "shallow-water"),
+        ("ebm", "result-spatial", "energy-balance"),
+    ):
         picture = by_name[name]
+        png = poster / "figures" / (stem + ".png")
+        svg = poster / "figures" / (stem + ".svg")
+        png_payload = png.read_bytes()
+        svg_payload = svg.read_bytes()
+        assert picture.image.blob == png_payload, name
+        nodes = picture._element.xpath('.//*[local-name()="svgBlip"]')
+        assert len(nodes) == 1, name
+        relation = nodes[0].get(
+            "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
+        )
+        assert picture.part.related_part(relation).blob == svg_payload, name
+        physical_checks[model] = {
+            "png": {
+                "path": "figures/" + png.name,
+                "sha256": hashlib.sha256(png_payload).hexdigest(),
+            },
+            "svg": {
+                "path": "figures/" + svg.name,
+                "sha256": hashlib.sha256(svg_payload).hexdigest(),
+            },
+        }
+    for model, name, x in (
+        ("sw", "result-error", 412.375389),
+        ("ebm", "result-calibration", 796.44125),
+    ):
+        picture = by_name[name]
+        _require_box(picture, (x, 546, 364.249194, 169.298806))
         assert (
             hashlib.sha256(picture.image.blob).hexdigest()
             == chart_checks[model]["png"]["sha256"]
         )
-        svg_nodes = [
-            node
-            for node in picture._element.iter()
-            if node.tag
-            == "{http://schemas.microsoft.com/office/drawing/2016/SVG/main}svgBlip"
-        ]
-        archived_png = (
-            display.get("comparison_class") == "archived_language_controls"
-            and display.get("native_picture_format") == "png"
+        assert all(
+            abs(value) < 1e-12
+            for value in (
+                picture.crop_left,
+                picture.crop_right,
+                picture.crop_top,
+                picture.crop_bottom,
+            )
         )
-        if archived_png:
-            assert not svg_nodes, name
-        else:
-            assert len(svg_nodes) == 1, name
-            relation = svg_nodes[0].get(
-                "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
-            )
-            svg_blob = picture.part.related_part(relation).blob
-            assert (
-                hashlib.sha256(svg_blob).hexdigest()
-                == chart_checks[model]["svg"]["sha256"]
-            )
-    title = next(shape for shape in slide.shapes if shape.name == "poster-title")
+        assert abs(picture.rotation) < 1e-9
+        assert not picture._element.xpath('.//*[local-name()="svgBlip"]'), name
+        pixels = picture.image.size
+        effective_dpi = pixels[0] / (picture.width / 36000 / 25.4)
+        assert effective_dpi >= 390, (name, effective_dpi)
+        chart_checks[model]["native_png_pixels"] = list(pixels)
+        chart_checks[model]["native_effective_dpi"] = effective_dpi
+    title = by_name["poster-title"]
     assert title.text == profile["identity"]["title"]
     title_runs = list(title.text_frame.paragraphs[0].runs)
-    underlined = [run.text for run in title_runs if run.font.underline]
-    assert underlined == [], underlined
+    assert not any(run.font.underline for run in title_runs)
     assert "Verified Assembly" not in all_text
-    assert "Assembly is" not in all_text
-    assert "relative to assembly" not in all_text
     assert min(sizes) >= 22
-    assert {
-        "result-clusters",
-        "result-spatial",
-        "result-error",
-        "result-calibration",
-        "github-repository-qr",
-    } <= names
-    qr = next(shape for shape in slide.shapes if shape.name == "github-repository-qr")
-    qr_mm = [value / 36000 for value in (qr.left, qr.top, qr.width, qr.height)]
+    qr = by_name["github-repository-qr"]
+    _require_box(qr, (1089.690472, 716.688889, 71, 71))
+    qr_mm = _box(qr)
+    output = Path(output)
+    output.mkdir(parents=True, exist_ok=True)
     decoded = []
     with pymupdf.open(pdf) as document:
         assert len(document) == 1
@@ -346,23 +447,17 @@ def check(output: Path) -> dict:
         assert abs(page.rect.height * 25.4 / 72 - height) < 0.1
         assert document.metadata["title"] == title.text
         title_bounds = pymupdf.Rect(
-            *[
-                value / 12700
-                for value in (
-                    title.left,
-                    title.top,
-                    title.left + title.width,
-                    title.top + title.height,
-                )
-            ]
+            title.left / 12700,
+            title.top / 12700,
+            (title.left + title.width) / 12700,
+            (title.top + title.height) / 12700,
         )
         title_lines = [
             line
             for block in page.get_text("dict", clip=title_bounds)["blocks"]
-            if "lines" in block
-            for line in block["lines"]
+            for line in block.get("lines", [])
         ]
-        assert len(title_lines) == 1, title_lines
+        assert len(title_lines) == 1
         assert "".join(span["text"] for span in title_lines[0]["spans"]) == title.text
         title_underlines = [
             path
@@ -372,12 +467,12 @@ def check(output: Path) -> dict:
             and title_bounds.x0 <= path["rect"].x0 <= path["rect"].x1 <= title_bounds.x1
             and title_bounds.y0 <= path["rect"].y0 <= path["rect"].y1 <= title_bounds.y1
         ]
-        assert len(title_underlines) == 0, len(title_underlines)
+        assert not title_underlines
         x, y, w, h = qr_mm
         clip = pymupdf.Rect(
             x * 72 / 25.4, y * 72 / 25.4, (x + w) * 72 / 25.4, (y + h) * 72 / 25.4
         )
-        for scale in (1.5, 3.0):
+        for scale in (1.5, 3):
             pixmap = page.get_pixmap(
                 matrix=pymupdf.Matrix(scale, scale), clip=clip, alpha=False
             )
@@ -394,7 +489,7 @@ def check(output: Path) -> dict:
                     "decoded": values,
                 }
             )
-        poster_png = POSTER / "esm-md-a0-landscape.png"
+        poster_png = poster / "esm-md-a0-landscape.png"
         printed = page.get_pixmap(dpi=150, alpha=False)
         assert (printed.width, printed.height) == (7022, 4967)
         printed.save(poster_png)
@@ -407,53 +502,60 @@ def check(output: Path) -> dict:
             "footer": (25, 791, 1165, 839),
             "banner": (25, 76, 1165, 193),
         }.items():
-            clip = pymupdf.Rect(*[value * 72 / 25.4 for value in bounds])
-            page.get_pixmap(matrix=pymupdf.Matrix(1.5, 1.5), clip=clip).save(
+            region = pymupdf.Rect(*[value * 72 / 25.4 for value in bounds])
+            page.get_pixmap(matrix=pymupdf.Matrix(1.5, 1.5), clip=region).save(
                 output / f"{name}.png"
             )
     report = {
+        "id": "fresh_language_poster_structural_checks",
         "passed": True,
-        "accepted_performance_input_sha256": input_sha256,
+        "cohort": manifest["cohort"],
+        "input_sha256": input_sha256,
+        "input_identity": manifest["input_identity"],
+        "manifest_sha256": manifest["manifest_sha256"],
+        "profile_sha256": profile_sha256,
         "artifact_sha256": {
-            path.name: hashlib.sha256(path.read_bytes()).hexdigest()
-            for path in (pptx, pdf, poster_png)
+            path.name: _digest(path) for path in (pptx, pdf, poster_png)
         },
-        "performance_presentation": performance["presentation"],
-        "cpu_resource_interpretation": performance["cpu_resource_interpretation"],
-        "matched_chart_checks": matched_chart_checks,
-        "display_presentation": display["presentation"],
-        "display_chart_checks": chart_checks,
-        "blue_text_frames": sorted(blue_shapes),
-        "changed_prose_colour": "0000FF",
+        "qualified_series": len(manifest["validated_input"]["series"]),
+        "qualified_observations": sum(
+            len(item["raw_seconds"]) for item in manifest["validated_input"]["series"]
+        ),
+        "encoding_audit": manifest["loaded_encoding_audit"],
+        "charts": chart_checks,
+        "unchanged_physical_illustrations": physical_checks,
+        "presentation": manifest["presentation"],
+        "native_picture_format": "png",
+        "poster_text_colour": "000000",
         "canvas_mm": [width, height],
         "slides": 1,
         "native_objects": len(slide.shapes),
         "native_text_frames": len(texts),
+        "native_text_runs_black": native_runs,
         "minimum_native_font_pt": min(sizes),
         "title": title.text,
-        "native_title_underlined_letters": underlined,
+        "native_title_underlined_letters": [],
         "exported_title_lines": len(title_lines),
-        "exported_title_underlines": len(title_underlines),
+        "exported_title_underlines": 0,
+        "qr_url": profile["poster"]["qr"]["url"],
+        "qr_decoded_from_actual_pdf": True,
         "qr_final_pdf_checks": decoded,
-        "pptx_sha256": hashlib.sha256(pptx.read_bytes()).hexdigest(),
-        "pdf_sha256": hashlib.sha256(pdf.read_bytes()).hexdigest(),
-        "png_sha256": hashlib.sha256(poster_png.read_bytes()).hexdigest(),
         "png_pixels": [7022, 4967],
         "png_dpi": 150,
         "visual_inspection_required": True,
         "desktop_powerpoint_inspected": False,
     }
-    if display_input_sha256 is not None:
-        report["display_comparison_input_sha256"] = display_input_sha256
     (output / "structural-check.json").write_text(json.dumps(report, indent=2) + "\n")
     return report
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--poster-root", type=Path, default=POSTER)
     parser.add_argument(
         "--output",
         type=Path,
         default=ROOT / ".runtime/poster_update_20261108/final_review",
     )
-    print(json.dumps(check(parser.parse_args().output), indent=2))
+    args = parser.parse_args()
+    print(json.dumps(check(args.output, args.poster_root), indent=2))

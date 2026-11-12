@@ -18,7 +18,8 @@
       "Required literal syntax, quotations, official names and bibliography metadata"
     ],
     "gpu_numerical_contracts": "../../../skills/md2fort-gpu/references/",
-    "changed_prose_colour": "#0000FF"
+    "changed_prose_colour": "#000000",
+    "changed_prose_colour_scope": "Poster text only. Paper review colours follow their separate instructions."
   },
   "identity": {
     "author": "Pritthijit Nath",
@@ -84,7 +85,7 @@
       "acknowledgements": "Separate heading and full-height divider. Use the author-approved wording in README.md.",
       "conference": "Bottom right, clear of reference and acknowledgement text."
     },
-    "performance": "The active archived language charts have six facets per model, with three CPU grids at left and three GPU grids at right and seven shared implementation rows. ESM.md is the true 8 November Fortran result, with six separate October vanilla and tuned Fortran, Julia and compiled-Python controls. Points preserve originally reported median individual rates and observed ranges. CPU uses one Neoverse V2 core and GPU one GH200. The separately dated 12 November Summary retains the current matched outcomes under their own 248-core ceiling and one-GPU scope. Current chart files and the strict accepted-input schema remain unchanged.",
+    "performance": "The model sections are 3.2 Shallow-Water Model and 3.3 Energy-Balance Model. Each plot has CPU at the left and GPU at the right, with five left labels and eight route subrows. Purple circles, teal squares and navy diamonds identify the three grids. Tuned markers are solid and vanilla markers have coloured diagonal hatching on white faces. Faint rules separate groups and ESM.md is pale grey and bold. Both CPU and GPU rates use explicitly labelled logarithmic axes with positive margins and plain numeric ticks. The SW CPU header records 248 cores, while the EBM CPU header records \u2264248 cores and the shared notes state its 128-band cap. The GPU header records one GH200. All displayed points and ranges come unchanged from the accepted fresh input.",
     "figure_unit_labels": "Put units in square brackets on axes, colour bars and variable-label declarations. Keep plotted values, scales and ordinary value-unit expressions unchanged.",
     "title_font_pt": 72,
     "figure_implementation_label": "ESM.md",
@@ -94,18 +95,38 @@
     },
     "performance_slots_mm": {
       "width": 364.249,
-      "maximum_height": 145,
-      "preflight_height": 143.647,
-      "preflight_effective_font_pt": 25.247
-    }
+      "maximum_height": 170,
+      "preflight_height": 169.2988312921818,
+      "preflight_effective_font_pt": 25.247379346098807
+    },
+    "performance_section_titles": {
+      "sw": "3.2 Shallow-Water Model",
+      "ebm": "3.3 Energy-Balance Model"
+    },
+    "performance_measurement_status": "Publication requires the accepted 96-condition cohort, 1,152 elapsed times, two bound poster render receipts and the independent encoding receipt.",
+    "text_colour": "#000000",
+    "reference_wording": "Use the supplied original poster wording for Motivation, Methods and Summary where it remains accurate. Update solver routes to Fortran and CUDA Fortran and name both md2fort skills. Keep fresh performance outcomes pending until accepted measurements exist.",
+    "performance_note_frame_mm": {
+      "top": 724,
+      "height": 64,
+      "font_pt": 26,
+      "paragraph_gap_pt": 3
+    },
+    "benchmark_initial_states": {
+      "sw": "MIXED",
+      "ebm": "CLIMATE"
+    },
+    "physical_illustration_scope": "The SW illustration is a separate periodic dam-break test. Its data and frame are unchanged."
   },
   "evidence": {
     "branding": "evidence.json",
     "asset_sources": "assets/asset-urls.json",
-    "measurements": "data/archived-language-comparison-update.json",
-    "scope": "Archived recorded comparison and current matched Summary are separate binding classes. Original point/range/raw-rate evidence and its original qualification are preserved exactly for the old language charts. The 12 November accepted input, data, figures and stronger state gates remain separately identified.",
+    "measurements": "data/fresh-language-poster-manifest.json",
+    "scope": "Both performance figures, native notes and Summary use one complete accepted fresh eight-route cohort and its independent encoding receipt. The physical illustrations retain their separate figure-evidence.json inputs.",
     "generation": "Source identities and compiler versions follow the accepted records. Methods describe supplied Markdown, a frozen numerical contract, prior verified source, LLM candidates, human review and separate verification gates.",
-    "requires_manifest_status": "recorded_comparison for archived display, with unchanged accepted current matched input"
+    "requires_manifest_status": "accepted",
+    "measurement_input": "data/fresh-language-comparison-input.json",
+    "encoding_audit": "data/fresh-language-encoding-audit.json"
   },
   "delivery": "Inspect the actual final PDF and close-ups. Decode its QR at multiple render sizes. Display a PDF-rendered image in chat when requested.",
   "version_control": "Publish the complete requested poster project under paper/pasc27/poster. Keep temporary previews and build caches in local .runtime/poster_update_20261108."

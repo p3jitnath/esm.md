@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "status": "accepted",
+  "presentation": "reference_language_scatter",
+  "measurement_class": "fresh_eight_route_languages",
+  "cohort": "fresh_languages_job8353767",
+  "native_picture_format": "png",
+  "input": {
+    "path": "data/fresh-language-comparison-input.json",
+    "sha256": "ad5fcc2e4e65ebd5e380d582b83008b7e10556fab608d6b681a573e8be96bb30"
+  },
+  "encoding_audit": {
+    "path": "data/fresh-language-encoding-audit.json",
+    "sha256": "0c38e95379ee222fe0b9c7988416b3390cd586afdc26200b5dd8771e75b0cbc9"
+  },
+  "figures": {
+    "sw": {
+      "png": "figures/poster/language_water_rates.png",
+      "svg": "figures/poster/language_water_rates.svg",
+      "pdf": "figures/poster/language_water_rates.pdf"
+    },
+    "ebm": {
+      "png": "figures/poster/language_energy_rates.png",
+      "svg": "figures/poster/language_energy_rates.svg",
+      "pdf": "figures/poster/language_energy_rates.pdf"
+    }
+  },
+  "render_metadata": {
+    "sw": {
+      "path": "figures/poster/language_water_rates.json",
+      "sha256": "8bd1a4015d70f04b1efb871a97d05f250a4a6e7fd64ff3825f5a51ae07a773f6"
+    },
+    "ebm": {
+      "path": "figures/poster/language_energy_rates.json",
+      "sha256": "49f6adbf741a86aee89b7406ba5e22600d6d209b5c94b65ad19187f46423eb78"
+    }
+  },
+  "poster_text": {
+    "chart_notes": [
+      "Runs use frozen input banks for 1,000 steps. Points divide updates by median time. Lines show the range of 12 individual rates.",
+      "One cell update advances all fields at one interior cell through a complete step. Timing includes overlap work.",
+      "CPU uses 248 workers, with 128 for EBM at 128 bands. GPU uses one GH200 device."
+    ],
+    "takeaways": [
+      "We developed md2fort and md2fort-gpu for verified Fortran.",
+      "ESM.md CPU rates are 86.8\u201399.3% of native.",
+      "ESM.md GPU rates are 90.1\u2013103.2% of native, higher in 4/6."
+    ]
+  }
+}
