@@ -437,7 +437,7 @@ def load_fresh_input(poster, path="data/fresh-language-comparison-input.json"):
 
 
 def derive_poster_text(data):
-    """Derive compact notes and accepted throughput comparisons.
+    """Prepare cohort notes and a general contribution summary.
 
     Parameters
     ----------
@@ -452,49 +452,19 @@ def derive_poster_text(data):
     Raises
     ------
     ValueError
-        If the cohort is incomplete or a derived ratio is not finite.
+        If the accepted cohort is incomplete.
 
     Notes
     -----
-    This does not recompute measured times or rates. Percentages compare the
-    accepted ESM.md point with the accepted Assembly point at each workload.
+    The Summary describes the demonstrated workflow and reusable lessons.
+    Detailed performance comparisons remain in the accepted figure records.
     """
     validate_fresh_input(data)
-    points = {_condition_key(item): item["point"] for item in data["series"]}
-    summaries = ["We developed md2fort and md2fort-gpu for verified Fortran."]
-    for device in ("CPU", "GPU"):
-        ratios = [
-            100.0
-            * (
-                points[(model, device, size, "esm")]
-                / points[(model, device, size, "assembly")]
-            )
-            for model, sizes in SIZES.items()
-            for size in sizes
-        ]
-        _require(
-            all(_positive(value) for value in ratios),
-            "A derived ESM.md comparison is not finite.",
-        )
-        low, high = f"{min(ratios):.1f}", f"{max(ratios):.1f}"
-        percentage = (
-            f"{low}%"
-            if min(ratios) == max(ratios)
-            else (f"about {low}%" if low == high else f"{low}–{high}%")
-        )
-        summary = f"ESM.md {device} rates are {percentage} of native."
-        if device == "GPU":
-            higher = sum(
-                points[(model, device, size, "esm")]
-                > points[(model, device, size, "assembly")]
-                for model, sizes in SIZES.items()
-                for size in sizes
-            )
-            summary = (
-                f"ESM.md GPU rates are {percentage} of native, "
-                f"higher in {higher}/{len(ratios)}."
-            )
-        summaries.append(summary)
+    summaries = [
+        "Readable physics guides verified CPU and GPU solvers.",
+        "Physical checks and exact agreement guide optimisation.",
+        "Reusable skills preserve measured lessons for future work.",
+    ]
     return {
         "chart_notes": [
             "Runs use frozen input banks for 1,000 steps. Points divide updates by median time. Lines show the range of 12 individual rates.",

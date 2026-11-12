@@ -322,7 +322,7 @@ def refresh(
         "checks": check_identity,
         "visual_review": visual_identity,
         "evidence_binding_runs_models": False,
-        "scope": "Only the newly accepted eight-route cohort supplies the performance plots, notes and Summary. Metadata binding does not strengthen the original numerical, quiet-node or timer limits.",
+        "scope": "Only the newly accepted eight-route cohort supplies the performance plots and notes. The Summary describes the demonstrated workflow and reusable lessons. Metadata binding does not strengthen the original numerical, quiet-node or timer limits.",
     }
     old = json.loads(owned_file(poster, "evidence.json").read_text())
     identity = profile["identity"]
