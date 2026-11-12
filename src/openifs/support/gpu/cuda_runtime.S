@@ -1,10 +1,10 @@
 // One service selector preserves the complete mailbox and direct-launch variants.
 #ifdef MD2ASM_GPU_DIRECT_CUDA_SERVICE
 // Assembly-owned CUDA process services. No weather arithmetic is supplied here.
-// Contract: skills/md2asm-gpu/references/openifs/convection/runtime_convection_layer.md.
+// Contract: skills/md2fort-gpu/references/openifs/convection/runtime_convection_layer.md.
 #else
-// Assembly-owned CUDA process services. No weather arithmetic is supplied here. // Contract: skills/md2asm-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
-// Interface: skills/md2asm-gpu/references/openifs/cuda_runtime.md.
+// Assembly-owned CUDA process services. No weather arithmetic is supplied here. // Contract: skills/md2fort-gpu/references/openifs/support/whole_scalar_mailbox_service.md.
+// Interface: skills/md2fort-gpu/references/openifs/cuda_runtime.md.
 #endif
 // Each public frame has 384 bytes, including 32 bytes of outgoing arguments.
 // CUDA effects are isolated from the caller's numerical flags and errno.
@@ -601,7 +601,7 @@ mailbox_finalize_unlocked:
 #ifdef MD2ASM_GPU_DIRECT_CUDA_SERVICE
 // ABI and storage: pointwise_forecast_bridge.md, revision 2.
 #else
-// ABI and storage: skills/md2asm-gpu/references/openifs/cuda_runtime.md, revision 4.
+// ABI and storage: skills/md2fort-gpu/references/openifs/cuda_runtime.md, revision 4.
 #endif
 .text
 .p2align 2

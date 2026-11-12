@@ -1,6 +1,6 @@
 # Convective Initial State
 
-Formulation revision 1 describes the air state used to begin rising and sinking convection. The numerical contract is [CUININ](../../../skills/md2asm/references/openifs/physics/cuinin.md).
+Formulation revision 1 describes the air state used to begin rising and sinking convection. The numerical contract is [CUININ](../../../skills/md2fort/references/openifs/physics/cuinin.md).
 
 ## Physical Idea
 

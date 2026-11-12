@@ -14,6 +14,6 @@ Let $`h_j`$ be the new layer depths in metres. Equation P02 preserves the snowpa
 h_j\geq0,\qquad\sum_{j=1}^{n}h_j=H.
 ```
 
-The caller supplies finite, nonnegative layer masses and positive densities. It also supplies the minimum and maximum layer depths for ordinary snow and glaciers, the terrain-height variation in metres and the no-snow mask. A nonpositive maximum marks the accumulation layer that can receive remaining depth. Other maxima are nonnegative and all minima are nonnegative. The [md2asm contract](../../../skills/md2asm/references/openifs/surface/snow_grid.md) defines the accepted layer-selection policy and its rounding limits.
+The caller supplies finite, nonnegative layer masses and positive densities. It also supplies the minimum and maximum layer depths for ordinary snow and glaciers, the terrain-height variation in metres and the no-snow mask. A nonpositive maximum marks the accumulation layer that can receive remaining depth. Other maxima are nonnegative and all minima are nonnegative. The [md2fort contract](../../../skills/md2fort/references/openifs/surface/snow_grid.md) defines the accepted layer-selection policy and its rounding limits.
 
 This child changes the vertical division without advancing time. The supplied mass and density define its initial geometry. Columns outside the requested range retain their output bytes.

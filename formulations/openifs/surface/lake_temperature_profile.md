@@ -8,4 +8,4 @@ Let $`D`$ be lake depth and $`h`$ mixed-layer depth, both in metres. Mixed, mean
 T_{\mathrm{mean}}=\left[1-C\left(1-\frac{h}{D}\right)\right]T_m+C\left(1-\frac{h}{D}\right)T_b\qquad\text{(LTP-P01)}
 ```
 
-The forecast supplies depth, previous states, optical coefficients and the time interval. Heat flux uses watts per square metre, evaporation uses kilograms per square metre per second and wind stress uses newtons per square metre. Existing [lake radiation](lake_radiation.md) and ice boundaries remain unchanged. The [md2asm contract](../../../skills/md2asm/references/openifs/surface/lake_temperature_profile.md) records the stock update and its known temperature-profile limitation.
+The forecast supplies depth, previous states, optical coefficients and the time interval. Heat flux uses watts per square metre, evaporation uses kilograms per square metre per second and wind stress uses newtons per square metre. Existing [lake radiation](lake_radiation.md) and ice boundaries remain unchanged. The [md2fort contract](../../../skills/md2fort/references/openifs/surface/lake_temperature_profile.md) records the stock update and its known temperature-profile limitation.

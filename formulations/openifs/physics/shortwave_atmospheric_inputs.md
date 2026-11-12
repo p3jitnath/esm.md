@@ -34,4 +34,4 @@ a = wf. \qquad \text{[SAI-3]}
 
 Supply each layer's pressure, temperature, dry-air amount and molecular amounts for water, carbon dioxide, ozone, methane and oxygen. Require positive pressure, temperature and dry-air amount, with nonnegative gas amounts. Only columns receiving the Sun's radiation need this preparation. Other columns retain their supplied output state.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/physics/srtm_setcoef.md) records the table interpolation and the model's gas units.
+The [md2fort contract](../../../skills/md2fort/references/openifs/physics/srtm_setcoef.md) records the table interpolation and the model's gas units.

@@ -1,6 +1,6 @@
-// Contract: skills/md2asm-gpu/references/openifs/radiation/aerosol_visibility_extinction.md.
+// Contract: skills/md2fort-gpu/references/openifs/radiation/aerosol_visibility_extinction.md.
 /* Source build for the qualified private forecast graph.
- * Contract: skills/md2asm/references/openifs/dynamics/private_forecast_graph_sources.md.
+ * Contract: skills/md2fort/references/openifs/dynamics/private_forecast_graph_sources.md.
  * Preserve the original interface, ordered arithmetic, and caller-owned storage. */
 // Original aerosol_sw_extinction. Coefficients are m2/kg and mixing ratios are kg/kg.
 // The caller's g/kg conversion produces km-1 for this visibility diagnostic.

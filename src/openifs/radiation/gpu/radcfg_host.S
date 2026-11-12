@@ -1,6 +1,6 @@
 #include "../../support/gpu/preserved_weather_calls.inc.S"
 // Complete selected RADCFG. Physics formulations/openifs/radiation/radiation_grid_preparation.md.
-// Contract skills/md2asm/references/openifs/radiation/radiation_grid_preparation.md.
+// Contract skills/md2fort/references/openifs/radiation/radiation_grid_preparation.md.
 // Accepted direct children retain every numerical stage. Forty-six original pointer arguments.
 .text
 .p2align 4

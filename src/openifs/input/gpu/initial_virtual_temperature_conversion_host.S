@@ -1,7 +1,7 @@
 /* Selected initial SPECRT, KDIR zero, no spectral water or increments.
  * Physics: formulations/openifs/dynamics/virtual_temperature_conversion.md, revision1.0.
- * CPU parent: skills/md2asm/references/openifs/input/initial_virtual_temperature_conversion.md.
- * GPU cells: skills/md2asm-gpu/references/openifs/input/initial_virtual_temperature_cells_complete_contract.md.
+ * CPU parent: skills/md2fort/references/openifs/input/initial_virtual_temperature_conversion.md.
+ * GPU cells: skills/md2fort-gpu/references/openifs/input/initial_virtual_temperature_cells_complete_contract.md.
  * x0 Geometry20400, x1 TGFL1096, x2 TYPE_GFLD1359136,
  * x3 SPECTRAL_FIELD2992, x4 constants520. Return0/1 allocation/2 scope.
  * Complete mapped aligned disjoint views and qualified metadata are caller obligations.

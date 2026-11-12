@@ -30,4 +30,4 @@ Each sample lies in $`0\leq u_n<1`$. A cloud with cover fraction $`c`$ can be se
 
 ## Parameters, initial state and boundaries
 
-Use the fixed lags 607 and 273 and a seed $`-2^{31}\leq s\leq2^{31}-1`$. The [md2asm contract](../../../skills/md2asm/references/openifs/support/random_stream.md) defines the exact seed expansion and the state retained between calls. There is no spatial boundary in this sequence.
+Use the fixed lags 607 and 273 and a seed $`-2^{31}\leq s\leq2^{31}-1`$. The [md2fort contract](../../../skills/md2fort/references/openifs/support/random_stream.md) defines the exact seed expansion and the state retained between calls. There is no spatial boundary in this sequence.

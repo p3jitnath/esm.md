@@ -7,7 +7,7 @@
 !! src/openifs/setup/shared_cloud_gravity_wave_parameter_fields.inc.S.
 !! The original OpenIFS modules supply type declarations only. The selected
 !! numerical contract is cloud_gravity_wave_setup.md and its two runtime
-!! gravity-wave parameter contracts under skills/md2asm/references/openifs/setup.
+!! gravity-wave parameter contracts under skills/md2fort/references/openifs/setup.
 module gravity_wave_parameter_fields_mod
   use iso_fortran_env, only: real64, int32
   use yoegwd, only: tegwd

@@ -1,4 +1,4 @@
-.text // GPU implementation contract skills/md2asm-gpu/references/openifs/dynamics/complete_legendre_analysis.md
+.text // GPU implementation contract skills/md2fort-gpu/references/openifs/dynamics/complete_legendre_analysis.md
 .p2align 4
 .global md2asm_ltdir_ledir_child_7358525
 .type md2asm_ltdir_ledir_child_7358525,%function

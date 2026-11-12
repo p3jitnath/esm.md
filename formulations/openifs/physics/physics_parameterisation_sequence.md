@@ -6,4 +6,4 @@ A tendency is a rate of change per second. Wind uses metres per second, temperat
 
 The surrounding forecast supplies pressure, temperature, wind, water species, surface conditions and physical coefficients. This coarse case has 19 atmospheric levels and at most 24 columns per visit. The existing child models retain their upper, lower and horizontal boundaries. Lake physics is enabled and coupled-ocean mixing is inactive. This grouping introduces no new physical equation or parameter.
 
-The LLM uses [md2asm](../../../skills/md2asm/SKILL.md) to record the [complete caller contract](../../../skills/md2asm/references/openifs/physics/physics_parameterisation_sequence.md).
+The LLM uses [md2fort](../../../skills/md2fort/SKILL.md) to record the [complete caller contract](../../../skills/md2fort/references/openifs/physics/physics_parameterisation_sequence.md).

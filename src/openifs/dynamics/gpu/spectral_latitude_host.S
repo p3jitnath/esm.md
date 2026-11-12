@@ -1,8 +1,8 @@
-/* GPU contract: skills/md2asm-gpu/references/openifs/dynamics/spectral_latitude_derivative.md */
+/* GPU contract: skills/md2fort-gpu/references/openifs/dynamics/spectral_latitude_derivative.md */
 #include "../../support/gpu/preserved_weather_calls.inc.S"
 /* Direct AArch64 assembly for complete spectral latitude operations.
  * Physics: formulations/openifs/dynamics/spectral_latitude_operators.md
- * Contract: skills/md2asm/references/openifs/dynamics/spectral_latitude_operators.md
+ * Contract: skills/md2fort/references/openifs/dynamics/spectral_latitude_operators.md
  * GNU rank-two arrays have a base address and signed row/column strides.
  * The caller owns every array and keeps FPCR zero. No stage is in a driver.
  */

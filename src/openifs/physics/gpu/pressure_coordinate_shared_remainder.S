@@ -1,4 +1,4 @@
-#include "../../support/gpu/preserved_scalar_calls.inc.S" // Contract: skills/md2asm-gpu/references/openifs/fullpos/complete_pressure_output_provider.md.
+#include "../../support/gpu/preserved_scalar_calls.inc.S" // Contract: skills/md2fort-gpu/references/openifs/fullpos/complete_pressure_output_provider.md.
 .text
 .p2align 4
 .global md2asm_ppflev_7358525
@@ -1072,7 +1072,7 @@ brk #405
  .ascii "PPT"
 .section .note.GNU-stack,"",%progbits
 
-// Contract: skills/md2asm-gpu/references/openifs/setup/r23_ppflev_complete_complete_contract.md.
+// Contract: skills/md2fort-gpu/references/openifs/setup/r23_ppflev_complete_complete_contract.md.
 .arch armv8-a
 .text
 .p2align 4
@@ -1247,7 +1247,7 @@ md2asm_gpu_r23_ppflev_complete_phase_host:
 .Lr23_ppflev_complete_entry:.asciz "md2asm_gpu_r23_ppflev_complete"
 .section .note.GNU-stack,"",%progbits
 
-// Contract: skills/md2asm-gpu/references/openifs/setup/r23_ppintp_complete_complete_contract.md.
+// Contract: skills/md2fort-gpu/references/openifs/setup/r23_ppintp_complete_complete_contract.md.
 .arch armv8-a
 .text
 .p2align 4

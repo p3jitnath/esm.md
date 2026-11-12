@@ -1,7 +1,7 @@
 /* Whole five-address spline basis; integer-only copies and GPU launch.
  * Frame1024. Input256..495, result512..735, context768..831,
  * record832..895, vector896..911, private counters912..927.
- * No CPU weather arithmetic. Contract: skills/md2asm-gpu/references/openifs/setup/complete_vertical_spline_calls.md.
+ * No CPU weather arithmetic. Contract: skills/md2fort-gpu/references/openifs/setup/complete_vertical_spline_calls.md.
  */
 .arch armv8-a
 .text

@@ -17,4 +17,4 @@ a_i^{\mathrm{LW}}=1-\epsilon_i,\qquad
 a_b^{\mathrm{LW}}=\sum_i w_{ib}(1-\epsilon_i).
 ```
 
-The ground reflects one fraction and absorbs its complement. There is no time update or atmospheric layer calculation here. The numerical mapping and storage rules belong to [the md2asm contract](../../../skills/md2asm/references/openifs/physics/get_albedos.md).
+The ground reflects one fraction and absorbs its complement. There is no time update or atmospheric layer calculation here. The numerical mapping and storage rules belong to [the md2fort contract](../../../skills/md2fort/references/openifs/physics/get_albedos.md).

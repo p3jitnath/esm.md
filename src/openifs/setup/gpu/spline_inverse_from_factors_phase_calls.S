@@ -1,4 +1,4 @@
-/* Complete inverse-from-LU transport; skills/md2asm-gpu/references/openifs/setup/spline_inverse_from_factors_complete_contract.md. */
+/* Complete inverse-from-LU transport; skills/md2fort-gpu/references/openifs/setup/spline_inverse_from_factors_complete_contract.md. */
 .arch armv8-a
 .text
 .p2align 4

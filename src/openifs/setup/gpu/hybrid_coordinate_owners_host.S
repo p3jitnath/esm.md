@@ -1,4 +1,4 @@
-/* GPU contract: skills/md2asm-gpu/references/openifs/setup/hybrid_coordinate_setup.md */
+/* GPU contract: skills/md2fort-gpu/references/openifs/setup/hybrid_coordinate_setup.md */
 #include "../../support/gpu/preserved_weather_calls.inc.S"
 .arch armv8.2-a
 .text

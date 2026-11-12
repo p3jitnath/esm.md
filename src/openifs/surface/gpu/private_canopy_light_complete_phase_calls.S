@@ -1,4 +1,4 @@
-/* Complete canalb_phasedynamic phase; skills/md2asm-gpu/references/openifs/surface/private_canopy_light.md. Temporary frame 2048. */
+/* Complete canalb_phasedynamic phase; skills/md2fort-gpu/references/openifs/surface/private_canopy_light.md. Temporary frame 2048. */
 .arch armv8-a
 .text
 .p2align 4

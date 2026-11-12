@@ -16,4 +16,4 @@ o=n-s. \tag{PRF-02}
 
 Recover the original samples with $`n=(e+o)/2`$ and $`s=(e-o)/2`$. At an equatorial point, both samples are the same, so the odd combination is zero.
 
-The inputs are the supplied longitude components and matching latitude pairs. The grid can omit outer latitude pairs for a selected longitude wave. There is no time update or new boundary condition. The [md2asm contract](../../../skills/md2asm/references/openifs/dynamics/latitude_parity.md) records the original packing, rounded arithmetic and interface.
+The inputs are the supplied longitude components and matching latitude pairs. The grid can omit outer latitude pairs for a selected longitude wave. There is no time update or new boundary condition. The [md2fort contract](../../../skills/md2fort/references/openifs/dynamics/latitude_parity.md) records the original packing, rounded arithmetic and interface.

@@ -1,4 +1,4 @@
-/* Complete private CANALB parent; skills/md2asm-gpu/references/openifs/surface/private_canopy_light.md. */
+/* Complete private CANALB parent; skills/md2fort-gpu/references/openifs/surface/private_canopy_light.md. */
 #include "../../support/gpu/preserved_weather_calls.inc.S"
 .text
 .align 2

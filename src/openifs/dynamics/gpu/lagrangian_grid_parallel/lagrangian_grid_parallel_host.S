@@ -1,4 +1,4 @@
-// Qualified parallel interface and bounds in skills/md2asm-gpu/references/openifs/dynamics/lagrangian_grid_parallel_columns.md.
+// Qualified parallel interface and bounds in skills/md2fort-gpu/references/openifs/dynamics/lagrangian_grid_parallel_columns.md.
 // Original ABI storage/launch draft from original_host_contract.md revision1.
 .text
 .p2align 2

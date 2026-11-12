@@ -709,12 +709,12 @@ text(
     c=DARK,
     bullets=True,
 )
-text(
+method_details = text(
     "method-details",
     [
-        "We developed md2asm, reusable instructions that turn physics and a numerical contract into a solver.",
+        "md2fort and md2fort-gpu guide solver generation from Markdown physics and fixed numerical contracts.",
         "The contract fixes the grid, time stages, array storage and ordered 64-bit floating-point calculations.",
-        "The LLM writes Fortran. An optimising compiler produces processor instructions.",
+        "Compilers translate Fortran and CUDA Fortran. An assembler translates PTX, NVIDIA’s virtual instruction code.",
         "A central processing unit (CPU) or graphics processing unit (GPU) advances the model. We check physics and every output byte.",
         "Current rates use twelve quiet runs on one Neoverse V2 core or one GH200 GPU. Setup and output are outside timing.",
     ],
@@ -725,6 +725,9 @@ text(
     34,
     bullets=True,
 )
+for paragraph_index in (0, 2):
+    for run in method_details.text_frame.paragraphs[paragraph_index].runs:
+        run.font.color.rgb = colour("0000FF")
 workflow = [
     (
         "a.  Physics",
@@ -733,7 +736,7 @@ workflow = [
         '<circle cx="54" cy="8" r="4" stroke="#00BDB6"/><path d="M54 1v1M54 14v2M47 8h1M60 8h1M49 3l1 1M58 12l1 1M49 13l1-1M58 4l1-1" stroke="#00BDB6"/><path d="M7 26c7-8 12-8 19 0s12 8 19 0 12-8 19 0M7 33c7-8 12-8 19 0s12 8 19 0 12-8 19 0M7 40c7-8 12-8 19 0s12 8 19 0 12-8 19 0"/>',
     ),
     (
-        "b.  md2asm",
+        "b.  md2fort",
         "Numerical rules\nand Fortran",
         "assembly",
         '<rect x="17" y="10" width="38" height="28" rx="3"/><path d="M24 4v6M32 4v6M40 4v6M48 4v6M24 38v6M32 38v6M40 38v6M48 38v6M11 17h6M11 24h6M11 31h6M55 17h6M55 24h6M55 31h6"/><path d="M29 19l-5 5 5 5M43 19l5 5-5 5M38 17l-4 14" stroke="#00BDB6"/>',
@@ -758,7 +761,7 @@ for i, (title, detail, symbol, paths) in enumerate(workflow):
         16,
         31,
         bold=True,
-        c=DARK,
+        c="0000FF" if i == 1 else DARK,
     )
     method_icon(symbol, paths, x + (node_width - 45) / 2, 731)
     text(

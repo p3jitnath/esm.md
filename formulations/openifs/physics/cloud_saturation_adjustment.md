@@ -20,4 +20,4 @@ The heat capacity $`c_p`$ has units J kg$`^{-1}`$ K$`^{-1}`$. The latent heats $
 
 Each cell supplies its initial temperature, water amounts and cloud fraction, plus existing changes from other processes. Its layer pressures describe the vertical grid. New condensate is liquid above the freezing threshold and ice below it. Existing cloud evaporation retains its liquid and ice proportions. The caller supplies forcing and boundaries, and no transport between cells occurs in this adjustment itself.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/physics/cloud_satadj.md) records the complete numerical update, diagnostic budgets and verified child calculations.
+The [md2fort contract](../../../skills/md2fort/references/openifs/physics/cloud_satadj.md) records the complete numerical update, diagnostic budgets and verified child calculations.

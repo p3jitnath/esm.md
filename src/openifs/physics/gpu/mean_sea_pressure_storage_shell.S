@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/mean_sea_level_pressure.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/mean_sea_level_pressure.md.
 .text
 .p2align 4
 .macro LOAD_GLOBAL reg,symbol

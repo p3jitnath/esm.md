@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/surface/snow_warm_start.md.
+// Contract: skills/md2fort-gpu/references/openifs/surface/snow_warm_start.md.
 /* Snow warm start from formulations/openifs/surface/snow_warm_start.md.
  * Complete mode-two controller and its four native numerical children. */
 #ifndef ORIGINAL_SYMBOL

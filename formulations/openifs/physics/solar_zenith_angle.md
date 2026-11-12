@@ -14,4 +14,4 @@ The value is zero at night and at the horizon. A value of one means that the Sun
 
 The model can use the value at the centre of a time interval or its average. The model-step average includes the complete interval. The radiation calculation can instead average only over the part when the Sun is above the horizon, because it uses this value to calculate the solar beam's path through the atmosphere.
 
-Latitude, longitude, the Sun's declination, the interval's centre and its duration are inputs. Declination is held fixed during each interval. There is no evolving state in this calculation. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/cos_sza.md) gives the supported time windows, numerical method and output checks.
+Latitude, longitude, the Sun's declination, the interval's centre and its duration are inputs. Declination is held fixed during each interval. There is no evolving state in this calculation. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/cos_sza.md) gives the supported time windows, numerical method and output checks.

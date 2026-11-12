@@ -10,4 +10,4 @@ X_0=0,\qquad X_{L+1}=0. \tag{P01}
 
 The selected forecast has 19 physical levels. The initial work values come from the preceding dynamics calculations. Each selected boundary value becomes positive zero, and all other stored values remain unchanged.
 
-The [solver contract](../../../skills/md2asm/references/openifs/dynamics/interpolation_boundary_values.md) defines the selected fields and their stored representations.
+The [solver contract](../../../skills/md2fort/references/openifs/dynamics/interpolation_boundary_values.md) defines the selected fields and their stored representations.

@@ -1,4 +1,4 @@
-// Direct assembly. Numerical and storage contract: ../../../../skills/md2asm-gpu/references/openifs/radiation/ozone_pressure_layers.md
+// Direct assembly. Numerical and storage contract: ../../../../skills/md2fort-gpu/references/openifs/radiation/ozone_pressure_layers.md
 /* Original eleven-address ozone pressure layer storage boundary.
  * The 640-byte frame has saved state0..123, vector128..215,
  * context256..319 and live flag record320..335.

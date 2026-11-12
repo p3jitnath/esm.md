@@ -10,4 +10,4 @@ F_g(T)=p_gF_{b(g)}(T).
 
 Here $`b(g)`$ selects the band of sample $`g`$. When the sample fractions in a band sum to one, their emitted fluxes sum to the band's flux. Across the spectrum, blackbody emission follows the approximate relation $`F(T)=\sigma T^4`$, where $`\sigma`$ is the Stefan–Boltzmann constant in watts per square metre per kelvin to the fourth power.
 
-Use the supplied temperatures at the boundaries between model layers and the supplied gas fractions. Temperatures are finite and nonnegative. The radiation tables and their original spectral ranges remain unchanged. The [solver contract](../../../skills/md2asm/references/openifs/physics/planck_function_atmos.md) explains the original temperature interpolation and storage.
+Use the supplied temperatures at the boundaries between model layers and the supplied gas fractions. Temperatures are finite and nonnegative. The radiation tables and their original spectral ranges remain unchanged. The [solver contract](../../../skills/md2fort/references/openifs/physics/planck_function_atmos.md) explains the original temperature interpolation and storage.

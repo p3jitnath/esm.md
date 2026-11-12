@@ -1,5 +1,5 @@
 // Original forecast ABI, pointer vectors and CUDA launch control only.
-// Contract: skills/md2asm-gpu/references/openifs/pointwise_forecast_calls.md.
+// Contract: skills/md2fort-gpu/references/openifs/pointwise_forecast_calls.md.
 // Revision 3. Original call control with no weather arithmetic.
 .text
 .p2align 2

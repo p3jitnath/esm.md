@@ -18,4 +18,4 @@ f_{\mathrm{north}}=A+S,\qquad f_{\mathrm{south}}=S-A.
 \tag{IS2}
 ```
 
-The input is the complete captured spectral state and accepted dimensionless basis tables. Longitude is periodic and the spherical basis supplies pole behaviour. The md2asm contract records the representation, ordered arithmetic, field maps, complete output bytes and checked bounds.
+The input is the complete captured spectral state and accepted dimensionless basis tables. Longitude is periodic and the spherical basis supplies pole behaviour. The md2fort contract records the representation, ordered arithmetic, field maps, complete output bytes and checked bounds.

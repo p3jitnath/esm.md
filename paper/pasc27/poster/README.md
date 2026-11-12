@@ -28,6 +28,10 @@ All axis and colour-bar unit labels use square brackets, such as `Depth [m]`, `T
 
 The final files are `esm-md-a0-landscape.pptx` and `esm-md-a0-landscape.pdf`. A 150 dpi PNG export of the saved PDF is available as `esm-md-a0-landscape.png`, with 7022 by 4967 pixels. Temporary renders and check logs stay under the ignored `.runtime/poster_update_20261108/` folder. Local `.build/` and Python caches are excluded from publication. Text, headings, workflow blocks and positions remain native editable PowerPoint objects. Scientific artwork is embedded as SVG with PNG fallbacks, and its editable plotting sources and data are included here. Install the bundled Open Sans fonts when editing the PowerPoint on another computer.
 
+## Solver Development Skills
+
+`md2fort` guides portable Fortran CPU development. `md2fort-gpu` guides GPU generation, verification and optimisation through CUDA Fortran and direct PTX comparison paths. Fortran sources use compilers, while direct PTX uses a GPU assembler. The updated native Methods paragraphs and workflow label are blue for review. This skill-name update preserves the numerical contract and existing measurements.
+
 ## Measurements and Meaning
 
 The active performance panels compare seven implementations at three workloads on each platform. The generated solver is labelled `ESM.md`. The six controls are vanilla and tuned Fortran, Julia and compiled Python. Vanilla means the unchanged control source compiled with the recorded strict, target-aware optimisation settings. Tuned means the retained measured source optimisation. Vanilla Python is also compiled, and the timers exclude compilation. CPU means central processing unit and GPU means graphics processing unit. CPU measurements use one Neoverse V2 core, and GPU measurements use one NVIDIA GH200 device.

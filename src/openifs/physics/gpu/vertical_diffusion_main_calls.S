@@ -1,4 +1,4 @@
-// Direct assembly. Numerical and storage contract: ../../../../skills/md2asm-gpu/references/openifs/physics/vertical_mixing_main.md
+// Direct assembly. Numerical and storage contract: ../../../../skills/md2fort-gpu/references/openifs/physics/vertical_mixing_main.md
 // Complete original VDFMAIN. Host operations manage storage and launch only.
 .text
 .p2align 2

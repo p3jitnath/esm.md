@@ -1,4 +1,4 @@
-// Complete upper inverse host; skills/md2asm-gpu/references/openifs/setup/spline_upper_triangular_inverse_complete_contract.md.
+// Complete upper inverse host; skills/md2fort-gpu/references/openifs/setup/spline_upper_triangular_inverse_complete_contract.md.
 .arch armv8-a
 .text
 .p2align 4

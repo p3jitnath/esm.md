@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/monthly_aerosol_update.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/monthly_aerosol_update.md.
 .text
 .p2align 2
 .macro CONST reg,value

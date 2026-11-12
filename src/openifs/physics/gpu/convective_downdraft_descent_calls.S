@@ -1,4 +1,4 @@
-// Direct assembly. Numerical and storage contract: ../../../../skills/md2asm-gpu/references/openifs/physics/convective_downdraft_descent.md
+// Direct assembly. Numerical and storage contract: ../../../../skills/md2fort-gpu/references/openifs/physics/convective_downdraft_descent.md
 // Original ABI storage/launch draft from original_host_contract.md revision1.
 .text
 .p2align 2

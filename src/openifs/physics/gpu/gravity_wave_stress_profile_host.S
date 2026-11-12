@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/gravity_wave_stress_profile.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/gravity_wave_stress_profile.md.
 // Storage-only original21-address ABI. All weather arithmetic runs in direct PTX.
 #ifndef GWPROFIL_HOST_SYMBOL
 #define GWPROFIL_HOST_SYMBOL gwprofil_

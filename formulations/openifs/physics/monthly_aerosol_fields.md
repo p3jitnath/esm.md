@@ -34,4 +34,4 @@ The fixed optical-thickness fields have 72 longitude points and 46 latitude poin
 
 Monthly interpolation repeats across December and January. Volcanic years outside the supplied range use the nearest available year. The pressure grid runs from the model top to the surface and has one more boundary than layers.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/physics/updecaec.md) records the exact calendar conventions, storage and complete update.
+The [md2fort contract](../../../skills/md2fort/references/openifs/physics/updecaec.md) records the exact calendar conventions, storage and complete update.

@@ -35,4 +35,4 @@ f_g=w_g.\tag{P03}
 
 ## State And Boundaries
 
-The calculation reads an existing atmospheric state. It does not advance time or transport radiation through the whole atmosphere. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/rrtm_taumol6.md) defines interpolation, ordered arithmetic and the complete assembly interface.
+The calculation reads an existing atmospheric state. It does not advance time or transport radiation through the whole atmosphere. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/rrtm_taumol6.md) defines interpolation, ordered arithmetic and the complete assembly interface.

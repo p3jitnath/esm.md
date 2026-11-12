@@ -1,0 +1,11 @@
+# Stratocumulus diffusion on the GPU
+
+This routine mixes heat and water between the cloud layer and the air around it. Temperature is in kelvin, pressure in pascals and specific energy in joules per kilogram. The [low-cloud formulation](../../../../../formulations/openifs/convection/stratocumulus_mixing.md) describes the physics, and the [CPU contract](../../../../md2fort/references/openifs/convection/custrat.md) defines the complete interface and ordered update. The GPU follows the original CUSTRAT equations and their order of operations. It keeps each intermediate result in 64-bit floating-point format, without fused multiply-add.
+
+The original interface has 17 pointer arguments. The accepted provider is `md2asm_custrat_7240564`. The public `custrat_` alias remains deferred. One GPU thread processes the complete selected column interval, and the host keeps storage and launch control in assembly.
+
+The accepted domain has 1 to 4,096 columns and 4 to 137 levels, with at most 65,536 column-level cells. The numerical contract retains the original physical conditioning and signed array indices. Complete output owners, including inactive columns and boundary cells, remain part of the byte comparison.
+
+The 512-byte launch record holds the 17 owner capacities, four live constant pointers, and the accepted CUADJTQ child record. Private storage needs `512 + 8*(11*P*N + 8*P)` bytes, where `P` is the column count and `N` is the level count. Three complete output copies are committed only after the calculation succeeds. The host preserves the original application binary interface (ABI), saved registers, floating-point state and the system error indicator.
+
+Acceptance covers 22 protected GPU calls, 22 selected assembly-reference calls, and 11 independent original Fortran cases. All 848,976 output bytes agree. Independent checks cover 195,518 diffusion relations at 120 decimal digits. The packet also passes 45 refusal controls, two ordinary-device graphs, current provider and native-instruction checks, and independent numerical and host reviews. New exponential-function inputs are checked at 120 and 240 decimal digits. These checks qualify this component; they do not establish a complete GPU forecast.

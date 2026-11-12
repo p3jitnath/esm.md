@@ -2,7 +2,7 @@
 /* Complete declared RADPAR radiation preparation. Source order is frozen.
  * Selected coarse forecast has prognostic clouds and accepted direct children.
  * Physics formulations/openifs/radiation/radiation_preparation.md.
- * Contract skills/md2asm/references/openifs/radiation/radiation_parent_contract.md.
+ * Contract skills/md2fort/references/openifs/radiation/radiation_parent_contract.md.
  * 68 ordinary addresses and a measured 4,275,088-byte MODEL owner. */
 #ifndef RADPAR_SYMBOL
 #define RADPAR_SYMBOL md2asm_radpar

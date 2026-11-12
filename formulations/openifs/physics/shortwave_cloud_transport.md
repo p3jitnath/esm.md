@@ -16,4 +16,4 @@ Use zero scattering or direction when its denominator is zero. A sampled cloud p
 F=cF_{\mathrm{cloudy}}+(1-c)F_{\mathrm{clear}}. \tag{P02}
 ```
 
-At the top, prescribe incoming sunlight and its direction. At the surface, prescribe direct and diffuse reflection fractions between zero and one. At night, shortwave flux is zero. Use the supplied optical properties, cloud fractions, overlap weights, cloud-variation table and reproducible random seed. The [solver contract](../../../skills/md2asm/references/openifs/physics/solver_mcica_sw.md) chooses the spectral transport, sampling and arithmetic.
+At the top, prescribe incoming sunlight and its direction. At the surface, prescribe direct and diffuse reflection fractions between zero and one. At night, shortwave flux is zero. Use the supplied optical properties, cloud fractions, overlap weights, cloud-variation table and reproducible random seed. The [solver contract](../../../skills/md2fort/references/openifs/physics/solver_mcica_sw.md) chooses the spectral transport, sampling and arithmetic.

@@ -29,4 +29,4 @@ This weight controls how often neighbouring cloudy layers share the same water s
 
 ## Parameters, Initial State And Boundaries
 
-Use exponential-random cloud overlap, with fractions and overlap weights between zero and one. Start from an integer random seed. Layers without cloud have multiplier zero. If the total cloud fraction is below the positive threshold, report zero cloud cover and preserve the unused multiplier array. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/cloud_sampling.md) fixes the calculations, supported inputs and exact random draw order.
+Use exponential-random cloud overlap, with fractions and overlap weights between zero and one. Start from an integer random seed. Layers without cloud have multiplier zero. If the total cloud fraction is below the positive threshold, report zero cloud cover and preserve the unused multiplier array. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/cloud_sampling.md) fixes the calculations, supported inputs and exact random draw order.

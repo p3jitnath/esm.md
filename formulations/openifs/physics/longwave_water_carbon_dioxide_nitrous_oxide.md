@@ -21,4 +21,4 @@ C_n,&r\leq1.5,\\
 \end{cases} \tag{LW3-2}
 ```
 
-Use the original empirical tables, pressure, temperature and gas columns supplied by the forecast. The tables also provide the Planck fraction, which assigns thermal emission to each spectral point. This calculation has no time update or spatial boundary of its own. Its interpolation and assembly interface are defined in the [md2asm contract](../../../skills/md2asm/references/openifs/physics/rrtm_taumol3.md).
+Use the original empirical tables, pressure, temperature and gas columns supplied by the forecast. The tables also provide the Planck fraction, which assigns thermal emission to each spectral point. This calculation has no time update or spatial boundary of its own. Its interpolation and assembly interface are defined in the [md2fort contract](../../../skills/md2fort/references/openifs/physics/rrtm_taumol3.md).

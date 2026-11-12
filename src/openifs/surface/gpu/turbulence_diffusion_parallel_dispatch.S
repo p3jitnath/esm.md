@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/surface/turbulence_diffusion_entry.md
+// Contract: skills/md2fort-gpu/references/openifs/surface/turbulence_diffusion_entry.md
 .text
 .p2align 4
 .global md2asm_turbulence_columns_dispatch

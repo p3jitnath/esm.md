@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/radiation/aerosol_climatology_preparation.md.
+// Contract: skills/md2fort-gpu/references/openifs/radiation/aerosol_climatology_preparation.md.
 /* Original integer-only three-child getter and assembly-owned diagnostic bytes. */
 .arch armv8-a
 .text

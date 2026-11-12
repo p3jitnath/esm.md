@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/radiation/selected_spectral_planck_table_complete_contract.md.
+// Contract: skills/md2fort-gpu/references/openifs/radiation/selected_spectral_planck_table_complete_contract.md.
 .arch armv8-a
 .text
 .p2align 4

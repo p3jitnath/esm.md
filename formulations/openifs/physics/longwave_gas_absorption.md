@@ -10,4 +10,4 @@ Optical depth $`\tau_g`$ measures absorption without units. The spectral transmi
 
 Each band combines the supplied gas columns with unchanged empirical absorption coefficients. The tables also supply a Planck fraction, which assigns thermal emission to each spectral point. Gas columns, layer pressure, interpolation factors, tropopause position and aerosol depths come from the forecast's atmospheric preparation.
 
-Use the existing [band physics](longwave_water_nitrogen.md) and the other fifteen linked band formulations through the [complete md2asm contract](../../../skills/md2asm/references/openifs/physics/rrtm_gas_optical_depth.md). This caller joins the bands and returns their outputs. It has no separate time update or spatial boundary.
+Use the existing [band physics](longwave_water_nitrogen.md) and the other fifteen linked band formulations through the [complete md2fort contract](../../../skills/md2fort/references/openifs/physics/rrtm_gas_optical_depth.md). This caller joins the bands and returns their outputs. It has no separate time update or spatial boundary.

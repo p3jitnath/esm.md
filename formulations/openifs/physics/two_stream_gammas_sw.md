@@ -29,4 +29,4 @@ The first coefficient describes the loss from a diffuse flow. The second couples
 
 ## Parameters And Boundaries
 
-Inputs are the scattering fraction and asymmetry at each spectral point, with one solar angle for the layer. There is no time update or spatial boundary in this local calculation. The [solver contract](../../../skills/md2asm/references/openifs/physics/calc_two_stream_gammas_sw.md) fixes the arithmetic and array interface.
+Inputs are the scattering fraction and asymmetry at each spectral point, with one solar angle for the layer. There is no time update or spatial boundary in this local calculation. The [solver contract](../../../skills/md2fort/references/openifs/physics/calc_two_stream_gammas_sw.md) fixes the arithmetic and array interface.

@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/convection/parallel_convective_columns.md
+// Contract: skills/md2fort-gpu/references/openifs/convection/parallel_convective_columns.md
 .text
 .p2align 4
 .global md2asm_convective_parallel_dispatch

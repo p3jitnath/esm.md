@@ -23,4 +23,4 @@ C_c,&r\leq3,\\
 \end{cases} \tag{LW8-2}
 ```
 
-Use the original gas, aerosol and empirical table inputs supplied by the forecast. The tables also assign a Planck fraction to each spectral point for thermal emission. This calculation has no separate time update or spatial boundary. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/rrtm_taumol8.md) defines its interpolation and assembly interface.
+Use the original gas, aerosol and empirical table inputs supplied by the forecast. The tables also assign a Planck fraction to each spectral point for thermal emission. This calculation has no separate time update or spatial boundary. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/rrtm_taumol8.md) defines its interpolation and assembly interface.

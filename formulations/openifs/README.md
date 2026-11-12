@@ -2,7 +2,7 @@
 
 OpenIFS is a global weather model. It combines atmospheric motion with radiation, clouds, rainfall and exchanges with the surface. The local source used here is OpenIFS 48.1.1, identified by the [source record](../../src/openifs/README.md).
 
-The notes contain the physical idea and basic equations. The md2asm contracts contain the numerical method, ordered arithmetic and assembly interface. A complete routine is verified separately before it replaces the corresponding Fortran routine in the forecast.
+The notes contain the physical idea and basic equations. The md2fort contracts contain the numerical method, ordered arithmetic and assembly interface. A complete routine is verified separately before it replaces the corresponding Fortran routine in the forecast.
 
 | Forecast part | Basic formulation | Assembly coverage |
 | --- | --- | --- |

@@ -12,4 +12,4 @@ Let $`x`$ be the cosine, with no units, and let $`a`$ be the angle in radians. T
 
 A value of 1 gives an angle of zero. A value of 0 gives a right angle, and a value of −1 gives an angle of $`\pi`$ radians. Each input has one answer within this half-circle. There is no time update, initial state or spatial boundary.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/support/acos_original_rounding.md) defines the numerical calculation and its checked limits.
+The [md2fort contract](../../../skills/md2fort/references/openifs/support/acos_original_rounding.md) defines the numerical calculation and its checked limits.

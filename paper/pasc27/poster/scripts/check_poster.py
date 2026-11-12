@@ -72,6 +72,20 @@ def check(output: Path) -> dict:
     all_text = "\n".join(texts)
     assert "dam_break.md" in all_text
     assert "2d_periodic.md" not in all_text
+    assert "md2fort" in all_text and "md2fort-gpu" in all_text
+    assert "md2asm" not in all_text
+    methods = next(shape for shape in slide.shapes if shape.name == "method-details")
+    for index in (0, 2):
+        assert all(
+            str(run.font.color.rgb) == "0000FF"
+            for run in methods.text_frame.paragraphs[index].runs
+        )
+    skill_step = next(shape for shape in slide.shapes if shape.name == "method-step-2")
+    assert skill_step.text == "b. md2fort"
+    assert all(
+        str(run.font.color.rgb) == "0000FF"
+        for run in skill_step.text_frame.paragraphs[0].runs
+    )
     title = next(shape for shape in slide.shapes if shape.name == "poster-title")
     assert title.text == profile["identity"]["title"]
     title_runs = list(title.text_frame.paragraphs[0].runs)

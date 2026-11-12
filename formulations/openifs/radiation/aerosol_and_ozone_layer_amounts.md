@@ -38,4 +38,4 @@ The fixed gravity is 9.80665 metres per second squared. The optical-depth floor 
 
 The input is the captured climate tables, cumulative profiles, non-negative boundary pressures, temperatures in kelvin, and coordinates on the original unrotated grid. The calculation starts at a top pressure of zero and proceeds towards the surface. It changes only selected output columns. All prescribed input tables remain unchanged.
 
-The [solver contract](../../../skills/md2asm/references/openifs/radiation/aerosol_and_ozone_preparation.md) records the interpolation and complete ordered calculation.
+The [solver contract](../../../skills/md2fort/references/openifs/radiation/aerosol_and_ozone_preparation.md) records the interpolation and complete ordered calculation.

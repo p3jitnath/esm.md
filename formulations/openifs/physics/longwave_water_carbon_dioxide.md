@@ -24,4 +24,4 @@ Eight representative spectral points describe the band. Supplied dimensionless P
 
 ## State And Boundaries
 
-The leaf reads an existing atmospheric state. It does not advance time or calculate radiation transport through the complete atmosphere. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/rrtm_taumol12.md) gives the numerical interpolation and complete assembly interface.
+The leaf reads an existing atmospheric state. It does not advance time or calculate radiation transport through the complete atmosphere. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/rrtm_taumol12.md) gives the numerical interpolation and complete assembly interface.

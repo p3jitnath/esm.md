@@ -20,4 +20,4 @@ M=\min\!\left(M_{\max},\max\!\left(10^{-6},-\frac{\omega}{g}\right)\right).
 
 The initial dry-static-energy flux is $`M(c_pT_b+\Phi_b)`$ in J m$`^{-2}`$ s$`^{-1}`$, and the vapour flux is $`Mq_b`$ in kg m$`^{-2}`$ s$`^{-1}`$. Initial liquid water, liquid flux, precipitation change and rain are zero. Cells that do not start a plume keep their incoming state. Runtime configuration supplies $`c_p`$, $`g`$ and $`M_{\max}\ge10^{-6}`$.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/physics/cubasmcn.md) defines the source's ordered arithmetic, flags and storage.
+The [md2fort contract](../../../skills/md2fort/references/openifs/physics/cubasmcn.md) defines the source's ordered arithmetic, flags and storage.

@@ -1,4 +1,4 @@
-/* skills/md2asm-gpu/references/openifs/radiation/greenhouse_profile_parent.md */
+/* skills/md2fort-gpu/references/openifs/radiation/greenhouse_profile_parent.md */
 .arch armv8-a
 .text
 .p2align 4

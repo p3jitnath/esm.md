@@ -1,6 +1,6 @@
 # Sun's Irradiance
 
-Formulation revision 1. This input describes the solar energy supplied to the atmosphere. The numerical contract is [solar_irradiance.md](../../../skills/md2asm/references/openifs/physics/solar_irradiance.md).
+Formulation revision 1. This input describes the solar energy supplied to the atmosphere. The numerical contract is [solar_irradiance.md](../../../skills/md2fort/references/openifs/physics/solar_irradiance.md).
 
 Irradiance is power received per unit area, in watts per square metre. The table gives total solar irradiance at the mean Earth–Sun distance, called one astronomical unit. A decimal year gives the forecast date. For example, 2004.5 is near the middle of 2004.
 

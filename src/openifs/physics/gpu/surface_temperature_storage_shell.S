@@ -1,6 +1,6 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/surface_temperature_extrapolation.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/surface_temperature_extrapolation.md.
 /* Source build for the qualified private forecast graph.
- * Contract: skills/md2asm/references/openifs/dynamics/private_forecast_graph_sources.md.
+ * Contract: skills/md2fort/references/openifs/dynamics/private_forecast_graph_sources.md.
  * Preserve the original interface, ordered arithmetic, and caller-owned storage. */
 .text
 .p2align 4

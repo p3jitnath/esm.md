@@ -1,6 +1,6 @@
 !> esm.md Fortran GPU solver. The compiler creates all device instructions.
 !! Physics input is formulations/sw/dam_break.md revision 1.0.
-!! Arithmetic follows skills/md2asm/references/2d_rusanov_ssprk2.md.
+!! Arithmetic follows skills/md2fort/references/2d_rusanov_ssprk2.md.
 !! With p=nx+2 and s=p*(ny+2), q, base and out each contain 3*s
 !! binary64 values. Their fields are depth in metres and two momenta in
 !! square metres per second. work contains 5*s values for D03 fluxes and
@@ -10,7 +10,7 @@
 !! Input q is read except in boundary kernels. base, work and par are read
 !! by update kernels, while out receives complete stages and periodic ghosts.
 !! Preparation reads q and par and replaces all five work fields.
-!! Launches follow skills/md2asm-gpu/references/gpu-contract.md.
+!! Launches follow skills/md2fort-gpu/references/gpu-contract.md.
 module esm_sw_gpu_fortran
   use cudafor
   use iso_fortran_env, only: real64, int64

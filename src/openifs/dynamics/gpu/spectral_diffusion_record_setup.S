@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/dynamics/lagrangian_grid_update.md.
+// Contract: skills/md2fort-gpu/references/openifs/dynamics/lagrangian_grid_update.md.
 // Three complete parent interfaces. Only integer storage metadata runs here.
 .text
 .p2align 2

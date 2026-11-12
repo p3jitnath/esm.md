@@ -1,6 +1,6 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/aerosol_visibility_climatology.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/aerosol_visibility_climatology.md.
 /* Source build for the qualified private forecast graph.
- * Contract: skills/md2asm/references/openifs/dynamics/private_forecast_graph_sources.md.
+ * Contract: skills/md2fort/references/openifs/dynamics/private_forecast_graph_sources.md.
  * Preserve the original interface, ordered arithmetic, and caller-owned storage. */
 // Direct aerosol climatology, source RADACA. The retained shared qualification is reused.
 // Original MACC mass output is kg/m2. The six legacy aerosol outputs are optical depths.

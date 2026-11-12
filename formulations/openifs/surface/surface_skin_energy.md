@@ -46,4 +46,4 @@ The weather model supplies the air state, initial surface temperature, surface h
 
 ## Initial State and Boundaries
 
-The caller supplies the initial surface state and the current air-layer response. Each surface fraction is between zero and one, and the fractions sum to one. The surface receives the radiation and exchanges heat and water with the atmosphere and material below. The [md2asm contract](../../../skills/md2asm/references/openifs/surface/surfseb_ctl.md) records the coupled numerical solve and its longwave-radiation approximation.
+The caller supplies the initial surface state and the current air-layer response. Each surface fraction is between zero and one, and the fractions sum to one. The surface receives the radiation and exchanges heat and water with the atmosphere and material below. The [md2fort contract](../../../skills/md2fort/references/openifs/surface/surfseb_ctl.md) records the coupled numerical solve and its longwave-radiation approximation.

@@ -44,4 +44,4 @@ Here $`k`$ identifies a layer from the top downward. Its pressure difference div
 
 The default gravity is $`9.80665\ \mathrm{m\,s^{-2}}`$. The caller supplies a positive time interval, old winds, existing tendencies, diffusion and hill-drag tendencies, and pressure at every layer boundary. Pressure increases or stays equal toward the ground. All supplied calculations remain finite. The upper momentum flux is zero. The bottom flux records the total transfer through the column.
 
-The [md2asm skill](../../../skills/md2asm/SKILL.md) supplies the numerical method and its [VDFINCR contract](../../../skills/md2asm/references/openifs/physics/vdfincr.md), including the ordered arithmetic, storage and checks.
+The [md2fort skill](../../../skills/md2fort/SKILL.md) supplies the numerical method and its [VDFINCR contract](../../../skills/md2fort/references/openifs/physics/vdfincr.md), including the ordered arithmetic, storage and checks.

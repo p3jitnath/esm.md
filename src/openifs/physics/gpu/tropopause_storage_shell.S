@@ -1,6 +1,6 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/tropopause_level.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/tropopause_level.md.
 /* Source build for the qualified private forecast graph.
- * Contract: skills/md2asm/references/openifs/dynamics/private_forecast_graph_sources.md.
+ * Contract: skills/md2fort/references/openifs/dynamics/private_forecast_graph_sources.md.
  * Preserve the original interface, ordered arithmetic, and caller-owned storage. */
 // Direct TROPLEV from tropopause_level_contract.md.
 .text

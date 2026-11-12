@@ -45,4 +45,4 @@ Gas scattering has zero mean forward direction. Longwave gas radiation has zero 
 
 The gravitational constant and spectral tables are frozen model inputs. Particle optical depths and mass fractions are nonnegative, scattering fractions lie between zero and one, and direction factors lie between zero and one. Each layer is independent and its output is mapped from spectral bands to the model's radiation points. A direct-input option supplies optical properties without the mass conversion. The existing [forward-scattering formulation](aerosol_forward_scattering.md) removes the strongly forward part before mixture formation when the chosen radiation mode requires it.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/physics/add_aerosol_optics.md) records the table selection, ordered arithmetic and complete assembly interface.
+The [md2fort contract](../../../skills/md2fort/references/openifs/physics/add_aerosol_optics.md) records the table selection, ordered arithmetic and complete assembly interface.

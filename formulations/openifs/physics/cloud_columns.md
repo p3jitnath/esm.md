@@ -41,4 +41,4 @@ When this condition holds, reuse the preceding cloudy layer's water sample. Othe
 
 ## Parameters, initial state and boundaries
 
-Start at a selected cloudy top layer and stop at the lowest cloudy layer. Cloud fractions, cumulative cover, adjacent cover and added area come from the [cloud overlap model](cloud_overlap.md). Each weight is between zero and one. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/cloud_columns.md) defines the exact random draw order, contiguous cloud groups and output storage.
+Start at a selected cloudy top layer and stop at the lowest cloudy layer. Cloud fractions, cumulative cover, adjacent cover and added area come from the [cloud overlap model](cloud_overlap.md). Each weight is between zero and one. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/cloud_columns.md) defines the exact random draw order, contiguous cloud groups and output storage.

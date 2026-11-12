@@ -1,8 +1,8 @@
-// Contract: skills/md2asm-gpu/references/openifs/radiation/private_legendre_basis.md.
+// Contract: skills/md2fort-gpu/references/openifs/radiation/private_legendre_basis.md.
 #define md2asm_radact md2asm_retired_cpu_radact
 #define md2asm_radact_private_child_count_get md2asm_retired_cpu_radact_count_get
 // Physics formulations/openifs/radiation/aerosol_and_ozone_layer_amounts.md.
-// Contract skills/md2asm/references/openifs/radiation/aerosol_and_ozone_preparation.md.
+// Contract skills/md2fort/references/openifs/radiation/aerosol_and_ozone_preparation.md.
 // Complete selected MACC and Tegen route on eight columns and nineteen layers.
 // Every numerical calculation uses explicit FP64 arithmetic. No original Fortran numerical call.
 // The 12 KiB frame owns climate intermediates, cumulative states and final pressure copy.

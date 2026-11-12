@@ -1,4 +1,4 @@
-// Complete selected inverse transport; skills/md2asm-gpu/references/openifs/setup/selected_spline_inverse_complete_contract.md.
+// Complete selected inverse transport; skills/md2fort-gpu/references/openifs/setup/selected_spline_inverse_complete_contract.md.
 .arch armv8-a
 .text
 .p2align 4

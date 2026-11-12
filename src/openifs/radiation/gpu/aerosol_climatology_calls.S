@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/radiation/aerosol_climatology_preparation.md.
+// Contract: skills/md2fort-gpu/references/openifs/radiation/aerosol_climatology_preparation.md.
 /* Original27-address selected RADACT storage boundary.
  * Frame1536: vector128..343,context352..415,record448..847.
  * The complete calculation is GPU-owned; scalar integration is serial only.

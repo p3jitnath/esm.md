@@ -1,4 +1,4 @@
-/* Complete vertical eta phase. Contract: skills/md2asm-gpu/references/openifs/setup/vertical_eta_coordinates.md. Private frame: 2048 bytes. */
+/* Complete vertical eta phase. Contract: skills/md2fort-gpu/references/openifs/setup/vertical_eta_coordinates.md. Private frame: 2048 bytes. */
 .arch armv8-a
 .text
 .p2align 4

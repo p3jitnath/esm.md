@@ -18,4 +18,4 @@ Let $`\nu`$ be the pressure-normalised vertical velocity in $`\mathrm{s}^{-1}`$ 
 
 where $`\omega`$ has units of Pa/s. The tangent-linear branch, which describes a small change to the model state, leaves this nonlinear product untouched. Supplied nonhydrostatic wave fields are copied when their declared branch is enabled.
 
-Keep selected water mass fractions finite and nonnegative. Use finite consumed fields and a positive pressure for the product. The initial work arrays are supplied by the caller. Leave inactive columns and unused fields unchanged. The [md2asm contract](../../../skills/md2asm/references/openifs/dynamics/gpinislb.md) defines every field selection and the output-buffer arrangement.
+Keep selected water mass fractions finite and nonnegative. Use finite consumed fields and a positive pressure for the product. The initial work arrays are supplied by the caller. Leave inactive columns and unused fields unchanged. The [md2fort contract](../../../skills/md2fort/references/openifs/dynamics/gpinislb.md) defines every field selection and the output-buffer arrangement.

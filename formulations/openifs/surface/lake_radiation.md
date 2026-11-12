@@ -24,4 +24,4 @@ Supply the incoming radiation, lake depth, ice thickness, upper mixed-layer dept
 
 The reference water uses $`k=3`$ m$`^{-1}`$. Clear water can use two bands with fractions 0.1 and 0.9 and coefficients 2 and 0.2 m$`^{-1}`$. White and blue ice use 17.1 and 8.4 m$`^{-1}`$, while opaque ice uses $`10^7`$ m$`^{-1}`$. The model clips lake depth to 2–50 m, uses an ice threshold of $`10^{-9}`$ m and a minimum mixed-layer thickness of 0.01 m.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/surface/lake_radiation.md) defines the interface fluxes, thin-layer limits and ordered arithmetic.
+The [md2fort contract](../../../skills/md2fort/references/openifs/surface/lake_radiation.md) defines the interface fluxes, thin-layer limits and ordered arithmetic.

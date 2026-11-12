@@ -10,4 +10,4 @@ a_0^{\mathrm{corrected}}=a_0-\delta \qquad \text{(SPM-1)}
 
 Equation SPM-1 changes the constant pressure contribution and leaves every other wave coefficient unchanged. The input is the current pressure field and its supplied mass correction. Longitude wraps around Earth, and the spherical waves represent both poles.
 
-The LLM uses [md2asm](../../../skills/md2asm/SKILL.md) to derive the [assembly contract](../../../skills/md2asm/references/openifs/dynamics/spectral_pressure_mass_correction.md).
+The LLM uses [md2fort](../../../skills/md2fort/SKILL.md) to derive the [assembly contract](../../../skills/md2fort/references/openifs/dynamics/spectral_pressure_mass_correction.md).

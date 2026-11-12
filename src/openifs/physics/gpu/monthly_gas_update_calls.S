@@ -1,4 +1,4 @@
-/* skills/md2asm-gpu/references/openifs/physics/monthly_gas_update.md */
+/* skills/md2fort-gpu/references/openifs/physics/monthly_gas_update.md */
 .arch armv8-a
 .text
 .p2align 4

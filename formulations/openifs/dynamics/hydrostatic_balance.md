@@ -44,4 +44,4 @@ This equation follows from the pressure balance and the [ideal-gas relation](the
 
 The normal Earth configuration uses $`g=9.80665\ \mathrm{m\,s^{-2}}`$. Surface geopotential, surface pressure, temperature and composition come from the forecast inputs. The surface geopotential anchors the vertical calculation. The equation applies at positive atmospheric pressure.
 
-The local GPGEO, GPHPRE and YOMCST sources define the forecast calculation and constants, identified by the [source record](../../../src/openifs/README.md). Their layer integration and boundary arithmetic belong in a [md2asm contract](../../../skills/md2asm/SKILL.md).
+The local GPGEO, GPHPRE and YOMCST sources define the forecast calculation and constants, identified by the [source record](../../../src/openifs/README.md). Their layer integration and boundary arithmetic belong in a [md2fort contract](../../../skills/md2fort/SKILL.md).

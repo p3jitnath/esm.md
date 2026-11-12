@@ -1,4 +1,4 @@
-// Complete initial virtual-temperature cells. Contract: skills/md2asm-gpu/references/openifs/input/initial_virtual_temperature_cells_complete_contract.md.
+// Complete initial virtual-temperature cells. Contract: skills/md2fort-gpu/references/openifs/input/initial_virtual_temperature_cells_complete_contract.md.
 .arch armv8-a
 .text
 .p2align 4

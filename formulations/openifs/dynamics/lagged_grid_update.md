@@ -28,4 +28,4 @@ u_{\rm physical}=\frac{u'}m,\qquad v_{\rm physical}=\frac{v'}m.
 
 ## Inputs And Boundaries
 
-Use the current forecast fields, their computed increments, constituent mass fractions and the grid map factors. A mass fraction is the mass of a constituent divided by the total mass. Optional model stress contributes a further wind increment before L01. Only the active columns change. The accepted time filter updates its own stored fields as explained in the [solver contract](../../../skills/md2asm/references/openifs/dynamics/lagged_grid_update.md).
+Use the current forecast fields, their computed increments, constituent mass fractions and the grid map factors. A mass fraction is the mass of a constituent divided by the total mass. Optional model stress contributes a further wind increment before L01. Only the active columns change. The accepted time filter updates its own stored fields as explained in the [solver contract](../../../skills/md2fort/references/openifs/dynamics/lagged_grid_update.md).

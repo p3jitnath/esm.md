@@ -22,4 +22,4 @@ C_c,&r\leq3,\\
 \end{cases} \tag{LW7-2}
 ```
 
-Here $`a=3`$ below the tropopause and $`a=2`$ above it. Use unchanged gas columns, aerosols and empirical tables supplied by the forecast. The tables also assign thermal emission through Planck fractions. This calculation has no separate time update or spatial boundary. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/rrtm_taumol7.md) defines the numerical interpolation and interface.
+Here $`a=3`$ below the tropopause and $`a=2`$ above it. Use unchanged gas columns, aerosols and empirical tables supplied by the forecast. The tables also assign thermal emission through Planck fractions. This calculation has no separate time update or spatial boundary. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/rrtm_taumol7.md) defines the numerical interpolation and interface.

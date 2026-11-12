@@ -6,4 +6,4 @@ Pressure uses pascals, height uses metres, temperature uses kelvin and wind uses
 
 The coarse forecast supplies 2,048 horizontal cells and 19 levels. The block driver groups them into 86 blocks with 24 allocated columns each; the final block has eight active columns. The forecast supplies the initial state, physical coefficients and time intervals. The child models retain their existing surface, top and global boundaries. Grouping columns into blocks changes neither the physical equations nor the boundary conditions.
 
-The LLM uses [md2asm](../../../skills/md2asm/SKILL.md) to record the [column and block assembly contract](../../../skills/md2asm/references/openifs/physics/column_physical_rates.md).
+The LLM uses [md2fort](../../../skills/md2fort/SKILL.md) to record the [column and block assembly contract](../../../skills/md2fort/references/openifs/physics/column_physical_rates.md).

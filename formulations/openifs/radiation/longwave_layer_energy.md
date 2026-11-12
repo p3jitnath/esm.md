@@ -47,4 +47,4 @@ Each outgoing flux contains reflected incoming radiation, transmitted radiation 
 
 The caller supplies nonnegative optical depth and thermal sources, with $`a\ge b\ge0`$. These quantities can differ between layers and spectral entries. The calculation describes one instant, so it has no separate time initial state. Incoming downward flux enters at the top, and incoming upward flux enters at the bottom. A transparent layer has $`\tau=0`$, $`R=0`$, $`T=1`$ and zero emission.
 
-The [md2asm skill](../../../skills/md2asm/SKILL.md) supplies the numerical method, supported input limits, ordered arithmetic, storage and verification in the [solver contract](../../../skills/md2asm/references/openifs/radiation/longwave_layer_transport.md).
+The [md2fort skill](../../../skills/md2fort/SKILL.md) supplies the numerical method, supported input limits, ordered arithmetic, storage and verification in the [solver contract](../../../skills/md2fort/references/openifs/radiation/longwave_layer_transport.md).

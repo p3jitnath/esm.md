@@ -1,10 +1,10 @@
 /* Complete positive normal logarithm: original guards and one GPU launch.
- * Contract: skills/md2asm-gpu/references/openifs/support/positive_normal_logarithm_complete_contract.md
+ * Contract: skills/md2fort-gpu/references/openifs/support/positive_normal_logarithm_complete_contract.md
  * Original source: src/openifs/support/positive_natural_logarithm.S
  */
 // Copyright (c) 2018-2025, Arm Limited.
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
-// Original contract: skills/md2asm/references/openifs/support/positive_natural_logarithm.md
+// Original contract: skills/md2fort/references/openifs/support/positive_natural_logarithm.md
 // Complete numerical work is supplied by the accepted pure GPU child.
 .arch armv8.2-a
 .text

@@ -1,8 +1,8 @@
-/* Complete GPU phase. Contract: skills/md2asm-gpu/references/openifs/input/complete_surface_initial_conversion.md */
+/* Complete GPU phase. Contract: skills/md2fort-gpu/references/openifs/input/complete_surface_initial_conversion.md */
 /*
  * Surface initial-state conversion, revision 1.
  * Physics: formulations/openifs/input/surface_initial_state_conversion.md
- * Contract: skills/md2asm/references/openifs/input/surface_initial_state_conversion.md
+ * Contract: skills/md2fort/references/openifs/input/surface_initial_state_conversion.md
  * x0..x7: field2d, bytes2d, field3d, bytes3d, parameters, parameter_bytes,
  * configuration and configuration_bytes. Required spans 770048/409600/208/2304.
  * FP64 is 64-bit floating point. FPCR controls its arithmetic and must be zero.

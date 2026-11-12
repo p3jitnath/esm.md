@@ -6,4 +6,4 @@ Use the unchanged [grid-driver physics](complete_forecast_grid_driver.md) and [s
 
 The supplied initial state has 2,048 horizontal cells and 19 levels. The surrounding forecast supplies its coefficients, grid geometry, time interval and output requests. The spectral representation describes the whole sphere, and the child grid calculations retain their existing surface and upper boundaries. This grouping adds no physical model or parameter.
 
-The LLM uses [md2asm](../../../skills/md2asm/SKILL.md) to record the [time-step contract](../../../skills/md2asm/references/openifs/dynamics/forecast_time_step.md).
+The LLM uses [md2fort](../../../skills/md2fort/SKILL.md) to record the [time-step contract](../../../skills/md2fort/references/openifs/dynamics/forecast_time_step.md).

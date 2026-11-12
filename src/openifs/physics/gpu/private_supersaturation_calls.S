@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/private_supersaturation_route.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/private_supersaturation_route.md.
 // Original SLTEND supersaturation ABI with its actual frozen coefficient owners.
 .text
 .p2align 4

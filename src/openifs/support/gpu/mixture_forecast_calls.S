@@ -1,5 +1,5 @@
 // Original mixture interfaces and CUDA control. All numerical work stays in PTX.
-// Contract: skills/md2asm-gpu/references/openifs/dynamics/thermodynamic_properties.md.
+// Contract: skills/md2fort-gpu/references/openifs/dynamics/thermodynamic_properties.md.
 // Revision 1. Serial, nonrecursive original host calls.
 .text
 .p2align 2

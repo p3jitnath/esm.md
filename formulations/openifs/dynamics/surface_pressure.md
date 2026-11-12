@@ -34,4 +34,4 @@ The first equation gives a positive pressure. The second follows from the chain 
 
 ## Parameters, initial state, and boundaries
 
-The forecast's initial file supplies the logarithm and its horizontal derivatives. The reference pressure is 1 Pa. The global forecast has no lateral edge, and this conversion adds no new boundary condition. Preserve the model's own horizontal coordinate scaling. The [md2asm contract](../../../skills/md2asm/references/openifs/dynamics/gp_spv.md) records storage, time levels and numerical arithmetic.
+The forecast's initial file supplies the logarithm and its horizontal derivatives. The reference pressure is 1 Pa. The global forecast has no lateral edge, and this conversion adds no new boundary condition. Preserve the model's own horizontal coordinate scaling. The [md2fort contract](../../../skills/md2fort/references/openifs/dynamics/gp_spv.md) records storage, time levels and numerical arithmetic.

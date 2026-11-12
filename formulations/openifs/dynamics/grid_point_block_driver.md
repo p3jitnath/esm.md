@@ -12,4 +12,4 @@ Wind uses metres per second, temperature uses kelvin, pressure uses pascals and 
 
 The selected forecast has 2,048 horizontal cells, 19 levels and 86 blocks. Each allocated block has 24 columns, while the last block has eight active columns. The surrounding forecast supplies the initial state, time intervals and global boundaries. Processing a block changes no boundary condition and adds no physical model.
 
-The LLM uses [md2asm](../../../skills/md2asm/SKILL.md) to record the [assembly contract](../../../skills/md2asm/references/openifs/dynamics/grid_point_block_driver.md).
+The LLM uses [md2fort](../../../skills/md2fort/SKILL.md) to record the [assembly contract](../../../skills/md2fort/references/openifs/dynamics/grid_point_block_driver.md).

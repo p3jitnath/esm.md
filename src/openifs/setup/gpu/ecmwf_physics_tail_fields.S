@@ -1,8 +1,8 @@
 /* GPU physical setup route. Original interface and ordered arithmetic are preserved.
- * Contract: skills/md2asm-gpu/references/openifs/setup/physical_setup.md
+ * Contract: skills/md2fort-gpu/references/openifs/setup/physical_setup.md
  * Original source: src/openifs/setup/ecmwf_physics_tail_fields.S
  */
-// Original contract: skills/md2asm/references/openifs/setup/ecmwf_physics_tail.md
+// Original contract: skills/md2fort/references/openifs/setup/ecmwf_physics_tail.md
 #include "../../support/gpu/preserved_scalar_calls.inc.S"
 .text
 .p2align 4

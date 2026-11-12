@@ -1,7 +1,7 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/slow_physics_averaging.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/slow_physics_averaging.md.
 /* Complete direct slow-physics averaging.
  * Physics formulations/openifs/physics/physics_increment.md and cloud_supersaturation.md
- * Contract skills/md2asm/references/openifs/physics/sltend.md
+ * Contract skills/md2fort/references/openifs/physics/sltend.md
  * Fifty original addresses and one read-only scalar-context address.
  * One-level scratch retains every original rounded operation and owner sum.
  */

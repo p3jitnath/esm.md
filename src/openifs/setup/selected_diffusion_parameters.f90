@@ -1,6 +1,6 @@
 module selected_diffusion_parameters_port
   !! Build the selected SUVDF parameters in a caller-owned native TVDF.
-  !! Contract: skills/md2asm/references/openifs/setup/selected_diffusion_parameters.md.
+  !! Contract: skills/md2fort/references/openifs/setup/selected_diffusion_parameters.md.
   use, intrinsic :: iso_fortran_env, only: int32, int64, real64
   use yoevdf, only: tvdf
   use forecast_empty_physics_configuration, only: require_empty_physics_group

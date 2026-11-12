@@ -18,4 +18,4 @@ F_g(T)=w_g\int_{\text{band }g}B_\kappa(T)\,\mathrm d\kappa. \tag{PFS-2}
 
 The resulting flux $`F_g`$ is in watts per square metre. Fractions have no units and sum to one within each complete band. The last band includes the high-wavenumber tail above 2600 inverse centimetres. The existing RRTM tables supply the band integrals.
 
-The forecast supplies surface temperature and spectral fractions for each selected column. This calculation has no time update or spatial boundary. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/planck_function_surf.md) records the original table interpolation and array interface.
+The forecast supplies surface temperature and spectral fractions for each selected column. This calculation has no time update or spatial boundary. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/planck_function_surf.md) records the original table interpolation and array interface.

@@ -29,4 +29,4 @@ The same mapping applies to ice thickness and snow thickness in metres, reflecti
 
 Coupling must be enabled to copy a field. Each of the five fields is optional, and an absent field remains unchanged. A selected block lies inside the supplied global array. An empty block changes no field. Qualified thicknesses are nonnegative, reflectivity lies from zero to one and temperatures lie from 160 to 340 K.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/surface/icestatenemo.md) specifies the exact copying and memory interface.
+The [md2fort contract](../../../skills/md2fort/references/openifs/surface/icestatenemo.md) specifies the exact copying and memory interface.

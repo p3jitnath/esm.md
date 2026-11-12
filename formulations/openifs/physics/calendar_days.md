@@ -36,4 +36,4 @@ An added day moves to the first day of the next month when the current month end
 
 The initial date is valid and has year 1600 through 3000. The qualified forward update adds at most 36,600 days. A backward update stays within its initial year. The result includes the final date and the lengths of all twelve months. There are no spatial boundaries.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/physics/updcal.md) defines the exact integer steps and memory interface.
+The [md2fort contract](../../../skills/md2fort/references/openifs/physics/updcal.md) defines the exact integer steps and memory interface.

@@ -1,4 +1,4 @@
-/* Contract: skills/md2asm-gpu/references/openifs/physics/convective_energy_diagnostics.md. Accepted ordered parcel assembly. */
+/* Contract: skills/md2fort-gpu/references/openifs/physics/convective_energy_diagnostics.md. Accepted ordered parcel assembly. */
 .arch armv8-a
 .text
 .p2align 4

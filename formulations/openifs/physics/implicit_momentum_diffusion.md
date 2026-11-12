@@ -32,4 +32,4 @@ The index $`k`$ increases downward. The derivative $`\partial u/\partial t`$ mea
 
 The default gravity is $`9.80665\ \mathrm{m\,s^{-2}}`$. The caller supplies a positive time interval, old winds, increasing boundary pressures, nonnegative mixing and drag coefficients, prescribed wind changes and the two surface-current components. At least two layers take part in the solve. The momentum flux at the upper edge is zero. The bottom mixing term uses the supplied surface current in place of a lower air-layer wind.
 
-The [md2asm skill](../../../skills/md2asm/SKILL.md) supplies the numerical method and its [VDFDIFM contract](../../../skills/md2asm/references/openifs/physics/vdfdifm.md), including the ordered arithmetic, storage and verification.
+The [md2fort skill](../../../skills/md2fort/SKILL.md) supplies the numerical method and its [VDFDIFM contract](../../../skills/md2fort/references/openifs/physics/vdfdifm.md), including the ordered arithmetic, storage and verification.

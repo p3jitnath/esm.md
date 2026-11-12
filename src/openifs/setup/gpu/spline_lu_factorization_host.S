@@ -1,4 +1,4 @@
-/* GPU contract: skills/md2asm-gpu/references/openifs/setup/spline_lu_factorization_complete_contract.md */
+/* GPU contract: skills/md2fort-gpu/references/openifs/setup/spline_lu_factorization_complete_contract.md */
 #include "../../support/gpu/preserved_weather_calls.inc.S"
 .arch armv8-a
 .text

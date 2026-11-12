@@ -1,6 +1,6 @@
-// Contract: skills/md2asm-gpu/references/openifs/surface/soil_temperature_step.md.
+// Contract: skills/md2fort-gpu/references/openifs/surface/soil_temperature_step.md.
 /* Complete soil heat step from formulations/openifs/surface/soil_temperature_step.md.
- * The complete ABI and exact maths are in skills/md2asm/references/openifs/surface/srft.md. */
+ * The complete ABI and exact maths are in skills/md2fort/references/openifs/surface/srft.md. */
 #ifndef ORIGINAL_SYMBOL
 #define ORIGINAL_SYMBOL md2asm_srft
 #endif

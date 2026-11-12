@@ -1,6 +1,6 @@
-// Contract: skills/md2asm-gpu/references/openifs/surface/snow_mass_adjustment.md.
+// Contract: skills/md2fort-gpu/references/openifs/surface/snow_mass_adjustment.md.
 /* Snow initialization from formulations/openifs/surface/snow_mass_adjustment.md.
- * Complete ordered contract is skills/md2asm/references/openifs/surface/surfws_massadj.md. */
+ * Complete ordered contract is skills/md2fort/references/openifs/surface/surfws_massadj.md. */
 #ifndef ORIGINAL_SYMBOL
 #define ORIGINAL_SYMBOL md2asm_snow_mass_adjustment
 #endif

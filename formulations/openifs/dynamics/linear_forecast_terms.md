@@ -21,4 +21,4 @@ The moist-air gas constant R has units J kg⁻¹ K⁻¹. Rd is its dry-air value
 
 Supply current and previous velocities, divergence, temperature gradients and logarithmic pressure gradients. Also supply the reference vertical profile, the local Coriolis parameter and water mass fractions in kg kg⁻¹. The selected time scheme determines which previous fields are used.
 
-Keep all output cells outside the selected columns unchanged. The [md2asm contract](../../../skills/md2asm/references/openifs/dynamics/lassie.md) defines the complete calls, arithmetic and storage. This routine prepares linear terms and does not advance the forecast by itself.
+Keep all output cells outside the selected columns unchanged. The [md2fort contract](../../../skills/md2fort/references/openifs/dynamics/lassie.md) defines the complete calls, arithmetic and storage. This routine prepares linear terms and does not advance the forecast by itself.

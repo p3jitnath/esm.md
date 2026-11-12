@@ -24,4 +24,4 @@ The time factor $`b_{\mathrm{map}}`$ has units of seconds. The map ratio $`r`$ i
 
 Use a finite nonnegative timestep and implicit weight, $`-1\le e\le1`$, and positive finite consumed map inputs. The caller supplies the initial arrays and active column range. Leave columns outside that range unchanged.
 
-The refined Coriolis flag is true when two-time-level refinement is enabled, physics is enabled, and lagged physics is disabled. Coriolis acceleration describes the effect of the Earth's rotation. The [md2asm contract](../../../skills/md2asm/references/openifs/dynamics/lasure.md) records the exact update and interface.
+The refined Coriolis flag is true when two-time-level refinement is enabled, physics is enabled, and lagged physics is disabled. Coriolis acceleration describes the effect of the Earth's rotation. The [md2fort contract](../../../skills/md2fort/references/openifs/dynamics/lasure.md) records the exact update and interface.

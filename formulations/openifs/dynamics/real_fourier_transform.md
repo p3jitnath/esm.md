@@ -40,4 +40,4 @@ Synthesis combines the coefficients to recover the row. Each interior wave repre
 
 The audited coarse forecast has $`N=64`$. The supplied field values or coefficients form the initial state of each call. The row is periodic: after position $`N-1`$, the next position is position $`0`$.
 
-The [md2asm skill](../../../skills/md2asm/SKILL.md) records the numerical method, ordered arithmetic, storage and verification in the supporting [solver contract](../../../skills/md2asm/references/openifs/dynamics/real_fourier_transform.md).
+The [md2fort skill](../../../skills/md2fort/SKILL.md) records the numerical method, ordered arithmetic, storage and verification in the supporting [solver contract](../../../skills/md2fort/references/openifs/dynamics/real_fourier_transform.md).

@@ -36,4 +36,4 @@ For a mixture of dry air and water vapour, $`\nabla R_m=(R_v-R_d)\nabla q_v`$. I
 
 ## Parameters, initial state, and boundaries
 
-Use the exact gas constants, temperature, mixture properties and gradients supplied by the forecast. Typical Earth values are about 287.06 and 461.52 joules per kilogram per kelvin for dry air and water vapour. This local calculation changes no neighbouring cell. Its ordered arithmetic and the forecast's coordinate scaling belong in the [md2asm contract](../../../skills/md2asm/references/openifs/dynamics/gprt.md).
+Use the exact gas constants, temperature, mixture properties and gradients supplied by the forecast. Typical Earth values are about 287.06 and 461.52 joules per kilogram per kelvin for dry air and water vapour. This local calculation changes no neighbouring cell. Its ordered arithmetic and the forecast's coordinate scaling belong in the [md2fort contract](../../../skills/md2fort/references/openifs/dynamics/gprt.md).

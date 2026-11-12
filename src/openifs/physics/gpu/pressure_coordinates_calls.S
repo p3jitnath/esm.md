@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/pressure_coordinates.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/pressure_coordinates.md.
 // PPINIT storage-only numerical stage boundary. Original shell owns DR_HOOK.
 .text
 .p2align 4

@@ -22,4 +22,4 @@ M=\rho a w
 \tag{BL-2}
 ```
 
-The input supplies atmospheric temperature, humidity, wind, pressure, height, energy and surface fluxes. Pressure increases towards the ground, while height decreases. Gravity, heat capacity, latent heats and cloud parameters come from the fixed model configuration. The initial state is the supplied atmospheric column. The ground mass flux is zero, and columns outside the selected interval retain their output bytes. The [solver contract](../../../skills/md2asm/references/openifs/physics/vdfhghtn.md) specifies the ordered calculations and supported input range.
+The input supplies atmospheric temperature, humidity, wind, pressure, height, energy and surface fluxes. Pressure increases towards the ground, while height decreases. Gravity, heat capacity, latent heats and cloud parameters come from the fixed model configuration. The initial state is the supplied atmospheric column. The ground mass flux is zero, and columns outside the selected interval retain their output bytes. The [solver contract](../../../skills/md2fort/references/openifs/physics/vdfhghtn.md) specifies the ordered calculations and supported input range.

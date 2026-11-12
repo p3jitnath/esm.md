@@ -31,8 +31,8 @@ A tracer is a material carried by the air, such as water vapour or another atmos
 \Delta X=S_X\Delta t.
 ```
 
-The second equation relates a constant rate to the resulting change. The md2asm contract defines how the supplied earlier and later states give the average rate for the interval.
+The second equation relates a constant rate to the resulting change. The md2fort contract defines how the supplied earlier and later states give the average rate for the interval.
 
 ## Parameters, initial state, and boundaries
 
-Use the positive interval and the two states supplied by the forecast. Include the tracers selected by its configuration, preserving their units. A state that does not change has a zero tendency. This local calculation does not move material between cells. The complete ordered update belongs in the [md2asm contract](../../../skills/md2asm/references/openifs/dynamics/gpmktend.md).
+Use the positive interval and the two states supplied by the forecast. Include the tracers selected by its configuration, preserving their units. A state that does not change has a zero tendency. This local calculation does not move material between cells. The complete ordered update belongs in the [md2fort contract](../../../skills/md2fort/references/openifs/dynamics/gpmktend.md).

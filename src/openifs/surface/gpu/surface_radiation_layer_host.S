@@ -1,7 +1,7 @@
 #include "../../support/gpu/preserved_weather_calls.inc.S"
 /* Complete surface radiation layer from the frozen original contract.
  * Physics formulations/openifs/surface/surface_radiation_inputs.md
- * Contract skills/md2asm/references/openifs/surface/surfrad_layer.md
+ * Contract skills/md2fort/references/openifs/surface/surfrad_layer.md
  * Twelve model records. All numerical children are direct assembly.
  */
 .text

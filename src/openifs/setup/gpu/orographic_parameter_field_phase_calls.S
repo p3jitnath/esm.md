@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/setup/orographic_parameter_field_complete_contract.md.
+// Contract: skills/md2fort-gpu/references/openifs/setup/orographic_parameter_field_complete_contract.md.
 .arch armv8-a
 .text
 .p2align 4

@@ -26,4 +26,4 @@ Let $`\mu`$ be the cosine of the angle between the Sun and the vertical. The dir
 D_1=0,\qquad U_{N+1}=a_dD_{N+1}+a_b\mu Q_{N+1} \tag{SW-A4}
 ```
 
-The input beam is nonnegative. Each albedo, cosine and layer fraction lies between zero and one. Layer coefficients satisfy $`r_j+t_j\leq1`$ and $`b_j+c_j\leq\mu(1-d_j)`$, so a layer cannot create energy. The forecast supplies these values. The reviewed coarse forecast used 112 wavelength intervals and 19 layers. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/adding_ica_sw.md) records the numerical update and assembly interface.
+The input beam is nonnegative. Each albedo, cosine and layer fraction lies between zero and one. Layer coefficients satisfy $`r_j+t_j\leq1`$ and $`b_j+c_j\leq\mu(1-d_j)`$, so a layer cannot create energy. The forecast supplies these values. The reviewed coarse forecast used 112 wavelength intervals and 19 layers. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/adding_ica_sw.md) records the numerical update and assembly interface.

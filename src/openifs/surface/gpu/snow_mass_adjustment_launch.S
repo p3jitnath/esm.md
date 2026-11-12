@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/surface/snow_mass_adjustment.md.
+// Contract: skills/md2fort-gpu/references/openifs/surface/snow_mass_adjustment.md.
 .arch armv8-a
 .text
 .p2align 4

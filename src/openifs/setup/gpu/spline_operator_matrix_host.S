@@ -1,4 +1,4 @@
-/* GPU contract: skills/md2asm-gpu/references/openifs/setup/complete_spline_operator_matrix.md */
+/* GPU contract: skills/md2fort-gpu/references/openifs/setup/complete_spline_operator_matrix.md */
 .arch armv8-a
 .text
 .p2align 4

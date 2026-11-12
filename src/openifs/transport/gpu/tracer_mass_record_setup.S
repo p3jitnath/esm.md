@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/transport/tracer_mass_correction.md.
+// Contract: skills/md2fort-gpu/references/openifs/transport/tracer_mass_correction.md.
 // Original ABI storage/launch draft from original_host_contract.md revision1.
 .text
 .p2align 2

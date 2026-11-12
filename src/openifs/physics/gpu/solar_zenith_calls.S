@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/solar_zenith_geometry.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/solar_zenith_geometry.md.
 /* Complete COS_SZA original ten-address boundary. No model FP arithmetic.
  * Frame768: saved0..103,status104..123,vector128..207,ctx256..319,
  * record320..447. Scratch contains one FP64 value per allocated column.

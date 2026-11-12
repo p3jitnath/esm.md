@@ -1,7 +1,7 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/pressure_wind_quadratic.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/pressure_wind_quadratic.md.
 // Pressure-level wind interpolation: PPUV and the complete frozen PPITPQ branch.
 // Physics: formulations/openifs/physics/pressure_level_wind_interpolation.md.
-// Contract: skills/md2asm/references/openifs/physics/pressure_level_wind_interpolation.md.
+// Contract: skills/md2fort/references/openifs/physics/pressure_level_wind_interpolation.md.
 // Original sources: arpifs/pp_obs/ppuv.F90 and arpifs/pp_obs/ppitpq.F90.
 // Unchanged pressure-bracket, linear interpolation and CAPESHEAR entries remain in this shared body.
 .text

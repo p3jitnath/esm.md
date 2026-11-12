@@ -16,6 +16,6 @@ The resource namelist sets byte ceilings and allowed Linux memory-node numbers. 
 
 The source uses native Fortran owners and compiler-generated process startup. Its initial floating-point check uses standard Fortran IEEE facilities. No inline Arm instructions, private Arm byte layout or eight-byte C floating-environment record are used by this bootstrap route.
 
-Before formatting, all six changed units compiled with the retained strict Arm compiler settings, and the complete executable linked. A complete forecast comparison has not been performed for this new entry. No x86 compilation or execution is claimed. The [solver contract](../../../../skills/md2asm/references/openifs/input/selected_bootstrap_fortran_contract.md) records the numerical and output requirements.
+Before formatting, all six changed units compiled with the retained strict Arm compiler settings, and the complete executable linked. A complete forecast comparison has not been performed for this new entry. No x86 compilation or execution is claimed. The [solver contract](../../../../skills/md2fort/references/openifs/input/selected_bootstrap_fortran_contract.md) records the numerical and output requirements.
 
 The published CPU Fortran was formatted with fprettify 0.3.7. The formatting pass preserved compiler tokens and passed idempotence checks. The source manifest keeps both formatted hashes and the earlier build-source hashes. Formatting adds no numerical acceptance and was not followed by a forecast run.

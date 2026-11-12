@@ -39,4 +39,4 @@ The same forward contribution is removed from total depth and scattering depth. 
 
 Supply finite values with $`0\leq q\leq s\leq\tau`$. Each call adjusts one wavelength band at one location. The calculation has no time update or spatial boundary condition.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/physics/delta_eddington_extensive.md) records storage, rounding and verification.
+The [md2fort contract](../../../skills/md2fort/references/openifs/physics/delta_eddington_extensive.md) records storage, rounding and verification.

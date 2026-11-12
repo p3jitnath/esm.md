@@ -1,4 +1,4 @@
-// Direct assembly. Numerical and storage contract: ../../../../skills/md2asm-gpu/references/openifs/physics/monthly_gas_layer_amounts.md
+// Direct assembly. Numerical and storage contract: ../../../../skills/md2fort-gpu/references/openifs/physics/monthly_gas_layer_amounts.md
 // Original seven-address monthly gas child. The host performs storage work only.
 .arch armv8-a
 .text

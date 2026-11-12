@@ -41,4 +41,4 @@ b(p)=
 
 The angle $`\theta`$ is in radians. The dimensionless coefficients are $`B=\ln(1/3+0.01)`$ and $`C=[\ln(100)+B]/2`$. The cosine joins a 3-day removal time at low pressure to a zero removal rate at 20 Pa.
 
-Each cell starts from its supplied humidity and pressure. This calculation returns a rate; the caller advances time. It exchanges no water with neighbouring cells and has no spatial boundary flux. The model can supply other coefficients within the consumed physical bounds in the [md2asm contract](../../../skills/md2asm/references/openifs/physics/methox.md), which records ordered arithmetic and checks.
+Each cell starts from its supplied humidity and pressure. This calculation returns a rate; the caller advances time. It exchanges no water with neighbouring cells and has no spatial boundary flux. The model can supply other coefficients within the consumed physical bounds in the [md2fort contract](../../../skills/md2fort/references/openifs/physics/methox.md), which records ordered arithmetic and checks.

@@ -24,4 +24,4 @@ These equations preserve water and turn the released heat into a temperature ris
 
 In the mixed-phase mode, the routine returns both the water and heat changes. In the threshold mode, the cloud caller chooses liquid above the freezing threshold and ice below it, then computes its corresponding heat change. The routine's returned mixed-phase temperature is a diagnostic in that route.
 
-Inputs are individual cell states, and no spatial boundary is needed. A negative temporary humidity must produce no condensation. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/cloud_supersatcheck.md) defines the saturation laws, complete rounded calculation, admitted activity and caller responsibilities.
+Inputs are individual cell states, and no spatial boundary is needed. A negative temporary humidity must produce no condensation. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/cloud_supersatcheck.md) defines the saturation laws, complete rounded calculation, admitted activity and caller responsibilities.

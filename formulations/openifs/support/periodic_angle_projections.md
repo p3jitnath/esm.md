@@ -38,4 +38,4 @@ The first relation keeps the point on the circle. Adding a full turn returns the
 
 The radius is one, and there are no other physical parameters. Each call starts from its supplied angle. At zero angle, the horizontal projection is one and the vertical projection is zero. Angles repeat after each full turn.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/support/sin_cos_original_rounding.md) records the supported numerical angle range, ordered arithmetic, storage and verification.
+The [md2fort contract](../../../skills/md2fort/references/openifs/support/sin_cos_original_rounding.md) records the supported numerical angle range, ordered arithmetic, storage and verification.

@@ -1,7 +1,7 @@
-// Contract: skills/md2asm-gpu/references/openifs/surface/lake_energy_profile_update.md.
+// Contract: skills/md2fort-gpu/references/openifs/surface/lake_energy_profile_update.md.
 // Original OpenIFS lake energy and ice update with bounded signed-depth support.
 // Formulation: formulations/openifs/surface/lake_temperature_profile.md
-// Contract: skills/md2asm/references/openifs/surface/lake_temperature_profile.md
+// Contract: skills/md2fort/references/openifs/surface/lake_temperature_profile.md
 .equ S_Q_STAR,1632
 .equ S_DEPTH,768
 .equ S_CORIOLIS,776

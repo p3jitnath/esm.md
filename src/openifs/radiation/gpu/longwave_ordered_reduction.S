@@ -1,4 +1,4 @@
-// GPU implementation contract skills/md2asm-gpu/references/openifs/radiation/ordered_radiation_field_reduction.md
+// GPU implementation contract skills/md2fort-gpu/references/openifs/radiation/ordered_radiation_field_reduction.md
 .arch armv8.2-a
 .text
 .p2align 4

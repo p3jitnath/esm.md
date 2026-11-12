@@ -45,4 +45,4 @@ Use the original pressure and temperature fields, gas columns, tropopause index,
 
 Use the original solar reference flux in W/m². The supplied atmospheric state defines each layer. There is no separate time update in this calculation.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/physics/srtm_taumol21.md) records the numerical method and implementation.
+The [md2fort contract](../../../skills/md2fort/references/openifs/physics/srtm_taumol21.md) records the numerical method and implementation.

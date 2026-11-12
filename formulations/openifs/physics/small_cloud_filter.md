@@ -35,4 +35,4 @@ f,&\text{otherwise}.
 
 Equality retains the cloud. This filter changes the area fraction and leaves the two water amounts unchanged. Supply nonnegative water amounts, fractions between zero and one, and finite nonnegative thresholds. Apply the rule to the selected columns and all layers. This local diagnostic needs no time or spatial boundary condition.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/physics/crop_cloud_fraction.md) records the stored-number comparisons and interface.
+The [md2fort contract](../../../skills/md2fort/references/openifs/physics/crop_cloud_fraction.md) records the stored-number comparisons and interface.

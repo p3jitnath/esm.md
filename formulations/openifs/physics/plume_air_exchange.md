@@ -22,4 +22,4 @@ An optional stochastic perturbation represents uncertainty in the detrainment co
 \lambda_{\mathrm{pert}}=\lambda\exp(\mu+\sigma r).
 ```
 
-Runtime input supplies positive gravity, layer geopotential, nonnegative plume mass flux and detrainment coefficient, cloud-base levels, active-plume flags and any perturbation configuration. If work is disabled, all outputs keep their incoming bytes. Otherwise, selected columns without an eligible plume have zero exchange flux. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/cuentr.md) defines the exact flags, arithmetic and storage.
+Runtime input supplies positive gravity, layer geopotential, nonnegative plume mass flux and detrainment coefficient, cloud-base levels, active-plume flags and any perturbation configuration. If work is disabled, all outputs keep their incoming bytes. Otherwise, selected columns without an eligible plume have zero exchange flux. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/cuentr.md) defines the exact flags, arithmetic and storage.

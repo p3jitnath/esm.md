@@ -1,4 +1,4 @@
-/* GPU contract: skills/md2asm-gpu/references/openifs/dynamics/inverse_legendre_reconstruction.md */
+/* GPU contract: skills/md2fort-gpu/references/openifs/dynamics/inverse_legendre_reconstruction.md */
 .text
 .p2align 4
 .macro COUNT index

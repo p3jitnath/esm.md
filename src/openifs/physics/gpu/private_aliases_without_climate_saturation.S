@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/climatological_aerosol_visibility_layer.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/climatological_aerosol_visibility_layer.md.
 /* Private function names for identical qualified direct-assembly bodies.
  * Tail branches preserve registers, stack arguments and numerical status. */
 .arch armv8.2-a

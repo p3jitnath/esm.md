@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/radiation/private_legendre_basis.md.
+// Contract: skills/md2fort-gpu/references/openifs/radiation/private_legendre_basis.md.
 /* Original RADACT four-address LEGTRI storage boundary; all numerical work is GPU-owned. */
 .arch armv8-a
 .text

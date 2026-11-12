@@ -1,6 +1,6 @@
-// Contract: skills/md2asm-gpu/references/openifs/radiation/radiation_grid_parent.md.
+// Contract: skills/md2fort-gpu/references/openifs/radiation/radiation_grid_parent.md.
 /* Original59-address RADINTG storage and public utility boundaries.
- * Every numerical phase is complete direct PTX. Contract skills/md2asm-gpu/references/openifs/radiation/radiation_grid_parent.md.
+ * Every numerical phase is complete direct PTX. Contract skills/md2fort-gpu/references/openifs/radiation/radiation_grid_parent.md.
  */
 .arch armv8-a
 .text

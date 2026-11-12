@@ -1,4 +1,4 @@
-// Direct assembly. Numerical and storage contract: ../../../../skills/md2asm-gpu/references/openifs/physics/seasonal_ozone_coefficients.md
+// Direct assembly. Numerical and storage contract: ../../../../skills/md2fort-gpu/references/openifs/physics/seasonal_ozone_coefficients.md
 // Original two-address SUECOZO ABI. The GPU owns all 72 Fourier values.
 .arch armv8-a
 .text

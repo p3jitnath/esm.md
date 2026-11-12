@@ -1,4 +1,4 @@
-/* skills/md2asm-gpu/references/openifs/trajectories/trajectory_wind_preparation.md */
+/* skills/md2fort-gpu/references/openifs/trajectories/trajectory_wind_preparation.md */
 .text
 .p2align 2
 .macro CONST reg,value

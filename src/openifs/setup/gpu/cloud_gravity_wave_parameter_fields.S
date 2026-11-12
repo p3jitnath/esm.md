@@ -1,8 +1,8 @@
 /* Complete orographic parameter field with preserved cloud and wave siblings.
- * Contract: skills/md2asm-gpu/references/openifs/setup/orographic_parameter_field_complete_contract.md
+ * Contract: skills/md2fort-gpu/references/openifs/setup/orographic_parameter_field_complete_contract.md
  * Original source: src/openifs/setup/cloud_gravity_wave_parameter_fields.S
  */
-// Original contract: skills/md2asm/references/openifs/setup/cloud_gravity_wave_setup.md
+// Original contract: skills/md2fort/references/openifs/setup/cloud_gravity_wave_setup.md
 #include "../../support/gpu/preserved_scalar_calls.inc.S"
 .arch armv8.2-a
 .text

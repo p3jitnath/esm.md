@@ -1,4 +1,4 @@
-// Numerical contract skills/md2asm-gpu/references/openifs/support/raw_product_sum.md
+// Numerical contract skills/md2fort-gpu/references/openifs/support/raw_product_sum.md
 /* Exact product-and-sum transport. Input address in x0, mode 17 in w1.
  * The input has nine 64-bit words. The GPU returns the FP64 result in d0.
  * Frame768, vector128..143, context192..255, record256..319, result384..415.

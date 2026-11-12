@@ -27,4 +27,4 @@ Equation E2 extracts the coefficient of each supplied pattern.
 
 The inputs are the current field components and their latitude patterns. The current model supplies orders zero through twenty-one. Use all degrees supplied for each order, including the extra wind degree. This operation has no separate time evolution or initial-condition calculation.
 
-Longitude repeats after one full circle, and the field must stay bounded at the poles. The full latitude interval is $`-1\le x\le1`$. The [solver contract](../../../skills/md2asm/references/openifs/dynamics/legendre_wave_analysis.md) explains how the integrals become discrete sums and how the complete source interface is preserved.
+Longitude repeats after one full circle, and the field must stay bounded at the poles. The full latitude interval is $`-1\le x\le1`$. The [solver contract](../../../skills/md2fort/references/openifs/dynamics/legendre_wave_analysis.md) explains how the integrals become discrete sums and how the complete source interface is preserved.

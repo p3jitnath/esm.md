@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/convective_cloud_rain_diagnostics.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/convective_cloud_rain_diagnostics.md.
 // CUCCDIA original eighteen-address boundary. Integer storage only.
 .text
 .p2align 4

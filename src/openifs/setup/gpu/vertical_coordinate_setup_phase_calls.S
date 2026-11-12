@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/setup/vertical_coordinate_setup.md.
+// Contract: skills/md2fort-gpu/references/openifs/setup/vertical_coordinate_setup.md.
 .arch armv8-a
 .text
 .p2align 4

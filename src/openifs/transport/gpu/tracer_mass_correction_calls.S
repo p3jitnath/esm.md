@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/transport/parallel_tracer_mass_correction.md.
+// Contract: skills/md2fort-gpu/references/openifs/transport/parallel_tracer_mass_correction.md.
 .text
 .p2align 2
 .macro CONST reg,value

@@ -71,4 +71,4 @@ D(1-\mu^2)\frac{\partial T}{\partial\mu}=0
 \qquad\text{at }\mu=-1,\ 1.
 ```
 
-Physics revision: 1.1. [md2asm](../../skills/md2asm/SKILL.md) derives the numerical method and implementation; its [solver contract](../../skills/md2asm/references/budyko_sellers.md) preserves the verified choices and equation IDs.
+Physics revision: 1.1. [md2fort](../../skills/md2fort/SKILL.md) derives the numerical method and implementation; its [solver contract](../../skills/md2fort/references/budyko_sellers.md) preserves the verified choices and equation IDs.

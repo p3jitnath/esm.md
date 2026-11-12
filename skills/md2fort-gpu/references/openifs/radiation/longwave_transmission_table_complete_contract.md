@@ -1,0 +1,28 @@
+# Complete longwave transmission table on the GPU
+
+This phase implements `md2asm_longwave_transmission_table` using the [longwave equations and ordered arithmetic](../../../../md2fort/references/openifs/radiation/longwave_reference_setup.md). Transmission is the dimensionless fraction of radiation that passes through the model atmosphere. The source defines 5001 transmission entries and one BPADE constant. The function has no numerical input parameter; it computes the whole source-defined table in the live output buffer. Archived tables supply verification only.
+
+The Arm application binary interface (ABI) receives an eight-byte-aligned, writable 40016-byte output in `x0` and returns no value. Transmission entry $`i`$ starts at byte offset $`8i`$ for indices zero through 5000. BPADE occupies bytes 40008 through 40015. The caller owns the complete mapped buffer until synchronous return. The enclosing checked constructor retains its original admitted-input rules. Both sibling exports and all other code and literal data in the [storage source](../../../../../src/openifs/radiation/gpu/longwave_reference_setup.S) remain unchanged.
+
+For each integer $`i`$ from 1 through 4999, the source computes $`q=i/5000`$, then $`a=\mathrm{BPADE}\,q`$, $`b=1-q`$, $`x=a/b`$ and $`\exp(-x)`$, rounding after each FP64 arithmetic operation. FP64 means a 64-bit floating-point number. EXP is the exponential function. The integer conversion is exact. BPADE retains its source word `0x400cc6e80ebbdb2a`, the constant-folded value of one divided by 0.278. Negation changes only the sign bit. The original-rounding EXP and IEEE status providers are linked once each; no fused multiply-add, approximate operation or captured output supplies a table entry.
+
+The [host transport](../../../../../src/openifs/radiation/gpu/longwave_transmission_table_phase_calls.S) uses a private 2048-byte frame and preserves the required general and vector registers, `x18`, stack alignment and integer condition flags. The floating-point control register, FPCR, must be zero for nearest-even rounding and gradual underflow. Newly raised numerical flags join the incoming floating-point status register, FPSR. The last reported EXP error updates `errno`, including a repeated write of its incoming value. The selected EXP interface is uncounted, so the actual FAST and WIDE product-sum counters remain unchanged.
+
+The [device entry](../../../../../src/openifs/radiation/gpu/longwave_transmission_table_phase.ptx) launches one block of 256 threads with zero dynamic shared bytes. Thread $`t`$ computes indices $`1+t+256k`$ below 5000 for $`k=0,1,\ldots`$ through the [complete value function](../../../../../src/openifs/radiation/gpu/longwave_transmission_table_values.ptx). No output entry depends on another output entry. All 256 threads reach three collective barriers. After admission, thread zero stores BPADE at index 5001, one at index zero and positive zero at index 5000, in source order. Each worker then retains its own flags and last nonzero EXP error.
+
+The device ABI receives an argument-vector address and a [common-context address](../gpu_call_context.md). The 16-byte vector selects the input header and completion. The 16-byte header contains the table address and one zero word. Context offsets 48 and 56 select the 32-byte capacity record: capacities for the header, completion and table, then zero. The value function receives a 32-bit lane from zero through 255 and a 64-bit table address; its aligned 16-byte return contains flags, error, original loop index and zero as four 32-bit words.
+
+| Owner | Bytes | Alignment in bytes | Access |
+| --- | ---: | ---: | --- |
+| Argument vector | 16 | 8 | Read |
+| Common context | 64 | 8 | Read and write |
+| Capacity record | 32 | 8 | Read |
+| Input header | 16 | 8 | Read |
+| Completion | 16 | 8 | Write |
+| Table | 40016 | 8 | Write |
+
+The caller supplies the mapped common context, revision one with reserved word zero. Admission checks shape, nonnull aligned addresses, capacities, nonwrapping bounds and the signed address limit before model or completion writes. Read-only views may overlap. Any overlap involving context, completion or table is rejected. Shape, range and reserved-field failures report context errors 35900, 35901 and 35902. The host requires the admitted original interface and has no numerical fallback.
+
+Completion contains four 32-bit words: return code at zero, flags at four, final error at eight and original EXP index at twelve. Thread zero combines flags and selects the largest nonzero source index with its matching error. A new event writes the full 64-bit context word `(index<<8)|errno`; no event preserves its incoming word. The last source index is 4999. Its natural underflow raises FPSR flags 24 and the range error ERANGE, whose value is 34.
+
+Three retained complete tables match 120048 bytes exactly under zero and two nonzero preimages, varied incoming flags and error values. Strict ABI, `x18`, FPCR, FPSR, `errno`, complete output guards and actual counter nonchange pass. Another 30 controls compare entire 65536-byte images, including malformed launch shapes, all six owners, overlaps and the final source index with a seeded upper event word. Native instructions and independent source reviews pass. The retained independent physical evidence covers 11719 grouped relations, including 293 transmission samples with maximum relative error 4.01e-13 against a 2e-11 limit. No CPU or Fortran oracle ran. Every numerical process had an external 14.13-second cutoff. Complete forecast agreement and matched performance remain pending.

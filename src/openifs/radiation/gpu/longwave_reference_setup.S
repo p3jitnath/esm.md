@@ -1,8 +1,8 @@
 /* Complete longwave transmission table and preserved setup siblings.
- * Contract: skills/md2asm-gpu/references/openifs/radiation/longwave_transmission_table_complete_contract.md
+ * Contract: skills/md2fort-gpu/references/openifs/radiation/longwave_transmission_table_complete_contract.md
  * Original source: src/openifs/radiation/longwave_reference_setup.S
  */
-// Original contract: skills/md2asm/references/openifs/radiation/longwave_reference_setup.md
+// Original contract: skills/md2fort/references/openifs/radiation/longwave_reference_setup.md
 #include "../../support/gpu/preserved_scalar_calls.inc.S"
 .arch armv8.2-a
 .text

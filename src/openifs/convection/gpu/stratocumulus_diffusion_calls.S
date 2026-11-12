@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/convection/stratocumulus_diffusion.md.
+// Contract: skills/md2fort-gpu/references/openifs/convection/stratocumulus_diffusion.md.
 // Complete CUSTRAT original storage boundary; seventeen address arguments.
 .arch armv8-a
 .text

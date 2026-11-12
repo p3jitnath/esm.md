@@ -22,4 +22,4 @@ q_{\min}\leq q_{\mathrm{new}}\leq q_{\max}.
 
 Supply finite nearby field values, parcel-position fractions from zero to one, and ordered layer coordinates. Derive the selected minimum and maximum from the eight surrounding values. The model keeps quantities outside the selected output columns unchanged.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/dynamics/laitriqm3d.md) records the original thirty-two-point estimate, both limiting rules and the optional vertical correction. This note does not claim that the local correction proves global mass conservation.
+The [md2fort contract](../../../skills/md2fort/references/openifs/dynamics/laitriqm3d.md) records the original thirty-two-point estimate, both limiting rules and the optional vertical correction. This note does not claim that the local correction proves global mass conservation.

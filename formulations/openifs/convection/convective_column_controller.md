@@ -43,4 +43,4 @@ Water transferred into rain, snow or condensate is removed from the vapour flux.
 
 The caller supplies the previous air state, cumulative and dynamical tendencies, pressure geometry, model settings and time interval. The provisional humidity has the original model's lower bound. The model supplies gravity, dry-air heat capacity and latent energies. Its normal setup uses dry-air heat capacity without a humidity correction. The complete convection calculation supplies the rain, snow and condensate transfers. The original precipitation child sets both precipitation boundary rows to positive zero for every column.
 
-The [solver contract](../../../skills/md2asm/references/openifs/convection/cucalln.md) records the full selected calculation, storage and acceptance limits.
+The [solver contract](../../../skills/md2fort/references/openifs/convection/cucalln.md) records the full selected calculation, storage and acceptance limits.

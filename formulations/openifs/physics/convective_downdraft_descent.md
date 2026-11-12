@@ -1,6 +1,6 @@
 # Convective Downdraft Descent
 
-Formulation revision 1 describes how a rain-cooled downdraft mixes with its surroundings as it descends. Its numerical contract is [CUDDRAFN](../../../skills/md2asm/references/openifs/physics/cuddrafn.md). [Convective Downdraft Initial State](convective_downdraft_start.md) supplies the starting plume.
+Formulation revision 1 describes how a rain-cooled downdraft mixes with its surroundings as it descends. Its numerical contract is [CUDDRAFN](../../../skills/md2fort/references/openifs/physics/cuddrafn.md). [Convective Downdraft Initial State](convective_downdraft_start.md) supplies the starting plume.
 
 ## Physical Idea
 

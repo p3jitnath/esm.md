@@ -36,4 +36,4 @@ q_s(T,p)=\frac{\epsilon e_s(T)}{p-(1-\epsilon)e_s(T)}.
 | Dry-air gas constant $`R_d`$ | 287.0596736665907 J kg⁻¹ K⁻¹ |
 | Vapour gas constant $`R_v`$ | 461.5249933083879 J kg⁻¹ K⁻¹ |
 
-Supply temperature and positive air pressure at each selected grid cell. This calculation has no time evolution or neighbour boundary condition. Cells outside the selected columns and levels keep their incoming bytes. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/satur.md) fixes the supported range, pressure cap, arithmetic and interface.
+Supply temperature and positive air pressure at each selected grid cell. This calculation has no time evolution or neighbour boundary condition. Cells outside the selected columns and levels keep their incoming bytes. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/satur.md) fixes the supported range, pressure cap, arithmetic and interface.

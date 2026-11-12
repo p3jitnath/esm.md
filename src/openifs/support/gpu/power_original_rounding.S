@@ -1,10 +1,10 @@
 /* Complete positive-normal power GPU phase.
- * Contract: skills/md2asm-gpu/references/openifs/support/positive_normal_power_complete_contract.md
+ * Contract: skills/md2fort-gpu/references/openifs/support/positive_normal_power_complete_contract.md
  * The original all-GPU route remains below through one reversible symbol rename.
  */
 // Copyright (C) 2018-2023 Free Software Foundation, Inc.
 // SPDX-License-Identifier: LGPL-2.1-or-later
-// Original arithmetic contract: skills/md2asm/references/openifs/support/power_original_rounding.md
+// Original arithmetic contract: skills/md2fort/references/openifs/support/power_original_rounding.md
 /* Frozen positive-normal power transport; original route follows unchanged. */
 .arch armv8.2-a
 .text

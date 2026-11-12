@@ -1,7 +1,7 @@
-// GPU contract: skills/md2asm-gpu/references/openifs/dynamics/real_fourier_transform.md.
+// GPU contract: skills/md2fort-gpu/references/openifs/dynamics/real_fourier_transform.md.
 // Complete direct FFT992 and its contained RPASSF and QPASSF.
 // Physics: formulations/openifs/dynamics/real_fourier_transform.md.
-// Contract: skills/md2asm/references/openifs/dynamics/real_fourier_transform.md.
+// Contract: skills/md2fort/references/openifs/dynamics/real_fourier_transform.md.
 // Original source: OpenIFS 48.1.1 contrib/ectrans/src/trans/algor/fft992.F90.
 // Parent ABI: x0=A, x1=TRIGS, x2=IFAX, x3=INC, x4=JUMP, x5=N, x6=LOT, x7=ISIGN.
 // Each argument is a pointer; integers are signed 32-bit and fields are FP64.
@@ -79,7 +79,7 @@ md2asm_fft992_qpassf_calls:
 .protected md2asm_fft992_qpassf
 .section .note.GNU-stack,"",%progbits
 
-// Contract: skills/md2asm-gpu/references/openifs/dynamics/real_fourier_transform.md.
+// Contract: skills/md2fort-gpu/references/openifs/dynamics/real_fourier_transform.md.
 .arch armv8-a
 .text
 .p2align 4
@@ -549,7 +549,7 @@ md2asm_gpu_r23_fft992_phase_host:
 .Lr23_fft992_entry:.asciz "md2asm_gpu_r23_fft992"
 .section .note.GNU-stack,"",%progbits
 
-// Contract: skills/md2asm-gpu/references/openifs/dynamics/real_fourier_transform.md.
+// Contract: skills/md2fort-gpu/references/openifs/dynamics/real_fourier_transform.md.
 .arch armv8-a
 .text
 .p2align 4
@@ -757,7 +757,7 @@ md2asm_gpu_r23_fft992_rpassf_phase_host:
 .Lr23_fft992_rpassf_entry:.asciz "md2asm_gpu_r23_fft992_rpassf"
 .section .note.GNU-stack,"",%progbits
 
-// Contract: skills/md2asm-gpu/references/openifs/dynamics/real_fourier_transform.md.
+// Contract: skills/md2fort-gpu/references/openifs/dynamics/real_fourier_transform.md.
 .arch armv8-a
 .text
 .p2align 4

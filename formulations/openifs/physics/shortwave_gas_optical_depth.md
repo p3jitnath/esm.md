@@ -43,4 +43,4 @@ Use the supplied gas amounts, absorption tables, molecular scattering coefficien
 
 The fourteen bands contain 112 representative spectral points. This calculation has no time update. It receives the current atmospheric layers and evaluates them independently in each horizontal column. A column receives direct solar input when $`\mu>0`$. Night columns keep the caller's supplied output state.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/physics/srtm_gas_optical_depth.md) records numerical choices, storage, interfaces and acceptance limits.
+The [md2fort contract](../../../skills/md2fort/references/openifs/physics/srtm_gas_optical_depth.md) records numerical choices, storage, interfaces and acceptance limits.

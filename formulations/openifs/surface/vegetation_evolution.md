@@ -48,4 +48,4 @@ The caller supplies the initial state, vegetation tables, cover fractions, time 
 
 The original step-zero branch clears accumulated respiration, biomass loss and biomass gain and saves the initial active biomass. The daily branch applies the supplied carbon-dioxide assimilation after conversion to biomass. Each land column is independent; there is no exchange across column boundaries.
 
-The [solver contract](../../../skills/md2asm/references/openifs/surface/srfvegevol.md) records the original update order, complete storage interface and actual checks. This is a per-call model update; the checks do not establish biological accuracy of the caller's time schedule.
+The [solver contract](../../../skills/md2fort/references/openifs/surface/srfvegevol.md) records the original update order, complete storage interface and actual checks. This is a per-call model update; the checks do not establish biological accuracy of the caller's time schedule.

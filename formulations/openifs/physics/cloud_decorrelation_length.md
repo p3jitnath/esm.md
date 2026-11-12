@@ -21,4 +21,4 @@ L_f=0.75+2.149\cos^2\phi,
 
 Both latitude-dependent options use $`L_w=L_f/2`$, so their water-to-boundary ratio is 0.5. The calculation changes only these diagnostic lengths. It does not change cloud mass or the weather state.
 
-The configured forecast uses 32 Gaussian latitude rows. The [numerical contract](../../../skills/md2asm/references/openifs/physics/cloud_decorrelation_length.md) gives the complete input set, arithmetic and interface.
+The configured forecast uses 32 Gaussian latitude rows. The [numerical contract](../../../skills/md2fort/references/openifs/physics/cloud_decorrelation_length.md) gives the complete input set, arithmetic and interface.

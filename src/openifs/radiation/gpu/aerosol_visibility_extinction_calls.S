@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/radiation/aerosol_visibility_extinction.md.
+// Contract: skills/md2fort-gpu/references/openifs/radiation/aerosol_visibility_extinction.md.
 .arch armv8-a
 .text
 .p2align 4

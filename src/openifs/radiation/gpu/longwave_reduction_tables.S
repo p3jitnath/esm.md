@@ -1,8 +1,8 @@
 /* Complete longwave corrections and relative weights.
- * Contract: skills/md2asm-gpu/references/openifs/radiation/longwave_corrections_weights_complete_contract.md
+ * Contract: skills/md2fort-gpu/references/openifs/radiation/longwave_corrections_weights_complete_contract.md
  * Original source: src/openifs/radiation/longwave_reduction_tables.S
  */
-// Original contract: skills/md2asm/references/openifs/radiation/longwave_gpoint_reduction.md
+// Original contract: skills/md2fort/references/openifs/radiation/longwave_gpoint_reduction.md
 // Device functions perform the complete source arithmetic.
 .text
 .p2align 4

@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/model_time_and_forcing.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/model_time_and_forcing.md.
 // Storage-only accepted monthly gas record fill for complete UPDTIM.
 // x0 original6vector,x1 zero384B record,x2 private1208B climate,x3 private928B radiation.
 // Return x0 error and x1 exact scratch requirement. No service or numerical call.

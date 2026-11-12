@@ -43,4 +43,4 @@ The positive constant $`C`$ combines the model's terrain parameters and supplies
 
 The standard planet uses $`r=1`$ and gravitational acceleration $`9.80665`$ metres per second squared. Height comes from geopotential divided by gravitational acceleration. Geopotential is gravitational potential energy per unit mass, measured in square metres per square second.
 
-The caller supplies the wind, geopotential, terrain variation and positive drag parameters. Flat terrain returns zero drag. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/vdftofdc.md) retains the original stored constants and the height cutoff.
+The caller supplies the wind, geopotential, terrain variation and positive drag parameters. Flat terrain returns zero drag. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/vdftofdc.md) retains the original stored constants and the height cutoff.

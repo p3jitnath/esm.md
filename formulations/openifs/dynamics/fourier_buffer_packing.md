@@ -16,4 +16,4 @@ c_{\mathrm{destination}} = c_{\mathrm{source}}.
 
 The coefficient units follow the field. Temperature uses kelvin and wind uses metres per second. This transfer has no time update, new physical parameter or boundary condition. It uses the coefficients and occupied wave slots supplied by the surrounding transform. The selected forecast has 32 latitude rows and retains wave numbers zero through 21.
 
-The LLM uses [md2asm](../../../skills/md2asm/SKILL.md) to derive the [buffer layout and assembly contract](../../../skills/md2asm/references/openifs/dynamics/fourier_buffer_packing.md).
+The LLM uses [md2fort](../../../skills/md2fort/SKILL.md) to derive the [buffer layout and assembly contract](../../../skills/md2fort/references/openifs/dynamics/fourier_buffer_packing.md).

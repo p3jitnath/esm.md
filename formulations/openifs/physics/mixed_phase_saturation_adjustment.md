@@ -16,4 +16,4 @@ The heat capacity $`c_p`$ has units J kg$`^{-1}`$ K$`^{-1}`$, and the mixed late
 | Ice latent heat | 2,834,500 J kg$`^{-1}`$ |
 | Heat capacity | 1,004.7088578330674 J kg$`^{-1}`$ K$`^{-1}`$ |
 
-The input is one trial cell state, with no spatial boundary. The cloud caller uses this estimate to choose condensation or evaporation, then limits actual evaporation by the available cloud water. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/qsatmixadj.md) defines the complete two-iteration calculation and its supported numerical domain.
+The input is one trial cell state, with no spatial boundary. The cloud caller uses this estimate to choose condensation or evaporation, then limits actual evaporation by the available cloud water. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/qsatmixadj.md) defines the complete two-iteration calculation and its supported numerical domain.

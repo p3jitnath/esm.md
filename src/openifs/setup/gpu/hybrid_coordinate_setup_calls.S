@@ -1,4 +1,4 @@
-/* GPU contract: skills/md2asm-gpu/references/openifs/setup/hybrid_coordinate_setup.md */
+/* GPU contract: skills/md2fort-gpu/references/openifs/setup/hybrid_coordinate_setup.md */
 // Internal Arm phase after the unchanged successful eight-owner allocation.
 // x0 record, w1 levels, x2 A, x3 B, d0 reference pressure in pascals.
 // One synchronous device call retains the complete input records and owner lifetime.

@@ -2696,9 +2696,9 @@
         ]
       }
     ],
-    "pptx_sha256": "3938229b5866717e05f21de73737a2457a564b934f5914c34b5990feae2c8eff",
-    "pdf_sha256": "0e84b7ab7844442f1f6f857814e99675795e40c4a04975e49625e8cb713bab17",
-    "png_sha256": "6405a35cce1b90667d6f7c7e01595ce480fc9be8a785047f612140c7949aaaed",
+    "pptx_sha256": "ba07009d8e066236b88a7dbb1e102c5edf936b5d1cab985a3e07ab48cc7d43fd",
+    "pdf_sha256": "4674bf6d664b0e844d457c03c419a1b7597b22f5a4cd026b259d83417948b70b",
+    "png_sha256": "1e7c9bc0d72e5668ff9b34ecdb847200e65619f13f3f79930169aada4838988f",
     "png_pixels": [
       7022,
       4967
@@ -2709,43 +2709,46 @@
   },
   "visual_review": {
     "status": "passed",
-    "date_utc": "2026-11-12T00:35:30.021082+00:00",
+    "date_utc": "2026-11-12T02:15:10.634409+00:00",
     "source": "Saved PDF exported from the actual current PowerPoint through the existing poster renderer",
-    "reviewed_PDF_sha256": "0e84b7ab7844442f1f6f857814e99675795e40c4a04975e49625e8cb713bab17",
+    "reviewed_PDF_sha256": "4674bf6d664b0e844d457c03c419a1b7597b22f5a4cd026b259d83417948b70b",
     "reviewed_views": [
       "Full saved poster",
-      "Title banner close-up"
+      "Final Methods and workflow close-up"
     ],
     "findings": [
-      "The title has no underlines and remains on one line at72 pt",
-      "Wording, frames, fonts, other artwork, measurements and layout are preserved",
-      "No clipping, overlap or unwanted title wrapping is visible"
+      "Both current skill names are visible and all changed prose isblue0000FF",
+      "The first paragraph introduces the skills without using undefined CPU/GPU abbreviations",
+      "Fortran and CUDA Fortran compilation is distinct from direct PTX assembly",
+      "The original11 Methods lines and all native frames are preserved",
+      "No clipping, overlap or unwanted wrapping is visible"
     ],
-    "title_style_change": {
+    "skill_rename": {
       "native_properties": {
-        "time_utc": "2026-11-12T00:30:48.756941+00:00",
-        "title_changed": false,
-        "native_underline_flags_cleared": 5,
+        "time_utc": "2026-11-12T02:04:45.545264+00:00",
         "native_objects": 65,
-        "all_other_native_objects_byte_identical": true,
-        "all_other_pptx_members_byte_identical": true,
-        "PPTX_only_changed_member": [
-          "ppt/slides/slide1.xml"
+        "changed_native_objects": [
+          "method-details",
+          "method-step-2"
         ],
-        "prior_PPTX_sha256": "2bc72af9cfd861c1c84c2c6274ab14a19510e41a15f7034ae6f1e70df3b4fe56",
-        "PPTX_sha256": "3938229b5866717e05f21de73737a2457a564b934f5914c34b5990feae2c8eff",
-        "native_structure_review": "passed"
+        "all_other_native_objects_and_package_members_byte_identical": true,
+        "all_native_frames_unchanged": true,
+        "new_first_bullet": "md2fort and md2fort-gpu guide solver generation from Markdown physics and fixed numerical contracts.",
+        "new_third_bullet": "Compilers translate Fortran and CUDA Fortran. An assembler translates PTX, NVIDIA\u2019s virtual instruction code.",
+        "changed_text_colour": "0000FF",
+        "body_lines_preserved": 11,
+        "historical_data_and_plot_assets_unchanged": true
       },
       "PDF_comparison": {
-        "PDF_text_identical": true,
-        "PDF_links_identical": true,
-        "PDF_canvas_identical": true,
-        "prior_title_underline_paths": 5,
-        "current_title_underline_paths": 0,
-        "pixel_review_scale": 0.85,
-        "changed_pixels": 904,
-        "changed_pixels_outside_the_five_underline_regions": 0,
-        "all_other_visible_poster_content_unchanged": true
+        "time_utc": "2026-11-12T02:13:54.792220+00:00",
+        "PDF_text_matches_only_expected_rename_and_route_definition_edits": true,
+        "PDF_links_and_canvas_unchanged": true,
+        "all_visible_changes_within_two_named_text_frames": true,
+        "changed_preview_pixels": 35077,
+        "changed_pixels_outside_named_text_frames": 0,
+        "all_performance_and_physics_figures_identical": true,
+        "comparison_scale": 0.85,
+        "native_unchanged_objects_and_package_members_verified_after_final_correction": true
       }
     },
     "desktop_powerpoint_inspected": false
@@ -2763,12 +2766,12 @@
   },
   "files": {
     "scripts/build_poster.py": {
-      "sha256": "741c6f79a1e0eaab6dcbd3cdf625b1d71d51479ab79740ca852e71a9906ef2e1",
-      "bytes": 39119
+      "sha256": "f1350694a90524e7d9e062fc9a4da4cf9a95dbb8f3f660872870b2a0222a955a",
+      "bytes": 39345
     },
     "scripts/check_poster.py": {
-      "sha256": "cde8bf6be91ac4425c29b5ea85c538e4b29036090028899a3577b7dc199bdd9c",
-      "bytes": 7338
+      "sha256": "0cff1d0fd7d1051fa599c1ceab3d9eaedd491d3a63d4054332d3d66d595e38d2",
+      "bytes": 7948
     },
     "scripts/plot_historical_controls.py": {
       "sha256": "9fc61806105fe6301520340254ed8037843b2960a45f43048d8504777d3b1e36",
@@ -3127,24 +3130,24 @@
       "bytes": 24424
     },
     "esm-md-a0-landscape.pptx": {
-      "sha256": "3938229b5866717e05f21de73737a2457a564b934f5914c34b5990feae2c8eff",
-      "bytes": 6353299
+      "sha256": "ba07009d8e066236b88a7dbb1e102c5edf936b5d1cab985a3e07ab48cc7d43fd",
+      "bytes": 6353371
     },
     "esm-md-a0-landscape.pdf": {
-      "sha256": "0e84b7ab7844442f1f6f857814e99675795e40c4a04975e49625e8cb713bab17",
-      "bytes": 33498227
+      "sha256": "4674bf6d664b0e844d457c03c419a1b7597b22f5a4cd026b259d83417948b70b",
+      "bytes": 33498286
     },
     "esm-md-a0-landscape.png": {
-      "sha256": "6405a35cce1b90667d6f7c7e01595ce480fc9be8a785047f612140c7949aaaed",
-      "bytes": 4397503
+      "sha256": "1e7c9bc0d72e5668ff9b34ecdb847200e65619f13f3f79930169aada4838988f",
+      "bytes": 4400992
     },
     "project-profile.json": {
-      "sha256": "9b62ddd7195f178b17d081235f50669698557778b9a4f3d1d7d111b37e39b485",
-      "bytes": 5195
+      "sha256": "ff95c08622526d6d318c96b735f70d6f0c3ad33b13cec25c395c3191ecc0b3f4",
+      "bytes": 5564
     },
     "README.md": {
-      "sha256": "3324eafac5fdc4f384135f82f8cf081953ff7744ce01d79f595896ddd94c0437",
-      "bytes": 8423
+      "sha256": "5653944169a665bd4dc3321660f62a11d81541df3ea9190228a46eccc4de19f0",
+      "bytes": 8857
     },
     "requirements.txt": {
       "sha256": "28c83b526504033be02d598655ee5d710d89df98b9facaf618f8a72c128d0289",

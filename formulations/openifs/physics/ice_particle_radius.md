@@ -35,4 +35,4 @@ r=k_r\min\left(155,\max(D_{\min},D)\right).
 
 The dimensionless factor $`k_r`$ converts diameter to effective radius. When cloud fraction is at most 0.001 or total ice is zero, the model uses $`80k_r`$ micrometres. An optional configured random perturbation multiplies the diameter before these limits are applied. This calculation diagnoses particle size and does not change the ice mass or temperature.
 
-The configured forecast has 32 Gaussian latitude rows, a latitude-dependent minimum and the cloud-ice option. The [numerical contract](../../../skills/md2asm/references/openifs/physics/ice_particle_radius.md) gives the exact arithmetic, interface and supported input limits.
+The configured forecast has 32 Gaussian latitude rows, a latitude-dependent minimum and the cloud-ice option. The [numerical contract](../../../skills/md2fort/references/openifs/physics/ice_particle_radius.md) gives the exact arithmetic, interface and supported input limits.

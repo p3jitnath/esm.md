@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/aerosol_visibility_climatology.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/aerosol_visibility_climatology.md.
 // RADACA complete stage storage boundary. No weather arithmetic runs here.
 .text
 .p2align 4

@@ -1,4 +1,4 @@
-/* Raw geometry scalar host. Complete eta counter-owner interface: skills/md2asm-gpu/references/openifs/setup/vertical_eta_coordinates.md.
+/* Raw geometry scalar host. Complete eta counter-owner interface: skills/md2fort-gpu/references/openifs/setup/vertical_eta_coordinates.md.
  * Frame768, vector128..143, context192..255, record256..319, result384..415.
  * No model floating-point operation remains in this host.
  */

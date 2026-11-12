@@ -1,4 +1,4 @@
-// Direct assembly. Numerical and storage contract: ../../../../skills/md2asm-gpu/references/openifs/physics/vertical_diffusion_tendencies.md
+// Direct assembly. Numerical and storage contract: ../../../../skills/md2fort-gpu/references/openifs/physics/vertical_diffusion_tendencies.md
 // Complete original VDFOUTER. Host operations manage storage and launch only.
 .text
 .p2align 2

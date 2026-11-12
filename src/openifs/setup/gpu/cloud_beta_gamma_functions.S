@@ -1,8 +1,8 @@
 /* GPU physical setup route. Original interface and ordered arithmetic are preserved.
- * Contract: skills/md2asm-gpu/references/openifs/setup/physical_setup.md
+ * Contract: skills/md2fort-gpu/references/openifs/setup/physical_setup.md
  * Original source: src/openifs/setup/cloud_beta_gamma_functions.S
  */
-// Original contract: skills/md2asm/references/openifs/setup/prognostic_cloud_parameter_setup.md
+// Original contract: skills/md2fort/references/openifs/setup/prognostic_cloud_parameter_setup.md
 #include "../../support/gpu/preserved_scalar_calls.inc.S"
 .arch armv8-a
 .text

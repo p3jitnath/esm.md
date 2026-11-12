@@ -52,4 +52,4 @@ Here $`r_g`$ is the physical mixing ratio in the stored mass or volume conventio
 
 ## Inputs And Boundaries
 
-The caller supplies stored concentrations, their unit convention and scale, and flags that identify the gases present. Concentrations are finite and nonnegative, and physical scale factors are positive and finite. An absent gas has zero concentration. Each column and atmospheric level is independent. The [solver contract](../../../skills/md2asm/references/openifs/physics/gas_unit_conversion.md) defines reading, storage updates and ordered arithmetic.
+The caller supplies stored concentrations, their unit convention and scale, and flags that identify the gases present. Concentrations are finite and nonnegative, and physical scale factors are positive and finite. An absent gas has zero concentration. Each column and atmospheric level is independent. The [solver contract](../../../skills/md2fort/references/openifs/physics/gas_unit_conversion.md) defines reading, storage updates and ordered arithmetic.

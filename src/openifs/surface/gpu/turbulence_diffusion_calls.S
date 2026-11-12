@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/surface/turbulence_diffusion_entry.md
+// Contract: skills/md2fort-gpu/references/openifs/surface/turbulence_diffusion_entry.md
 .text
 .p2align 2
 .global md2asm_r23_gpu_host_turbulence_vdfouter

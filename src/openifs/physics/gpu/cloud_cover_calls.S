@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/cloud_cover_diagnostics.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/cloud_cover_diagnostics.md.
 .text
 .p2align 4
 .global md2asm_cldpp

@@ -35,4 +35,4 @@ Each layer gains what enters through one boundary and loses what leaves through 
 
 The caller supplies temperature, water vapour, pressure, height and the time interval. The parcel starts 0.25 K warmer than the lowest model layer. The original model limits this mixing to its lower layers and to pressures at least 90% of surface pressure. Its cloud exchange coefficient is 10 m² s⁻¹, reduced to 2.5 m² s⁻¹ when the air above stops the parcel. The top and bottom edges of the selected mixing region have zero exchange.
 
-The [solver contract](../../../skills/md2asm/references/openifs/convection/custrat.md) gives the numerical update and its verified limits.
+The [solver contract](../../../skills/md2fort/references/openifs/convection/custrat.md) gives the numerical update and its verified limits.

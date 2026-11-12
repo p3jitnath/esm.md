@@ -41,4 +41,4 @@ Use the state and boundary conditions already supplied by the forecast. This com
 
 ## Generation
 
-Formulation revision 1 defines DT-1 and DT-2. The numerical method, ordered arithmetic, complete interfaces and acceptance limits are in [Departure-Field Transport](../../../skills/md2asm/references/openifs/dynamics/departure_field_transport.md).
+Formulation revision 1 defines DT-1 and DT-2. The numerical method, ordered arithmetic, complete interfaces and acceptance limits are in [Departure-Field Transport](../../../skills/md2fort/references/openifs/dynamics/departure_field_transport.md).

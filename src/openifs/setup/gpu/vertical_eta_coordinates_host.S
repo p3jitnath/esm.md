@@ -1,4 +1,4 @@
-// Complete vertical eta setup. Contract: skills/md2asm-gpu/references/openifs/setup/vertical_eta_coordinates.md.
+// Complete vertical eta setup. Contract: skills/md2fort-gpu/references/openifs/setup/vertical_eta_coordinates.md.
 #include "../../support/gpu/preserved_weather_calls.inc.S"
 .arch armv8.2-a
 .text

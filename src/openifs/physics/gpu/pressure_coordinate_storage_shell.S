@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/pressure_coordinates.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/pressure_coordinates.md.
 // Selected pressure-coordinate calculations emitted directly as AArch64 source.
 .text
 .p2align 4

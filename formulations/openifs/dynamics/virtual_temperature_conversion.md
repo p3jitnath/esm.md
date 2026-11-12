@@ -38,4 +38,4 @@ Both forms describe the same pressure and density. The conversion changes the te
 
 ## Parameters, initial state, and boundaries
 
-The dry-air gas constant is approximately 287.06 joules per kilogram per kelvin. Generation retains the exact upstream constant. Initial temperature and water fractions come from the forecast input files. The relation applies separately at each location and does not transport material across a boundary. The [md2asm contract](../../../skills/md2asm/references/openifs/input/initial_virtual_temperature_conversion.md) records the existing numerical method and ordered arithmetic.
+The dry-air gas constant is approximately 287.06 joules per kilogram per kelvin. Generation retains the exact upstream constant. Initial temperature and water fractions come from the forecast input files. The relation applies separately at each location and does not transport material across a boundary. The [md2fort contract](../../../skills/md2fort/references/openifs/input/initial_virtual_temperature_conversion.md) records the existing numerical method and ordered arithmetic.

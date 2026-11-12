@@ -1,4 +1,4 @@
-// Complete cloud component. Contract: skills/md2asm-gpu/references/openifs/physics/cloud_microphysics_columns.md
+// Complete cloud component. Contract: skills/md2fort-gpu/references/openifs/physics/cloud_microphysics_columns.md
 .text
 .p2align 2
 .global md2asm_gpu_host_cloud_microphysics

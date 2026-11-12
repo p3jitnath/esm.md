@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/pressure_wind_interpolation.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/pressure_wind_interpolation.md.
 // PPUV continuation storage-only numerical stage boundary. Original shell owns DR_HOOK.
 .text
 .p2align 4

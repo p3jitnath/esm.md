@@ -1,8 +1,8 @@
-/* Complete GPU phase. Contract: skills/md2asm-gpu/references/openifs/input/complete_surface_initial_conversion.md */
+/* Complete GPU phase. Contract: skills/md2fort-gpu/references/openifs/input/complete_surface_initial_conversion.md */
 /*
  * Surface field unit scaling, revision 1.
  * Physics: formulations/openifs/input/surface_field_unit_scaling.md
- * Contract: skills/md2asm/references/openifs/input/surface_field_unit_scaling.md
+ * Contract: skills/md2fort/references/openifs/input/surface_field_unit_scaling.md
  * x0..x7: field2d, bytes2d, field3d, bytes3d, parameters, parameter_bytes,
  * constants and constant_bytes. Fixed spans 770048/409600/208/16 bytes.
  * Two fields are in/out and disjoint from each other and both inputs.

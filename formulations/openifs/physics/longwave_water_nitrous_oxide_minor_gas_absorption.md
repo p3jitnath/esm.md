@@ -25,4 +25,4 @@ C_c,&r\leq3,\\
 \end{cases} \tag{LW13-2}
 ```
 
-Use the unchanged empirical tables, pressure, temperature, gas columns and aerosol depth supplied by the forecast. The tables also supply a Planck fraction, which assigns thermal emission to each spectral point. This calculation has no time update or spatial boundary of its own. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/rrtm_taumol13.md) defines interpolation and the exact representations of constants.
+Use the unchanged empirical tables, pressure, temperature, gas columns and aerosol depth supplied by the forecast. The tables also supply a Planck fraction, which assigns thermal emission to each spectral point. This calculation has no time update or spatial boundary of its own. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/rrtm_taumol13.md) defines interpolation and the exact representations of constants.

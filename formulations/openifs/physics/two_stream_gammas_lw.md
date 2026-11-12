@@ -24,4 +24,4 @@ The first coefficient describes loss from a diffuse flow. The second connects th
 
 ## Parameters And Boundaries
 
-Inputs are the scattering fraction and direction preference at each spectral point. The factor $`L`$ approximates the longer paths of diffuse radiation through the layer. This calculation has no time update or spatial boundary. The [solver contract](../../../skills/md2asm/references/openifs/physics/calc_two_stream_gammas_lw.md) fixes the arithmetic and array interface.
+Inputs are the scattering fraction and direction preference at each spectral point. The factor $`L`$ approximates the longer paths of diffuse radiation through the layer. This calculation has no time update or spatial boundary. The [solver contract](../../../skills/md2fort/references/openifs/physics/calc_two_stream_gammas_lw.md) fixes the arithmetic and array interface.

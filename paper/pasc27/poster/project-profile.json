@@ -8,7 +8,7 @@
     "opening": "Begin with wider Earth system model development needs, then introduce portable Fortran and compiler generation. Define unfamiliar terms, symbols and units.",
     "mathematics": "GitHub dollar-and-backtick inline expressions and fenced math blocks. Keep one prose paragraph or list item on each source line.",
     "physical_notes": "../../../formulations/",
-    "numerical_contracts": "../../../skills/md2asm/references/",
+    "numerical_contracts": "../../../skills/md2fort/references/",
     "title_casing": "Title case for the poster title and section headings",
     "subtitle_casing": "Sentence case",
     "punctuation": "Avoid semicolons and colons in authored prose",
@@ -16,7 +16,9 @@
       "Titles",
       "The exact requested Sponsors: label",
       "Required literal syntax, quotations, official names and bibliography metadata"
-    ]
+    ],
+    "gpu_numerical_contracts": "../../../skills/md2fort-gpu/references/",
+    "changed_prose_colour": "#0000FF"
   },
   "identity": {
     "author": "Pritthijit Nath",
@@ -61,7 +63,7 @@
     },
     "workflow": [
       "a. Physics",
-      "b. md2asm",
+      "b. md2fort",
       "c. Run/Verify with a simulation symbol and verification tick"
     ],
     "formulation": "../../../formulations/sw/dam_break.md",
@@ -85,7 +87,11 @@
     "performance": "Two CPU/GPU facets per model compare seven implementations at three grids through absolute complete-update rates, with visible cohort dates and observed twelve-run ranges. CPU axes are linear and GPU axes logarithmic.",
     "figure_unit_labels": "Put units in square brackets on axes, colour bars and variable-label declarations. Keep plotted values, scales and ordinary value-unit expressions unchanged.",
     "title_font_pt": 72,
-    "figure_implementation_label": "ESM.md"
+    "figure_implementation_label": "ESM.md",
+    "skills": {
+      "md2fort": "Generation, verification and optimisation guidance for portable Fortran CPU solvers",
+      "md2fort-gpu": "GPU generation, verification and optimisation guidance covering CUDA Fortran and direct PTX comparisons"
+    }
   },
   "evidence": {
     "branding": "evidence.json",

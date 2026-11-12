@@ -38,4 +38,4 @@ Hydrostatic balance gives this form when a model layer changes height across the
 
 ## Parameters, initial state, and boundaries
 
-Use the geometry, pressures, air properties and gradients supplied by the forecast. At uniform pressure and height, the pressure acceleration is zero. This routine supplies the positive combined gradient, while the wind update applies its negative sign. The layer coefficients and exact arithmetic belong in the [md2asm contract](../../../skills/md2asm/references/openifs/dynamics/gpgrp.md).
+Use the geometry, pressures, air properties and gradients supplied by the forecast. At uniform pressure and height, the pressure acceleration is zero. This routine supplies the positive combined gradient, while the wind update applies its negative sign. The layer coefficients and exact arithmetic belong in the [md2fort contract](../../../skills/md2fort/references/openifs/dynamics/gpgrp.md).

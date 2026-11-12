@@ -6,4 +6,4 @@ The unchanged equations are defined in the [complete grid-point update](complete
 
 The selected global grid has 2,048 horizontal cells and 19 levels. The forecast supplies its initial state, surface conditions, coefficients and time intervals. Longitude wraps around Earth and the existing child models retain their top, surface and pole conditions. Grouping the calculations changes no physical parameter or boundary.
 
-The LLM uses [md2asm](../../../skills/md2asm/SKILL.md) to record the [driver contract](../../../skills/md2asm/references/openifs/dynamics/complete_forecast_grid_driver.md).
+The LLM uses [md2fort](../../../skills/md2fort/SKILL.md) to record the [driver contract](../../../skills/md2fort/references/openifs/dynamics/complete_forecast_grid_driver.md).

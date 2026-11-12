@@ -1,8 +1,8 @@
 /* GPU physical setup route. Original interface and ordered arithmetic are preserved.
- * Contract: skills/md2asm-gpu/references/openifs/setup/physical_setup.md
+ * Contract: skills/md2fort-gpu/references/openifs/setup/physical_setup.md
  * Original source: src/openifs/dynamics/selected_gridpoint_norms.S
  */
-// Original contract: skills/md2asm/references/openifs/dynamics/selected_gridpoint_norms.md
+// Original contract: skills/md2fort/references/openifs/dynamics/selected_gridpoint_norms.md
 #include "../../support/gpu/preserved_scalar_calls.inc.S"
 .arch armv8.2-a
 .text

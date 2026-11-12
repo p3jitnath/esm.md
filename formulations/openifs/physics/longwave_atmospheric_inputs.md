@@ -33,7 +33,7 @@ C = (N_{\mathrm{CO_2}}-N_{\mathrm{ref}})
 \frac{272.63\exp(-1919.4/T)}{(8.7604\times10^{-4})T}. \qquad \text{[LAI-3]}
 ```
 
-Here the carbon-dioxide amounts use the model's scaled molecular units. The constants 1919.4 and 272.63 have units K and K respectively, and 8.7604 × 10⁻⁴ is dimensionless. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/rrtm_setcoef_140gp.md) records the reference amount and gas scaling.
+Here the carbon-dioxide amounts use the model's scaled molecular units. The constants 1919.4 and 272.63 have units K and K respectively, and 8.7604 × 10⁻⁴ is dimensionless. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/rrtm_setcoef_140gp.md) records the reference amount and gas scaling.
 
 ## Inputs And Boundaries
 

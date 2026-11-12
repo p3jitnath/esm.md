@@ -1,4 +1,4 @@
-/* Complete UPDTIM original9 storage transaction. frozen_contract.md revision1. GPU contract skills/md2asm-gpu/references/openifs/physics/model_time_and_forcing.md.
+/* Complete UPDTIM original9 storage transaction. frozen_contract.md revision1. GPU contract skills/md2fort-gpu/references/openifs/physics/model_time_and_forcing.md.
  * MODEL and every original pointed owner retain complete source bytes.
  */
 .arch armv8-a

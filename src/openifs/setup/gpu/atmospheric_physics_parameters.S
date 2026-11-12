@@ -1,8 +1,8 @@
 /* GPU physical setup route. Original interface and ordered arithmetic are preserved.
- * Contract: skills/md2asm-gpu/references/openifs/setup/physical_setup.md
+ * Contract: skills/md2fort-gpu/references/openifs/setup/physical_setup.md
  * Original source: src/openifs/setup/atmospheric_physics_parameters.S
  */
-// Original contract: skills/md2asm/references/openifs/setup/atmospheric_physics_parameters.md
+// Original contract: skills/md2fort/references/openifs/setup/atmospheric_physics_parameters.md
 #include "../../support/gpu/preserved_scalar_calls.inc.S"
 .arch armv8.2-a
 .equ ATM_TYM,0

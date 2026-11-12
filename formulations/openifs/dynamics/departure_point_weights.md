@@ -18,4 +18,4 @@ d=\frac{x-n_1}{n_2-n_1},
 
 The caller supplies departure positions, grids, increasing vertical nodes, lookup tables, diffusion coefficients and earlier field indices. It chooses linear, cubic, Hermite, spline or WENO interpolation. Hermite uses values and slopes. A spline uses supplied cubic polynomial coefficients. WENO combines three cubic stencils to reduce oscillations.
 
-The initial state contains the complete supplied buffers. Only selected rows change. Vertical boundary pairs use the original linear weights. The original physical limits and the one-process communication limit are recorded in the md2asm contract.
+The initial state contains the complete supplied buffers. Only selected rows change. Vertical boundary pairs use the original linear weights. The original physical limits and the one-process communication limit are recorded in the md2fort contract.

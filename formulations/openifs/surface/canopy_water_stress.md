@@ -8,4 +8,4 @@ For vegetated land, let $`g_c`$ be canopy conductance and $`g_{\min}`$ its suppl
 r_c=\frac{1}{\max(g_{\min},g_c)}\qquad\text{(CWS-P01)}
 ```
 
-The existing [leaf carbon model](carbon_uptake_by_plant_leaves.md) defines photosynthesis and respiration. The forecast supplies vegetation, soil moisture, air and soil temperatures in kelvin, carbon dioxide, radiation in watts per square metre, evaporation and tile fractions. Water and ice retain their own boundary rules. The [md2asm contract](../../../skills/md2asm/references/openifs/surface/canopy_water_stress.md) preserves the complete C3 and selected C4 calculation.
+The existing [leaf carbon model](carbon_uptake_by_plant_leaves.md) defines photosynthesis and respiration. The forecast supplies vegetation, soil moisture, air and soil temperatures in kelvin, carbon dioxide, radiation in watts per square metre, evaporation and tile fractions. Water and ice retain their own boundary rules. The [md2fort contract](../../../skills/md2fort/references/openifs/surface/canopy_water_stress.md) preserves the complete C3 and selected C4 calculation.

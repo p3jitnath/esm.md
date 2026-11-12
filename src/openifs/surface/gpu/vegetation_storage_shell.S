@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/surface/vegetation_evolution.md.
+// Contract: skills/md2fort-gpu/references/openifs/surface/vegetation_evolution.md.
 // Complete ordered md2asm_srfvegevol_7240564; private numerical routes only.
 .arch armv8-a
 .text

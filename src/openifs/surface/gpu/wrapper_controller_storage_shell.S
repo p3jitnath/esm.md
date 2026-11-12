@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/surface/private_radiation_controller.md.
+// Contract: skills/md2fort-gpu/references/openifs/surface/private_radiation_controller.md.
 .text
 .align 2
 .macro A n,r

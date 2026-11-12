@@ -43,4 +43,4 @@ a^2\delta=imU_d+BV_d.
 \tag{SL4}
 ```
 
-These are separate spatial calculations and have no time step, initial state or physical boundary condition. Their spectral end rows and exact storage belong to the md2asm contract.
+These are separate spatial calculations and have no time step, initial state or physical boundary condition. Their spectral end rows and exact storage belong to the md2fort contract.

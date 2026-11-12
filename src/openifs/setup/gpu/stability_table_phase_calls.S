@@ -1,4 +1,4 @@
-// Complete stability-table transport; contract: skills/md2asm-gpu/references/openifs/setup/stability_table_fields_complete_contract.md
+// Complete stability-table transport; contract: skills/md2fort-gpu/references/openifs/setup/stability_table_fields_complete_contract.md
 .arch armv8-a
 .text
 .p2align 4

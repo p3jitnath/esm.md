@@ -24,4 +24,4 @@ P03 requires the new layers to keep the total mass and heat.
 \sum_j E_j^{\mathrm{new}}=\sum_j E_j^{\mathrm{old}}.
 ```
 
-Each column is a closed snowpack, with no mass or heat entering through its surface or base during this change. The no-snow mask and an all-liquid state keep their supplied fields. The [md2asm contract](../../../skills/md2asm/references/openifs/surface/snow_regrid.md) defines the layer overlap, ordered arithmetic and verification.
+Each column is a closed snowpack, with no mass or heat entering through its surface or base during this change. The no-snow mask and an all-liquid state keep their supplied fields. The [md2fort contract](../../../skills/md2fort/references/openifs/surface/snow_regrid.md) defines the layer overlap, ordered arithmetic and verification.

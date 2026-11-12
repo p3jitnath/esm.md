@@ -32,4 +32,4 @@ The supplied state contains four soil layers, soil and vegetation types, liquid-
 
 The freezing reference is 273.16 kelvin, and the methane latitude bands have edges at −25 and 25 degrees. Respiration and methane tables depend on vegetation type. The time interval is supplied in seconds. Daily net assimilation accumulates the supplied net canopy rate over this interval, while a separate record retains the maximum assimilation per unit air density and leaf area. The forecast supplies the initial records and the parameter tables. Low and high vegetation use the original surface tile map. Only the requested cell interval changes, and cells outside it retain their previous values.
 
-The derived [solver contract](../../../skills/md2asm/references/openifs/surface/surface_carbon_flux.md) records the model's temperature function, snow and water factors, source constants, storage and arithmetic.
+The derived [solver contract](../../../skills/md2fort/references/openifs/surface/surface_carbon_flux.md) records the model's temperature function, snow and water factors, source constants, storage and arithmetic.

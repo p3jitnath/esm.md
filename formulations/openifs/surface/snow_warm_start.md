@@ -12,4 +12,4 @@ Density $`\rho_k`$ is in kilograms per cubic metre. Layer depth $`h_k`$ is in me
 
 The supplied snow mass, density and temperature describe the starting snow state. Soil and skin temperatures provide its lower and upper thermal conditions. Terrain height variation, snow cover, sunlight direction and snow albedo help select a measured profile. Albedo is the fraction of incoming sunlight reflected by snow.
 
-Start from one supplied snow temperature, density and total water mass. The melting temperature is 273.16 kelvin. Deep snow can represent a glacier. Columns without snow retain their supplied state. The md2asm contract describes how layers and profiles are reconstructed and checked.
+Start from one supplied snow temperature, density and total water mass. The melting temperature is 273.16 kelvin. Deep snow can represent a glacier. Columns without snow retain their supplied state. The md2fort contract describes how layers and profiles are reconstructed and checked.

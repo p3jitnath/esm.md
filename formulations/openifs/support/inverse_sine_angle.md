@@ -12,4 +12,4 @@ Let $`x`$ be the sine, with no units, and let $`a`$ be the angle in radians. Cho
 
 A sine of zero gives an angle of zero. A sine of 1 gives a positive right angle, and a sine of −1 gives a negative right angle. This calculation has no time update, initial state or spatial boundary.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/support/asin_original_rounding.md) defines the numerical method and its checked limits.
+The [md2fort contract](../../../skills/md2fort/references/openifs/support/asin_original_rounding.md) defines the numerical method and its checked limits.

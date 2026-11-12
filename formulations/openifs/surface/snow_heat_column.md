@@ -10,4 +10,4 @@ a_jT_{j-1}+b_jT_j+c_jT_{j+1}=f_j.
 
 There are $`n\geq1`$ active layers. The first equation has no lower neighbour and the last has no upper neighbour. Surface and soil heat inputs are included in the supplied coefficients and heat input. The caller supplies the previous state when it forms these inputs.
 
-The coefficients and heat inputs are the parameters for this calculation. They must give finite solutions through the complete elimination in the [md2asm contract](../../../skills/md2asm/references/openifs/surface/snow_trisolver.md). This child has no separate time step or initial temperature to choose.
+The coefficients and heat inputs are the parameters for this calculation. They must give finite solutions through the complete elimination in the [md2fort contract](../../../skills/md2fort/references/openifs/surface/snow_trisolver.md). This child has no separate time step or initial temperature to choose.

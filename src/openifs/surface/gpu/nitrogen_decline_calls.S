@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/surface/nitrogen_decline.md.
+// Contract: skills/md2fort-gpu/references/openifs/surface/nitrogen_decline.md.
 .arch armv8-a
 .text
 .p2align 4

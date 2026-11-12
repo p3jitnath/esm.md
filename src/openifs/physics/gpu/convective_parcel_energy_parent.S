@@ -1,4 +1,4 @@
-.equ CE_CAPE,0 // Contract: skills/md2asm-gpu/references/openifs/physics/convective_energy_diagnostics.md. Accepted ordered parcel assembly.
+.equ CE_CAPE,0 // Contract: skills/md2fort-gpu/references/openifs/physics/convective_energy_diagnostics.md. Accepted ordered parcel assembly.
 .equ CE_CIN,1
 .equ CE_THMIX,2
 .equ CE_QMIX,3
@@ -22,7 +22,7 @@
 
 
 // Direct CUANCAPE2 from formulations/openifs/physics/convective_energy_diagnostics.md.
-// ABI and ordered arithmetic: skills/md2asm/references/openifs/physics/convective_energy_diagnostics.md.
+// ABI and ordered arithmetic: skills/md2fort/references/openifs/physics/convective_energy_diagnostics.md.
 // Original source: arpifs/phys_ec/cuancape2.F90.
 .text
 .p2align 4

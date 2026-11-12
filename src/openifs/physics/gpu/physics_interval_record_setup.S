@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/physics_interval_controller.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/physics_interval_controller.md.
 /* Integer-only capacities for the14-address physics interval controller.
  * x0 is the original vector; x1 is a zeroed112-byte record.
  * Return x0error and x1requiredscratch. No FP or service call occurs. */

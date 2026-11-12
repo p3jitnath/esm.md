@@ -1,6 +1,6 @@
-// Contract: skills/md2asm-gpu/references/openifs/surface/soil_water_exchange.md.
+// Contract: skills/md2fort-gpu/references/openifs/surface/soil_water_exchange.md.
 /* Soil water transfer from formulations/openifs/surface/soil_water_transfer.md.
- * The complete interface is in skills/md2asm/references/openifs/surface/srfwexc_vg.md. */
+ * The complete interface is in skills/md2fort/references/openifs/surface/srfwexc_vg.md. */
 #ifndef ORIGINAL_SYMBOL
 #define ORIGINAL_SYMBOL md2asm_soil_water_exchange
 #endif

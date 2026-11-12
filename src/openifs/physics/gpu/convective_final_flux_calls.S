@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/convective_final_flux.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/convective_final_flux.md.
 // Original ABI storage/launch draft from original_host_contract.md revision1.
 .text
 .p2align 2

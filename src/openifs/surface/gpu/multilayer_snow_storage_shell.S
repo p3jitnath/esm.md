@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/surface/multilayer_snow_driver.md.
+// Contract: skills/md2fort-gpu/references/openifs/surface/multilayer_snow_driver.md.
 /* Complete snow evolution from formulations/openifs/surface/snow_surface_update.md.
  * Forty-one addresses and all six direct numerical children. */
 #ifndef ORIGINAL_SYMBOL

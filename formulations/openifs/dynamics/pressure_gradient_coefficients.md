@@ -24,4 +24,4 @@ A dimensionless quantity $`q(p_s)`$ also changes with surface pressure. The chai
 
 The numerical method supplies the pressure-related quantities used in the forecast. Their coefficients have units of inverse pascals, while their gradients have units of inverse metres. Other coordinate scales retain their corresponding units. Only the supplied columns and atmospheric levels change.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/dynamics/gpgrxyb.md) records the complete GPGRXYB stage, including its pressure approximations.
+The [md2fort contract](../../../skills/md2fort/references/openifs/dynamics/gpgrxyb.md) records the complete GPGRXYB stage, including its pressure approximations.

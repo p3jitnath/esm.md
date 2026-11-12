@@ -1,4 +1,4 @@
-/* skills/md2asm-gpu/references/openifs/physics/convective_cloud_ascent.md */
+/* skills/md2fort-gpu/references/openifs/physics/convective_cloud_ascent.md */
 .text
 .p2align 2
 .macro CONST reg,value

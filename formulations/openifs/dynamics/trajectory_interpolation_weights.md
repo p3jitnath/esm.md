@@ -8,6 +8,6 @@ Let $`\boldsymbol r`$ be position in the model's coordinates, $`\boldsymbol v`$ 
 \frac{d\boldsymbol r}{dt}=\boldsymbol v.
 ```
 
-Use the supplied time interval, arrival positions, earlier winds, full and half levels and model boundaries. Keep the earlier vertical position between the supplied lower and upper limits. The md2asm contract chooses the numerical update and interpolation weights, retaining the original source order and output bytes.
+Use the supplied time interval, arrival positions, earlier winds, full and half levels and model boundaries. Keep the earlier vertical position between the supplied lower and upper limits. The md2fort contract chooses the numerical update and interpolation weights, retaining the original source order and output bytes.
 
 Physical source is OpenIFS LAPINEA, with its Cartesian LARMES_XYZ trajectory and full-level LARCINA interpolation calculation.

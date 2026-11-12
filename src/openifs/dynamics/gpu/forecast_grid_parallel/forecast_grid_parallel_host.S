@@ -1,4 +1,4 @@
-// Qualified parallel interface and bounds in skills/md2asm-gpu/references/openifs/dynamics/forecast_grid_parallel_columns.md.
+// Qualified parallel interface and bounds in skills/md2fort-gpu/references/openifs/dynamics/forecast_grid_parallel_columns.md.
 // Three complete parent interfaces. Only integer storage metadata runs here.
 .text
 .p2align 2

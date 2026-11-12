@@ -1,4 +1,4 @@
-/* Complete spline inverse from LU factors; skills/md2asm-gpu/references/openifs/setup/spline_inverse_from_factors_complete_contract.md. */
+/* Complete spline inverse from LU factors; skills/md2fort-gpu/references/openifs/setup/spline_inverse_from_factors_complete_contract.md. */
 #include "../../support/gpu/preserved_weather_calls.inc.S"
 .arch armv8-a
 .text

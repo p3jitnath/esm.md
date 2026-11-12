@@ -16,4 +16,4 @@ L=mA+w(R-R_{\mathrm{old}}).
 
 The final-point contribution uses $`pR`$. A centred alternative uses $`p(3R-R_{\mathrm{old}})/2`$. A corrector repeats the update with a preliminary new state. The supplied arrays already contain earlier terms, so each declared contribution is added to them.
 
-The initial states, time weights and method flags come from the caller. Use finite consumed fields and valid time weights. Leave inactive columns, padding and unused fields unchanged. The [md2asm contract](../../../skills/md2asm/references/openifs/dynamics/lattex_dnt.md) defines the complete ordered update and diagnostic terms.
+The initial states, time weights and method flags come from the caller. Use finite consumed fields and valid time weights. Leave inactive columns, padding and unused fields unchanged. The [md2fort contract](../../../skills/md2fort/references/openifs/dynamics/lattex_dnt.md) defines the complete ordered update and diagnostic terms.

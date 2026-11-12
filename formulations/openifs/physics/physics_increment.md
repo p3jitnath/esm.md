@@ -20,4 +20,4 @@ A constant rate acting for $`\Delta t`$ seconds produces the following change.
 
 The calling forecast supplies the state, physical tendencies and time interval. Use each quantity's stated units. The first forecast step may skip this increment because its initial state is prepared separately. Only the supplied atmospheric columns and levels change, and boundary storage keeps its earlier state.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/physics/gpaddslphy.md) records the complete GPADDSLPHY update and its exact arithmetic.
+The [md2fort contract](../../../skills/md2fort/references/openifs/physics/gpaddslphy.md) records the complete GPADDSLPHY update and its exact arithmetic.

@@ -8,4 +8,4 @@ z=x^y. \tag{POW-01}
 
 For example, $`4^{1/2}=2`$. A positive base permits any real exponent, while a negative base needs an integer exponent for a real result. No initial state or spatial boundary is needed for this scalar relation.
 
-The [numerical contract](../../../skills/md2asm/references/openifs/support/power_original_rounding.md) defines the frozen calculation, special values and interface.
+The [numerical contract](../../../skills/md2fort/references/openifs/support/power_original_rounding.md) defines the frozen calculation, special values and interface.

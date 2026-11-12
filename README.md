@@ -2,7 +2,7 @@
 
 esm.md develops CPU solvers from physics and mathematics in Markdown through portable Fortran source. An optimising compiler turns that source into machine code for each target architecture. The models retain ordered 64-bit floating-point calculations, independent physical checks and exact output comparisons. Earlier direct-assembly results remain part of the research record.
 
-Start with the [short template](formulations/TEMPLATE.md), [shallow-water formulation](formulations/sw/dam_break.md) or [energy-balance formulation](formulations/ebm/budyko_sellers.md). The [md2asm skill](skills/md2asm/SKILL.md) supplies numerical methods, portable Fortran interfaces, compiler guidance, verification and optimisation. New CPU sources are Fortran. The verified shallow-water and energy-balance replacements are active; their earlier CPU assembly, direct GPU PTX and older source snapshots are archived locally with hashes and retained in Git history. Comparison tools, controls, data and archives stay local. [AGENTS.md](AGENTS.md) defines the writing and development rules.
+Start with the [short template](formulations/TEMPLATE.md), [shallow-water formulation](formulations/sw/dam_break.md) or [energy-balance formulation](formulations/ebm/budyko_sellers.md). The [md2fort skill](skills/md2fort/SKILL.md) supplies numerical methods, portable Fortran interfaces, compiler guidance, verification and optimisation. New CPU sources are Fortran. The verified shallow-water and energy-balance replacements are active; their earlier CPU assembly, direct GPU PTX and older source snapshots are archived locally with hashes and retained in Git history. Comparison tools, controls, data and archives stay local. [AGENTS.md](AGENTS.md) defines the writing and development rules.
 
 ## CPU Solvers
 
@@ -51,7 +51,7 @@ The formatting checkpoint used a pinned `fprettify` revision on 224 project Fort
 
 ## GPU Solvers
 
-The historical comparison runs the same models on one NVIDIA GH200 GPU. For that earlier route, the LLM emitted PTX, NVIDIA’s virtual assembly language, and NVIDIA’s assembler created machine code. The [GPU skill](skills/md2asm-gpu/SKILL.md) and [execution contract](skills/md2asm-gpu/references/gpu-contract.md) describe this route. Sources are [shallow water](https://github.com/p3jitnath/esm.md/blob/8be04b8/src/sw/gpu/2d_rusanov_ssprk2.ptx) and [energy balance](https://github.com/p3jitnath/esm.md/blob/8be04b8/src/ebm/gpu/budyko_sellers.ptx).
+The historical comparison runs the same models on one NVIDIA GH200 GPU. For that earlier route, the LLM emitted PTX, NVIDIA’s virtual assembly language, and NVIDIA’s assembler created machine code. The [GPU skill](skills/md2fort-gpu/SKILL.md) and [execution contract](skills/md2fort-gpu/references/gpu-contract.md) describe this route. Sources are [shallow water](https://github.com/p3jitnath/esm.md/blob/8be04b8/src/sw/gpu/2d_rusanov_ssprk2.ptx) and [energy balance](https://github.com/p3jitnath/esm.md/blob/8be04b8/src/ebm/gpu/budyko_sellers.ptx).
 
 Rates are million complete cell updates per second, shown as the median [minimum–maximum] across twelve accepted repetitions on one quiet exclusive GPU. Water updates include all three fields, both stages and periodic boundaries. Energy-balance updates include both stages and pole boundaries.
 
@@ -79,7 +79,7 @@ The timer replays a prepared sequence of GPU launches. It excludes compilation, 
 
 ### esm.md GPU
 
-The new [shallow-water](src/sw/gpu/solver.cuf) and [energy-balance](src/ebm/gpu/solver.cuf) variants are labelled **esm.md**. NVIDIA Fortran compiles these sources into GPU instructions. The earlier assembly sources are archived, and their comparison results above remain historical records. The [GPU execution contract](skills/md2asm-gpu/references/gpu-contract.md) records the interfaces, complete launch sequence and strict build options.
+The new [shallow-water](src/sw/gpu/solver.cuf) and [energy-balance](src/ebm/gpu/solver.cuf) variants are labelled **esm.md**. NVIDIA Fortran compiles these sources into GPU instructions. The earlier assembly sources are archived, and their comparison results above remain historical records. The [GPU execution contract](skills/md2fort-gpu/references/gpu-contract.md) records the interfaces, complete launch sequence and strict build options.
 
 This fresh comparison uses twelve rotated pairs per workload on one GH200 in exclusive job 8199657 on `nid010573`. Both variants use GPU 0, host CPU 7 and memory domain 0. Rates are million complete cell updates per second, shown as median [minimum–maximum]. A complete update includes both time stages, every field and the boundaries. The ratio is Fortran speed divided by assembly speed.
 
@@ -106,7 +106,7 @@ The OpenIFS 48.1.1 work has two distinct scopes. The coarse autonomous CPU forec
 
 ### Coarse CPU Forecast
 
-The [autonomous forecast](skills/md2asm/references/openifs/input/standalone_weather_forecast.md) advances 24 hours from 15 October 2004 on 2,048 horizontal points and 19 atmospheric layers. Assembly owns loading, configuration, setup, storage, the time loop, weather calculations, state updates and output. It runs without original OpenIFS routines or its harness. Public file-format, transform, mathematical and runtime services remain explicit.
+The [autonomous forecast](skills/md2fort/references/openifs/input/standalone_weather_forecast.md) advances 24 hours from 15 October 2004 on 2,048 horizontal points and 19 atmospheric layers. Assembly owns loading, configuration, setup, storage, the time loop, weather calculations, state updates and output. It runs without original OpenIFS routines or its harness. Public file-format, transform, mathematical and runtime services remain explicit.
 
 | Check | Coverage | Differing bytes |
 | --- | --- | ---: |
@@ -157,9 +157,9 @@ The runtime setting `EC_PMON=0` disables hardware energy monitoring, making ener
 
 Six complete 24-hour runs use combined CPU/GPU assembly without the OpenIFS harness. Each matches all ten saved files across 618,140 bytes and 59 overlapping final views across 18,971,680 bytes. The latest also matches both complete model-history buffers across 1,882,368 bytes.
 
-The latest complete GPU run finishes 25 steps in **464.19 seconds**, including input, setup and output. This single measurement is about 33 times the CPU median. Complete internal-state and counter checks remain pending for that image, so no GPU speedup is accepted. The [mathematical support](skills/md2asm-gpu/references/openifs/mathematical_support.md) and [assembly launcher](skills/md2asm-gpu/references/openifs/cuda_runtime.md) state its numerical and storage rules.
+The latest complete GPU run finishes 25 steps in **464.19 seconds**, including input, setup and output. This single measurement is about 33 times the CPU median. Complete internal-state and counter checks remain pending for that image, so no GPU speedup is accepted. The [mathematical support](skills/md2fort-gpu/references/openifs/mathematical_support.md) and [assembly launcher](skills/md2fort-gpu/references/openifs/cuda_runtime.md) state its numerical and storage rules.
 
-Component acceptance and its limits are recorded in the [GPU contracts](skills/md2asm-gpu/SKILL.md). These checks do not establish a complete operational GPU forecast.
+Component acceptance and its limits are recorded in the [GPU contracts](skills/md2fort-gpu/SKILL.md). These checks do not establish a complete operational GPU forecast.
 
 ### Operational 9 km Forecast
 
@@ -167,7 +167,7 @@ The CPU port now has compiled Fortran counterparts for all 1,203 archived assemb
 
 The target has 6,599,680 horizontal points, 137 atmospheric layers and 192 steps of 450 seconds for a 24-hour forecast. A supplied Fortran reference completes that workload with 32 MPI processes and 32 OpenMP threads per process, using strict arithmetic and single-threaded OpenBLAS. Its effective block size is 24 points. MPI exchanges data between processes, while OpenMP shares work between threads.
 
-The standalone CPU executable starts without the OpenIFS harness. The matching 32-process assembly run has no confirmed completed model step or complete saved-output acceptance. The earlier **14.13-second result is for the coarse model**, and is not a 9 km timing. Complete raw-state comparison, independent physical acceptance and full output agreement remain required. Memory and supported runtime shapes remain limited by the linked contracts. The [lake input correction](skills/md2asm/references/openifs/surface/lake_temperature_profile.md) admits the shape value produced by the frozen input encoding. Four captured-column comparisons match 262,144 complete protected bytes, and 36 independent physical checks pass. The integrated forecast still needs complete step and output verification.
+The standalone CPU executable starts without the OpenIFS harness. The matching 32-process assembly run has no confirmed completed model step or complete saved-output acceptance. The earlier **14.13-second result is for the coarse model**, and is not a 9 km timing. Complete raw-state comparison, independent physical acceptance and full output agreement remain required. Memory and supported runtime shapes remain limited by the linked contracts. The [lake input correction](skills/md2fort/references/openifs/surface/lake_temperature_profile.md) admits the shape value produced by the frozen input encoding. Four captured-column comparisons match 262,144 complete protected bytes, and 36 independent physical checks pass. The integrated forecast still needs complete step and output verification.
 
 All 32 CPU processes reached the end of step 0 in the current operational assembly run. The complete spectral files `ICMSHacfl+000000` and `ICMUAacfl+000000` match Fortran across 4,307,954,808 bytes, with zero differing bytes and stable file identities before and after reading. Spectral fields represent weather fields as waves. The gridpoint file differs, so complete step-0 output agreement remains unverified. Step 1 is stopped in vertical continuity, which calculates transport through atmospheric layers, and step 2 has not run. Raw state agreement and a complete operational forecast remain pending.
 
@@ -191,10 +191,10 @@ The original urban setup stores `RSBCONS=5.67e+08`, although its comment describ
 
 In a tested ice-formation call, the OpenIFS lake update stores an average water temperature of 277.13 K, while its limited temperature profile can represent at most 276.334 K. The profile describes how water temperature changes with depth. We retain the original OpenIFS equations and update rules, and report this known limitation separately from exact assembly byte agreement. Independent whole-forecast physics remains unverified.
 
-The original solar averaging can omit daylight from a neighbouring day when a long daylight interval crosses midnight. A supported 9 km grid-cell witness exposes this limit. The [entry that matches the original behaviour](skills/md2asm/references/openifs/physics/solar_zenith_source_compatibility.md) preserves the calculation and passes its focused byte comparison. Its independent periodic-light check reports the physical discrepancy. The strict solar entry retains its qualified physical domain.
+The original solar averaging can omit daylight from a neighbouring day when a long daylight interval crosses midnight. A supported 9 km grid-cell witness exposes this limit. The [entry that matches the original behaviour](skills/md2fort/references/openifs/physics/solar_zenith_source_compatibility.md) preserves the calculation and passes its focused byte comparison. Its independent periodic-light check reports the physical discrepancy. The strict solar entry retains its qualified physical domain.
 
 The supplied 21 June 2026 climate input has two present top-soil temperature entries that original OpenIFS uses as sea-surface temperatures. Its update and assembly both produce −1870.689453125 K and −830.193359375 K at those sea cells. The input values and source update are preserved. Exact implementation agreement passes at this boundary, while physical temperature admissibility fails.
 
-The operational turbulence component preserves original `VSURF` sea-derivative ordering for agreement with the unchanged OpenIFS reference. That source derivative includes an extra salinity factor of 0.98 and is about two percent below the derivative of its humidity equation. This physical-model limitation is explicit; the earlier corrected sea-derivative model remains separate. See the [runtime turbulence contract](skills/md2asm/references/openifs/surface/runtime_surface_turbulence.md).
+The operational turbulence component preserves original `VSURF` sea-derivative ordering for agreement with the unchanged OpenIFS reference. That source derivative includes an extra salinity factor of 0.98 and is about two percent below the derivative of its humidity equation. This physical-model limitation is explicit; the earlier corrected sea-derivative model remains separate. See the [runtime turbulence contract](skills/md2fort/references/openifs/surface/runtime_surface_turbulence.md).
 
 All 2,086,488,208 bytes of the initial upper-air output match the supplied operational Fortran reference, while initial surface files still differ. Full operational output agreement and comparative timing remain unverified. The [basic formulations](formulations/openifs/README.md) explain the physical balances, and the [coverage record](src/openifs/README.md) retains detailed checks and limitations.

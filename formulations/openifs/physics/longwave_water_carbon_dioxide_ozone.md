@@ -25,4 +25,4 @@ There are fourteen representative points. The first seven corrections equal one.
 
 ## State And Boundaries
 
-The leaf reads an existing atmospheric state. It does not advance time or calculate radiation transport through the complete atmosphere. The tropopause selects the lower or upper absorption data. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/rrtm_taumol4.md) defines the numerical interpolation and complete assembly interface.
+The leaf reads an existing atmospheric state. It does not advance time or calculate radiation transport through the complete atmosphere. The tropopause selects the lower or upper absorption data. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/rrtm_taumol4.md) defines the numerical interpolation and complete assembly interface.

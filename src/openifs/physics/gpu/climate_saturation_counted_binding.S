@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/climatological_aerosol_visibility_layer.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/climatological_aerosol_visibility_layer.md.
 .text
 .p2align 2
 .global md2asm_climate_saturation_7358525

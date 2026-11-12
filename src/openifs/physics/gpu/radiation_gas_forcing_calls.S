@@ -1,4 +1,4 @@
-/* Contract skills/md2asm-gpu/references/openifs/physics/radiation_gas_forcing.md. */
+/* Contract skills/md2fort-gpu/references/openifs/physics/radiation_gas_forcing.md. */
 /* Original five-address parent and two-address FP64 date return.
  * Frame768 holds vector128,context192,live record256 and date output400.
  * Parent scratch1024 is heap-owned. The host has no numerical stage. */

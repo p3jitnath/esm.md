@@ -1,4 +1,4 @@
-.text // Contract skills/md2asm-gpu/references/openifs/surface/parallel_surface_radiation_columns.md.
+.text // Contract skills/md2fort-gpu/references/openifs/surface/parallel_surface_radiation_columns.md.
 .p2align 4
 .global md2asm_surface_radiation_parallel_dispatch
 .hidden md2asm_surface_radiation_parallel_dispatch

@@ -1,4 +1,4 @@
-/* Original nine-address EC pressure binding. Numerical equations execute on GPU. GPU implementation contract skills/md2asm-gpu/references/openifs/dynamics/private_hybrid_pressure.md.
+/* Original nine-address EC pressure binding. Numerical equations execute on GPU. GPU implementation contract skills/md2fort-gpu/references/openifs/dynamics/private_hybrid_pressure.md.
  * Shared256B GPHPRE prefix and storage setup are reused literally. Record272
  * adds optional pointer/capacity for the actual source-owned EXP counter.
  * Context24 retains its accepted readonly trace meaning.

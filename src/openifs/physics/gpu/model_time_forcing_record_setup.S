@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/model_time_and_forcing.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/model_time_and_forcing.md.
 /* Storage-only time-forcing record fill for a complete GPU time parent.
  * x0 addresses a zeroed 128-byte record. x1 and x2 address private gas and
  * solar objects. Return x0 is zero on success and one on invalid pointers.

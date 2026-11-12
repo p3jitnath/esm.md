@@ -12,4 +12,4 @@ q^{\mathrm{transport}}_{I(j),f}=q^{\mathrm{local}}_{j,f}\qquad\text{(CPG-P01)}
 
 The selected coarse forecast has 2,048 horizontal cells and 19 atmospheric levels. Each visit handles at most 24 columns. The surrounding forecast supplies the initial state, time intervals, grid geometry and physical parameters. Child calculations retain their existing global boundaries. Only active columns are copied, so the unused end of a partial block remains unchanged. This grouping adds no physical parameter or boundary condition.
 
-The LLM uses [md2asm](../../../skills/md2asm/SKILL.md) to record the [assembly contract](../../../skills/md2asm/references/openifs/dynamics/complete_grid_point_update.md).
+The LLM uses [md2fort](../../../skills/md2fort/SKILL.md) to record the [assembly contract](../../../skills/md2fort/references/openifs/dynamics/complete_grid_point_update.md).

@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/climatological_aerosol_visibility_layer.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/climatological_aerosol_visibility_layer.md.
 // Climatological aerosol visibility layer, original CLIMAER_LAYER.
 // Eight ordinary addresses: surface metadata, model metadata, dimensions,
 // pressure fields, initial air state, temporary air state, surface fields,

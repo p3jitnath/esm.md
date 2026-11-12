@@ -14,4 +14,4 @@ Let S_L and S_M be the supplied filtered pressure forces per unit mass in the mo
 \frac{Du}{Dt}=-S_L+fv,\qquad \frac{Dv}{Dt}=-S_M-fu.
 ```
 
-The current input has 19 atmospheric layers, positive temperature and full-level pressure, positive layer pressure depth and finite wind and pressure gradients. The existing vertical model configuration stays fixed. The surface height is fixed by the supplied orography. Complete weather inputs, initial states and boundaries remain those of the parent forecast formulation. The md2asm contract records the selected stages, ordered arithmetic and buffers.
+The current input has 19 atmospheric layers, positive temperature and full-level pressure, positive layer pressure depth and finite wind and pressure gradients. The existing vertical model configuration stays fixed. The surface height is fixed by the supplied orography. Complete weather inputs, initial states and boundaries remain those of the parent forecast formulation. The md2fort contract records the selected stages, ordered arithmetic and buffers.

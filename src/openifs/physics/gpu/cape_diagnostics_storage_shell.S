@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/complete_physics_diagnostics.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/complete_physics_diagnostics.md.
 .equ A_YDVAB,0
 .equ A_YDECUMF,1
 .equ A_YDML_GCONF,2

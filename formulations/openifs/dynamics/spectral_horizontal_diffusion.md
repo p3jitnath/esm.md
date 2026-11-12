@@ -16,4 +16,4 @@ Let $`T`$ be a temperature coefficient in kelvin, $`P`$ be a dimensionless logar
 \frac{dT}{dt}=-d_T(T-CP) \qquad \text{(SHD-2)}
 ```
 
-The coarse forecast supplies 19 atmospheric levels, degrees through 21, 22 local orders and a 3,600-second time interval. Its initial coefficients and rates come from the frozen forecast state and parameter tables. Longitude wraps around the Earth, and the spherical waves represent both poles. Preserve pressure, constituents and diagnostic fields in this selected model. The md2asm contract defines the numerical method and the complete update.
+The coarse forecast supplies 19 atmospheric levels, degrees through 21, 22 local orders and a 3,600-second time interval. Its initial coefficients and rates come from the frozen forecast state and parameter tables. Longitude wraps around the Earth, and the spherical waves represent both poles. Preserve pressure, constituents and diagnostic fields in this selected model. The md2fort contract defines the numerical method and the complete update.

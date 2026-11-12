@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/setup/vertical_coordinate_setup.md.
+// Contract: skills/md2fort-gpu/references/openifs/setup/vertical_coordinate_setup.md.
 #include "../../support/gpu/preserved_weather_calls.inc.S"
 .arch armv8.2-a
 .text

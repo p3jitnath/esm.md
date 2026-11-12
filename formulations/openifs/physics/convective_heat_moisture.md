@@ -1,6 +1,6 @@
 # Convective Heat and Moisture
 
-Formulation revision 1 describes heat and water transport through a vertical atmospheric column. This input follows OpenIFS CUDTDQN. The implementation contract is [CUDTDQN](../../../skills/md2asm/references/openifs/physics/cudtdqn.md).
+Formulation revision 1 describes heat and water transport through a vertical atmospheric column. This input follows OpenIFS CUDTDQN. The implementation contract is [CUDTDQN](../../../skills/md2fort/references/openifs/physics/cudtdqn.md).
 
 ## Physical Idea
 

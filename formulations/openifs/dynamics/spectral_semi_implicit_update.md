@@ -1,6 +1,6 @@
 # Spectral Semi-Implicit Atmospheric Update
 
-Revision 1. This note uses the pressure and rotation physics in [atmospheric motion](atmospheric_motion.md). It describes the physical input. The [md2asm solver contract](../../../skills/md2asm/references/openifs/dynamics/spectral_semi_implicit_update.md) defines the numerical update and exact arithmetic.
+Revision 1. This note uses the pressure and rotation physics in [atmospheric motion](atmospheric_motion.md). It describes the physical input. The [md2fort solver contract](../../../skills/md2fort/references/openifs/dynamics/spectral_semi_implicit_update.md) defines the numerical update and exact arithmetic.
 
 ## Physical Idea
 

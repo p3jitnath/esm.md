@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/cloud_weather_diagnostics.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/cloud_weather_diagnostics.md.
 // Direct DIAG_CLOUDS from cloud_weather_diagnostics_contract.md.
 .text
 .p2align 4

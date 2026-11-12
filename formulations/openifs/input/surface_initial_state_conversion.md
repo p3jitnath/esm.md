@@ -22,4 +22,4 @@ Set sea ice to zero at or below its supplied minimum fraction. For lake depth $`
 h\leftarrow\max(0,\min(\max(2\,\mathrm{m},d),h)),\qquad T_b\leftarrow\max(273.15\,\mathrm{K},T_b).
 ```
 
-A missing sea temperature becomes $`T_f`$, and missing sea ice becomes zero. When ocean currents are enabled, missing currents and currents over land become zero. The md2asm contract defines field identities, table access and ordered arithmetic. No new physical model is introduced here.
+A missing sea temperature becomes $`T_f`$, and missing sea ice becomes zero. When ocean currents are enabled, missing currents and currents over land become zero. The md2fort contract defines field identities, table access and ordered arithmetic. No new physical model is introduced here.

@@ -22,6 +22,6 @@ The temperature $`T_j`$ is in K, and the latent heat $`L=333\,700`$ J kg$`^{-1}`
 
 Use an ice heat capacity of $`2.05\times10^6/920`$ J kg$`^{-1}`$ K$`^{-1}`$ and a water heat capacity of $`4180`$ J kg$`^{-1}`$ K$`^{-1}`$. Supply each layer's initial mass, water mass, density and temperature, together with the surface heat input, soil temperature, soil conductivity, pressure and precipitation. The upper boundary receives the prescribed heat and mass fluxes, and the lower boundary exchanges heat with the soil and drains excess water.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/surface/snow_water_energy.md) defines the time update, snow material formulas, ordered arithmetic and diagnostic fields.
+The [md2fort contract](../../../skills/md2fort/references/openifs/surface/snow_water_energy.md) defines the time update, snow material formulas, ordered arithmetic and diagnostic fields.
 
 If the ground is marked as having no resolved snow, any retained very thin snow is initialised as solid snow at the freezing temperature. The total snow mass follows the supplied snowfall and signed evaporation, while its liquid water is reset to zero. This initialisation does not solve the heat balance of a resolved snow layer.

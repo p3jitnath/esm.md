@@ -26,4 +26,4 @@ e_j=B_j I_b-I_j
 w_j=(-I_j+B_j q_j)r_{p,j}
 ```
 
-The forecast supplies the initial wind, pressure, horizontal divergence and optional mass source. The [solver contract](../../../skills/md2asm/references/openifs/dynamics/vertical_continuity.md) records the vertical integration and complete output representation.
+The forecast supplies the initial wind, pressure, horizontal divergence and optional mass source. The [solver contract](../../../skills/md2fort/references/openifs/dynamics/vertical_continuity.md) records the vertical integration and complete output representation.

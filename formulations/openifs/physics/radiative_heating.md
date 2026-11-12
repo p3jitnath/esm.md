@@ -40,4 +40,4 @@ The upward thermal flux at the surface is $`U_s`$, its emissivity is $`\epsilon`
 | Skin temperature $`T_s`$ | Kelvin |
 | Stored net and downward fluxes | W m$`^{-2}`$ |
 
-The initial radiation state comes from the preceding full radiation calculation. Supply increasing pressure boundaries and the current humidity in each layer. The top boundary supplies incoming sunlight. The bottom boundary supplies the current surface temperature. Keep the stored clear-sky fluxes as the comparison without clouds. The md2asm contract defines the numerical updates and their acceptance limits.
+The initial radiation state comes from the preceding full radiation calculation. Supply increasing pressure boundaries and the current humidity in each layer. The top boundary supplies incoming sunlight. The bottom boundary supplies the current surface temperature. Keep the stored clear-sky fluxes as the comparison without clouds. The md2fort contract defines the numerical updates and their acceptance limits.

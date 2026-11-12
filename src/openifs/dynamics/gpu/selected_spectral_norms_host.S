@@ -1,5 +1,5 @@
 // Complete selected spectral norms; the original host preflight remains unchanged.
-// Contract: skills/md2asm-gpu/references/openifs/dynamics/selected_spectral_norm_complete_contract.md.
+// Contract: skills/md2fort-gpu/references/openifs/dynamics/selected_spectral_norm_complete_contract.md.
 .text
 .p2align 4
 .global md2asm_compute_selected_spectral_norms

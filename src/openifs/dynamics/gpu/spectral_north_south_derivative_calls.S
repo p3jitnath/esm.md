@@ -1,5 +1,5 @@
-/* GPU contract: skills/md2asm-gpu/references/openifs/dynamics/spectral_latitude_derivative.md */
-/* Complete spectral north-to-south derivative phase; skills/md2asm-gpu/references/openifs/dynamics/spectral_latitude_derivative.md. Temporary frame 2048. */
+/* GPU contract: skills/md2fort-gpu/references/openifs/dynamics/spectral_latitude_derivative.md */
+/* Complete spectral north-to-south derivative phase; skills/md2fort-gpu/references/openifs/dynamics/spectral_latitude_derivative.md. Temporary frame 2048. */
 .arch armv8-a
 .text
 .p2align 4

@@ -31,4 +31,4 @@ The left side is the fraction of the column that remains clear. A fully cloudy l
 
 ## Parameters, initial state and boundaries
 
-Use $`0\leq f_j\leq1`$ and $`0\leq\alpha_j\leq1`$. Start at the top layer with $`C_1=f_1`$. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/cloud_overlap.md) defines the optional overlap input conversion and the numerical rule near a fully cloudy layer.
+Use $`0\leq f_j\leq1`$ and $`0\leq\alpha_j\leq1`$. Start at the top layer with $`C_1=f_1`$. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/cloud_overlap.md) defines the optional overlap input conversion and the numerical rule near a fully cloudy layer.

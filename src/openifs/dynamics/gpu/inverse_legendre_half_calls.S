@@ -1,5 +1,5 @@
-/* GPU contract: skills/md2asm-gpu/references/openifs/dynamics/inverse_legendre_reconstruction.md */
-/* Complete inverse Legendre half phase; skills/md2asm-gpu/references/openifs/dynamics/inverse_legendre_reconstruction.md. Temporary frame 2048. */
+/* GPU contract: skills/md2fort-gpu/references/openifs/dynamics/inverse_legendre_reconstruction.md */
+/* Complete inverse Legendre half phase; skills/md2fort-gpu/references/openifs/dynamics/inverse_legendre_reconstruction.md. Temporary frame 2048. */
 .arch armv8-a
 .text
 .p2align 4

@@ -14,4 +14,4 @@ Vorticity describes spinning motion and divergence describes spreading motion. B
 
 The coarse forecast supplies 19 vertical levels and retains spatial wave degrees through 21. Its initial state and fixed coefficient tables come from the surrounding forecast. Longitude wraps around Earth, and the spherical waves represent both poles. This grouping adds no new physical parameter or boundary condition.
 
-The LLM uses [md2asm](../../../skills/md2asm/SKILL.md) to derive the [complete assembly contract](../../../skills/md2asm/references/openifs/dynamics/spectral_calculation_driver.md).
+The LLM uses [md2fort](../../../skills/md2fort/SKILL.md) to derive the [complete assembly contract](../../../skills/md2fort/references/openifs/dynamics/spectral_calculation_driver.md).

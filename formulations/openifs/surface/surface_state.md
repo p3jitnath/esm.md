@@ -40,4 +40,4 @@ OpenIFS supplies the temperature tendency from its surface physics. The update i
 
 Initial states, tendencies and the effective time interval come from the calling forecast. This update has no fixed physical parameters and does not choose a new initial condition. Columns are updated independently, with no transport across their edges.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/surface/cpspe.md) records the upstream discrete update, field layouts and exact arithmetic. The [source routine](https://github.com/ecmwf-ifs/openifs/blob/main/ifs-source/arpifs/phys_ec/cpspe.F90) documents the field interface. The local OpenIFS 48.1.1 source is the implementation reference.
+The [md2fort contract](../../../skills/md2fort/references/openifs/surface/cpspe.md) records the upstream discrete update, field layouts and exact arithmetic. The [source routine](https://github.com/ecmwf-ifs/openifs/blob/main/ifs-source/arpifs/phys_ec/cpspe.F90) documents the field interface. The local OpenIFS 48.1.1 source is the implementation reference.

@@ -29,4 +29,4 @@ F_U=-rmw,\qquad F_V=rlw. \tag{OIFS-W3}
 
 The forecast supplies the current wind, pressure terms, direction and damping rate at each atmospheric level. A separate gravity-wave scheme may replace this damping. Only the supplied columns and levels change. Use the same coordinate scale for wind and acceleration.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/dynamics/wind_tendency.md) records the complete GP_TNDLAGADIAB_UV update and preserves the upstream arithmetic.
+The [md2fort contract](../../../skills/md2fort/references/openifs/dynamics/wind_tendency.md) records the complete GP_TNDLAGADIAB_UV update and preserves the upstream arithmetic.

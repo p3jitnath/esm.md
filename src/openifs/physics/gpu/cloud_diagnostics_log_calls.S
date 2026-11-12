@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/cloud_weather_diagnostics.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/cloud_weather_diagnostics.md.
 /* Scalar natural LOG transport. Input and result FP64 in d0; no host arithmetic.
  * Frame768, vector128..143, context192..255, record256..287, result384..415.
  * No model floating-point operation remains in this host.

@@ -35,4 +35,4 @@ The fraction $`T`$ of incoming diffuse radiation crosses the layer without absor
 
 ## Parameters And Boundaries
 
-Inputs are a nonnegative layer optical depth and nonnegative source terms at its two faces. To find emission from the layer alone, set incoming downward radiation at the top and incoming upward radiation at the bottom to zero. A transparent layer transmits all incoming energy and emits no energy. The [solver contract](../../../skills/md2asm/references/openifs/physics/calc_no_scattering_transmittance_lw.md) preserves the original small-depth approximation and exact arithmetic.
+Inputs are a nonnegative layer optical depth and nonnegative source terms at its two faces. To find emission from the layer alone, set incoming downward radiation at the top and incoming upward radiation at the bottom to zero. A transparent layer transmits all incoming energy and emits no energy. The [solver contract](../../../skills/md2fort/references/openifs/physics/calc_no_scattering_transmittance_lw.md) preserves the original small-depth approximation and exact arithmetic.

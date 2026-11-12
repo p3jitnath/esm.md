@@ -24,4 +24,4 @@ B_b=\sum_{j\,\text{with}\,b_j=b}F_j
 
 Each point belongs to one valid band. An empty band has zero energy flow. This diagnostic uses given radiation values and has no time update or spatial boundary condition.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/physics/indexed_sum.md) specifies the addition order and assembly interface.
+The [md2fort contract](../../../skills/md2fort/references/openifs/physics/indexed_sum.md) specifies the addition order and assembly interface.

@@ -18,4 +18,4 @@ F_{\mathrm{reflected}} = a F_{\mathrm{incoming}}, \qquad F_{\mathrm{absorbed}} =
 
 The radiation fluxes $`F`$ have units of W m$`^{-2}`$. These two parts conserve the incoming sunlight. Surface temperature is in K, soil moisture is a volume fraction, lake ice thickness is in m and wind speed is in m s$`^{-1}`$. Monthly sea ice tables vary with the calendar date. Snow, moist soil and urban canyons change the tile coefficients.
 
-The initial state supplies the surface temperature, water and ice state, tile fractions, incoming sun angle and stored spectral tables. This local calculation has no spatial boundary. Its complete numerical contract is in [SURFRAD_CTL](../../../skills/md2asm/references/openifs/surface/surfrad_ctl.md).
+The initial state supplies the surface temperature, water and ice state, tile fractions, incoming sun angle and stored spectral tables. This local calculation has no spatial boundary. Its complete numerical contract is in [SURFRAD_CTL](../../../skills/md2fort/references/openifs/surface/surfrad_ctl.md).

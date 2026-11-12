@@ -1,4 +1,4 @@
-// Numerical contract skills/md2asm-gpu/references/openifs/support/raw_product_sum.md
+// Numerical contract skills/md2fort-gpu/references/openifs/support/raw_product_sum.md
 // Raw finite RN(a*b+c), one rounding; preserve the selected uncounted public ABI.
 .arch armv8-a
 .text

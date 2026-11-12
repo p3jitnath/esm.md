@@ -20,4 +20,4 @@ There is no incoming heat radiation at the top. At the ground, $`E_s`$ is the em
 D_1=0,\qquad U_{N+1}=E_s+a_sD_{N+1} \tag{LW-A3}
 ```
 
-The emitted fluxes are nonnegative and $`0\leq a_s\leq1`$. The forecast supplies their values. The [no-scattering contract](../../../skills/md2asm/references/openifs/physics/calc_fluxes_no_scattering_lw.md) records the numerical update and assembly interface. Cloudy layers can also reflect radiation and require a separate adding update.
+The emitted fluxes are nonnegative and $`0\leq a_s\leq1`$. The forecast supplies their values. The [no-scattering contract](../../../skills/md2fort/references/openifs/physics/calc_fluxes_no_scattering_lw.md) records the numerical update and assembly interface. Cloudy layers can also reflect radiation and require a separate adding update.

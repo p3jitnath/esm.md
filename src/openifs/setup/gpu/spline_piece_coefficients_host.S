@@ -1,4 +1,4 @@
-/* Complete selected spline coefficients. Contract: skills/md2asm-gpu/references/openifs/setup/complete_vertical_spline_calls.md.
+/* Complete selected spline coefficients. Contract: skills/md2fort-gpu/references/openifs/setup/complete_vertical_spline_calls.md.
  * Private frame4352: input320/400B, output768/3296B, context4096/64B,
  * record4160/64B, vector4224/16B, private counters4240/4248.
  */

@@ -33,4 +33,4 @@ The source uses a lognormal distribution, for which the logarithm of each positi
 
 ## Parameters, initial state and boundaries
 
-Use $`0\leq f\leq4`$ and $`0\leq c\leq1`$ with the caller's fixed sample table. There is no time update in this helper. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/pdf_sampler.md) defines table interpolation and clipping at the table edges.
+Use $`0\leq f\leq4`$ and $`0\leq c\leq1`$ with the caller's fixed sample table. There is no time update in this helper. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/pdf_sampler.md) defines table interpolation and clipping at the table edges.

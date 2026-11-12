@@ -44,4 +44,4 @@ The forecast supplies the initial state and the cloud settings. The focused exam
 
 The surface supplies the heat and water fluxes. The calculation returns cloud transport, rain, snow and changes to temperature, humidity and wind. Clouds that do not form carry no cloud transport. Deep, shallow and mid-level clouds retain their original source rules.
 
-This weather domain uses deterministic cloud calculations and no active chemical tracer transport. The [md2asm contract](../../../skills/md2asm/references/openifs/physics/cumastrn.md) records the complete numerical update, its direct assembly children and the verified interface.
+This weather domain uses deterministic cloud calculations and no active chemical tracer transport. The [md2fort contract](../../../skills/md2fort/references/openifs/physics/cumastrn.md) records the complete numerical update, its direct assembly children and the verified interface.

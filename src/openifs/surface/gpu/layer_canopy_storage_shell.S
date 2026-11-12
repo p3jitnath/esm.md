@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/surface/private_canopy_light.md.
+// Contract: skills/md2fort-gpu/references/openifs/surface/private_canopy_light.md.
 .text
 .align 2
 .global md2asm_layer_canalb_body

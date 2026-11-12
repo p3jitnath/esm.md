@@ -1,6 +1,6 @@
 # Convective Downdraft Initial State
 
-Formulation revision 1 describes the height where a rain-cooled mixture can begin to sink. The numerical contract is [CUDLFSN](../../../skills/md2asm/references/openifs/physics/cudlfsn.md).
+Formulation revision 1 describes the height where a rain-cooled mixture can begin to sink. The numerical contract is [CUDLFSN](../../../skills/md2fort/references/openifs/physics/cudlfsn.md).
 
 ## Physical Idea
 

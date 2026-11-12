@@ -1,6 +1,6 @@
-// Contract: skills/md2asm-gpu/references/openifs/surface/surface_tile_boundary.md.
+// Contract: skills/md2fort-gpu/references/openifs/surface/surface_tile_boundary.md.
 /* Physics input formulations/openifs/surface/surface_tile_fractions.md.
- * Complete order and 45-address ABI are in the surfbc_ctl md2asm contract.
+ * Complete order and 45-address ABI are in the surfbc_ctl md2fort contract.
  * TF1 partitions surface area and TF2 supplies wet canopy cover.
  * Selected rows are independent. Every snow and tile sum stays ordered.
  * The 464-byte aligned frame preserves x19..x30 and leaves x18/v8..v15 alone.

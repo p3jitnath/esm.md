@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/physics_interval_controller.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/physics_interval_controller.md.
 // Original physics interval ABI; storage and status services only.
 .text
 .p2align 2

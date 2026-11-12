@@ -36,4 +36,4 @@ The weighted update mixes a previous response with a newly calculated response. 
 
 ## Inputs And Boundaries
 
-Surface spectral radiation is nonnegative and has a positive finite total. Layer transmissions lie between zero and one. The surface starts with unit sensitivity, and each atmospheric layer attenuates it. There is no interaction with another column in this local calculation. The [solver contract](../../../skills/md2asm/references/openifs/physics/lw_derivatives_ica.md) supplies the ordered sums, complete layer update and array interface.
+Surface spectral radiation is nonnegative and has a positive finite total. Layer transmissions lie between zero and one. The surface starts with unit sensitivity, and each atmospheric layer attenuates it. There is no interaction with another column in this local calculation. The [solver contract](../../../skills/md2fort/references/openifs/physics/lw_derivatives_ica.md) supplies the ordered sums, complete layer update and array interface.

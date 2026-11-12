@@ -8,4 +8,4 @@ Revision 1. Equation LOG10-01 describes a dimensionless ratio, which compares tw
 
 Here $`x`$ is a positive ratio, and $`y`$ is its logarithm. For example, $`\log_{10}(0.1)=-1`$ and $`\log_{10}(10)=1`$. This relation helps convert soil moisture into a heat-conductivity coefficient. The admitted ratio is $`2^{-40}\le x\le32`$. No initial state or boundary condition is needed for this scalar relation.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/support/log10_original_rounding.md) defines its rounded calculation and interface.
+The [md2fort contract](../../../skills/md2fort/references/openifs/support/log10_original_rounding.md) defines its rounded calculation and interface.

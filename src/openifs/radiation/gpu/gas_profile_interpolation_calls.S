@@ -1,4 +1,4 @@
-// Direct assembly. Numerical and storage contract: ../../../../skills/md2asm-gpu/references/openifs/radiation/greenhouse_gas_interpolation.md
+// Direct assembly. Numerical and storage contract: ../../../../skills/md2fort-gpu/references/openifs/radiation/greenhouse_gas_interpolation.md
 /* Original eleven-address gas interpolation storage boundary.
  * The 640-byte frame has saved state0..123, vector128..215,
  * context256..319 and table-owner record320..351.

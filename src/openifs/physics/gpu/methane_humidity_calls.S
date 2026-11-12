@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/methane_humidity_tendency.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/methane_humidity_tendency.md.
 // METHOX original seven-address storage boundary. No weather arithmetic.
 .text
 .p2align 4

@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/surface/surface_tile_boundary.md.
+// Contract: skills/md2fort-gpu/references/openifs/surface/surface_tile_boundary.md.
 /* Soil water expression. Input72-byte address in x0, mode in w1; GPU FP64 in d0 and comparison condition in w0.
  * Frame768, vector128..143, context192..255, record256..319, result384..415.
  * No model floating-point operation remains in this host.

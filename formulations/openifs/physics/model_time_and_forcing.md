@@ -16,4 +16,4 @@ I_r=I(a/r)^2
 
 The orbital calculation also gives the Sun's angle north or south of the equator and a correction to clock time. These quantities set the direction of the incoming solar radiation. Monthly tables supply ozone, greenhouse gases and aerosols, which are small particles in air. The original table values, constants and starting date are retained. The forecast starts on 15 October 2004 at 12 UTC, and the model updates these inputs in the original order.
 
-This is a global clock and forcing update. It has no spatial boundary. Its input tables and atmospheric layers remain those of the verified coarse forecast. The md2asm contract defines their storage and the complete numerical update.
+This is a global clock and forcing update. It has no spatial boundary. Its input tables and atmospheric layers remain those of the verified coarse forecast. The md2fort contract defines their storage and the complete numerical update.

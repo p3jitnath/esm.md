@@ -1,6 +1,6 @@
 # Convective Saturation Adjustment
 
-Formulation revision 1 describes heat and water changes when an air parcel condenses or evaporates water. The numerical contract is [CUADJTQ](../../../skills/md2asm/references/openifs/physics/cuadjtq.md).
+Formulation revision 1 describes heat and water changes when an air parcel condenses or evaporates water. The numerical contract is [CUADJTQ](../../../skills/md2fort/references/openifs/physics/cuadjtq.md).
 
 ## Physical Idea
 

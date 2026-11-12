@@ -37,4 +37,4 @@ Each day has 86,400 seconds. The [calendar](../physics/calendar_days.md) gives t
 
 Use finite wind components whose combined speed is at most 80 m s$`^{-1}`$. The initial date is a valid Gregorian date. Sea-ice reflectivity lies from zero to one when supplied. The selected columns belong to the local model block, and unselected columns keep their previous values.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/surface/surfrad_layer.md) defines the complete numerical operation and memory interface.
+The [md2fort contract](../../../skills/md2fort/references/openifs/surface/surfrad_layer.md) defines the complete numerical operation and memory interface.

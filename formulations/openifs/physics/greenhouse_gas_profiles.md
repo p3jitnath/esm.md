@@ -30,4 +30,4 @@ This preserves the gas amount between the boundaries. Below the final climatolog
 
 Supply strictly increasing climatology pressures starting at zero, at least two latitude points, and finite nonnegative amounts. Model face pressures start at zero and increase strictly towards the ground. The monthly gas fields stay fixed during this calculation. Outputs change only in selected columns.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/physics/greenhouse_gas_interpolation.md) gives the ordered calculation and assembly interface.
+The [md2fort contract](../../../skills/md2fort/references/openifs/physics/greenhouse_gas_interpolation.md) gives the ordered calculation and assembly interface.

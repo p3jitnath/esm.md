@@ -1,5 +1,5 @@
 // Original argument storage and CUDA call control. No numerical operation.
-// Contract: skills/md2asm-gpu/references/openifs/physics_forecast_calls.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics_forecast_calls.md.
 // Revision 1. Serial and nonrecursive calls.
 .text
 .p2align 2

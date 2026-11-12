@@ -29,4 +29,4 @@ The bottom pressure is at least the top pressure, so the layer mass is nonnegati
 
 Supply finite, nonnegative pressures that increase down each atmospheric column. The pressure at each interface is an input. This diagnostic calculation has no time update or lateral boundary condition.
 
-The [md2asm contract](../../../skills/md2asm/references/openifs/physics/get_layer_mass.md) records the ordered arithmetic and assembly interface.
+The [md2fort contract](../../../skills/md2fort/references/openifs/physics/get_layer_mass.md) records the ordered arithmetic and assembly interface.

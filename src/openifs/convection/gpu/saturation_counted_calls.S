@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/convection/convective_column_controller.md.
+// Contract: skills/md2fort-gpu/references/openifs/convection/convective_column_controller.md.
 .arch armv8-a
 .text
 .p2align 4

@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/convection/convective_column_controller.md.
+// Contract: skills/md2fort-gpu/references/openifs/convection/convective_column_controller.md.
 // Complete normal-physics convection controller; 76 pointer arguments.
 // Private numerical children provide every selected source stage.
 .arch armv8-a

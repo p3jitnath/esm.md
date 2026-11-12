@@ -1,6 +1,6 @@
 # Vertical integrals and derivatives
 
-Revision 1 describes the physical operations used by OpenIFS VERDISINT, VERINT and VERDER. The [solver contract](../../../skills/md2asm/references/openifs/dynamics/verdisint.md) records their numerical method and interface.
+Revision 1 describes the physical operations used by OpenIFS VERDISINT, VERINT and VERDER. The [solver contract](../../../skills/md2fort/references/openifs/dynamics/verdisint.md) records their numerical method and interface.
 
 ## The idea
 

@@ -1,5 +1,5 @@
-// Contract: skills/md2asm-gpu/references/openifs/surface/surface_boundary_adapter.md.
-/* Contract: skills/md2asm/references/openifs/surface/surface_private_bindings.md. */
+// Contract: skills/md2fort-gpu/references/openifs/surface/surface_boundary_adapter.md.
+/* Contract: skills/md2fort/references/openifs/surface/surface_private_bindings.md. */
 /* Direct AArch64 layer equations. Private candidates: no numerical execution or admission. */
 #include "selected_surface_layer_helpers.inc.S"
 .macro INVOKE count,symbol

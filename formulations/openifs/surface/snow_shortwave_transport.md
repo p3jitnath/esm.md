@@ -53,4 +53,4 @@ The two snow tiles contribute according to their surface fractions. The snow hea
 
 The standard limits are $`d_{\max}=1`$ metre, $`g_{\max}=0.002796`$ metre, $`k_{\min}=5`$ and $`k_{\max}=50`$ inverse metres. The constants are $`a_1=0.00016`$ metre, $`a_3=1.1\times10^{-13}`$ with units that make $`a_3\rho^4`$ a length, and $`c=0.0038`$ with units that make $`c\rho/\sqrt{g}`$ an inverse length.
 
-The caller supplies snow mass, density, radiation and surface fractions. Transport outputs start at zero. Columns without snow return zero radiation in every snow and soil channel. The [md2asm contract](../../../skills/md2asm/references/openifs/surface/srfsn_ssrabs.md) defines the ordered calculations and their checks.
+The caller supplies snow mass, density, radiation and surface fractions. Transport outputs start at zero. Columns without snow return zero radiation in every snow and soil channel. The [md2fort contract](../../../skills/md2fort/references/openifs/surface/srfsn_ssrabs.md) defines the ordered calculations and their checks.

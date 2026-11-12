@@ -1,4 +1,4 @@
-/* Contract skills/md2asm-gpu/references/openifs/physics/radiation_gas_forcing.md. */
+/* Contract skills/md2fort-gpu/references/openifs/physics/radiation_gas_forcing.md. */
 /* Complete GNU lookup address interfaces. No host numerical work. */
 .arch armv8-a
 .text

@@ -1,6 +1,6 @@
-// Contract: skills/md2asm-gpu/references/openifs/physics/height_wind_interpolation.md.
+// Contract: skills/md2fort-gpu/references/openifs/physics/height_wind_interpolation.md.
 /* Source build for the qualified private forecast graph.
- * Contract: skills/md2asm/references/openifs/dynamics/private_forecast_graph_sources.md.
+ * Contract: skills/md2fort/references/openifs/dynamics/private_forecast_graph_sources.md.
  * Preserve the original interface, ordered arithmetic, and caller-owned storage. */
 // Direct VDFVINT from height_wind_interpolation_contract.md.
 .text

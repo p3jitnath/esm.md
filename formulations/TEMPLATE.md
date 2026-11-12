@@ -34,4 +34,4 @@ Replace this example with the model equation, then explain each term in plain la
 
 Describe the state at the start and what happens at each edge of the domain. Use words alongside the mathematics so that the reader can understand the physical setup.
 
-The [md2asm skill](../skills/md2asm/SKILL.md) supplies the numerical method, arithmetic, storage, verification, and implementation details in its supporting solver contract. Keep those details out of this note. Preserve physical equation IDs when revising it.
+The [md2fort skill](../skills/md2fort/SKILL.md) supplies the numerical method, arithmetic, storage, verification, and implementation details in its supporting solver contract. Keep those details out of this note. Preserve physical equation IDs when revising it.

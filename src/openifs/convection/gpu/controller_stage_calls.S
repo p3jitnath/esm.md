@@ -1,4 +1,4 @@
-// Contract: skills/md2asm-gpu/references/openifs/convection/convective_column_controller.md.
+// Contract: skills/md2fort-gpu/references/openifs/convection/convective_column_controller.md.
 // Five complete CUCALLN local stages. Integer storage and launch only.
 .arch armv8-a
 .text
