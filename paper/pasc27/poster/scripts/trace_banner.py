@@ -133,20 +133,30 @@ def section(name, left, right, opacity, tiles):
 
 
 fade_width = 150
+fade_start = json.loads((ASSETS.parent / "project-profile.json").read_text())["poster"][
+    "banner"
+]["outline_blend_start_mm"]
 bands = 60
 for j in range(bands):
-    left = fade_width * j / bands
-    right = fade_width * (j + 1) / bands
+    left = fade_start + fade_width * j / bands
+    right = fade_start + fade_width * (j + 1) / bands
     t = (j + 0.5) / bands
     section(
         "blend-" + str(j),
         left,
         right,
         0.30 * t * t * (3 - 2 * t),
-        range(int(np.ceil(fade_width / tile_width))),
+        range(
+            int(np.floor(fade_start / tile_width)),
+            int(np.ceil((fade_start + fade_width) / tile_width)),
+        ),
     )
 section(
-    "rest", fade_width, art_width, 0.30, range(int(np.ceil(art_width / tile_width)))
+    "rest",
+    fade_start + fade_width,
+    art_width,
+    0.30,
+    range(int(np.ceil(art_width / tile_width))),
 )
 ET.ElementTree(banner).write(
     ASSETS / "paisley-banner.svg", encoding="utf-8", xml_declaration=True
@@ -172,6 +182,7 @@ evidence = {
     "svg_stroke_opacity": 0.30,
     "banner_pattern_mm": [674, 111],
     "left_blend_mm": fade_width,
+    "left_blend_start_mm": fade_start,
     "blend_bands": bands,
     "colour_fade": False,
 }

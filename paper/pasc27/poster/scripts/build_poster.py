@@ -24,7 +24,8 @@ import pymupdf
 POSTER = Path(__file__).resolve().parents[1]
 ROOT = POSTER.parents[2]
 OUT = POSTER
-IDENTITY = json.loads((POSTER / "project-profile.json").read_text())["identity"]
+PROFILE = json.loads((POSTER / "project-profile.json").read_text())
+IDENTITY = PROFILE["identity"]
 BUILD = ROOT / ".runtime/poster_update_20261108"
 FONT = "Open Sans"
 TITLE_RUNS = [
@@ -494,7 +495,11 @@ band_width = 400 * scale
 band = rect("title-band", a, 79, band_width, 111, BLUE)
 band.fill.gradient()
 band.fill.gradient_angle = 0
-for stop, pos, shade in zip(band.fill.gradient_stops, (0, 1), (BLUE, "FFFFFF")):
+for stop, pos, shade in zip(
+    band.fill.gradient_stops,
+    PROFILE["poster"]["banner"]["background_gradient_stops"],
+    (BLUE, "FFFFFF"),
+):
     stop.position = pos
     stop.color.rgb = colour(shade)
 # Traced paisley outlines use uniform transparency over the Cambridge banner.

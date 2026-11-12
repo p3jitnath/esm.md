@@ -352,6 +352,20 @@ def refresh(
     for key in ("branding", "references", "acknowledgement", "formulation_rename"):
         if key in old:
             report[key] = old[key]
+    report["branding"]["banner"]["background_gradient_stops"] = profile["poster"][
+        "banner"
+    ]["background_gradient_stops"]
+    report["branding"]["banner"]["fade_start_mm"] = profile["poster"]["banner"][
+        "fade_start_mm"
+    ]
+    report["branding"]["banner"]["left_blend_start_mm"] = profile["poster"]["banner"][
+        "outline_blend_start_mm"
+    ]
+    for key in ("vector_trace", "paisley_trace"):
+        if key in report["branding"]:
+            report["branding"][key]["left_blend_start_mm"] = profile["poster"][
+                "banner"
+            ]["outline_blend_start_mm"]
     comparison_text = json.dumps(comparison, indent=2, allow_nan=False) + "\n"
     report["comparison_evidence_sha256"] = hashlib.sha256(
         comparison_text.encode()
