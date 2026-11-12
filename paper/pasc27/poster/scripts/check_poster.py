@@ -76,7 +76,7 @@ def check(output: Path) -> dict:
     assert title.text == profile["identity"]["title"]
     title_runs = list(title.text_frame.paragraphs[0].runs)
     underlined = [run.text for run in title_runs if run.font.underline]
-    assert underlined == ["M", "d", "E", "S", "M"], underlined
+    assert underlined == [], underlined
     assert "Verified Assembly" not in all_text
     assert "Assembly is" not in all_text
     assert "relative to assembly" not in all_text
@@ -124,7 +124,7 @@ def check(output: Path) -> dict:
             and title_bounds.x0 <= path["rect"].x0 <= path["rect"].x1 <= title_bounds.x1
             and title_bounds.y0 <= path["rect"].y0 <= path["rect"].y1 <= title_bounds.y1
         ]
-        assert len(title_underlines) == 5, len(title_underlines)
+        assert len(title_underlines) == 0, len(title_underlines)
         x, y, w, h = qr_mm
         clip = pymupdf.Rect(
             x * 72 / 25.4, y * 72 / 25.4, (x + w) * 72 / 25.4, (y + h) * 72 / 25.4

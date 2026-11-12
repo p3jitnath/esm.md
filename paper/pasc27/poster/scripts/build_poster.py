@@ -28,15 +28,15 @@ BUILD.mkdir(parents=True, exist_ok=True)
 FONT = "Open Sans"
 TITLE_RUNS = [
     ("ESM.md: From ", False),
-    ("M", True),
+    ("M", False),
     ("ark", False),
-    ("d", True),
+    ("d", False),
     ("own Physics to Verified, Optimised ", False),
-    ("E", True),
+    ("E", False),
     ("arth ", False),
-    ("S", True),
+    ("S", False),
     ("ystem ", False),
-    ("M", True),
+    ("M", False),
     ("odel Solvers", False),
 ]
 POSTER_TITLE = "".join(value for value, _ in TITLE_RUNS)
