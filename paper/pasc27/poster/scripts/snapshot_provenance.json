@@ -8,8 +8,8 @@
   "direct_layout_snapshot_pending": false,
   "staged_scripts_sha256": {
     "render_performance_bars.py": "27e02c5a88e987df78feb7a7e06f3d24408a47f0bcbd07de98713e6ac6d6640a",
-    "render_scaling_bars.py": "ee26148f2b91be20b4d2eb3b730c5ecf7074f707301b03b5dac2698178b57c80",
-    "direct_rate_layout.py": "e4e7ad0e35bd828e70a6fa61e6ad3172573a6cdfad066190bfd595332d58b3a6",
+    "render_scaling_bars.py": "3a8ee2d5157159e6d0e4f5903332ef5e9f9bccfc8dc9589f75e3d6d714c19ca6",
+    "direct_rate_layout.py": "d459737b8de69c224162fb5b1b15f279ea82bafc97f6ca8aed3a8d344d28908c",
     "publication_plot_style.py": "1aa566e2b8afae664a2e059df126f91add44cb88977c31c7a4cfdcdd6e6b0e2a"
   },
   "hardcoded_private_dependency_scan": "pass",
@@ -18,11 +18,28 @@
     "Add standard-library metadata-only audit and optional complete-step count checks.",
     "Defer rendering-library imports until actual rendering.",
     "Exclude historical observation copies from the installation payload.",
-    "Poster-only actual worker integers inside CPU bars and a matching legend note, with rectangle bounds rejection. No geometry rerender performed.",
+    "Poster actual worker integers remain inside CPU bars, with rectangle-bound rejection and a matching footer note.",
     "Reject duplicate CPU (series_kind, run_id) identities across distinct input conditions in the shared metadata audit.",
     "Default installation contains only Open Sans font binaries. Other declared families resolve through standard registration or an explicit runtime font file.",
     "Resource row labels use CPU/budget/value/[cores] and GPU/1/[device] without changing data, fonts or dimensions."
   ],
   "metadata_only_policy_guard_checks": 19,
-  "scientific_verification_performed": false
+  "scientific_verification_performed": false,
+  "horizontal_main_revision": {
+    "source_baseline": "e7fb13da30dcfa9fc7d7e1a91e15598dfca55604",
+    "orientation": "horizontal",
+    "platform_rows": [
+      "cpu",
+      "gpu"
+    ],
+    "grid_columns": "ascending interior-grid size",
+    "method_order_top_to_bottom": [
+      "baseline",
+      "esm_md"
+    ],
+    "data_changed": false,
+    "summary_functions_changed": false,
+    "independent_axes": "zero-based linear absolute rate axes",
+    "portable_paths": "Sibling scripts and assets remain relative to the poster root."
+  }
 }

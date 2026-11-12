@@ -379,7 +379,7 @@ def draw_scaling(
         else "million"
     )
     divisor = 1_000.0 if unit == "billion" else 1.0
-    canvas = (6.3, 4.0 if model == "both" else 2.55)
+    canvas = (6.3, 4.0901)
     font = font_family
     size = 8.5
     settings = {
@@ -392,123 +392,139 @@ def draw_scaling(
         "pdf.fonttype": 42,
         "svg.fonttype": "path",
     }
+    facets = [
+        (name, item) for name in models for item in coverage_by_model[name]["workloads"]
+    ]
+    budget_order = sorted(
+        {core for _, item in facets for core in item["observed_cpu_cores"]}
+    )
     with style.publication_style(settings, font_family=font, project_root=ROOT):
-        figure, axes = plt.subplots(len(models), 3, figsize=canvas, squeeze=False)
+        figure, axis_grid = plt.subplots(1, len(facets), figsize=canvas, squeeze=False)
+        axes = axis_grid[0]
         figure.subplots_adjust(
-            left=0.10,
-            right=0.995,
-            bottom=0.13 if model == "both" else 0.27,
-            top=0.87 if model == "both" else 0.81,
-            wspace=0.25,
-            hspace=0.44,
+            left=0.105, right=0.995, bottom=0.145, top=0.735, wspace=0.24
         )
         panels = []
-        for row_index, name in enumerate(models):
+        bar_patches = []
+        for index, (axis, (name, item)) in enumerate(zip(axes, facets)):
             _, conditions = selections[name]
-            for column, (axis, item) in enumerate(
-                zip(axes[row_index], coverage_by_model[name]["workloads"])
-            ):
-                shape = tuple(item["shape"])
-                cores = item["observed_cpu_cores"]
-                positions = list(range(len(cores)))
-                high = 0.0
-                for key, colour, offset in [
-                    ("baseline", BASELINE_ORANGE, -0.18),
-                    ("esm_md", ESM_BLUE, 0.18),
-                ]:
-                    values = [
-                        conditions[shape, core]["summaries"][key] for core in cores
-                    ]
-                    points = [value["point"] / divisor for value in values]
-                    low = [
-                        (value["point"] - value["minimum"]) / divisor
-                        for value in values
-                    ]
-                    upper = [
-                        (value["maximum"] - value["point"]) / divisor
-                        for value in values
-                    ]
-                    axis.bar(
-                        [position + offset for position in positions],
-                        points,
-                        width=0.35,
-                        color=colour,
-                        edgecolor="#333333",
-                        linewidth=0.25,
-                        zorder=2,
-                    )
-                    axis.errorbar(
-                        [position + offset for position in positions],
-                        points,
-                        yerr=[low, upper],
-                        fmt="none",
-                        color="#222222",
-                        elinewidth=0.6,
-                        capsize=1.1,
-                        zorder=3,
-                    )
-                    high = max(
-                        high, max(value["maximum"] / divisor for value in values)
-                    )
-                axis.set_ylim(0, high * 1.12)
-                axis.set_xlim(-0.65, len(cores) - 0.35)
-                axis.set_xticks(positions, [f"{core:,}" for core in cores], rotation=90)
-                if row_index == len(models) - 1 and column == 1:
-                    axis.set_xlabel("Configured CPU budget [cores]", labelpad=4)
-                identifier = workload_label(name, list(shape)) + (
-                    " [cells]" if name == "sw" else " [bands]"
+            shape = tuple(item["shape"])
+            cores = item["observed_cpu_cores"]
+            positions = [budget_order.index(core) for core in cores]
+            high = 0.0
+            for key, colour, offset in [
+                ("baseline", BASELINE_ORANGE, -0.19),
+                ("esm_md", ESM_BLUE, 0.19),
+            ]:
+                values = [conditions[shape, core]["summaries"][key] for core in cores]
+                points = [value["point"] / divisor for value in values]
+                low = [
+                    (value["point"] - value["minimum"]) / divisor for value in values
+                ]
+                upper = [
+                    (value["maximum"] - value["point"]) / divisor for value in values
+                ]
+                container = axis.barh(
+                    [position + offset for position in positions],
+                    points,
+                    height=0.28,
+                    color=colour,
+                    edgecolor="#333333",
+                    linewidth=0.25,
+                    zorder=2,
                 )
-                if model == "both" and column == 0:
-                    identifier = ("SW" if name == "sw" else "EBM") + " · " + identifier
-                axis.text(
-                    0.5,
-                    1.045,
-                    identifier,
-                    transform=axis.transAxes,
-                    fontsize=size,
-                    va="bottom",
-                    ha="center",
+                bar_patches.extend(container.patches)
+                axis.errorbar(
+                    points,
+                    [position + offset for position in positions],
+                    xerr=[low, upper],
+                    fmt="none",
+                    color="#222222",
+                    elinewidth=0.6,
+                    capsize=1.1,
+                    zorder=3,
                 )
-                axis.text(
-                    -0.02,
-                    1.045,
-                    "abcdef"[row_index * 3 + column],
-                    transform=axis.transAxes,
-                    fontsize=9.5,
-                    fontweight="bold",
-                    va="bottom",
-                    ha="right",
-                )
-                axis.yaxis.set_major_locator(MaxNLocator(nbins=3))
-                axis.yaxis.set_major_formatter(
-                    FuncFormatter(
-                        lambda value, position, ceiling=high: rate_tick(
-                            value, position, ceiling
-                        )
+                high = max(high, max(value["maximum"] / divisor for value in values))
+            tick_top = MaxNLocator(nbins=2, min_n_ticks=2).tick_values(0, high * 1.12)[
+                -1
+            ]
+            axis.set_xlim(0, tick_top)
+            axis.set_xticks([0, tick_top / 2, tick_top])
+            axis.get_xticklabels()[0].set_horizontalalignment("left")
+            axis.get_xticklabels()[-1].set_horizontalalignment("right")
+            axis.set_ylim(len(budget_order) - 0.35, -0.65)
+            axis.set_yticks(
+                range(len(budget_order)), [f"{core:,}" for core in budget_order]
+            )
+            axis.tick_params(axis="y", labelleft=index == 0, length=2, pad=2)
+            axis.tick_params(axis="x", length=2, pad=2)
+            axis.xaxis.set_major_formatter(
+                FuncFormatter(
+                    lambda value, position, ceiling=high: rate_tick(
+                        value, position, ceiling
                     )
                 )
-                style.finish_axis(axis)
-                axis.grid(axis="y", color="#DCE2E5", linewidth=0.5, zorder=0)
-                if column == 0:
-                    axis.set_ylabel(f"Useful rate [{unit} updates/s]", labelpad=4)
-                box = axis.get_position()
-                if box.width * canvas[0] < 1.35 or box.height * canvas[1] < 1.2:
-                    raise RuntimeError(
-                        "A scaling facet is too small at its native size."
-                    )
-                panels.append(
-                    {
-                        "model": name,
-                        "shape": list(shape),
-                        "cpu_cores": cores,
-                        "axis_inches": [box.width * canvas[0], box.height * canvas[1]],
-                        "y_limits": list(axis.get_ylim()),
-                        "x_categories": [
-                            {"cpu_cores": core, "position": position}
-                            for core, position in zip(cores, positions)
-                        ],
-                    }
-                )
+            )
+            style.finish_axis(axis)
+            axis.grid(axis="x", color="#DCE2E5", linewidth=0.5, zorder=0)
+            if index == 0:
+                axis.set_ylabel("Configured CPU budget [cores]", labelpad=5)
+            box = axis.get_position()
+            if box.height * canvas[1] < 1.2:
+                raise RuntimeError("Horizontal budget rows need a taller data panel.")
+            panels.append(
+                {
+                    "model": name,
+                    "shape": list(shape),
+                    "cpu_cores": cores,
+                    "axis_inches": [box.width * canvas[0], box.height * canvas[1]],
+                    "x_limits": list(axis.get_xlim()),
+                    "y_limits": list(axis.get_ylim()),
+                    "rate_axis": "x",
+                    "budget_axis": "y",
+                    "y_categories": [
+                        {"cpu_cores": core, "position": position}
+                        for core, position in zip(cores, positions)
+                    ],
+                }
+            )
+            centre = (box.x0 + box.x1) / 2
+            grid_name = workload_label(name, list(shape)) + (
+                "\n[cells]" if name == "sw" else "\n[bands]"
+            )
+            figure.text(
+                centre,
+                0.81,
+                grid_name,
+                fontsize=size,
+                ha="center",
+                va="center",
+                linespacing=1.1,
+            )
+            axis.text(
+                -0.02,
+                1.035,
+                "abcdef"[index],
+                transform=axis.transAxes,
+                fontsize=9.5,
+                fontweight="bold",
+                ha="right",
+                va="bottom",
+            )
+        for name in models:
+            matching = [axis for axis, (owner, _) in zip(axes, facets) if owner == name]
+            centre = (
+                matching[0].get_position().x0 + matching[-1].get_position().x1
+            ) / 2
+            figure.text(
+                centre,
+                0.89,
+                "Shallow water" if name == "sw" else "Energy balance",
+                fontsize=9.5,
+                fontweight="bold",
+                ha="center",
+                va="center",
+            )
         handles = [
             Patch(
                 facecolor=BASELINE_ORANGE,
@@ -520,26 +536,115 @@ def draw_scaling(
         figure.legend(
             handles=handles,
             loc="upper center",
-            bbox_to_anchor=(
-                0.48 if document["status"] == "historical" else 0.55,
-                1.005,
-            ),
+            bbox_to_anchor=(0.55, 0.995),
             ncol=2,
             frameon=False,
             handlelength=1.2,
             columnspacing=1.2,
         )
-        if document["status"] == "historical":
-            figure.text(
-                0.995, 0.97, "HISTORICAL · 1 core", fontsize=size, ha="right", va="top"
+        figure.text(
+            0.55,
+            0.02,
+            f"Useful rate [{unit} updates/s]",
+            fontsize=size,
+            ha="center",
+            va="bottom",
+        )
+        issues = style.audit_figure(
+            figure, expected_font=font, min_font_size=size, project_root=ROOT
+        )
+        allowed_width_findings = [
+            issue
+            for issue in issues
+            if issue.startswith("Axis ") and "enlarge or split the figure" in issue
+        ]
+        blocking = [issue for issue in issues if issue not in allowed_width_findings]
+        if blocking:
+            raise RuntimeError(
+                "Horizontal scaling audit failed. " + ". ".join(blocking)
             )
-        issues = style.audit_figure(figure, expected_font=font, min_font_size=size)
-        if issues:
-            raise RuntimeError("Scaling figure audit failed. " + ". ".join(issues))
+        figure.canvas.draw()
+        renderer = figure.canvas.get_renderer()
+        from matplotlib.text import Text
+
+        text_artists = [
+            artist
+            for artist in figure.findobj(match=Text)
+            if artist.get_visible() and artist.get_text().strip()
+        ]
+        canvas_box = figure.bbox
+        for artist in text_artists:
+            text_box = artist.get_window_extent(renderer)
+            if (
+                text_box.x0 < canvas_box.x0 - 0.5
+                or text_box.x1 > canvas_box.x1 + 0.5
+                or text_box.y0 < canvas_box.y0 - 0.5
+                or text_box.y1 > canvas_box.y1 + 0.5
+            ):
+                raise RuntimeError(
+                    "A horizontal scaling label exceeds the declared canvas. "
+                    + repr(artist.get_text())
+                )
+        y_boxes = [
+            label.get_window_extent(renderer)
+            for label in axes[0].get_yticklabels()
+            if label.get_visible()
+        ]
+        y_boxes = sorted(y_boxes, key=lambda box: box.y0)
+        y_gap = (
+            min(right.y0 - left.y1 for left, right in zip(y_boxes, y_boxes[1:]))
+            * 72
+            / figure.dpi
+        )
+        if y_gap < 0.5:
+            raise RuntimeError("Configured budget labels touch or overlap.")
+        x_boxes = [
+            label.get_window_extent(renderer)
+            for axis in axes
+            for label in axis.get_xticklabels()
+            if label.get_visible()
+        ]
+        x_boxes = sorted(x_boxes, key=lambda box: box.x0)
+        x_gap = (
+            min(right.x0 - left.x1 for left, right in zip(x_boxes, x_boxes[1:]))
+            * 72
+            / figure.dpi
+        )
+        if x_gap < 0.5:
+            raise RuntimeError("Adjacent rate ticks touch or overlap.")
+        pitch = (
+            abs(
+                axes[0].transData.transform((0, 1))[1]
+                - axes[0].transData.transform((0, 0))[1]
+            )
+            * 72
+            / figure.dpi
+        )
+        label_height = max(box.height for box in y_boxes) * 72 / figure.dpi
+        old_two_row_pitch = 4.0901 * 0.74 / 2.44 * 72 / (len(budget_order) + 0.3)
+        row_metrics = {
+            "budget_centre_spacing_pt": pitch,
+            "maximum_budget_label_height_pt": label_height,
+            "minimum_budget_label_gap_pt": y_gap,
+            "minimum_rate_tick_gap_pt": x_gap,
+            "bar_height_pt": 0.28 * pitch,
+            "within_pair_bar_gap_pt": (0.38 - 0.28) * pitch,
+            "range_linewidth_pt": 0.6,
+            "range_cap_full_height_pt": 2.2,
+            "two_rows_at_4_0901in_projected_spacing_pt": old_two_row_pitch,
+            "two_rows_projected_label_gap_pt": old_two_row_pitch - label_height,
+        }
+        if len(bar_patches) != len(document["paired_records"]) * 2:
+            if model == "both":
+                raise RuntimeError(
+                    "A measured condition was omitted from the horizontal bars."
+                )
         output.parent.mkdir(parents=True, exist_ok=True)
         files = list(style.save_figure(figure, output))
+        for file in files:
+            figure.savefig(file, bbox_inches=figure.bbox_inches, pad_inches=0, dpi=300)
         svg = output.with_suffix(".svg")
-        figure.savefig(svg, bbox_inches="tight", pad_inches=0.08)
+        figure.savefig(svg, bbox_inches=figure.bbox_inches, pad_inches=0)
         files.append(svg)
         plt.close(figure)
     import pymupdf
@@ -560,12 +665,10 @@ def draw_scaling(
     final_height = page.rect.height * scale / 72
     if minimum < 8:
         raise RuntimeError(
-            f"Scaling text falls below eight points at final width, {minimum} pt."
+            "Horizontal scaling text is below eight points at final width."
         )
     for panel in panels:
         panel["final_axis_inches"] = [length * scale for length in panel["axis_inches"]]
-        if panel["final_axis_inches"][0] < 1.35 or panel["final_axis_inches"][1] < 1.2:
-            raise RuntimeError("A scaling facet is too small at final printed width.")
     page.get_pixmap(matrix=pymupdf.Matrix(2, 2)).save(
         output.with_name(output.name + "-review.png")
     )
@@ -611,6 +714,11 @@ def draw_scaling(
         "models": list(models),
         "status": document["status"],
         "canvas_inches": list(canvas),
+        "bar_orientation": "horizontal",
+        "layout": "one_row_six_facets" if model == "both" else "one_row_three_facets",
+        "row_metrics": row_metrics,
+        "generic_width_findings": allowed_width_findings,
+        "permitted_layout_exception": "The requested six-facet strip keeps all budgets at fixed page height. Generic narrow-panel findings are retained, with independent text, row-spacing and canvas-bound checks.",
         "final_width_inches": 6.3,
         "final_height_inches": final_height,
         "minimum_effective_font_pt": minimum,

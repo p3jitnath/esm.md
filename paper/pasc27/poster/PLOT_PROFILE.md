@@ -1,6 +1,6 @@
 # Publication plot profile
 
-This bundle prepares matched CPU and GPU rate figures and CPU scaling figures for the poster project. The scripts find sibling code, assets and archived inspection data from their own location. They do not require a project runtime folder or a skill cache. Supply accepted current data through `--input` and choose an output prefix through `--output`.
+This project reproduces matched CPU and GPU rate figures and CPU scaling figures for the paper and poster. The scripts find sibling code and assets from their own location. They do not require a project runtime folder or a skill cache. Supply accepted current data through `--input` and choose an output prefix through `--output`.
 
 The paper default remains Helvetica Neue. This is a declared installed font dependency, resolved with standard Matplotlib font registration and fallback disabled. If the family is not registered, provide a permitted local file through `--font-file`. That file is registered at runtime and is never copied or redistributed by these scripts. The bundle contains no Helvetica binary.
 
@@ -10,13 +10,13 @@ Poster figures use the unchanged Open Sans regular and bold files from the exist
 
 The helper provenance file records the pinned source identity, source hash, font-loading adaptation and packaged font hashes. Its palette, Matplotlib settings, audit functions and export implementation retain the pinned helper. The final script snapshot record identifies the draft sources and the portable path changes.
 
-The installation payload supplies no performance observations or historical stand-ins. Production commands consume current accepted files through `--input`. Historical diagnostic compatibility can accept a caller-supplied historical input, which keeps its visible diagnostic status. Only that explicit historical status bypasses the new CPU policy fields. Accepted current records cannot use the diagnostic bypass.
+Production commands consume the published accepted files through `--input`. Historical diagnostic compatibility can accept a caller-supplied historical input, which keeps its visible diagnostic status. Only that explicit historical status bypasses the new CPU policy fields. Accepted current records cannot use the diagnostic bypass.
 
 Each rate point is the useful interior-cell update count divided by the median of twelve recorded times. Thin lines retain the observed minimum and maximum of the twelve individual rates. All timing samples, processor budgets, supplied active-worker counts, source identities and acceptance metadata remain in the receipt JSON. The displayed rate axes are absolute and start at zero.
 
 `data/main_workload_contract.json` records the frozen workload and measurement protocol only. It is not performance acceptance proof. Current input records need their own actual qualification flags and independent verification and timing evidence. Plotting checks the supplied records rather than carrying out those scientific checks. The ledger is not read by the plotting scripts.
 
-Each facet has an independent zero-based linear rate axis. Read its tick values when comparing absolute magnitudes across grids or platforms. This keeps both low-rate and high-rate workloads readable without broken or normalised bar axes.
+The matched-rate figures use three grid columns, with CPU above GPU. Each facet has two horizontal bars, with the orange hand-tuned baseline above blue ESM.md, method labels at the left of each platform row, and numeric rates beside the bar ends. Every facet has an independent zero-based linear rate axis. Paper facets show three rate ticks, and poster facets show the zero and upper-limit ticks to keep the larger text clear of the row headings. Read its tick values when comparing absolute magnitudes across grids or platforms. This keeps both low-rate and high-rate workloads readable without broken or normalised bar axes.
 
 The collector schemas are in `data/schemas/`. For current results, set `MATCHED_RATE_DATA` and `CPU_SCALING_DATA` to the completed accepted files. Set `PAPER_FONT_FILE` to the permitted local Helvetica Neue collection when standard Matplotlib registration cannot find that family. The scripts retain the paper family and never copy that external font binary.
 
@@ -28,7 +28,7 @@ python scripts/render_scaling_bars.py --input "$CPU_SCALING_DATA" --model both -
 
 An explicit `--font-family` option names a declared installed family and never downloads or bundles a replacement. It is not an automatic fallback. Historical diagnostics require caller-supplied input with explicit historical status. No historical archive is supplied by the installation payload.
 
-No accepted current performance records or figures are supplied in this bundle. Final accepted data and figures still need their own final-size and label-bound checks after collection. Historical one-core checks do not establish the full eleven-budget scaling layout.
+The published data contain accepted current matched comparisons and the full eleven-budget CPU sweep. The horizontal revision uses those exact recorded times. Each revised export requires its own final-size, bar-end label, worker-label and visual review before publication.
 
 ## CPU series and actual teams
 
@@ -52,4 +52,6 @@ python scripts/render_scaling_bars.py --input "$CPU_SCALING_DATA" --model both -
 
 The same optional `--expected-steps 1000` check is available before a normal render. The frozen workload ledger describes the protocol only, and actual per-condition qualification evidence remains a separate requirement. Earlier historical layout checks remain preparation evidence. Final current-data figures and the complete scaling set need their own accepted-data render and label-bound audits.
 
-Poster CPU bars show actual supplied route worker counts inside the bars, in black on orange and white on blue, with a shared legend note. Counts come only from `active_workers`, never from the budget or owner counts. Paper graphics keep their existing labels because the paper table carries team counts. A rectangle-bound check rejects any worker text that does not fit inside its bar. This display addition has not been rendered against current CPU data yet. Its accepted-data font, bound and visual review remains required.
+Poster CPU bars show actual supplied route worker counts inside the bars, in black on orange and white on blue, with a shared footer note. Counts come only from `active_workers`, never from the budget or owner counts. The paper table carries actual team counts, so paper graphics retain only numeric rate labels. A rectangle-bound check rejects any worker text that does not fit inside its bar. The earlier published vertical version passed these current-data checks. The horizontal exports record their own text size, bar-end label bounds and worker-label bounds in their receipts, with independent visual review before promotion.
+
+The combined CPU scaling figure places the six grids in one row, with shallow water first and energy balance second. All eleven configured budgets appear from top to bottom and share the budget labels at the left. Each grid keeps an independent zero-based horizontal rate axis. This arrangement preserves the paper placement size and gives every budget a readable row. The receipt retains the general narrow-panel findings, actual row spacing, text bounds and the 128-band EBM worker cap.

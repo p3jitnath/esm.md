@@ -319,7 +319,7 @@
     }
   },
   "performance_source": "data/accepted-performance-update.json",
-  "performance_source_sha256": "55ace931e250e7f3d35913e705dba5746fc9fdb4b9091da88605a757db0d48bb",
+  "performance_source_sha256": "6659f6decf95b870ed82b6e668d8165876de32873026ea205e8e35addeea4c4a",
   "performance_method": "Two matched routes at three grids per model and platform, using useful updates divided by median elapsed seconds and observed twelve-run rate ranges",
   "graph_policy": "Show ESM.md and the hand-tuned baseline through absolute rates, without historical controls or normalized panels",
   "axis_scales": {
@@ -425,7 +425,7 @@
         }
       }
     },
-    "input_sha256": "55ace931e250e7f3d35913e705dba5746fc9fdb4b9091da88605a757db0d48bb",
+    "input_sha256": "6659f6decf95b870ed82b6e668d8165876de32873026ea205e8e35addeea4c4a",
     "series": [
       "ESM.md",
       "Hand-tuned baseline"
@@ -1421,7 +1421,7 @@
   },
   "summary": {
     "sw_intro": "Matched grids, two verified solver routes.",
-    "ebm_intro": "Useful update rates. Higher bars are faster.",
+    "ebm_intro": "Useful update rates. Longer bars are faster.",
     "caption": "Point rates equal useful updates divided by median seconds. Whiskers span twelve rates. CPU workers appear inside bars. Neoverse V2 CPU timing includes coordination, while GH200 GPU timing excludes transfers.",
     "takeaways": [
       "ESM.md CPU point rates are 90.9\u201397.3% of baseline.",
@@ -1431,11 +1431,11 @@
   },
   "structural_and_qr_checks": {
     "passed": true,
-    "accepted_performance_input_sha256": "55ace931e250e7f3d35913e705dba5746fc9fdb4b9091da88605a757db0d48bb",
+    "accepted_performance_input_sha256": "6659f6decf95b870ed82b6e668d8165876de32873026ea205e8e35addeea4c4a",
     "artifact_sha256": {
-      "esm-md-a0-landscape.pptx": "45e74b5de0c30496ecc8b66f69d458bb6423b4b155f70faa8be3a5daa163d246",
-      "esm-md-a0-landscape.pdf": "5d72b6225c9ebae937ebe03430cc838e52a2d2c482770363d8a1e50509f01a2d",
-      "esm-md-a0-landscape.png": "99c3a2094b3b1be2d1ab332c7427ac0784696bc202947f440c0d7bfc476a4f59"
+      "esm-md-a0-landscape.pptx": "12118209e36525c2f14188636099fc47b0f1a9332b748451afa9c47076e88a56",
+      "esm-md-a0-landscape.pdf": "04ec5db779d95742d2d53fd69eed3c00b2ab1572ba313cdfc27e8ddfc9591354",
+      "esm-md-a0-landscape.png": "c1c17bf678553f051e6aef32c6b203b9fb4f3553e6edaf3160b099ae342cd975"
     },
     "performance_presentation": "matched_absolute_rates",
     "cpu_resource_interpretation": "configured_ceiling",
@@ -1443,63 +1443,55 @@
       "sw": {
         "svg": {
           "path": "figures/poster/water_rates.svg",
-          "sha256": "a87d002dec8f92f4bf812f5519daaa4df939d2ac799aeb4b8c867f6dcb0fb4e1"
+          "sha256": "981bc50aff5614f962f797843003c7fda7f51a540de77d39ce95291427b212e4"
         },
         "png": {
           "path": "figures/poster/water_rates.png",
-          "sha256": "507405420c37116a24501bd9592e039cd502289be2ac83f4d66f1dd0e55f2bd7"
+          "sha256": "84348de00e2c9ba578e35ac38a30593409f090ef82362f08869942d6337c0e1f"
         },
         "visible_chart_text": [
           " 0 ",
-          " 0.400 ",
-          " 0.800 ",
+          " 0.600 ",
+          " Hand-tuned ",
+          " baseline ",
+          " ESM.md ",
           " 0.394 ",
           " 0.375 ",
           " 16 ",
           " 16 ",
           " 0 ",
-          " 2.50 ",
-          " 5.00 ",
+          " 4.00 ",
           " 2.69 ",
           " 2.48 ",
           " 72 ",
           " 72 ",
           " 0 ",
-          " 8.00 ",
-          " 16.0 ",
+          " 12.0 ",
           " 7.14 ",
           " 6.49 ",
           " 248 ",
           " 248 ",
           " 0 ",
-          " 1.00 ",
           " 2.00 ",
+          " Hand-tuned ",
+          " baseline ",
+          " ESM.md ",
           " 1.16 ",
           " 1.05 ",
           " 0 ",
-          " 6.00 ",
           " 12.0 ",
           " 6.84 ",
           " 6.79 ",
           " 0 ",
-          " 8.00 ",
           " 16.0 ",
           " 8.33 ",
           " 8.52 ",
-          " CPU ",
-          " budget ",
-          " 248 ",
-          " [cores] ",
-          " GPU ",
-          " 1 ",
-          " [device] ",
+          " CPU budget 248 [cores] ",
+          " GPU 1 [device] ",
           " 64\u00b2 [cells] ",
           " 256\u00b2 [cells] ",
           " 1,024\u00b2 [cells] ",
-          " Rate [billion useful updates/s] ",
-          " Hand-tuned baseline ",
-          " ESM.md ",
-          " CPU workers inside bars "
+          " Rate [billion useful updates/s] \u00b7 CPU workers inside bars "
         ],
         "cpu_resources": [
           {
@@ -1555,63 +1547,55 @@
       "ebm": {
         "svg": {
           "path": "figures/poster/energy_rates.svg",
-          "sha256": "0ed5c214869b89e37897f8c5a0b45b72a46f68f331caff277996db22b183f82d"
+          "sha256": "3d56802cfb118b75112b02307fdfbce268fdbf98d65aea15d9d449aa8df4f777"
         },
         "png": {
           "path": "figures/poster/energy_rates.png",
-          "sha256": "ea2d39a5d1f16bb04015c9286de26f326d690fef6909de28c10b77214451a9a1"
+          "sha256": "adfe61b3da89c84e750dc842b0a27b146bdd52ca406983a056fca4078f91c072"
         },
         "visible_chart_text": [
           " 0 ",
-          " 0.600 ",
-          " 1.20 ",
+          " 1.00 ",
+          " Hand-tuned ",
+          " baseline ",
+          " ESM.md ",
           " 0.631 ",
           " 0.598 ",
           " 1 ",
           " 1 ",
           " 0 ",
-          " 8.00 ",
-          " 16.0 ",
+          " 12.0 ",
           " 7.87 ",
           " 7.67 ",
           " 32 ",
           " 32 ",
           " 0 ",
-          " 30.0 ",
-          " 60.0 ",
+          " 50.0 ",
           " 33.7 ",
           " 31.5 ",
           " 72 ",
           " 72 ",
           " 0 ",
-          " 1.00 ",
-          " 2.00 ",
+          " 1.60 ",
+          " Hand-tuned ",
+          " baseline ",
+          " ESM.md ",
           " 0.969 ",
           " 0.972 ",
           " 0 ",
-          " 15.0 ",
           " 30.0 ",
           " 15.6 ",
           " 15.8 ",
           " 0 ",
-          " 150 ",
           " 300 ",
           " 148 ",
           " 153 ",
-          " CPU ",
-          " budget ",
-          " 248 ",
-          " [cores] ",
-          " GPU ",
-          " 1 ",
-          " [device] ",
+          " CPU budget 248 [cores] ",
+          " GPU 1 [device] ",
           " 128 [bands] ",
           " 4,096 [bands] ",
           " 65,536 [bands] ",
-          " Rate [billion useful updates/s] ",
-          " Hand-tuned baseline ",
-          " ESM.md ",
-          " CPU workers inside bars "
+          " Rate [billion useful updates/s] \u00b7 CPU workers inside bars "
         ],
         "cpu_resources": [
           {
@@ -1710,9 +1694,9 @@
         ]
       }
     ],
-    "pptx_sha256": "45e74b5de0c30496ecc8b66f69d458bb6423b4b155f70faa8be3a5daa163d246",
-    "pdf_sha256": "5d72b6225c9ebae937ebe03430cc838e52a2d2c482770363d8a1e50509f01a2d",
-    "png_sha256": "99c3a2094b3b1be2d1ab332c7427ac0784696bc202947f440c0d7bfc476a4f59",
+    "pptx_sha256": "12118209e36525c2f14188636099fc47b0f1a9332b748451afa9c47076e88a56",
+    "pdf_sha256": "04ec5db779d95742d2d53fd69eed3c00b2ab1572ba313cdfc27e8ddfc9591354",
+    "png_sha256": "c1c17bf678553f051e6aef32c6b203b9fb4f3553e6edaf3160b099ae342cd975",
     "png_pixels": [
       7022,
       4967
@@ -1723,33 +1707,17 @@
   },
   "visual_review": {
     "status": "passed",
-    "reviewed_utc": "2026-11-12T07:27:13.427274+00:00",
-    "reviewer": "Root agent through direct inspection of saved-PDF renders",
-    "pdf_sha256": "5d72b6225c9ebae937ebe03430cc838e52a2d2c482770363d8a1e50509f01a2d",
-    "accepted_performance_input_sha256": "55ace931e250e7f3d35913e705dba5746fc9fdb4b9091da88605a757db0d48bb",
+    "reviewed_utc": "2026-11-12T12:49:24.623557+00:00",
+    "reviewer": "Root agent through direct saved-PDF render inspection",
+    "pdf_sha256": "04ec5db779d95742d2d53fd69eed3c00b2ab1572ba313cdfc27e8ddfc9591354",
+    "accepted_performance_input_sha256": "6659f6decf95b870ed82b6e668d8165876de32873026ea205e8e35addeea4c4a",
     "reviewed_regions": [
-      "full corrected poster",
-      "corrected hardware caption",
-      "Methods",
-      "performance",
-      "Summary",
-      "banner and branding",
-      "footer and QR"
+      "full horizontal poster",
+      "performance close-up"
     ],
-    "scope": "The saved native PowerPoint was exported to PDF. Root inspected the current full poster and corrected caption and the prior unchanged Methods, performance and Summary close-ups. Native structure, geometry, fonts, chart bindings and two actual PDF QR sizes passed separately.",
-    "findings": [
-      "Neoverse V2 and GH200 are explicit in the blue four-line caption.",
-      "Current title, author, branding, physical figures and QR remain correct.",
-      "Chart rates and actual worker counts match the accepted records.",
-      "No clipping or overlap was seen.",
-      "The caption correction changed no pixels outside its region."
-    ],
+    "scope": "Root directly inspected the saved-PDF full poster and performance close-up. Horizontal charts match the user reference, with readable CPU/GPU row headers, rate values and actual workers. The Longer-bars intro remains blue. No clipping or overlap was seen and the unrelated layout is preserved. Native structure, fonts, geometry, chart bindings and two actual PDF QR sizes were checked separately.",
     "desktop_powerpoint_inspection": false,
-    "preservation_receipts": [
-      ".runtime/goal_20261112/poster/final_build/native-preservation-review.json",
-      ".runtime/goal_20261112/poster/final_build/hardware-caption-preservation-review.json",
-      ".runtime/goal_20261112/poster/final_build/hardware-caption-pixel-review.json"
-    ]
+    "preservation_receipt": ".runtime/goal_20261112/horizontal_poster/native-preservation-review.json"
   },
   "desktop_powerpoint_inspection": false,
   "tools": {
@@ -1764,16 +1732,16 @@
   },
   "files": {
     "scripts/build_poster.py": {
-      "sha256": "aaccde1f274fac671a612282d32e42144e4be6e11649d5ff693bfb1534d29c5b",
-      "bytes": 44065
+      "sha256": "af17ae149065159b6a3fb54ade1e965e7dfb043c8fd42702b3b439fe7a8ea266",
+      "bytes": 44047
     },
     "scripts/check_poster.py": {
       "sha256": "44c780d8468437137c8daceaa94eb81051b4c7024a78ecb429964a5f36c91c66",
       "bytes": 16729
     },
     "scripts/direct_rate_layout.py": {
-      "sha256": "e4e7ad0e35bd828e70a6fa61e6ad3172573a6cdfad066190bfd595332d58b3a6",
-      "bytes": 19733
+      "sha256": "d459737b8de69c224162fb5b1b15f279ea82bafc97f6ca8aed3a8d344d28908c",
+      "bytes": 20359
     },
     "scripts/plot_historical_controls.py": {
       "sha256": "9fc61806105fe6301520340254ed8037843b2960a45f43048d8504777d3b1e36",
@@ -1816,12 +1784,12 @@
       "bytes": 31827
     },
     "scripts/render_scaling_bars.py": {
-      "sha256": "ee26148f2b91be20b4d2eb3b730c5ecf7074f707301b03b5dac2698178b57c80",
-      "bytes": 29613
+      "sha256": "3a8ee2d5157159e6d0e4f5903332ef5e9f9bccfc8dc9589f75e3d6d714c19ca6",
+      "bytes": 33608
     },
     "scripts/snapshot_provenance.json": {
-      "sha256": "ae4a8e6dced1a000240b8b1c34e22c4d3af5baae4652455d5e3198d5ea8338fb",
-      "bytes": 2094
+      "sha256": "bc3cdf77a0a16948804cf7159915829c16275f223b958d30e30b8dc2cd68b11f",
+      "bytes": 2601
     },
     "scripts/style/README.md": {
       "sha256": "c356c14e96852b35712b2085be5fb150b7a1eaa76733bf9d84386cfe5de5b179",
@@ -1848,12 +1816,16 @@
       "bytes": 140777
     },
     "data/accepted-performance-update.json": {
-      "sha256": "55ace931e250e7f3d35913e705dba5746fc9fdb4b9091da88605a757db0d48bb",
-      "bytes": 384860
+      "sha256": "6659f6decf95b870ed82b6e668d8165876de32873026ea205e8e35addeea4c4a",
+      "bytes": 386245
     },
     "data/cpu-results-20261112.json": {
       "sha256": "8c9a79697c4e655bdcde2ec152aa04c8e272b1f250580ea2cf5ead5a89ab1e13",
       "bytes": 90017
+    },
+    "data/cpu-scaling-results-20261112.json": {
+      "sha256": "124a637407eb30ab19d7dc2b313bf7fcede5b4e2e758c7f91a20e185a8ca2063",
+      "bytes": 963270
     },
     "data/dam-break-rename.json": {
       "sha256": "e9ad935625cc5f3aab7b001963ecb184fdfd62ef5f21ad8887fea5da5d6d3173",
@@ -1900,7 +1872,7 @@
       "bytes": 846
     },
     "data/performance-figure-evidence-20261112.json": {
-      "sha256": "4ad4aa282988e00db79330538dbeeb1015e9060aae24f42edc61118d9ea69b68",
+      "sha256": "fcbd8644e8bf84d5955e282ef59a4c01f60bb3cec45797b8c226ac2b7727942f",
       "bytes": 31343
     },
     "data/performance-figure-evidence.json": {
@@ -1987,37 +1959,53 @@
       "sha256": "b00bea13822b206950f7b150ec98d895a7dc6eb6b61891d8ebf89e321e40ddfa",
       "bytes": 80517
     },
+    "figures/paper/cpu_scaling.json": {
+      "sha256": "1fcc6c0a153396ce2af01b1b3302e8140e61b72c718b273ce5344dfa083443d6",
+      "bytes": 1226582
+    },
+    "figures/paper/cpu_scaling.pdf": {
+      "sha256": "afd6bd8ab4dbe841121516743a029d6a2eb98894d2e62303246e2aa1f0592eb7",
+      "bytes": 35099
+    },
+    "figures/paper/cpu_scaling.png": {
+      "sha256": "35f25a1b6e53c1ffe249921a86a7b1e65d0249449890ab940d5b78e6fed6464e",
+      "bytes": 132113
+    },
+    "figures/paper/cpu_scaling.svg": {
+      "sha256": "7805dc192577c87a93a6ed85693f187fe8da5429f4a6357b5caad97d11b57cd8",
+      "bytes": 169891
+    },
     "figures/paper/energy_rates.json": {
-      "sha256": "5acc03b30b2d658748e78cf808030094b027713c21abd78247e8bc96549750b6",
-      "bytes": 171001
+      "sha256": "cae4ae085eeac219a64472f380032efbdec017c021c8bb6de2dfda9dd9391680",
+      "bytes": 171933
     },
     "figures/paper/energy_rates.pdf": {
-      "sha256": "ddb06e006b7e7a0cca175198f1c1a0c1625cbe859c4ad066b49ea6ab0f4c4d5f",
-      "bytes": 14081
+      "sha256": "f1db5f5f1b2126cf48da711237027c446367258d0104b426231dd1e80ea85cc5",
+      "bytes": 13841
     },
     "figures/paper/energy_rates.png": {
-      "sha256": "bf37c8d808253c251648b6b62c6cb5ef9f746019fb4471d4d0e0a3a80c9d6491",
-      "bytes": 110606
+      "sha256": "f814c3c2162f8175364d1fb49ab4c1c478a084795a27fb5026eb5b2aa6240c82",
+      "bytes": 117803
     },
     "figures/paper/energy_rates.svg": {
-      "sha256": "c26772f7a6b92971451d8c2f5824fe02b97047cb75f5910b1368d8bd7ce3f12e",
-      "bytes": 69704
+      "sha256": "01595d4a1c6af0aa5ff0cadc4ba042ec2089f3caae982118d866bc1650499ed0",
+      "bytes": 71605
     },
     "figures/paper/water_rates.json": {
-      "sha256": "057ec6e6a59ab786beae49dd01732cba9b6493e38e4715c2dd7c5b060877f255",
-      "bytes": 171182
+      "sha256": "fd384b2e1e12d4241853d37d2a4f566a623a89c3b5489deff19651d8ea034d32",
+      "bytes": 172142
     },
     "figures/paper/water_rates.pdf": {
-      "sha256": "5043ae9615676d0bcaa7d716c304603c1f4dbc04e36aa533ec86427b192a063e",
-      "bytes": 14293
+      "sha256": "d4e595c3ae046f678f35493835154f5e85eb27200a677a49378c75048b9e7e81",
+      "bytes": 14056
     },
     "figures/paper/water_rates.png": {
-      "sha256": "c1b5f93f14a2ebb3872697ca1934c41ccd1978bba647995e19324a02afcd8495",
-      "bytes": 109555
+      "sha256": "4bb08d7efa0e5a7c99dad03ea28594ebf67608bb99367a03f9f3f8dc25b899a6",
+      "bytes": 115726
     },
     "figures/paper/water_rates.svg": {
-      "sha256": "0085c47c043a5ba602691ca5ea595612256ccec80bbff897f2f18bd40490b931",
-      "bytes": 70492
+      "sha256": "eed5fa536989687cf60190ad044b6811151cd766ce5cba6a2c8bc61eddb6bc6b",
+      "bytes": 72516
     },
     "figures/performance-budyko_sellers.pdf": {
       "sha256": "cbcc2bddcfdad5a3da1503777cf135d919b4aba9f375bb938fa4513f32f0d401",
@@ -2056,36 +2044,36 @@
       "bytes": 7890
     },
     "figures/poster/energy_rates.json": {
-      "sha256": "ca9198f91c80ac346dd3ff44f445c25cbf4e30c8987604a7ffa61446bbcd5294",
-      "bytes": 171080
+      "sha256": "4a90b514764feea32744041ee08c96b31c3ee4745264199f0a1805d573c44d56",
+      "bytes": 171691
     },
     "figures/poster/energy_rates.pdf": {
-      "sha256": "47754d0223356dc38944c7468283ce08f90dc06de4cc7db4ec46c0fbacdbe8fc",
-      "bytes": 15943
+      "sha256": "ed91829d2e26f4b4573a5254673cc643c1b200e0225ae4753854c998ef7e8b52",
+      "bytes": 15783
     },
     "figures/poster/energy_rates.png": {
-      "sha256": "ea2d39a5d1f16bb04015c9286de26f326d690fef6909de28c10b77214451a9a1",
-      "bytes": 364660
+      "sha256": "adfe61b3da89c84e750dc842b0a27b146bdd52ca406983a056fca4078f91c072",
+      "bytes": 337793
     },
     "figures/poster/energy_rates.svg": {
-      "sha256": "0ed5c214869b89e37897f8c5a0b45b72a46f68f331caff277996db22b183f82d",
-      "bytes": 70891
+      "sha256": "3d56802cfb118b75112b02307fdfbce268fdbf98d65aea15d9d449aa8df4f777",
+      "bytes": 68586
     },
     "figures/poster/water_rates.json": {
-      "sha256": "51257ef5c8ae7de589cc48ffe5ead828a94e5b75606243d3a1e653af522bd5f8",
-      "bytes": 171246
+      "sha256": "d1d9829908fd421474f661654ead30fdf501554b942fa5c01c11a0cc34049cf7",
+      "bytes": 171900
     },
     "figures/poster/water_rates.pdf": {
-      "sha256": "fdf142759c45fc2e7ef14fcd1682037ee4ba2c0ba0dde952cae9c9381d793926",
-      "bytes": 15982
+      "sha256": "e4232efb803ade6591e8dac67d2072f54ae3e829bcc59b841740e1c749a27ace",
+      "bytes": 15811
     },
     "figures/poster/water_rates.png": {
-      "sha256": "507405420c37116a24501bd9592e039cd502289be2ac83f4d66f1dd0e55f2bd7",
-      "bytes": 369064
+      "sha256": "84348de00e2c9ba578e35ac38a30593409f090ef82362f08869942d6337c0e1f",
+      "bytes": 341798
     },
     "figures/poster/water_rates.svg": {
-      "sha256": "a87d002dec8f92f4bf812f5519daaa4df939d2ac799aeb4b8c867f6dcb0fb4e1",
-      "bytes": 71870
+      "sha256": "981bc50aff5614f962f797843003c7fda7f51a540de77d39ce95291427b212e4",
+      "bytes": 69489
     },
     "figures/shallow-water.pdf": {
       "sha256": "f12ecd6769b4094d13485bf5104b21f024b4b43cdae9a7db7ce8ad9b24033d03",
@@ -2268,24 +2256,24 @@
       "bytes": 24424
     },
     "esm-md-a0-landscape.pptx": {
-      "sha256": "45e74b5de0c30496ecc8b66f69d458bb6423b4b155f70faa8be3a5daa163d246",
-      "bytes": 6512300
+      "sha256": "12118209e36525c2f14188636099fc47b0f1a9332b748451afa9c47076e88a56",
+      "bytes": 6456901
     },
     "esm-md-a0-landscape.pdf": {
-      "sha256": "5d72b6225c9ebae937ebe03430cc838e52a2d2c482770363d8a1e50509f01a2d",
-      "bytes": 33484385
+      "sha256": "04ec5db779d95742d2d53fd69eed3c00b2ab1572ba313cdfc27e8ddfc9591354",
+      "bytes": 33494561
     },
     "esm-md-a0-landscape.png": {
-      "sha256": "99c3a2094b3b1be2d1ab332c7427ac0784696bc202947f440c0d7bfc476a4f59",
-      "bytes": 4430822
+      "sha256": "c1c17bf678553f051e6aef32c6b203b9fb4f3553e6edaf3160b099ae342cd975",
+      "bytes": 4411350
     },
     "project-profile.json": {
-      "sha256": "7521b238949806dc54e61bf29e1fc90de606c7a2dfe6721966d191034c2bfde3",
-      "bytes": 6605
+      "sha256": "8f10f518b5dd15593b42f4eedcdbd5724e2ae79a145d85bbc3c319fab33b0846",
+      "bytes": 6587
     },
     "README.md": {
-      "sha256": "b3f06024eccdda98ee40871652a9a109823a022de33995d636e57819d95dc7f8",
-      "bytes": 9961
+      "sha256": "fa8b26fdd2dfa7cb44a91851fb7331c8137609dace7338a24e7c21b778edb9e5",
+      "bytes": 9943
     },
     "requirements.txt": {
       "sha256": "28c83b526504033be02d598655ee5d710d89df98b9facaf618f8a72c128d0289",
@@ -2296,8 +2284,8 @@
       "bytes": 48
     },
     "PLOT_PROFILE.md": {
-      "sha256": "bd5244be814fb68bce984f57d83ddcdcf083a83576a1bf82dc5a6f37486b8d81",
-      "bytes": 8016
+      "sha256": "89509f627465d3b211d5f4d25d952ffda7c02f684b2b78a32e8616217754599c",
+      "bytes": 8904
     }
   }
 }

@@ -33,7 +33,10 @@
       "minimum_effective_font_pt": 25.247379346098807,
       "visible_units": "Rate [billion useful updates/s]",
       "rate_divisor_from_millions": 1000,
-      "bar_orientation": "vertical",
+      "bar_orientation": "horizontal",
+      "panel_arrangement": "CPU and GPU rows by three grid columns",
+      "ordinary_panel_size_findings": [],
+      "strip_geometry_basis": "Two-bar strips retain the requested fixed canvas and type size. Text and worker labels receive explicit bounds checks.",
       "geometry": [
         {
           "platform": "cpu",
@@ -44,18 +47,20 @@
           "cpu_core_budget": 248,
           "gpu_devices": 0,
           "axis_inches": [
-            3.1989010989010986,
-            1.7124999999999997
+            3.2109550561797744,
+            1.2045283018867927
           ],
           "x_limits": [
-            -0.7,
-            1.7
+            0.0,
+            0.6000000000000001
           ],
           "rate_limits": [
             0.0,
-            0.8
+            0.6000000000000001
           ],
-          "rate_axis": "y",
+          "rate_axis": "x",
+          "platform_row": 0,
+          "grid_column": 0,
           "point_labels": {
             "baseline": "0.394",
             "esm_md": "0.375"
@@ -70,18 +75,20 @@
           "cpu_core_budget": 248,
           "gpu_devices": 0,
           "axis_inches": [
-            3.198901098901098,
-            1.7124999999999997
+            3.210955056179774,
+            1.2045283018867927
           ],
           "x_limits": [
-            -0.7,
-            1.7
+            0.0,
+            4.0
           ],
           "rate_limits": [
             0.0,
-            5.0
+            4.0
           ],
-          "rate_axis": "y",
+          "rate_axis": "x",
+          "platform_row": 0,
+          "grid_column": 1,
           "point_labels": {
             "baseline": "2.69",
             "esm_md": "2.48"
@@ -96,18 +103,20 @@
           "cpu_core_budget": 248,
           "gpu_devices": 0,
           "axis_inches": [
-            3.198901098901098,
-            1.7124999999999997
+            3.210955056179774,
+            1.2045283018867927
           ],
           "x_limits": [
-            -0.7,
-            1.7
+            0.0,
+            12.0
           ],
           "rate_limits": [
             0.0,
-            16.0
+            12.0
           ],
-          "rate_axis": "y",
+          "rate_axis": "x",
+          "platform_row": 0,
+          "grid_column": 2,
           "point_labels": {
             "baseline": "7.14",
             "esm_md": "6.49"
@@ -122,18 +131,20 @@
           "cpu_core_budget": null,
           "gpu_devices": 1,
           "axis_inches": [
-            3.1989010989010986,
-            1.7124999999999997
+            3.2109550561797744,
+            1.2045283018867925
           ],
           "x_limits": [
-            -0.7,
-            1.7
+            0.0,
+            2.0
           ],
           "rate_limits": [
             0.0,
             2.0
           ],
-          "rate_axis": "y",
+          "rate_axis": "x",
+          "platform_row": 1,
+          "grid_column": 0,
           "point_labels": {
             "baseline": "1.16",
             "esm_md": "1.05"
@@ -148,18 +159,20 @@
           "cpu_core_budget": null,
           "gpu_devices": 1,
           "axis_inches": [
-            3.198901098901098,
-            1.7124999999999997
+            3.210955056179774,
+            1.2045283018867925
           ],
           "x_limits": [
-            -0.7,
-            1.7
+            0.0,
+            12.0
           ],
           "rate_limits": [
             0.0,
             12.0
           ],
-          "rate_axis": "y",
+          "rate_axis": "x",
+          "platform_row": 1,
+          "grid_column": 1,
           "point_labels": {
             "baseline": "6.84",
             "esm_md": "6.79"
@@ -174,18 +187,20 @@
           "cpu_core_budget": null,
           "gpu_devices": 1,
           "axis_inches": [
-            3.198901098901098,
-            1.7124999999999997
+            3.210955056179774,
+            1.2045283018867925
           ],
           "x_limits": [
-            -0.7,
-            1.7
+            0.0,
+            16.0
           ],
           "rate_limits": [
             0.0,
             16.0
           ],
-          "rate_axis": "y",
+          "rate_axis": "x",
+          "platform_row": 1,
+          "grid_column": 2,
           "point_labels": {
             "baseline": "8.33",
             "esm_md": "8.52"
@@ -195,9 +210,9 @@
       "findings": [],
       "export_policy": "full_canvas",
       "outputs": {
-        "figures/poster/water_rates.pdf": "fdf142759c45fc2e7ef14fcd1682037ee4ba2c0ba0dde952cae9c9381d793926",
-        "figures/poster/water_rates.png": "507405420c37116a24501bd9592e039cd502289be2ac83f4d66f1dd0e55f2bd7",
-        "figures/poster/water_rates.svg": "a87d002dec8f92f4bf812f5519daaa4df939d2ac799aeb4b8c867f6dcb0fb4e1"
+        "paper/pasc27/poster/figures/poster/water_rates.pdf": "e4232efb803ade6591e8dac67d2072f54ae3e829bcc59b841740e1c749a27ace",
+        "paper/pasc27/poster/figures/poster/water_rates.png": "84348de00e2c9ba578e35ac38a30593409f090ef82362f08869942d6337c0e1f",
+        "paper/pasc27/poster/figures/poster/water_rates.svg": "981bc50aff5614f962f797843003c7fda7f51a540de77d39ce95291427b212e4"
       },
       "final_width_inches": 14.340511811023624,
       "final_height_inches": 5.655413144745881,
@@ -5151,7 +5166,7 @@
           }
         ],
         "render_input_identity": {
-          "path": "data/accepted-main-input.json",
+          "path": "paper/pasc27/poster/data/accepted-main-input.json",
           "sha256": "aa8bd6545acb4e14abbb4da87b6310bcd85cf484278eb617bdb10ee882fa6563"
         }
       },
@@ -5161,7 +5176,7 @@
       },
       "layout_identity": {
         "path": "scripts/direct_rate_layout.py",
-        "sha256": "e4e7ad0e35bd828e70a6fa61e6ad3172573a6cdfad066190bfd595332d58b3a6"
+        "sha256": "d459737b8de69c224162fb5b1b15f279ea82bafc97f6ca8aed3a8d344d28908c"
       },
       "renderer_identity": {
         "path": "scripts/render_performance_bars.py",
@@ -5183,7 +5198,10 @@
       "minimum_effective_font_pt": 25.247379346098807,
       "visible_units": "Rate [billion useful updates/s]",
       "rate_divisor_from_millions": 1000,
-      "bar_orientation": "vertical",
+      "bar_orientation": "horizontal",
+      "panel_arrangement": "CPU and GPU rows by three grid columns",
+      "ordinary_panel_size_findings": [],
+      "strip_geometry_basis": "Two-bar strips retain the requested fixed canvas and type size. Text and worker labels receive explicit bounds checks.",
       "geometry": [
         {
           "platform": "cpu",
@@ -5193,18 +5211,20 @@
           "cpu_core_budget": 248,
           "gpu_devices": 0,
           "axis_inches": [
-            3.1989010989010986,
-            1.7124999999999997
+            3.2109550561797744,
+            1.2045283018867927
           ],
           "x_limits": [
-            -0.7,
-            1.7
+            0.0,
+            1.0
           ],
           "rate_limits": [
             0.0,
-            1.2000000000000002
+            1.0
           ],
-          "rate_axis": "y",
+          "rate_axis": "x",
+          "platform_row": 0,
+          "grid_column": 0,
           "point_labels": {
             "baseline": "0.631",
             "esm_md": "0.598"
@@ -5218,18 +5238,20 @@
           "cpu_core_budget": 248,
           "gpu_devices": 0,
           "axis_inches": [
-            3.198901098901098,
-            1.7124999999999997
+            3.210955056179774,
+            1.2045283018867927
           ],
           "x_limits": [
-            -0.7,
-            1.7
+            0.0,
+            12.0
           ],
           "rate_limits": [
             0.0,
-            16.0
+            12.0
           ],
-          "rate_axis": "y",
+          "rate_axis": "x",
+          "platform_row": 0,
+          "grid_column": 1,
           "point_labels": {
             "baseline": "7.87",
             "esm_md": "7.67"
@@ -5243,18 +5265,20 @@
           "cpu_core_budget": 248,
           "gpu_devices": 0,
           "axis_inches": [
-            3.198901098901098,
-            1.7124999999999997
+            3.210955056179774,
+            1.2045283018867927
           ],
           "x_limits": [
-            -0.7,
-            1.7
+            0.0,
+            50.0
           ],
           "rate_limits": [
             0.0,
-            60.0
+            50.0
           ],
-          "rate_axis": "y",
+          "rate_axis": "x",
+          "platform_row": 0,
+          "grid_column": 2,
           "point_labels": {
             "baseline": "33.7",
             "esm_md": "31.5"
@@ -5268,18 +5292,20 @@
           "cpu_core_budget": null,
           "gpu_devices": 1,
           "axis_inches": [
-            3.1989010989010986,
-            1.7124999999999997
+            3.2109550561797744,
+            1.2045283018867925
           ],
           "x_limits": [
-            -0.7,
-            1.7
+            0.0,
+            1.6
           ],
           "rate_limits": [
             0.0,
-            2.0
+            1.6
           ],
-          "rate_axis": "y",
+          "rate_axis": "x",
+          "platform_row": 1,
+          "grid_column": 0,
           "point_labels": {
             "baseline": "0.969",
             "esm_md": "0.972"
@@ -5293,18 +5319,20 @@
           "cpu_core_budget": null,
           "gpu_devices": 1,
           "axis_inches": [
-            3.198901098901098,
-            1.7124999999999997
+            3.210955056179774,
+            1.2045283018867925
           ],
           "x_limits": [
-            -0.7,
-            1.7
+            0.0,
+            30.0
           ],
           "rate_limits": [
             0.0,
             30.0
           ],
-          "rate_axis": "y",
+          "rate_axis": "x",
+          "platform_row": 1,
+          "grid_column": 1,
           "point_labels": {
             "baseline": "15.6",
             "esm_md": "15.8"
@@ -5318,18 +5346,20 @@
           "cpu_core_budget": null,
           "gpu_devices": 1,
           "axis_inches": [
-            3.198901098901098,
-            1.7124999999999997
+            3.210955056179774,
+            1.2045283018867925
           ],
           "x_limits": [
-            -0.7,
-            1.7
+            0.0,
+            300.0
           ],
           "rate_limits": [
             0.0,
             300.0
           ],
-          "rate_axis": "y",
+          "rate_axis": "x",
+          "platform_row": 1,
+          "grid_column": 2,
           "point_labels": {
             "baseline": "148",
             "esm_md": "153"
@@ -5339,9 +5369,9 @@
       "findings": [],
       "export_policy": "full_canvas",
       "outputs": {
-        "figures/poster/energy_rates.pdf": "47754d0223356dc38944c7468283ce08f90dc06de4cc7db4ec46c0fbacdbe8fc",
-        "figures/poster/energy_rates.png": "ea2d39a5d1f16bb04015c9286de26f326d690fef6909de28c10b77214451a9a1",
-        "figures/poster/energy_rates.svg": "0ed5c214869b89e37897f8c5a0b45b72a46f68f331caff277996db22b183f82d"
+        "paper/pasc27/poster/figures/poster/energy_rates.pdf": "ed91829d2e26f4b4573a5254673cc643c1b200e0225ae4753854c998ef7e8b52",
+        "paper/pasc27/poster/figures/poster/energy_rates.png": "adfe61b3da89c84e750dc842b0a27b146bdd52ca406983a056fca4078f91c072",
+        "paper/pasc27/poster/figures/poster/energy_rates.svg": "3d56802cfb118b75112b02307fdfbce268fdbf98d65aea15d9d449aa8df4f777"
       },
       "final_width_inches": 14.340511811023624,
       "final_height_inches": 5.655413144745881,
@@ -10283,7 +10313,7 @@
           }
         ],
         "render_input_identity": {
-          "path": "data/accepted-main-input.json",
+          "path": "paper/pasc27/poster/data/accepted-main-input.json",
           "sha256": "aa8bd6545acb4e14abbb4da87b6310bcd85cf484278eb617bdb10ee882fa6563"
         }
       },
@@ -10293,7 +10323,7 @@
       },
       "layout_identity": {
         "path": "scripts/direct_rate_layout.py",
-        "sha256": "e4e7ad0e35bd828e70a6fa61e6ad3172573a6cdfad066190bfd595332d58b3a6"
+        "sha256": "d459737b8de69c224162fb5b1b15f279ea82bafc97f6ca8aed3a8d344d28908c"
       },
       "renderer_identity": {
         "path": "scripts/render_performance_bars.py",
@@ -10303,7 +10333,7 @@
   },
   "poster_text": {
     "sw_intro": "Matched grids, two verified solver routes.",
-    "ebm_intro": "Useful update rates. Higher bars are faster.",
+    "ebm_intro": "Useful update rates. Longer bars are faster.",
     "caption": "Point rates equal useful updates divided by median seconds. Whiskers span twelve rates. CPU workers appear inside bars. Neoverse V2 CPU timing includes coordination, while GH200 GPU timing excludes transfers.",
     "takeaways": [
       "ESM.md CPU point rates are 90.9\u201397.3% of baseline.",

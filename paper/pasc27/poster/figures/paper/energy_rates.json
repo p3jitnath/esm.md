@@ -13,7 +13,17 @@
   "minimum_effective_font_pt": 8.499999885626362,
   "visible_units": "Rate [billion useful updates/s]",
   "rate_divisor_from_millions": 1000,
-  "bar_orientation": "vertical",
+  "bar_orientation": "horizontal",
+  "panel_arrangement": "CPU and GPU rows by three grid columns",
+  "ordinary_panel_size_findings": [
+    "Axis 1 is 1.42 x 0.90 in; enlarge or split the figure.",
+    "Axis 2 is 1.42 x 0.90 in; enlarge or split the figure.",
+    "Axis 3 is 1.42 x 0.90 in; enlarge or split the figure.",
+    "Axis 4 is 1.42 x 0.90 in; enlarge or split the figure.",
+    "Axis 5 is 1.42 x 0.90 in; enlarge or split the figure.",
+    "Axis 6 is 1.42 x 0.90 in; enlarge or split the figure."
+  ],
+  "strip_geometry_basis": "Two-bar strips retain the requested fixed canvas and type size. Text and worker labels receive explicit bounds checks.",
   "geometry": [
     {
       "platform": "cpu",
@@ -23,18 +33,20 @@
       "cpu_core_budget": 248,
       "gpu_devices": 0,
       "axis_inches": [
-        1.4192307692307693,
-        1.2088443396226416
+        1.4245786516853929,
+        0.8978
       ],
       "x_limits": [
-        -0.7,
-        1.7
+        0.0,
+        1.0
       ],
       "rate_limits": [
         0.0,
-        0.8
+        1.0
       ],
-      "rate_axis": "y",
+      "rate_axis": "x",
+      "platform_row": 0,
+      "grid_column": 0,
       "point_labels": {
         "baseline": "0.631",
         "esm_md": "0.598"
@@ -48,18 +60,20 @@
       "cpu_core_budget": 248,
       "gpu_devices": 0,
       "axis_inches": [
-        1.419230769230769,
-        1.2088443396226416
+        1.4245786516853927,
+        0.8978
       ],
       "x_limits": [
-        -0.7,
-        1.7
+        0.0,
+        12.0
       ],
       "rate_limits": [
         0.0,
-        10.0
+        12.0
       ],
-      "rate_axis": "y",
+      "rate_axis": "x",
+      "platform_row": 0,
+      "grid_column": 1,
       "point_labels": {
         "baseline": "7.87",
         "esm_md": "7.67"
@@ -73,18 +87,20 @@
       "cpu_core_budget": 248,
       "gpu_devices": 0,
       "axis_inches": [
-        1.419230769230769,
-        1.2088443396226416
+        1.4245786516853927,
+        0.8978
       ],
       "x_limits": [
-        -0.7,
-        1.7
+        0.0,
+        50.0
       ],
       "rate_limits": [
         0.0,
         50.0
       ],
-      "rate_axis": "y",
+      "rate_axis": "x",
+      "platform_row": 0,
+      "grid_column": 2,
       "point_labels": {
         "baseline": "33.7",
         "esm_md": "31.5"
@@ -98,18 +114,20 @@
       "cpu_core_budget": null,
       "gpu_devices": 1,
       "axis_inches": [
-        1.4192307692307693,
-        1.2088443396226416
+        1.4245786516853929,
+        0.8978
       ],
       "x_limits": [
-        -0.7,
-        1.7
+        0.0,
+        1.6
       ],
       "rate_limits": [
         0.0,
         1.6
       ],
-      "rate_axis": "y",
+      "rate_axis": "x",
+      "platform_row": 1,
+      "grid_column": 0,
       "point_labels": {
         "baseline": "0.969",
         "esm_md": "0.972"
@@ -123,18 +141,20 @@
       "cpu_core_budget": null,
       "gpu_devices": 1,
       "axis_inches": [
-        1.419230769230769,
-        1.2088443396226416
+        1.4245786516853927,
+        0.8978
       ],
       "x_limits": [
-        -0.7,
-        1.7
+        0.0,
+        30.0
       ],
       "rate_limits": [
         0.0,
-        20.0
+        30.0
       ],
-      "rate_axis": "y",
+      "rate_axis": "x",
+      "platform_row": 1,
+      "grid_column": 1,
       "point_labels": {
         "baseline": "15.6",
         "esm_md": "15.8"
@@ -148,18 +168,20 @@
       "cpu_core_budget": null,
       "gpu_devices": 1,
       "axis_inches": [
-        1.419230769230769,
-        1.2088443396226416
+        1.4245786516853927,
+        0.8978
       ],
       "x_limits": [
-        -0.7,
-        1.7
+        0.0,
+        200.0
       ],
       "rate_limits": [
         0.0,
         200.0
       ],
-      "rate_axis": "y",
+      "rate_axis": "x",
+      "platform_row": 1,
+      "grid_column": 2,
       "point_labels": {
         "baseline": "148",
         "esm_md": "153"
@@ -169,9 +191,9 @@
   "findings": [],
   "export_policy": "full_canvas",
   "outputs": {
-    "figures/paper/energy_rates.pdf": "ddb06e006b7e7a0cca175198f1c1a0c1625cbe859c4ad066b49ea6ab0f4c4d5f",
-    "figures/paper/energy_rates.png": "bf37c8d808253c251648b6b62c6cb5ef9f746019fb4471d4d0e0a3a80c9d6491",
-    "figures/paper/energy_rates.svg": "c26772f7a6b92971451d8c2f5824fe02b97047cb75f5910b1368d8bd7ce3f12e"
+    "paper/pasc27/poster/figures/paper/energy_rates.pdf": "f1db5f5f1b2126cf48da711237027c446367258d0104b426231dd1e80ea85cc5",
+    "paper/pasc27/poster/figures/paper/energy_rates.png": "f814c3c2162f8175364d1fb49ab4c1c478a084795a27fb5026eb5b2aa6240c82",
+    "paper/pasc27/poster/figures/paper/energy_rates.svg": "01595d4a1c6af0aa5ff0cadc4ba042ec2089f3caae982118d866bc1650499ed0"
   },
   "final_width_inches": 6.3,
   "final_height_inches": 3.349999912537806,
@@ -5113,7 +5135,7 @@
       }
     ],
     "render_input_identity": {
-      "path": "data/accepted-main-input.json",
+      "path": "paper/pasc27/poster/data/accepted-main-input.json",
       "sha256": "aa8bd6545acb4e14abbb4da87b6310bcd85cf484278eb617bdb10ee882fa6563"
     }
   },
@@ -5123,7 +5145,7 @@
   },
   "layout_identity": {
     "path": "scripts/direct_rate_layout.py",
-    "sha256": "e4e7ad0e35bd828e70a6fa61e6ad3172573a6cdfad066190bfd595332d58b3a6"
+    "sha256": "d459737b8de69c224162fb5b1b15f279ea82bafc97f6ca8aed3a8d344d28908c"
   },
   "renderer_identity": {
     "path": "scripts/render_performance_bars.py",

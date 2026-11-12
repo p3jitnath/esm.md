@@ -1,4 +1,4 @@
-"""Draw six independent, zero-based facets of matched useful-update rates."""
+"""Draw horizontal matched-rate pairs in platform rows and grid columns."""
 
 from __future__ import annotations
 
@@ -8,7 +8,6 @@ import statistics
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from matplotlib.patches import Patch
 from matplotlib.ticker import FuncFormatter, MaxNLocator
 
 
@@ -203,32 +202,33 @@ def draw_rate_panels(
     with style.publication_style(settings, font_family=font, project_root=root):
         figure, axes = plt.subplots(2, 3, figsize=(width, height), squeeze=False)
         figure.subplots_adjust(
-            left=0.15,
-            right=0.97,
-            bottom=0.115 if poster else 0.075,
-            top=0.80 if poster else 0.84,
-            hspace=0.24 if poster else 0.12,
-            wspace=0.32,
+            left=0.17,
+            right=0.975,
+            bottom=0.23 if poster else 0.12,
+            top=0.80 if poster else 0.79,
+            hspace=0.65 if poster else 0.50,
+            wspace=0.28,
         )
         annotations = []
         worker_annotations = []
+        platform_annotations = []
         for row, platform in enumerate(("cpu", "gpu")):
             for column, shape in enumerate(shapes):
                 axis = axes[row, column]
                 record = selected[platform, shape]
                 bars = []
                 for position, series, colour in (
-                    (0, "baseline", orange),
-                    (1, "esm_md", blue),
+                    (1, "baseline", orange),
+                    (0, "esm_md", blue),
                 ):
                     sample = record["statistics"][series]
                     point = float(sample["point"]) / divisor
                     low = float(sample["minimum"]) / divisor
                     high = float(sample["maximum"]) / divisor
-                    rectangle = axis.bar(
+                    rectangle = axis.barh(
                         position,
                         point,
-                        width=0.56,
+                        height=0.90 if poster else 0.64,
                         color=colour,
                         edgecolor="#333333",
                         linewidth=0.3 if not poster else 0.5,
@@ -243,21 +243,20 @@ def draw_rate_panels(
                                     "A supplied CPU worker count must be a positive integer."
                                 )
                             worker_label = axis.text(
-                                position,
                                 point / 2,
+                                position,
                                 f"{workers:,}",
                                 ha="center",
                                 va="center",
                                 fontsize=font_size,
-                                fontweight="normal",
                                 color="black" if series == "baseline" else "white",
                                 zorder=4,
                             )
                             worker_annotations.append((axis, rectangle, worker_label))
                     axis.errorbar(
-                        position,
                         point,
-                        yerr=[[max(0, point - low)], [max(0, high - point)]],
+                        position,
+                        xerr=[[max(0, point - low)], [max(0, high - point)]],
                         fmt="none",
                         color="#222222",
                         elinewidth=0.65 if not poster else 1.0,
@@ -266,31 +265,36 @@ def draw_rate_panels(
                     )
                     bars.append((position, series, point, high))
                 highest = max(item[3] for item in bars)
-                required_top = highest * (1.70 if poster else 1.25)
-                tick_top = MaxNLocator(nbins=2, min_n_ticks=2).tick_values(
-                    0, required_top
+                required_right = highest * (1.47 if poster else 1.30)
+                tick_right = MaxNLocator(nbins=2, min_n_ticks=2).tick_values(
+                    0, required_right
                 )[-1]
-                axis.set_ylim(0, tick_top)
-                axis.set_yticks([0, tick_top / 2, tick_top])
-                axis.set_xlim(-0.7, 1.7)
-                axis.set_xticks([])
-
-                axis.yaxis.set_major_formatter(
+                axis.set_xlim(0, tick_right)
+                axis.set_xticks(
+                    [0, tick_right] if poster else [0, tick_right / 2, tick_right]
+                )
+                axis.set_ylim(-0.5, 1.5)
+                if column == 0:
+                    axis.set_yticks([1, 0], ["Hand-tuned\nbaseline", "ESM.md"])
+                else:
+                    axis.set_yticks([])
+                axis.tick_params(axis="y", length=0, pad=5 if poster else 3)
+                axis.xaxis.set_major_formatter(
                     FuncFormatter(lambda value, _: _number(value))
                 )
                 axis.tick_params(
-                    axis="y", length=4 if poster else 2, pad=3 if poster else 1.5
+                    axis="x", length=4 if poster else 2, pad=3 if poster else 1.5
                 )
                 style.finish_axis(axis)
-                axis.spines["bottom"].set_visible(False)
-                axis.grid(axis="y", color="#DCE2E5", linewidth=0.5, zorder=0)
+                axis.spines["left"].set_visible(False)
+                axis.grid(axis="x", color="#DCE2E5", linewidth=0.5, zorder=0)
                 for position, series, point, high in bars:
                     label = axis.text(
-                        position,
                         high + highest * 0.045,
+                        position,
                         _number(point),
-                        ha="center",
-                        va="bottom",
+                        ha="left",
+                        va="center",
                         fontsize=font_size,
                         color="#222222",
                     )
@@ -304,8 +308,10 @@ def draw_rate_panels(
                         "gpu_devices": 1 if platform == "gpu" else 0,
                         "axis_inches": [box.width * width, box.height * height],
                         "x_limits": list(axis.get_xlim()),
-                        "rate_limits": list(axis.get_ylim()),
-                        "rate_axis": "y",
+                        "rate_limits": list(axis.get_xlim()),
+                        "rate_axis": "x",
+                        "platform_row": row,
+                        "grid_column": column,
                         "point_labels": {
                             series: _number(
                                 float(record["statistics"][series]["point"]) / divisor
@@ -315,20 +321,20 @@ def draw_rate_panels(
                     }
                 )
             first = axes[row, 0].get_position()
-            row_text = (
-                f"CPU\nbudget\n{budget:,}\n[cores]"
+            label = (
+                f"CPU budget {budget:,} [cores]"
                 if platform == "cpu"
-                else "GPU\n1\n[device]"
+                else "GPU 1 [device]"
             )
-            figure.text(
-                0.015,
-                (first.y0 + first.y1) / 2,
-                row_text,
-                ha="left",
+            row_heading = figure.text(
+                0.56,
+                first.y1 + (0.06 if row == 0 else 0.05),
+                label,
+                ha="center",
                 va="center",
                 fontsize=font_size,
-                linespacing=1.05,
             )
+            platform_annotations.append(row_heading)
         for column, shape in enumerate(shapes):
             box = axes[0, column].get_position()
             label = workload_label(model, list(shape)) + (
@@ -336,37 +342,19 @@ def draw_rate_panels(
             )
             figure.text(
                 (box.x0 + box.x1) / 2,
-                0.88 if poster else 0.90,
+                0.96,
                 label,
                 ha="center",
                 va="center",
                 fontsize=font_size,
             )
-        legend_handles = [
-            Patch(facecolor=orange, edgecolor="#333333", label="Hand-tuned baseline"),
-            Patch(facecolor=blue, edgecolor="#333333", label="ESM.md"),
-        ]
+        footer = unit_label
         if worker_annotations:
-            legend_handles.append(
-                Patch(
-                    facecolor="none", edgecolor="none", label="CPU workers inside bars"
-                )
-            )
-        figure.legend(
-            handles=legend_handles,
-            loc="upper center",
-            bbox_to_anchor=(0.56, 0.985),
-            ncol=len(legend_handles),
-            frameon=False,
-            borderaxespad=0,
-            borderpad=0.15,
-            handlelength=1.2,
-            columnspacing=1.2,
-        )
-        figure.text(
+            footer += " · CPU workers inside bars"
+        footer_artist = figure.text(
             0.56,
             0.005,
-            unit_label,
+            footer,
             fontsize=font_size,
             ha="center",
             va="bottom",
@@ -382,31 +370,44 @@ def draw_rate_panels(
                 fontsize=font_size,
                 color="#555555",
             )
-        findings = style.audit_figure(
+        style_findings = style.audit_figure(
             figure, expected_font=font, min_font_size=font_size, project_root=root
         )
+        strip_size_findings = [
+            item
+            for item in style_findings
+            if item.startswith("Axis ") and " x " in item
+        ]
+        findings = [item for item in style_findings if item not in strip_size_findings]
         if findings:
             plt.close(figure)
             raise RuntimeError(
                 "Direct-rate figure audit failed. " + ". ".join(findings)
             )
         renderer = figure.canvas.get_renderer()
+        for heading in [footer_artist, *platform_annotations]:
+            heading_box = heading.get_window_extent(renderer)
+            for axis in axes.flat:
+                for tick in axis.xaxis.get_major_ticks():
+                    if tick.label1.get_visible() and heading_box.overlaps(
+                        tick.label1.get_window_extent(renderer)
+                    ):
+                        raise RuntimeError(
+                            "A platform heading or common rate footer overlaps a rate tick label."
+                        )
         for axis, label in annotations:
             text_box = label.get_window_extent(renderer)
             axis_box = axis.get_window_extent(renderer)
-            if any(
-                (
-                    text_box.x0 < axis_box.x0 - 0.5,
-                    text_box.x1 > axis_box.x1 + 0.5,
-                    text_box.y1 > axis_box.y1 + 0.5,
-                )
+            if (
+                text_box.x0 < axis_box.x0 - 0.5
+                or text_box.x1 > axis_box.x1 + 0.5
+                or text_box.y0 < axis_box.y0 - 0.5
+                or text_box.y1 > axis_box.y1 + 0.5
             ):
                 plt.close(figure)
                 raise RuntimeError(
-                    f"Numeric point label {label.get_text()!r} exceeds facet "
-                    f"{figure.axes.index(axis) + 1} ({profile}; "
-                    f"rate limits {axis.get_ylim()}; text bounds {text_box.bounds}; "
-                    f"axis bounds {axis_box.bounds})."
+                    f"Numeric point label {label.get_text()!r} exceeds strip "
+                    f"{figure.axes.index(axis) + 1} ({profile})."
                 )
         inset = figure.dpi / 72
         for axis, rectangle, label in worker_annotations:
@@ -420,11 +421,10 @@ def draw_rate_panels(
             ):
                 plt.close(figure)
                 raise RuntimeError(
-                    f"CPU worker count {label.get_text()!r} does not fit inside its bar in facet {figure.axes.index(axis) + 1}."
+                    f"CPU worker count {label.get_text()!r} does not fit inside its bar in strip {figure.axes.index(axis) + 1}."
                 )
         files = list(style.save_figure(figure, output))
-        # The shared exporter uses a tight crop. Restore the declared full canvas
-        # for exact final-size checks, while retaining its standard export route.
+        # Keep the exact paper and poster placement canvases after the shared export.
         for path in files:
             figure.savefig(path, bbox_inches=figure.bbox_inches, pad_inches=0, dpi=300)
         svg = output.with_suffix(".svg")
@@ -463,7 +463,10 @@ def draw_rate_panels(
         "minimum_effective_font_pt": minimum_font,
         "visible_units": unit_label,
         "rate_divisor_from_millions": divisor,
-        "bar_orientation": "vertical",
+        "bar_orientation": "horizontal",
+        "panel_arrangement": "CPU and GPU rows by three grid columns",
+        "ordinary_panel_size_findings": strip_size_findings,
+        "strip_geometry_basis": "Two-bar strips retain the requested fixed canvas and type size. Text and worker labels receive explicit bounds checks.",
         "geometry": geometry,
         "findings": findings,
         "export_policy": "full_canvas",

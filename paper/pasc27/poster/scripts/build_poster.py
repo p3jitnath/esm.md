@@ -1045,8 +1045,8 @@ slide.notes_slide.notes_text_frame.text = (
     "cell once through a complete step. Required neighbouring cells and "
     "coordination remain inside the recorded work. The CPU comparison uses a "
     "configured 248-core ceiling, with actual team and nonempty owner counts "
-    "reported separately. Actual team numbers are inside the CPU bars beneath "
-    "the rates. The row label CPU budget 248 [cores] describes the ceiling. "
+    "reported separately. Actual team numbers are inside the CPU bars. "
+    "The row label CPU budget 248 [cores] describes the ceiling. "
     + PERFORMANCE_UPDATE["cpu_worker_disclosure"]
     + " GPU records use one device. Exact accepted identities, timer scopes, "
     "placement, step counts and transfer exclusions are retained in the input "
