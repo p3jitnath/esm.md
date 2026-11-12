@@ -1,4 +1,5 @@
-!> esm.md – Fortran GPU energy-balance solver.
+! SPDX-License-Identifier: MIT
+!> ESM.md – Super-optimised CUDA Fortran energy-balance solver.
 !! Scientific source is formulations/ebm/budyko_sellers.md revision 1.1.
 !! The ordered numerical contract is skills/md2fort/references/budyko_sellers.md.
 !! GPU launches follow skills/md2fort-gpu/references/gpu-contract.md.
@@ -20,10 +21,15 @@
 !! Work stores face fluxes in W m^-2 or temporal temperatures in degrees
 !! Celsius. Its other returned contents are unspecified scratch storage.
 !! A persistent call uses one 128-thread block and at most 128 bands.
-!! The selected eb_temporal_eight call uses 128 threads, ceil(n/96) blocks,
-!! 96 owned bands per block, 16-band halos and one to eight complete steps.
-!! The compatible eb_temporal entry retains 112 owned bands and up to four
-!! steps. An ordered eb_publish launch follows every temporal call.
+!! A temporal call advances a batch, which is a group of complete steps.
+!! The selected dynamic entries use 256 threads and at most 56 steps for
+!! 129 to 8192 bands, or 1024 threads and at most 128 steps above 8192 bands.
+!! For an actual batch of K steps and B threads, a block owns W=B-4*K
+!! bands and uses a 2*K-band halo on each side. There are ceil(n/W) blocks.
+!! W is 32 or 512 at the maximum counts and increases for a shorter tail.
+!! The host selects the route from the live band count. The original four-
+!! and eight-step temporal entries remain available. An ordered eb_publish
+!! launch follows every nonempty temporal batch and restores q/out parity.
 !! The host omits numerical launches for zero steps, leaving all arrays intact.
 !! The GPU owns every mathematical stage and boundary calculation.
 module energy_balance_gpu_solver
@@ -510,6 +516,460 @@ contains
     end do
     end if
   end subroutine eb_temporal_eight
+
+  !> Advance one to 56 complete steps with 256 threads and 32 owned bands.
+  !! The caller launches exactly 256 threads per block and ceil(n/32) blocks,
+  !! passes 0 <= steps <= 56, and follows each nonempty call with eb_publish.
+  !! The public C_INT dimensions and count are passed by value. Each C_DOUBLE
+  !! state row covers indices 0:n+1, including pole copies, in degrees Celsius.
+  !! coeff has 3*(n+2) values and par has six values, with the module's units.
+  !! All arrays have disjoint caller-owned device storage aligned to eight bytes.
+  !! q, coeff and par remain unchanged. Owned bands write preceding temperatures
+  !! to out, the last first stage to stage, and final temperatures to work.
+  !! 112 extra bands on each side retain both stage dependencies. Every
+  !! thread reaches the initial barrier and both barriers of each complete step.
+  !! An ordered eb_publish call restores q/out parity after all tiles finish.
+  attributes(global) subroutine eb_temporal_256_56(n, q, stage, out, work, coeff, par, steps) bind(C, name='eb_temporal_256_56')
+    integer(c_int), value :: n, steps
+    real(c_double), device, intent(in) :: q(0:*), coeff(0:*), par(0:*)
+    real(c_double), device, intent(inout) :: stage(0:*), out(0:*), work(0:*)
+    real(c_double), shared :: current(0:255), first_row(0:255)
+    real(c_double) :: ratio, delta, inverse, AA, BB, Tf, kr, kl, warm, ice
+    real(c_double) :: temperature, right, left, forcing, r, ell, first, value
+    integer(c_int) :: i, j, p, k, edge
+    logical :: active, owned, scaled
+    if (steps == 0) return
+    j = threadidx%x - 1; i = 32*(blockidx%x - 1) + j - 111
+    active = i >= 1 .and. i <= n; owned = j >= 112 .and. j < 144 .and. active
+    delta = par(2); inverse = exact_inverse(delta); scaled = inverse /= 0.0_8
+    ratio = par(1)/par(0); AA = par(3); BB = par(4); Tf = par(5)
+    if (active) then
+      current(j) = q(i); p = n + 2
+      kr = coeff(i); kl = coeff(i - 1); warm = coeff(p + i); ice = coeff(2*p + i)
+    end if
+    call syncthreads()
+    if (scaled) then
+    do k = 0, steps - 1
+      edge = 2*k + 1
+      if (active .and. j >= edge .and. j < 256 - edge) then
+        temperature = current(j); right = 0.0_8; left = 0.0_8
+        if (i < n) right = kr*(current(j + 1) - temperature)
+        if (i > 1) left = kl*(temperature - current(j - 1))
+        forcing = warm
+        if (temperature <= Tf) forcing = ice
+        r = forcing - (AA + BB*temperature)
+        ell = r + (right - left)*inverse
+        first = temperature + ratio*ell
+        first_row(j) = first
+      end if
+      call syncthreads()
+      edge = edge + 1
+      if (active .and. j >= edge .and. j < 256 - edge) then
+        right = 0.0_8; left = 0.0_8
+        if (i < n) right = kr*(first_row(j + 1) - first)
+        if (i > 1) left = kl*(first - first_row(j - 1))
+        forcing = warm
+        if (first <= Tf) forcing = ice
+        r = forcing - (AA + BB*first)
+        ell = r + (right - left)*inverse
+        value = first + ratio*ell
+        value = temperature*0.5_8 + value*0.5_8
+        current(j) = value
+        if (k == steps - 1 .and. owned) then
+          out(i) = temperature; stage(i) = first; work(i) = value
+          if (i == 1) then
+            out(0) = temperature; stage(0) = first; work(0) = value
+          end if
+          if (i == n) then
+            out(n + 1) = temperature; stage(n + 1) = first; work(n + 1) = value
+          end if
+        end if
+      end if
+      call syncthreads()
+    end do
+    else
+    do k = 0, steps - 1
+      edge = 2*k + 1
+      if (active .and. j >= edge .and. j < 256 - edge) then
+        temperature = current(j); right = 0.0_8; left = 0.0_8
+        if (i < n) right = kr*(current(j + 1) - temperature)
+        if (i > 1) left = kl*(temperature - current(j - 1))
+        forcing = warm
+        if (temperature <= Tf) forcing = ice
+        r = forcing - (AA + BB*temperature)
+        ell = r + (right - left)/delta
+        first = temperature + ratio*ell
+        first_row(j) = first
+      end if
+      call syncthreads()
+      edge = edge + 1
+      if (active .and. j >= edge .and. j < 256 - edge) then
+        right = 0.0_8; left = 0.0_8
+        if (i < n) right = kr*(first_row(j + 1) - first)
+        if (i > 1) left = kl*(first - first_row(j - 1))
+        forcing = warm
+        if (first <= Tf) forcing = ice
+        r = forcing - (AA + BB*first)
+        ell = r + (right - left)/delta
+        value = first + ratio*ell
+        value = temperature*0.5_8 + value*0.5_8
+        current(j) = value
+        if (k == steps - 1 .and. owned) then
+          out(i) = temperature; stage(i) = first; work(i) = value
+          if (i == 1) then
+            out(0) = temperature; stage(0) = first; work(0) = value
+          end if
+          if (i == n) then
+            out(n + 1) = temperature; stage(n + 1) = first; work(n + 1) = value
+          end if
+        end if
+      end if
+      call syncthreads()
+    end do
+    end if
+  end subroutine eb_temporal_256_56
+
+  !> Advance one to 128 complete steps with 1024 threads and 512 owned bands.
+  !! The caller launches exactly 1024 threads per block and ceil(n/512) blocks,
+  !! passes 0 <= steps <= 128, and follows each nonempty call with eb_publish.
+  !! The public C_INT dimensions and count are passed by value. Each C_DOUBLE
+  !! state row covers indices 0:n+1, including pole copies, in degrees Celsius.
+  !! coeff has 3*(n+2) values and par has six values, with the module's units.
+  !! All arrays have disjoint caller-owned device storage aligned to eight bytes.
+  !! q, coeff and par remain unchanged. Owned bands write preceding temperatures
+  !! to out, the last first stage to stage, and final temperatures to work.
+  !! 256 extra bands on each side retain both stage dependencies. Every
+  !! thread reaches the initial barrier and both barriers of each complete step.
+  !! An ordered eb_publish call restores q/out parity after all tiles finish.
+  attributes(global) subroutine eb_temporal_1024_128(n, q, stage, out, work, coeff, par, steps) bind(C, name='eb_temporal_1024_128')
+    integer(c_int), value :: n, steps
+    real(c_double), device, intent(in) :: q(0:*), coeff(0:*), par(0:*)
+    real(c_double), device, intent(inout) :: stage(0:*), out(0:*), work(0:*)
+    real(c_double), shared :: current(0:1023), first_row(0:1023)
+    real(c_double) :: ratio, delta, inverse, AA, BB, Tf, kr, kl, warm, ice
+    real(c_double) :: temperature, right, left, forcing, r, ell, first, value
+    integer(c_int) :: i, j, p, k, edge
+    logical :: active, owned, scaled
+    if (steps == 0) return
+    j = threadidx%x - 1; i = 512*(blockidx%x - 1) + j - 255
+    active = i >= 1 .and. i <= n; owned = j >= 256 .and. j < 768 .and. active
+    delta = par(2); inverse = exact_inverse(delta); scaled = inverse /= 0.0_8
+    ratio = par(1)/par(0); AA = par(3); BB = par(4); Tf = par(5)
+    if (active) then
+      current(j) = q(i); p = n + 2
+      kr = coeff(i); kl = coeff(i - 1); warm = coeff(p + i); ice = coeff(2*p + i)
+    end if
+    call syncthreads()
+    if (scaled) then
+    do k = 0, steps - 1
+      edge = 2*k + 1
+      if (active .and. j >= edge .and. j < 1024 - edge) then
+        temperature = current(j); right = 0.0_8; left = 0.0_8
+        if (i < n) right = kr*(current(j + 1) - temperature)
+        if (i > 1) left = kl*(temperature - current(j - 1))
+        forcing = warm
+        if (temperature <= Tf) forcing = ice
+        r = forcing - (AA + BB*temperature)
+        ell = r + (right - left)*inverse
+        first = temperature + ratio*ell
+        first_row(j) = first
+      end if
+      call syncthreads()
+      edge = edge + 1
+      if (active .and. j >= edge .and. j < 1024 - edge) then
+        right = 0.0_8; left = 0.0_8
+        if (i < n) right = kr*(first_row(j + 1) - first)
+        if (i > 1) left = kl*(first - first_row(j - 1))
+        forcing = warm
+        if (first <= Tf) forcing = ice
+        r = forcing - (AA + BB*first)
+        ell = r + (right - left)*inverse
+        value = first + ratio*ell
+        value = temperature*0.5_8 + value*0.5_8
+        current(j) = value
+        if (k == steps - 1 .and. owned) then
+          out(i) = temperature; stage(i) = first; work(i) = value
+          if (i == 1) then
+            out(0) = temperature; stage(0) = first; work(0) = value
+          end if
+          if (i == n) then
+            out(n + 1) = temperature; stage(n + 1) = first; work(n + 1) = value
+          end if
+        end if
+      end if
+      call syncthreads()
+    end do
+    else
+    do k = 0, steps - 1
+      edge = 2*k + 1
+      if (active .and. j >= edge .and. j < 1024 - edge) then
+        temperature = current(j); right = 0.0_8; left = 0.0_8
+        if (i < n) right = kr*(current(j + 1) - temperature)
+        if (i > 1) left = kl*(temperature - current(j - 1))
+        forcing = warm
+        if (temperature <= Tf) forcing = ice
+        r = forcing - (AA + BB*temperature)
+        ell = r + (right - left)/delta
+        first = temperature + ratio*ell
+        first_row(j) = first
+      end if
+      call syncthreads()
+      edge = edge + 1
+      if (active .and. j >= edge .and. j < 1024 - edge) then
+        right = 0.0_8; left = 0.0_8
+        if (i < n) right = kr*(first_row(j + 1) - first)
+        if (i > 1) left = kl*(first - first_row(j - 1))
+        forcing = warm
+        if (first <= Tf) forcing = ice
+        r = forcing - (AA + BB*first)
+        ell = r + (right - left)/delta
+        value = first + ratio*ell
+        value = temperature*0.5_8 + value*0.5_8
+        current(j) = value
+        if (k == steps - 1 .and. owned) then
+          out(i) = temperature; stage(i) = first; work(i) = value
+          if (i == 1) then
+            out(0) = temperature; stage(0) = first; work(0) = value
+          end if
+          if (i == n) then
+            out(n + 1) = temperature; stage(n + 1) = first; work(n + 1) = value
+          end if
+        end if
+      end if
+      call syncthreads()
+    end do
+    end if
+  end subroutine eb_temporal_1024_128
+
+  !> Advance up to 56 steps with 256 threads and a batch-dependent tile.
+  !! For a nonempty count K=steps, the owned width is W=256-4*K and each side
+  !! has 2*K extra bands. The caller launches ceil(n/W) blocks of 256 threads.
+  !! Counts 0 through 56 are supported; zero steps leave every owner intact.
+  !! Public n and steps are C_INT values. All C_DOUBLE state rows have n+2
+  !! values in degrees Celsius. coeff has 3*(n+2) values, and par has six.
+  !! Their units are stated in the module header. Every array is disjoint,
+  !! caller-owned device storage aligned to at least eight bytes.
+  !! q, coeff and par remain unchanged. Owned bands write the previous state
+  !! to out, the last first stage to stage, and the final state to work.
+  !! Shared rows and ordered FP64 arithmetic match the static temporal entry.
+  !! All threads reach every required barrier. Follow the call with eb_publish
+  !! on the same ordered stream to restore physical q/out parity and poles.
+  attributes(global) subroutine eb_temporal_dynamic_256_56(n, q, stage, out, work, coeff, par, steps) &
+    bind(C, name='eb_temporal_dynamic_256_56')
+    integer(c_int), value :: n, steps
+    real(c_double), device, intent(in) :: q(0:*), coeff(0:*), par(0:*)
+    real(c_double), device, intent(inout) :: stage(0:*), out(0:*), work(0:*)
+    real(c_double), shared :: current(0:255), first_row(0:255)
+    real(c_double) :: ratio, delta, inverse, AA, BB, Tf, kr, kl, warm, ice
+    real(c_double) :: temperature, right, left, forcing, r, ell, first, value
+    integer(c_int) :: i, j, p, k, edge, owned_width
+    logical :: active, owned, scaled
+    if (steps == 0) return
+    owned_width = 256 - 4*steps
+    j = threadidx%x - 1; i = owned_width*(blockidx%x - 1) + j - (2*steps - 1)
+    active = i >= 1 .and. i <= n; owned = j >= 2*steps .and. j < 256 - 2*steps .and. active
+    delta = par(2); inverse = exact_inverse(delta); scaled = inverse /= 0.0_8
+    ratio = par(1)/par(0); AA = par(3); BB = par(4); Tf = par(5)
+    if (active) then
+      current(j) = q(i); p = n + 2
+      kr = coeff(i); kl = coeff(i - 1); warm = coeff(p + i); ice = coeff(2*p + i)
+    end if
+    call syncthreads()
+    if (scaled) then
+    do k = 0, steps - 1
+      edge = 2*k + 1
+      if (active .and. j >= edge .and. j < 256 - edge) then
+        temperature = current(j); right = 0.0_8; left = 0.0_8
+        if (i < n) right = kr*(current(j + 1) - temperature)
+        if (i > 1) left = kl*(temperature - current(j - 1))
+        forcing = warm
+        if (temperature <= Tf) forcing = ice
+        r = forcing - (AA + BB*temperature)
+        ell = r + (right - left)*inverse
+        first = temperature + ratio*ell
+        first_row(j) = first
+      end if
+      call syncthreads()
+      edge = edge + 1
+      if (active .and. j >= edge .and. j < 256 - edge) then
+        right = 0.0_8; left = 0.0_8
+        if (i < n) right = kr*(first_row(j + 1) - first)
+        if (i > 1) left = kl*(first - first_row(j - 1))
+        forcing = warm
+        if (first <= Tf) forcing = ice
+        r = forcing - (AA + BB*first)
+        ell = r + (right - left)*inverse
+        value = first + ratio*ell
+        value = temperature*0.5_8 + value*0.5_8
+        current(j) = value
+        if (k == steps - 1 .and. owned) then
+          out(i) = temperature; stage(i) = first; work(i) = value
+          if (i == 1) then
+            out(0) = temperature; stage(0) = first; work(0) = value
+          end if
+          if (i == n) then
+            out(n + 1) = temperature; stage(n + 1) = first; work(n + 1) = value
+          end if
+        end if
+      end if
+      call syncthreads()
+    end do
+    else
+    do k = 0, steps - 1
+      edge = 2*k + 1
+      if (active .and. j >= edge .and. j < 256 - edge) then
+        temperature = current(j); right = 0.0_8; left = 0.0_8
+        if (i < n) right = kr*(current(j + 1) - temperature)
+        if (i > 1) left = kl*(temperature - current(j - 1))
+        forcing = warm
+        if (temperature <= Tf) forcing = ice
+        r = forcing - (AA + BB*temperature)
+        ell = r + (right - left)/delta
+        first = temperature + ratio*ell
+        first_row(j) = first
+      end if
+      call syncthreads()
+      edge = edge + 1
+      if (active .and. j >= edge .and. j < 256 - edge) then
+        right = 0.0_8; left = 0.0_8
+        if (i < n) right = kr*(first_row(j + 1) - first)
+        if (i > 1) left = kl*(first - first_row(j - 1))
+        forcing = warm
+        if (first <= Tf) forcing = ice
+        r = forcing - (AA + BB*first)
+        ell = r + (right - left)/delta
+        value = first + ratio*ell
+        value = temperature*0.5_8 + value*0.5_8
+        current(j) = value
+        if (k == steps - 1 .and. owned) then
+          out(i) = temperature; stage(i) = first; work(i) = value
+          if (i == 1) then
+            out(0) = temperature; stage(0) = first; work(0) = value
+          end if
+          if (i == n) then
+            out(n + 1) = temperature; stage(n + 1) = first; work(n + 1) = value
+          end if
+        end if
+      end if
+      call syncthreads()
+    end do
+    end if
+  end subroutine eb_temporal_dynamic_256_56
+
+  !> Advance up to 128 steps with 1024 threads and a batch-dependent tile.
+  !! For a nonempty count K=steps, the owned width is W=1024-4*K and each side
+  !! has 2*K extra bands. The caller launches ceil(n/W) blocks of 1024 threads.
+  !! Counts 0 through 128 are supported; zero steps leave every owner intact.
+  !! Public n and steps are C_INT values. All C_DOUBLE state rows have n+2
+  !! values in degrees Celsius. coeff has 3*(n+2) values, and par has six.
+  !! Their units are stated in the module header. Every array is disjoint,
+  !! caller-owned device storage aligned to at least eight bytes.
+  !! q, coeff and par remain unchanged. Owned bands write the previous state
+  !! to out, the last first stage to stage, and the final state to work.
+  !! Shared rows and ordered FP64 arithmetic match the static temporal entry.
+  !! All threads reach every required barrier. Follow the call with eb_publish
+  !! on the same ordered stream to restore physical q/out parity and poles.
+  attributes(global) subroutine eb_temporal_dynamic_1024_128(n, q, stage, out, work, coeff, par, steps) &
+    bind(C, name='eb_temporal_dynamic_1024_128')
+    integer(c_int), value :: n, steps
+    real(c_double), device, intent(in) :: q(0:*), coeff(0:*), par(0:*)
+    real(c_double), device, intent(inout) :: stage(0:*), out(0:*), work(0:*)
+    real(c_double), shared :: current(0:1023), first_row(0:1023)
+    real(c_double) :: ratio, delta, inverse, AA, BB, Tf, kr, kl, warm, ice
+    real(c_double) :: temperature, right, left, forcing, r, ell, first, value
+    integer(c_int) :: i, j, p, k, edge, owned_width
+    logical :: active, owned, scaled
+    if (steps == 0) return
+    owned_width = 1024 - 4*steps
+    j = threadidx%x - 1; i = owned_width*(blockidx%x - 1) + j - (2*steps - 1)
+    active = i >= 1 .and. i <= n; owned = j >= 2*steps .and. j < 1024 - 2*steps .and. active
+    delta = par(2); inverse = exact_inverse(delta); scaled = inverse /= 0.0_8
+    ratio = par(1)/par(0); AA = par(3); BB = par(4); Tf = par(5)
+    if (active) then
+      current(j) = q(i); p = n + 2
+      kr = coeff(i); kl = coeff(i - 1); warm = coeff(p + i); ice = coeff(2*p + i)
+    end if
+    call syncthreads()
+    if (scaled) then
+    do k = 0, steps - 1
+      edge = 2*k + 1
+      if (active .and. j >= edge .and. j < 1024 - edge) then
+        temperature = current(j); right = 0.0_8; left = 0.0_8
+        if (i < n) right = kr*(current(j + 1) - temperature)
+        if (i > 1) left = kl*(temperature - current(j - 1))
+        forcing = warm
+        if (temperature <= Tf) forcing = ice
+        r = forcing - (AA + BB*temperature)
+        ell = r + (right - left)*inverse
+        first = temperature + ratio*ell
+        first_row(j) = first
+      end if
+      call syncthreads()
+      edge = edge + 1
+      if (active .and. j >= edge .and. j < 1024 - edge) then
+        right = 0.0_8; left = 0.0_8
+        if (i < n) right = kr*(first_row(j + 1) - first)
+        if (i > 1) left = kl*(first - first_row(j - 1))
+        forcing = warm
+        if (first <= Tf) forcing = ice
+        r = forcing - (AA + BB*first)
+        ell = r + (right - left)*inverse
+        value = first + ratio*ell
+        value = temperature*0.5_8 + value*0.5_8
+        current(j) = value
+        if (k == steps - 1 .and. owned) then
+          out(i) = temperature; stage(i) = first; work(i) = value
+          if (i == 1) then
+            out(0) = temperature; stage(0) = first; work(0) = value
+          end if
+          if (i == n) then
+            out(n + 1) = temperature; stage(n + 1) = first; work(n + 1) = value
+          end if
+        end if
+      end if
+      call syncthreads()
+    end do
+    else
+    do k = 0, steps - 1
+      edge = 2*k + 1
+      if (active .and. j >= edge .and. j < 1024 - edge) then
+        temperature = current(j); right = 0.0_8; left = 0.0_8
+        if (i < n) right = kr*(current(j + 1) - temperature)
+        if (i > 1) left = kl*(temperature - current(j - 1))
+        forcing = warm
+        if (temperature <= Tf) forcing = ice
+        r = forcing - (AA + BB*temperature)
+        ell = r + (right - left)/delta
+        first = temperature + ratio*ell
+        first_row(j) = first
+      end if
+      call syncthreads()
+      edge = edge + 1
+      if (active .and. j >= edge .and. j < 1024 - edge) then
+        right = 0.0_8; left = 0.0_8
+        if (i < n) right = kr*(first_row(j + 1) - first)
+        if (i > 1) left = kl*(first - first_row(j - 1))
+        forcing = warm
+        if (first <= Tf) forcing = ice
+        r = forcing - (AA + BB*first)
+        ell = r + (right - left)/delta
+        value = first + ratio*ell
+        value = temperature*0.5_8 + value*0.5_8
+        current(j) = value
+        if (k == steps - 1 .and. owned) then
+          out(i) = temperature; stage(i) = first; work(i) = value
+          if (i == 1) then
+            out(0) = temperature; stage(0) = first; work(0) = value
+          end if
+          if (i == n) then
+            out(n + 1) = temperature; stage(n + 1) = first; work(n + 1) = value
+          end if
+        end if
+      end if
+      call syncthreads()
+    end do
+    end if
+  end subroutine eb_temporal_dynamic_1024_128
 
   !> Restore physical q and out parity after all tiles finish reading q.
   !! n bands are covered by 128-thread blocks. Inputs out and work have the last

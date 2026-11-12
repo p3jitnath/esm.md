@@ -1,4 +1,5 @@
-!> esm.md Fortran GPU solver. The compiler creates all device instructions.
+! SPDX-License-Identifier: MIT
+!> ESM.md Fortran GPU solver. The compiler creates all device instructions.
 !! Physics input is formulations/sw/dam_break.md revision 1.0.
 !! Arithmetic follows skills/md2fort/references/2d_rusanov_ssprk2.md.
 !! With p=nx+2 and s=p*(ny+2), q, base and out each contain 3*s
@@ -11,6 +12,9 @@
 !! by update kernels, while out receives complete stages and periodic ghosts.
 !! Preparation reads q and par and replaces all five work fields.
 !! Launches follow skills/md2fort-gpu/references/gpu-contract.md.
+!! The selected small-grid entry uses four-by-four cell tiles. A block
+!! prepares the neighbouring values in shared storage, then its threads
+!! update the three fields. It uses 64 threads and one block barrier.
 module esm_sw_gpu_fortran
   use cudafor
   use iso_fortran_env, only: real64, int64
@@ -412,6 +416,49 @@ contains
     end if
   end subroutine
 
+  !> Compute the x-direction flux and wave speed at one point.
+  !! Inputs h [m], mx and my [m^2 s^-1], g [m s^-2] and field a are copied
+  !! scalars. Field a is 0 for depth, 1 for x momentum and 2 for y momentum.
+  !! Outputs fx and cx are replaced. cx has units [m s^-1]; fx has units
+  !! [m^2 s^-1] for depth and [m^3 s^-2] for either momentum field.
+  attributes(device) subroutine primitive_x(h, mx, my, g, a, fx, cx)
+    real(real64), value :: h, mx, my, g
+    integer, value :: a
+    real(real64), intent(out) :: fx, cx
+    real(real64) :: u, v, z, c, pressure
+    u = mx/h; z = g*h; c = sqrt(z); pressure = (z*h)*0.5_real64
+    cx = abs(u) + c
+    if (a == 0) then
+      fx = mx
+    else if (a == 1) then
+      fx = mx*u + pressure
+    else
+      v = my/h
+      fx = mx*v
+    end if
+  end subroutine
+
+  !> Compute the y-direction flux and wave speed at one point.
+  !! Inputs h [m], mx and my [m^2 s^-1], g [m s^-2] and field a are copied
+  !! scalars. Field a is 0 for depth, 1 for x momentum and 2 for y momentum.
+  !! Outputs fy and cy are replaced. cy has units [m s^-1]; fy has units
+  !! [m^2 s^-1] for depth and [m^3 s^-2] for either momentum field.
+  attributes(device) subroutine primitive_y(h, mx, my, g, a, fy, cy)
+    real(real64), value :: h, mx, my, g
+    integer, value :: a
+    real(real64), intent(out) :: fy, cy
+    real(real64) :: v, z, c, pressure
+    v = my/h; z = g*h; c = sqrt(z); pressure = (z*h)*0.5_real64
+    cy = abs(v) + c
+    if (a == 0) then
+      fy = my
+    else if (a == 1) then
+      fy = mx*v
+    else
+      fy = my*v + pressure
+    end if
+  end subroutine
+
   !> Prepare neighbouring points locally and return one field per z block.
   attributes(global) subroutine sw_update_small_fused(nx, ny, q, base, out, work, par, final) bind(C, name='sw_update_small_fused')
     integer(c_int), value :: nx, ny, final
@@ -419,7 +466,7 @@ contains
     real(real64), device, intent(inout) :: out(0:*)
     real(real64) :: east, west, north, south, dx, dy, ell, e, fx0, fxe, fxw, fy0, fyn, fys
     real(real64) :: inverse_x, inverse_y, ae, aw, an, ast
-    real(real64) :: cx0, cy0, cxe, cxw, cyn, cys, unused_flux, unused_speed
+    real(real64) :: cx0, cy0, cxe, cxw, cyn, cys
     integer(int64) :: bits_x, bits_y, exp_x, exp_y
     logical :: exact_spacing
     integer :: t, p, s, i, j, k, a, b, sx, sy
@@ -450,10 +497,10 @@ contains
     do a = blockidx%z - 1, blockidx%z - 1
       b = a*s + k
       call primitive_flux(q(k), q(s + k), q(2*s + k), par(0), a, fx0, fy0, cx0, cy0)
-      call primitive_flux(q(k + 1), q(s + k + 1), q(2*s + k + 1), par(0), a, fxe, unused_flux, cxe, unused_speed)
-      call primitive_flux(q(k - 1), q(s + k - 1), q(2*s + k - 1), par(0), a, fxw, unused_flux, cxw, unused_speed)
-      call primitive_flux(q(k + p), q(s + k + p), q(2*s + k + p), par(0), a, unused_flux, fyn, unused_speed, cyn)
-      call primitive_flux(q(k - p), q(s + k - p), q(2*s + k - p), par(0), a, unused_flux, fys, unused_speed, cys)
+      call primitive_x(q(k + 1), q(s + k + 1), q(2*s + k + 1), par(0), a, fxe, cxe)
+      call primitive_x(q(k - 1), q(s + k - 1), q(2*s + k - 1), par(0), a, fxw, cxw)
+      call primitive_y(q(k + p), q(s + k + p), q(2*s + k + p), par(0), a, fyn, cyn)
+      call primitive_y(q(k - p), q(s + k - p), q(2*s + k - p), par(0), a, fys, cys)
       ae = cxe; if (cx0 >= ae) ae = cx0
       aw = cx0; if (cxw >= aw) aw = cxw
       an = cyn; if (cy0 >= an) an = cy0
@@ -490,4 +537,117 @@ contains
       end if
     end do
   end subroutine
+  !> Prepare one shared tile and advance one complete shallow-water stage.
+  !! nx, ny and final are copied integer inputs. For p=nx+2 and s=p*(ny+2),
+  !! q and base each contain 3*s FP64 state values in the module's units.
+  !! par contains gravity [m s^-2], dx and dy [m], and time step [s].
+  !! out replaces all 3*s stage values and periodic ghosts. work is unused.
+  !! Inputs stay unchanged and out is disjoint for the complete launch.
+  !! Launch 64 threads with grid (ceil(nx/4),ceil(ny/4),1).
+  !! Shared slots hold h, mx, my, three momentum fluxes and two wave speeds.
+  attributes(global) subroutine sw_update_small_tiled4(nx, ny, q, base, out, work, par, final) &
+    bind(C, name='sw_update_small_tiled4')
+    integer(c_int), value :: nx, ny, final
+    real(real64), device, intent(in) :: q(0:*), base(0:*), work(0:*), par(0:*)
+    real(real64), device, intent(inout) :: out(0:*)
+    integer, parameter :: tile_width = 4, shared_side = tile_width + 2
+    integer, parameter :: owned_points = tile_width*tile_width
+    integer, parameter :: prepared_points = shared_side*shared_side
+    real(real64), shared :: tile(0:tile_width + 1, 0:tile_width + 1, 0:7)
+    real(real64) :: h, mx, my, u, v, z, c, pressure, q0
+    real(real64) :: east, west, north, south, dx, dy, ell, e
+    real(real64) :: fx0, fxe, fxw, fy0, fyn, fys, cx0, cy0, cxe, cxw, cyn, cys
+    real(real64) :: inverse_x, inverse_y, ae, aw, an, ast
+    integer(int64) :: bits_x, bits_y, exp_x, exp_y
+    logical :: exact_spacing
+    integer :: t, p, s, i, j, k, a, b, li, lj, cell, pi, pj, fx_field, fy_field
+    t = threadidx%x - 1
+    p = nx + 2; s = p*(ny + 2)
+    ! One thread prepares one point, including the tile's one-cell halo.
+    if (t < prepared_points) then
+      pi = mod(t, shared_side); pj = t/shared_side
+      i = (blockidx%x - 1)*tile_width + pi
+      j = (blockidx%y - 1)*tile_width + pj
+      ! Partial tiles read only valid interior or periodic ghost positions.
+      if (i >= 0 .and. i <= nx + 1 .and. j >= 0 .and. j <= ny + 1) then
+        k = j*p + i
+        h = q(k); mx = q(s + k); my = q(2*s + k)
+        u = mx/h; v = my/h; z = par(0)*h; c = sqrt(z); pressure = (z*h)*0.5_real64
+        tile(pi, pj, 0) = h
+        tile(pi, pj, 1) = mx
+        tile(pi, pj, 2) = my
+        tile(pi, pj, 3) = mx*u + pressure
+        tile(pi, pj, 4) = mx*v
+        tile(pi, pj, 5) = my*v + pressure
+        tile(pi, pj, 6) = abs(u) + c
+        tile(pi, pj, 7) = abs(v) + c
+      end if
+    end if
+    ! Every thread reaches this barrier before any owner can return.
+    call syncthreads()
+    if (t >= 3*owned_points) return
+    a = t/owned_points; cell = mod(t, owned_points)
+    li = mod(cell, tile_width) + 1; lj = cell/tile_width + 1
+    i = (blockidx%x - 1)*tile_width + li
+    j = (blockidx%y - 1)*tile_width + lj
+    if (i > nx .or. j > ny) return
+    k = j*p + i; b = a*s + k
+    q0 = tile(li, lj, a)
+    if (a == 0) then
+      fx_field = 1; fy_field = 2
+    else if (a == 1) then
+      fx_field = 3; fy_field = 4
+    else
+      fx_field = 4; fy_field = 5
+    end if
+    fx0 = tile(li, lj, fx_field); fxe = tile(li + 1, lj, fx_field); fxw = tile(li - 1, lj, fx_field)
+    fy0 = tile(li, lj, fy_field); fyn = tile(li, lj + 1, fy_field); fys = tile(li, lj - 1, fy_field)
+    cx0 = tile(li, lj, 6); cxe = tile(li + 1, lj, 6); cxw = tile(li - 1, lj, 6)
+    cy0 = tile(li, lj, 7); cyn = tile(li, lj + 1, 7); cys = tile(li, lj - 1, 7)
+    ! Each accepted inverse is an exact normal power of two.
+    bits_x = transfer(par(1), bits_x); bits_y = transfer(par(2), bits_y)
+    exp_x = iand(ishft(bits_x, -52), 2047_int64)
+    exp_y = iand(ishft(bits_y, -52), 2047_int64)
+    exact_spacing = iand(bits_x, int(z'800fffffffffffff', int64)) == 0_int64 .and. &
+                    iand(bits_y, int(z'800fffffffffffff', int64)) == 0_int64 .and. &
+                    exp_x >= 1_int64 .and. exp_x <= 2045_int64 .and. &
+                    exp_y >= 1_int64 .and. exp_y <= 2045_int64
+    if (exact_spacing) then
+      inverse_x = transfer(ishft(2046_int64 - exp_x, 52), inverse_x)
+      inverse_y = transfer(ishft(2046_int64 - exp_y, 52), inverse_y)
+    end if
+    ae = cxe; if (cx0 >= ae) ae = cx0
+    aw = cx0; if (cxw >= aw) aw = cxw
+    an = cyn; if (cy0 >= an) an = cy0
+    ast = cy0; if (cys >= ast) ast = cys
+    ae = ae*0.5_real64; aw = aw*0.5_real64; an = an*0.5_real64; ast = ast*0.5_real64
+    east = face(q0, tile(li + 1, lj, a), fx0, fxe, ae)
+    west = face(tile(li - 1, lj, a), q0, fxw, fx0, aw)
+    north = face(q0, tile(li, lj + 1, a), fy0, fyn, an)
+    south = face(tile(li, lj - 1, a), q0, fys, fy0, ast)
+    if (exact_spacing) then
+      dx = (east - west)*inverse_x; dy = (north - south)*inverse_y
+    else
+      dx = (east - west)/par(1); dy = (north - south)/par(2)
+    end if
+    ell = -(dx + dy); e = q0 + par(3)*ell
+    if (final /= 0) then
+      e = base(b)*0.5_real64 + e*0.5_real64
+    end if
+    out(b) = e
+    ! One interior cell owns its periodic copies, including one-cell grids.
+    if (i == 1) out(a*s + j*p + nx + 1) = e
+    if (i == nx) out(a*s + j*p) = e
+    if (j == 1) then
+      out(a*s + (ny + 1)*p + i) = e
+      if (i == 1) out(a*s + (ny + 1)*p + nx + 1) = e
+      if (i == nx) out(a*s + (ny + 1)*p) = e
+    end if
+    if (j == ny) then
+      out(a*s + i) = e
+      if (i == 1) out(a*s + nx + 1) = e
+      if (i == nx) out(a*s) = e
+    end if
+  end subroutine
+
 end module
