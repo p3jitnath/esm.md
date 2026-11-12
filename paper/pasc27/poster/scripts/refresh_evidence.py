@@ -330,6 +330,7 @@ def refresh(
         "date_utc": datetime.now(timezone.utc).date().isoformat(),
         "format": "A0 landscape, 1189 by 841 mm, one native PowerPoint slide and PDF",
         "scatter_artwork": "The PowerPoint uses PNG scatterplots to preserve marker hatches. Editable plotting source, SVG and PDF exports remain separate.",
+        "banner_artwork": "The decorative paisley uses a 400 DPI transparent image in the PDF. The PowerPoint and source SVG retain the vector pattern.",
         "title": identity["title"],
         "author": identity["author"],
         "affiliation": identity["affiliation"],

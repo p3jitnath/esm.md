@@ -164,7 +164,7 @@ ET.ElementTree(banner).write(
 # PowerPoint keeps the SVG and a transparent PNG preview for older viewers.
 drawing = svg2rlg(BytesIO((ASSETS / "paisley-banner.svg").read_bytes()))
 with pymupdf.open(stream=renderPDF.drawToString(drawing), filetype="pdf") as doc:
-    zoom = 111 * 300 / 25.4 / doc[0].rect.height
+    zoom = 111 * 400 / 25.4 / doc[0].rect.height
     doc[0].get_pixmap(matrix=pymupdf.Matrix(zoom, zoom), alpha=True).save(
         ASSETS / "paisley-banner.png"
     )

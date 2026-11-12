@@ -1,4 +1,4 @@
-"""Create editable A0 artwork and export the saved PowerPoint to vector PDF."""
+"""Create editable A0 artwork and export the saved PowerPoint to PDF."""
 
 from pathlib import Path
 from io import BytesIO
@@ -1018,7 +1018,8 @@ for sh in saved.slides[0].shapes:
     x, y, w, h = [v / 12700 for v in (sh.left, sh.top, sh.width, sh.height)]
     if sh.shape_type == MSO_SHAPE_TYPE.PICTURE:
         nodes = sh._element.xpath('.//*[local-name()="svgBlip"]')
-        if nodes:
+        # Keep the decorative texture compact with its print-resolution fallback.
+        if nodes and sh.name != "banner-paisley-outline":
             rid = nodes[0].get(
                 "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
             )
