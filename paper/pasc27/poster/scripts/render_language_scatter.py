@@ -201,7 +201,8 @@ def vector_logo_svg(poster_root, record, width, height, standalone=False):
     poster_root : pathlib.Path
         Publication directory containing the unchanged original SVG.
     record : dict
-        Logo receipt with a source path and source crop viewBox.
+        Logo receipt with source identities and a source crop viewBox. An
+        optional text-outlined rendering asset preserves supplied SVG text.
     width, height : float
         Reserved box dimensions in points.
     standalone : bool
@@ -217,7 +218,11 @@ def vector_logo_svg(poster_root, record, width, height, standalone=False):
     Each internal identifier receives a unique prefix. Gradient and clipping
     references receive the same prefix, so imported artwork cannot collide.
     """
-    root = ET.fromstring((poster_root / record["source_asset"]["path"]).read_bytes())
+    asset = record.get("rendering_asset", record["source_asset"])
+    payload = (poster_root / asset["path"]).read_bytes()
+    if hashlib.sha256(payload).hexdigest() != asset["sha256"]:
+        raise ValueError("The vector artwork differs from its recorded identity.")
+    root = ET.fromstring(payload)
     identifiers = {
         element.attrib["id"]: record["svg_group_id"] + "--" + element.attrib["id"]
         for element in root.iter()
@@ -416,11 +421,23 @@ def poster_language_logos(axis, figure, poster_root):
             "path": relative,
             "sha256": hashlib.sha256(payload).hexdigest(),
         }
+        if source["sha256"] != entry["sha256"]:
+            raise ValueError(f"The {label} artwork differs from its source identity.")
+        rendering_asset = None
+        if "rendering_file" in entry:
+            relative = "assets/language-logos/" + entry["rendering_file"]
+            payload = (poster_root / relative).read_bytes()
+            rendering_asset = {
+                "path": relative,
+                "sha256": hashlib.sha256(payload).hexdigest(),
+            }
+            if rendering_asset["sha256"] != entry["rendering_sha256"]:
+                raise ValueError(
+                    "The outlined text differs from its recorded identity."
+                )
         image = Image.open(
             BytesIO(cairosvg.svg2png(bytestring=payload, output_width=1600))
         ).convert("RGBA")
-        if source["sha256"] != entry["sha256"]:
-            raise ValueError(f"The {label} artwork differs from its source identity.")
         bounds = image.getchannel("A").getbbox()
         if bounds is None:
             raise RuntimeError(f"The {label} artwork has no visible pixels.")
@@ -432,8 +449,11 @@ def poster_language_logos(axis, figure, poster_root):
             (bounds[2] - bounds[0]) * source_units_per_pixel,
             (bounds[3] - bounds[1]) * source_units_per_pixel,
         ]
+        if rendering_asset is not None and bounds == (0, 0, image.width, image.height):
+            # Keep exact vector bounds when the outlined source has no border.
+            vector_view_box = source_view_box
         image = image.crop(bounds)
-        # Keep the accepted Assembly frame and fit its square artwork inside it.
+        # Keep the accepted Assembly frame and original artwork proportions.
         frame_pixels = [199, 173] if name == "assembly" else None
         limit = frame_pixels or [
             max_width_mm / 25.4 * dpi,
@@ -483,11 +503,23 @@ def poster_language_logos(axis, figure, poster_root):
                 "svg_group_id": artist.get_gid(),
                 "provenance": {**manifest, "asset": name},
                 "source_asset": source,
+                **(
+                    {
+                        "rendering_asset": rendering_asset,
+                        "text_outlining": entry["text_outlining"],
+                    }
+                    if rendering_asset is not None
+                    else {}
+                ),
                 "source_format": "SVG",
                 "vector_formats": ["svg", "pdf"],
                 "source_crop_view_box": vector_view_box,
                 "export_representation": {
-                    "svg": "original SVG vectors",
+                    "svg": (
+                        "original polygons and outlined text"
+                        if rendering_asset is not None
+                        else "original SVG vectors"
+                    ),
                     "pdf": "vector PDF form",
                     "png": "raster",
                 },

@@ -45,12 +45,38 @@
       "svg_group_id": "language-logo-assembly",
       "provenance": {
         "path": "assets/language-logos/provenance.json",
-        "sha256": "4eaba23683b3d805f56c23c52877772fa8bc187c1cb543ff1389d40c37f621ec",
+        "sha256": "f82be291cb5bbd61192f5b61802681e150ad8759371521553f623b54c84eee10",
         "asset": "assembly"
       },
       "source_asset": {
         "path": "assets/language-logos/assembly_logo.svg",
-        "sha256": "377e2ebb2565b02f09302b5e759ce55ea3d7f426f26ba447e85409d6a7c60cbe"
+        "sha256": "a0acc40a6b2ab4869350764de244907ad5a566042a5bd8b7cb4badd397d826c1"
+      },
+      "rendering_asset": {
+        "path": "assets/language-logos/assembly_logo_outlined.svg",
+        "sha256": "70f5893aea31402bb589d09e7dac61d4d129e8821fd9cdf5a68d6d7b58b71ade"
+      },
+      "text_outlining": {
+        "method": "Only the live ASM text is converted to vector glyph paths through CairoSVG PDF text and PyMuPDF SVG path export. Original polygons and clipping geometry are retained.",
+        "source_text": "ASM",
+        "font_family": "Nimbus Sans",
+        "font_style": "Regular",
+        "postscript_name": "NimbusSans-Regular",
+        "font_sha256": "7c25be4d78155523080ab85b10277150657ff7dabbcad7037bdd536c9b6d0d08",
+        "font_source": "NimbusSans-Regular.otf from the pinned graph-plotting bundle",
+        "font_license_note": "The font is under GNU AGPL version 3 with the font document-embedding exception. No font binary is redistributed.",
+        "cairosvg_version": "2.9.1",
+        "pymupdf_version": "1.28.2",
+        "source_text_attributes": {
+          "x": "546",
+          "y": "608",
+          "text-anchor": "middle",
+          "fill": "#FFFFFF",
+          "font-family": "Nimbus Sans, Helvetica, Arial, sans-serif",
+          "font-size": "356",
+          "font-weight": "400",
+          "letter-spacing": "-4"
+        }
       },
       "source_format": "SVG",
       "vector_formats": [
@@ -58,20 +84,20 @@
         "pdf"
       ],
       "source_crop_view_box": [
-        4.5,
-        4.5,
-        87.0,
-        87.0
+        0.0,
+        0.0,
+        1092.0,
+        936.0
       ],
       "export_representation": {
-        "svg": "original SVG vectors",
+        "svg": "original polygons and outlined text",
         "pdf": "vector PDF form",
         "png": "raster"
       },
       "raster": {
         "purpose": "layout bounds only",
         "encoding": "RGBA8 layout preview",
-        "pixel_sha256": "4320d75ff1bbc6f7c9f8220f6122dab19335e9b384e8841ce4c2c2308612bf4b",
+        "pixel_sha256": "0f3722c4dd71dc0f1c8fbb47c5d00a41f1c32990a918f08ad31f176baa7f7180",
         "pixels": [
           199,
           173
@@ -107,7 +133,7 @@
       "svg_group_id": "language-logo-fortran",
       "provenance": {
         "path": "assets/language-logos/provenance.json",
-        "sha256": "4eaba23683b3d805f56c23c52877772fa8bc187c1cb543ff1389d40c37f621ec",
+        "sha256": "f82be291cb5bbd61192f5b61802681e150ad8759371521553f623b54c84eee10",
         "asset": "fortran"
       },
       "source_asset": {
@@ -169,7 +195,7 @@
       "svg_group_id": "language-logo-julia",
       "provenance": {
         "path": "assets/language-logos/provenance.json",
-        "sha256": "4eaba23683b3d805f56c23c52877772fa8bc187c1cb543ff1389d40c37f621ec",
+        "sha256": "f82be291cb5bbd61192f5b61802681e150ad8759371521553f623b54c84eee10",
         "asset": "julia"
       },
       "source_asset": {
@@ -231,7 +257,7 @@
       "svg_group_id": "language-logo-python",
       "provenance": {
         "path": "assets/language-logos/provenance.json",
-        "sha256": "4eaba23683b3d805f56c23c52877772fa8bc187c1cb543ff1389d40c37f621ec",
+        "sha256": "f82be291cb5bbd61192f5b61802681e150ad8759371521553f623b54c84eee10",
         "asset": "python"
       },
       "source_asset": {
@@ -5195,9 +5221,9 @@
   "scope": "Accepted supplied summaries are drawn unchanged. Metadata checks do not repeat scientific verification.",
   "findings": [],
   "outputs": {
-    "figures/poster/language_energy_rates.pdf": "6a9e2d9970466f7d87430907829a30185bc0d5406fb188ab1c57a12339cf2afe",
-    "figures/poster/language_energy_rates.png": "a2c47a69b0605ef187c2c7e1d77f4fdb29a3a8e9dd430af5dc87e61de99df083",
-    "figures/poster/language_energy_rates.svg": "25423bd31307b1c3d77ab9ca5743d08675d33635d6252abc9f1306d497f16bf8"
+    "figures/poster/language_energy_rates.pdf": "4ad1e73b0fbdae211ccb2727ff74ddb70f7890136537508e213d54640564834b",
+    "figures/poster/language_energy_rates.png": "9beabbfbdec74535211f8c15fd189cb1390b8a36a3aecdebcf33827775972fea",
+    "figures/poster/language_energy_rates.svg": "c8a896643efdf01a97993916e08ebeec7e49651d39bc06f9a0cabf6b69a81b97"
   },
   "input_identity": {
     "path": "data/fresh-language-comparison-input.json",
@@ -5205,6 +5231,6 @@
   },
   "renderer_identity": {
     "path": "scripts/render_language_scatter.py",
-    "sha256": "d84dbd632d99ac350118718b1d82f238bbad2accea6532ced3ab658f74dfd25f"
+    "sha256": "435cf476775f040f6af2750f2534bda74e106de18fdb80272efddc82b23ef002"
   }
 }

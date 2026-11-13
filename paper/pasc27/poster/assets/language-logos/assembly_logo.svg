@@ -1,15 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" role="img" aria-labelledby="assembly-title assembly-description">
-  <title id="assembly-title">Assembly language pictogram</title>
-  <desc id="assembly-description">An original dark teal processor chip with twelve pins and white ASM lettering, created for the esm.md research poster.</desc>
-  <metadata>SPDX-License-Identifier: MIT. Copyright (c) 2026 esm.md contributors. Original artwork created for this poster.</metadata>
-  <g fill="none" stroke="#174E47" stroke-width="7" stroke-linecap="round">
-    <path d="M30 8V18 M48 8V18 M66 8V18 M30 78V88 M48 78V88 M66 78V88"/>
-    <path d="M8 30H18 M8 48H18 M8 66H18 M78 30H88 M78 48H88 M78 66H88"/>
-  </g>
-  <rect x="16" y="16" width="64" height="64" rx="11" fill="#174E47"/>
-  <g fill="none" stroke="#FFFFFF" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M24 59L31 37L38 59 M26.3 52H35.7"/>
-    <path d="M54.2 39.8C52.8 37.9 50.7 37 48.4 37C44.7 37 42.5 39 42.5 42.4C42.5 45.4 44.6 46.8 48.4 48C52.2 49.2 54.5 50.7 54.5 54.1C54.5 57.2 52.1 59 48.4 59C45.9 59 43.5 58.1 41.8 56"/>
-    <path d="M60 59V37L67 49L74 37V59"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1092 936" width="1092" height="936">
+  <defs>
+    <clipPath id="hexClip">
+      <polygon points="273,0 819,0 1092,468 819,936 273,936 0,468"/>
+    </clipPath>
+  </defs>
+
+  <!-- Transparent background; canvas is tightly cropped to the hexagon bounds. -->
+  <polygon fill="#5968C8" points="273,0 819,0 1092,468 819,936 273,936 0,468"/>
+
+  <!-- Dark-blue half, split diagonally from lower-left to upper-right. -->
+  <polygon clip-path="url(#hexClip)" fill="#0754A8" points="273,0 819,0 273,936 0,468"/>
+
+  <!-- Lettering -->
+  <text x="546" y="608"
+        text-anchor="middle"
+        fill="#FFFFFF"
+        font-family="Nimbus Sans, Helvetica, Arial, sans-serif"
+        font-size="356"
+        font-weight="400"
+        letter-spacing="-4">ASM</text>
 </svg>
