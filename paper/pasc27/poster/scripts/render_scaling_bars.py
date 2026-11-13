@@ -519,7 +519,7 @@ def draw_scaling(
             figure.text(
                 centre,
                 0.89,
-                "Shallow water" if name == "sw" else "Energy balance",
+                "SW" if name == "sw" else "EBM",
                 fontsize=9.5,
                 fontweight="bold",
                 ha="center",
