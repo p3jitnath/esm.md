@@ -1,17 +1,19 @@
-# ESM.md PASC27 study
+# ESM.md - PASC’27
 
-This branch accompanies *ESM.md: From Markdown Physics to Verified, Optimised Earth System Model Solvers* by Pritthijit Nath, Sebastian Schemm and Mark J. Webb. It contains the source and data for the periodic shallow-water and zonal-mean energy-balance experiments on CPUs and GPUs.
+This branch accompanies *ESM.md: From Markdown Physics to Verified, Optimised Earth System Model Solvers* by Pritthijit Nath, Sebastian Schemm and Mark J. Webb. It contains the code and data for the shallow-water and energy-balance experiments.
 
-| Model | Physics and numerical method | CPU and GPU code |
+## Model Sources
+
+| Model | Physics and method | Active solvers |
 | --- | --- | --- |
-| Shallow water (SW) | [Formulation](formulations/sw/shallow_water.md) and [solver specification](formulations/sw/shallow_water_specification.md) | [Fortran](src/sw/solver.f90) and [CUDA Fortran](src/sw/gpu/solver.cuf) |
-| Energy balance (EBM) | [Formulation](formulations/ebm/budyko_sellers.md) and [solver specification](formulations/ebm/budyko_sellers_specification.md) | [Fortran](src/ebm/solver.f90) and [CUDA Fortran](src/ebm/gpu/solver.cuf) |
+| Shallow water (SW) | [Formulation](formulations/sw/shallow_water.md), [specification](formulations/sw/shallow_water_specification.md) | [Fortran](src/sw/solver.f90), [CUDA Fortran](src/sw/gpu/solver.cuf) |
+| Energy balance (EBM) | [Formulation](formulations/ebm/budyko_sellers.md), [specification](formulations/ebm/budyko_sellers_specification.md) | [Fortran](src/ebm/solver.f90), [CUDA Fortran](src/ebm/gpu/solver.cuf) |
 
-The [shared specifications](formulations/general/) describe how the CPU workers and GPU kernels advance a grid. The [md2fort](skills/md2fort/SKILL.md) and [md2fort-gpu](skills/md2fort-gpu/SKILL.md) skills describe the generation and verification workflow.
+The [shared specifications](formulations/general/) describe parallel execution. The [md2fort](skills/md2fort/SKILL.md) and [md2fort-gpu](skills/md2fort-gpu/SKILL.md) skills guide generation and verification.
 
-## Check the data and build the solvers
+## Build and Check
 
-Run from the repository root with Python 3.11 or later, NumPy and GNU Fortran. The first command verifies the frozen source and array hashes and writes the rates as a CSV file. The second compiles the two portable CPU solvers.
+From the repository root, use Python 3.11 or later with NumPy to check the saved inputs and recalculate the published rates. Use GNU Fortran to build both portable CPU solvers.
 
 ```bash
 python -m pip install numpy==2.4.6
@@ -20,14 +22,23 @@ python reproduction/verify_data.py > .scratch/rates.csv
 python reproduction/build_native.py cpu
 ```
 
-The [reproduction guide](reproduction/README.md) gives the native study builds, source map and measurement conditions. It explains how to use the six [frozen input and reference banks](reproduction/inputs/manifest.json) and identifies the assembly, PTX, tuned and vanilla controls.
+The [reproduction guide](reproduction/README.md) maps the study builds, frozen inputs and comparison sources.
 
-## Results and poster
+## Results and Poster
 
-The [language comparison dataset](paper/pasc27/poster/data/fresh-language-comparison-input.json) contains 96 conditions and 1,152 elapsed times. The [separate CPU scaling dataset](paper/pasc27/poster/data/cpu-scaling-results-20261112.json) covers six grids and 11 CPU budgets, with 12 timing pairs per condition. For each condition, the rate is the number of complete interior cell updates divided by the median elapsed time. The plotted endpoints are the smallest and largest rates observed across the individual runs.
+The [language comparisons](paper/pasc27/poster/data/fresh-language-comparison-input.json) cover 96 conditions with 12 runs each. The [CPU scaling sweep](paper/pasc27/poster/data/cpu-scaling-results-20261112.json) covers six grids and 11 CPU budgets. Each point divides the number of complete interior cell updates by the median elapsed time, and each range spans the lowest and highest observed rates.
 
-The [poster project](paper/pasc27/poster/) includes the [PDF](paper/pasc27/poster/esm-md-a0-landscape.pdf), [editable PowerPoint](paper/pasc27/poster/esm-md-a0-landscape.pptx) and plotting sources. Its data directory also retains the input and reference files for the separate physical illustrations.
+The [poster project](paper/pasc27/poster/) includes the [PDF](paper/pasc27/poster/esm-md-a0-landscape.pdf), [PowerPoint](paper/pasc27/poster/esm-md-a0-landscape.pptx) and plotting scripts. The software uses the [MIT licence](LICENSE). The [poster assets](paper/pasc27/poster/assets/asset-urls.json) and [logos](paper/pasc27/poster/assets/language-logos/ATTRIBUTION.md) retain their own terms and credits.
 
-The ESM.md software is available under the [MIT License](LICENSE). The poster marks, artwork and fonts retain their separate terms and credit. See the [language logo credits](paper/pasc27/poster/assets/language-logos/ATTRIBUTION.md) and [poster asset sources](paper/pasc27/poster/assets/asset-urls.json).
+## How to Cite
 
-When reusing these artifacts, cite the study title and the commit of this branch that you used.
+Cite this code and data release with [CITATION.cff](CITATION.cff) or the BibTeX below.
+
+```bibtex
+@misc{nath2026esmmd,
+  author = {Nath, Pritthijit and Schemm, Sebastian and Webb, Mark J.},
+  title  = {{ESM.md} - {PASC’27}},
+  year   = {2026},
+  url    = {https://github.com/p3jitnath/esm.md/tree/83295ed7b522f8b6ca63c384d8ddcb2892fcb75f}
+}
+```

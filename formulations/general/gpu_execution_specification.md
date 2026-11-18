@@ -1,6 +1,6 @@
 # GPU Execution Specification
 
-Revision 1.5 carries the verified shallow-water and energy-balance methods to an NVIDIA GH200. The [water formulation](../sw/shallow_water.md) and [Rusanov–SSPRK2 specification](../sw/shallow_water_specification.md), and the [energy-balance formulation](../ebm/budyko_sellers.md) and [numerical specification](../ebm/budyko_sellers_specification.md), remain authoritative for equations, ordered arithmetic, stability, supported inputs and canonical bytes. This reference fixes GPU execution and does not change the physical models.
+Revision 1.5 defines GPU execution on one NVIDIA GH200. The [shallow-water](../sw/shallow_water_specification.md) and [energy-balance](../ebm/budyko_sellers_specification.md) specifications govern the equations, ordered arithmetic, stability, supported inputs and output bytes.
 
 ## Target and Direct Sources
 
@@ -45,7 +45,7 @@ Above 128 bands, `eb_temporal` uses 128-thread tiles. Each tile owns 112 bands a
 
 Only owned threads return the last preceding state to `out`, the last first stage to `stage`, and the last final state to `work`, with unique pole owners. The tile never changes global `q`. After all tiles finish, `eb_publish` restores physical rows. For an even batch, `q` receives `work` while `out` retains the preceding state. For an odd batch, `q` receives the preceding `out` and `out` receives `work`. Full batches contain four steps, followed by an optional remainder. No tile reads another tile’s newly produced state.
 
-## Exact Spacing Dispatch and Repeated Calls
+## Spacing and Repeated Calls
 
 A positive normal power-of-two spacing with a finite normal exact inverse permits multiplication by that inverse in place of division, because both operations round the same real value once. Its sign and fraction bits are zero and its stored exponent is from 1 to 2045. The inverse’s stored exponent is 2046 minus the original exponent. Water takes this path only when both spacings qualify. Other spacings retain correctly rounded division. Dispatch happens once before the whole component calculation or repeated loop. `division_check` exposes the same inverse construction and rounded operation for independent CPU edge-value checks.
 
@@ -68,7 +68,7 @@ Before each accepted batch, the evaluator verifies the owned exclusive node, fix
 
 The archived final comparison used `nid010353`, exclusive job `7143612`, host CPU 0 and one NVIDIA GH200 120GB with 132 streaming multiprocessors. GPU clocks were 1980 MHz, temperature 36 to 38 degrees Celsius and observed power 130.7 to 171.8 W. Sampling occurred outside kernel timing and does not give energy per update. These records describe that completed study and are not a substitute for live quiet-node checks in a new run.
 
-## Performance Guides and Evidence
+## Performance Evidence
 
 Compatible device probes measure ordinary rounded arithmetic, division, square root, cache and streaming copies, and launch rate. A performance guide takes the smallest relevant operation, logical-memory or launch guide for the actual schedule. Include expanded tile work, publication traffic, small-grid occupancy and repeated-buffer costs. Logical copy bytes do not equal measured hardware transactions. The guides assume independent arithmetic and optimistic reuse or cache residence, so dependencies and barriers can lower observed performance.
 
@@ -84,7 +84,7 @@ Compatible device probes measure ordinary rounded arithmetic, division, square r
 The [main README](../../README.md) gives the accepted GPU comparison. Original source versions, controls, host tools, detailed build commands, binary hashes, instruction audits, physical results, repeated samples, performance-guide counts and editable figures are retained in the ignored local GPU research archive. The source-branch archive manifest records their original paths and hashes before reorganisation. The direct PTX instructions retain their qualified numerical behaviour when the source files move into the current model folders. Rebuilding and remeasuring is required if numerical instructions, launch rules, target or controls change.
 
 
-## ESM.md CUDA Fortran Execution and Build
+## CUDA Fortran Builds
 
 The 12 November 2026 variants publish [shallow-water CUDA Fortran](../../src/sw/gpu/solver.cuf) and [energy-balance CUDA Fortran](../../src/ebm/gpu/solver.cuf). The equations, ordered FP64 arithmetic, state layouts, parameters, canonical bytes and inherited dimension bounds remain those of the numerical specifications above. CUDA Fortran requires a supporting NVIDIA compiler. The qualified build targets compute capability 9.0; another host, GPU or toolchain requires a new build and numerical qualification.
 

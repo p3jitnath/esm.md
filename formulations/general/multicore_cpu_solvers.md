@@ -1,8 +1,8 @@
 # Multicore CPU solver specification
 
-This extension applies to the [shallow-water solver](../../src/sw/solver.f90) and [energy-balance solver](../../src/ebm/solver.f90). Their [shallow-water](../sw/shallow_water_specification.md) and [energy-balance](../ebm/budyko_sellers_specification.md) specifications still define the physics, ordered binary64 arithmetic, serial interfaces and output encoding. This extension changes how workers share one coupled domain, while preserving every required returned state bit.
+Multiple CPU workers share one domain while preserving the serial interfaces, ordered binary64 arithmetic and every required output bit. See the [shallow-water](../sw/shallow_water_specification.md) and [energy-balance](../ebm/budyko_sellers_specification.md) specifications.
 
-OpenMP supplies concurrent CPU workers. The Fortran coordinator owns tile gathering, both numerical stages, repeated time steps, state publication and boundary copies. A comparison driver restores inputs and calls this complete solver. It supplies no numerical stage.
+OpenMP runs the workers concurrently. The comparison driver restores inputs and calls the Fortran coordinator, which gathers tiles, runs both stages and every time step, publishes state and copies boundaries.
 
 ## Public C interfaces
 
@@ -79,7 +79,7 @@ S=8192\left\lceil\frac{m+2}{8192}\right\rceil,
 
 A one-worker energy-balance call uses only `n+2` scratch elements. The capacity rounding is part of the current storage recipe. It does not increase the minimum eight-byte alignment requirement. The caller supplies `workspace_values >= V` for a positive count.
 
-## Complete updates and returned states
+## Complete Updates
 
 Both models have two stages that read immediate neighbours. A group of `k` complete steps therefore has a dependency radius of `2*k` cells. Each worker gathers enough neighbouring values to protect its owned cells throughout the group and computes the expanded tile. Shallow-water overlap wraps periodically, while an unpartitioned direction retains its true periodic boundary. Energy-balance overlap stops at the true poles. Artificial tile boundaries cannot affect an owned returned value within the group.
 
@@ -89,7 +89,7 @@ Boundary owners also publish the global ghosts directly from protected local scr
 
 After a positive odd count, `out` holds the final complete state and `q` the preceding complete state. After a positive even count, `q` is final and `out` is preceding. `stage` always holds the first stage of the final complete step. These roles depend on the total count, including a partial final group. A one-worker call invokes the complete serial kernel directly with the original scratch view and retains the same returned-state rules.
 
-## Status and floating-point environment
+## Floating-Point Status
 
 The run entries return C `int` status `0` on success, `-1` for unsupported sizes, partitions, counts or insufficient positive-count workspace, and `-2` when the OpenMP runtime does not supply the requested team. These rejected calls change no state or scratch array. Pointer validity, nonoverlap and a compatible positive-count callback are caller obligations.
 

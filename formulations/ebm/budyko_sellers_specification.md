@@ -1,6 +1,6 @@
-# Energy-balance solver specification
+# Energy Balance Specification
 
-This reference records the numerical choices derived from the [basic model note](budyko_sellers.md). A numerical method replaces continuous space and time with cells and steps; the specification fixes those choices, the order of arithmetic, and the required outputs so that implementations can be compared exactly. Read it when generating or changing this model. The verified equations and revision below are retained unchanged.
+Use this specification with the [basic model note](budyko_sellers.md) when generating or changing the solver. It fixes the verified grid, time steps, arithmetic order and output bytes so implementations can be compared exactly.
 
 ## 01. Document control
 
@@ -18,7 +18,7 @@ This reference records the numerical choices derived from the [basic model note]
 
 </details>
 
-## 02. Physical scope and assumptions
+## 02. Physical Scope
 
 The state is surface temperature averaged around each latitude band, with constant heat capacity, linear outgoing longwave radiation (OLR), idealised annual insolation, diffusive meridional heat transport, and a temperature threshold for ice albedo. Seasonal forcing, moisture, explicit ice dynamics, and longitude dependence are absent because this operation isolates the annual-mean energy balance.
 
@@ -60,7 +60,7 @@ The state is the mean surface temperature $`T_i`$ of latitude band $`i`$, in deg
 
 </details>
 
-## 04. Domain, geometry, state, and parameters
+## 04. Domain and State
 
 | Item | Definition |
 | --- | --- |
@@ -98,7 +98,7 @@ C\,\partial_tT&=(1-\alpha)Q[1+s_2P_2(\mu)]-(A+BT)\\
 
 Every term in P01 has units W m⁻²; its diffusion term redistributes heat without supplying a global source.
 
-## 06. Initial and boundary conditions
+## 06. States and Boundaries
 
 | ID | Definition |
 | --- | --- |
@@ -180,7 +180,7 @@ T_i^1=e_i(T^n),\qquad T_i^{n+1}=R(R(T_i^n/2)+R(e_i(T^1)/2)).
 
 BC01 belongs to the solver and is applied to the input, first stage, and final state. The stability condition controls the linear diffusion and radiation terms; it does not establish smoothness across the discontinuous ice threshold.
 
-## 09. Invariants and admissible states
+## 09. Invariants and Bounds
 
 **I01. Global heat budget**
 
@@ -197,7 +197,7 @@ The identity holds in real arithmetic because the shared face fluxes telescope, 
 | Temperature | Finite within the model's validity range; Finite at every stage; −100≤T≤100 °C |
 | State and coefficients | Reflection symmetry for symmetric inputs; Symmetry up to rounding; A03 |
 
-## 10. Numerical representation and operation specification
+## 10. Arithmetic and Storage
 
 Each implementation follows the same ordered binary64 operations and returns both complete time stages. The specification below specifies all buffers, threshold ties, signed zeros, and output bytes.
 
@@ -241,7 +241,7 @@ The repeated-step entry alternates q and out, placing the final state in out for
 
 </details>
 
-### Portable Fortran implementation
+### Portable Fortran
 
 The [Fortran solver](../../src/ebm/solver.f90) owns both time stages, the repeated time loop and the pole copies. Its serial `eb_step` and `eb_run` entries use `ISO_C_BINDING`, which makes their argument types and calling rules explicit for a C caller. The source describes array shapes, units, ownership and mutation beside each entry. The cell count is a runtime input, so the same compiled library handles every supported grid without recompilation.
 

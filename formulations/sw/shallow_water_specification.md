@@ -1,6 +1,6 @@
-# Two-dimensional Rusanov–SSPRK2 solver specification
+# Shallow Water Specification
 
-This reference records the numerical choices derived from the [basic model note](shallow_water.md). A numerical method replaces continuous space and time with cells and steps; the specification fixes those choices, the order of arithmetic, and the required outputs so that implementations can be compared exactly. Read it when generating or changing this model. The verified equations and revision below are retained unchanged.
+Use this specification with the [basic model note](shallow_water.md) when generating or changing the solver. It fixes the verified grid, time steps, arithmetic order and output bytes so implementations can be compared exactly.
 
 ## 01. Document control
 
@@ -18,7 +18,7 @@ This reference records the numerical choices derived from the [basic model note]
 
 </details>
 
-## 02. Physical scope and assumptions
+## 02. Physical Scope
 
 The model describes depth-averaged flow over a flat bed, using hydrostatic pressure and constant gravitational acceleration. The initial study keeps all depths positive and excludes rotation, external forcing, friction, wetting, drying, and topography.
 
@@ -75,7 +75,7 @@ Left and right subscripts denote states adjacent to an interface; west, east, so
 
 </details>
 
-## 04. Domain, geometry, state, and parameters
+## 04. Domain and State
 
 The domain is $`[0,L_x)\times[0,L_y)`$, with opposite faces identified. The x and y axes point east and north, so outward normal signs follow those directions and there are no coordinate singularities.
 
@@ -146,7 +146,7 @@ Use 80 bisection iterations on $`[h_R,h_L]`$ for the physical reference. With $`
 
 The transverse momentum is zero. Split each comparison cell at the wave boundaries, then integrate each smooth segment with two-point Gauss quadrature: for segment endpoints $`b_0,b_1`$, evaluate their midpoint plus and minus $`(b_1-b_0)/(2\sqrt3)`$, multiply the sum by $`(b_1-b_0)/2`$, and divide the total integral by the cell width. This integrates the quadratic fan depth and cubic fan momentum exactly in real arithmetic. Exchange x and y for the second case.
 
-## 06. Initial and boundary conditions
+## 06. States and Boundaries
 
 Cell centres are $`x_i=(i-1/2)\Delta x,\ y_j=(j-1/2)\Delta y`$, for interior indices $`1\leq i\leq n_x,\ 1\leq j\leq n_y`$. The evaluator generates each initial array once, and every solver reads the same resulting binary64 values.
 
@@ -218,7 +218,7 @@ Each face uses its two adjacent cell states, including copied periodic halos. Al
 
 For IC04, use $`H_b=2`$ m in the provisional time-step rule. Update the input halo before its divergence, the stage halo before the second divergence, and the final halo before returning a complete step.
 
-## 09. Invariants and admissible states
+## 09. Invariants and Bounds
 
 **I01. Periodic budgets**
 
@@ -236,7 +236,7 @@ B_a=\Delta x\Delta y\sum_{j=1}^{n_y}\sum_{i=1}^{n_x}q_{aij},
 
 The evaluator computes budgets in a deterministic component, row, and column order using compensated or accurately rounded summation, outside timed work.
 
-## 10. Numerical representation and operation specification
+## 10. Arithmetic and Storage
 
 Each implementation follows the same ordered binary64 operations, including every intermediate rounding point. The complete specification below defines storage, signed zeros, tie rules, and the bytes that must agree.
 
@@ -362,7 +362,7 @@ A direct byte comparison decides V02, including signed zeros and deterministic h
 
 The first study concerns this positive-depth, periodic component and this binary64 operation specification. It does not establish dry-state behaviour, physical fidelity of an entire Earth system model, formal correctness, cross-architecture reproducibility, or global machine optimality. All equations needed by the implementations and independent verifier are included above, while the references establish their scientific origin.
 
-## 13. Portable Fortran CPU implementation
+## 13. Portable Fortran
 
 The [Fortran solver](../../src/sw/solver.f90) implements the unchanged revision 1.0 physics through D03, D04 and T01. It uses runtime dimensions, so one compiled library handles the admitted grids without recompilation. The earlier [assembly source](https://github.com/p3jitnath/esm.md/blob/8be04b8/src/sw/solver.S) is archived locally with its historical evidence and remains available in Git history.
 

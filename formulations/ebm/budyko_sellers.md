@@ -1,10 +1,10 @@
 # Budyko–Sellers energy balance
 
-## The idea
+## Model Idea
 
-This model describes how the Earth's average surface temperature changes with latitude. Sunlight adds heat, radiation removes heat, and heat transport smooths temperature differences between neighbouring latitude bands. Conditions are averaged over longitude and the year. Each latitude band has one temperature, so the model describes broad climate patterns and the balance between incoming and outgoing energy.
+The model gives one surface temperature per latitude band, using conditions averaged over longitude and the year. Sunlight adds heat, radiation removes it, and transport smooths temperature differences between neighbouring bands.
 
-## Symbols
+## Symbols and Units
 
 | Symbol | Meaning and unit |
 | --- | --- |
@@ -19,7 +19,7 @@ This model describes how the Earth's average surface temperature changes with la
 
 Latitude $`\varphi`$ is measured in radians. A temperature change of 1 °C equals a change of 1 K. A partial derivative measures change with one variable while the other variables stay fixed.
 
-## Equations
+## Governing Equations
 
 **P01. Heat balance**
 
@@ -32,15 +32,15 @@ C\frac{\partial T}{\partial t}
 \end{aligned}
 ```
 
-The left side is stored heat changing with time. The three terms on the right are absorbed sunlight, heat lost through radiation, and heat received from neighbouring latitude bands. Each term is a power per area, measured in W/m². When their sum is positive, the surface warms; when it is negative, the surface cools. The heat capacity sets how quickly the temperature responds.
+Stored heat changes at the rate given by absorbed sunlight, radiative losses and exchange with neighbouring bands. Each term is a power per area [W/m²]. The surface warms when the sum is positive and cools when it is negative, with heat capacity setting the response rate.
 
-The function $`P_2`$ gives a simple variation with latitude, and $`s_2`$ sets its strength:
+The function $`P_2`$ gives the variation with latitude, and $`s_2`$ sets its strength.
 
 ```math
 P_2(\mu)=\frac{3\mu^2-1}{2},\qquad Q=\frac{S_0}{4}.
 ```
 
-Here $`S_0`$ is the incoming solar flux. The factor 1/4 converts sunlight intercepted by a disc to an average over a sphere. The latitude function makes the average sunlight stronger near the Equator and weaker near the poles.
+The factor 1/4 converts the incoming solar flux $`S_0`$ intercepted by a disc to a spherical average. The latitude function gives stronger sunlight near the Equator and weaker sunlight near the poles.
 
 **P02. Reflected sunlight**
 
@@ -52,9 +52,9 @@ a_0+a_2P_2(\mu),&T>T_f.
 \end{cases}
 ```
 
-Cold cells use the ice value $`a_i`$. Warmer cells use the latitude-dependent value. This reflected fraction is called albedo: a value of 0.62 means that 62% of the incoming sunlight is reflected. The threshold $`T_f`$ is the temperature at which the ice rule applies.
+Albedo is the fraction of incoming sunlight reflected, so 0.62 means 62% is reflected. Cells at or below the threshold $`T_f`$ use the ice value $`a_i`$, and warmer cells use the latitude-dependent value.
 
-## Parameters, initial state, and boundaries
+## Parameters and Boundaries
 
 | Parameter | Study value |
 | --- | --- |
@@ -71,4 +71,4 @@ D(1-\mu^2)\frac{\partial T}{\partial\mu}=0
 \qquad\text{at }\mu=-1,\ 1.
 ```
 
-Physics revision: 1.1. [md2fort](../../skills/md2fort/SKILL.md) derives the numerical method and implementation; its [solver specification](budyko_sellers_specification.md) preserves the verified choices and equation IDs.
+The physics revision is 1.1. The [solver specification](budyko_sellers_specification.md) records the verified choices derived with [md2fort](../../skills/md2fort/SKILL.md).
