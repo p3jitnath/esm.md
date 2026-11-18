@@ -454,7 +454,7 @@ def poster_language_logos(axis, figure, poster_root):
             vector_view_box = source_view_box
         image = image.crop(bounds)
         # Keep the accepted Assembly frame and original artwork proportions.
-        frame_pixels = [199, 173] if name == "assembly" else None
+        frame_pixels = [219, 190] if name == "assembly" else None
         limit = frame_pixels or [
             max_width_mm / 25.4 * dpi,
             max_height_mm / 25.4 * dpi,
