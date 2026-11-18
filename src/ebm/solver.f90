@@ -1,6 +1,6 @@
 !> Advance the energy-balance model with the frozen two-stage update.
 !! Physics input formulations/ebm/budyko_sellers.md, revision 1.1.
-!! The numerical and storage rules are in skills/md2fort/references/budyko_sellers.md.
+!! The numerical and storage rules are in formulations/ebm/budyko_sellers_specification.md.
 !! All calculations use binary64 values. The compiler produces the machine code.
 !! The caller supplies round-to-nearest arithmetic with gradual underflow.
 module esm_energy_balance

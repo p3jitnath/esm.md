@@ -335,7 +335,7 @@ def refresh(
         "author": identity["author"],
         "affiliation": identity["affiliation"],
         "implementation_label": "ESM.md",
-        "generation_route": "Markdown physics and frozen contracts guide Fortran and CUDA Fortran candidates. Compilers build these solvers, while the separate PTX baseline is assembled.",
+        "generation_route": "Markdown physics and frozen specifications guide Fortran and CUDA Fortran candidates. Compilers build these solvers. Handwritten CPU assembly and directly assembled GPU PTX serve as baselines.",
         "physics": physics,
         "performance_source": manifest["input"]["path"],
         "performance_source_sha256": input_sha,

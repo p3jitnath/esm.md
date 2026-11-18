@@ -14,7 +14,7 @@ Production commands consume the published accepted files through `--input`. Hist
 
 Each rate point is the useful interior-cell update count divided by the median of twelve recorded times. Thin lines retain the observed minimum and maximum of the twelve individual rates. All timing samples, processor budgets, supplied active-worker counts, source identities and acceptance metadata remain in the receipt JSON. The displayed rates are absolute. Matched and scaling bars use zero-based linear axes. The language scatter profile uses CPU and GPU rate axes labelled log, with positive margins around the observed ranges.
 
-`data/main_workload_contract.json` records the frozen workload and measurement protocol only. It is not performance acceptance proof. Current input records need their own actual qualification flags and independent verification and timing evidence. Plotting checks the supplied records rather than carrying out those scientific checks. The ledger is not read by the plotting scripts.
+`data/main_workload_specification.json` records the frozen workload and measurement protocol only. It is not performance acceptance proof. Current input records need their own actual qualification flags and independent verification and timing evidence. Plotting checks the supplied records rather than carrying out those scientific checks. The ledger is not read by the plotting scripts.
 
 ## Fresh language scatter figures
 

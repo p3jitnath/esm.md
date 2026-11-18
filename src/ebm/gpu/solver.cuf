@@ -1,8 +1,8 @@
 ! SPDX-License-Identifier: MIT
 !> ESM.md – Super-optimised CUDA Fortran energy-balance solver.
 !! Scientific source is formulations/ebm/budyko_sellers.md revision 1.1.
-!! The ordered numerical contract is skills/md2fort/references/budyko_sellers.md.
-!! GPU launches follow skills/md2fort-gpu/references/gpu-contract.md.
+!! The ordered numerical specification is formulations/ebm/budyko_sellers_specification.md.
+!! GPU launches follow formulations/general/gpu_execution_specification.md.
 !! SSPRK2 advances two rounded stages per complete time step.
 !! Public dimensions and selectors use C_INT by value. Device arrays use
 !! C_DOUBLE, which is binary64 on this target, with indices starting at zero.
@@ -64,7 +64,7 @@ contains
   end subroutine
 
   !> Return one rounded temperature update; all addresses are disjoint.
-  !! par holds C,dt,delta,A,B,Tf in the units declared by the frozen contract.
+  !! par holds C,dt,delta,A,B,Tf in the units declared by the frozen specification.
   attributes(global) subroutine eb_update(n, q, base, out, work, coeff, par, final) bind(C, name='eb_update')
     integer(c_int), value :: n, final
     real(c_double), device, intent(inout) :: q(0:*), out(0:*), work(0:*)
@@ -973,7 +973,7 @@ contains
 
   !> Restore physical q and out parity after all tiles finish reading q.
   !! n bands are covered by 128-thread blocks. Inputs out and work have the last
-  !! preceding and final states. q and out receive the repeated-call contract.
+  !! preceding and final states. q and out receive the repeated-call specification.
   attributes(global) subroutine eb_publish(n, q, out, work, steps) bind(C, name='eb_publish')
     integer(c_int), value :: n, steps
     real(c_double), device, intent(inout) :: q(0:*), out(0:*)

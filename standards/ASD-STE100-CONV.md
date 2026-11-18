@@ -30,7 +30,7 @@ Use active voice when it makes responsibility clear, and use passive voice when 
 
 Make instructions direct and informative, explaining their purpose when that explanation helps the reader perform the task. Use connected paragraphs for arguments and explanations, and use lists when steps or parallel requirements are easier to assess separately.
 
-Preserve the required documentation structure while applying this prose style: Python uses NumPy docstrings, Fortran uses FORD comments, and Julia uses its native documentation conventions. Assembly documentation must explain the application binary interface, buffer contract, and correspondence to the equations.
+Preserve the required documentation structure while applying this prose style: Python uses NumPy docstrings, Fortran uses FORD comments, and Julia uses its native documentation conventions. Assembly documentation must explain the application binary interface, buffer specification, and correspondence to the equations.
 
 ## Example of the intended register
 

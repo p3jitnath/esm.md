@@ -1,7 +1,7 @@
 ! SPDX-License-Identifier: MIT
 !> ESM.md Fortran GPU solver. The compiler creates all device instructions.
-!! Physics input is formulations/sw/dam_break.md revision 1.0.
-!! Arithmetic follows skills/md2fort/references/2d_rusanov_ssprk2.md.
+!! Physics input is formulations/sw/shallow_water.md revision 1.0.
+!! Arithmetic follows formulations/sw/shallow_water_specification.md.
 !! With p=nx+2 and s=p*(ny+2), q, base and out each contain 3*s
 !! binary64 values. Their fields are depth in metres and two momenta in
 !! square metres per second. work contains 5*s values for D03 fluxes and
@@ -11,7 +11,7 @@
 !! Input q is read except in boundary kernels. base, work and par are read
 !! by update kernels, while out receives complete stages and periodic ghosts.
 !! Preparation reads q and par and replaces all five work fields.
-!! Launches follow skills/md2fort-gpu/references/gpu-contract.md.
+!! Launches follow formulations/general/gpu_execution_specification.md.
 !! The selected small-grid entry uses four-by-four cell tiles. A block
 !! prepares the neighbouring values in shared storage, then its threads
 !! update the three fields. It uses 64 threads and one block barrier.

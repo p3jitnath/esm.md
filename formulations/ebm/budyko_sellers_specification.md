@@ -1,6 +1,6 @@
-# Energy-balance solver contract
+# Energy-balance solver specification
 
-This reference records the numerical choices derived from the [basic model note](../../../formulations/ebm/budyko_sellers.md). A numerical method replaces continuous space and time with cells and steps; the contract fixes those choices, the order of arithmetic, and the required outputs so that implementations can be compared exactly. Read it when generating or changing this model. The verified equations and revision below are retained unchanged.
+This reference records the numerical choices derived from the [basic model note](budyko_sellers.md). A numerical method replaces continuous space and time with cells and steps; the specification fixes those choices, the order of arithmetic, and the required outputs so that implementations can be compared exactly. Read it when generating or changing this model. The verified equations and revision below are retained unchanged.
 
 ## 01. Document control
 
@@ -197,9 +197,9 @@ The identity holds in real arithmetic because the shared face fluxes telescope, 
 | Temperature | Finite within the model's validity range; Finite at every stage; −100≤T≤100 °C |
 | State and coefficients | Reflection symmetry for symmetric inputs; Symmetry up to rounding; A03 |
 
-## 10. Numerical representation and operation contract
+## 10. Numerical representation and operation specification
 
-Each implementation follows the same ordered binary64 operations and returns both complete time stages. The contract below specifies all buffers, threshold ties, signed zeros, and output bytes.
+Each implementation follows the same ordered binary64 operations and returns both complete time stages. The specification below specifies all buffers, threshold ties, signed zeros, and output bytes.
 
 <details>
 <summary>Exact arithmetic, storage, and canonical output bytes</summary>
@@ -243,7 +243,7 @@ The repeated-step entry alternates q and out, placing the final state in out for
 
 ### Portable Fortran implementation
 
-The [Fortran solver](../../../src/ebm/solver.f90) owns both time stages, the repeated time loop and the pole copies. Its serial `eb_step` and `eb_run` entries use `ISO_C_BINDING`, which makes their argument types and calling rules explicit for a C caller. The source describes array shapes, units, ownership and mutation beside each entry. The cell count is a runtime input, so the same compiled library handles every supported grid without recompilation.
+The [Fortran solver](../../src/ebm/solver.f90) owns both time stages, the repeated time loop and the pole copies. Its serial `eb_step` and `eb_run` entries use `ISO_C_BINDING`, which makes their argument types and calling rules explicit for a C caller. The source describes array shapes, units, ownership and mutation beside each entry. The cell count is a runtime input, so the same compiled library handles every supported grid without recompilation.
 
 Each full group of 16 cells shares its rounded face fluxes through the existing work array. Whenever a full group is present, work values 0 through 16 hold its faces, and the last face becomes the next group's first face. Short ranges use bounded calculations of the same rounded faces. This scratch reuse preserves every required state value. Cells outside a full group use the same ordered equations with bounded loads. The single-step entry processes bounded ranges with one neighbouring first-stage value ready before the final update. The repeated entry advances groups of eight time steps in ranges of 256 cells. Earlier time stages finish more cells before a later stage writes over their storage, so every neighbour remains available until its last use. Partial ranges and remaining time steps use the same equations. No extra numerical array is allocated, and both returned state buffers and the final first-stage buffer retain their required values.
 
@@ -251,7 +251,7 @@ The power-of-two route checks the spacing bits before constructing its exact inv
 
 A portable GNU build disables contraction and unsafe arithmetic with `-O3 -fno-fast-math -ffp-contract=off -fprotect-parens -fopenmp -frounding-math -fsignaling-nans`, with `-fPIC -shared` for the comparison library. Target options belong to the build rather than the physics. Compiler reports and emitted instructions establish which loops execute several cells together. The historical [assembly](https://github.com/p3jitnath/esm.md/blob/8be04b8/src/ebm/solver.S) is archived locally with its comparison evidence and remains available in Git history.
 
-The additional `eb_tiles_values` and `eb_run_tiles` entries share one coupled domain across CPU workers. Their bounds, caller-owned workspace, complete-state publication and IEEE environment rules are in the [multicore CPU contract](multicore_cpu_solvers.md). The serial numerical and output contracts remain unchanged.
+The additional `eb_tiles_values` and `eb_run_tiles` entries share one coupled domain across CPU workers. Their bounds, caller-owned workspace, complete-state publication and IEEE environment rules are in the [multicore CPU specification](../general/multicore_cpu_solvers.md). The serial numerical and output specifications remain unchanged.
 
 ## 11. Numerical acceptance criteria
 

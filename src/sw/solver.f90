@@ -1,7 +1,7 @@
 !> Advance the periodic shallow-water equations with ordered binary64 (64-bit floating-point) arithmetic.
-!! Physics input is formulations/sw/dam_break.md revision 1.0.
-!! The frozen Rusanov and SSPRK2 contract is in
-!! skills/md2fort/references/2d_rusanov_ssprk2.md. The compiler creates the
+!! Physics input is formulations/sw/shallow_water.md revision 1.0.
+!! The frozen Rusanov and SSPRK2 specification is in
+!! formulations/sw/shallow_water_specification.md. The compiler creates the
 !! machine instructions from this portable Fortran source.
 !! State component 1 is depth in m. Components 2 and 3 are depth-weighted
 !! x and y velocities in m²/s. The first array index is x and is contiguous.

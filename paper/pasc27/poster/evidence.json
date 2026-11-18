@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-11-13",
+  "date_utc": "2026-11-18",
   "format": "A0 landscape, 1189 by 841 mm, one native PowerPoint slide and PDF",
   "scatter_artwork": "The PowerPoint uses PNG scatterplots to preserve marker hatches. Editable plotting source, SVG and PDF exports remain separate.",
   "banner_artwork": "The decorative paisley uses a 400 DPI transparent image in the PDF. The PowerPoint and source SVG retain the vector pattern.",
@@ -7,11 +7,11 @@
   "author": "Pritthijit Nath, Sebastian Schemm, Mark J. Webb",
   "affiliation": "\u00b9 Department of Applied Mathematics and Theoretical Physics, University of Cambridge, Cambridge, United Kingdom \u00b2 Met Office Hadley Centre, Exeter, United Kingdom",
   "implementation_label": "ESM.md",
-  "generation_route": "Markdown physics and frozen contracts guide Fortran and CUDA Fortran candidates. Compilers build these solvers, while the separate PTX baseline is assembled.",
+  "generation_route": "Markdown physics and frozen specifications guide Fortran and CUDA Fortran candidates. Compilers build these solvers. Handwritten CPU assembly and directly assembled GPU PTX serve as baselines.",
   "physics": {
     "source": {
       "path": "figure-evidence.json",
-      "sha256": "782661b51d66016ee84bce0d728d4a25ae28a2371d0bd4f15cfe2696a323e4c6"
+      "sha256": "9bc3c7e788dcca6512a50bed7b1313935c18f67a65bb93bd360749a99aab9c5d"
     },
     "scope": "The unchanged physical illustrations retain their own accepted states and checks. They are separate from the frozen benchmark input banks.",
     "record": {
@@ -53,10 +53,10 @@
           ]
         },
         "physics-note-mass": {
-          "source": "formulations/sw/dam_break.md",
+          "source": "formulations/sw/shallow_water.md",
           "equation_id": "P01",
           "meaning": "Conservation of water",
-          "formulation_sha256": "39370c94cf08380c9a2a05eeecc944bb1049a44dac833cc049f092afe8ce9c15",
+          "formulation_sha256": "b9173a4d57d2b3e4380522f075638bc2725817daee181388aa345abd42d0ab2b",
           "source_equation_matches_formulation": true,
           "backend": "pdfLaTeX",
           "font": "Computer Modern",
@@ -96,10 +96,10 @@
         "data_sha256": "08e341606e8391e458c3f08deb312de664b56bfae376064c5aa0aee6681a5f55"
       },
       "physics_note_equation": {
-        "source": "formulations/sw/dam_break.md",
+        "source": "formulations/sw/shallow_water.md",
         "equation_id": "P01",
         "meaning": "Conservation of water",
-        "formulation_sha256": "39370c94cf08380c9a2a05eeecc944bb1049a44dac833cc049f092afe8ce9c15",
+        "formulation_sha256": "b9173a4d57d2b3e4380522f075638bc2725817daee181388aa345abd42d0ab2b",
         "source_equation_matches_formulation": true,
         "backend": "pdfLaTeX",
         "font": "Computer Modern",
@@ -146,7 +146,7 @@
   "performance_source_sha256": "ad5fcc2e4e65ebd5e380d582b83008b7e10556fab608d6b681a573e8be96bb30",
   "performance_manifest": {
     "path": "data/fresh-language-poster-manifest.json",
-    "sha256": "19e7b65169af36c872f3490ea48406cf427a8eee08614c9f8a730cedb6ec3c82"
+    "sha256": "1e2d55de9a451d324ae9897f29c4133ed9d25cc06ec98243c07a09498495b14c"
   },
   "comparison_evidence_source": "data/fresh-language-figure-evidence.json",
   "comparison_evidence": {
@@ -163,7 +163,7 @@
     },
     "manifest": {
       "path": "data/fresh-language-poster-manifest.json",
-      "sha256": "19e7b65169af36c872f3490ea48406cf427a8eee08614c9f8a730cedb6ec3c82"
+      "sha256": "1e2d55de9a451d324ae9897f29c4133ed9d25cc06ec98243c07a09498495b14c"
     },
     "conditions": 96,
     "elapsed_observations": 1152,
@@ -522,18 +522,18 @@
         "CPU uses 248 workers, with 128 for EBM at 128 bands. GPU uses one GH200 device."
       ],
       "takeaways": [
-        "Readable physics guides verified CPU and GPU solvers.",
-        "Physical checks and exact agreement guide optimisation.",
+        "A readable physics specification guides solver generation.",
+        "We verify physical behaviour and match reference bytes.",
         "Reusable skills preserve measured lessons for future work."
       ]
     },
     "checks": {
       "id": "fresh_language_poster_structural_checks",
-      "sha256": "7a50bb75a51c0e0b4585416563d2eb42714a6d10587d1d6f4ef187e14278ca8e"
+      "sha256": "ee287371bf9337a16e225c204489402e32dd7f783ecaa17ede4288ba6a365c54"
     },
     "visual_review": {
-      "id": "supplied_asm_svg_final_pdf_review_20261113",
-      "sha256": "acad04e878cb59fc75acdc71b19a4eb0fbee86781c06823199be8776315fc8e3"
+      "id": "fresh_language_poster_visual_review",
+      "sha256": "7c5fabb6e7058a35fd42079e2b02c83ab2c5bcf7748536032ab2e16e6d830057"
     },
     "evidence_binding_runs_models": false,
     "scope": "Only the newly accepted eight-route cohort supplies the performance plots and notes. The Summary describes the demonstrated workflow and reusable lessons. Metadata binding does not strengthen the original numerical, quiet-node or timer limits."
@@ -545,23 +545,23 @@
       "CPU uses 248 workers, with 128 for EBM at 128 bands. GPU uses one GH200 device."
     ],
     "takeaways": [
-      "Readable physics guides verified CPU and GPU solvers.",
-      "Physical checks and exact agreement guide optimisation.",
+      "A readable physics specification guides solver generation.",
+      "We verify physical behaviour and match reference bytes.",
       "Reusable skills preserve measured lessons for future work."
     ]
   },
   "structural_and_qr_checks": {
     "id": "fresh_language_poster_structural_checks",
-    "sha256": "7a50bb75a51c0e0b4585416563d2eb42714a6d10587d1d6f4ef187e14278ca8e",
+    "sha256": "ee287371bf9337a16e225c204489402e32dd7f783ecaa17ede4288ba6a365c54",
     "passed": true,
     "cohort": "fresh_languages_job8353767",
     "input_sha256": "ad5fcc2e4e65ebd5e380d582b83008b7e10556fab608d6b681a573e8be96bb30",
-    "manifest_sha256": "19e7b65169af36c872f3490ea48406cf427a8eee08614c9f8a730cedb6ec3c82",
-    "profile_sha256": "c36f1438d3e11ee647d882fe7a3417f726b6e46bce03e991c42f4495a95a247a",
+    "manifest_sha256": "1e2d55de9a451d324ae9897f29c4133ed9d25cc06ec98243c07a09498495b14c",
+    "profile_sha256": "2ce96f8cdc0649bb4c2c0ae37f1b998ac22f64ba852a5f0121b62d0c54741e23",
     "artifact_sha256": {
-      "esm-md-a0-landscape.pptx": "59ac4d206b669f7508a4047d93aa6666f9c1e3d534235d4e3b1204311503cf36",
-      "esm-md-a0-landscape.pdf": "0b4bed6d7749aa89afc0812d7b812c5e0c55ed8cc07565a14f0a539801b997bb",
-      "esm-md-a0-landscape.png": "b1b8ab39c6d6621511e43b7533fc39e30c6274e7d8312dbfcbc019ba278ccaa6"
+      "esm-md-a0-landscape.pptx": "2fd4f1905c221ca6319d2d67d0eb2189f25dc76846174acfeeb1d8a768e72042",
+      "esm-md-a0-landscape.pdf": "c240ccbe4460de83cd02a7420d6328db3143391a299aa4b0b65ecaec78e4282e",
+      "esm-md-a0-landscape.png": "020d976ec82e462ae01d5ee10960445b7306e92d68449f45310278cd51ffe0eb"
     },
     "qualified_observations": 1152,
     "qr_url": "https://github.com/p3jitnath/esm.md",
@@ -592,27 +592,27 @@
     "desktop_powerpoint_inspected": false
   },
   "visual_review": {
-    "id": "supplied_asm_svg_final_pdf_review_20261113",
-    "sha256": "acad04e878cb59fc75acdc71b19a4eb0fbee86781c06823199be8776315fc8e3",
+    "id": "fresh_language_poster_visual_review",
+    "sha256": "7c5fabb6e7058a35fd42079e2b02c83ab2c5bcf7748536032ab2e16e6d830057",
     "status": "approved",
     "cohort": "fresh_languages_job8353767",
     "input_sha256": "ad5fcc2e4e65ebd5e380d582b83008b7e10556fab608d6b681a573e8be96bb30",
     "artifacts": {
-      "esm-md-a0-landscape.pptx": "59ac4d206b669f7508a4047d93aa6666f9c1e3d534235d4e3b1204311503cf36",
-      "esm-md-a0-landscape.pdf": "0b4bed6d7749aa89afc0812d7b812c5e0c55ed8cc07565a14f0a539801b997bb",
-      "esm-md-a0-landscape.png": "b1b8ab39c6d6621511e43b7533fc39e30c6274e7d8312dbfcbc019ba278ccaa6"
+      "esm-md-a0-landscape.pptx": "2fd4f1905c221ca6319d2d67d0eb2189f25dc76846174acfeeb1d8a768e72042",
+      "esm-md-a0-landscape.pdf": "c240ccbe4460de83cd02a7420d6328db3143391a299aa4b0b65ecaec78e4282e",
+      "esm-md-a0-landscape.png": "020d976ec82e462ae01d5ee10960445b7306e92d68449f45310278cd51ffe0eb"
     },
-    "review_scope": "Inspected the actual final PDF at full-page scale and both comparison plots in close-up after the exact source-viewBox correction. The supplied blue ASM hexagon has clear white lettering and its full original geometry. All four logos remain vectors in the native overlays. Native text and frames are unchanged, and pixels outside both ASM label boxes match the prior PDF at 50 DPI. No desktop PowerPoint inspection is claimed."
+    "review_scope": "Inspected the full saved-PowerPoint PDF and close-ups of the model columns, Methods, charts, Summary, banner and footer. Verified the revised wording, two bullets per model, section numbering, banner alignment, text clearance and preserved scientific artwork. Inspected the final banner at full size and in close-up. The enlarged title fits on one line, all four text rows are clear and the fade begins about 10 mm after the affiliations. The body matches the reviewed layout."
   },
   "desktop_powerpoint_inspection": false,
   "profile": {
     "path": "project-profile.json",
-    "sha256": "c36f1438d3e11ee647d882fe7a3417f726b6e46bce03e991c42f4495a95a247a"
+    "sha256": "2ce96f8cdc0649bb4c2c0ae37f1b998ac22f64ba852a5f0121b62d0c54741e23"
   },
   "artifacts": {
-    "esm-md-a0-landscape.pptx": "59ac4d206b669f7508a4047d93aa6666f9c1e3d534235d4e3b1204311503cf36",
-    "esm-md-a0-landscape.pdf": "0b4bed6d7749aa89afc0812d7b812c5e0c55ed8cc07565a14f0a539801b997bb",
-    "esm-md-a0-landscape.png": "b1b8ab39c6d6621511e43b7533fc39e30c6274e7d8312dbfcbc019ba278ccaa6"
+    "esm-md-a0-landscape.pptx": "2fd4f1905c221ca6319d2d67d0eb2189f25dc76846174acfeeb1d8a768e72042",
+    "esm-md-a0-landscape.pdf": "c240ccbe4460de83cd02a7420d6328db3143391a299aa4b0b65ecaec78e4282e",
+    "esm-md-a0-landscape.png": "020d976ec82e462ae01d5ee10960445b7306e92d68449f45310278cd51ffe0eb"
   },
   "branding": {
     "cambridge_colour_guide": "https://www.cam.ac.uk/brand-resources/guidelines/colour",
@@ -678,12 +678,13 @@
     },
     "artwork": "Grey outline curves traced from the supplied paisley image. The banner repeats one complete 750-pixel source period, cropping inside the image to exclude artificial outer edges. The outlines emerge over 150 mm and retain 30% opacity. The Cambridge-blue background fades to white.",
     "banner": {
-      "text_side_inset_mm": 24,
+      "text_side_inset_mm": 18,
       "band_height_mm": 111,
       "text_padding_measured_mm": {
-        "left": 24.0,
-        "top": 10.96,
-        "bottom": 11.24
+        "left": 17.999,
+        "right": 19.618,
+        "top": 11.548,
+        "bottom": 7.925
       },
       "stroke": "#303030",
       "maximum_outline_opacity": 0.3,
@@ -694,11 +695,19 @@
       ],
       "vector_asset": "poster/assets/paisley-banner.svg",
       "background_gradient_stops": [
-        0.61524,
+        0.658516,
         1.0
       ],
-      "fade_start_mm": 725,
-      "left_blend_start_mm": 245
+      "fade_start_mm": 774,
+      "left_blend_start_mm": 287.309524,
+      "text_font_sizes_pt": {
+        "title": 74,
+        "subtitle": 44,
+        "author": 30,
+        "affiliations": 26
+      },
+      "shared_right_edge_mm": 1160.69,
+      "fade_clearance_after_affiliations_mm": 9.964
     },
     "user_visual_reference": {
       "name": "1-Pasted-Image-1.jpg",
@@ -724,7 +733,7 @@
       "left_blend_mm": 150,
       "blend_bands": 60,
       "colour_fade": false,
-      "left_blend_start_mm": 245
+      "left_blend_start_mm": 287.309524
     },
     "sponsor_placement": {
       "right_edge_aligned_with_body_margin": true,
@@ -793,7 +802,7 @@
       "tile_width_mm": 155.440414507772,
       "seam_method": "Crop one measured repeat period inside the source image, excluding artificial outlines at its outer edges.",
       "repeat_mean_absolute_pixel_difference": 3.6729906483002654,
-      "left_blend_start_mm": 245
+      "left_blend_start_mm": 287.309524
     }
   },
   "references": [
@@ -834,88 +843,13 @@
     "scientific_generator_identifier_unchanged": true
   },
   "formulation_rename": {
-    "old_path": "formulations/sw/2d_periodic.md",
-    "new_path": "formulations/sw/dam_break.md",
-    "old_sha256": "e409dc5368196646179cfe2eaf011d6df3a14d417ab62048ea6a9d76e4ed9e57",
-    "new_sha256": "e409dc5368196646179cfe2eaf011d6df3a14d417ab62048ea6a9d76e4ed9e57",
-    "formulation_bytes_identical": true,
-    "formulation_revision": "1.0, unchanged",
-    "changed_files": [
-      {
-        "path": "README.md",
-        "replacements": 1,
-        "before_sha256": "1fcaca3fb0d8c962f46784fd749c8eb73969a3259ff730b650733111afc00d67",
-        "after_sha256": "cac9fe77f5f263e82cfe99d6d5ad6d3dcce57344880d94c44008105720ed5922"
-      },
-      {
-        "path": "skills/md2asm-gpu/SKILL.md",
-        "replacements": 1,
-        "before_sha256": "6f17d7f83167577c998f40e8cbcaf776a0904031c1ac9151a2f4d067438e11fe",
-        "after_sha256": "70bd95dc79c4d79bf80f63353ec2b1379f22b7886820b49ec438bb04ade963d7"
-      },
-      {
-        "path": "skills/md2asm-gpu/references/gpu-contract.md",
-        "replacements": 1,
-        "before_sha256": "17bdd4ed79ba2aa344f3faaacb4c0b6af3b3035f792e897430ca42bbb65565e5",
-        "after_sha256": "015343bcc8e26d0de42545b7c835a4bc4b45e377f69c25fd26fcddf83186c845"
-      },
-      {
-        "path": "skills/md2asm/references/2d_rusanov_ssprk2.md",
-        "replacements": 1,
-        "before_sha256": "94018d58fe7b847287bc45b1a0314b3d45fb350d5ed07771ae2db8bab2c55fd8",
-        "after_sha256": "9e14bb6df737458042fe52d100282c5775e45d817fa032808e37c01d32e5d0a3"
-      },
-      {
-        "path": "src/sw/gpu/solver.cuf",
-        "replacements": 1,
-        "before_sha256": "3429c8374f1a768611cd278d258da0b8d38e63e0404d854aa15f1af7d2179e74",
-        "after_sha256": "f41acb14ca9b6e5c1748ae05f37df6884d98f361ce1e406b80883f8a8b15aed4",
-        "comment_only": true,
-        "changed_lines": [
-          {
-            "line": 2,
-            "before": "!! Physics input is formulations/sw/2d_periodic.md revision 1.0.",
-            "after": "!! Physics input is formulations/sw/dam_break.md revision 1.0."
-          }
-        ],
-        "executable_text_sha256": "ea53a7b29630a0996b00f7fd22ab682786eba5b1e387c0638dc21a04fb94f1a2"
-      },
-      {
-        "path": "src/sw/solver.f90",
-        "replacements": 1,
-        "before_sha256": "1c9a322e193f3099be82cfda62f281d19e1043cf8278e6332db925044cf51877",
-        "after_sha256": "be8f9afa9d9ced298c515495bfda231e2c3e66e425decb0578d6373ed1334ebc",
-        "comment_only": true,
-        "changed_lines": [
-          {
-            "line": 2,
-            "before": "!! Physics input is formulations/sw/2d_periodic.md revision 1.0.",
-            "after": "!! Physics input is formulations/sw/dam_break.md revision 1.0."
-          }
-        ],
-        "executable_text_sha256": "08eff41f582ad177f93d82265e084a98267000e002105c639b15074aa6a5f79e"
-      }
-    ],
-    "excluded": "paper/pasc27/poster/** and immutable ignored historical records",
-    "historical_urls_changed": false,
-    "no_numerical_tests_or_rebuilds": true,
-    "source_formatter_checks": {
-      "checks": [
-        {
-          "path": "src/sw/solver.f90",
-          "returncode": 0,
-          "idempotent": true,
-          "stderr": ""
-        },
-        {
-          "path": "src/sw/gpu/solver.cuf",
-          "returncode": 0,
-          "idempotent": true,
-          "stderr": ""
-        }
-      ],
-      "passed": true
-    }
+    "old_path": "formulations/sw/dam_break.md",
+    "new_path": "formulations/sw/shallow_water.md",
+    "old_sha256": "39370c94cf08380c9a2a05eeecc944bb1049a44dac833cc049f092afe8ce9c15",
+    "new_sha256": "b9173a4d57d2b3e4380522f075638bc2725817daee181388aa345abd42d0ab2b",
+    "formulation_revision": "1.0",
+    "equations_and_physical_inputs_unchanged": true,
+    "previous_rename_record": "data/dam-break-rename.json"
   },
-  "comparison_evidence_sha256": "52848a9c4b1b306b76b63a9e281cfb2c2a30cc9d221bbe4e74da9d4ae015f041"
+  "comparison_evidence_sha256": "3b0c467e9bc5d0410cb1766d123a020b77bd69562c33a234dead2410b3a99707"
 }

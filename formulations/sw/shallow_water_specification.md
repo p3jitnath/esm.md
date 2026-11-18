@@ -1,6 +1,6 @@
-# Two-dimensional Rusanov–SSPRK2 solver contract
+# Two-dimensional Rusanov–SSPRK2 solver specification
 
-This reference records the numerical choices derived from the [basic model note](../../../formulations/sw/dam_break.md). A numerical method replaces continuous space and time with cells and steps; the contract fixes those choices, the order of arithmetic, and the required outputs so that implementations can be compared exactly. Read it when generating or changing this model. The verified equations and revision below are retained unchanged.
+This reference records the numerical choices derived from the [basic model note](shallow_water.md). A numerical method replaces continuous space and time with cells and steps; the specification fixes those choices, the order of arithmetic, and the required outputs so that implementations can be compared exactly. Read it when generating or changing this model. The verified equations and revision below are retained unchanged.
 
 ## 01. Document control
 
@@ -236,9 +236,9 @@ B_a=\Delta x\Delta y\sum_{j=1}^{n_y}\sum_{i=1}^{n_x}q_{aij},
 
 The evaluator computes budgets in a deterministic component, row, and column order using compensated or accurately rounded summation, outside timed work.
 
-## 10. Numerical representation and operation contract
+## 10. Numerical representation and operation specification
 
-Each implementation follows the same ordered binary64 operations, including every intermediate rounding point. The complete contract below defines storage, signed zeros, tie rules, and the bytes that must agree.
+Each implementation follows the same ordered binary64 operations, including every intermediate rounding point. The complete specification below defines storage, signed zeros, tie rules, and the bytes that must agree.
 
 <details>
 <summary>Exact arithmetic, storage, and canonical output bytes</summary>
@@ -360,11 +360,11 @@ A direct byte comparison decides V02, including signed zeros and deterministic h
 | R01 | [Clawpack Riemann book: shallow water](https://www.clawpack.org/riemann_book/html/Shallow_water.html); Governing flux, characteristic speeds, and rarefaction/shock relations; P02 and P03 |
 | R02 | [Clawpack Riemann book: approximate solvers](https://www.clawpack.org/riemann_book/html/Approximate_solvers.html); Local dissipative approximate flux; D01 |
 
-The first study concerns this positive-depth, periodic component and this binary64 operation contract. It does not establish dry-state behaviour, physical fidelity of an entire Earth system model, formal correctness, cross-architecture reproducibility, or global machine optimality. All equations needed by the implementations and independent verifier are included above, while the references establish their scientific origin.
+The first study concerns this positive-depth, periodic component and this binary64 operation specification. It does not establish dry-state behaviour, physical fidelity of an entire Earth system model, formal correctness, cross-architecture reproducibility, or global machine optimality. All equations needed by the implementations and independent verifier are included above, while the references establish their scientific origin.
 
 ## 13. Portable Fortran CPU implementation
 
-The [Fortran solver](../../../src/sw/solver.f90) implements the unchanged revision 1.0 physics through D03, D04 and T01. It uses runtime dimensions, so one compiled library handles the admitted grids without recompilation. The earlier [assembly source](https://github.com/p3jitnath/esm.md/blob/8be04b8/src/sw/solver.S) is archived locally with its historical evidence and remains available in Git history.
+The [Fortran solver](../../src/sw/solver.f90) implements the unchanged revision 1.0 physics through D03, D04 and T01. It uses runtime dimensions, so one compiled library handles the admitted grids without recompilation. The earlier [assembly source](https://github.com/p3jitnath/esm.md/blob/8be04b8/src/sw/solver.S) is archived locally with its historical evidence and remains available in Git history.
 
 The module `shallow_water` keeps its serial `sw_step` and `sw_run` entries through `ISO_C_BINDING`. Both entries receive `nx` and `ny` as C `int` values, followed by pointers to `q`, `stage`, `out`, `work` and the four parameters. `sw_run` receives a final C `int` value for the step count. Every floating-point element is C `double` in the binary64 format. The caller owns buffers that do not overlap, aligned to at least 8 bytes, with the shapes and units in Section 10. No pointer or allocation survives a call. Dimensions are from 1 to 4096, and a repeated entry accepts from 0 to 1000000 steps.
 
@@ -374,8 +374,8 @@ The private scratch view has shape `(nx+2,5,3)`. Two rows retain the three momen
 
 Division by a positive power-of-two spacing may use multiplication by its exact reciprocal when both the spacing and reciprocal are normal finite binary64 values. The smallest positive normal value is $`2^{-1022}`$, while smaller nonzero values are subnormal. The admitted spacing is from `tiny(1.0_c_double)` to `1.0_c_double/tiny(1.0_c_double)`. Other spacings retain direct division. Each selected operation still has the single rounding required by D04, including gradual underflow and signed zero.
 
-A portable GNU Fortran profile uses `-O3 -fno-fast-math -ffp-contract=off -fprotect-parens -fopenmp -frounding-math -fsignaling-nans`. Keep the actual compiler version and processor tuning options in the target build record. Shared-library builds also use `-fPIC -shared`, and module files stay in a local build directory through `-J`. These target options are separate from the portable equations. Compiler reports and generated instructions confirm vector division and square root without fused multiply-add. The published [comparison](../../../README.md) states the measured hardware and limits.
+A portable GNU Fortran profile uses `-O3 -fno-fast-math -ffp-contract=off -fprotect-parens -fopenmp -frounding-math -fsignaling-nans`. Keep the actual compiler version and processor tuning options in the target build record. Shared-library builds also use `-fPIC -shared`, and module files stay in a local build directory through `-J`. These target options are separate from the portable equations. Compiler reports and generated instructions confirm vector division and square root without fused multiply-add. The published [comparison](../../README.md) states the measured hardware and limits.
 
 Acceptance reuses the 23-case verifier with the unchanged canonical Fortran reference. It compares complete first stages, final states, repeated entries and saved files byte for byte, while separately checking steady states, shear convergence, dam-break waves, conserved budgets, periodic halos and buffer guards. Four additional spacing cases exercise the normal and subnormal dispatch limits including nonzero subnormal momentum. Their eight-step trajectories agree exactly, and the selected target’s floating-point environment remains unchanged. Timing workloads receive complete-state comparisons outside the timer. These checks establish the recorded measured CPU result, while another architecture requires its own verification.
 
-The additional `sw_tiles_values` and `sw_run_tiles` entries share one coupled domain across CPU workers. Their bounds, caller-owned workspace, complete-state publication and IEEE environment rules are in the [multicore CPU contract](multicore_cpu_solvers.md). The serial numerical and output contracts remain unchanged.
+The additional `sw_tiles_values` and `sw_run_tiles` entries share one coupled domain across CPU workers. Their bounds, caller-owned workspace, complete-state publication and IEEE environment rules are in the [multicore CPU specification](../general/multicore_cpu_solvers.md). The serial numerical and output specifications remain unchanged.

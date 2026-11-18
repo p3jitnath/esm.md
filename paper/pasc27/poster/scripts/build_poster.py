@@ -460,8 +460,10 @@ def method_icon(name, paths, x, y):
 
 # Fill the supplied landscape template at A0, retaining its three columns.
 scale = W / 420
-a, b, c = 10 * scale, 145.6666667 * scale, 281.3333333 * scale
+a = 10 * scale
+right = W - a
 cw = 128.6666667 * scale
+b, c = a + cw + 7 * scale, right - cw
 from PIL import Image
 
 cambridge_size = Image.open(OUT / "assets/cambridge-logo.png").size
@@ -477,7 +479,7 @@ image(
 epsrc_asset = OUT / "assets/epsrc-horizontal.png"
 epsrc_size = Image.open(epsrc_asset).size
 epsrc_width = 50 * epsrc_size[0] / epsrc_size[1]
-epsrc_left = W - a - epsrc_width
+epsrc_left = right - epsrc_width
 label_width = pdfmetrics.stringWidth("Sponsors:", "OpenSans-Bold", 34) * 25.4 / 72
 text(
     "sponsors-label",
@@ -491,7 +493,7 @@ text(
 )
 image("UKRI EPSRC", epsrc_asset, epsrc_left, 18, epsrc_width, 50)
 # A padded title band keeps the text clear of every edge.
-band_width = 400 * scale
+band_width = right - a
 band = rect("title-band", a, 79, band_width, 111, BLUE)
 band.fill.gradient()
 band.fill.gradient_angle = 0
@@ -502,15 +504,23 @@ for stop, pos, shade in zip(
 ):
     stop.position = pos
     stop.color.rgb = colour(shade)
-# Traced paisley outlines use uniform transparency over the Cambridge banner.
+# Align the original paisley artwork to the same outer edge as the heading bands.
+pattern_width = 674
+pattern_left = right - pattern_width
 graphic = image(
-    "banner-paisley-outline", OUT / "assets/paisley-banner.svg", 480, 79, 674, 111
+    "banner-paisley-outline",
+    OUT / "assets/paisley-banner.svg",
+    pattern_left,
+    79,
+    pattern_width,
+    111,
 )
-graphic.left = Mm(480)
+graphic.left = Mm(pattern_left)
 graphic.top = Mm(79)
-graphic.width = Mm(674)
+graphic.width = Mm(pattern_width)
 graphic.height = Mm(111)
-inset = 24
+inset = PROFILE["poster"]["banner"]["text_side_padding_mm"]
+title_font = PROFILE["poster"]["title_font_pt"]
 poster_title = text(
     "poster-title",
     POSTER_TITLE,
@@ -518,7 +528,7 @@ poster_title = text(
     96,
     band_width - 2 * inset,
     36,
-    72,
+    title_font,
     bold=True,
     c=DARK,
 )
@@ -528,25 +538,25 @@ for value, underlined in TITLE_RUNS:
     run = title_paragraph.add_run()
     run.text = value
     run.font.name = FONT
-    run.font.size = Pt(72)
+    run.font.size = Pt(title_font)
     run.font.bold = True
     run.font.color.rgb = colour(DARK)
     run.font.underline = underlined
 text(
     "poster-subtitle",
-    "A framework for ESM development directly from physics formulations",
+    IDENTITY["subtitle"],
     a + inset,
-    133,
+    132,
     band_width - 2 * inset,
     18,
-    38,
+    PROFILE["poster"]["subtitle_font_pt"],
     c=DARK,
 )
 text(
     "poster-authors",
     IDENTITY["author_line"],
     a + inset,
-    152,
+    154,
     band_width - 2 * inset,
     14,
     30,
@@ -557,10 +567,10 @@ text(
     "poster-affiliations",
     IDENTITY["affiliation"],
     a + inset,
-    169,
+    171.5,
     band_width - 2 * inset,
-    12,
-    24,
+    13,
+    PROFILE["poster"]["affiliation_font_pt"],
     c=DARK,
 )
 
@@ -604,14 +614,15 @@ def heading(name, title, x, y, w=cw, c=DARK):
 
 
 heading("section-motivation", "1  Motivation", a, 199)
-heading("section-results", "3.1  Shallow-Water Behaviour", b, 199)
-heading("physical-energy", "Energy Balance [1,2]", c, 199)
+model_titles = PROFILE["poster"]["model_section_titles"]
+heading("section-results", model_titles["sw"], b, 199)
+heading("physical-energy", model_titles["ebm"], c, 199)
 motivation_details = text(
     "motivation-context",
     [
         "ESMs link the atmosphere, ocean and land to study climate and environmental change.",
         "Developing ESMs requires clear physical assumptions, reliable numerical methods and efficient code for large computers.",
-        "We test whether an LLM can turn readable physics formulations into fast, verified Fortran.",
+        "We investigate whether an LLM can turn readable physics formulations into fast, verified Fortran.",
         "We compare SW and EBM models with tuned and vanilla Fortran, Julia and compiled Python on CPUs and GPUs.",
     ],
     a + 5.662,
@@ -627,7 +638,7 @@ motivation_details = text(
 rect("motivation-image-slot", a, 370, cw, 132, "F3FBF9", TEAL)
 text(
     "physics-note-name",
-    "dam_break.md",
+    Path(PROFILE["poster"]["formulation"]).name,
     a + 7,
     377,
     cw - 14,
@@ -639,7 +650,7 @@ text(
 )
 text(
     "physics-note-standard",
-    "Writing Convention | ASD-STE100-CONV",
+    PROFILE["poster"]["formulation_label"],
     a + 7,
     393,
     cw - 14,
@@ -695,39 +706,45 @@ text(
 image("result-clusters", OUT / "figures/shallow-water.svg", b, 232, cw, 214)
 text(
     "cluster-caption",
-    "A separate periodic dam-break test develops moving waves at 0.03125 s while preserving mass. The surface and depth profile are verified. The dashed curve shows the initial state.",
+    [
+        "The periodic dam-break produces moving waves while conserving water. The surface and solid curve show depth at 0.03125 s.",
+        "Performance runs start from a smooth mixed state with varying depth and both velocity components.",
+    ],
     b + 2 * scale,
     455,
     cw - 2 * scale,
-    47,
+    55,
     30,
     bullets=True,
+    paragraph_gap_pt=5,
 )
 image("result-spatial", OUT / "figures/energy-balance.svg", c, 232, cw, 214)
 meta = json.loads((OUT / "figure-evidence.json").read_text())
 text(
     "spatial-caption",
-    f"Sun’s radiation warms the tropics more than the poles. Heat transport reduces the contrast. Dashed and solid lines show initial and evolved temperatures. The globe shows latitude-band results after {meta['ebm_time_years']:.1f} years with country outlines for context.",
+    [
+        "Sunlight warms the tropics more than the poles, and heat transport reduces the temperature contrast between them.",
+        f"The globe shows temperatures after {meta['ebm_time_years']:.1f} years, while the curves compare the initial and evolved profiles by latitude.",
+    ],
     c + 2 * scale,
     455,
     cw - 2 * scale,
-    50,
+    55,
     30,
     bullets=True,
+    paragraph_gap_pt=5,
 )
 heading("section-methods", "2  Methods & Skill Creation", a, 514)
-heading("results-comparison", "3.2 Shallow-Water Model", b, 514, c="000000")
-heading("results-diagnostics", "3.3 Energy-Balance Model", c, 514, c="000000")
 
 
 text(
     "method-details",
     [
-        "We developed md2fort and md2fort-gpu from two verified physics models and their numerical contracts.",
-        "A contract records the grid, time update, data layout and calculation order. Every version follows these rules.",
-        "The LLM uses the skills to write Fortran and CUDA Fortran. Compilers build these solvers. The PTX baseline is assembled.",
-        "We check independent physics and every output byte before timing complete updates on quiet, exclusive nodes.",
-        "Only measured gains enter the skills. We reuse storage, avoid repeated work and update several cells together.",
+        "We developed md2fort and md2fort-gpu from two verified models and their numerical specifications.",
+        "Each specification fixes the grid, time update, data layout and order of calculations.",
+        "We compare compiled Fortran and CUDA Fortran with handwritten CPU assembly and GPU PTX baselines.",
+        "We check the physics independently and compare every output byte before timing on quiet, exclusive nodes.",
+        "Optimisations involve storage reuse, fewer repeated calculations and concurrent cell updates.",
     ],
     a + 5.662,
     546,
@@ -742,7 +759,7 @@ text(
 workflow = [
     (
         "a.  Inputs",
-        "Markdown, contract\nand verified context",
+        "Physics specification\nand verified source",
         "physics",
         '<path d="M7 9v31h58V9"/><path d="M10 18h20c8 0 9 12 18 12h14M10 27h19M10 34h51" stroke="#00BDB6"/><path d="M43 13h18m-5-4 5 4-5 4" stroke="#00BDB6"/>',
     ),
@@ -801,35 +818,38 @@ for i, (title, detail, symbol, paths) in enumerate(workflow):
         end.set("w", "med")
         end.set("len", "med")
         arrow._element.spPr.get_or_add_ln().append(end)
+comparison_top = 524
 shallow_water_comparison = image(
     "result-error",
     OUT / DISPLAY_UPDATE["figures"]["sw"][DISPLAY_PICTURE_KEY],
     b,
-    546,
+    comparison_top,
     cw,
     170,
 )
-shallow_water_comparison.top = Mm(546)
+shallow_water_comparison.top = Mm(comparison_top)
 energy_balance_comparison = image(
     "result-calibration",
     OUT / DISPLAY_UPDATE["figures"]["ebm"][DISPLAY_PICTURE_KEY],
     c,
-    546,
+    comparison_top,
     cw,
     170,
 )
-energy_balance_comparison.top = Mm(546)
+energy_balance_comparison.top = Mm(comparison_top)
+notes = PROFILE["poster"]["performance_note_frame_mm"]
+summary_top = notes["top"]
 text(
     "error-caption",
     DISPLAY_UPDATE["poster_text"]["chart_notes"],
     b + 2 * scale,
-    724,
+    summary_top,
     cw - 2 * scale,
-    64,
-    26,
+    notes["height"],
+    notes["font_pt"],
     bullets=True,
     c="000000",
-    paragraph_gap_pt=3,
+    paragraph_gap_pt=notes["paragraph_gap_pt"],
 )
 # Keep brand artwork as SVG above the raster plots that preserve marker hatches.
 from render_language_scatter import vector_logo_svg
@@ -873,13 +893,12 @@ for model, picture_name in (("sw", "result-error"), ("ebm", "result-calibration"
         logo = image("language-logo-" + key, asset, lx, ly, lw, lh)
         logo.left, logo.top, logo.width, logo.height = Mm(lx), Mm(ly), Mm(lw), Mm(lh)
 
-summary_top = 723
 heading("section-summary", "4  Summary", c, summary_top, cw - 72)
 text(
     "takeaways",
     DISPLAY_UPDATE["poster_text"]["takeaways"],
     c + 2 * scale,
-    753,
+    summary_top + 30,
     cw - 82,
     37,
     26,
@@ -944,10 +963,10 @@ assert [item.text for item in zxingcpp.read_barcodes(np.asarray(qr_preview))] ==
 # Align the visible black pattern, keeping its white scan border above the box.
 qr_size = 71
 qr_white_border = qr_size * qr.border / (qr.modules_count + 2 * qr.border)
-qr_box = [c + cw - qr_size, summary_top - qr_white_border, qr_size, qr_size]
+qr_box = [right - qr_size, summary_top - qr_white_border, qr_size, qr_size]
 qr_shape = image("github-repository-qr", qr_path, *qr_box)
 qr_shape.click_action.hyperlink.address = REPO_URL
-line("references-divider", a, 792, a + 400 * scale, 792, "A6BFBE", 1)
+line("references-divider", a, 792, right, 792, "A6BFBE", 1)
 footer_split = 608
 ack_left = footer_split + 14
 reference_width = footer_split - 10 - a
@@ -998,7 +1017,7 @@ pasc_size = Image.open(pasc_asset).size
 pasc_height = 40
 pasc_width = pasc_height * pasc_size[0] / pasc_size[1]
 pasc_shape = image(
-    "conference-logo", pasc_asset, W - a - pasc_width, 795, pasc_width, pasc_height
+    "conference-logo", pasc_asset, right - pasc_width, 795, pasc_width, pasc_height
 )
 # Notes bind the benchmark scope separately from the physical illustrations.
 slide.notes_slide.notes_text_frame.text = (
@@ -1017,9 +1036,8 @@ slide.notes_slide.notes_text_frame.text = (
     "figure-evidence.json and do not supply benchmark timing observations. "
     "md2fort and md2fort-gpu guide Fortran and CUDA Fortran candidates, which "
     "are compiled. Independent physics and complete byte checks precede "
-    "comparative timing. The PTX "
-    "baseline uses its separate assembly route. The accepted current points "
-    "supply both figures and the Summary."
+    "comparative timing. Handwritten CPU assembly and GPU PTX serve as "
+    "baselines. The accepted measurements supply both performance figures."
 )
 for a in original_shapes:
     if a.shape_id not in used:

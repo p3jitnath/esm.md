@@ -38,7 +38,8 @@ def render_mass_equation():
     figures/. Build logs and intermediate files stay in the ignored runtime.
     The first fenced mathematics block is the existing continuity equation.
     """
-    formulation = ROOT / "formulations/sw/dam_break.md"
+    profile = json.loads((POSTER / "project-profile.json").read_text())
+    formulation = (POSTER / profile["poster"]["formulation"]).resolve()
     match = re.search(r"```math\s*\n(.*?)\n```", formulation.read_text(), re.S)
     if match is None:
         raise RuntimeError("The formulation has no water-conservation equation.")
@@ -105,7 +106,7 @@ def render_mass_equation():
         ).save(stem.with_suffix(".png"))
         nominal_font_pt = 10 * scale
     return {
-        "source": "formulations/sw/dam_break.md",
+        "source": formulation.relative_to(ROOT).as_posix(),
         "equation_id": "P01",
         "meaning": "Conservation of water",
         "formulation_sha256": sha256(formulation.read_bytes()).hexdigest(),

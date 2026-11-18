@@ -31,7 +31,10 @@ ROUTES = (
 GROUPS = ("Assembly", "ESM.md", "Fortran", "Julia", "Python")
 COLOURS = ("#681FB1", "#00A6A2", "#29347A")
 MARKERS = ("o", "s", "D")
-TITLES = {"sw": "3.2 Shallow-Water Model", "ebm": "3.3 Energy-Balance Model"}
+TITLES = {
+    "sw": "3.1 Shallow Water Model",
+    "ebm": "3.2 Energy Balance Model [1,2]",
+}
 
 
 def _digest(path: Path) -> str:
@@ -269,7 +272,7 @@ def _text_height(shape) -> float:
     Returns
     -------
     float
-        Required text height under the builder's 1.12 line-spacing contract.
+        Required text height under the builder's 1.12 line-spacing specification.
     """
     paragraphs = shape.text_frame.paragraphs
     height = 0.0
@@ -319,7 +322,7 @@ def check(output: Path, poster: Path = POSTER) -> dict:
     profile_payload = (poster / "project-profile.json").read_bytes()
     profile = json.loads(profile_payload)
     profile_sha256 = hashlib.sha256(profile_payload).hexdigest()
-    assert profile["poster"]["performance_section_titles"] == TITLES
+    assert profile["poster"]["model_section_titles"] == TITLES
     assert profile["poster"]["text_colour"] == "#000000"
     assert (
         profile["evidence"]["measurements"]
@@ -335,7 +338,7 @@ def check(output: Path, poster: Path = POSTER) -> dict:
         for model in ("sw", "ebm")
         for item in manifest["loaded_render_metadata"][model]["language_logos"]
     )
-    expected_shapes = 63 + 2 * vector_logo_count
+    expected_shapes = 59 + 2 * vector_logo_count
     assert len(slide.shapes) == expected_shapes, len(slide.shapes)
     names = set()
     texts, sizes = [], []
@@ -359,7 +362,6 @@ def check(output: Path, poster: Path = POSTER) -> dict:
                 if run.font.size:
                     sizes.append(run.font.size.pt)
     all_text = "\n".join(texts)
-    assert "dam_break.md" in all_text and "2d_periodic.md" not in all_text
     assert set(re.findall(r"\bmd2fort(?:-gpu)?\b", all_text)) == {
         "md2fort",
         "md2fort-gpu",
@@ -367,7 +369,38 @@ def check(output: Path, poster: Path = POSTER) -> dict:
     assert "md2asm" not in all_text
     assert not re.search(r"layout only|\bpending\b", all_text, re.IGNORECASE)
     by_name = {shape.name: shape for shape in slide.shapes}
-    assert "results-summary" not in names and "energy-summary" not in names
+    assert not names.intersection(
+        {
+            "results-summary",
+            "energy-summary",
+            "results-comparison",
+            "results-comparison-background",
+            "results-diagnostics",
+            "results-diagnostics-background",
+        }
+    )
+    formulation = Path(profile["poster"]["formulation"])
+    assert formulation.name == "shallow_water.md"
+    assert by_name["physics-note-name"].text == formulation.name
+    assert (
+        by_name["physics-note-standard"].text == profile["poster"]["formulation_label"]
+    )
+    left, _, band_width, _ = _box(by_name["title-band"])
+    artwork_x, _, artwork_width, _ = _box(by_name["banner-paisley-outline"])
+    section_left, _, _, _ = _box(by_name["section-motivation-background"])
+    section_x, _, section_width, _ = _box(by_name["physical-energy-background"])
+    right = left + band_width
+    assert abs(left - section_left) < 0.1 and abs(right - (width - left)) < 0.1
+    assert abs(right - (section_x + section_width)) < 0.1
+    assert abs(right - (artwork_x + artwork_width)) < 0.1
+    for caption, chart in (
+        ("cluster-caption", "result-error"),
+        ("spatial-caption", "result-calibration"),
+    ):
+        frame = by_name[caption]
+        assert len(frame.text_frame.paragraphs) == 2
+        assert _text_height(frame) <= frame.height / 36000 + 0.1, caption
+        assert frame.top + frame.height <= by_name[chart].top, caption
     assert len(by_name["motivation-context"].text_frame.paragraphs) == 4
     assert len(by_name["method-details"].text_frame.paragraphs) == 5
     assert len(by_name["error-caption"].text_frame.paragraphs) == 3
@@ -377,8 +410,8 @@ def check(output: Path, poster: Path = POSTER) -> dict:
     ):
         assert " ".join(by_name[f"method-step-{index}"].text.split()) == expected
     for name, title in (
-        ("results-comparison", TITLES["sw"]),
-        ("results-diagnostics", TITLES["ebm"]),
+        ("section-results", TITLES["sw"]),
+        ("physical-energy", TITLES["ebm"]),
     ):
         assert " ".join(by_name[name].text.split()) == title
     scope_text = " ".join(manifest["poster_text"]["chart_notes"])
@@ -405,8 +438,13 @@ def check(output: Path, poster: Path = POSTER) -> dict:
         for run in paragraph.runs
         if run.text
     )
-    _require_box(by_name["error-caption"], (418.037389, 724, 358.587194, 64))
-    _require_box(by_name["takeaways"], (802.10325, 753, 282.249194, 37))
+    note_frame = profile["poster"]["performance_note_frame_mm"]
+    note_top = note_frame["top"]
+    _require_box(
+        by_name["error-caption"],
+        (418.037389, note_top, 358.587194, note_frame["height"]),
+    )
+    _require_box(by_name["takeaways"], (802.10325, note_top + 30, 282.249194, 37))
     _require_box(by_name["method-details"], (33.9715, 546, 358.587194, 154))
     _require_box(
         by_name["result-clusters"], (412.375389, 240.710528, 364.249194, 196.578917)
@@ -474,7 +512,7 @@ def check(output: Path, poster: Path = POSTER) -> dict:
         ("ebm", "result-calibration", 796.44125),
     ):
         picture = by_name[name]
-        _require_box(picture, (x, 546, 364.249194, 169.298806))
+        _require_box(picture, (x, 524, 364.249194, 169.298806))
         assert (
             hashlib.sha256(picture.image.blob).hexdigest()
             == chart_checks[model]["png"]["sha256"]
@@ -505,7 +543,7 @@ def check(output: Path, poster: Path = POSTER) -> dict:
     assert "Verified Assembly" not in all_text
     assert min(sizes) >= 22
     qr = by_name["github-repository-qr"]
-    _require_box(qr, (1089.690472, 716.688889, 71, 71))
+    _require_box(qr, (1089.690472, note_top - 6.311111, 71, 71))
     qr_mm = _box(qr)
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
@@ -568,7 +606,8 @@ def check(output: Path, poster: Path = POSTER) -> dict:
             output / "final-poster.png"
         )
         for name, bounds in {
-            "performance": (408, 510, 1165, 790),
+            "models": (408, 195, 1165, 526),
+            "performance": (408, 519, 1165, 790),
             "methods": (25, 510, 397, 790),
             "footer": (25, 791, 1165, 839),
             "banner": (25, 76, 1165, 193),
@@ -601,6 +640,7 @@ def check(output: Path, poster: Path = POSTER) -> dict:
         "canvas_mm": [width, height],
         "slides": 1,
         "native_objects": len(slide.shapes),
+        "shared_title_and_section_right_edge_mm": round(right, 3),
         "native_text_frames": len(texts),
         "native_text_runs_black": native_runs,
         "minimum_native_font_pt": min(sizes),

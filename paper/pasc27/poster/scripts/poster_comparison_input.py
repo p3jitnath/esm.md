@@ -461,8 +461,8 @@ def derive_poster_text(data):
     """
     validate_fresh_input(data)
     summaries = [
-        "Readable physics guides verified CPU and GPU solvers.",
-        "Physical checks and exact agreement guide optimisation.",
+        "A readable physics specification guides solver generation.",
+        "We verify physical behaviour and match reference bytes.",
         "Reusable skills preserve measured lessons for future work.",
     ]
     return {

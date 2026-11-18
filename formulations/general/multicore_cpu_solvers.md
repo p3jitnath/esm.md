@@ -1,6 +1,6 @@
-# Multicore CPU solver contract
+# Multicore CPU solver specification
 
-This extension applies to the [shallow-water solver](../../../src/sw/solver.f90) and [energy-balance solver](../../../src/ebm/solver.f90). Their [shallow-water](2d_rusanov_ssprk2.md) and [energy-balance](budyko_sellers.md) contracts still define the physics, ordered binary64 arithmetic, serial interfaces and output encoding. This extension changes how workers share one coupled domain, while preserving every required returned state bit.
+This extension applies to the [shallow-water solver](../../src/sw/solver.f90) and [energy-balance solver](../../src/ebm/solver.f90). Their [shallow-water](../sw/shallow_water_specification.md) and [energy-balance](../ebm/budyko_sellers_specification.md) specifications still define the physics, ordered binary64 arithmetic, serial interfaces and output encoding. This extension changes how workers share one coupled domain, while preserving every required returned state bit.
 
 OpenMP supplies concurrent CPU workers. The Fortran coordinator owns tile gathering, both numerical stages, repeated time steps, state publication and boundary copies. A comparison driver restores inputs and calls this complete solver. It supplies no numerical stage.
 
@@ -55,7 +55,7 @@ The worker bounds are limits of these interfaces, not a claim that a machine sup
 | Energy-balance `coeff` | `(n+2,3)`, with the cell index contiguous. Columns contain `K` [W/(m² K)], `W` [W/m²] and `I` [W/m²]. |
 | Energy-balance `par` | Six values, in order `C` [J/(m² K)], `dt` [s], `delta` [1], `A` [W/m²], `B` [W/(m² K)] and `Tf` [°C]. |
 
-The caller owns all arrays for the complete call. Their storage must be disjoint and aligned to at least eight bytes, with valid values and bounds under the model's original contract. The state arrays and workspace may change. Parameters and coefficients remain unchanged. Workspace contains private states and numerical scratch of mixed physical units, with no returned-value rule after a positive count. No pointer or numerical workspace is retained after return. Larger alignment and memory placement are target tuning choices, recorded with the build and measurements.
+The caller owns all arrays for the complete call. Their storage must be disjoint and aligned to at least eight bytes, with valid values and bounds under the model's original specification. The state arrays and workspace may change. Parameters and coefficients remain unchanged. Workspace contains private states and numerical scratch of mixed physical units, with no returned-value rule after a positive count. No pointer or numerical workspace is retained after return. Larger alignment and memory placement are target tuning choices, recorded with the build and measurements.
 
 ## Workspace size
 
@@ -103,4 +103,4 @@ Build the source with OpenMP and compiler options that preserve these IEEE and o
 
 The existing physical limits and canonical output encoding remain unchanged. Acceptance compares complete current, preceding and first-stage buffers, including boundaries, with zero differing bytes. Focused checks cover zero steps, partial and repeated groups, batch boundaries, small and asymmetric domains, immutable inputs and buffer bounds. Independent physical checks remain separate from exact agreement.
 
-The complete-update timer includes gathering, overlap calculations, every numerical stage, publication, boundary copies, barriers and solver entry and return. Compilation, allocation, input restoration, first touch, verification and file writing remain outside it. Matched routes use the same grid, inputs, complete step count, actual team, placement and coordinator schedule. Hardware, chosen configurations and repeated timing variation belong in the [published comparison](../../../README.md) and local research records.
+The complete-update timer includes gathering, overlap calculations, every numerical stage, publication, boundary copies, barriers and solver entry and return. Compilation, allocation, input restoration, first touch, verification and file writing remain outside it. Matched routes use the same grid, inputs, complete step count, actual team, placement and coordinator schedule. Hardware, chosen configurations and repeated timing variation belong in the [published comparison](../../README.md) and local research records.
