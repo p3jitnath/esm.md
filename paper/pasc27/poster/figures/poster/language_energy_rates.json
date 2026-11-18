@@ -45,7 +45,7 @@
       "svg_group_id": "language-logo-assembly",
       "provenance": {
         "path": "assets/language-logos/provenance.json",
-        "sha256": "f82be291cb5bbd61192f5b61802681e150ad8759371521553f623b54c84eee10",
+        "sha256": "fb65b9b48eb9ddddd6af2985973b08db9eadf10a05efa7cba4f1a81b1d80b610",
         "asset": "assembly"
       },
       "source_asset": {
@@ -133,7 +133,7 @@
       "svg_group_id": "language-logo-fortran",
       "provenance": {
         "path": "assets/language-logos/provenance.json",
-        "sha256": "f82be291cb5bbd61192f5b61802681e150ad8759371521553f623b54c84eee10",
+        "sha256": "fb65b9b48eb9ddddd6af2985973b08db9eadf10a05efa7cba4f1a81b1d80b610",
         "asset": "fortran"
       },
       "source_asset": {
@@ -195,7 +195,7 @@
       "svg_group_id": "language-logo-julia",
       "provenance": {
         "path": "assets/language-logos/provenance.json",
-        "sha256": "f82be291cb5bbd61192f5b61802681e150ad8759371521553f623b54c84eee10",
+        "sha256": "fb65b9b48eb9ddddd6af2985973b08db9eadf10a05efa7cba4f1a81b1d80b610",
         "asset": "julia"
       },
       "source_asset": {
@@ -257,12 +257,16 @@
       "svg_group_id": "language-logo-python",
       "provenance": {
         "path": "assets/language-logos/provenance.json",
-        "sha256": "f82be291cb5bbd61192f5b61802681e150ad8759371521553f623b54c84eee10",
+        "sha256": "fb65b9b48eb9ddddd6af2985973b08db9eadf10a05efa7cba4f1a81b1d80b610",
         "asset": "python"
       },
       "source_asset": {
-        "path": "assets/language-logos/python_logo.svg",
-        "sha256": "0305d6b2bb2e2761502d072e8e2db1248dbd1a99f51fb4b4bcb9e43c486ef6b2"
+        "path": "assets/language-logos/python_snakes.svg",
+        "sha256": "baec8662a1461c2cacc326b54d2727cb2f1ce07ba02d00f5b826d035104f649f"
+      },
+      "rendering_asset": {
+        "path": "assets/language-logos/python_snakes_render.svg",
+        "sha256": "601742d7d55fb16fa49a6195821e414c4a7f3c0986b40d4e033044f93f094931"
       },
       "source_format": "SVG",
       "vector_formats": [
@@ -270,10 +274,10 @@
         "pdf"
       ],
       "source_crop_view_box": [
-        5.508566666666666,
-        3.240333333333333,
-        475.0328666666666,
-        137.71416666666664
+        0.0,
+        0.0,
+        111.16135599999998,
+        112.411921255
       ],
       "export_representation": {
         "svg": "original SVG vectors",
@@ -283,10 +287,10 @@
       "raster": {
         "purpose": "layout bounds only",
         "encoding": "RGBA8 layout preview",
-        "pixel_sha256": "80b6daa4d3052fcc3bc521f60217b2e06055d7e35c559b7f6662654d962629af",
+        "pixel_sha256": "0bcf146037001831ab3543fd5811de977a776b6b8e1931bf6541d586eb6a2dc4",
         "pixels": [
-          551,
-          159
+          256,
+          259
         ],
         "effective_dpi": [
           400,
@@ -294,23 +298,23 @@
         ]
       },
       "rendered_size_mm": [
-        34.988499999999995,
-        10.0965
+        16.256,
+        16.446499999999997
       ],
       "effective_dpi": null,
       "transparent_border_removed": true,
       "label_column_offset_pt": -57.67999999999998,
       "bounds_inches": [
-        1.189283261682864,
-        1.5764504127273984,
-        2.553286182761576,
-        1.9700556113689869
+        1.5544201597937715,
+        1.4526751930287856,
+        2.1881492846506685,
+        2.0938308310675997
       ],
       "relative_figure_box": [
-        0.08375234237203268,
-        0.7015067255501535,
-        0.09605654373793748,
-        0.059637151309331594
+        0.1094662084361811,
+        0.6827529043836971,
+        0.04462881160964064,
+        0.09714479364224457
       ]
     }
   ],
@@ -5221,9 +5225,9 @@
   "scope": "Accepted supplied summaries are drawn unchanged. Metadata checks do not repeat scientific verification.",
   "findings": [],
   "outputs": {
-    "figures/poster/language_energy_rates.pdf": "4ad1e73b0fbdae211ccb2727ff74ddb70f7890136537508e213d54640564834b",
-    "figures/poster/language_energy_rates.png": "9beabbfbdec74535211f8c15fd189cb1390b8a36a3aecdebcf33827775972fea",
-    "figures/poster/language_energy_rates.svg": "c8a896643efdf01a97993916e08ebeec7e49651d39bc06f9a0cabf6b69a81b97"
+    "figures/poster/language_energy_rates.pdf": "79b02f8e15337f55b9508cf1e3545a087a08f62521d17880688096ab5f156905",
+    "figures/poster/language_energy_rates.png": "d6c7362ec635b8fa7443d1a720003d499dfa66acc8c1e5e22370eefcf8ef00a1",
+    "figures/poster/language_energy_rates.svg": "38f1d584e8288fbacdb7271ee9a92a300a5924783bb9faa93b8159f64ebc3121"
   },
   "input_identity": {
     "path": "data/fresh-language-comparison-input.json",
@@ -5231,6 +5235,6 @@
   },
   "renderer_identity": {
     "path": "scripts/render_language_scatter.py",
-    "sha256": "435cf476775f040f6af2750f2534bda74e106de18fdb80272efddc82b23ef002"
+    "sha256": "79b5c29ee5b14d354ffb61a5ba5c5b885d8a58338749b2f49d19f0c07ec2406d"
   }
 }

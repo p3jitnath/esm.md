@@ -408,7 +408,7 @@ def poster_language_logos(axis, figure, poster_root):
         ("assembly", "Assembly", 0, 13, 11),
         ("fortran", "Fortran", 2.5, 35, 15),
         ("julia", "Julia", 4.5, 35, 15),
-        ("python", "Python", 6.5, 35, 15),
+        ("python", "Python", 6.5, 35, 16.5),
     ):
         entry = provenance["assets"][name]
         if entry["format"] != "SVG":
@@ -433,7 +433,7 @@ def poster_language_logos(axis, figure, poster_root):
             }
             if rendering_asset["sha256"] != entry["rendering_sha256"]:
                 raise ValueError(
-                    "The outlined text differs from its recorded identity."
+                    "The rendering artwork differs from its recorded identity."
                 )
         image = Image.open(
             BytesIO(cairosvg.svg2png(bytestring=payload, output_width=1600))
@@ -450,7 +450,7 @@ def poster_language_logos(axis, figure, poster_root):
             (bounds[3] - bounds[1]) * source_units_per_pixel,
         ]
         if rendering_asset is not None and bounds == (0, 0, image.width, image.height):
-            # Keep exact vector bounds when the outlined source has no border.
+            # Keep exact vector bounds when the rendering source has no border.
             vector_view_box = source_view_box
         image = image.crop(bounds)
         # Keep the accepted Assembly frame and original artwork proportions.
@@ -503,12 +503,10 @@ def poster_language_logos(axis, figure, poster_root):
                 "svg_group_id": artist.get_gid(),
                 "provenance": {**manifest, "asset": name},
                 "source_asset": source,
+                **({"rendering_asset": rendering_asset} if rendering_asset else {}),
                 **(
-                    {
-                        "rendering_asset": rendering_asset,
-                        "text_outlining": entry["text_outlining"],
-                    }
-                    if rendering_asset is not None
+                    {"text_outlining": entry["text_outlining"]}
+                    if "text_outlining" in entry
                     else {}
                 ),
                 "source_format": "SVG",
@@ -517,7 +515,7 @@ def poster_language_logos(axis, figure, poster_root):
                 "export_representation": {
                     "svg": (
                         "original polygons and outlined text"
-                        if rendering_asset is not None
+                        if "text_outlining" in entry
                         else "original SVG vectors"
                     ),
                     "pdf": "vector PDF form",
