@@ -1,0 +1,855 @@
+{
+  "date_utc": "2026-11-18",
+  "format": "A0 landscape, 1189 by 841 mm, one native PowerPoint slide and PDF",
+  "scatter_artwork": "The PowerPoint uses PNG scatterplots to preserve marker hatches. Editable plotting source, SVG and PDF exports remain separate.",
+  "banner_artwork": "The decorative paisley uses a 400 DPI transparent image in the PDF. The PowerPoint and source SVG retain the vector pattern.",
+  "title": "ESM.md: From Markdown Physics to Verified, Optimised Earth System Model Solvers",
+  "author": "Pritthijit Nath, Sebastian Schemm, Mark J. Webb",
+  "affiliation": "\u00b9 Department of Applied Mathematics and Theoretical Physics, University of Cambridge, Cambridge, United Kingdom \u00b2 Met Office Hadley Centre, Exeter, United Kingdom",
+  "implementation_label": "ESM.md",
+  "generation_route": "Markdown physics and frozen specifications guide Fortran and CUDA Fortran candidates. Compilers build these solvers. Handwritten CPU assembly and directly assembled GPU PTX serve as baselines.",
+  "physics": {
+    "source": {
+      "path": "figure-evidence.json",
+      "sha256": "9bc3c7e788dcca6512a50bed7b1313935c18f67a65bb93bd360749a99aab9c5d"
+    },
+    "scope": "The unchanged physical illustrations retain their own accepted states and checks. They are separate from the frozen benchmark input banks.",
+    "record": {
+      "dam_time_seconds": 0.03125,
+      "ebm_time_years": 58.26616354942408,
+      "ebm_temperature_range_degC": [
+        -15.028030959403171,
+        28.220454284597636
+      ],
+      "source_sha256": {
+        "dam-x-256x8-370-fortran_vanilla-p2.bin": "589bc55baa43353a26d5367024070f3a44823e6ea2759a88bf13560e5b2e0ee8",
+        "dam-x-256x8-370-input.bin": "b2593dc3e7dbf206437bc536c238ad7f8b34dd4e1afe4dbdb498e39a6df2cfa7",
+        "timed-128-reference-p2.bin": "64c137dfef716463526596571e7d7fdb055df6b04763d0046fe62051c4fc23b8",
+        "timed-128-input.bin": "5d586acc41539d3efa332e879d963d4ac1d8a3f60a055d2300d877d4ec9536ff"
+      },
+      "figure_audits": {
+        "shallow-water": {
+          "findings": [],
+          "inches": [
+            13.8,
+            8.1
+          ],
+          "minimum_font_pt": 24,
+          "exports": [
+            "paper/pasc27/poster/figures/shallow-water.pdf",
+            "paper/pasc27/poster/figures/shallow-water.png"
+          ]
+        },
+        "energy-balance": {
+          "findings": [],
+          "inches": [
+            13.8,
+            8.1
+          ],
+          "minimum_font_pt": 24,
+          "exports": [
+            "paper/pasc27/poster/figures/energy-balance.pdf",
+            "paper/pasc27/poster/figures/energy-balance.png"
+          ]
+        },
+        "physics-note-mass": {
+          "source": "formulations/sw/shallow_water.md",
+          "equation_id": "P01",
+          "meaning": "Conservation of water",
+          "formulation_sha256": "b9173a4d57d2b3e4380522f075638bc2725817daee181388aa345abd42d0ab2b",
+          "source_equation_matches_formulation": true,
+          "backend": "pdfLaTeX",
+          "font": "Computer Modern",
+          "pdf_fonts": [
+            "CMMI10",
+            "CMR10"
+          ],
+          "poster_height_mm": 24,
+          "nominal_math_font_pt": 25.11475599003328,
+          "fallback_dpi": 400,
+          "outputs": {
+            "tex": "00dbbe108d13cbb5d67de5a2d4afa3b3bee30b33802bfdce02557fe6b4cb1ec5",
+            "pdf": "156e59a256b7dd44d7b7018b517d6e974c7022d3c6e37194f6df01c8501dba9e",
+            "svg": "db837ace353f4f6ed95c07399526b572c82d89099cc3a565f2a4e3d67af663d7",
+            "png": "4fc65a24e15063e57b923e5f778e1f455db5a6787eb327c01f099c04e483f137"
+          }
+        }
+      },
+      "font": "Open Sans",
+      "graph_style": "scripts/style/mpl_style.py",
+      "bar_value_padding_pt": 8,
+      "surface_tick_padding_pt": {
+        "x": 2,
+        "y": 32,
+        "depth": 14
+      },
+      "surface_axis_label_padding_pt": {
+        "x": 48,
+        "y": 44,
+        "depth": 30
+      },
+      "geography": {
+        "source": "assets/natural-earth/provenance.json",
+        "country_rings": 289,
+        "projection": "Orthographic, centred on 20 degrees east and the equator",
+        "geographic_context_only": true,
+        "data_sha256": "08e341606e8391e458c3f08deb312de664b56bfae376064c5aa0aee6681a5f55"
+      },
+      "physics_note_equation": {
+        "source": "formulations/sw/shallow_water.md",
+        "equation_id": "P01",
+        "meaning": "Conservation of water",
+        "formulation_sha256": "b9173a4d57d2b3e4380522f075638bc2725817daee181388aa345abd42d0ab2b",
+        "source_equation_matches_formulation": true,
+        "backend": "pdfLaTeX",
+        "font": "Computer Modern",
+        "pdf_fonts": [
+          "CMMI10",
+          "CMR10"
+        ],
+        "poster_height_mm": 24,
+        "nominal_math_font_pt": 25.11475599003328,
+        "fallback_dpi": 400,
+        "outputs": {
+          "tex": "00dbbe108d13cbb5d67de5a2d4afa3b3bee30b33802bfdce02557fe6b4cb1ec5",
+          "pdf": "156e59a256b7dd44d7b7018b517d6e974c7022d3c6e37194f6df01c8501dba9e",
+          "svg": "db837ace353f4f6ed95c07399526b572c82d89099cc3a565f2a4e3d67af663d7",
+          "png": "4fc65a24e15063e57b923e5f778e1f455db5a6787eb327c01f099c04e483f137"
+        }
+      },
+      "continuous_colormaps": {
+        "shallow_water": {
+          "name": "jet",
+          "limits_m": [
+            1,
+            2
+          ]
+        },
+        "energy_balance": {
+          "name": "coolwarm",
+          "limits_degC": [
+            -15.028030959403171,
+            28.220454284597636
+          ]
+        }
+      },
+      "surface_mesh": {
+        "edge_colour": "#5F7882",
+        "line_width_pt": 0.35,
+        "row_stride": 1,
+        "column_stride": 3,
+        "requested_by_author": true
+      }
+    }
+  },
+  "performance_source": "data/fresh-language-comparison-input.json",
+  "performance_source_sha256": "ad5fcc2e4e65ebd5e380d582b83008b7e10556fab608d6b681a573e8be96bb30",
+  "performance_manifest": {
+    "path": "data/fresh-language-poster-manifest.json",
+    "sha256": "92a18055177d87becc307a300052d729327bb2b2da4274176666047e8b48ede7"
+  },
+  "comparison_evidence_source": "data/fresh-language-figure-evidence.json",
+  "comparison_evidence": {
+    "status": "accepted",
+    "measurement_class": "fresh_eight_route_languages",
+    "cohort": "fresh_languages_job8353767",
+    "input": {
+      "path": "data/fresh-language-comparison-input.json",
+      "sha256": "ad5fcc2e4e65ebd5e380d582b83008b7e10556fab608d6b681a573e8be96bb30"
+    },
+    "input_identity": {
+      "path": "data/fresh-language-comparison-input.json",
+      "sha256": "ad5fcc2e4e65ebd5e380d582b83008b7e10556fab608d6b681a573e8be96bb30"
+    },
+    "manifest": {
+      "path": "data/fresh-language-poster-manifest.json",
+      "sha256": "92a18055177d87becc307a300052d729327bb2b2da4274176666047e8b48ede7"
+    },
+    "conditions": 96,
+    "elapsed_observations": 1152,
+    "complete_steps": 1000,
+    "repeats": 12,
+    "initial_states": {
+      "sw": "MIXED",
+      "ebm": "CLIMATE"
+    },
+    "point_definition": "updates / median_seconds",
+    "displayed_rate_definition": "updates / median_seconds / scale",
+    "range_definition": "min(rates), max(rates), where rates = updates / raw_seconds / scale",
+    "cell_update_definition": "All fields at one interior cell advanced through one complete step.",
+    "route_order": [
+      "assembly",
+      "esm",
+      "fortran_tuned",
+      "fortran_vanilla",
+      "julia_tuned",
+      "julia_vanilla",
+      "python_tuned",
+      "python_vanilla"
+    ],
+    "normaliser_sha256": "1c21e40d1d82ed0a10c8775af4a1ddc5ee6fd363d59cee79f1869d5815ec99e1",
+    "sources": {
+      "cpu_plan": {
+        "id": "cpu_plan",
+        "sha256": "234ab7dbfb1546d3688094ee7c1c306716affac6f598242db4c3414f615ff0a5"
+      },
+      "cpu_freeze": {
+        "id": "cpu_freeze",
+        "sha256": "c75627d3f0b29167cf3a71aee4c2907ada94d235bcff386514b1fbbc2abf95cc"
+      },
+      "cpu_collection": {
+        "id": "cpu_collection",
+        "sha256": "aa9f52fe1a9c747198cec20f4d6a0bc194dccb64a78107b2758e2fbad79a500e"
+      },
+      "cpu_terminal": {
+        "id": "cpu_terminal",
+        "sha256": "287257e16ac24679bf01f13209b08900cd290ac72f581e1f6db4ae07907d4a10"
+      },
+      "cpu_guard_validation": {
+        "id": "cpu_guard_validation",
+        "sha256": "e69f7886fa4a4c87236114dfddc15e440b1f8d0d0cbf0dd7b418850639b5233c"
+      },
+      "cpu_sw_64": {
+        "id": "cpu_sw_64",
+        "sha256": "8a9a23488a898ffaa7a57bd48e03671dce88247e03a1f9df05b5bf5d6d285ca9"
+      },
+      "cpu_sw_256": {
+        "id": "cpu_sw_256",
+        "sha256": "5d4d3d33cbc52ed806fa5971ab29827eb52c0536ed53183f258fb4ce01957e3f"
+      },
+      "cpu_sw_1024": {
+        "id": "cpu_sw_1024",
+        "sha256": "a4b0a665ccef3e75b28ed01a94262fc6fa521d78092e42519b6f6b3f4cbc8529"
+      },
+      "cpu_ebm_128": {
+        "id": "cpu_ebm_128",
+        "sha256": "2fc05e08135f15ab82e3e5321f0ce885bb1763bc5d1117b31281ab13c0cf636b"
+      },
+      "cpu_ebm_4096": {
+        "id": "cpu_ebm_4096",
+        "sha256": "691f12208515af0302b8a81513fda259e9b0140621d56e4eeb8e79a0a8a99e81"
+      },
+      "cpu_ebm_65536": {
+        "id": "cpu_ebm_65536",
+        "sha256": "0f5277af096ac1e26a70adc3b4c42a7beef2fb78b95688ba4f0eb60cd8157dd6"
+      },
+      "gpu_prepared": {
+        "id": "gpu_prepared",
+        "sha256": "0d308ce9e79c7ce47fe561b8943e531e0340bc14c0d831b6d805ef877ddbec95"
+      },
+      "gpu_expected_sources": {
+        "id": "gpu_expected_sources",
+        "sha256": "21b50481620a24f5acd092dc4f74cf7b834ac8676adcf1504fca5f7daa46b239"
+      },
+      "input_banks": {
+        "id": "input_banks",
+        "sha256": "710aa0361a726ae3da86f6e7554805468bc46f0341c33cddc9b1bdbeb6b727e3"
+      },
+      "gpu_sw": {
+        "id": "gpu_sw",
+        "sha256": "400f5716b96659e8f72b9dfe046ce81234249594d13d40a02cf7a4508a870f22"
+      },
+      "gpu_ebm": {
+        "id": "gpu_ebm",
+        "sha256": "b4a4472d07c04a6125a6705e978fdbdd6bf64f974212553b5ecf602bcab7e035"
+      }
+    },
+    "acceptance": {
+      "collector_reports_passed": true,
+      "complete_fresh_timings": true,
+      "independent_physics": "Retained accepted source checks and final producer gates.",
+      "limits": "Producer limits remain unchanged. CPU quiet gates are empirical, and reused canonical floating-point flag scope retains its recorded unknowns.",
+      "source_ids": [
+        "cpu_plan",
+        "cpu_freeze",
+        "cpu_collection",
+        "cpu_terminal",
+        "cpu_guard_validation",
+        "cpu_sw_64",
+        "cpu_sw_256",
+        "cpu_sw_1024",
+        "cpu_ebm_128",
+        "cpu_ebm_4096",
+        "cpu_ebm_65536",
+        "gpu_prepared",
+        "gpu_expected_sources",
+        "input_banks",
+        "gpu_sw",
+        "gpu_ebm"
+      ]
+    },
+    "collector_evidence": {
+      "id": "fresh_languages_job8353767_collector_evidence",
+      "sha256": "387cf502956db05471248bc095c1a48497c897bbdcd9110f3b697567ffd36f86",
+      "scope": "Complete original collector documents retained locally."
+    },
+    "resources": [
+      {
+        "model": "ebm",
+        "device": "CPU",
+        "size": 128,
+        "resource": {
+          "cpu_budget": 248,
+          "actual_workers": 128
+        }
+      },
+      {
+        "model": "ebm",
+        "device": "CPU",
+        "size": 4096,
+        "resource": {
+          "cpu_budget": 248,
+          "actual_workers": 248
+        }
+      },
+      {
+        "model": "ebm",
+        "device": "CPU",
+        "size": 65536,
+        "resource": {
+          "cpu_budget": 248,
+          "actual_workers": 248
+        }
+      },
+      {
+        "model": "ebm",
+        "device": "GPU",
+        "size": 128,
+        "resource": {
+          "gpu_count": 1,
+          "gpu_uuid": "GPU-c71eabfe-56ec-7ef2-0308-7dc43c9c5d35",
+          "host_cpu": 1
+        }
+      },
+      {
+        "model": "ebm",
+        "device": "GPU",
+        "size": 4096,
+        "resource": {
+          "gpu_count": 1,
+          "gpu_uuid": "GPU-c71eabfe-56ec-7ef2-0308-7dc43c9c5d35",
+          "host_cpu": 1
+        }
+      },
+      {
+        "model": "ebm",
+        "device": "GPU",
+        "size": 65536,
+        "resource": {
+          "gpu_count": 1,
+          "gpu_uuid": "GPU-c71eabfe-56ec-7ef2-0308-7dc43c9c5d35",
+          "host_cpu": 1
+        }
+      },
+      {
+        "model": "sw",
+        "device": "CPU",
+        "size": 64,
+        "resource": {
+          "cpu_budget": 248,
+          "actual_workers": 248
+        }
+      },
+      {
+        "model": "sw",
+        "device": "CPU",
+        "size": 256,
+        "resource": {
+          "cpu_budget": 248,
+          "actual_workers": 248
+        }
+      },
+      {
+        "model": "sw",
+        "device": "CPU",
+        "size": 1024,
+        "resource": {
+          "cpu_budget": 248,
+          "actual_workers": 248
+        }
+      },
+      {
+        "model": "sw",
+        "device": "GPU",
+        "size": 64,
+        "resource": {
+          "gpu_count": 1,
+          "gpu_uuid": "GPU-c71eabfe-56ec-7ef2-0308-7dc43c9c5d35",
+          "host_cpu": 1
+        }
+      },
+      {
+        "model": "sw",
+        "device": "GPU",
+        "size": 256,
+        "resource": {
+          "gpu_count": 1,
+          "gpu_uuid": "GPU-c71eabfe-56ec-7ef2-0308-7dc43c9c5d35",
+          "host_cpu": 1
+        }
+      },
+      {
+        "model": "sw",
+        "device": "GPU",
+        "size": 1024,
+        "resource": {
+          "gpu_count": 1,
+          "gpu_uuid": "GPU-c71eabfe-56ec-7ef2-0308-7dc43c9c5d35",
+          "host_cpu": 1
+        }
+      }
+    ],
+    "figures": {
+      "sw": {
+        "png": "figures/poster/language_water_rates.png",
+        "svg": "figures/poster/language_water_rates.svg",
+        "pdf": "figures/poster/language_water_rates.pdf"
+      },
+      "ebm": {
+        "png": "figures/poster/language_energy_rates.png",
+        "svg": "figures/poster/language_energy_rates.svg",
+        "pdf": "figures/poster/language_energy_rates.pdf"
+      }
+    },
+    "render_metadata": {
+      "sw": {
+        "path": "figures/poster/language_water_rates.json",
+        "sha256": "65fa9bef11a512c5da304bbc332acb7a5354e3d9c2f84dbf53464d9caa3c301f"
+      },
+      "ebm": {
+        "path": "figures/poster/language_energy_rates.json",
+        "sha256": "d646bdd47584ed1818314334caf937bc0aa970691eeb4963b18a797f664a26eb"
+      }
+    },
+    "chart_output_sha256": {
+      "sw": {
+        "figures/poster/language_water_rates.pdf": "6b1938b7bbd55522315c1c53e9c20246806e8a1e78e57f291a67275d7588b88a",
+        "figures/poster/language_water_rates.png": "d587389c43a2cd0a051c0bbb66126053940245c3b77887ed75611e79ca9f2e19",
+        "figures/poster/language_water_rates.svg": "05e3a90ce6e88a23fa94bb7ab5cd30d2fcd9b4cc35b7447638bb5c778104ba40"
+      },
+      "ebm": {
+        "figures/poster/language_energy_rates.pdf": "538c478ca52803e98c5e7f3b53ea550d114ce4aa8143f93cbc2397aee4f1c59e",
+        "figures/poster/language_energy_rates.png": "ae64141ee3a9ad9c50ffacaed7e10fa703cc9ac922ffc8b43583a62b57d71a65",
+        "figures/poster/language_energy_rates.svg": "92ed3f1cc5e8eecd7eb0641b3708fbfc535a96075c5285054c8af778a272175f"
+      }
+    },
+    "encoding_audit": {
+      "path": "data/fresh-language-encoding-audit.json",
+      "sha256": "0c38e95379ee222fe0b9c7988416b3390cd586afdc26200b5dd8771e75b0cbc9"
+    },
+    "axis_scales": {
+      "sw": [
+        {
+          "device": "CPU",
+          "scale": "logarithmic absolute rates",
+          "limits": [
+            15.127641551207097,
+            10817.295541041596
+          ],
+          "ticks": [
+            100.0,
+            1000.0,
+            10000.0
+          ],
+          "axis_inches": [
+            4.733333333333333,
+            4.223999999999999
+          ],
+          "header": "CPU \u00b7 248 cores \u00b7 log"
+        },
+        {
+          "device": "GPU",
+          "scale": "logarithmic absolute rates",
+          "limits": [
+            0.17949590412721025,
+            12.962917587133463
+          ],
+          "ticks": [
+            1.0,
+            10.0
+          ],
+          "axis_inches": [
+            4.733333333333333,
+            4.223999999999999
+          ],
+          "header": "GPU \u00b7 1 GH200 \u00b7 log"
+        }
+      ],
+      "ebm": [
+        {
+          "device": "CPU",
+          "scale": "logarithmic absolute rates",
+          "limits": [
+            46.44146619191878,
+            20837.687589849596
+          ],
+          "ticks": [
+            100.0,
+            1000.0,
+            10000.0
+          ],
+          "axis_inches": [
+            4.733333333333333,
+            4.223999999999999
+          ],
+          "header": "CPU \u00b7 248 cores \u00b7 log"
+        },
+        {
+          "device": "GPU",
+          "scale": "logarithmic absolute rates",
+          "limits": [
+            0.011359685643350378,
+            229.16822321283854
+          ],
+          "ticks": [
+            0.1,
+            1.0,
+            10.0,
+            100.0
+          ],
+          "axis_inches": [
+            4.733333333333333,
+            4.223999999999999
+          ],
+          "header": "GPU \u00b7 1 GH200 \u00b7 log"
+        }
+      ]
+    },
+    "poster_text": {
+      "chart_notes": [
+        "Runs use frozen input banks for 1,000 steps. Points divide updates by median time. Lines show the range of 12 individual rates.",
+        "One cell update advances all fields at one interior cell through a complete step. Timing includes overlap work.",
+        "CPU uses 248 workers, with 128 for EBM at 128 bands. GPU uses one GH200 device."
+      ],
+      "takeaways": [
+        "A readable physics specification guides solver generation.",
+        "Verification is based on physical checks and byte agreement.",
+        "Reusable skills preserve measured lessons for future work."
+      ]
+    },
+    "checks": {
+      "id": "fresh_language_poster_structural_checks",
+      "sha256": "c7081256f3b1dd9e54284f4e4ec9b98205412336281b1cd2d1d60bd4516db1f5"
+    },
+    "visual_review": {
+      "id": "fresh_language_poster_visual_review",
+      "sha256": "f65e037a8fab74eb6dfcee6b7cac313bdc3989060d0d136fd156a9257df15a68"
+    },
+    "evidence_binding_runs_models": false,
+    "scope": "Only the newly accepted eight-route cohort supplies the performance plots and notes. The Summary describes the demonstrated workflow and reusable lessons. Metadata binding does not strengthen the original numerical, quiet-node or timer limits."
+  },
+  "summary": {
+    "chart_notes": [
+      "Runs use frozen input banks for 1,000 steps. Points divide updates by median time. Lines show the range of 12 individual rates.",
+      "One cell update advances all fields at one interior cell through a complete step. Timing includes overlap work.",
+      "CPU uses 248 workers, with 128 for EBM at 128 bands. GPU uses one GH200 device."
+    ],
+    "takeaways": [
+      "A readable physics specification guides solver generation.",
+      "Verification is based on physical checks and byte agreement.",
+      "Reusable skills preserve measured lessons for future work."
+    ]
+  },
+  "structural_and_qr_checks": {
+    "id": "fresh_language_poster_structural_checks",
+    "sha256": "c7081256f3b1dd9e54284f4e4ec9b98205412336281b1cd2d1d60bd4516db1f5",
+    "passed": true,
+    "cohort": "fresh_languages_job8353767",
+    "input_sha256": "ad5fcc2e4e65ebd5e380d582b83008b7e10556fab608d6b681a573e8be96bb30",
+    "manifest_sha256": "92a18055177d87becc307a300052d729327bb2b2da4274176666047e8b48ede7",
+    "profile_sha256": "30d2dd346e4cc5cbb71779f4c210675b5e9876f2b445610b7640555146532a38",
+    "artifact_sha256": {
+      "esm-md-a0-landscape.pptx": "c4d7661871d8c5ca31f690cdfc4ad2053932aa34cdd3e16c53ff927480b9433d",
+      "esm-md-a0-landscape.pdf": "a7dd5c510a711ca76da8b1f4acf92d60c9ec12c3d94919efe66834837c4a746f",
+      "esm-md-a0-landscape.png": "2c20df2d64857e831cb6c3a1eba2b8832be20eec2ba1b5038bf671c9342e989c"
+    },
+    "qualified_observations": 1152,
+    "qr_url": "https://github.com/p3jitnath/esm.md",
+    "qr_decoded_from_actual_pdf": true,
+    "qr_final_pdf_checks": [
+      {
+        "pdf_scale": 1.5,
+        "pixels": [
+          303,
+          303
+        ],
+        "decoded": [
+          "https://github.com/p3jitnath/esm.md"
+        ]
+      },
+      {
+        "pdf_scale": 3,
+        "pixels": [
+          605,
+          605
+        ],
+        "decoded": [
+          "https://github.com/p3jitnath/esm.md"
+        ]
+      }
+    ],
+    "visual_inspection_required": true,
+    "desktop_powerpoint_inspected": false
+  },
+  "visual_review": {
+    "id": "fresh_language_poster_visual_review",
+    "sha256": "f65e037a8fab74eb6dfcee6b7cac313bdc3989060d0d136fd156a9257df15a68",
+    "status": "approved",
+    "cohort": "fresh_languages_job8353767",
+    "input_sha256": "ad5fcc2e4e65ebd5e380d582b83008b7e10556fab608d6b681a573e8be96bb30",
+    "artifacts": {
+      "esm-md-a0-landscape.pptx": "c4d7661871d8c5ca31f690cdfc4ad2053932aa34cdd3e16c53ff927480b9433d",
+      "esm-md-a0-landscape.pdf": "a7dd5c510a711ca76da8b1f4acf92d60c9ec12c3d94919efe66834837c4a746f",
+      "esm-md-a0-landscape.png": "2c20df2d64857e831cb6c3a1eba2b8832be20eec2ba1b5038bf671c9342e989c"
+    },
+    "review_scope": "Inspected the full saved-PowerPoint PDF and close-ups of the model columns, Methods, charts, Summary, banner and footer. Verified the revised wording, two bullets per model, section numbering, banner alignment, text clearance and preserved scientific artwork. Inspected the final banner at full size and in close-up. The enlarged title fits on one line, all four text rows are clear and the fade begins about 10 mm after the affiliations. The body matches the reviewed layout. Inspected the second Summary bullet in the latest PDF crop. The pixel changes are confined to the Summary. Inspected the final comparison crop with the 16.5 mm Python device in both rows. The rendering omits the separate shadow, and chart pixels outside the changed logo boxes match. Inspected the final comparison crop with the ASM marks enlarged by about ten per cent. Their centres remain fixed, and only pixels inside their new boxes differ."
+  },
+  "desktop_powerpoint_inspection": false,
+  "profile": {
+    "path": "project-profile.json",
+    "sha256": "30d2dd346e4cc5cbb71779f4c210675b5e9876f2b445610b7640555146532a38"
+  },
+  "artifacts": {
+    "esm-md-a0-landscape.pptx": "c4d7661871d8c5ca31f690cdfc4ad2053932aa34cdd3e16c53ff927480b9433d",
+    "esm-md-a0-landscape.pdf": "a7dd5c510a711ca76da8b1f4acf92d60c9ec12c3d94919efe66834837c4a746f",
+    "esm-md-a0-landscape.png": "2c20df2d64857e831cb6c3a1eba2b8832be20eec2ba1b5038bf671c9342e989c"
+  },
+  "branding": {
+    "cambridge_colour_guide": "https://www.cam.ac.uk/brand-resources/guidelines/colour",
+    "cambridge_typography_guide": "https://www.cam.ac.uk/brand-resources/guidelines/typography",
+    "colours": {
+      "Cambridge blue": "#8EE8D8",
+      "Light blue": "#D1F9F1",
+      "Warm blue": "#00BDB6",
+      "Dark blue": "#133844",
+      "White": "#FFFFFF"
+    },
+    "font": "Open Sans Regular and Bold; approved Cambridge fallback",
+    "university_logo": {
+      "source": "https://pdac.ch.cam.ac.uk/files/Templates/Chemistry%20Poster%20Template.pdf",
+      "access_date": "2026-10-05",
+      "source_sha256": "5e4928dd35f38af86b3475f26b2e32befbff77d86ea281ccb2c5cbc1407ec4e0",
+      "clip_points": [
+        60.0,
+        70.0,
+        590.0,
+        185.0
+      ],
+      "change": "Isolated the complete University crest and wordmark; excluded the separate department label. No logo elements were redrawn or recoloured.",
+      "vector_images": 0,
+      "vector_drawings": 148,
+      "placement_mm": [
+        28.3095,
+        18.0,
+        230.43477777777778,
+        50.0
+      ],
+      "scale_factor_from_previous": 1.479969707160296,
+      "clearance_to_banner_mm": 11
+    },
+    "epsrc": {
+      "official_source": "https://www.ukri.org/wp-content/uploads/2026/08/EPSRC-240826-FundingOpp-StrategicInfrastructureOutlines-WebinarSlides.pdf",
+      "page": 1,
+      "image_stream": 12,
+      "transparency_stream": 13,
+      "asset": "poster/assets/epsrc-horizontal.png",
+      "asset_sha256": "d1c0c723c322261cecb879184c63cc96359b7ebdb86592b9cbb00fd9634944b3",
+      "modification": "Original artwork and its original transparency mask, extracted together; proportions preserved."
+    },
+    "pasc27": {
+      "official_page": "https://pasc-conference.org/pasc27/",
+      "official_image": "https://pasc-conference.org/wp-content/uploads/2026/08/PASC27_2.png",
+      "asset_sha256": "7edb14ef97033046787f23bd577f88e02030c3c00dc286dd54ee18ff955afa55",
+      "native_mm": [
+        1050.8139166666667,
+        795.0,
+        109.87652777777778,
+        40.0
+      ],
+      "ink_bounds_mm": [
+        1050.8074,
+        795.0435,
+        1160.7565,
+        835.025
+      ],
+      "right_margin_error_mm": -0.066,
+      "height_enlargement_factor": 1.2845020369169453,
+      "original_asset_preserved": true
+    },
+    "artwork": "Grey outline curves traced from the supplied paisley image. The banner repeats one complete 750-pixel source period, cropping inside the image to exclude artificial outer edges. The outlines emerge over 150 mm and retain 30% opacity. The Cambridge-blue background fades to white.",
+    "banner": {
+      "text_side_inset_mm": 18,
+      "band_height_mm": 111,
+      "text_padding_measured_mm": {
+        "left": 17.999,
+        "right": 19.618,
+        "top": 11.548,
+        "bottom": 7.925
+      },
+      "stroke": "#303030",
+      "maximum_outline_opacity": 0.3,
+      "left_blend_mm": 150,
+      "gradient_colours": [
+        "#8EE8D8",
+        "#FFFFFF"
+      ],
+      "vector_asset": "poster/assets/paisley-banner.svg",
+      "background_gradient_stops": [
+        0.658516,
+        1.0
+      ],
+      "fade_start_mm": 774,
+      "left_blend_start_mm": 287.309524,
+      "text_font_sizes_pt": {
+        "title": 74,
+        "subtitle": 44,
+        "author": 30,
+        "affiliations": 26
+      },
+      "shared_right_edge_mm": 1160.69,
+      "fade_clearance_after_affiliations_mm": 9.964
+    },
+    "user_visual_reference": {
+      "name": "1-Pasted-Image-1.jpg",
+      "sha256": "f17b4cbe6c8fb16b8840dac73f3d37454ac306d5f0e97a7d2453e637e6c861a8",
+      "purpose": "Source image for the traced paisley outlines."
+    },
+    "vector_trace": {
+      "source": "poster/assets/paisley-source.jpg",
+      "source_sha256": "f17b4cbe6c8fb16b8840dac73f3d37454ac306d5f0e97a7d2453e637e6c861a8",
+      "tool": "vtracer",
+      "tool_version": "0.6.15",
+      "foreground_rule": "maximum of red and green channels > 55",
+      "paths_per_tile": 552,
+      "vector_images": 0,
+      "fill": "none",
+      "stroke": "#303030",
+      "stroke_width_source_pixels": 1.5,
+      "svg_stroke_opacity": 0.3,
+      "banner_pattern_mm": [
+        674,
+        111
+      ],
+      "left_blend_mm": 150,
+      "blend_bands": 60,
+      "colour_fade": false,
+      "left_blend_start_mm": 287.309524
+    },
+    "sponsor_placement": {
+      "right_edge_aligned_with_body_margin": true,
+      "label_gap_measured_mm": 8.006,
+      "label": "Sponsors:",
+      "label_font_pt": 34
+    },
+    "section_padding_mm": {
+      "section-motivation": {
+        "left": 10.0,
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      "section-results": {
+        "left": 10.0,
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      "physical-energy": {
+        "left": 10.0,
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      "section-methods": {
+        "left": 10.0,
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      "results-comparison": {
+        "left": 10.0,
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      "results-diagnostics": {
+        "left": 10.0,
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      "section-summary": {
+        "left": 10.0,
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    },
+    "paisley_trace": {
+      "source": "poster/assets/paisley-source.jpg",
+      "source_sha256": "f17b4cbe6c8fb16b8840dac73f3d37454ac306d5f0e97a7d2453e637e6c861a8",
+      "tool": "vtracer",
+      "tool_version": "0.6.15",
+      "foreground_rule": "maximum of red and green channels > 55",
+      "paths_per_tile": 552,
+      "vector_images": 0,
+      "fill": "none",
+      "stroke": "#303030",
+      "stroke_width_source_pixels": 1.5,
+      "svg_stroke_opacity": 0.3,
+      "banner_pattern_mm": [
+        674,
+        111
+      ],
+      "left_blend_mm": 150,
+      "blend_bands": 60,
+      "colour_fade": false,
+      "source_repeat_pixels": 750,
+      "source_crop_left_pixels": 205.0,
+      "tile_width_mm": 155.440414507772,
+      "seam_method": "Crop one measured repeat period inside the source image, excluding artificial outlines at its outer edges.",
+      "repeat_mean_absolute_pixel_difference": 3.6729906483002654,
+      "left_blend_start_mm": 287.309524
+    }
+  },
+  "references": [
+    {
+      "number": 1,
+      "vancouver": "Budyko MI. The effect of solar radiation variations on the climate of the Earth. Tellus. 1969;21(5):611\u2013619. doi:10.1111/j.2153-3490.1969.tb00466.x.",
+      "primary_url": "https://onlinelibrary.wiley.com/doi/10.1111/j.2153-3490.1969.tb00466.x",
+      "poster_display": "1. Budyko MI. The effect of solar radiation variations on the climate of the Earth. Tellus. 1969. 21(5), 611\u2013619.",
+      "url": "https://doi.org/10.1111/j.2153-3490.1969.tb00466.x",
+      "url_access_date": "2026-10-05"
+    },
+    {
+      "number": 2,
+      "vancouver": "Sellers WD. A Global Climatic Model Based on the Energy Balance of the Earth-Atmosphere System. J Appl Meteorol. 1969;8(3):392\u2013400. doi:10.1175/1520-0450(1969)008<0392:AGCMBO>2.0.CO;2.",
+      "primary_url": "https://journals.ametsoc.org/abstract/journals/apme/8/3/1520-0450_1969_008_0392_agcmbo_2_0_co_2.xml",
+      "poster_display": "2. Sellers WD. A Global Climatic Model Based on the Energy Balance of the Earth-Atmosphere System. J Appl Meteorol. 1969. 8(3), 392\u2013400.",
+      "url": "https://doi.org/10.1175/1520-0450(1969)008%3C0392%3AAGCMBO%3E2.0.CO%3B2",
+      "url_access_date": "2026-10-05"
+    }
+  ],
+  "acknowledgement": {
+    "text": "We thank OpenAI for access to GPT 6.1 Sol through the ChatGPT for Academic Researchers programme.",
+    "requested_by_author": true,
+    "programme_name_source": "https://openai.com/index/chatgpt-for-academic-researchers/",
+    "access_date": "2026-10-05",
+    "separator": "|",
+    "heading": "Acknowledgements",
+    "separate_footer_section": true,
+    "body_left_mm": 622,
+    "divider_mm": [
+      608,
+      795,
+      0,
+      41
+    ],
+    "divider_width_pt": 1.5,
+    "model_access_attribution_requested_by_author": true,
+    "scientific_generator_identifier_unchanged": true
+  },
+  "formulation_rename": {
+    "old_path": "formulations/sw/dam_break.md",
+    "new_path": "formulations/sw/shallow_water.md",
+    "old_sha256": "39370c94cf08380c9a2a05eeecc944bb1049a44dac833cc049f092afe8ce9c15",
+    "new_sha256": "b9173a4d57d2b3e4380522f075638bc2725817daee181388aa345abd42d0ab2b",
+    "formulation_revision": "1.0",
+    "equations_and_physical_inputs_unchanged": true,
+    "previous_rename_record": "data/dam-break-rename.json"
+  },
+  "comparison_evidence_sha256": "66745b3e581064b4df6ed1fb3262dede9376be629e34b819c7b37092442f18c6"
+}

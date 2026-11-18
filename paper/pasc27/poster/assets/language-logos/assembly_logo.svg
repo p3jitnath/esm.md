@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1092 936" width="1092" height="936">
+  <defs>
+    <clipPath id="hexClip">
+      <polygon points="273,0 819,0 1092,468 819,936 273,936 0,468"/>
+    </clipPath>
+  </defs>
+
+  <!-- Transparent background; canvas is tightly cropped to the hexagon bounds. -->
+  <polygon fill="#5968C8" points="273,0 819,0 1092,468 819,936 273,936 0,468"/>
+
+  <!-- Dark-blue half, split diagonally from lower-left to upper-right. -->
+  <polygon clip-path="url(#hexClip)" fill="#0754A8" points="273,0 819,0 273,936 0,468"/>
+
+  <!-- Lettering -->
+  <text x="546" y="608"
+        text-anchor="middle"
+        fill="#FFFFFF"
+        font-family="Nimbus Sans, Helvetica, Arial, sans-serif"
+        font-size="356"
+        font-weight="400"
+        letter-spacing="-4">ASM</text>
+</svg>

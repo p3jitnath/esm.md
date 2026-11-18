@@ -1,0 +1,653 @@
+! SPDX-License-Identifier: MIT
+!> ESM.md Fortran GPU solver. The compiler creates all device instructions.
+!! Physics input is formulations/sw/dam_break.md revision 1.0.
+!! Arithmetic follows skills/md2fort/references/2d_rusanov_ssprk2.md.
+!! With p=nx+2 and s=p*(ny+2), q, base and out each contain 3*s
+!! binary64 values. Their fields are depth in metres and two momenta in
+!! square metres per second. work contains 5*s values for D03 fluxes and
+!! wave speeds. par has gravity in metres per square second, two spacings
+!! in metres and the time step in seconds. Each array is at least eight-byte
+!! aligned and remains caller-owned through stream completion.
+!! Input q is read except in boundary kernels. base, work and par are read
+!! by update kernels, while out receives complete stages and periodic ghosts.
+!! Preparation reads q and par and replaces all five work fields.
+!! Launches follow skills/md2fort-gpu/references/gpu-contract.md.
+!! The selected small-grid entry uses four-by-four cell tiles. A block
+!! prepares the neighbouring values in shared storage, then its threads
+!! update the three fields. It uses 64 threads and one block barrier.
+module esm_sw_gpu_fortran
+  use cudafor
+  use iso_fortran_env, only: real64, int64
+  use iso_c_binding, only: c_int
+  implicit none
+contains
+  !> Copy each periodic ghost once before a nonempty batch of complete steps.
+  attributes(global) subroutine sw_edges(nx, ny, q) bind(C, name='sw_edges')
+    integer(c_int), value :: nx, ny
+    real(real64), device, intent(inout) :: q(0:*)
+    integer :: t, p, s, edge, a, z, i, j, ii, jj
+    t = (blockidx%x - 1)*blockdim%x + threadidx%x - 1
+    p = nx + 2; s = p*(ny + 2); edge = 2*p + 2*ny
+    if (t >= 3*edge) return
+    a = t/edge; z = mod(t, edge)
+    if (z < 2*p) then
+      i = mod(z, p); j = ny + 1
+      if (z < p) j = 0
+      ii = i
+      if (i == 0) ii = nx
+      if (i == nx + 1) ii = 1
+      jj = 1
+      if (j == 0) jj = ny
+    else
+      i = nx + 1
+      if (z < 2*p + ny) i = 0
+      j = mod(z - 2*p, ny) + 1; ii = 1; jj = j
+      if (i == 0) ii = nx
+    end if
+    q(a*s + j*p + i) = q(a*s + jj*p + ii)
+  end subroutine
+
+  !> Copy every periodic face and corner directly from an interior cell.
+  attributes(global) subroutine sw_halo(nx, ny, q) bind(C, name='sw_halo')
+    integer(c_int), value :: nx, ny
+    real(real64), device, intent(inout) :: q(0:*)
+    integer :: t, p, s, a, j, i, jj, ii
+    t = (blockidx%x - 1)*blockdim%x + threadidx%x - 1
+    p = nx + 2; s = p*(ny + 2)
+    if (t >= 3*s) return
+    a = t/s; j = mod(t, s)/p; i = mod(t, p)
+    if (i > 0 .and. i <= nx .and. j > 0 .and. j <= ny) return
+    ii = i; jj = j
+    if (i == 0) ii = nx
+    if (i == nx + 1) ii = 1
+    if (j == 0) jj = ny
+    if (j == ny + 1) jj = 1
+    q(t) = q(a*s + jj*p + ii)
+  end subroutine
+
+  !> Evaluate D03 into five scratch fields after the input halo launch.
+  attributes(global) subroutine sw_prepare_clean(nx, ny, q, work, par) bind(C, name='sw_prepare_clean')
+    integer(c_int), value :: nx, ny
+    real(real64), device, intent(in) :: q(0:*), par(0:*)
+    real(real64), device, intent(inout) :: work(0:*)
+    real(real64) :: h, mx, my, u, v, z, c, pressure
+    integer :: t, s, p, i, j, ii, jj, k
+    t = (blockidx%x - 1)*blockdim%x + threadidx%x - 1
+    s = (nx + 2)*(ny + 2)
+    if (t >= s) return
+    h = q(t); mx = q(s + t); my = q(2*s + t)
+    u = mx/h; v = my/h; z = par(0)*h; c = sqrt(z); pressure = (z*h)*0.5_real64
+    work(t) = mx*u + pressure
+    work(s + t) = mx*v
+    work(2*s + t) = my*v + pressure
+    work(3*s + t) = abs(u) + c
+    work(4*s + t) = abs(v) + c
+  end subroutine
+
+  !> Return the exactly rounded D04 face with the left speed selected at a tie.
+  attributes(device) real(real64) function face(ql, qr, fl, fr, half_alpha)
+    real(real64), value :: ql, qr, fl, fr, half_alpha
+    real(real64) :: alpha, central, jump, dissipative
+    central = (fl + fr)*0.5_real64; jump = qr - ql; dissipative = half_alpha*jump
+    face = central - dissipative
+  end function
+
+  !> Update all three fields of one cell; final=1 averages with the old state.
+  attributes(global) subroutine sw_update(nx, ny, q, base, out, work, par, final) bind(C, name='sw_update')
+    integer(c_int), value :: nx, ny, final
+    real(real64), device, intent(in) :: q(0:*), base(0:*), work(0:*), par(0:*)
+    real(real64), device, intent(inout) :: out(0:*)
+    real(real64) :: east, west, north, south, dx, dy, ell, e, fx0, fxe, fxw, fy0, fyn, fys
+    real(real64) :: inverse_x, inverse_y, ae, aw, an, ast
+    integer(int64) :: bits_x, bits_y, exp_x, exp_y
+    logical :: exact_spacing
+    integer :: t, p, s, i, j, k, a, b, sx, sy
+    t = (blockidx%x - 1)*blockdim%x + threadidx%x - 1
+    if (t >= nx*ny) return
+    p = nx + 2; s = p*(ny + 2)
+    ! A power-of-two row has an exact mask and shift for its coordinates.
+    if (iand(nx, nx - 1) == 0) then
+      i = iand(t, nx - 1) + 1
+      j = ishft(t, -(bit_size(nx) - leadz(nx) - 1)) + 1
+    else
+      i = mod(t, nx) + 1; j = t/nx + 1
+    end if
+    k = j*p + i
+    sx = 3*s; sy = 4*s
+    ! Each accepted inverse is an exact normal power of two.
+    bits_x = transfer(par(1), bits_x); bits_y = transfer(par(2), bits_y)
+    exp_x = iand(ishft(bits_x, -52), 2047_int64)
+    exp_y = iand(ishft(bits_y, -52), 2047_int64)
+    exact_spacing = iand(bits_x, int(z'800fffffffffffff', int64)) == 0_int64 .and. &
+                    iand(bits_y, int(z'800fffffffffffff', int64)) == 0_int64 .and. &
+                    exp_x >= 1_int64 .and. exp_x <= 2045_int64 .and. &
+                    exp_y >= 1_int64 .and. exp_y <= 2045_int64
+    if (exact_spacing) then
+      inverse_x = transfer(ishft(2046_int64 - exp_x, 52), inverse_x)
+      inverse_y = transfer(ishft(2046_int64 - exp_y, 52), inverse_y)
+    end if
+    ae = work(sx + k + 1); if (work(sx + k) >= ae) ae = work(sx + k)
+    aw = work(sx + k); if (work(sx + k - 1) >= aw) aw = work(sx + k - 1)
+    an = work(sy + k + p); if (work(sy + k) >= an) an = work(sy + k)
+    ast = work(sy + k); if (work(sy + k - p) >= ast) ast = work(sy + k - p)
+    ae = ae*0.5_real64; aw = aw*0.5_real64; an = an*0.5_real64; ast = ast*0.5_real64
+    !dir$ unroll 3
+    do a = 0, 2
+      b = a*s + k
+      if (a == 0) then
+        fx0 = q(s + k); fxe = q(s + k + 1); fxw = q(s + k - 1)
+        fy0 = q(2*s + k); fyn = q(2*s + k + p); fys = q(2*s + k - p)
+      else
+        fx0 = work((a - 1)*s + k); fxe = work((a - 1)*s + k + 1); fxw = work((a - 1)*s + k - 1)
+        fy0 = work(a*s + k); fyn = work(a*s + k + p); fys = work(a*s + k - p)
+      end if
+      east = face(q(b), q(b + 1), fx0, fxe, ae)
+      west = face(q(b - 1), q(b), fxw, fx0, aw)
+      north = face(q(b), q(b + p), fy0, fyn, an)
+      south = face(q(b - p), q(b), fys, fy0, ast)
+      if (exact_spacing) then
+        dx = (east - west)*inverse_x; dy = (north - south)*inverse_y
+      else
+        dx = (east - west)/par(1); dy = (north - south)/par(2)
+      end if
+      ell = -(dx + dy); e = q(b) + par(3)*ell
+      if (final == 0) then
+        out(b) = e
+      else
+        out(b) = base(b)*0.5_real64 + e*0.5_real64
+      end if
+      ! One interior cell owns its periodic copies, including one-cell grids.
+      e = out(b)
+      if (i == 1) out(a*s + j*p + nx + 1) = e
+      if (i == nx) out(a*s + j*p) = e
+      if (j == 1) then
+        out(a*s + (ny + 1)*p + i) = e
+        if (i == 1) out(a*s + (ny + 1)*p + nx + 1) = e
+        if (i == nx) out(a*s + (ny + 1)*p) = e
+      end if
+      if (j == ny) then
+        out(a*s + i) = e
+        if (i == 1) out(a*s + nx + 1) = e
+        if (i == nx) out(a*s) = e
+      end if
+    end do
+  end subroutine
+  !> Update one field per z block; final=1 averages with the old state.
+  attributes(global) subroutine sw_update_small(nx, ny, q, base, out, work, par, final) bind(C, name='sw_update_small')
+    integer(c_int), value :: nx, ny, final
+    real(real64), device, intent(in) :: q(0:*), base(0:*), work(0:*), par(0:*)
+    real(real64), device, intent(inout) :: out(0:*)
+    real(real64) :: east, west, north, south, dx, dy, ell, e, fx0, fxe, fxw, fy0, fyn, fys
+    real(real64) :: inverse_x, inverse_y, ae, aw, an, ast
+    integer(int64) :: bits_x, bits_y, exp_x, exp_y
+    logical :: exact_spacing
+    integer :: t, p, s, i, j, k, a, b, sx, sy
+    t = (blockidx%x - 1)*blockdim%x + threadidx%x - 1
+    if (t >= nx*ny) return
+    p = nx + 2; s = p*(ny + 2)
+    ! A power-of-two row has an exact mask and shift for its coordinates.
+    if (iand(nx, nx - 1) == 0) then
+      i = iand(t, nx - 1) + 1
+      j = ishft(t, -(bit_size(nx) - leadz(nx) - 1)) + 1
+    else
+      i = mod(t, nx) + 1; j = t/nx + 1
+    end if
+    k = j*p + i
+    sx = 3*s; sy = 4*s
+    ! Each accepted inverse is an exact normal power of two.
+    bits_x = transfer(par(1), bits_x); bits_y = transfer(par(2), bits_y)
+    exp_x = iand(ishft(bits_x, -52), 2047_int64)
+    exp_y = iand(ishft(bits_y, -52), 2047_int64)
+    exact_spacing = iand(bits_x, int(z'800fffffffffffff', int64)) == 0_int64 .and. &
+                    iand(bits_y, int(z'800fffffffffffff', int64)) == 0_int64 .and. &
+                    exp_x >= 1_int64 .and. exp_x <= 2045_int64 .and. &
+                    exp_y >= 1_int64 .and. exp_y <= 2045_int64
+    if (exact_spacing) then
+      inverse_x = transfer(ishft(2046_int64 - exp_x, 52), inverse_x)
+      inverse_y = transfer(ishft(2046_int64 - exp_y, 52), inverse_y)
+    end if
+    ae = work(sx + k + 1); if (work(sx + k) >= ae) ae = work(sx + k)
+    aw = work(sx + k); if (work(sx + k - 1) >= aw) aw = work(sx + k - 1)
+    an = work(sy + k + p); if (work(sy + k) >= an) an = work(sy + k)
+    ast = work(sy + k); if (work(sy + k - p) >= ast) ast = work(sy + k - p)
+    ae = ae*0.5_real64; aw = aw*0.5_real64; an = an*0.5_real64; ast = ast*0.5_real64
+    do a = blockidx%z - 1, blockidx%z - 1
+      b = a*s + k
+      if (a == 0) then
+        fx0 = q(s + k); fxe = q(s + k + 1); fxw = q(s + k - 1)
+        fy0 = q(2*s + k); fyn = q(2*s + k + p); fys = q(2*s + k - p)
+      else
+        fx0 = work((a - 1)*s + k); fxe = work((a - 1)*s + k + 1); fxw = work((a - 1)*s + k - 1)
+        fy0 = work(a*s + k); fyn = work(a*s + k + p); fys = work(a*s + k - p)
+      end if
+      east = face(q(b), q(b + 1), fx0, fxe, ae)
+      west = face(q(b - 1), q(b), fxw, fx0, aw)
+      north = face(q(b), q(b + p), fy0, fyn, an)
+      south = face(q(b - p), q(b), fys, fy0, ast)
+      if (exact_spacing) then
+        dx = (east - west)*inverse_x; dy = (north - south)*inverse_y
+      else
+        dx = (east - west)/par(1); dy = (north - south)/par(2)
+      end if
+      ell = -(dx + dy); e = q(b) + par(3)*ell
+      if (final == 0) then
+        out(b) = e
+      else
+        out(b) = base(b)*0.5_real64 + e*0.5_real64
+      end if
+      ! One interior cell owns its periodic copies, including one-cell grids.
+      e = out(b)
+      if (i == 1) out(a*s + j*p + nx + 1) = e
+      if (i == nx) out(a*s + j*p) = e
+      if (j == 1) then
+        out(a*s + (ny + 1)*p + i) = e
+        if (i == 1) out(a*s + (ny + 1)*p + nx + 1) = e
+        if (i == nx) out(a*s + (ny + 1)*p) = e
+      end if
+      if (j == ny) then
+        out(a*s + i) = e
+        if (i == 1) out(a*s + nx + 1) = e
+        if (i == nx) out(a*s) = e
+      end if
+    end do
+  end subroutine
+  !> Update all three fields of one cell; final=1 averages with the old state.
+  attributes(global) subroutine sw_update_medium(nx, ny, q, base, out, work, par, final) bind(C, name='sw_update_medium')
+    integer(c_int), value :: nx, ny, final
+    real(real64), device, intent(in) :: q(0:*), base(0:*), work(0:*), par(0:*)
+    real(real64), device, intent(inout) :: out(0:*)
+    real(real64) :: east, west, north, south, dx, dy, ell, e, fx0, fxe, fxw, fy0, fyn, fys
+    real(real64) :: inverse_x, inverse_y, ae, aw, an, ast
+    integer(int64) :: bits_x, bits_y, exp_x, exp_y
+    logical :: exact_spacing
+    integer :: t, p, s, i, j, k, a, b, sx, sy
+    i = (blockidx%x - 1)*blockdim%x + threadidx%x; j = blockidx%y
+    if (i > nx .or. j > ny) return
+    p = nx + 2; s = p*(ny + 2); k = j*p + i
+    sx = 3*s; sy = 4*s
+    ! Each accepted inverse is an exact normal power of two.
+    bits_x = transfer(par(1), bits_x); bits_y = transfer(par(2), bits_y)
+    exp_x = iand(ishft(bits_x, -52), 2047_int64)
+    exp_y = iand(ishft(bits_y, -52), 2047_int64)
+    exact_spacing = iand(bits_x, int(z'800fffffffffffff', int64)) == 0_int64 .and. &
+                    iand(bits_y, int(z'800fffffffffffff', int64)) == 0_int64 .and. &
+                    exp_x >= 1_int64 .and. exp_x <= 2045_int64 .and. &
+                    exp_y >= 1_int64 .and. exp_y <= 2045_int64
+    if (exact_spacing) then
+      inverse_x = transfer(ishft(2046_int64 - exp_x, 52), inverse_x)
+      inverse_y = transfer(ishft(2046_int64 - exp_y, 52), inverse_y)
+    end if
+    ae = work(sx + k + 1); if (work(sx + k) >= ae) ae = work(sx + k)
+    aw = work(sx + k); if (work(sx + k - 1) >= aw) aw = work(sx + k - 1)
+    an = work(sy + k + p); if (work(sy + k) >= an) an = work(sy + k)
+    ast = work(sy + k); if (work(sy + k - p) >= ast) ast = work(sy + k - p)
+    ae = ae*0.5_real64; aw = aw*0.5_real64; an = an*0.5_real64; ast = ast*0.5_real64
+    !dir$ unroll 3
+    do a = 0, 2
+      b = a*s + k
+      if (a == 0) then
+        fx0 = q(s + k); fxe = q(s + k + 1); fxw = q(s + k - 1)
+        fy0 = q(2*s + k); fyn = q(2*s + k + p); fys = q(2*s + k - p)
+      else
+        fx0 = work((a - 1)*s + k); fxe = work((a - 1)*s + k + 1); fxw = work((a - 1)*s + k - 1)
+        fy0 = work(a*s + k); fyn = work(a*s + k + p); fys = work(a*s + k - p)
+      end if
+      east = face(q(b), q(b + 1), fx0, fxe, ae)
+      west = face(q(b - 1), q(b), fxw, fx0, aw)
+      north = face(q(b), q(b + p), fy0, fyn, an)
+      south = face(q(b - p), q(b), fys, fy0, ast)
+      if (exact_spacing) then
+        dx = (east - west)*inverse_x; dy = (north - south)*inverse_y
+      else
+        dx = (east - west)/par(1); dy = (north - south)/par(2)
+      end if
+      ell = -(dx + dy); e = q(b) + par(3)*ell
+      if (final == 0) then
+        out(b) = e
+      else
+        out(b) = base(b)*0.5_real64 + e*0.5_real64
+      end if
+      ! One interior cell owns its periodic copies, including one-cell grids.
+      e = out(b)
+      if (i == 1) out(a*s + j*p + nx + 1) = e
+      if (i == nx) out(a*s + j*p) = e
+      if (j == 1) then
+        out(a*s + (ny + 1)*p + i) = e
+        if (i == 1) out(a*s + (ny + 1)*p + nx + 1) = e
+        if (i == nx) out(a*s + (ny + 1)*p) = e
+      end if
+      if (j == ny) then
+        out(a*s + i) = e
+        if (i == 1) out(a*s + nx + 1) = e
+        if (i == nx) out(a*s) = e
+      end if
+    end do
+  end subroutine
+  !> Update a two-dimensional row tile for the large-grid launch.
+  attributes(global) subroutine sw_update_xy(nx, ny, q, base, out, work, par, final) bind(C, name='sw_update_xy')
+    integer(c_int), value :: nx, ny, final
+    real(real64), device, intent(in) :: q(0:*), base(0:*), work(0:*), par(0:*)
+    real(real64), device, intent(inout) :: out(0:*)
+    real(real64) :: east, west, north, south, dx, dy, ell, e, fx0, fxe, fxw, fy0, fyn, fys
+    real(real64) :: inverse_x, inverse_y, ae, aw, an, ast
+    integer(int64) :: bits_x, bits_y, exp_x, exp_y
+    logical :: exact_spacing
+    integer :: t, p, s, i, j, k, a, b, sx, sy
+    i = (blockidx%x - 1)*blockdim%x + threadidx%x; j = blockidx%y
+    if (i > nx .or. j > ny) return
+    p = nx + 2; s = p*(ny + 2); k = j*p + i
+    sx = 3*s; sy = 4*s
+    ! Each accepted inverse is an exact normal power of two.
+    bits_x = transfer(par(1), bits_x); bits_y = transfer(par(2), bits_y)
+    exp_x = iand(ishft(bits_x, -52), 2047_int64)
+    exp_y = iand(ishft(bits_y, -52), 2047_int64)
+    exact_spacing = iand(bits_x, int(z'800fffffffffffff', int64)) == 0_int64 .and. &
+                    iand(bits_y, int(z'800fffffffffffff', int64)) == 0_int64 .and. &
+                    exp_x >= 1_int64 .and. exp_x <= 2045_int64 .and. &
+                    exp_y >= 1_int64 .and. exp_y <= 2045_int64
+    if (exact_spacing) then
+      inverse_x = transfer(ishft(2046_int64 - exp_x, 52), inverse_x)
+      inverse_y = transfer(ishft(2046_int64 - exp_y, 52), inverse_y)
+    end if
+    ae = work(sx + k + 1); if (work(sx + k) >= ae) ae = work(sx + k)
+    aw = work(sx + k); if (work(sx + k - 1) >= aw) aw = work(sx + k - 1)
+    an = work(sy + k + p); if (work(sy + k) >= an) an = work(sy + k)
+    ast = work(sy + k); if (work(sy + k - p) >= ast) ast = work(sy + k - p)
+    ae = ae*0.5_real64; aw = aw*0.5_real64; an = an*0.5_real64; ast = ast*0.5_real64
+    !dir$ unroll 3
+    do a = 0, 2
+      b = a*s + k
+      if (a == 0) then
+        fx0 = q(s + k); fxe = q(s + k + 1); fxw = q(s + k - 1)
+        fy0 = q(2*s + k); fyn = q(2*s + k + p); fys = q(2*s + k - p)
+      else
+        fx0 = work((a - 1)*s + k); fxe = work((a - 1)*s + k + 1); fxw = work((a - 1)*s + k - 1)
+        fy0 = work(a*s + k); fyn = work(a*s + k + p); fys = work(a*s + k - p)
+      end if
+      east = face(q(b), q(b + 1), fx0, fxe, ae)
+      west = face(q(b - 1), q(b), fxw, fx0, aw)
+      north = face(q(b), q(b + p), fy0, fyn, an)
+      south = face(q(b - p), q(b), fys, fy0, ast)
+      if (exact_spacing) then
+        dx = (east - west)*inverse_x; dy = (north - south)*inverse_y
+      else
+        dx = (east - west)/par(1); dy = (north - south)/par(2)
+      end if
+      ell = -(dx + dy); e = q(b) + par(3)*ell
+      if (final == 0) then
+        out(b) = e
+      else
+        out(b) = base(b)*0.5_real64 + e*0.5_real64
+      end if
+      ! One interior cell owns its periodic copies, including one-cell grids.
+      e = out(b)
+      if (i == 1) out(a*s + j*p + nx + 1) = e
+      if (i == nx) out(a*s + j*p) = e
+      if (j == 1) then
+        out(a*s + (ny + 1)*p + i) = e
+        if (i == 1) out(a*s + (ny + 1)*p + nx + 1) = e
+        if (i == nx) out(a*s + (ny + 1)*p) = e
+      end if
+      if (j == ny) then
+        out(a*s + i) = e
+        if (i == 1) out(a*s + nx + 1) = e
+        if (i == nx) out(a*s) = e
+      end if
+    end do
+  end subroutine
+  !> Return one point's rounded physical fluxes and both wave speeds.
+  !! h is depth in metres and mx,my are momenta in square metres per second.
+  !! g is gravity in metres per square second. Field a is 0, 1 or 2.
+  !! fx,fy replace the selected mass or momentum flux, while cx,cy replace
+  !! the positive directional speeds in metres per second.
+  attributes(device) subroutine primitive_flux(h, mx, my, g, a, fx, fy, cx, cy)
+    real(real64), value :: h, mx, my, g
+    integer, value :: a
+    real(real64), intent(out) :: fx, fy, cx, cy
+    real(real64) :: u, v, z, c, pressure
+    u = mx/h; v = my/h; z = g*h; c = sqrt(z); pressure = (z*h)*0.5_real64
+    cx = abs(u) + c; cy = abs(v) + c
+    if (a == 0) then
+      fx = mx; fy = my
+    else if (a == 1) then
+      fx = mx*u + pressure; fy = mx*v
+    else
+      fx = mx*v; fy = my*v + pressure
+    end if
+  end subroutine
+
+  !> Compute the x-direction flux and wave speed at one point.
+  !! Inputs h [m], mx and my [m^2 s^-1], g [m s^-2] and field a are copied
+  !! scalars. Field a is 0 for depth, 1 for x momentum and 2 for y momentum.
+  !! Outputs fx and cx are replaced. cx has units [m s^-1]; fx has units
+  !! [m^2 s^-1] for depth and [m^3 s^-2] for either momentum field.
+  attributes(device) subroutine primitive_x(h, mx, my, g, a, fx, cx)
+    real(real64), value :: h, mx, my, g
+    integer, value :: a
+    real(real64), intent(out) :: fx, cx
+    real(real64) :: u, v, z, c, pressure
+    u = mx/h; z = g*h; c = sqrt(z); pressure = (z*h)*0.5_real64
+    cx = abs(u) + c
+    if (a == 0) then
+      fx = mx
+    else if (a == 1) then
+      fx = mx*u + pressure
+    else
+      v = my/h
+      fx = mx*v
+    end if
+  end subroutine
+
+  !> Compute the y-direction flux and wave speed at one point.
+  !! Inputs h [m], mx and my [m^2 s^-1], g [m s^-2] and field a are copied
+  !! scalars. Field a is 0 for depth, 1 for x momentum and 2 for y momentum.
+  !! Outputs fy and cy are replaced. cy has units [m s^-1]; fy has units
+  !! [m^2 s^-1] for depth and [m^3 s^-2] for either momentum field.
+  attributes(device) subroutine primitive_y(h, mx, my, g, a, fy, cy)
+    real(real64), value :: h, mx, my, g
+    integer, value :: a
+    real(real64), intent(out) :: fy, cy
+    real(real64) :: v, z, c, pressure
+    v = my/h; z = g*h; c = sqrt(z); pressure = (z*h)*0.5_real64
+    cy = abs(v) + c
+    if (a == 0) then
+      fy = my
+    else if (a == 1) then
+      fy = mx*v
+    else
+      fy = my*v + pressure
+    end if
+  end subroutine
+
+  !> Prepare neighbouring points locally and return one field per z block.
+  attributes(global) subroutine sw_update_small_fused(nx, ny, q, base, out, work, par, final) bind(C, name='sw_update_small_fused')
+    integer(c_int), value :: nx, ny, final
+    real(real64), device, intent(in) :: q(0:*), base(0:*), work(0:*), par(0:*)
+    real(real64), device, intent(inout) :: out(0:*)
+    real(real64) :: east, west, north, south, dx, dy, ell, e, fx0, fxe, fxw, fy0, fyn, fys
+    real(real64) :: inverse_x, inverse_y, ae, aw, an, ast
+    real(real64) :: cx0, cy0, cxe, cxw, cyn, cys
+    integer(int64) :: bits_x, bits_y, exp_x, exp_y
+    logical :: exact_spacing
+    integer :: t, p, s, i, j, k, a, b, sx, sy
+    t = (blockidx%x - 1)*blockdim%x + threadidx%x - 1
+    if (t >= nx*ny) return
+    p = nx + 2; s = p*(ny + 2)
+    ! A power-of-two row has an exact mask and shift for its coordinates.
+    if (iand(nx, nx - 1) == 0) then
+      i = iand(t, nx - 1) + 1
+      j = ishft(t, -(bit_size(nx) - leadz(nx) - 1)) + 1
+    else
+      i = mod(t, nx) + 1; j = t/nx + 1
+    end if
+    k = j*p + i
+    sx = 3*s; sy = 4*s
+    ! Each accepted inverse is an exact normal power of two.
+    bits_x = transfer(par(1), bits_x); bits_y = transfer(par(2), bits_y)
+    exp_x = iand(ishft(bits_x, -52), 2047_int64)
+    exp_y = iand(ishft(bits_y, -52), 2047_int64)
+    exact_spacing = iand(bits_x, int(z'800fffffffffffff', int64)) == 0_int64 .and. &
+                    iand(bits_y, int(z'800fffffffffffff', int64)) == 0_int64 .and. &
+                    exp_x >= 1_int64 .and. exp_x <= 2045_int64 .and. &
+                    exp_y >= 1_int64 .and. exp_y <= 2045_int64
+    if (exact_spacing) then
+      inverse_x = transfer(ishft(2046_int64 - exp_x, 52), inverse_x)
+      inverse_y = transfer(ishft(2046_int64 - exp_y, 52), inverse_y)
+    end if
+    do a = blockidx%z - 1, blockidx%z - 1
+      b = a*s + k
+      call primitive_flux(q(k), q(s + k), q(2*s + k), par(0), a, fx0, fy0, cx0, cy0)
+      call primitive_x(q(k + 1), q(s + k + 1), q(2*s + k + 1), par(0), a, fxe, cxe)
+      call primitive_x(q(k - 1), q(s + k - 1), q(2*s + k - 1), par(0), a, fxw, cxw)
+      call primitive_y(q(k + p), q(s + k + p), q(2*s + k + p), par(0), a, fyn, cyn)
+      call primitive_y(q(k - p), q(s + k - p), q(2*s + k - p), par(0), a, fys, cys)
+      ae = cxe; if (cx0 >= ae) ae = cx0
+      aw = cx0; if (cxw >= aw) aw = cxw
+      an = cyn; if (cy0 >= an) an = cy0
+      ast = cy0; if (cys >= ast) ast = cys
+      ae = ae*0.5_real64; aw = aw*0.5_real64; an = an*0.5_real64; ast = ast*0.5_real64
+      east = face(q(b), q(b + 1), fx0, fxe, ae)
+      west = face(q(b - 1), q(b), fxw, fx0, aw)
+      north = face(q(b), q(b + p), fy0, fyn, an)
+      south = face(q(b - p), q(b), fys, fy0, ast)
+      if (exact_spacing) then
+        dx = (east - west)*inverse_x; dy = (north - south)*inverse_y
+      else
+        dx = (east - west)/par(1); dy = (north - south)/par(2)
+      end if
+      ell = -(dx + dy); e = q(b) + par(3)*ell
+      if (final == 0) then
+        out(b) = e
+      else
+        out(b) = base(b)*0.5_real64 + e*0.5_real64
+      end if
+      ! One interior cell owns its periodic copies, including one-cell grids.
+      e = out(b)
+      if (i == 1) out(a*s + j*p + nx + 1) = e
+      if (i == nx) out(a*s + j*p) = e
+      if (j == 1) then
+        out(a*s + (ny + 1)*p + i) = e
+        if (i == 1) out(a*s + (ny + 1)*p + nx + 1) = e
+        if (i == nx) out(a*s + (ny + 1)*p) = e
+      end if
+      if (j == ny) then
+        out(a*s + i) = e
+        if (i == 1) out(a*s + nx + 1) = e
+        if (i == nx) out(a*s) = e
+      end if
+    end do
+  end subroutine
+  !> Prepare one shared tile and advance one complete shallow-water stage.
+  !! nx, ny and final are copied integer inputs. For p=nx+2 and s=p*(ny+2),
+  !! q and base each contain 3*s FP64 state values in the module's units.
+  !! par contains gravity [m s^-2], dx and dy [m], and time step [s].
+  !! out replaces all 3*s stage values and periodic ghosts. work is unused.
+  !! Inputs stay unchanged and out is disjoint for the complete launch.
+  !! Launch 64 threads with grid (ceil(nx/4),ceil(ny/4),1).
+  !! Shared slots hold h, mx, my, three momentum fluxes and two wave speeds.
+  attributes(global) subroutine sw_update_small_tiled4(nx, ny, q, base, out, work, par, final) &
+    bind(C, name='sw_update_small_tiled4')
+    integer(c_int), value :: nx, ny, final
+    real(real64), device, intent(in) :: q(0:*), base(0:*), work(0:*), par(0:*)
+    real(real64), device, intent(inout) :: out(0:*)
+    integer, parameter :: tile_width = 4, shared_side = tile_width + 2
+    integer, parameter :: owned_points = tile_width*tile_width
+    integer, parameter :: prepared_points = shared_side*shared_side
+    real(real64), shared :: tile(0:tile_width + 1, 0:tile_width + 1, 0:7)
+    real(real64) :: h, mx, my, u, v, z, c, pressure, q0
+    real(real64) :: east, west, north, south, dx, dy, ell, e
+    real(real64) :: fx0, fxe, fxw, fy0, fyn, fys, cx0, cy0, cxe, cxw, cyn, cys
+    real(real64) :: inverse_x, inverse_y, ae, aw, an, ast
+    integer(int64) :: bits_x, bits_y, exp_x, exp_y
+    logical :: exact_spacing
+    integer :: t, p, s, i, j, k, a, b, li, lj, cell, pi, pj, fx_field, fy_field
+    t = threadidx%x - 1
+    p = nx + 2; s = p*(ny + 2)
+    ! One thread prepares one point, including the tile's one-cell halo.
+    if (t < prepared_points) then
+      pi = mod(t, shared_side); pj = t/shared_side
+      i = (blockidx%x - 1)*tile_width + pi
+      j = (blockidx%y - 1)*tile_width + pj
+      ! Partial tiles read only valid interior or periodic ghost positions.
+      if (i >= 0 .and. i <= nx + 1 .and. j >= 0 .and. j <= ny + 1) then
+        k = j*p + i
+        h = q(k); mx = q(s + k); my = q(2*s + k)
+        u = mx/h; v = my/h; z = par(0)*h; c = sqrt(z); pressure = (z*h)*0.5_real64
+        tile(pi, pj, 0) = h
+        tile(pi, pj, 1) = mx
+        tile(pi, pj, 2) = my
+        tile(pi, pj, 3) = mx*u + pressure
+        tile(pi, pj, 4) = mx*v
+        tile(pi, pj, 5) = my*v + pressure
+        tile(pi, pj, 6) = abs(u) + c
+        tile(pi, pj, 7) = abs(v) + c
+      end if
+    end if
+    ! Every thread reaches this barrier before any owner can return.
+    call syncthreads()
+    if (t >= 3*owned_points) return
+    a = t/owned_points; cell = mod(t, owned_points)
+    li = mod(cell, tile_width) + 1; lj = cell/tile_width + 1
+    i = (blockidx%x - 1)*tile_width + li
+    j = (blockidx%y - 1)*tile_width + lj
+    if (i > nx .or. j > ny) return
+    k = j*p + i; b = a*s + k
+    q0 = tile(li, lj, a)
+    if (a == 0) then
+      fx_field = 1; fy_field = 2
+    else if (a == 1) then
+      fx_field = 3; fy_field = 4
+    else
+      fx_field = 4; fy_field = 5
+    end if
+    fx0 = tile(li, lj, fx_field); fxe = tile(li + 1, lj, fx_field); fxw = tile(li - 1, lj, fx_field)
+    fy0 = tile(li, lj, fy_field); fyn = tile(li, lj + 1, fy_field); fys = tile(li, lj - 1, fy_field)
+    cx0 = tile(li, lj, 6); cxe = tile(li + 1, lj, 6); cxw = tile(li - 1, lj, 6)
+    cy0 = tile(li, lj, 7); cyn = tile(li, lj + 1, 7); cys = tile(li, lj - 1, 7)
+    ! Each accepted inverse is an exact normal power of two.
+    bits_x = transfer(par(1), bits_x); bits_y = transfer(par(2), bits_y)
+    exp_x = iand(ishft(bits_x, -52), 2047_int64)
+    exp_y = iand(ishft(bits_y, -52), 2047_int64)
+    exact_spacing = iand(bits_x, int(z'800fffffffffffff', int64)) == 0_int64 .and. &
+                    iand(bits_y, int(z'800fffffffffffff', int64)) == 0_int64 .and. &
+                    exp_x >= 1_int64 .and. exp_x <= 2045_int64 .and. &
+                    exp_y >= 1_int64 .and. exp_y <= 2045_int64
+    if (exact_spacing) then
+      inverse_x = transfer(ishft(2046_int64 - exp_x, 52), inverse_x)
+      inverse_y = transfer(ishft(2046_int64 - exp_y, 52), inverse_y)
+    end if
+    ae = cxe; if (cx0 >= ae) ae = cx0
+    aw = cx0; if (cxw >= aw) aw = cxw
+    an = cyn; if (cy0 >= an) an = cy0
+    ast = cy0; if (cys >= ast) ast = cys
+    ae = ae*0.5_real64; aw = aw*0.5_real64; an = an*0.5_real64; ast = ast*0.5_real64
+    east = face(q0, tile(li + 1, lj, a), fx0, fxe, ae)
+    west = face(tile(li - 1, lj, a), q0, fxw, fx0, aw)
+    north = face(q0, tile(li, lj + 1, a), fy0, fyn, an)
+    south = face(tile(li, lj - 1, a), q0, fys, fy0, ast)
+    if (exact_spacing) then
+      dx = (east - west)*inverse_x; dy = (north - south)*inverse_y
+    else
+      dx = (east - west)/par(1); dy = (north - south)/par(2)
+    end if
+    ell = -(dx + dy); e = q0 + par(3)*ell
+    if (final /= 0) then
+      e = base(b)*0.5_real64 + e*0.5_real64
+    end if
+    out(b) = e
+    ! One interior cell owns its periodic copies, including one-cell grids.
+    if (i == 1) out(a*s + j*p + nx + 1) = e
+    if (i == nx) out(a*s + j*p) = e
+    if (j == 1) then
+      out(a*s + (ny + 1)*p + i) = e
+      if (i == 1) out(a*s + (ny + 1)*p + nx + 1) = e
+      if (i == nx) out(a*s + (ny + 1)*p) = e
+    end if
+    if (j == ny) then
+      out(a*s + i) = e
+      if (i == 1) out(a*s + nx + 1) = e
+      if (i == nx) out(a*s) = e
+    end if
+  end subroutine
+
+end module

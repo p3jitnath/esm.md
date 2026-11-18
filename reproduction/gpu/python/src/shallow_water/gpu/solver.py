@@ -1,0 +1,170 @@
+"""Run the fused ordered shallow-water method on flat GPU arrays."""
+
+import numpy as np
+from numba import cuda
+from numba.cuda.libdevice import dadd_rn as add, dmul_rn as mul, ddiv_rn as div, dsqrt_rn as sqrt
+
+
+@cuda.jit(device=True, inline=True)
+def sub(x, y):
+    return add(x, -y)
+
+
+@cuda.jit(fastmath=False)
+def edges(nx, ny, q):
+    t = cuda.grid(1)
+    p, s = nx + 2, (nx + 2) * (ny + 2)
+    edge = 2 * p + 2 * ny
+    if t >= 3 * edge:
+        return
+    a, z = t // edge, t % edge
+    if z < 2 * p:
+        i = z % p
+        j = 0 if z < p else ny + 1
+        ii = nx if i == 0 else 1 if i == nx + 1 else i
+        jj = ny if j == 0 else 1
+    else:
+        i = 0 if z < 2 * p + ny else nx + 1
+        j = (z - 2 * p) % ny + 1
+        ii, jj = (nx if i == 0 else 1), j
+    q[a * s + j * p + i] = q[a * s + jj * p + ii]
+
+
+@cuda.jit(fastmath=False)
+def halo(nx, ny, q):
+    t = cuda.grid(1)
+    p, s = nx + 2, (nx + 2) * (ny + 2)
+    if t >= 3 * s:
+        return
+    a, j, i = t // s, (t % s) // p, t % p
+    if 0 < i <= nx and 0 < j <= ny:
+        return
+    ii = nx if i == 0 else 1 if i == nx + 1 else i
+    jj = ny if j == 0 else 1 if j == ny + 1 else j
+    q[t] = q[a * s + jj * p + ii]
+
+
+@cuda.jit(fastmath=False)
+def prepare(nx, ny, q, work, par):
+    t = cuda.grid(1)
+    s = (nx + 2) * (ny + 2)
+    if t >= s:
+        return
+    h, mx, my = q[t], q[s + t], q[2 * s + t]
+    u, v = div(mx, h), div(my, h)
+    z = mul(par[0], h)
+    c = sqrt(z)
+    pressure = mul(mul(z, h), 0.5)
+    work[t] = add(mul(mx, u), pressure)
+    work[s + t] = mul(mx, v)
+    work[2 * s + t] = add(mul(my, v), pressure)
+    work[3 * s + t] = add(abs(u), c)
+    work[4 * s + t] = add(abs(v), c)
+
+
+@cuda.jit(device=True, inline=True)
+def face(ql, qr, fl, fr, half_alpha):
+    return sub(mul(add(fl, fr), 0.5), mul(half_alpha, sub(qr, ql)))
+
+
+@cuda.jit(fastmath=False)
+def update(nx, ny, q, base, out, work, par, final):
+    local_x = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
+    if cuda.gridDim.y > 1:
+        if local_x >= nx:
+            return
+        t = cuda.blockIdx.y * nx + local_x
+    else:
+        t = local_x
+    if t >= nx * ny:
+        return
+    p, s = nx + 2, (nx + 2) * (ny + 2)
+    k = (t // nx + 1) * p + t % nx + 1
+    sx, sy = 3 * s, 4 * s
+    ae = mul(work[sx + k] if work[sx + k] >= work[sx + k + 1] else work[sx + k + 1], 0.5)
+    aw = mul(work[sx + k - 1] if work[sx + k - 1] >= work[sx + k] else work[sx + k], 0.5)
+    an = mul(work[sy + k] if work[sy + k] >= work[sy + k + p] else work[sy + k + p], 0.5)
+    ast = mul(work[sy + k - p] if work[sy + k - p] >= work[sy + k] else work[sy + k], 0.5)
+    first = cuda.blockIdx.z if cuda.gridDim.z > 1 else 0
+    last = first + 1 if cuda.gridDim.z > 1 else 3
+    for a in range(first, last):
+        b = a * s + k
+        if a == 0:
+            fx0, fxe, fxw = q[s + k], q[s + k + 1], q[s + k - 1]
+            fy0, fyn, fys = q[2 * s + k], q[2 * s + k + p], q[2 * s + k - p]
+        else:
+            fx0, fxe, fxw = work[(a - 1) * s + k], work[(a - 1) * s + k + 1], work[(a - 1) * s + k - 1]
+            fy0, fyn, fys = work[a * s + k], work[a * s + k + p], work[a * s + k - p]
+        east = face(q[b], q[b + 1], fx0, fxe, ae)
+        west = face(q[b - 1], q[b], fxw, fx0, aw)
+        north = face(q[b], q[b + p], fy0, fyn, an)
+        south = face(q[b - p], q[b], fys, fy0, ast)
+        ell = -add(div(sub(east, west), par[1]), div(sub(north, south), par[2]))
+        e = add(q[b], mul(par[3], ell))
+        value = add(mul(base[b], 0.5), mul(e, 0.5)) if final else e
+        out[b] = value
+        i, j = t % nx + 1, t // nx + 1
+        for yr in range(3):
+            if yr == 0:
+                jj = j
+            elif yr == 1 and j == 1:
+                jj = ny + 1
+            elif yr == 2 and j == ny:
+                jj = 0
+            else:
+                continue
+            for xr in range(3):
+                if xr == 0:
+                    ii = i
+                elif xr == 1 and i == 1:
+                    ii = nx + 1
+                elif xr == 2 and i == nx:
+                    ii = 0
+                else:
+                    continue
+                if xr != 0 or yr != 0:
+                    out[a * s + jj * p + ii] = value
+
+
+def enqueue(nx, ny, q, stage, out, work, par, steps, stream, block=128):
+    """Queue both complete stages and periodic boundaries on one stream.
+
+    Parameters
+    ----------
+    nx, ny, steps : int
+        Interior dimensions and complete step count within the frozen domain.
+    q, stage, out : GPU array of float64
+        Disjoint flat states with 3*(nx+2)*(ny+2) values in CPU field order.
+    work : GPU array of float64
+        Five disjoint scratch fields with the same pitch.
+    par : GPU array of float64, shape (4,)
+        Immutable g,dx,dy,dt in SI units.
+    stream : CUDA stream
+        Ordered stream shared with capture and timing.
+    block : int
+        Threads per block. Partial blocks do not access invalid cells.
+
+    Returns
+    -------
+    None
+        Last state is out for an odd count and q for an even count.
+    """
+    count = int(nx) * int(ny)
+    if 4096 < count <= 65536:
+        block = 128
+    s = (nx + 2) * (ny + 2)
+    cells = int((nx * ny + block - 1) // block)
+    if count <= 4096:
+        cells = (cells, 1, 3)
+    elif count <= 65536:
+        cells = (int((nx + block - 1) // block), int(ny), 1)
+    halos = int((3 * s + block - 1) // block)
+    points = int((s + block - 1) // block)
+    if steps:
+        edges[int((3 * (2 * (nx + 2) + 2 * ny) + block - 1) // block), block, stream](nx, ny, q)
+    for _ in range(steps):
+        prepare[points, block, stream](nx, ny, q, work, par)
+        update[cells, block, stream](nx, ny, q, q, stage, work, par, 0)
+        prepare[points, block, stream](nx, ny, stage, work, par)
+        update[cells, block, stream](nx, ny, stage, q, out, work, par, 1)
+        q, out = out, q

@@ -1,0 +1,48 @@
+{
+  "upstream_repository": "https://github.com/p3jitnath/graph-plotting-skill",
+  "upstream_bundle_identity": "e4e34b93a1e544181e6e134c1bea3f58f4c233b106efc397a4593785496b9659",
+  "upstream_path": "scripts/mpl_style.py",
+  "upstream_sha256": "d70dd111accf4b5f76f622aad6dd1abbf7fbeae22df484753f679408e25d81c8",
+  "adaptation": "Register bundled Open Sans from relative assets. Resolve declared installed paper families through standard Matplotlib font_manager with fallback disabled. Allow an explicit runtime font file. Preserve palette, rcParams, audit and export APIs.",
+  "staged_helper_sha256": "1aa566e2b8afae664a2e059df126f91add44cb88977c31c7a4cfdcdd6e6b0e2a",
+  "fonts": {
+    "OpenSans-Regular.ttf": {
+      "source": "paper/pasc27/poster/assets/OpenSans-Regular.ttf",
+      "sha256": "f751159c5492f45d12573b2d68b0c807c5ba48712e0899b848f496c26a632aed",
+      "status": "unchanged existing project asset"
+    },
+    "OpenSans-Bold.ttf": {
+      "source": "paper/pasc27/poster/assets/OpenSans-Bold.ttf",
+      "sha256": "7f974614948161be361ee769b28b0139621ea65de6664c44d1697ed6ac6708e2",
+      "status": "unchanged existing project asset"
+    }
+  },
+  "external_helvetica_metadata": {
+    "family": "Helvetica Neue",
+    "faces": 14,
+    "licence_quote": "You may not copy or distribute this font software.",
+    "licence_url": "http://www.linotype.com/license",
+    "copied": false
+  },
+  "tested_python": "3.11.7",
+  "direct_runtime_dependencies": {
+    "matplotlib": "3.11.2",
+    "numpy": "2.4.6",
+    "PyMuPDF": "1.28.2"
+  },
+  "unchanged_pinned_function_bodies": [
+    "add_panel_labels",
+    "add_sample_sizes",
+    "audit_figure",
+    "finish_axis",
+    "place_legend",
+    "rc_params",
+    "save_figure",
+    "set_panel_title",
+    "shared_symmetric_limits"
+  ],
+  "font_distribution_note": "The two Open Sans project assets are included unchanged with their notice. No other font binary is included.",
+  "documentation_adjustments": [
+    "publication_style describes declared font profiles rather than bundled fonts. Its behaviour is unchanged."
+  ]
+}

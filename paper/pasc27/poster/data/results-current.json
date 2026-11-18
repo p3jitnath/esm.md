@@ -1,0 +1,1660 @@
+{
+  "schema": "esm-poster-matched-rates-1",
+  "implementation": "esm.md – Fortran",
+  "metric": "million complete cell updates per second",
+  "ratio": "Fortran rate divided by assembly rate",
+  "aggregation": "Ratio of median rates from twelve matched pairs",
+  "uncertainty": "Observed minimum and maximum paired ratio. This is not a confidence interval.",
+  "repetitions": 12,
+  "all_output_bytes_identical": true,
+  "models": {
+    "cpu": {
+      "sw": [
+        {
+          "size": 64,
+          "steps": 8192,
+          "paired_samples": [
+            {
+              "repeat": 0,
+              "assembly_seconds": 0.373339954,
+              "fortran_seconds": 0.397635362,
+              "assembly_million_updates_per_second": 89.8763489963895,
+              "fortran_million_updates_per_second": 84.38492952746995,
+              "fortran_to_assembly": 0.9389002832197806
+            },
+            {
+              "repeat": 1,
+              "assembly_seconds": 0.373340882,
+              "fortran_seconds": 0.397685409,
+              "assembly_million_updates_per_second": 89.87612559398197,
+              "fortran_million_updates_per_second": 84.37431004666304,
+              "fortran_to_assembly": 0.9387844601560426
+            },
+            {
+              "repeat": 2,
+              "assembly_seconds": 0.373397265,
+              "fortran_seconds": 0.397644354,
+              "assembly_million_updates_per_second": 89.8625542958918,
+              "fortran_million_updates_per_second": 84.3830213165808,
+              "fortran_to_assembly": 0.9390231779828062
+            },
+            {
+              "repeat": 3,
+              "assembly_seconds": 0.373538605,
+              "fortran_seconds": 0.39777059,
+              "assembly_million_updates_per_second": 89.82855199129953,
+              "fortran_million_updates_per_second": 84.35624162158393,
+              "fortran_to_assembly": 0.9390805011501732
+            },
+            {
+              "repeat": 4,
+              "assembly_seconds": 0.373284979,
+              "fortran_seconds": 0.397693536,
+              "assembly_million_updates_per_second": 89.88958540439957,
+              "fortran_million_updates_per_second": 84.37258582950666,
+              "fortran_to_assembly": 0.9386247077448098
+            },
+            {
+              "repeat": 5,
+              "assembly_seconds": 0.373315507,
+              "fortran_seconds": 0.397700608,
+              "assembly_million_updates_per_second": 89.88223465359557,
+              "fortran_million_updates_per_second": 84.37108549756103,
+              "fortran_to_assembly": 0.9386847781736355
+            },
+            {
+              "repeat": 6,
+              "assembly_seconds": 0.373526222,
+              "fortran_seconds": 0.397665505,
+              "assembly_million_updates_per_second": 89.83152995347137,
+              "fortran_million_updates_per_second": 84.37853315942,
+              "fortran_to_assembly": 0.9392975184005463
+            },
+            {
+              "repeat": 7,
+              "assembly_seconds": 0.373447439,
+              "fortran_seconds": 0.39777779,
+              "assembly_million_updates_per_second": 89.8504809401036,
+              "fortran_million_updates_per_second": 84.35471472653111,
+              "fortran_to_assembly": 0.9388343150078841
+            },
+            {
+              "repeat": 8,
+              "assembly_seconds": 0.373383953,
+              "fortran_seconds": 0.397703392,
+              "assembly_million_updates_per_second": 89.86575810342872,
+              "fortran_million_updates_per_second": 84.37049488378516,
+              "fortran_to_assembly": 0.9388503103337876
+            },
+            {
+              "repeat": 9,
+              "assembly_seconds": 0.373632043,
+              "fortran_seconds": 0.397801117,
+              "assembly_million_updates_per_second": 89.80608764329135,
+              "fortran_million_updates_per_second": 84.34976817825276,
+              "fortran_to_assembly": 0.9392433229391863
+            },
+            {
+              "repeat": 10,
+              "assembly_seconds": 0.373694825,
+              "fortran_seconds": 0.397706656,
+              "assembly_million_updates_per_second": 89.79099991550592,
+              "fortran_million_updates_per_second": 84.36980245057805,
+              "fortran_to_assembly": 0.9396242666856448
+            },
+            {
+              "repeat": 11,
+              "assembly_seconds": 0.373461743,
+              "fortran_seconds": 0.397730559,
+              "assembly_million_updates_per_second": 89.847039566781,
+              "fortran_million_updates_per_second": 84.36473195412677,
+              "fortran_to_assembly": 0.9389817667995686
+            }
+          ],
+          "assembly": {
+            "median": 89.8565176179977,
+            "minimum": 89.79099991550592,
+            "maximum": 89.88958540439957,
+            "count": 12
+          },
+          "fortran": {
+            "median": 84.37079019067309,
+            "minimum": 84.34976817825276,
+            "maximum": 84.38492952746995,
+            "count": 12
+          },
+          "ratio": {
+            "point": 0.938950144377442,
+            "paired_median": 0.9389410250096746,
+            "minimum": 0.9386247077448098,
+            "maximum": 0.9396242666856448,
+            "count": 12
+          }
+        },
+        {
+          "size": 256,
+          "steps": 512,
+          "paired_samples": [
+            {
+              "repeat": 0,
+              "assembly_seconds": 0.352465519,
+              "fortran_seconds": 0.383436988,
+              "assembly_million_updates_per_second": 95.19919025043696,
+              "fortran_million_updates_per_second": 87.50963795907974,
+              "fortran_to_assembly": 0.9192267048582179
+            },
+            {
+              "repeat": 1,
+              "assembly_seconds": 0.352233684,
+              "fortran_seconds": 0.383537369,
+              "assembly_million_updates_per_second": 95.26184894911981,
+              "fortran_million_updates_per_second": 87.48673457161875,
+              "fortran_to_assembly": 0.9183816557911466
+            },
+            {
+              "repeat": 2,
+              "assembly_seconds": 0.352401233,
+              "fortran_seconds": 0.383789363,
+              "assembly_million_updates_per_second": 95.21655674797256,
+              "fortran_million_updates_per_second": 87.42929125943493,
+              "fortran_to_assembly": 0.918215216402441
+            },
+            {
+              "repeat": 3,
+              "assembly_seconds": 0.352257172,
+              "fortran_seconds": 0.383706454,
+              "assembly_million_updates_per_second": 95.2554970264736,
+              "fortran_million_updates_per_second": 87.44818245877094,
+              "fortran_to_assembly": 0.9180381730039913
+            },
+            {
+              "repeat": 4,
+              "assembly_seconds": 0.352256372,
+              "fortran_seconds": 0.383367326,
+              "assembly_million_updates_per_second": 95.25571335867843,
+              "fortran_million_updates_per_second": 87.52553940916707,
+              "fortran_to_assembly": 0.9188481858258312
+            },
+            {
+              "repeat": 5,
+              "assembly_seconds": 0.35218159,
+              "fortran_seconds": 0.383632311,
+              "assembly_million_updates_per_second": 95.27593989225842,
+              "fortran_million_updates_per_second": 87.46508320046067,
+              "fortran_to_assembly": 0.9180185815996088
+            },
+            {
+              "repeat": 6,
+              "assembly_seconds": 0.35231861,
+              "fortran_seconds": 0.383350014,
+              "assembly_million_updates_per_second": 95.23888618883913,
+              "fortran_million_updates_per_second": 87.52949204274712,
+              "fortran_to_assembly": 0.9190520337375022
+            },
+            {
+              "repeat": 7,
+              "assembly_seconds": 0.352215765,
+              "fortran_seconds": 0.38360044,
+              "assembly_million_updates_per_second": 95.26669540189378,
+              "fortran_million_updates_per_second": 87.47235013599045,
+              "fortran_to_assembly": 0.918183944210283
+            },
+            {
+              "repeat": 8,
+              "assembly_seconds": 0.352123416,
+              "fortran_seconds": 0.38333523,
+              "assembly_million_updates_per_second": 95.29168034652942,
+              "fortran_million_updates_per_second": 87.53286777215858,
+              "fortran_to_assembly": 0.9185782793822524
+            },
+            {
+              "repeat": 9,
+              "assembly_seconds": 0.352190933,
+              "fortran_seconds": 0.383560633,
+              "assembly_million_updates_per_second": 95.2734123907727,
+              "fortran_million_updates_per_second": 87.4814282622169,
+              "fortran_to_assembly": 0.9182144951773504
+            },
+            {
+              "repeat": 10,
+              "assembly_seconds": 0.352277075,
+              "fortran_seconds": 0.38350265,
+              "assembly_million_updates_per_second": 95.25011526793222,
+              "fortran_million_updates_per_second": 87.49465486092468,
+              "fortran_to_assembly": 0.918577942029866
+            },
+            {
+              "repeat": 11,
+              "assembly_seconds": 0.352149687,
+              "fortran_seconds": 0.383476763,
+              "assembly_million_updates_per_second": 95.28457141579115,
+              "fortran_million_updates_per_second": 87.5005612791198,
+              "fortran_to_assembly": 0.9183077593674169
+            }
+          ],
+          "assembly": {
+            "median": 95.25878115389912,
+            "minimum": 95.19919025043696,
+            "maximum": 95.29168034652942,
+            "count": 12
+          },
+          "fortran": {
+            "median": 87.49069471627172,
+            "minimum": 87.42929125943493,
+            "maximum": 87.53286777215858,
+            "count": 12
+          },
+          "ratio": {
+            "point": 0.918452804628296,
+            "paired_median": 0.9183447075792818,
+            "minimum": 0.9180185815996088,
+            "maximum": 0.9192267048582179,
+            "count": 12
+          }
+        },
+        {
+          "size": 1024,
+          "steps": 32,
+          "paired_samples": [
+            {
+              "repeat": 0,
+              "assembly_seconds": 0.406620871,
+              "fortran_seconds": 0.429693172,
+              "assembly_million_updates_per_second": 82.5201911487716,
+              "fortran_million_updates_per_second": 78.08928367146592,
+              "fortran_to_assembly": 0.9463051719146237
+            },
+            {
+              "repeat": 1,
+              "assembly_seconds": 0.406426443,
+              "fortran_seconds": 0.42982021,
+              "assembly_million_updates_per_second": 82.55966750667352,
+              "fortran_million_updates_per_second": 78.06620354124344,
+              "fortran_to_assembly": 0.9455731339389557
+            },
+            {
+              "repeat": 2,
+              "assembly_seconds": 0.406270095,
+              "fortran_seconds": 0.429763218,
+              "assembly_million_updates_per_second": 82.59143956928456,
+              "fortran_million_updates_per_second": 78.07655610024774,
+              "fortran_to_assembly": 0.945334728482976
+            },
+            {
+              "repeat": 3,
+              "assembly_seconds": 0.406618887,
+              "fortran_seconds": 0.429910095,
+              "assembly_million_updates_per_second": 82.5205937863875,
+              "fortran_million_updates_per_second": 78.0498815688429,
+              "fortran_to_assembly": 0.945823072612426
+            },
+            {
+              "repeat": 4,
+              "assembly_seconds": 0.406235568,
+              "fortran_seconds": 0.429971789,
+              "assembly_million_updates_per_second": 82.59845922698723,
+              "fortran_million_updates_per_second": 78.03868267273693,
+              "fortran_to_assembly": 0.9447958642700626
+            },
+            {
+              "repeat": 5,
+              "assembly_seconds": 0.40648897,
+              "fortran_seconds": 0.42979141,
+              "assembly_million_updates_per_second": 82.54696800260041,
+              "fortran_million_updates_per_second": 78.07143469898573,
+              "fortran_to_assembly": 0.9457819782856991
+            },
+            {
+              "repeat": 6,
+              "assembly_seconds": 0.406468523,
+              "fortran_seconds": 0.429897456,
+              "assembly_million_updates_per_second": 82.55112044678549,
+              "fortran_million_updates_per_second": 78.05217623804687,
+              "fortran_to_assembly": 0.945501112711865
+            },
+            {
+              "repeat": 7,
+              "assembly_seconds": 0.406347246,
+              "fortran_seconds": 0.429930382,
+              "assembly_million_updates_per_second": 82.57575836997306,
+              "fortran_million_updates_per_second": 78.04619865176218,
+              "fortran_to_assembly": 0.9451466167841099
+            },
+            {
+              "repeat": 8,
+              "assembly_seconds": 0.406218448,
+              "fortran_seconds": 0.429929262,
+              "assembly_million_updates_per_second": 82.60194032349806,
+              "fortran_million_updates_per_second": 78.04640196833125,
+              "fortran_to_assembly": 0.944849499450912
+            },
+            {
+              "repeat": 9,
+              "assembly_seconds": 0.406137318,
+              "fortran_seconds": 0.429932079,
+              "assembly_million_updates_per_second": 82.61844088900001,
+              "fortran_million_updates_per_second": 78.045890592872,
+              "fortran_to_assembly": 0.9446546043846149
+            },
+            {
+              "repeat": 10,
+              "assembly_seconds": 0.406376959,
+              "fortran_seconds": 0.429940735,
+              "assembly_million_updates_per_second": 82.5697206912757,
+              "fortran_million_updates_per_second": 78.04431929437902,
+              "fortran_to_assembly": 0.9451929671190611
+            },
+            {
+              "repeat": 11,
+              "assembly_seconds": 0.406193827,
+              "fortran_seconds": 0.42997491,
+              "assembly_million_updates_per_second": 82.60694715087337,
+              "fortran_million_updates_per_second": 78.03811622403735,
+              "fortran_to_assembly": 0.9446919286523021
+            }
+          ],
+          "assembly": {
+            "median": 82.57273953062437,
+            "minimum": 82.5201911487716,
+            "maximum": 82.61844088900001,
+            "count": 12
+          },
+          "fortran": {
+            "median": 78.04814176858707,
+            "minimum": 78.03811622403735,
+            "maximum": 78.08928367146592,
+            "count": 12
+          },
+          "ratio": {
+            "point": 0.9452047032984872,
+            "paired_median": 0.9452638478010185,
+            "minimum": 0.9446546043846149,
+            "maximum": 0.9463051719146237,
+            "count": 12
+          }
+        }
+      ],
+      "ebm": [
+        {
+          "size": 128,
+          "steps": 1000000,
+          "paired_samples": [
+            {
+              "repeat": 0,
+              "assembly_seconds": 0.195571161,
+              "fortran_seconds": 0.199328573,
+              "assembly_million_updates_per_second": 654.4932256141794,
+              "fortran_million_updates_per_second": 642.1558037241355,
+              "fortran_to_assembly": 0.9811496568532599
+            },
+            {
+              "repeat": 1,
+              "assembly_seconds": 0.195598745,
+              "fortran_seconds": 0.199402171,
+              "assembly_million_updates_per_second": 654.4009267544125,
+              "fortran_million_updates_per_second": 641.9187883365623,
+              "fortran_to_assembly": 0.9809258546136892
+            },
+            {
+              "repeat": 2,
+              "assembly_seconds": 0.196147979,
+              "fortran_seconds": 0.199336861,
+              "assembly_million_updates_per_second": 652.5685385726049,
+              "fortran_million_updates_per_second": 642.1291042603506,
+              "fortran_to_assembly": 0.9840025473261566
+            },
+            {
+              "repeat": 3,
+              "assembly_seconds": 0.196134443,
+              "fortran_seconds": 0.199346525,
+              "assembly_million_updates_per_second": 652.6135748630342,
+              "fortran_million_updates_per_second": 642.0979748706429,
+              "fortran_to_assembly": 0.9838869425990746
+            },
+            {
+              "repeat": 4,
+              "assembly_seconds": 0.195317248,
+              "fortran_seconds": 0.199296734,
+              "assembly_million_updates_per_second": 655.3440687429714,
+              "fortran_million_updates_per_second": 642.2583924531348,
+              "fortran_to_assembly": 0.9800323571785176
+            },
+            {
+              "repeat": 5,
+              "assembly_seconds": 0.19571391,
+              "fortran_seconds": 0.19939078,
+              "assembly_million_updates_per_second": 654.0158540596323,
+              "fortran_million_updates_per_second": 641.9554605283153,
+              "fortran_to_assembly": 0.9815594783269317
+            },
+            {
+              "repeat": 6,
+              "assembly_seconds": 0.195620696,
+              "fortran_seconds": 0.199388828,
+              "assembly_million_updates_per_second": 654.3274950826267,
+              "fortran_million_updates_per_second": 641.9617452187441,
+              "fortran_to_assembly": 0.9811015891020736
+            },
+            {
+              "repeat": 7,
+              "assembly_seconds": 0.195250017,
+              "fortran_seconds": 0.199406907,
+              "assembly_million_updates_per_second": 655.5697252512915,
+              "fortran_million_updates_per_second": 641.903542488626,
+              "fortran_to_assembly": 0.9791537311192535
+            },
+            {
+              "repeat": 8,
+              "assembly_seconds": 0.195567162,
+              "fortran_seconds": 0.199348797,
+              "assembly_million_updates_per_second": 654.5066088344627,
+              "fortran_million_updates_per_second": 642.090656809933,
+              "fortran_to_assembly": 0.9810300585862075
+            },
+            {
+              "repeat": 9,
+              "assembly_seconds": 0.196041261,
+              "fortran_seconds": 0.199316222,
+              "assembly_million_updates_per_second": 652.9237740416289,
+              "fortran_million_updates_per_second": 642.1955961015557,
+              "fortran_to_assembly": 0.983569019284341
+            },
+            {
+              "repeat": 10,
+              "assembly_seconds": 0.195585273,
+              "fortran_seconds": 0.199392731,
+              "assembly_million_updates_per_second": 654.4460021793154,
+              "fortran_million_updates_per_second": 641.9491791804587,
+              "fortran_to_assembly": 0.980904730172937
+            },
+            {
+              "repeat": 11,
+              "assembly_seconds": 0.195403261,
+              "fortran_seconds": 0.199359484,
+              "assembly_million_updates_per_second": 655.0555980741796,
+              "fortran_million_updates_per_second": 642.0562364617678,
+              "fortran_to_assembly": 0.980155330859504
+            }
+          ],
+          "assembly": {
+            "median": 654.423464466864,
+            "minimum": 652.5685385726049,
+            "maximum": 655.5697252512915,
+            "count": 12
+          },
+          "fortran": {
+            "median": 642.0734466358504,
+            "minimum": 641.903542488626,
+            "maximum": 642.2583924531348,
+            "count": 12
+          },
+          "ratio": {
+            "point": 0.9811284000321188,
+            "paired_median": 0.9810658238441405,
+            "minimum": 0.9791537311192535,
+            "maximum": 0.9840025473261566,
+            "count": 12
+          }
+        },
+        {
+          "size": 4096,
+          "steps": 40000,
+          "paired_samples": [
+            {
+              "repeat": 0,
+              "assembly_seconds": 0.259857079,
+              "fortran_seconds": 0.271379326,
+              "assembly_million_updates_per_second": 630.5004298151139,
+              "fortran_million_updates_per_second": 603.7305877898746,
+              "fortran_to_assembly": 0.9575419131227411
+            },
+            {
+              "repeat": 1,
+              "assembly_seconds": 0.259600221,
+              "fortran_seconds": 0.271306272,
+              "assembly_million_updates_per_second": 631.1242701137762,
+              "fortran_million_updates_per_second": 603.8931529013822,
+              "fortran_to_assembly": 0.9568530026463966
+            },
+            {
+              "repeat": 2,
+              "assembly_seconds": 0.26043601,
+              "fortran_seconds": 0.271395582,
+              "assembly_million_updates_per_second": 629.09887154238,
+              "fortran_million_updates_per_second": 603.6944256520727,
+              "fortran_to_assembly": 0.9596177214115444
+            },
+            {
+              "repeat": 3,
+              "assembly_seconds": 0.259434242,
+              "fortran_seconds": 0.271405886,
+              "assembly_million_updates_per_second": 631.5280463247408,
+              "fortran_million_updates_per_second": 603.6715062251818,
+              "fortran_to_assembly": 0.9558902565584005
+            },
+            {
+              "repeat": 4,
+              "assembly_seconds": 0.25986556,
+              "fortran_seconds": 0.271318464,
+              "assembly_million_updates_per_second": 630.479852736161,
+              "fortran_million_updates_per_second": 603.8660162840963,
+              "fortran_to_assembly": 0.9577879668373768
+            },
+            {
+              "repeat": 5,
+              "assembly_seconds": 0.259858904,
+              "fortran_seconds": 0.271392286,
+              "assembly_million_updates_per_second": 630.4960017841066,
+              "fortran_million_updates_per_second": 603.7017573889333,
+              "fortran_to_assembly": 0.9575029114865852
+            },
+            {
+              "repeat": 6,
+              "assembly_seconds": 0.259831064,
+              "fortran_seconds": 0.271434909,
+              "assembly_million_updates_per_second": 630.5635572504141,
+              "fortran_million_updates_per_second": 603.606959044461,
+              "fortran_to_assembly": 0.9572499902729903
+            },
+            {
+              "repeat": 7,
+              "assembly_seconds": 0.259401186,
+              "fortran_seconds": 0.271363999,
+              "assembly_million_updates_per_second": 631.6085231776851,
+              "fortran_million_updates_per_second": 603.7646872973743,
+              "fortran_to_assembly": 0.9559159909048952
+            },
+            {
+              "repeat": 8,
+              "assembly_seconds": 0.26050852,
+              "fortran_seconds": 0.271372799,
+              "assembly_million_updates_per_second": 628.9237680210997,
+              "fortran_million_updates_per_second": 603.7451085876886,
+              "fortran_to_assembly": 0.9599654827601201
+            },
+            {
+              "repeat": 9,
+              "assembly_seconds": 0.259816889,
+              "fortran_seconds": 0.271377598,
+              "assembly_million_updates_per_second": 630.5979593189571,
+              "fortran_million_updates_per_second": 603.7344320513885,
+              "fortran_to_assembly": 0.9573999140489112
+            },
+            {
+              "repeat": 10,
+              "assembly_seconds": 0.259087338,
+              "fortran_seconds": 0.271272897,
+              "assembly_million_updates_per_second": 632.3736283862703,
+              "fortran_million_updates_per_second": 603.96745053377,
+              "fortran_to_assembly": 0.9550800720058664
+            },
+            {
+              "repeat": 11,
+              "assembly_seconds": 0.259016844,
+              "fortran_seconds": 0.271332896,
+              "assembly_million_updates_per_second": 632.5457351337352,
+              "fortran_million_updates_per_second": 603.8338970885418,
+              "fortran_to_assembly": 0.954609071802337
+            }
+          ],
+          "assembly": {
+            "median": 630.5807582846855,
+            "minimum": 628.9237680210997,
+            "maximum": 632.5457351337352,
+            "count": 12
+          },
+          "fortran": {
+            "median": 603.7397703195386,
+            "minimum": 603.606959044461,
+            "maximum": 603.96745053377,
+            "count": 12
+          },
+          "ratio": {
+            "point": 0.9574344957208016,
+            "paired_median": 0.9573249521609508,
+            "minimum": 0.954609071802337,
+            "maximum": 0.9599654827601201,
+            "count": 12
+          }
+        },
+        {
+          "size": 65536,
+          "steps": 2048,
+          "paired_samples": [
+            {
+              "repeat": 0,
+              "assembly_seconds": 0.216710933,
+              "fortran_seconds": 0.239113522,
+              "assembly_million_updates_per_second": 619.339901969782,
+              "fortran_million_updates_per_second": 561.3138348570684,
+              "fortran_to_assembly": 0.9063098196512701
+            },
+            {
+              "repeat": 1,
+              "assembly_seconds": 0.218966654,
+              "fortran_seconds": 0.238944982,
+              "assembly_million_updates_per_second": 612.9596701057504,
+              "fortran_million_updates_per_second": 561.7097579391728,
+              "fortran_to_assembly": 0.9163894222310975
+            },
+            {
+              "repeat": 2,
+              "assembly_seconds": 0.218138994,
+              "fortran_seconds": 0.238960277,
+              "assembly_million_updates_per_second": 615.2853533376064,
+              "fortran_million_updates_per_second": 561.6738048893374,
+              "fortran_to_assembly": 0.9128671791755582
+            },
+            {
+              "repeat": 3,
+              "assembly_seconds": 0.218100051,
+              "fortran_seconds": 0.239002005,
+              "assembly_million_updates_per_second": 615.395216024044,
+              "fortran_million_updates_per_second": 561.575740755815,
+              "fortran_to_assembly": 0.9125448591948004
+            },
+            {
+              "repeat": 4,
+              "assembly_seconds": 0.217601407,
+              "fortran_seconds": 0.239014517,
+              "assembly_million_updates_per_second": 616.8054235053728,
+              "fortran_million_updates_per_second": 561.5463432290181,
+              "fortran_to_assembly": 0.9104108391876464
+            },
+            {
+              "repeat": 5,
+              "assembly_seconds": 0.218621446,
+              "fortran_seconds": 0.238974613,
+              "assembly_million_updates_per_second": 613.9275467055505,
+              "fortran_million_updates_per_second": 561.640110282342,
+              "fortran_to_assembly": 0.914831258665957
+            },
+            {
+              "repeat": 6,
+              "assembly_seconds": 0.218355309,
+              "fortran_seconds": 0.238953462,
+              "assembly_million_updates_per_second": 614.6758172021364,
+              "fortran_million_updates_per_second": 561.6898239373489,
+              "fortran_to_assembly": 0.9137984742819921
+            },
+            {
+              "repeat": 7,
+              "assembly_seconds": 0.218065652,
+              "fortran_seconds": 0.239015476,
+              "assembly_million_updates_per_second": 615.4922922019833,
+              "fortran_million_updates_per_second": 561.5440901408409,
+              "fortran_to_assembly": 0.912349508280376
+            },
+            {
+              "repeat": 8,
+              "assembly_seconds": 0.216726868,
+              "fortran_seconds": 0.239015892,
+              "assembly_million_updates_per_second": 619.2943645547446,
+              "fortran_million_updates_per_second": 561.5431127901738,
+              "fortran_to_assembly": 0.9067466861157499
+            },
+            {
+              "repeat": 9,
+              "assembly_seconds": 0.216664118,
+              "fortran_seconds": 0.239067603,
+              "assembly_million_updates_per_second": 619.4737238401423,
+              "fortran_million_updates_per_second": 561.4216494235733,
+              "fortran_to_assembly": 0.9062880761806944
+            },
+            {
+              "repeat": 10,
+              "assembly_seconds": 0.218525001,
+              "fortran_seconds": 0.238872312,
+              "assembly_million_updates_per_second": 614.1985007930512,
+              "fortran_million_updates_per_second": 561.8806419054545,
+              "fortran_to_assembly": 0.914819298939929
+            },
+            {
+              "repeat": 11,
+              "assembly_seconds": 0.216936527,
+              "fortran_seconds": 0.239045812,
+              "assembly_million_updates_per_second": 618.6958455364228,
+              "fortran_million_updates_per_second": 561.4728276435983,
+              "fortran_to_assembly": 0.9075102599998698
+            }
+          ],
+          "assembly": {
+            "median": 615.4437541130137,
+            "minimum": 612.9596701057504,
+            "maximum": 619.4737238401423,
+            "count": 12
+          },
+          "fortran": {
+            "median": 561.5610419924166,
+            "minimum": 561.3138348570684,
+            "maximum": 561.8806419054545,
+            "count": 12
+          },
+          "ratio": {
+            "point": 0.912449006492472,
+            "paired_median": 0.9124471837375883,
+            "minimum": 0.9062880761806944,
+            "maximum": 0.9163894222310975,
+            "count": 12
+          }
+        }
+      ]
+    },
+    "gpu": {
+      "sw": [
+        {
+          "size": 64,
+          "steps": 256,
+          "paired_samples": [
+            {
+              "repeat": 0,
+              "assembly_seconds": 0.0015538239479064941,
+              "fortran_seconds": 0.0014824960231781005,
+              "assembly_million_updates_per_second": 674.835782659144,
+              "fortran_million_updates_per_second": 707.3044268625526,
+              "fortran_to_assembly": 1.0481134003823391
+            },
+            {
+              "repeat": 1,
+              "assembly_seconds": 0.0015524799823760987,
+              "fortran_seconds": 0.001481536030769348,
+              "assembly_million_updates_per_second": 675.4199808715958,
+              "fortran_million_updates_per_second": 707.7627396314379,
+              "fortran_to_assembly": 1.0478854041571368
+            },
+            {
+              "repeat": 2,
+              "assembly_seconds": 0.0015544320344924928,
+              "fortran_seconds": 0.0014817919731140137,
+              "assembly_million_updates_per_second": 674.571790037993,
+              "fortran_million_updates_per_second": 707.6404913952921,
+              "fortran_to_assembly": 1.0490217673576843
+            },
+            {
+              "repeat": 3,
+              "assembly_seconds": 0.0015541759729385375,
+              "fortran_seconds": 0.0014809600114822387,
+              "assembly_million_updates_per_second": 674.6829305419121,
+              "fortran_million_updates_per_second": 708.038023896755,
+              "fortran_to_assembly": 1.0494381758377256
+            },
+            {
+              "repeat": 4,
+              "assembly_seconds": 0.001552224040031433,
+              "fortran_seconds": 0.001481119990348816,
+              "assembly_million_updates_per_second": 675.5313491851125,
+              "fortran_million_updates_per_second": 707.9615472295744,
+              "fortran_to_assembly": 1.0480069475437108
+            },
+            {
+              "repeat": 5,
+              "assembly_seconds": 0.0015523840188980103,
+              "fortran_seconds": 0.0014886080026626587,
+              "assembly_million_updates_per_second": 675.461733202041,
+              "fortran_million_updates_per_second": 704.4003512841676,
+              "fortran_to_assembly": 1.042842720260321
+            },
+            {
+              "repeat": 6,
+              "assembly_seconds": 0.0015537279844284057,
+              "fortran_seconds": 0.0014796479940414429,
+              "assembly_million_updates_per_second": 674.877462792019,
+              "fortran_million_updates_per_second": 708.6658477033902,
+              "fortran_to_assembly": 1.050065955338894
+            },
+            {
+              "repeat": 7,
+              "assembly_seconds": 0.0015519039630889893,
+              "fortran_seconds": 0.0014812159538269043,
+              "assembly_million_updates_per_second": 675.6706761112076,
+              "fortran_million_updates_per_second": 707.9156805534496,
+              "fortran_to_assembly": 1.0477229596936584
+            },
+            {
+              "repeat": 8,
+              "assembly_seconds": 0.0015520639419555665,
+              "fortran_seconds": 0.001481600046157837,
+              "assembly_million_updates_per_second": 675.6010314103537,
+              "fortran_million_updates_per_second": 707.7321593767646,
+              "fortran_to_assembly": 1.0475593234358087
+            },
+            {
+              "repeat": 9,
+              "assembly_seconds": 0.001553760051727295,
+              "fortran_seconds": 0.001481152057647705,
+              "assembly_million_updates_per_second": 674.8635343239206,
+              "fortran_million_updates_per_second": 707.9462196915139,
+              "fortran_to_assembly": 1.0490212964325232
+            },
+            {
+              "repeat": 10,
+              "assembly_seconds": 0.0015534080266952515,
+              "fortran_seconds": 0.0014805439710617065,
+              "assembly_million_updates_per_second": 675.0164682943989,
+              "fortran_million_updates_per_second": 708.2369861991064,
+              "fortran_to_assembly": 1.0492143813744983
+            },
+            {
+              "repeat": 11,
+              "assembly_seconds": 0.0015513279438018799,
+              "fortran_seconds": 0.001480448007583618,
+              "assembly_million_updates_per_second": 675.9215575207312,
+              "fortran_million_updates_per_second": 708.282894521559,
+              "fortran_to_assembly": 1.047877355945753
+            }
+          ],
+          "assembly": {
+            "median": 675.2182245829974,
+            "minimum": 674.571790037993,
+            "maximum": 675.9215575207312,
+            "count": 12
+          },
+          "fortran": {
+            "median": 707.9309501224818,
+            "minimum": 704.4003512841676,
+            "maximum": 708.6658477033902,
+            "count": 12
+          },
+          "ratio": {
+            "point": 1.0484476341847662,
+            "paired_median": 1.0480601739630249,
+            "minimum": 1.042842720260321,
+            "maximum": 1.050065955338894,
+            "count": 12
+          }
+        },
+        {
+          "size": 256,
+          "steps": 128,
+          "paired_samples": [
+            {
+              "repeat": 0,
+              "assembly_seconds": 0.0014431359767913818,
+              "fortran_seconds": 0.0012428159713745116,
+              "assembly_million_updates_per_second": 5812.763408927645,
+              "fortran_million_updates_per_second": 6749.678305728955,
+              "fortran_to_assembly": 1.1611823552567668
+            },
+            {
+              "repeat": 1,
+              "assembly_seconds": 0.0014438400268554689,
+              "fortran_seconds": 0.0012427200078964234,
+              "assembly_million_updates_per_second": 5809.928969949326,
+              "fortran_million_updates_per_second": 6750.199519358799,
+              "fortran_to_assembly": 1.1618385619295575
+            },
+            {
+              "repeat": 2,
+              "assembly_seconds": 0.0014443520307540893,
+              "fortran_seconds": 0.001243615984916687,
+              "assembly_million_updates_per_second": 5807.8694261400715,
+              "fortran_million_updates_per_second": 6745.336262754756,
+              "fortran_to_assembly": 1.1614132081543243
+            },
+            {
+              "repeat": 3,
+              "assembly_seconds": 0.0014410879611968994,
+              "fortran_seconds": 0.0012449280023574829,
+              "assembly_million_updates_per_second": 5821.0242718514,
+              "fortran_million_updates_per_second": 6738.227418866588,
+              "fortran_to_assembly": 1.1575673118991252
+            },
+            {
+              "repeat": 4,
+              "assembly_seconds": 0.0014427520036697388,
+              "fortran_seconds": 0.0012434560060501098,
+              "assembly_million_updates_per_second": 5814.310414168894,
+              "fortran_million_updates_per_second": 6746.20409502606,
+              "fortran_to_assembly": 1.1602758735732848
+            },
+            {
+              "repeat": 5,
+              "assembly_seconds": 0.0014421759843826294,
+              "fortran_seconds": 0.001243008017539978,
+              "assembly_million_updates_per_second": 5816.632706993119,
+              "fortran_million_updates_per_second": 6748.635472683267,
+              "fortran_to_assembly": 1.1602306373186733
+            },
+            {
+              "repeat": 6,
+              "assembly_seconds": 0.0014435199499130249,
+              "fortran_seconds": 0.0012440639734268189,
+              "assembly_million_updates_per_second": 5811.217226686359,
+              "fortran_million_updates_per_second": 6742.907261347082,
+              "fortran_to_assembly": 1.1603261413774384
+            },
+            {
+              "repeat": 7,
+              "assembly_seconds": 0.0014442239999771119,
+              "fortran_seconds": 0.0012451839447021485,
+              "assembly_million_updates_per_second": 5808.384295049067,
+              "fortran_million_updates_per_second": 6736.842404442164,
+              "fortran_to_assembly": 1.1598479133318527
+            },
+            {
+              "repeat": 8,
+              "assembly_seconds": 0.001442304015159607,
+              "fortran_seconds": 0.0012437759637832643,
+              "assembly_million_updates_per_second": 5816.11637479336,
+              "fortran_million_updates_per_second": 6744.468653730768,
+              "fortran_to_assembly": 1.1596172117464536
+            },
+            {
+              "repeat": 9,
+              "assembly_seconds": 0.0014417279958724976,
+              "fortran_seconds": 0.0012458560466766357,
+              "assembly_million_updates_per_second": 5818.44011076682,
+              "fortran_million_updates_per_second": 6733.208080000015,
+              "fortran_to_assembly": 1.1572187651361143
+            },
+            {
+              "repeat": 10,
+              "assembly_seconds": 0.0014457279443740845,
+              "fortran_seconds": 0.0012441279888153077,
+              "assembly_million_updates_per_second": 5802.342019218406,
+              "fortran_million_updates_per_second": 6742.560311650781,
+              "fortran_to_assembly": 1.1620411704994642
+            },
+            {
+              "repeat": 11,
+              "assembly_seconds": 0.0014419519901275634,
+              "fortran_seconds": 0.0012444479465484619,
+              "assembly_million_updates_per_second": 5817.53626849802,
+              "fortran_million_updates_per_second": 6740.826744313589,
+              "fortran_to_assembly": 1.1587081598124604
+            }
+          ],
+          "assembly": {
+            "median": 5813.53691154827,
+            "minimum": 5802.342019218406,
+            "maximum": 5821.0242718514,
+            "count": 12
+          },
+          "fortran": {
+            "median": 6743.687957538925,
+            "minimum": 6733.208080000015,
+            "maximum": 6750.199519358799,
+            "count": 12
+          },
+          "ratio": {
+            "point": 1.1599974439214382,
+            "paired_median": 1.160253255445979,
+            "minimum": 1.1572187651361143,
+            "maximum": 1.1620411704994642,
+            "count": 12
+          }
+        },
+        {
+          "size": 1024,
+          "steps": 32,
+          "paired_samples": [
+            {
+              "repeat": 0,
+              "assembly_seconds": 0.0038514559268951415,
+              "fortran_seconds": 0.0037739200592041017,
+              "assembly_million_updates_per_second": 8712.142274739716,
+              "fortran_million_updates_per_second": 8891.134807735287,
+              "fortran_to_assembly": 1.0205451802037884
+            },
+            {
+              "repeat": 1,
+              "assembly_seconds": 0.00387174391746521,
+              "fortran_seconds": 0.003775424003601074,
+              "assembly_million_updates_per_second": 8666.49053121461,
+              "fortran_million_updates_per_second": 8887.593014187312,
+              "fortran_to_assembly": 1.0255123434539444
+            },
+            {
+              "repeat": 2,
+              "assembly_seconds": 0.0038605120182037354,
+              "fortran_seconds": 0.003773087978363037,
+              "assembly_million_updates_per_second": 8691.705100716823,
+              "fortran_million_updates_per_second": 8893.095573816348,
+              "fortran_to_assembly": 1.0231704217717785
+            },
+            {
+              "repeat": 3,
+              "assembly_seconds": 0.0038703041076660156,
+              "fortran_seconds": 0.0037756800651550294,
+              "assembly_million_updates_per_second": 8669.71459259179,
+              "fortran_million_updates_per_second": 8886.990269558832,
+              "fortran_to_assembly": 1.0250614567119316
+            },
+            {
+              "repeat": 4,
+              "assembly_seconds": 0.0038590080738067625,
+              "fortran_seconds": 0.003769824028015137,
+              "assembly_million_updates_per_second": 8695.092458539442,
+              "fortran_million_updates_per_second": 8900.79530255073,
+              "fortran_to_assembly": 1.0236573498202732
+            },
+            {
+              "repeat": 5,
+              "assembly_seconds": 0.0038544960021972656,
+              "fortran_seconds": 0.003777343988418579,
+              "assembly_million_updates_per_second": 8705.270930589164,
+              "fortran_million_updates_per_second": 8883.075542730192,
+              "fortran_to_assembly": 1.0204249372085878
+            },
+            {
+              "repeat": 6,
+              "assembly_seconds": 0.0038573760986328125,
+              "fortran_seconds": 0.0037765440940856934,
+              "assembly_million_updates_per_second": 8698.771170354079,
+              "fortran_million_updates_per_second": 8884.957030568863,
+              "fortran_to_assembly": 1.021403696748492
+            },
+            {
+              "repeat": 7,
+              "assembly_seconds": 0.0038797440528869627,
+              "fortran_seconds": 0.0037760639190673826,
+              "assembly_million_updates_per_second": 8648.619997247435,
+              "fortran_million_updates_per_second": 8886.086866953066,
+              "fortran_to_assembly": 1.0274571977704199
+            },
+            {
+              "repeat": 8,
+              "assembly_seconds": 0.0038740479946136473,
+              "fortran_seconds": 0.0037993600368499757,
+              "assembly_million_updates_per_second": 8661.336164821141,
+              "fortran_million_updates_per_second": 8831.601026108534,
+              "fortran_to_assembly": 1.019658036363828
+            },
+            {
+              "repeat": 9,
+              "assembly_seconds": 0.0038547840118408204,
+              "fortran_seconds": 0.0037756481170654298,
+              "assembly_million_updates_per_second": 8704.620517499852,
+              "fortran_million_updates_per_second": 8887.06546786985,
+              "fortran_to_assembly": 1.020959552458744
+            },
+            {
+              "repeat": 10,
+              "assembly_seconds": 0.003857408046722412,
+              "fortran_seconds": 0.003782016038894653,
+              "assembly_million_updates_per_second": 8698.699124794628,
+              "fortran_million_updates_per_second": 8872.101983419074,
+              "fortran_to_assembly": 1.0199343437606874
+            },
+            {
+              "repeat": 11,
+              "assembly_seconds": 0.003855007886886597,
+              "fortran_seconds": 0.0037736639976501465,
+              "assembly_million_updates_per_second": 8704.115006908434,
+              "fortran_million_updates_per_second": 8891.7381147061,
+              "fortran_to_assembly": 1.0215556788540534
+            }
+          ],
+          "assembly": {
+            "median": 8696.895791667035,
+            "minimum": 8648.619997247435,
+            "maximum": 8712.142274739716,
+            "count": 12
+          },
+          "fortran": {
+            "median": 8887.02786871434,
+            "minimum": 8831.601026108534,
+            "maximum": 8900.79530255073,
+            "count": 12
+          },
+          "ratio": {
+            "point": 1.0218620622348356,
+            "paired_median": 1.0214796878012726,
+            "minimum": 1.019658036363828,
+            "maximum": 1.0274571977704199,
+            "count": 12
+          }
+        }
+      ],
+      "ebm": [
+        {
+          "size": 128,
+          "steps": 512,
+          "paired_samples": [
+            {
+              "repeat": 0,
+              "assembly_seconds": 8.950400352478027e-05,
+              "fortran_seconds": 7.174400240182876e-05,
+              "assembly_million_updates_per_second": 732.2130566132224,
+              "fortran_million_updates_per_second": 913.470085386949,
+              "fortran_to_assembly": 1.2475468405495427
+            },
+            {
+              "repeat": 1,
+              "assembly_seconds": 8.908800035715103e-05,
+              "fortran_seconds": 7.164800167083741e-05,
+              "assembly_million_updates_per_second": 735.6321809589193,
+              "fortran_million_updates_per_second": 914.6940385174044,
+              "fortran_to_assembly": 1.2434122135943975
+            },
+            {
+              "repeat": 2,
+              "assembly_seconds": 8.876799792051315e-05,
+              "fortran_seconds": 7.017599791288375e-05,
+              "assembly_million_updates_per_second": 738.2840836253159,
+              "fortran_million_updates_per_second": 933.8805567304673,
+              "fortran_to_assembly": 1.2649338885171173
+            },
+            {
+              "repeat": 3,
+              "assembly_seconds": 8.710400015115738e-05,
+              "fortran_seconds": 7.023999840021133e-05,
+              "assembly_million_updates_per_second": 752.3879487310687,
+              "fortran_million_updates_per_second": 933.0296340069794,
+              "fortran_to_assembly": 1.2400911465694924
+            },
+            {
+              "repeat": 4,
+              "assembly_seconds": 8.723200112581253e-05,
+              "fortran_seconds": 7.068800181150437e-05,
+              "assembly_million_updates_per_second": 751.2839228057954,
+              "fortran_million_updates_per_second": 927.1163184773193,
+              "fortran_to_assembly": 1.2340425374934796
+            },
+            {
+              "repeat": 5,
+              "assembly_seconds": 8.774399757385253e-05,
+              "fortran_seconds": 6.988800317049027e-05,
+              "assembly_million_updates_per_second": 746.900093591468,
+              "fortran_million_updates_per_second": 937.7288951885827,
+              "fortran_to_assembly": 1.2554944138238282
+            },
+            {
+              "repeat": 6,
+              "assembly_seconds": 9.113600105047225e-05,
+              "fortran_seconds": 7.155200093984604e-05,
+              "assembly_million_updates_per_second": 719.1011153068406,
+              "fortran_million_updates_per_second": 915.9212759835507,
+              "fortran_to_assembly": 1.2737030390958672
+            },
+            {
+              "repeat": 7,
+              "assembly_seconds": 8.780799806118011e-05,
+              "fortran_seconds": 7.116799801588058e-05,
+              "assembly_million_updates_per_second": 746.3557016108928,
+              "fortran_million_updates_per_second": 920.863335025613,
+              "fortran_to_assembly": 1.2338129567953624
+            },
+            {
+              "repeat": 8,
+              "assembly_seconds": 8.777599781751632e-05,
+              "fortran_seconds": 7.039999961853027e-05,
+              "assembly_million_updates_per_second": 746.6277983674693,
+              "fortran_million_updates_per_second": 930.9090959533187,
+              "fortran_to_assembly": 1.246818157573007
+            },
+            {
+              "repeat": 9,
+              "assembly_seconds": 8.828800171613694e-05,
+              "fortran_seconds": 7.056000083684921e-05,
+              "assembly_million_updates_per_second": 742.2979196053271,
+              "fortran_million_updates_per_second": 928.7981749253966,
+              "fortran_to_assembly": 1.251247175014622
+            },
+            {
+              "repeat": 10,
+              "assembly_seconds": 8.915200084447861e-05,
+              "fortran_seconds": 7.020799815654754e-05,
+              "assembly_million_updates_per_second": 735.1040849248511,
+              "fortran_million_updates_per_second": 933.4549014468398,
+              "fortran_to_assembly": 1.2698268457347315
+            },
+            {
+              "repeat": 11,
+              "assembly_seconds": 8.915200084447861e-05,
+              "fortran_seconds": 7.036799937486648e-05,
+              "assembly_million_updates_per_second": 735.1040849248511,
+              "fortran_million_updates_per_second": 931.3324321027615,
+              "fortran_to_assembly": 1.2669395412188065
+            }
+          ],
+          "assembly": {
+            "median": 740.2910016153215,
+            "minimum": 719.1011153068406,
+            "maximum": 752.3879487310687,
+            "count": 12
+          },
+          "fortran": {
+            "median": 929.8536354393576,
+            "minimum": 913.470085386949,
+            "maximum": 937.7288951885827,
+            "count": 12
+          },
+          "ratio": {
+            "point": 1.2560650249839709,
+            "paired_median": 1.2493970077820822,
+            "minimum": 1.2338129567953624,
+            "maximum": 1.2737030390958672,
+            "count": 12
+          }
+        },
+        {
+          "size": 4096,
+          "steps": 256,
+          "paired_samples": [
+            {
+              "repeat": 0,
+              "assembly_seconds": 0.00020892800390720368,
+              "fortran_seconds": 0.00013894400000572204,
+              "assembly_million_updates_per_second": 5018.83893202622,
+              "fortran_million_updates_per_second": 7546.752648238263,
+              "fortran_to_assembly": 1.5036849658754572
+            },
+            {
+              "repeat": 1,
+              "assembly_seconds": 0.0002080319970846176,
+              "fortran_seconds": 0.00014044800400733948,
+              "assembly_million_updates_per_second": 5040.455385204463,
+              "fortran_million_updates_per_second": 7465.937358178504,
+              "fortran_to_assembly": 1.4812029444985657
+            },
+            {
+              "repeat": 2,
+              "assembly_seconds": 0.00020982399582862853,
+              "fortran_seconds": 0.00014009599387645723,
+              "assembly_million_updates_per_second": 4997.407450272814,
+              "fortran_million_updates_per_second": 7484.696535467533,
+              "fortran_to_assembly": 1.4977158876767063
+            },
+            {
+              "repeat": 3,
+              "assembly_seconds": 0.00020793600380420685,
+              "fortran_seconds": 0.0001406719982624054,
+              "assembly_million_updates_per_second": 5042.782302324817,
+              "fortran_million_updates_per_second": 7454.049227650959,
+              "fortran_to_assembly": 1.478162010724616
+            },
+            {
+              "repeat": 4,
+              "assembly_seconds": 0.0002082879990339279,
+              "fortran_seconds": 0.0001393280029296875,
+              "assembly_million_updates_per_second": 5034.260278381175,
+              "fortran_million_updates_per_second": 7525.952988281678,
+              "fortran_to_assembly": 1.4949471366430291
+            },
+            {
+              "repeat": 5,
+              "assembly_seconds": 0.00021123200654983522,
+              "fortran_seconds": 0.00014064000546932222,
+              "assembly_million_updates_per_second": 4964.096195112426,
+              "fortran_million_updates_per_second": 7455.744875015138,
+              "fortran_to_assembly": 1.5019340040904026
+            },
+            {
+              "repeat": 6,
+              "assembly_seconds": 0.00020812800526618958,
+              "fortran_seconds": 0.00014000000059604645,
+              "assembly_million_updates_per_second": 5038.130253825775,
+              "fortran_million_updates_per_second": 7489.828539540817,
+              "fortran_to_assembly": 1.4866286027149278
+            },
+            {
+              "repeat": 7,
+              "assembly_seconds": 0.00020809599757194518,
+              "fortran_seconds": 0.00014057600498199464,
+              "assembly_million_updates_per_second": 5038.905179507236,
+              "fortran_million_updates_per_second": 7459.1392758266575,
+              "fortran_to_assembly": 1.480309513694024
+            },
+            {
+              "repeat": 8,
+              "assembly_seconds": 0.00021030400693416597,
+              "fortran_seconds": 0.00013903999328613282,
+              "assembly_million_updates_per_second": 4986.001052886494,
+              "fortran_million_updates_per_second": 7541.542366462269,
+              "fortran_to_assembly": 1.5125432759578583
+            },
+            {
+              "repeat": 9,
+              "assembly_seconds": 0.0002098879963159561,
+              "fortran_seconds": 0.00013942399621009826,
+              "assembly_million_updates_per_second": 4995.883606518974,
+              "fortran_million_updates_per_second": 7520.771377259184,
+              "fortran_to_assembly": 1.505393633960079
+            },
+            {
+              "repeat": 10,
+              "assembly_seconds": 0.00020796799659729003,
+              "fortran_seconds": 0.00013903999328613282,
+              "assembly_million_updates_per_second": 5042.006545028495,
+              "fortran_million_updates_per_second": 7541.542366462269,
+              "fortran_to_assembly": 1.4957422802035747
+            },
+            {
+              "repeat": 11,
+              "assembly_seconds": 0.0002083840072154999,
+              "fortran_seconds": 0.00013872000575065614,
+              "assembly_million_updates_per_second": 5031.940857705156,
+              "fortran_million_updates_per_second": 7558.938556308706,
+              "fortran_to_assembly": 1.5021914545625243
+            }
+          ],
+          "assembly": {
+            "median": 5033.100568043166,
+            "minimum": 4964.096195112426,
+            "maximum": 5042.782302324817,
+            "count": 12
+          },
+          "fortran": {
+            "median": 7505.299958400001,
+            "minimum": 7454.049227650959,
+            "maximum": 7558.938556308706,
+            "count": 12
+          },
+          "ratio": {
+            "point": 1.49118815667099,
+            "paired_median": 1.4967290839401404,
+            "minimum": 1.478162010724616,
+            "maximum": 1.5125432759578583,
+            "count": 12
+          }
+        },
+        {
+          "size": 65536,
+          "steps": 128,
+          "paired_samples": [
+            {
+              "repeat": 0,
+              "assembly_seconds": 0.0001395840048789978,
+              "fortran_seconds": 9.433600306510926e-05,
+              "assembly_million_updates_per_second": 60097.20101720747,
+              "fortran_million_updates_per_second": 88922.6565409,
+              "fortran_to_assembly": 1.4796472220967332
+            },
+            {
+              "repeat": 1,
+              "assembly_seconds": 0.0001369599997997284,
+              "fortran_seconds": 9.718400239944459e-05,
+              "assembly_million_updates_per_second": 61248.59822040271,
+              "fortran_million_updates_per_second": 86316.75782935177,
+              "fortran_to_assembly": 1.4092854422356156
+            },
+            {
+              "repeat": 2,
+              "assembly_seconds": 0.00013859200477600098,
+              "fortran_seconds": 9.487999975681305e-05,
+              "assembly_million_updates_per_second": 60527.358800805785,
+              "fortran_million_updates_per_second": 88412.81641548107,
+              "fortran_to_assembly": 1.4607083171503603
+            },
+            {
+              "repeat": 3,
+              "assembly_seconds": 0.00013702400028705596,
+              "fortran_seconds": 9.590400010347366e-05,
+              "assembly_million_updates_per_second": 61219.99053031904,
+              "fortran_million_updates_per_second": 87468.80204109612,
+              "fortran_to_assembly": 1.4287620968803878
+            },
+            {
+              "repeat": 4,
+              "assembly_seconds": 0.0001403519958257675,
+              "fortran_seconds": 9.523200243711472e-05,
+              "assembly_million_updates_per_second": 59768.35563074991,
+              "fortran_million_updates_per_second": 88086.01925113687,
+              "fortran_to_assembly": 1.473790241032128
+            },
+            {
+              "repeat": 5,
+              "assembly_seconds": 0.00013708800077438354,
+              "fortran_seconds": 9.510400146245956e-05,
+              "assembly_million_updates_per_second": 61191.409551633835,
+              "fortran_million_updates_per_second": 88204.57468670483,
+              "fortran_to_assembly": 1.4414535525983765
+            },
+            {
+              "repeat": 6,
+              "assembly_seconds": 0.00013887999951839447,
+              "fortran_seconds": 9.388799965381622e-05,
+              "assembly_million_updates_per_second": 60401.843527432764,
+              "fortran_million_updates_per_second": 89346.96692794042,
+              "fortran_to_assembly": 1.4792092709448783
+            },
+            {
+              "repeat": 7,
+              "assembly_seconds": 0.00014019200205802918,
+              "fortran_seconds": 9.433600306510926e-05,
+              "assembly_million_updates_per_second": 59836.566115431706,
+              "fortran_million_updates_per_second": 88922.6565409,
+              "fortran_to_assembly": 1.4860922394737333
+            },
+            {
+              "repeat": 8,
+              "assembly_seconds": 0.00013833600282669068,
+              "fortran_seconds": 9.574399888515472e-05,
+              "assembly_million_updates_per_second": 60639.369568234295,
+              "fortran_million_updates_per_second": 87614.9742822228,
+              "fortran_to_assembly": 1.4448529875237948
+            },
+            {
+              "repeat": 9,
+              "assembly_seconds": 0.00013718399405479432,
+              "fortran_seconds": 9.411200135946274e-05,
+              "assembly_million_updates_per_second": 61148.59140673077,
+              "fortran_million_updates_per_second": 89134.30677092433,
+              "fortran_to_assembly": 1.4576673758197662
+            },
+            {
+              "repeat": 10,
+              "assembly_seconds": 0.00013833600282669068,
+              "fortran_seconds": 9.44959968328476e-05,
+              "assembly_million_updates_per_second": 60639.369568234295,
+              "fortran_million_updates_per_second": 88772.09914869166,
+              "fortran_to_assembly": 1.4639350603538364
+            },
+            {
+              "repeat": 11,
+              "assembly_seconds": 0.00013756799697875975,
+              "fortran_seconds": 9.254399687051773e-05,
+              "assembly_million_updates_per_second": 60977.90317682088,
+              "fortran_million_updates_per_second": 90644.53971808523,
+              "fortran_to_assembly": 1.4865145404432556
+            }
+          ],
+          "assembly": {
+            "median": 60639.369568234295,
+            "minimum": 59768.35563074991,
+            "maximum": 61248.59822040271,
+            "count": 12
+          },
+          "fortran": {
+            "median": 88592.45778208636,
+            "minimum": 86316.75782935177,
+            "maximum": 90644.53971808523,
+            "count": 12
+          },
+          "ratio": {
+            "point": 1.4609726059634893,
+            "paired_median": 1.4623216887520982,
+            "minimum": 1.4092854422356156,
+            "maximum": 1.4865145404432556,
+            "count": 12
+          }
+        }
+      ]
+    }
+  },
+  "sources": {
+    "cpu_sw": {
+      "source_record": ".runtime/cpu_fortran_20261108/sw_final_timing.json",
+      "sha256": "41b483e7a67139481124f6c221e127b307d7f3f69329d985ce802e829c362fb2",
+      "target": "one Neoverse V2 CPU core",
+      "job": "8199657",
+      "node": "nid010573",
+      "timer": "one complete native run, both stages and boundaries, excluding setup, verification and output",
+      "input_and_code_identities": {
+        "src/sw/shallow_water_solver.f90": "1c9a322e193f3099be82cfda62f281d19e1043cf8278e6332db925044cf51877"
+      }
+    },
+    "cpu_ebm": {
+      "source_record": ".runtime/cpu_fortran_20261108/ebm_final_timing.json",
+      "sha256": "787cffaf71fc23398fd38ff18525dcb7fa02feb4984a86aea7f2010c2eace5ad",
+      "target": "one Neoverse V2 CPU core",
+      "job": "8199657",
+      "node": "nid010573",
+      "timer": "one complete native run, both stages and boundaries, excluding setup, verification and output",
+      "input_and_code_identities": {
+        "src/ebm/energy_balance_solver.f90": "7966d83b915def32dcc911c8266fb06a62e6b45248312fb7d3cf85c06eb87754"
+      }
+    },
+    "gpu_sw": {
+      "source_record": ".runtime/sw/gpu_fortran_20261108/final_evaluation/bench/.runs/gpu/sw/timing.json",
+      "sha256": "78d91e88d7f57e4d7ac0f53a11782c6bdcb8d1c2d353cd7708f0ddfcd8703737",
+      "target": "one NVIDIA GH200 GPU",
+      "job": "8199657",
+      "node": "nid010573",
+      "timer": "CUDA events around one replay of all complete steps",
+      "input_and_code_identities": {
+        ".runtime/cpu_fortran_20261108/gpu_harness/evaluate_gpu_fortran.py": "3735d1d94090131766aca7df7ce4aae437e6db0bb99fb8c8a2e27430130232de",
+        ".runtime/sw/gpu_fortran_20261108/final_evaluation/bench/.build/gpu/libdriver.so": "5b8c4a157bdd6ff12edd46a4e984107ae9fb2d4e1e04c72095d738a932efb472",
+        ".runtime/sw/gpu_fortran_20261108/final_evaluation/bench/.build/gpu/sw_assembly.cubin": "b813054d143f33a003e5903b32257b0bccdde88978276310e050d9e7c1af7824",
+        ".runtime/sw/gpu_fortran_20261108/final_evaluation/bench/.build/gpu/sw_esm_fortran.cubin": "5d4ebe364472ec914d97170bfc1944d92aa6bc6cad60bd54175e06db66c10ae8",
+        ".runtime/sw/gpu_fortran_20261108/final_evaluation/bench/.build/libfp_env.so": "664d426d77f5c71c6f885febda0ae8d39117cd97a939c92e3bbac116a70a04fc",
+        ".runtime/sw/gpu_fortran_20261108/final_evaluation/bench/.build/libsw_fortran_vanilla.so": "c98e7392003f10dddb2e91f686351d7847d1ed004977ca7e0bceb5fab15e3589",
+        "src/sw/gpu/2d_rusanov_ssprk2.ptx": "a7031180aa244e5c0279cb6744effeccd7538cffd9669c13f99267acea8911c4",
+        "src/sw/gpu/shallow_water_solver.cuf": "88bfb14782ed6b199d4fbf5ba472e50d072d8197f8b7ffc783aabb504a3bc0f2",
+        "historical_gpu_controls/bench/energy_balance.py": "e125bfe44492aaf96d71148c36bbad1080e128bf1df94315ec08a1ff973f9224",
+        "historical_gpu_controls/bench/gpu/benchmark.py": "b5054ddf5ba5930744b046b70b21f39f9c8b8fbf59193d158c4afac8c09f379d",
+        "historical_gpu_controls/bench/gpu/run.py": "05161f8c8291b91509389638804dbc4f954d0e32f1dc54dc9b30f4972deddf64",
+        "historical_gpu_controls/bench/gpu/runtime.py": "bc7a24a3a57aa806decebfb382542ebd1d2f6bfbdb71e886e0f0c594201b4a7e",
+        "historical_gpu_controls/bench/run.py": "f4ad8cb6ddfcf8176ee876a27ad64a68c9f07033b3cac4a243e524c0f92663d0"
+      }
+    },
+    "gpu_ebm": {
+      "source_record": ".runtime/ebm/gpu_fortran_20261108/final_evaluation/bench/.runs/gpu/eb/timing.json",
+      "sha256": "2eb19c2ae28c538b2f3f2ec1da7da5edecb641c5c1e92d685cd1620a2704e1ee",
+      "target": "one NVIDIA GH200 GPU",
+      "job": "8199657",
+      "node": "nid010573",
+      "timer": "CUDA events around one replay of all complete steps",
+      "input_and_code_identities": {
+        ".runtime/cpu_fortran_20261108/gpu_harness/evaluate_gpu_fortran.py": "3735d1d94090131766aca7df7ce4aae437e6db0bb99fb8c8a2e27430130232de",
+        ".runtime/ebm/gpu_fortran_20261108/final_evaluation/bench/.build/gpu/eb_assembly.cubin": "5ff137bc335573376285a4189ff8a6b9f807a12ca870b4cfdf637941ce8d7fec",
+        ".runtime/ebm/gpu_fortran_20261108/final_evaluation/bench/.build/gpu/eb_esm_fortran.cubin": "75a92d1f33113a27b3e0b2be888718678da7a96f38be8aeebddaf01784819fa1",
+        ".runtime/ebm/gpu_fortran_20261108/final_evaluation/bench/.build/gpu/libdriver.so": "5b8c4a157bdd6ff12edd46a4e984107ae9fb2d4e1e04c72095d738a932efb472",
+        ".runtime/ebm/gpu_fortran_20261108/final_evaluation/bench/.build/libeb_fortran_vanilla.so": "28c3d01dde9b3536e5bace84ba2aa64d15a56e9feb635cbb0765158e97b5a049",
+        ".runtime/ebm/gpu_fortran_20261108/final_evaluation/bench/.build/libfp_env.so": "664d426d77f5c71c6f885febda0ae8d39117cd97a939c92e3bbac116a70a04fc",
+        "src/ebm/gpu/budyko_sellers.ptx": "2197932899e82780e36ddee0f223c9fdefc2150c311a27d2e7d47eff29dbc7ce",
+        "src/ebm/gpu/energy_balance_solver.cuf": "fe1ab9887a87413a762ea205254cbf86cab5a6c2ecaf3a235ff4a896240bd4e7",
+        "historical_gpu_controls/bench/energy_balance.py": "e125bfe44492aaf96d71148c36bbad1080e128bf1df94315ec08a1ff973f9224",
+        "historical_gpu_controls/bench/gpu/benchmark.py": "b5054ddf5ba5930744b046b70b21f39f9c8b8fbf59193d158c4afac8c09f379d",
+        "historical_gpu_controls/bench/gpu/run.py": "05161f8c8291b91509389638804dbc4f954d0e32f1dc54dc9b30f4972deddf64",
+        "historical_gpu_controls/bench/gpu/runtime.py": "bc7a24a3a57aa806decebfb382542ebd1d2f6bfbdb71e886e0f0c594201b4a7e",
+        "historical_gpu_controls/bench/run.py": "f4ad8cb6ddfcf8176ee876a27ad64a68c9f07033b3cac4a243e524c0f92663d0"
+      }
+    }
+  },
+  "ratios": {
+    "cpu": {
+      "sw": {
+        "64": {
+          "point": 0.938950144377442,
+          "paired_median": 0.9389410250096746,
+          "minimum": 0.9386247077448098,
+          "maximum": 0.9396242666856448,
+          "count": 12
+        },
+        "256": {
+          "point": 0.918452804628296,
+          "paired_median": 0.9183447075792818,
+          "minimum": 0.9180185815996088,
+          "maximum": 0.9192267048582179,
+          "count": 12
+        },
+        "1024": {
+          "point": 0.9452047032984872,
+          "paired_median": 0.9452638478010185,
+          "minimum": 0.9446546043846149,
+          "maximum": 0.9463051719146237,
+          "count": 12
+        }
+      },
+      "ebm": {
+        "128": {
+          "point": 0.9811284000321188,
+          "paired_median": 0.9810658238441405,
+          "minimum": 0.9791537311192535,
+          "maximum": 0.9840025473261566,
+          "count": 12
+        },
+        "4096": {
+          "point": 0.9574344957208016,
+          "paired_median": 0.9573249521609508,
+          "minimum": 0.954609071802337,
+          "maximum": 0.9599654827601201,
+          "count": 12
+        },
+        "65536": {
+          "point": 0.912449006492472,
+          "paired_median": 0.9124471837375883,
+          "minimum": 0.9062880761806944,
+          "maximum": 0.9163894222310975,
+          "count": 12
+        }
+      }
+    },
+    "gpu": {
+      "sw": {
+        "64": {
+          "point": 1.0484476341847662,
+          "paired_median": 1.0480601739630249,
+          "minimum": 1.042842720260321,
+          "maximum": 1.050065955338894,
+          "count": 12
+        },
+        "256": {
+          "point": 1.1599974439214382,
+          "paired_median": 1.160253255445979,
+          "minimum": 1.1572187651361143,
+          "maximum": 1.1620411704994642,
+          "count": 12
+        },
+        "1024": {
+          "point": 1.0218620622348356,
+          "paired_median": 1.0214796878012726,
+          "minimum": 1.019658036363828,
+          "maximum": 1.0274571977704199,
+          "count": 12
+        }
+      },
+      "ebm": {
+        "128": {
+          "point": 1.2560650249839709,
+          "paired_median": 1.2493970077820822,
+          "minimum": 1.2338129567953624,
+          "maximum": 1.2737030390958672,
+          "count": 12
+        },
+        "4096": {
+          "point": 1.49118815667099,
+          "paired_median": 1.4967290839401404,
+          "minimum": 1.478162010724616,
+          "maximum": 1.5125432759578583,
+          "count": 12
+        },
+        "65536": {
+          "point": 1.4609726059634893,
+          "paired_median": 1.4623216887520982,
+          "minimum": 1.4092854422356156,
+          "maximum": 1.4865145404432556,
+          "count": 12
+        }
+      }
+    }
+  },
+  "summary": {
+    "cpu": "EBM reaches 642 million updates/s on one CPU core.",
+    "gpu": "EBM reaches 88.6 billion updates/s on one GPU."
+  },
+  "displayed_series": "esm.md",
+  "current_source_path_aliases": {
+    "note": "Historical timing source names map to current public paths. Original timing paths and hashes remain unchanged.",
+    "paths": {
+      "src/ebm/energy_balance_solver.f90": "src/ebm/solver.f90",
+      "src/ebm/gpu/budyko_sellers.ptx": ".archive/sw_ebm_assembly/src/ebm/gpu/solver.ptx",
+      "src/ebm/gpu/energy_balance_solver.cuf": "src/ebm/gpu/solver.cuf",
+      "src/sw/gpu/2d_rusanov_ssprk2.ptx": ".archive/sw_ebm_assembly/src/sw/gpu/solver.ptx",
+      "src/sw/gpu/shallow_water_solver.cuf": "src/sw/gpu/solver.cuf",
+      "src/sw/shallow_water_solver.f90": "src/sw/solver.f90"
+    }
+  }
+}

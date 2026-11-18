@@ -1,0 +1,150 @@
+{
+  "project": "esm.md",
+  "scope": "Local Cambridge poster and supporting project writing. Do not apply these preferences to other projects.",
+  "writing": {
+    "audience": "First-year undergraduates across all outputs, including reports and conversation",
+    "convention": "../../../standards/ASD-STE100-CONV.md",
+    "language": "British English",
+    "opening": "Begin with wider Earth system model development needs, then introduce portable Fortran and compiler generation. Define unfamiliar terms, symbols and units.",
+    "mathematics": "GitHub dollar-and-backtick inline expressions and fenced math blocks. Keep one prose paragraph or list item on each source line.",
+    "physical_notes": "../../../formulations/",
+    "title_casing": "Title case for the poster title and section headings",
+    "subtitle_casing": "Sentence case",
+    "punctuation": "Avoid semicolons and colons in authored prose",
+    "punctuation_exceptions": [
+      "Titles",
+      "The exact requested Sponsors: label",
+      "Required literal syntax, quotations, official names and bibliography metadata"
+    ],
+    "changed_prose_colour": "#000000",
+    "changed_prose_colour_scope": "Poster text only. Paper review colours follow their separate instructions.",
+    "numerical_specifications": "../../../formulations/",
+    "gpu_numerical_specifications": "../../../formulations/general/"
+  },
+  "identity": {
+    "author": "Pritthijit Nath, Sebastian Schemm, Mark J. Webb",
+    "title": "ESM.md: From Markdown Physics to Verified, Optimised Earth System Model Solvers",
+    "subtitle": "A framework for ESM development directly from physics formulations",
+    "title_underlines": "Use plain native editable title text with no underlines.",
+    "author_line": "Pritthijit Nath¹, Sebastian Schemm¹, Mark J. Webb²",
+    "affiliation": "¹ Department of Applied Mathematics and Theoretical Physics, University of Cambridge, Cambridge, United Kingdom ² Met Office Hadley Centre, Exeter, United Kingdom",
+    "author_details_source": "../submission/main.tex"
+  },
+  "poster": {
+    "canvas_mm": [
+      1189,
+      841
+    ],
+    "template": "assets/templates/template-a3-landscape.pptx",
+    "font": "Open Sans Regular and Bold",
+    "colours": {
+      "Cambridge blue": "#8EE8D8",
+      "Light blue": "#D1F9F1",
+      "Warm blue": "#00BDB6",
+      "Dark blue": "#133844",
+      "Ink": "#232830",
+      "White": "#FFFFFF"
+    },
+    "university_logo": "assets/cambridge-logo.svg",
+    "sponsor_logo": "assets/epsrc-horizontal.png",
+    "sponsor_label": "Sponsors:",
+    "conference_logo": "assets/pasc27.png",
+    "conference_logo_height_mm": 40,
+    "logo_alignment": "Align visible Cambridge and sponsor edges to the top-row margins and the conference mark to the right margin. Preserve proportions and official clear space.",
+    "banner": {
+      "source": "assets/paisley-source.jpg",
+      "outlines": "assets/paisley-outlines.svg",
+      "artwork": "assets/paisley-banner.svg",
+      "stroke": "#303030",
+      "outline_opacity": 0.3,
+      "repeat_source_pixels": 750,
+      "crop_left_source_pixels": 205,
+      "fade_mm": 150,
+      "background": "Cambridge blue held until just after the affiliation, then fading to white at the right edge, with the paisley ending at the same right margin as the model heading bands",
+      "text_side_padding_mm": 18,
+      "background_gradient_stops": [
+        0.658516,
+        1.0
+      ],
+      "fade_start_mm": 774,
+      "outline_blend_start_mm": 287.309524,
+      "affiliation_clearance_mm": 10,
+      "fallback_dpi": 400,
+      "pdf_artwork": "Use the 400 DPI transparent pattern in the PDF to keep the decorative texture compact. Retain the vector pattern in PowerPoint and the source SVG."
+    },
+    "workflow": [
+      "a. Inputs",
+      "b. LLM + skills",
+      "c. Verify/time with a simulation symbol and verification tick"
+    ],
+    "formulation": "../../../formulations/sw/shallow_water.md",
+    "formulation_label": "Writing Convention | ASD-STE100 (Modified)",
+    "figures": "Retain jet for shallow-water depth and coolwarm for temperature, with unchanged limits, units and data. Use light meshes and visible bar-value gaps.",
+    "qr": {
+      "url": "https://github.com/p3jitnath/esm.md",
+      "size_mm": 71,
+      "logo": "assets/github-invertocat.svg",
+      "error_correction": "H",
+      "quiet_zone_modules": 4,
+      "logo_modules": 10,
+      "white_patch_modules": 11,
+      "alignment": "Visible black pattern aligned with the Summary top. Preserve the quiet zone."
+    },
+    "footer": {
+      "references": "Vancouver with no visible URLs. Retain full identifiers in evidence.json.",
+      "acknowledgements": "Separate heading and full-height divider. Use the author-approved wording in README.md.",
+      "conference": "Bottom right, clear of reference and acknowledgement text."
+    },
+    "performance": "The Shallow Water Model and Energy Balance Model columns each pair a physical illustration with the corresponding performance plot. Each plot has CPU at the left and GPU at the right, with five left labels and eight route subrows. Purple circles, teal squares and navy diamonds identify the three grids. Tuned markers are solid and vanilla markers have coloured diagonal hatching on white faces. Faint rules separate groups and ESM.md is pale grey and bold. Both CPU and GPU rates use explicitly labelled logarithmic axes with positive margins and plain numeric ticks. Both CPU headers record the configured budget of 248 cores. The shared notes state the 128-worker cap for the 128-band EBM. The GPU header records one GH200. All displayed points and ranges come unchanged from the accepted fresh input.",
+    "figure_unit_labels": "Put units in square brackets on axes, colour bars and variable-label declarations. Keep plotted values, scales and ordinary value-unit expressions unchanged.",
+    "title_font_pt": 74,
+    "subtitle_font_pt": 44,
+    "figure_implementation_label": "ESM.md",
+    "skills": {
+      "md2fort": "Generation, verification and optimisation guidance for portable Fortran CPU solvers",
+      "md2fort-gpu": "GPU generation, verification and optimisation guidance covering CUDA Fortran and direct PTX comparisons"
+    },
+    "performance_slots_mm": {
+      "width": 364.249,
+      "maximum_height": 170,
+      "preflight_height": 169.2988312921818,
+      "preflight_effective_font_pt": 25.247379346098807
+    },
+    "performance_measurement_status": "Publication requires the accepted 96-condition cohort, 1,152 elapsed times, two bound poster render receipts and the independent encoding receipt.",
+    "text_colour": "#000000",
+    "reference_wording": "Use the supplied original poster wording for Motivation, Methods and Summary where it remains accurate. Update solver routes to Fortran and CUDA Fortran and name both md2fort skills. Keep fresh performance outcomes pending until accepted measurements exist.",
+    "performance_note_frame_mm": {
+      "top": 711,
+      "height": 64,
+      "font_pt": 26,
+      "paragraph_gap_pt": 3
+    },
+    "benchmark_initial_states": {
+      "sw": "MIXED",
+      "ebm": "CLIMATE"
+    },
+    "physical_illustration_scope": "The SW illustration shows a periodic dam-break at 0.03125 s. Its second caption bullet describes the smooth mixed starting state used for performance runs.",
+    "equation_typography": "Render the formulation continuity equation with pdfLaTeX and Computer Modern. Retain editable TeX, vector PDF and SVG, and a 400 DPI transparent fallback at its 24 mm poster height.",
+    "graph_alignment": "Centre the visible artwork within each fixed figure canvas while preserving data, axis sizes, scales and font sizes.",
+    "summary_focus": "Use three bullets on the readable physics specification, physical and exact-byte verification, and reusable optimisation lessons.",
+    "language_labels": "Use the user-supplied blue ASM SVG at approximately 12 mm high and the original Fortran and Julia SVG logos and the official Python two-snake SVG. Render the snakes at 16.5 mm high with the separate shadow omitted. Retain ESM.md as bold text. Preserve the semantic row order and all rate data.",
+    "workflow_icon_design": "Inputs uses a shallow-water channel. Verify/time shows a graph and a circled tick side by side, with the tick centred within its circle.",
+    "model_section_titles": {
+      "sw": "3.1 Shallow Water Model",
+      "ebm": "3.2 Energy Balance Model [1,2]"
+    },
+    "affiliation_font_pt": 26
+  },
+  "evidence": {
+    "branding": "evidence.json",
+    "asset_sources": "assets/asset-urls.json",
+    "measurements": "data/fresh-language-poster-manifest.json",
+    "scope": "Both performance figures and native chart notes use one complete accepted fresh eight-route cohort and its independent encoding receipt. The Summary describes the supported workflow and reusable lessons. The physical illustrations retain their separate figure-evidence.json inputs.",
+    "generation": "Source identities and compiler versions follow the accepted records. Methods describe supplied Markdown, a frozen numerical specification, prior verified source, LLM candidates, human review and separate verification gates.",
+    "requires_manifest_status": "accepted",
+    "measurement_input": "data/fresh-language-comparison-input.json",
+    "encoding_audit": "data/fresh-language-encoding-audit.json"
+  },
+  "delivery": "Inspect the actual final PDF and close-ups. Decode its QR at multiple render sizes. Display a PDF-rendered image in chat when requested.",
+  "version_control": "Publish the complete requested poster project under paper/pasc27/poster. Keep temporary previews and build caches in local .runtime/poster_update_20261108."
+}

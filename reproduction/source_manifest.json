@@ -1,0 +1,348 @@
+{
+  "study_source_commit": "d7ecf24996d4c798cf0f2b4f6dda397fca7dad2b",
+  "comparison_input_sha256": "ad5fcc2e4e65ebd5e380d582b83008b7e10556fab608d6b681a573e8be96bb30",
+  "record_sha256": {
+    "cpu_plan": "234ab7dbfb1546d3688094ee7c1c306716affac6f598242db4c3414f615ff0a5",
+    "cpu_freeze": "c75627d3f0b29167cf3a71aee4c2907ada94d235bcff386514b1fbbc2abf95cc",
+    "gpu_prepared": "0d308ce9e79c7ce47fe561b8943e531e0340bc14c0d831b6d805ef877ddbec95",
+    "gpu_expected_sources": "21b50481620a24f5acd092dc4f74cf7b834ac8676adcf1504fca5f7daa46b239",
+    "input_banks": "710aa0361a726ae3da86f6e7554805468bc46f0341c33cddc9b1bdbeb6b727e3"
+  },
+  "source_snapshots": [
+    {
+      "path": "reproduction/cpu/baseline/ebm/solver.S",
+      "sha256": "512b80a49961011685927e01f514ac586d4f0fd323f4f98f56e0fcfa71281d68",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/baseline/sw/sw_compact.S",
+      "sha256": "8fc22144ea810139690e73770ca10dccba9ec2251427684c4fe519b6055791cd",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/baseline/sw/sw_solver.S",
+      "sha256": "c125c8d80e973d2ef5ab70092a37b7e925841bc99794423ab478176f6f06b9d4",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/campaign.py",
+      "sha256": "aa784e999521100e465937b982052cc54eb07a28937a568e17633cf11807a48a",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/campaign_process_guard.py",
+      "sha256": "63f61610063d93bfcf041566687d2a516ffba69c5e4c6580d41c583c97a2018b",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/collect.py",
+      "sha256": "0d91ab48553851c9bda96bb49df728c1a22affe2eecd02a9a2935a98bf134be7",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/collect_process_guard.py",
+      "sha256": "c82baaf3b6c57c67c3dfc5fac0a92e11bcb2c8d956954e498b1b0aa01cb5ce92",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/driver/canonical_banks.py",
+      "sha256": "15f8560b6437082049fda294b33efdd08f881476172a509e82df329d4d3008ac",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/driver/fp_context.c",
+      "sha256": "caa818d0370c5230a6b5127fc753633fd0e15e7f430ba8fb61256d7884d45a9c",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/driver/frozen_inputs.py",
+      "sha256": "130694ce23db1d391a981c68a7970b6a76fe2f7dd63f8f986f7efb2b8b1a5373",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/driver/measure_tiles.py",
+      "sha256": "15427f9eb418adf0c9cc4e36118e88dc195b88d246b56b046bdcd72df45f7a4c",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/driver/restore_tiles.f90",
+      "sha256": "587eadac0fa1c585743948992fc2f3e5faf66a7d8232f33b8f95e81cee87733e",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/driver/verify_tiles.py",
+      "sha256": "59e3a143f80b33aba9cee4d3c74019223ed9d8493552a7dc6c577f8726f423f2",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/fortran/build_controls.py",
+      "sha256": "99162bd476fb816ae29b8d1896ca01a16672a517465417d9dbe1c8659f9220ad",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/fortran/ebm/fortran_tuned/kernel.f90",
+      "sha256": "0138365c74c823abbd4d6aa91d1e4c4d52c4fa70509972be66b34f92a6162f7a",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/fortran/ebm/fortran_vanilla/kernel.f90",
+      "sha256": "609298f01e0523b742432c56a423664bfbde0f6750b3b2c3affda8f668b6b35e",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/fortran/sw/fortran_tuned/kernel.f90",
+      "sha256": "2f11ff60a2745a05acbb0ce5b358f334b4b6f0ed67b7cd027c6eb032aca41335",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/fortran/sw/fortran_vanilla/kernel.f90",
+      "sha256": "99b0079046456da306f5730e382eedcb61f2c98d903b3842d3cfc8de21c19274",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/fortran/verify_controls.py",
+      "sha256": "f70ff6fe8d46e2582e3479175d10de444089c8167b3decd6af8ca12d874db65a",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/freeze.py",
+      "sha256": "fd12df048ce266c2a47fa1e867bafd02875e45cc78ddc1ba5b78d31b1f7dc308",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/freeze_process_guard.py",
+      "sha256": "65e6c0dfdeb1e4586d1bbadbbc59f3496cc97d0fad891ccd54483e412fcd3af9",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/julia/callbacks.jl",
+      "sha256": "90dd7f6dc7df79b979ee5d9e54d739b31dc32e734edaea4b8d1a18021bb2cb18",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/julia/ebm_tuned.jl",
+      "sha256": "bf049d3255c1b9235e1d5f126cd5363fd97ebdd61612114b33d0b69420d56418",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/julia/ebm_vanilla.jl",
+      "sha256": "40bfba71796ed73291eb1aae7cb02fef59622a0f571777d0b0b03e890e10debc",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/julia/embedding_init.c",
+      "sha256": "d2740ad6fb0b1593ea80e72b3d1e6c09da33e7d4fed60604790ed03063d9fa84",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/julia/julia_callbacks.py",
+      "sha256": "3ae0a752eec6673fd4ef31203da284ba4fdf289d4a5159e4c7fcb1a4889c2578",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/julia/sw_tuned.jl",
+      "sha256": "469258ab66875e377d31a0849460b4c5aa8375b06dc85e12e9ba56fd7f83c95a",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/julia/sw_vanilla.jl",
+      "sha256": "07e40950be72ac118a6ee50e46f4dc10fb4424a96a58bb679149bb07507db9a0",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/julia/verify_current_banks.py",
+      "sha256": "cbbca6a8227c9c7c7259410c692ba37237669aa737ce5888c10a303a1027776f",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/julia/verify_julia.py",
+      "sha256": "d3948dd5aa506b6bd53137a7060462014949fbcdc0043c2b3e362043576fd48b",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/measured/ebm/solver.f90",
+      "sha256": "9f97235e6484f2653a384f76d4888bf7fa23d92d8848d4f2aad4eb419cddabc8",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/measured/sw/solver.f90",
+      "sha256": "d7bfefa4e8dd0555e4ffe6df837d9ee174c139d781b9dc7078b29068e6320021",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/python/callbacks.py",
+      "sha256": "e5cc6a4c3e24ebca5b85b4f4ff8ef144a1be1b7b0e1c398a7529255e63813f90",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/python/ebm_tuned.py",
+      "sha256": "3ac1521583806daa452082ecc41c40f42d28d8b067d303f0ef8fbe19939f4354",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/python/ebm_vanilla.py",
+      "sha256": "d30d80c5602952cab5b117fdfead82a1aac9b194a483b68eb071105feead94d8",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/python/sw_tuned.py",
+      "sha256": "3be03325201f2e2187af070ed985c9e2b22f3c48ec563f83392a107997f5f139",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/python/sw_vanilla.py",
+      "sha256": "b3cf37a063902fafce25f208027d221f69ca9a53830af89618f36e62dee9ae2c",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/python/verify_callbacks.py",
+      "sha256": "d29571034518262a30bf5e744ca604cd27d121657587a60444e9f27d6889d5ac",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/qualify.py",
+      "sha256": "1d7a4926915bcbd6ae8ffa98b281ff191465d666d0ea80d99a1d84f9eeb90dab",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/cpu/telemetry_diagnosis/process_guard.py",
+      "sha256": "9c9d5f289d523a7d2829223651ccd2255783944025b3fe2e741ee3dd49604c37",
+      "record": "cpu_freeze"
+    },
+    {
+      "path": "reproduction/gpu/accepted_sources/ebm/solver.cuf",
+      "sha256": "49383d453ed77bbbc93f966c4711df5cd0a53eb0731df232da979f3d7056b142",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/accepted_sources/ebm/solver.ptx",
+      "sha256": "19ccce7f52d5a7d922542fdd0d2e906d2bbf8ae6c816a408d11fcbc35d3b22aa",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/accepted_sources/sw/solver.cuf",
+      "sha256": "e9bf279967292cad4a495cbf45ccc0dac112e70d445760cf2321f644c4bc5d48",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/accepted_sources/sw/solver.ptx",
+      "sha256": "43a0bcbb004c1b56222cb32c8a25cb9174c7aeb1c64925ece1674706824201f6",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/bench/energy_balance.py",
+      "sha256": "e125bfe44492aaf96d71148c36bbad1080e128bf1df94315ec08a1ff973f9224",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/bench/run.py",
+      "sha256": "f4ad8cb6ddfcf8176ee876a27ad64a68c9f07033b3cac4a243e524c0f92663d0",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/fortran/ebm/tuned/solver.cuf",
+      "sha256": "c980b3eada4259b34304d85c992c737cf6058c8adffcd46cde8d20416dddd915",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/fortran/ebm/vanilla/solver.cuf",
+      "sha256": "9bf615e38d86ac3593c78bda45ab32bf36db4b00788a13029d44fc5d767ddc0c",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/fortran/sw/tuned/solver.cuf",
+      "sha256": "84486788954bb6b14e2689e1fa37327bb40551e5fc7ce09c0d8b882414c2c520",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/fortran/sw/vanilla/solver.cuf",
+      "sha256": "317205b6f362b337fb4fb2c32ad53345e3fac2001261889cc57ee1f0cf4f9546",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/host/campaign.py",
+      "sha256": "601b42f3324e34db587998d0ebc459636fdce0bcdc61ea16cd836dcd1945ad7d",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/host/driver.cpp",
+      "sha256": "21a427401aee38379fbc63efaee980a2871ee06920871325aab1605da3dc5fc2",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/host/runtime.py",
+      "sha256": "bc7a24a3a57aa806decebfb382542ebd1d2f6bfbdb71e886e0f0c594201b4a7e",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/julia/julia_driver.jl",
+      "sha256": "d9a9474d93e91923ee978ba5e3096f70b9472419be4083192a6a8175c0cb434a",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/julia/src/eb/solver.jl",
+      "sha256": "708efd10e58e933b6d86ee5b14e2ec0be174b423cf8e764912324ae35a0a2208",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/julia/src/eb/vanilla.jl",
+      "sha256": "737ecda5ed94120dedf75684273fcdbdef3e117d9065674c9785fba66499eade",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/julia/src/sw/solver.jl",
+      "sha256": "fdd7ab457f7cd4958c72f5e2e288346bacd2f904bcd022542486960ffa4502ff",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/julia/src/sw/vanilla.jl",
+      "sha256": "35819cd60763e9ad3f28f6883bd449b2fe0211bf7994d1a73dd1d530d44044d2",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/python/src/budyko_sellers/gpu/solver.py",
+      "sha256": "35bd2068ae9728083be437a758647e74db8eb89b9289e6a144dc7973ad77d9ac",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/python/src/budyko_sellers/gpu/vanilla.py",
+      "sha256": "9024bcc88cb01d13bcb1cb1667cbb296d73a13211f9a4993af5031fb14506446",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/python/src/shallow_water/gpu/solver.py",
+      "sha256": "445e3ef0b0f647ab0ef45afe8c0aa5ef929b9de562664c877d138d7910527564",
+      "record": "gpu_expected_sources"
+    },
+    {
+      "path": "reproduction/gpu/python/src/shallow_water/gpu/vanilla.py",
+      "sha256": "7fb142d4b4616ef9e03168880397994ecdde0a18e2fce880c838ff4e8e0f283c",
+      "record": "gpu_expected_sources"
+    }
+  ],
+  "scaling_input_sha256": "124a637407eb30ab19d7dc2b313bf7fcede5b4e2e758c7f91a20e185a8ca2063",
+  "poster_source_commit": "5cbe3511824b8f48e53bc096cff01ca7e3b33b9c",
+  "paper_source_commit": "6c864a290577cf6f01ba58d1fa8656d3eaf8d376",
+  "paper_figures": {
+    "water-behaviour.pdf": {
+      "path": "paper/pasc27/poster/figures/paper/water-behaviour.pdf",
+      "sha256": "358fd1a050483268d4e833b70069f358af88b5de4798707df5d3900c7f772310"
+    },
+    "energy-behaviour.pdf": {
+      "path": "paper/pasc27/poster/figures/paper/energy-behaviour.pdf",
+      "sha256": "33e0898ff7c8e06f1108fa195b2e9f951dffbd230bcd0f0feb147f87780b979e"
+    },
+    "water-performance.pdf": {
+      "path": "paper/pasc27/poster/figures/paper/language_water_rates.pdf",
+      "sha256": "aae54564630961cd5bbcf64ab7ac14060f574248fdc4fdf9043c14c9e35b658b"
+    },
+    "energy-performance.pdf": {
+      "path": "paper/pasc27/poster/figures/paper/language_energy_rates.pdf",
+      "sha256": "9d3beec7c26702f178ed90426bbe6c220aaba196398598aee5fba941730c904b"
+    },
+    "cpu-scaling.pdf": {
+      "path": "paper/pasc27/poster/figures/paper/cpu_scaling.pdf",
+      "sha256": "79eda5b8b0ef8532291f45ec7a8bb17e09b9008ca301499a588bcd2af7e7d421"
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Accepted CPU complete-update core scaling observations",
+  "description": "CPU-only canonical pairs. The renderer draws all three observed grid shapes and every actual core count. Missing requested counts are disclosed and are never interpolated.",
+  "allOf": [
+    {
+      "$ref": "accepted-input.schema.json"
+    }
+  ],
+  "properties": {
+    "requested_cpu_cores": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "default": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32,
+        64,
+        72,
+        128,
+        144,
+        248
+      ]
+    },
+    "paired_records": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "allOf": [
+          {
+            "$ref": "accepted-input.schema.json#/$defs/condition"
+          },
+          {
+            "properties": {
+              "platform": {
+                "const": "cpu"
+              },
+              "gpu_devices": {
+                "const": 0
+              },
+              "source_revisions": {
+                "required": [
+                  "esm_md",
+                  "baseline"
+                ]
+              },
+              "active_workers": {
+                "description": "Mandatory actual teams. SW equals cpu_cores. EBM equals min(cpu_cores,bands). The Python guard enforces the exact rule."
+              },
+              "series_kind": {
+                "const": "fixed_scaling"
+              },
+              "nonempty_spatial_owners_by_route": {
+                "description": "Mandatory separate per-route nonempty-owner counts, never inferred from the budget or team."
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

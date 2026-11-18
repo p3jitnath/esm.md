@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "status": "accepted",
+  "presentation": "reference_language_scatter",
+  "measurement_class": "fresh_eight_route_languages",
+  "cohort": "fresh_languages_job8353767",
+  "native_picture_format": "png",
+  "input": {
+    "path": "data/fresh-language-comparison-input.json",
+    "sha256": "ad5fcc2e4e65ebd5e380d582b83008b7e10556fab608d6b681a573e8be96bb30"
+  },
+  "encoding_audit": {
+    "path": "data/fresh-language-encoding-audit.json",
+    "sha256": "0c38e95379ee222fe0b9c7988416b3390cd586afdc26200b5dd8771e75b0cbc9"
+  },
+  "figures": {
+    "sw": {
+      "png": "figures/poster/language_water_rates.png",
+      "svg": "figures/poster/language_water_rates.svg",
+      "pdf": "figures/poster/language_water_rates.pdf"
+    },
+    "ebm": {
+      "png": "figures/poster/language_energy_rates.png",
+      "svg": "figures/poster/language_energy_rates.svg",
+      "pdf": "figures/poster/language_energy_rates.pdf"
+    }
+  },
+  "render_metadata": {
+    "sw": {
+      "path": "figures/poster/language_water_rates.json",
+      "sha256": "65fa9bef11a512c5da304bbc332acb7a5354e3d9c2f84dbf53464d9caa3c301f"
+    },
+    "ebm": {
+      "path": "figures/poster/language_energy_rates.json",
+      "sha256": "d646bdd47584ed1818314334caf937bc0aa970691eeb4963b18a797f664a26eb"
+    }
+  },
+  "poster_text": {
+    "chart_notes": [
+      "Runs use frozen input banks for 1,000 steps. Points divide updates by median time. Lines show the range of 12 individual rates.",
+      "One cell update advances all fields at one interior cell through a complete step. Timing includes overlap work.",
+      "CPU uses 248 workers, with 128 for EBM at 128 bands. GPU uses one GH200 device."
+    ],
+    "takeaways": [
+      "A readable physics specification guides solver generation.",
+      "Verification is based on physical checks and byte agreement.",
+      "Reusable skills preserve measured lessons for future work."
+    ]
+  }
+}

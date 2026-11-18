@@ -1,0 +1,389 @@
+{
+  "status": "accepted",
+  "measurement_class": "fresh_eight_route_languages",
+  "cohort": "fresh_languages_job8353767",
+  "input": {
+    "path": "data/fresh-language-comparison-input.json",
+    "sha256": "ad5fcc2e4e65ebd5e380d582b83008b7e10556fab608d6b681a573e8be96bb30"
+  },
+  "input_identity": {
+    "path": "data/fresh-language-comparison-input.json",
+    "sha256": "ad5fcc2e4e65ebd5e380d582b83008b7e10556fab608d6b681a573e8be96bb30"
+  },
+  "manifest": {
+    "path": "data/fresh-language-poster-manifest.json",
+    "sha256": "92a18055177d87becc307a300052d729327bb2b2da4274176666047e8b48ede7"
+  },
+  "conditions": 96,
+  "elapsed_observations": 1152,
+  "complete_steps": 1000,
+  "repeats": 12,
+  "initial_states": {
+    "sw": "MIXED",
+    "ebm": "CLIMATE"
+  },
+  "point_definition": "updates / median_seconds",
+  "displayed_rate_definition": "updates / median_seconds / scale",
+  "range_definition": "min(rates), max(rates), where rates = updates / raw_seconds / scale",
+  "cell_update_definition": "All fields at one interior cell advanced through one complete step.",
+  "route_order": [
+    "assembly",
+    "esm",
+    "fortran_tuned",
+    "fortran_vanilla",
+    "julia_tuned",
+    "julia_vanilla",
+    "python_tuned",
+    "python_vanilla"
+  ],
+  "normaliser_sha256": "1c21e40d1d82ed0a10c8775af4a1ddc5ee6fd363d59cee79f1869d5815ec99e1",
+  "sources": {
+    "cpu_plan": {
+      "id": "cpu_plan",
+      "sha256": "234ab7dbfb1546d3688094ee7c1c306716affac6f598242db4c3414f615ff0a5"
+    },
+    "cpu_freeze": {
+      "id": "cpu_freeze",
+      "sha256": "c75627d3f0b29167cf3a71aee4c2907ada94d235bcff386514b1fbbc2abf95cc"
+    },
+    "cpu_collection": {
+      "id": "cpu_collection",
+      "sha256": "aa9f52fe1a9c747198cec20f4d6a0bc194dccb64a78107b2758e2fbad79a500e"
+    },
+    "cpu_terminal": {
+      "id": "cpu_terminal",
+      "sha256": "287257e16ac24679bf01f13209b08900cd290ac72f581e1f6db4ae07907d4a10"
+    },
+    "cpu_guard_validation": {
+      "id": "cpu_guard_validation",
+      "sha256": "e69f7886fa4a4c87236114dfddc15e440b1f8d0d0cbf0dd7b418850639b5233c"
+    },
+    "cpu_sw_64": {
+      "id": "cpu_sw_64",
+      "sha256": "8a9a23488a898ffaa7a57bd48e03671dce88247e03a1f9df05b5bf5d6d285ca9"
+    },
+    "cpu_sw_256": {
+      "id": "cpu_sw_256",
+      "sha256": "5d4d3d33cbc52ed806fa5971ab29827eb52c0536ed53183f258fb4ce01957e3f"
+    },
+    "cpu_sw_1024": {
+      "id": "cpu_sw_1024",
+      "sha256": "a4b0a665ccef3e75b28ed01a94262fc6fa521d78092e42519b6f6b3f4cbc8529"
+    },
+    "cpu_ebm_128": {
+      "id": "cpu_ebm_128",
+      "sha256": "2fc05e08135f15ab82e3e5321f0ce885bb1763bc5d1117b31281ab13c0cf636b"
+    },
+    "cpu_ebm_4096": {
+      "id": "cpu_ebm_4096",
+      "sha256": "691f12208515af0302b8a81513fda259e9b0140621d56e4eeb8e79a0a8a99e81"
+    },
+    "cpu_ebm_65536": {
+      "id": "cpu_ebm_65536",
+      "sha256": "0f5277af096ac1e26a70adc3b4c42a7beef2fb78b95688ba4f0eb60cd8157dd6"
+    },
+    "gpu_prepared": {
+      "id": "gpu_prepared",
+      "sha256": "0d308ce9e79c7ce47fe561b8943e531e0340bc14c0d831b6d805ef877ddbec95"
+    },
+    "gpu_expected_sources": {
+      "id": "gpu_expected_sources",
+      "sha256": "21b50481620a24f5acd092dc4f74cf7b834ac8676adcf1504fca5f7daa46b239"
+    },
+    "input_banks": {
+      "id": "input_banks",
+      "sha256": "710aa0361a726ae3da86f6e7554805468bc46f0341c33cddc9b1bdbeb6b727e3"
+    },
+    "gpu_sw": {
+      "id": "gpu_sw",
+      "sha256": "400f5716b96659e8f72b9dfe046ce81234249594d13d40a02cf7a4508a870f22"
+    },
+    "gpu_ebm": {
+      "id": "gpu_ebm",
+      "sha256": "b4a4472d07c04a6125a6705e978fdbdd6bf64f974212553b5ecf602bcab7e035"
+    }
+  },
+  "acceptance": {
+    "collector_reports_passed": true,
+    "complete_fresh_timings": true,
+    "independent_physics": "Retained accepted source checks and final producer gates.",
+    "limits": "Producer limits remain unchanged. CPU quiet gates are empirical, and reused canonical floating-point flag scope retains its recorded unknowns.",
+    "source_ids": [
+      "cpu_plan",
+      "cpu_freeze",
+      "cpu_collection",
+      "cpu_terminal",
+      "cpu_guard_validation",
+      "cpu_sw_64",
+      "cpu_sw_256",
+      "cpu_sw_1024",
+      "cpu_ebm_128",
+      "cpu_ebm_4096",
+      "cpu_ebm_65536",
+      "gpu_prepared",
+      "gpu_expected_sources",
+      "input_banks",
+      "gpu_sw",
+      "gpu_ebm"
+    ]
+  },
+  "collector_evidence": {
+    "id": "fresh_languages_job8353767_collector_evidence",
+    "sha256": "387cf502956db05471248bc095c1a48497c897bbdcd9110f3b697567ffd36f86",
+    "scope": "Complete original collector documents retained locally."
+  },
+  "resources": [
+    {
+      "model": "ebm",
+      "device": "CPU",
+      "size": 128,
+      "resource": {
+        "cpu_budget": 248,
+        "actual_workers": 128
+      }
+    },
+    {
+      "model": "ebm",
+      "device": "CPU",
+      "size": 4096,
+      "resource": {
+        "cpu_budget": 248,
+        "actual_workers": 248
+      }
+    },
+    {
+      "model": "ebm",
+      "device": "CPU",
+      "size": 65536,
+      "resource": {
+        "cpu_budget": 248,
+        "actual_workers": 248
+      }
+    },
+    {
+      "model": "ebm",
+      "device": "GPU",
+      "size": 128,
+      "resource": {
+        "gpu_count": 1,
+        "gpu_uuid": "GPU-c71eabfe-56ec-7ef2-0308-7dc43c9c5d35",
+        "host_cpu": 1
+      }
+    },
+    {
+      "model": "ebm",
+      "device": "GPU",
+      "size": 4096,
+      "resource": {
+        "gpu_count": 1,
+        "gpu_uuid": "GPU-c71eabfe-56ec-7ef2-0308-7dc43c9c5d35",
+        "host_cpu": 1
+      }
+    },
+    {
+      "model": "ebm",
+      "device": "GPU",
+      "size": 65536,
+      "resource": {
+        "gpu_count": 1,
+        "gpu_uuid": "GPU-c71eabfe-56ec-7ef2-0308-7dc43c9c5d35",
+        "host_cpu": 1
+      }
+    },
+    {
+      "model": "sw",
+      "device": "CPU",
+      "size": 64,
+      "resource": {
+        "cpu_budget": 248,
+        "actual_workers": 248
+      }
+    },
+    {
+      "model": "sw",
+      "device": "CPU",
+      "size": 256,
+      "resource": {
+        "cpu_budget": 248,
+        "actual_workers": 248
+      }
+    },
+    {
+      "model": "sw",
+      "device": "CPU",
+      "size": 1024,
+      "resource": {
+        "cpu_budget": 248,
+        "actual_workers": 248
+      }
+    },
+    {
+      "model": "sw",
+      "device": "GPU",
+      "size": 64,
+      "resource": {
+        "gpu_count": 1,
+        "gpu_uuid": "GPU-c71eabfe-56ec-7ef2-0308-7dc43c9c5d35",
+        "host_cpu": 1
+      }
+    },
+    {
+      "model": "sw",
+      "device": "GPU",
+      "size": 256,
+      "resource": {
+        "gpu_count": 1,
+        "gpu_uuid": "GPU-c71eabfe-56ec-7ef2-0308-7dc43c9c5d35",
+        "host_cpu": 1
+      }
+    },
+    {
+      "model": "sw",
+      "device": "GPU",
+      "size": 1024,
+      "resource": {
+        "gpu_count": 1,
+        "gpu_uuid": "GPU-c71eabfe-56ec-7ef2-0308-7dc43c9c5d35",
+        "host_cpu": 1
+      }
+    }
+  ],
+  "figures": {
+    "sw": {
+      "png": "figures/poster/language_water_rates.png",
+      "svg": "figures/poster/language_water_rates.svg",
+      "pdf": "figures/poster/language_water_rates.pdf"
+    },
+    "ebm": {
+      "png": "figures/poster/language_energy_rates.png",
+      "svg": "figures/poster/language_energy_rates.svg",
+      "pdf": "figures/poster/language_energy_rates.pdf"
+    }
+  },
+  "render_metadata": {
+    "sw": {
+      "path": "figures/poster/language_water_rates.json",
+      "sha256": "65fa9bef11a512c5da304bbc332acb7a5354e3d9c2f84dbf53464d9caa3c301f"
+    },
+    "ebm": {
+      "path": "figures/poster/language_energy_rates.json",
+      "sha256": "d646bdd47584ed1818314334caf937bc0aa970691eeb4963b18a797f664a26eb"
+    }
+  },
+  "chart_output_sha256": {
+    "sw": {
+      "figures/poster/language_water_rates.pdf": "6b1938b7bbd55522315c1c53e9c20246806e8a1e78e57f291a67275d7588b88a",
+      "figures/poster/language_water_rates.png": "d587389c43a2cd0a051c0bbb66126053940245c3b77887ed75611e79ca9f2e19",
+      "figures/poster/language_water_rates.svg": "05e3a90ce6e88a23fa94bb7ab5cd30d2fcd9b4cc35b7447638bb5c778104ba40"
+    },
+    "ebm": {
+      "figures/poster/language_energy_rates.pdf": "538c478ca52803e98c5e7f3b53ea550d114ce4aa8143f93cbc2397aee4f1c59e",
+      "figures/poster/language_energy_rates.png": "ae64141ee3a9ad9c50ffacaed7e10fa703cc9ac922ffc8b43583a62b57d71a65",
+      "figures/poster/language_energy_rates.svg": "92ed3f1cc5e8eecd7eb0641b3708fbfc535a96075c5285054c8af778a272175f"
+    }
+  },
+  "encoding_audit": {
+    "path": "data/fresh-language-encoding-audit.json",
+    "sha256": "0c38e95379ee222fe0b9c7988416b3390cd586afdc26200b5dd8771e75b0cbc9"
+  },
+  "axis_scales": {
+    "sw": [
+      {
+        "device": "CPU",
+        "scale": "logarithmic absolute rates",
+        "limits": [
+          15.127641551207097,
+          10817.295541041596
+        ],
+        "ticks": [
+          100.0,
+          1000.0,
+          10000.0
+        ],
+        "axis_inches": [
+          4.733333333333333,
+          4.223999999999999
+        ],
+        "header": "CPU \u00b7 248 cores \u00b7 log"
+      },
+      {
+        "device": "GPU",
+        "scale": "logarithmic absolute rates",
+        "limits": [
+          0.17949590412721025,
+          12.962917587133463
+        ],
+        "ticks": [
+          1.0,
+          10.0
+        ],
+        "axis_inches": [
+          4.733333333333333,
+          4.223999999999999
+        ],
+        "header": "GPU \u00b7 1 GH200 \u00b7 log"
+      }
+    ],
+    "ebm": [
+      {
+        "device": "CPU",
+        "scale": "logarithmic absolute rates",
+        "limits": [
+          46.44146619191878,
+          20837.687589849596
+        ],
+        "ticks": [
+          100.0,
+          1000.0,
+          10000.0
+        ],
+        "axis_inches": [
+          4.733333333333333,
+          4.223999999999999
+        ],
+        "header": "CPU \u00b7 248 cores \u00b7 log"
+      },
+      {
+        "device": "GPU",
+        "scale": "logarithmic absolute rates",
+        "limits": [
+          0.011359685643350378,
+          229.16822321283854
+        ],
+        "ticks": [
+          0.1,
+          1.0,
+          10.0,
+          100.0
+        ],
+        "axis_inches": [
+          4.733333333333333,
+          4.223999999999999
+        ],
+        "header": "GPU \u00b7 1 GH200 \u00b7 log"
+      }
+    ]
+  },
+  "poster_text": {
+    "chart_notes": [
+      "Runs use frozen input banks for 1,000 steps. Points divide updates by median time. Lines show the range of 12 individual rates.",
+      "One cell update advances all fields at one interior cell through a complete step. Timing includes overlap work.",
+      "CPU uses 248 workers, with 128 for EBM at 128 bands. GPU uses one GH200 device."
+    ],
+    "takeaways": [
+      "A readable physics specification guides solver generation.",
+      "Verification is based on physical checks and byte agreement.",
+      "Reusable skills preserve measured lessons for future work."
+    ]
+  },
+  "checks": {
+    "id": "fresh_language_poster_structural_checks",
+    "sha256": "c7081256f3b1dd9e54284f4e4ec9b98205412336281b1cd2d1d60bd4516db1f5"
+  },
+  "visual_review": {
+    "id": "fresh_language_poster_visual_review",
+    "sha256": "f65e037a8fab74eb6dfcee6b7cac313bdc3989060d0d136fd156a9257df15a68"
+  },
+  "evidence_binding_runs_models": false,
+  "scope": "Only the newly accepted eight-route cohort supplies the performance plots and notes. The Summary describes the demonstrated workflow and reusable lessons. Metadata binding does not strengthen the original numerical, quiet-node or timer limits."
+}

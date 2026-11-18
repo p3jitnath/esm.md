@@ -1,0 +1,53 @@
+!> Unchanged GPU control for D02, D03, T01 and BC01.
+!! Flat device arrays retain the CPU layout; each kernel uses one ordered stream.
+module eb_gpu_vanilla
+  use cudafor
+  implicit none
+contains
+  !> Copy the two pole values, including their sign bits; n is the band count.
+  attributes(global) subroutine eb_halo(n,q) bind(C,name='eb_halo')
+    integer, value :: n
+    real(8), device :: q(0:*)
+    integer :: t
+    t=(blockidx%x-1)*blockdim%x+threadidx%x-1
+    if(t==0) q(0)=q(1)
+    if(t==1) q(n+1)=q(n)
+  end subroutine
+
+  !> Store ordered face fluxes in n+2 scratch values; pole fluxes are +0.
+  attributes(global) subroutine eb_faces(n,q,work,coeff) bind(C,name='eb_faces')
+    integer, value :: n
+    real(8), device :: q(0:*),work(0:*),coeff(0:*)
+    integer :: i
+    i=(blockidx%x-1)*blockdim%x+threadidx%x-1
+    if(i>n) return
+    if(i==0.or.i==n) then
+      work(i)=0.0_8
+    else
+      work(i)=coeff(i)*(q(i+1)-q(i))
+    end if
+  end subroutine
+
+  !> Return one rounded temperature update; all addresses are disjoint.
+  !! par holds C,dt,delta,A,B,Tf in the units declared by the frozen contract.
+  attributes(global) subroutine eb_update(n,q,base,out,work,coeff,par,final) bind(C,name='eb_update')
+    integer, value :: n,final
+    real(8), device :: q(0:*),base(0:*),out(0:*),work(0:*),coeff(0:*),par(0:*)
+    real(8) :: forcing,r,ell,e,beta
+    integer :: i,p
+    i=(blockidx%x-1)*blockdim%x+threadidx%x
+    if(i>n) return
+    p=n+2
+    beta=par(1)/par(0)
+    forcing=coeff(p+i)
+    if(q(i)<=par(5)) forcing=coeff(2*p+i)
+    r=forcing-(par(3)+par(4)*q(i))
+    ell=r+(work(i)-work(i-1))/par(2)
+    e=q(i)+beta*ell
+    if(final==0) then
+      out(i)=e
+    else
+      out(i)=base(i)*0.5_8+e*0.5_8
+    end if
+  end subroutine
+end module
