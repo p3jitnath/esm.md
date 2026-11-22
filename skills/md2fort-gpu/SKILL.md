@@ -9,6 +9,8 @@ Use this skill to generate a complete GPU solver directly from a short Markdown 
 
 For this project, read [AGENTS.md](../../AGENTS.md), the [writing convention](../../standards/ASD-STE100-CONV.md), and the [GPU execution specification](../../formulations/general/gpu_execution_specification.md). Model inputs are the [shallow-water formulation](../../formulations/sw/shallow_water.md) with its [Rusanov–SSPRK2 specification](../../formulations/sw/shallow_water_specification.md), or the [energy-balance formulation](../../formulations/ebm/budyko_sellers.md) with its [numerical specification](../../formulations/ebm/budyko_sellers_specification.md). Resolve the repository from the installed skill’s real directory when it uses a symbolic link.
 
+For English documentation and reports, read the installed `avoid-ai-writing/SKILL.md` when available and apply its style guidance within the requested scope. Keep ASD-STE100-CONV, the numerical meaning, units and identifiers. [Upstream skill](https://github.com/conorbronsdon/avoid-ai-writing)
+
 ## Compiled Fortran Variants
 
 Publish complete Fortran GPU kernels using a programming model supported by the declared target compiler. The compiler owns instruction selection, register allocation and internal calling conventions. Apply manual register and assembly-interface guidance only when an assembly route is explicitly selected. Let the compiler generate target instructions and keep earlier assembly as a separate comparison. Express its qualified reuse, exact arithmetic fast paths, boundary ownership and repeated-step schedule in Fortran, then apply the same numerical specification and independent checks. Keep compiler listings and binary code local, and identify them as compiler output.

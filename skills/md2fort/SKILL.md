@@ -9,6 +9,8 @@ Turn the physics formulation into portable structured Fortran for every new CPU 
 
 Keep the reusable workflow independent of a processor architecture. Express the solver through standard Fortran types, arrays and interfaces, with dimensions supplied at runtime. Keep instruction-set names, register assignments, processor tuning flags and measurements in target build records. Recompile for each new target and verify its floating-point environment, exact outputs and performance before claiming support.
 
+For English documentation and reports, read the installed `avoid-ai-writing/SKILL.md` when available and apply its style guidance within the requested scope. Keep ASD-STE100-CONV, the numerical meaning, units and identifiers. [Upstream skill](https://github.com/conorbronsdon/avoid-ai-writing)
+
 ## Define The Solver Specification
 
 Choose and explain a numerical method, which converts continuous equations into calculations at grid points and time steps. Record its grid, complete update, boundaries, constants, initial state, stability conditions, storage and acceptance limits beside the model formulation. Use `formulations/general/` for shared solver specifications and retain the OpenIFS implementation specifications in `references/openifs/`. Keep the physics formulation short. Preserve existing verified methods in the [shallow-water specification](../../formulations/sw/shallow_water_specification.md), [energy-balance specification](../../formulations/ebm/budyko_sellers_specification.md) and [operational specifications](../../src/openifs/README.md).
